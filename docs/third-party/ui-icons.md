@@ -1,11 +1,11 @@
 # UI icons and welcome animation
 
-- **Icons:** "User Interface Icon Pack" (IconScout pack 79099, Unicons line style), 24-unit SVGs.
-  Picked glyphs are compiled into `app/src/main/java/tv/own/owntv/ui/components/UiPackIcons.kt`.
-  Licence: IconScout Simple License — free for commercial and personal use; attribution to
-  IconScout / Unicons is given here. Check the pack page before shipping a release that adds more glyphs.
+- **Icons:** Phosphor Icons 2.1.1 (regular and fill weights), © 2023 Phosphor Icons, MIT License —
+  the same family IconScout carries as the "Phosphor Icons" packs. Taken from the npm package
+  `@phosphor-icons/core` and compiled into `app/src/main/java/tv/own/owntv/ui/components/PhosphorIcons.kt`
+  by `tools/icons/gen_phosphor.py` (the mapping from app icons to Phosphor names lives there).
 - **Welcome animation:** `app/src/main/res/raw/welcome_tv.json` (Lottie "TV"), chosen by the customer
-  from IconScout. Same licence note.
+  from IconScout (IconScout Simple License: free for commercial and personal use).
 - **Profile avatars:** `app/src/main/res/raw/avatar_1.json` … `avatar_7.json` (Lottie "young man / girl /
-  boy", "old age" avatars), chosen by the customer from IconScout. Same licence note.
+  boy", "old age" avatars), chosen by the customer from IconScout (IconScout Simple License: free for commercial and personal use).
 - Animation player: `com.airbnb.android:lottie-compose` (Apache-2.0).

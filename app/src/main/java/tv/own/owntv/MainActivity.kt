@@ -60,6 +60,16 @@ import kotlin.math.max
 private const val BG_TAG = "BgImage"
 
 open class MainActivity : ComponentActivity() {
+
+    /** Esc on a keyboard (or the emulator's) is Back, as on the remote. */
+    override fun dispatchKeyEvent(event: android.view.KeyEvent): Boolean {
+        if (event.keyCode == android.view.KeyEvent.KEYCODE_ESCAPE) {
+            return super.dispatchKeyEvent(
+                android.view.KeyEvent(event.downTime, event.eventTime, event.action, android.view.KeyEvent.KEYCODE_BACK, event.repeatCount),
+            )
+        }
+        return super.dispatchKeyEvent(event)
+    }
     companion object {
         private const val TAG = "OwnTVHome"
 

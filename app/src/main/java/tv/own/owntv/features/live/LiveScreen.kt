@@ -637,11 +637,23 @@ fun LiveScreen(
         }
         val targetChannelId by targetChannelIdState
 
-        // The list side, dimmed to 40% while the sheet is over it.
+        // The list side, dimmed to 40% while the sheet is over it — or, TV-box style, pushed aside by it.
+        val tvBox = tv.own.owntv.features.shell.TvBoxNav
+        val listPush by androidx.compose.animation.core.animateDpAsState(
+            if (tvBox && categoriesOpen) sheetW else 0.mpx,
+            androidx.compose.animation.core.tween(280, easing = androidx.compose.animation.core.FastOutSlowInEasing),
+            label = "liveListPush",
+        )
         Box(
             Modifier
                 .fillMaxSize()
-                .then(if (categoriesOpen) Modifier.graphicsLayer { alpha = 0.4f } else Modifier),
+                .then(
+                    when {
+                        tvBox -> Modifier.graphicsLayer { translationX = listPush.toPx() }
+                        categoriesOpen -> Modifier.graphicsLayer { alpha = 0.4f }
+                        else -> Modifier
+                    },
+                ),
         ) {
             LiveHeader(
                 category = headerLabel,
@@ -885,7 +897,11 @@ fun LiveScreen(
             }
         }
 
-        if (categoriesOpen) {
+        androidx.compose.animation.AnimatedVisibility(
+            visible = categoriesOpen,
+            enter = androidx.compose.animation.slideInHorizontally(androidx.compose.animation.core.tween(280, easing = androidx.compose.animation.core.FastOutSlowInEasing)) { -it },
+            exit = androidx.compose.animation.slideOutHorizontally(androidx.compose.animation.core.tween(240)) { -it },
+        ) {
             LiveCategories(
                 entries = categoryEntries,
                 selectedIndex = selectedIndex,
@@ -902,7 +918,7 @@ fun LiveScreen(
                 searchQuery = categoryQuery,
                 onSearchQueryChange = vm::setCategoryQuery,
                 modifier = categoriesModifier
-                    .padding(start = fx(24), top = 24.mpx, bottom = 24.mpx)
+                    .then(if (tv.own.owntv.features.shell.TvBoxNav) Modifier else Modifier.padding(start = fx(24), top = 24.mpx, bottom = 24.mpx))
                     .width(sheetW)
                     .fillMaxHeight(),
             )

@@ -3,6 +3,8 @@ package tv.own.owntv.features.shell.components
 import androidx.compose.ui.draw.clip
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -107,6 +109,10 @@ private val NavSize.openWidth get() = when (this) {
 }
 
 /** The space a docked rail takes from the content, from the screen edge: 28 + 84 capsule, 24 + width with names. */
+/** How far the TV-box menu pushes the screen to the right while it is open. */
+@Suppress("UNUSED_PARAMETER")
+fun tvBoxMenuWidth(size: NavSize) = 84.mpx
+
 fun railDockedReserve(size: NavSize) =
     if (size == NavSize.COMPACT) (28 + 84 + 16).mpx else (24 + size.openWidth + 16).mpx
 
@@ -149,7 +155,11 @@ fun StageRail(
     onNowPlaying: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val open = (state == RailState.OPEN || state == RailState.PINNED) && size != NavSize.COMPACT
+    // TV-box style: called up with ◀, the menu always opens with its names, on a sheet of its own.
+    val tvBox = tv.own.owntv.features.shell.TvBoxNav
+    // TV-box style the menu is icons only, on a full-height strip of its own (see [tvBoxStrip]).
+    val open = (state == RailState.OPEN || state == RailState.PINNED) && size != NavSize.COMPACT && !tvBox
+    val tvBoxStrip = tvBox && state == RailState.OPEN
     val counts = size >= NavSize.WIDE
     val details = size == NavSize.EXTRA_WIDE
     val full = length == NavLength.FULL
@@ -162,7 +172,9 @@ fun StageRail(
         selected == MainSection.SEARCH || selected in visibleSections -> selected
         else -> StageRailOrder.firstOrNull { it in visibleSections } ?: MainSection.MORE
     }
-    val items = StageRailOrder.filter { it == MainSection.SEARCH || it in visibleSections } + MainSection.MORE
+    // TV-box style: no Movies, Series or Downloads, and the channels are Home (the Live TV screen).
+    val items = (StageRailOrder.filter { it == MainSection.SEARCH || it in visibleSections } + MainSection.MORE)
+        .filter { !tvBox || it !in TvBoxHiddenSections }
 
     // Slide in from the edge (320 ms, or a snap with animations off): the capsule when it leaves
     // HIDDEN, the open rail each time it opens.
@@ -175,18 +187,19 @@ fun StageRail(
     }
 
     Box(modifier.fillMaxSize()) {
-        if (state == RailState.OPEN && open) {
+        // TV-box style the menu pushes the screen aside instead of dimming it.
+        if (state == RailState.OPEN && open && !tvBox) {
             Box(Modifier.fillMaxSize().background(StageColors.Scrim))
         }
-        if (state == RailState.HIDDEN) RailEdgeGlow(Modifier.align(Alignment.CenterStart))
+        if (state == RailState.HIDDEN && !tv.own.owntv.features.shell.TvBoxNav) RailEdgeGlow(Modifier.align(Alignment.CenterStart))
 
         val width = if (open) size.openWidth.mpx else 84.mpx
-        val edge = if (open) 24.mpx else 28.mpx
+        val edge = if (tvBox) 0.mpx else if (open) 24.mpx else 28.mpx
         Column(
             modifier = Modifier
                 .align(Alignment.CenterStart)
                 .offset(x = edge)
-                .then(if (full) Modifier.padding(vertical = 24.mpx).fillMaxHeight() else Modifier)
+                .then(if (tvBoxStrip) Modifier.fillMaxHeight() else if (full) Modifier.padding(vertical = 24.mpx).fillMaxHeight() else Modifier)
                 .width(width)
                 .graphicsLayer {
                     val travel = (width + edge).toPx()
@@ -231,15 +244,21 @@ fun StageRail(
                 }
                 .focusGroup()
                 // Collapsed, the rail is icons alone over the page: no capsule behind them.
-                .then(if (open) Modifier.stageGlass(34.mpx, overContent = true) else Modifier)
+                .then(
+                    when {
+                        tvBoxStrip -> Modifier.background(TvBoxMenuFill)
+                        open -> Modifier.stageGlass(34.mpx, overContent = true)
+                        else -> Modifier
+                    },
+                )
                 .padding(
                     horizontal = if (open) 16.mpx else 0.mpx,
-                    vertical = if (open) 22.mpx else 16.mpx,
+                    vertical = if (tvBoxStrip) 48.mpx else if (open) 22.mpx else 16.mpx,
                 ),
             horizontalAlignment = if (open) Alignment.Start else Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(6.mpx),
         ) {
-            RailBrand(open)
+            RailBrand(open, onHome = { onSelect(MainSection.HOME) })
             if (nowPlaying != null) {
                 RailItem(
                     icon = if (nowPlaying.audioMode) OwnTVIcon.EQ else OwnTVIcon.PLAY,
@@ -255,8 +274,8 @@ fun StageRail(
             }
             items.forEach { section ->
                 RailItem(
-                    icon = section.stageIcon,
-                    label = stringResource(section.labelRes),
+                    icon = if (tvBox && section == MainSection.LIVE_TV) OwnTVIcon.HOME else section.stageIcon,
+                    label = stringResource((if (tvBox && section == MainSection.LIVE_TV) MainSection.HOME else section).labelRes),
                     trailing = if (counts) count(section)?.let { NumberFormat.getIntegerInstance(LocalConfiguration.current.locales[0]).format(it) } else null,
                     detail = if (details) detail(section) else null,
                     open = open,
@@ -308,14 +327,16 @@ private fun RailEdgeGlow(modifier: Modifier) {
 
 /** The mark (50), with the wordmark beside it when the rail is open (`.brandrow`, 0 10 18 padding). */
 @Composable
-private fun ColumnScope.RailBrand(open: Boolean) {
+private fun ColumnScope.RailBrand(open: Boolean, onHome: () -> Unit) {
     val icon = rememberAppliedIcon()
+    // A click on the logo goes Home, as on a web page (a tap, not a focus stop for the remote).
+    val toHome = Modifier.pointerInput(onHome) { detectTapGestures { onHome() } }
     if (!open) {
-        BrandMark(icon, 50.mpx, Modifier.padding(bottom = 12.mpx))
+        BrandMark(icon, 50.mpx, Modifier.padding(bottom = 12.mpx).then(toHome))
         return
     }
     Row(
-        Modifier.padding(start = 10.mpx, end = 10.mpx, bottom = 18.mpx),
+        Modifier.then(toHome).padding(start = 10.mpx, end = 10.mpx, bottom = 18.mpx),
         horizontalArrangement = Arrangement.spacedBy(14.mpx),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -466,3 +487,9 @@ internal fun RailAvatar(initial: String, size: Int = 46, textSize: Int = 20, ava
         Text(initial, style = stageText(textSize, 800), color = Color(0xFF2A0D12), maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
 }
+
+/** The TV-box menu's sheet: the grey of the settings sheet. */
+private val TvBoxMenuFill = androidx.compose.ui.graphics.Color(0xFF232629)
+
+/** Sections the TV-box menu leaves out: Home is the channels themselves. */
+internal val TvBoxHiddenSections = setOf(MainSection.HOME, MainSection.MOVIES, MainSection.SERIES, MainSection.DOWNLOADS)

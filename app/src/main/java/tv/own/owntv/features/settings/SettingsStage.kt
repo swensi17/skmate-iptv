@@ -456,7 +456,13 @@ fun SettingsSheet(
 ) {
     val shown = remember { androidx.compose.animation.core.MutableTransitionState(false).apply { targetState = true } }
     BoxWithConstraints(modifier.fillMaxSize()) {
-        if (scrim) Box(Modifier.fillMaxSize().background(SideScrim))
+        // A tap beside the sheet is Back, as on the remote.
+        val backDispatcher = androidx.activity.compose.LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
+        if (scrim) Box(
+            Modifier.fillMaxSize().background(SideScrim).pointerInput(backDispatcher) {
+                detectTapGestures { backDispatcher?.onBackPressed() }
+            },
+        )
         androidx.compose.animation.AnimatedVisibility(
             visibleState = shown,
             enter = androidx.compose.animation.slideInHorizontally(androidx.compose.animation.core.tween(SideInMs, easing = androidx.compose.animation.core.FastOutSlowInEasing)) { if (fromStart) -it / 4 else it / 4 } +
