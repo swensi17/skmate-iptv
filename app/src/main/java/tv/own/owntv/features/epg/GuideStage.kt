@@ -297,11 +297,16 @@ internal fun Modifier.guideNowLine(accent: Color): Modifier = drawBehind {
 internal fun GuideMenuHost(x: Float, top: Dp, width: Dp, onDismiss: () -> Unit, content: @Composable ColumnScope.() -> Unit) {
     BackHandler { onDismiss() }
     OwnTVPopup(onDismissRequest = onDismiss, stageLayout = true) {
-        BoxWithConstraints(Modifier.fillMaxSize().background(StageColors.Scrim).longPressMenuGuard()) {
+        // TV-box look: one small window in the middle of the screen, as tall as it needs and scrolling past that.
+        val centred = tv.own.owntv.features.shell.TvBoxNav
+        BoxWithConstraints(Modifier.fillMaxSize().background(StageColors.Scrim).longPressMenuGuard(), contentAlignment = if (centred) Alignment.Center else Alignment.TopStart) {
             StageMenu(
                 Modifier
-                    .padding(start = (maxWidth * (x / 1920f)).coerceAtMost(maxWidth - width), top = top, bottom = 24.mpx)
-                    .width(width)
+                    .then(
+                        if (centred) Modifier.heightIn(max = maxHeight - 96.mpx)
+                        else Modifier.padding(start = (maxWidth * (x / 1920f)).coerceAtMost(maxWidth - width), top = top, bottom = 24.mpx),
+                    )
+                    .width(width.coerceAtMost(maxWidth - 64.mpx))
                     .verticalScroll(rememberScrollState())
                     .trapAllFocusExit()
                     .focusGroup(),
@@ -452,6 +457,8 @@ internal fun GuideProgrammeMenu(title: String, subtitle: String, actions: GuideP
                 actions.onCatchupPlayer(all[(all.indexOf(player) + 1) % all.size])
             },
         )
+        // TV-box look: no recording (it fills the TV's storage and is not what this app is for).
+        if (!tv.own.owntv.features.shell.TvBoxNav) {
         StageGroupLabel(stringResource(R.string.content_menu_group_record).uppercase(locale))
         StageMenuItem(
             text = actions.recordLabel, icon = OwnTVIcon.REC, iconFilled = true,
@@ -469,6 +476,7 @@ internal fun GuideProgrammeMenu(title: String, subtitle: String, actions: GuideP
             enabled = actions.onRecordFromCatchup != null,
             onClick = { actions.onRecordFromCatchup?.invoke(); onDismiss() },
         )
+        }
         StageGroupLabel(stringResource(R.string.content_menu_group_channel).uppercase(locale))
         StageMenuItem(
             text = stringResource(if (actions.isFavorite) R.string.content_epg_remove_favourite else R.string.content_epg_add_favourite),
@@ -755,7 +763,7 @@ internal fun GuideReviewPopup(
                             horizontalArrangement = Arrangement.spacedBy(12.mpx),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Text(stringResource(R.string.content_epg_include_logos), style = stageText(18, 700), color = if (focused) a.onAccent else StageColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Text(stringResource(R.string.content_epg_include_logos), style = stageText(18, 700), color = if (focused) tv.own.owntv.ui.theme.stageAccent.onAccent else StageColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis)
                             StageSwitch(includeLogos)
                         }
                     }

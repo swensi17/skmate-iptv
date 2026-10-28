@@ -174,6 +174,8 @@ fun SportsHubScreen(
         onEntryHook?.invoke { runCatching { entry.requestFocus() }.getOrDefault(false) }
         onDispose { onEntryHook?.invoke(null) }
     }
+    // TV-box style: just the sport on the user's channels now, one line each — no chips, leagues or cards.
+    val simple = tv.own.owntv.features.shell.TvBoxNav
     Box(modifier.fillMaxSize().onFocusChanged { if (it.hasFocus) onChildFocused() }) {
         LazyColumn(
             Modifier.fillMaxSize().focusGroup(),
@@ -182,15 +184,15 @@ fun SportsHubScreen(
             item(key = "head") {
                 Column(Modifier.padding(start = contentStart, end = 360.mpx)) {
                     Text(stringResource(R.string.sports_title), style = stageText(48, 800), color = StageColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    Spacer(Modifier.height(9.mpx))
-                    HubSubtitle(today.filter { it.passes() })
-                    if (state.board.paused) {
+                    if (!simple) Spacer(Modifier.height(9.mpx))
+                    if (!simple) HubSubtitle(today.filter { it.passes() })
+                    if (!simple && state.board.paused) {
                         Spacer(Modifier.height(6.mpx))
                         Text(stringResource(R.string.sports_paused), style = stageText(18, 600), color = StageColors.Warn, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                 }
             }
-            item(key = "chips") {
+            if (!simple) item(key = "chips") {
                 val shownSports = if (showAllSports) followedSports else followedSports.take(SPORT_CHIPS)
                 LazyRow(
                     // Nothing above the chips takes focus; without this, focus search found the rail.
@@ -211,7 +213,7 @@ fun SportsHubScreen(
                 }
             }
 
-            if (sportLeagues.size > 1) {
+            if (!simple && sportLeagues.size > 1) {
                 item(key = "leagues") {
                     LazyRow(
                         Modifier.padding(top = 12.mpx).focusRestorer().focusGroup(),
@@ -228,7 +230,16 @@ fun SportsHubScreen(
             }
 
             val nothing = live.isEmpty() && soon.isEmpty() && onNow.isEmpty()
-            if (config.followedLeagues().isEmpty()) {
+            if (simple && onNow.isEmpty()) {
+                item(key = "simpleEmpty") {
+                    Text(
+                        stringResource(R.string.sports_empty_nothing),
+                        style = stageText(22, 600), color = StageColors.Muted,
+                        modifier = Modifier.padding(start = contentStart, top = 80.mpx),
+                    )
+                }
+            } else if (simple) Unit
+            else if (config.followedLeagues().isEmpty()) {
                 item(key = "none") { NothingFollowedNote(Modifier.padding(start = contentStart, top = 80.mpx, end = 360.mpx)) }
             } else if (nothing && !state.rebuilding) {
                 item(key = "empty") {
@@ -241,7 +252,7 @@ fun SportsHubScreen(
                 }
             }
 
-            if (live.isNotEmpty()) {
+            if (!simple && live.isNotEmpty()) {
                 item(key = "live") {
                     Column {
                         RowHeader(contentStart, stringResource(R.string.sports_live_now), null, live = true)
@@ -266,16 +277,16 @@ fun SportsHubScreen(
             if (onNow.isNotEmpty()) {
                 item(key = "onNow") {
                     Column {
-                        RowHeader(contentStart, stringResource(R.string.sports_on_channels_now), stringResource(R.string.sports_on_channels_now_hint))
-                        Column(Modifier.padding(start = contentStart - 18.mpx, end = 40.mpx).focusGroup()) {
-                            onNow.chunked(3).forEach { row ->
+                        RowHeader(contentStart, stringResource(R.string.sports_on_channels_now), if (simple) null else stringResource(R.string.sports_on_channels_now_hint))
+                        Column(Modifier.padding(start = contentStart - 18.mpx, end = if (simple) 64.mpx else 40.mpx).focusGroup()) {
+                            onNow.chunked(if (simple) 1 else 3).forEachIndexed { rowIndex, row ->
                                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(21.mpx)) {
                                     row.forEach { item ->
-                                        OnChannelsRow(item, now, Modifier.weight(1f)) {
+                                        OnChannelsRow(item, now, Modifier.weight(1f).then(if (simple && rowIndex == 0) Modifier.focusRequester(chipFocus) else Modifier)) {
                                             onPlayChannel(item.channels.first(), item.channels)
                                         }
                                     }
-                                    repeat(3 - row.size) { Spacer(Modifier.weight(1f)) }
+                                    repeat((if (simple) 1 else 3) - row.size) { Spacer(Modifier.weight(1f)) }
                                 }
                             }
                         }
@@ -283,7 +294,7 @@ fun SportsHubScreen(
                 }
             }
 
-            if (soon.isNotEmpty()) {
+            if (!simple && soon.isNotEmpty()) {
                 item(key = "soon") {
                     val context = LocalContext.current
                     Column {
@@ -545,7 +556,12 @@ private fun OnChannelsRow(item: GuideSportItem, now: Long, modifier: Modifier, o
             logoUrl = ch.logoUrl,
             modifier = Modifier.size(78.mpx, 48.mpx).background(stageStillBack, RoundedCornerShape(10.mpx)),
             fill = Color.Transparent,
-        ) {}
+        ) {
+            // No logo in the playlist: the TV mark, so the row never shows an empty box.
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                tv.own.owntv.ui.components.OwnTVIcon(tv.own.owntv.ui.components.OwnTVIcon.LIVE_TV, StageColors.Muted, Modifier.size(26.mpx))
+            }
+        }
         Column(Modifier.weight(1f)) {
             val sep = stringResource(R.string.content_epg_bits_separator)
             Text(guideSportLabel(item.sport) + sep + item.title, style = stageText(20, 700), color = StageColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis)

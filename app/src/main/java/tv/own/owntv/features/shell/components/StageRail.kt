@@ -246,7 +246,18 @@ fun StageRail(
                 // Collapsed, the rail is icons alone over the page: no capsule behind them.
                 .then(
                     when {
-                        tvBoxStrip -> Modifier.background(TvBoxMenuFill)
+                        // Flush with the screen's edge, full height, only its outer corners softly rounded.
+                        tvBoxStrip && TvBoxPanels.besideOpen -> run {
+                            val line = StageColors.Ink.copy(alpha = 0.10f)
+                            Modifier
+                            .background(if (tv.own.owntv.ui.theme.LocalStagePalette.current.isLight) androidx.compose.ui.graphics.Color.White else TvBoxMenuFill)
+                            .drawBehind {
+                                val w = 1.mpx.toPx()
+                                val box = drawContext.size
+                                drawRect(line, topLeft = androidx.compose.ui.geometry.Offset(box.width - w, 0f), size = androidx.compose.ui.geometry.Size(w, box.height))
+                            }
+                        }
+                        tvBoxStrip -> Modifier.background(if (tv.own.owntv.ui.theme.LocalStagePalette.current.isLight) androidx.compose.ui.graphics.Color.White else TvBoxMenuFill, TvBoxEdgeShape)
                         open -> Modifier.stageGlass(34.mpx, overContent = true)
                         else -> Modifier
                     },
@@ -258,7 +269,16 @@ fun StageRail(
             horizontalAlignment = if (open) Alignment.Start else Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(6.mpx),
         ) {
-            RailBrand(open, onHome = { onSelect(MainSection.HOME) })
+            if (tvBox) {
+                // The SK letters in brand blue instead of the logo; the icons sit in the middle, the profile at the bottom.
+                androidx.tv.material3.Text(
+                    stringResource(R.string.brand_wordmark_first),
+                    style = tv.own.owntv.ui.theme.stageText(26, 900),
+                    color = tv.own.owntv.ui.brand.SkMateBlue,
+                    modifier = Modifier.align(Alignment.CenterHorizontally).pointerInput(Unit) { detectTapGestures { onSelect(MainSection.HOME) } },
+                )
+                Spacer(Modifier.weight(1f))
+            } else RailBrand(open, onHome = { onSelect(MainSection.HOME) })
             if (nowPlaying != null) {
                 RailItem(
                     icon = if (nowPlaying.audioMode) OwnTVIcon.EQ else OwnTVIcon.PLAY,
@@ -286,8 +306,8 @@ fun StageRail(
                 )
             }
             // Full height: the profile sits at the bottom, after the last separator.
-            if (full) Spacer(Modifier.weight(1f))
-            RailSeparator(open)
+            if (full || tvBox) Spacer(Modifier.weight(1f))
+            if (!tvBox) RailSeparator(open)
             RailProfile(open, profileName, profileLine.takeIf { counts }, avatarId, avatarPath, onSwitchProfile, onPickAvatar)
         }
     }
@@ -376,28 +396,33 @@ private fun RailItem(
 ) {
     val a = stageAccent
     val r = 20.mpx
+    // TV-box look: focus is the soft grey fill (FX), the section in use a faint one; no rings.
+    val tvBox = tv.own.owntv.features.shell.TvBoxNav
     StageSurface(
         onClick = onClick,
         radius = r,
-        focusStyle = if (open) StageFocus.FILLED else StageFocus.OUTLINE,
+        focusStyle = if (tvBox) StageFocus.FX else if (open) StageFocus.FILLED else StageFocus.OUTLINE,
         // At least 60, not exactly: with a large font size the name and its detail line need more, and a
         // fixed height cut the detail line off (#7.2).
         modifier = modifier.then(if (open) Modifier.fillMaxWidth().heightIn(min = 60.mpx) else Modifier.size(58.mpx)),
         idle = when {
             !active -> Modifier
+            tvBox -> Modifier.background(StageColors.Text.copy(alpha = 0.06f), RoundedCornerShape(r))
             open -> Modifier.background(a.accent.copy(alpha = 0.14f), RoundedCornerShape(r))
             else -> Modifier.drawBehind { drawInnerRing(a.accent, 2.mpx.toPx(), r.toPx()) }
         },
         contentAlignment = if (open) Alignment.CenterStart else Alignment.Center,
     ) { focused ->
         val iconTint = when {
+            tvBox && (focused || active) -> StageColors.Text
+            tvBox -> StageColors.Muted
             focused && !open -> Color.White
             focused -> a.onAccent
             active || accentIcon -> a.accent
             else -> StageColors.NavText
         }
         if (!open) {
-            OwnTVIcon(icon, iconTint, Modifier.size(27.mpx))
+            OwnTVIcon(icon, iconTint, Modifier.size(32.mpx))
             return@StageSurface
         }
         Row(
@@ -410,7 +435,7 @@ private fun RailItem(
                 Text(
                     label,
                     style = stageText(21, 600),
-                    color = if (focused) a.onAccent else if (active) a.accent else StageColors.Text,
+                    color = if (focused) tv.own.owntv.ui.theme.stageAccent.onAccent else if (active) a.accent else StageColors.Text,
                     maxLines = 1, overflow = TextOverflow.Ellipsis,
                 )
                 if (detail != null) {
@@ -418,14 +443,14 @@ private fun RailItem(
                     Text(
                         detail,
                         style = stageText(14, 500),
-                        color = if (focused) a.onAccent.copy(alpha = 0.8f) else StageColors.Dim,
+                        color = if (focused) tv.own.owntv.ui.theme.stageAccent.onAccent.copy(alpha = 0.8f) else StageColors.Dim,
                         maxLines = 1, overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.padding(top = 2.mpx),
                     )
                 }
             }
             if (trailing != null) {
-                Text(trailing, style = stageText(16, 600), color = if (focused) a.onAccent else StageColors.Dim, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(trailing, style = stageText(16, 600), color = if (focused) tv.own.owntv.ui.theme.stageAccent.onAccent else StageColors.Dim, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
         }
     }
@@ -459,9 +484,9 @@ private fun RailProfile(open: Boolean, name: String, line: String?, avatarId: In
         ) {
             RailAvatar(initial, avatarId = avatarId, imagePath = avatarPath)
             Column {
-                Text(name, style = stageText(19, 700), color = if (focused) a.onAccent else StageColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(name, style = stageText(19, 700), color = if (focused) tv.own.owntv.ui.theme.stageAccent.onAccent else StageColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 if (line != null) {
-                    Text("$line ›", style = stageText(15, 400), color = if (focused) a.onAccent else StageColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text("$line ›", style = stageText(15, 400), color = if (focused) tv.own.owntv.ui.theme.stageAccent.onAccent else StageColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
             }
         }
@@ -493,3 +518,14 @@ private val TvBoxMenuFill = androidx.compose.ui.graphics.Color(0xFF232629)
 
 /** Sections the TV-box menu leaves out: Home is the channels themselves. */
 internal val TvBoxHiddenSections = setOf(MainSection.HOME, MainSection.MOVIES, MainSection.SERIES, MainSection.DOWNLOADS)
+
+/** The TV-box panels' shape at the left edge: square on the screen side, softly rounded on the other. */
+internal val TvBoxEdgeShape = RoundedCornerShape(topEnd = 20.mpx, bottomEnd = 20.mpx)
+
+/**
+ * Whether a screen's own panel (Live TV's categories) is open beside the menu: then the menu is a plain
+ * strip with a hairline on its right, and only that panel's outer corners are rounded.
+ */
+object TvBoxPanels {
+    var besideOpen by androidx.compose.runtime.mutableStateOf(false)
+}

@@ -736,8 +736,8 @@ private fun RecentRow(term: String, onClick: () -> Unit) {
             horizontalArrangement = Arrangement.spacedBy(12.mpx),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            OwnTVIcon(OwnTVIcon.HISTORY, if (focused) a.onAccent else StageColors.Muted, Modifier.size(20.mpx))
-            Text(term, style = stageText(18.5f, 600), color = if (focused) a.onAccent else stageTone(Color(0xFFCDD7D3), StageColors.ItemText), maxLines = 1, overflow = TextOverflow.Ellipsis)
+            OwnTVIcon(OwnTVIcon.HISTORY, if (focused) tv.own.owntv.ui.theme.stageAccent.onAccent else StageColors.Muted, Modifier.size(20.mpx))
+            Text(term, style = stageText(18.5f, 600), color = if (focused) tv.own.owntv.ui.theme.stageAccent.onAccent else stageTone(Color(0xFFCDD7D3), StageColors.ItemText), maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
     }
 }

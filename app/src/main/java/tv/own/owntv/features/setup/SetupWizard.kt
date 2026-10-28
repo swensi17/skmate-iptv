@@ -554,6 +554,8 @@ private fun AddContentStep(hasExisting: Boolean, onPhone: () -> Unit, onType: ()
         next = null,
         // Back on the remote does not skip: this step had no Back before, and skipping is a choice.
         onBack = null,
+        // Skip runs the width of the cards above it, so the step reads as one block.
+        singleWidth = 1040.mpx,
     ) {
         WizardCards(
             listOfNotNull(

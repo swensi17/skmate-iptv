@@ -324,10 +324,11 @@ internal fun WizardCards(cards: List<WizardCard>, firstFocus: FocusRequester? = 
                     .heightIn(min = 170.mpx)
                     .then(if (i == 0 && firstFocus != null) Modifier.focusRequester(firstFocus) else Modifier),
             ) { focused ->
+                // Every card the same: icon, title, two lines at most, so the titles sit on one line across.
                 Column(Modifier.fillMaxWidth().padding(24.mpx)) {
-                    OwnTVIcon(card.icon, if (focused) StageColors.Text else StageColors.Muted, Modifier.size(30.mpx))
+                    OwnTVIcon(card.icon, if (focused) StageColors.Text else StageColors.Muted, Modifier.size(38.mpx))
                     Text(card.title, style = stageText(23, 800), color = StageColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 18.mpx))
-                    Text(card.line, style = stageText(16, 500).copy(lineHeight = 23.mpxLine()), color = StageColors.Muted, modifier = Modifier.padding(top = 6.mpx))
+                    Text(card.line, style = stageText(16, 500).copy(lineHeight = 23.mpxLine()), color = StageColors.Muted, maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 6.mpx))
                 }
             }
         }
