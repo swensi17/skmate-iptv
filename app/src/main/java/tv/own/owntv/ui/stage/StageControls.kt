@@ -27,6 +27,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
@@ -87,6 +88,7 @@ fun StageSearchField(
     val fieldFocus = remember { FocusRequester() }
     val bringIntoView = remember { BringIntoViewRequester() }
     val keyboard = LocalSoftwareKeyboardController.current
+    val focusManager = androidx.compose.ui.platform.LocalFocusManager.current
     val imeWatcher = LocalTvImeWatcher.current
     val imeMetrics = LocalTvImeMetrics.current
     val focus = stageAccent.focus
@@ -137,15 +139,30 @@ fun StageSearchField(
                         .focusProperties { canFocus = editing }
                         .onFocusChanged { if (editing && !it.isFocused) editing = false }
                         .onPreviewKeyEvent {
-                            if (it.key == Key.Back) {
-                                if (it.type == KeyEventType.KeyUp) {
-                                    editing = false
-                                    keyboard?.hide()
-                                    runCatching { pillFocus.requestFocus() }
+                            when (it.key) {
+                                Key.Back -> {
+                                    if (it.type == KeyEventType.KeyUp) {
+                                        editing = false
+                                        keyboard?.hide()
+                                        runCatching { pillFocus.requestFocus() }
+                                    }
+                                    true
                                 }
-                                true
-                            } else {
-                                false
+                                // A one-line field has nowhere to go up or down, so the remote's ▲/▼ used to
+                                // do nothing and the user was stuck in the field: they now end typing and move
+                                // on (▼ to the results under it, ▲ to whatever is above).
+                                Key.DirectionUp, Key.DirectionDown -> {
+                                    if (it.type == KeyEventType.KeyDown) {
+                                        editing = false
+                                        keyboard?.hide()
+                                        runCatching { pillFocus.requestFocus() }
+                                        val up = it.key == Key.DirectionUp
+                                        val direction = if (up) FocusDirection.Up else FocusDirection.Down
+                                        focusManager.moveFocus(direction)
+                                    }
+                                    true
+                                }
+                                else -> false
                             }
                         },
                     textStyle = stageText(18, 500).copy(color = StageColors.Text),

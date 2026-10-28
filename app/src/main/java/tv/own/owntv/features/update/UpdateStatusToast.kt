@@ -34,8 +34,8 @@ import tv.own.owntv.ui.components.OwnTVSpinner
 
 /**
  * Small semi-transparent status card (top-right corner) for the automatic startup update check:
- * "Checking…" → "You're up to date" (auto-hides after ~2s) — or, when an update exists, it stays
- * with Update now / Later. Update now downloads with progress and hands off to the system installer.
+ * "Checking…" → "You're up to date" (auto-hides after ~2s) — or, when an update exists, it downloads it
+ * at once with progress and hands off to the system installer.
  * Only the Available state takes D-pad focus; the transient states never interrupt browsing.
  */
 @Composable
@@ -49,7 +49,9 @@ fun UpdateStatusToast(onDone: () -> Unit, onViewChangelog: () -> Unit, modifier:
         when (state) {
             UpdateManager.State.UpToDate -> { delay(2_000); manager.reset(); onDone() }
             is UpdateManager.State.Failed -> { delay(2_500); manager.reset(); onDone() }
-            is UpdateManager.State.Available -> runCatching { focus.requestFocus() }
+            // SkMate updates itself: a newer release found at start is downloaded straight away and
+            // handed to the system installer (Android 12+ installs silently; 8–11 asks once to confirm).
+            is UpdateManager.State.Available -> manager.downloadAndInstall()
             UpdateManager.State.Idle -> onDone()
             else -> Unit
         }

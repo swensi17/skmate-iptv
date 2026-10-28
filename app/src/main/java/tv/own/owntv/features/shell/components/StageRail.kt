@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import tv.own.owntv.ui.stage.drawInnerRing
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -229,7 +230,8 @@ fun StageRail(
                     true
                 }
                 .focusGroup()
-                .stageGlass(if (open) 34.mpx else 42.mpx, overContent = true)
+                // Collapsed, the rail is icons alone over the page: no capsule behind them.
+                .then(if (open) Modifier.stageGlass(34.mpx, overContent = true) else Modifier)
                 .padding(
                     horizontal = if (open) 16.mpx else 0.mpx,
                     vertical = if (open) 22.mpx else 16.mpx,
@@ -336,7 +338,8 @@ private fun RailSeparator(open: Boolean) {
 /**
  * `.frail .it`: a 58 × 58 icon tile in the capsule, a 60 high row with its label, [detail] line under it
  * and count when open.
- * Active = accent icon on accent 14%, plus the glowing dot outside the capsule; focused = FILLED.
+ * Open (a row with its label): active = accent on accent 14%, focused = FILLED. Collapsed (icon alone):
+ * no fill at all; active = an accent outline, focused = a white outline ([StageFocus.OUTLINE]).
  */
 @Composable
 private fun RailItem(
@@ -355,20 +358,25 @@ private fun RailItem(
     StageSurface(
         onClick = onClick,
         radius = r,
+        focusStyle = if (open) StageFocus.FILLED else StageFocus.OUTLINE,
         // At least 60, not exactly: with a large font size the name and its detail line need more, and a
         // fixed height cut the detail line off (#7.2).
         modifier = modifier.then(if (open) Modifier.fillMaxWidth().heightIn(min = 60.mpx) else Modifier.size(58.mpx)),
-        idle = if (active) Modifier.background(a.accent.copy(alpha = 0.14f), RoundedCornerShape(r)) else Modifier,
+        idle = when {
+            !active -> Modifier
+            open -> Modifier.background(a.accent.copy(alpha = 0.14f), RoundedCornerShape(r))
+            else -> Modifier.drawBehind { drawInnerRing(a.accent, 2.mpx.toPx(), r.toPx()) }
+        },
         contentAlignment = if (open) Alignment.CenterStart else Alignment.Center,
     ) { focused ->
         val iconTint = when {
+            focused && !open -> Color.White
             focused -> a.onAccent
             active || accentIcon -> a.accent
             else -> StageColors.NavText
         }
         if (!open) {
             OwnTVIcon(icon, iconTint, Modifier.size(27.mpx))
-            if (active && !focused) RailActiveDot(Modifier.align(Alignment.CenterEnd).offset(x = 9.mpx))
             return@StageSurface
         }
         Row(
@@ -400,20 +408,6 @@ private fun RailItem(
             }
         }
     }
-}
-
-/** `.it.on::after`: 6 px, 9 px outside the capsule's item, glowing 10 px. */
-@Composable
-private fun RailActiveDot(modifier: Modifier) {
-    val accent = stageAccent.accent
-    Box(
-        modifier
-            .size(6.mpx)
-            .drawBehind {
-                drawBoxShadow(accent, 10.mpx.toPx(), size.minDimension / 2f)
-                drawCircle(accent)
-            },
-    )
 }
 
 /**

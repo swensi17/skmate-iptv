@@ -689,9 +689,9 @@
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/shell/components/StageRail.kt">
         <error line="3" column="1" source="standard:import-ordering" />
-        <error line="80" column="5" source="standard:spacing-between-declarations-with-comments" />
-        <error line="82" column="5" source="standard:spacing-between-declarations-with-comments" />
-        <error line="84" column="5" source="standard:spacing-between-declarations-with-comments" />
+        <error line="81" column="5" source="standard:spacing-between-declarations-with-comments" />
+        <error line="83" column="5" source="standard:spacing-between-declarations-with-comments" />
+        <error line="85" column="5" source="standard:spacing-between-declarations-with-comments" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/shell/components/StageStatus.kt">
         <error line="3" column="1" source="standard:import-ordering" />
@@ -985,11 +985,11 @@
     </file>
     <file name="app/src/main/java/tv/own/owntv/ui/stage/StageComponents.kt">
         <error line="3" column="1" source="standard:import-ordering" />
-        <error line="631" column="18" source="standard:wrapping" />
-        <error line="632" column="80" source="standard:wrapping" />
-        <error line="735" column="18" source="standard:wrapping" />
-        <error line="736" column="94" source="standard:wrapping" />
-        <error line="1128" column="1" source="standard:no-consecutive-blank-lines" />
+        <error line="634" column="18" source="standard:wrapping" />
+        <error line="635" column="80" source="standard:wrapping" />
+        <error line="738" column="18" source="standard:wrapping" />
+        <error line="739" column="94" source="standard:wrapping" />
+        <error line="1131" column="1" source="standard:no-consecutive-blank-lines" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/ui/stage/StageControls.kt">
         <error line="3" column="1" source="standard:import-ordering" />
