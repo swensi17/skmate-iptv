@@ -50,8 +50,8 @@ private fun accentTriangle(): Color? {
 }
 
 /**
- * The icon's flat mark (no shadow, no next card); at 32 dp and below the simpler small drawing. Pixel
- * above 32 dp is its dot matrix ([PixelMark]). With Accent-colored logo on, the play triangle takes the
+ * The icon's flat mark (no shadow); at 32 dp and below the small drawing. Every colour, Pixel included,
+ * is SkMate's tile from core's vectors. With Accent-colored logo on, the play triangle takes the
  * accent: on a card a white triangle is drawn over the card's own and tinted (Pixel has none).
  * [followAccent] false draws the icon as the launcher shows it (the icon pickers).
  */
@@ -59,10 +59,6 @@ private fun accentTriangle(): Color? {
 fun BrandMark(icon: AppIcon, size: Dp, modifier: Modifier = Modifier, followAccent: Boolean = true) {
     val small = size <= 32.dp
     val accent = accentTriangle().takeIf { followAccent }
-    if (icon == AppIcon.PIXEL && !small) {
-        PixelMark(modifier.size(size), triangle = accent ?: Color(icon.accent))
-        return
-    }
     Box(modifier.size(size)) {
         Image(painterResource(if (small) icon.markSmall else icon.mark), contentDescription = null, modifier = Modifier.fillMaxSize())
         if (accent != null && icon.isCard(small)) {

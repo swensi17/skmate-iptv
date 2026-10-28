@@ -74,7 +74,8 @@ import tv.own.owntv.ui.theme.stageText
  *  PRIMARY  buttons: accent fill, 3 px ring outside, a larger glow, lifted to 1.04.
  *  POSTER   posters: 3 px focus ring + 4 px accent-35% ring outside, glow, lifted to 1.08.
  */
-enum class StageFocus { FX, FILLED, PRIMARY, POSTER }
+/** OUTLINE: a ring only, no fill and no lift (the navigation rail's icons). */
+enum class StageFocus { FX, FILLED, PRIMARY, POSTER, OUTLINE }
 
 /** A focus treatment on a custom-built element (the audio card), drawn exactly as [StageSurface] draws it. */
 @Composable
@@ -87,6 +88,7 @@ private fun Modifier.stageFocusDecor(style: StageFocus, radius: Dp, a: StageAcce
     if (palette.isLight) {
         // `.mine.light`: the accent is the ring, set off from the item by a page-coloured gap.
         when (style) {
+            StageFocus.OUTLINE -> drawInnerRing(a.accent, 2.5f * px, r)
             StageFocus.FX -> {
                 drawBoxShadow(a.accent.copy(alpha = 0.18f), 30 * px, r, dy = 10 * px)
                 drawRoundRect(
@@ -110,6 +112,7 @@ private fun Modifier.stageFocusDecor(style: StageFocus, radius: Dp, a: StageAcce
         return@drawBehind
     }
     when (style) {
+        StageFocus.OUTLINE -> drawInnerRing(Color.White, 2.5f * px, r)
         StageFocus.FX -> {
             drawBoxShadow(a.accent.copy(alpha = 0.28f), 44 * px, r)
             // A row-sized sweep: small enough to stay a brush (see GradientTextures).

@@ -163,6 +163,11 @@ android {
             // block at the bottom of this file (see docs/internationalization.md 0b, "Pseudolocales must
             // survive the filter").
             isPseudoLocalesEnabled = true
+            // tools/dev/tv.sh --fast: a debug build signed with the project key installs over the
+            // release on a test TV, so its data (playlists, EPG) stays. Off unless the script asks.
+            if (releaseKeystore != null && System.getenv("SKMATE_DEV_SIGN") == "1") {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
         release {
             // Stable AGP release optimization API. Keep both code and resource shrinking enabled;

@@ -247,6 +247,6 @@ Do not edit by hand. SkMate IPTV itself is GPL-3.0-or-later; see LICENSE and NOT
 | `org.jetbrains.kotlinx:kotlinx-serialization-json` | 1.7.3 | Apache-2.0 |
 | `org.jetbrains.kotlinx:kotlinx-serialization-json-jvm` | 1.7.3 | Apache-2.0 |
 | `org.jspecify:jspecify` | 1.0.0 | Apache-2.0 |
-| `uz.skmate.iptv:core` | 1.1.1 | GPL-3.0 (SkMate IPTV core, fork of OwnTV_Core) |
+| `uz.skmate.iptv:core` | 1.2.0 | GPL-3.0 (SkMate IPTV core, fork of OwnTV_Core) |
 | `uz.skmate.iptv:libmpv` | 2026.10.4 | GPL-3.0-or-later (binaries: mpv, FFmpeg), MIT (wrapper); source: swensi17/skmate-iptv-libmpv |
-| `uz.skmate.iptv:player-core` | 1.1.1 | GPL-3.0 (SkMate IPTV core, fork of OwnTV_Core) |
+| `uz.skmate.iptv:player-core` | 1.2.0 | GPL-3.0 (SkMate IPTV core, fork of OwnTV_Core) |
