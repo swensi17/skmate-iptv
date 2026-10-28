@@ -82,65 +82,65 @@ data class StagePalette(
     fun shadow(alpha: Float): Color = shadowTint.copy(alpha = alpha * shadowScale)
 
     companion object {
+        /** SkMate's dark theme: the neutral greys of TV-box interfaces, no tint. */
         val Dark = StagePalette(
             isLight = false,
-            text = Color(0xFFF1F5F3),
-            muted = Color(0xFFA7B3AE),
-            dim = Color(0xFF6D7A75),
-            itemText = Color(0xFFD5DFDB),
-            menuItemText = Color(0xFFDBE4E0),
-            tagText = Color(0xFFC8D3CE),
+            text = Color(0xFFF1F2F3),
+            muted = Color(0xFFA9ADB2),
+            dim = Color(0xFF6E7378),
+            itemText = Color(0xFFD7DADD),
+            menuItemText = Color(0xFFDDE0E3),
+            tagText = Color(0xFFC9CDD1),
             ink = Color.White,
-            page = Color(0xFF05080A),
-            glassTint = Color(0xFF121A1E),
-            glassOff = Color(0xFF121A1C),
+            page = Color(0xFF131619),
+            glassTint = Color(0xFF1E2125),
+            glassOff = Color(0xFF1E2125),
             ok = Color(0xFF7BE3A4),
             warn = Color(0xFFFFB86B),
             danger = Color(0xFFFF8A7A),
-            body = Color(0xFFC9D3CF),
-            navText = Color(0xFFC4CFCA),
+            body = Color(0xFFCBCFD3),
+            navText = Color(0xFFC6CACE),
             fxText = Color.White,
-            fxLine = Color(0xFFD9E6E1),
-            scrim = Color(2, 5, 6).copy(alpha = 0.55f),
-            wash = Color(5, 8, 10),
+            fxLine = Color(0xFFDADDE0),
+            scrim = Color(4, 5, 6).copy(alpha = 0.55f),
+            wash = Color(19, 22, 25),
             shadowTint = Color.Black,
             shadowScale = 1f,
             segmentOn = Color.White.copy(alpha = 0.13f),
-            knobOff = Color(0xFFCFD8D4),
+            knobOff = Color(0xFFD0D3D6),
             keycap = Color.White.copy(alpha = 0.08f),
             chipWarnText = Color(0xFFFFD27A),
             chipWarnFill = Color(255, 200, 80).copy(alpha = 0.14f),
         )
+        /** SkMate's light theme: the Family palette, cream paper and warm ink, flat, almost no shadow. */
         val Light = StagePalette(
             isLight = true,
-            text = Color(0xFF0F1A16),
-            muted = Color(0xFF4C5A54),
-            dim = Color(0xFF77847F),
-            itemText = Color(0xFF1C2824),
-            menuItemText = Color(0xFF1C2824),
-            tagText = Color(0xFF3D4B45),
-            ink = Color(0xFF0C1814),
-            page = Color(0xFFF4F7F5),
+            text = Color(0xFF121212),
+            muted = Color(0xFF474645),
+            dim = Color(0xFF7E7E7D),
+            itemText = Color(0xFF343433),
+            menuItemText = Color(0xFF343433),
+            tagText = Color(0xFF474645),
+            ink = Color(0xFF121212),
+            page = Color(0xFFFBFAF9),
             glassTint = Color.White,
             glassOff = Color.White,
-            ok = Color(0xFF2B8A3E),
-            // The light amber (`.rv .sc`); the design names no separate warn colour.
-            warn = Color(0xFF9A5A08),
-            danger = Color(0xFFD23B2E),
-            body = Color(0xFF2D3A35),
-            navText = Color(0xFF55635D),
-            fxText = Color(0xFF0F1A16),
-            fxLine = Color(0xFF2D3A35),
-            scrim = Color(20, 32, 28).copy(alpha = 0.30f),
-            wash = Color(244, 247, 245),
-            // 0 24 60 rgb(20,40,32) 16% where dark has black 45%.
-            shadowTint = Color(20, 40, 32),
-            shadowScale = 0.36f,
+            ok = Color(0xFF00A862),
+            warn = Color(0xFFD48F00),
+            danger = Color(0xFFFF2B3A),
+            body = Color(0xFF474645),
+            navText = Color(0xFF7E7E7D),
+            fxText = Color(0xFF121212),
+            fxLine = Color(0xFF343433),
+            scrim = Color(18, 18, 18).copy(alpha = 0.30f),
+            wash = Color(251, 250, 249),
+            shadowTint = Color.Black,
+            shadowScale = 0.15f,
             segmentOn = Color.White,
             knobOff = Color.White,
-            keycap = Color.White,
-            chipWarnText = Color(0xFF9A5A08),
-            chipWarnFill = Color(184, 100, 10).copy(alpha = 0.12f),
+            keycap = Color(0xFFF2F0ED),
+            chipWarnText = Color(0xFFD48F00),
+            chipWarnFill = Color(255, 187, 38).copy(alpha = 0.18f),
         )
     }
 }
@@ -233,9 +233,15 @@ val stageAccent: StageAccent
     @Composable
     @ReadOnlyComposable
     // In light the pale focus colour vanishes on white, so every ring is the accent itself.
-    get() = OwnTVTheme.colors.let {
+    get() = LocalStageAccentOverride.current ?: OwnTVTheme.colors.let {
         StageAccent(it.primary, it.onPrimary, if (LocalStagePalette.current.isLight) it.primary else it.focusBorder)
     }
+
+/** A part of the screen with colours of its own (the dark settings sheet) sets its accent here. */
+val LocalStageAccentOverride = staticCompositionLocalOf<StageAccent?> { null }
+
+/** Inside the settings sheet: focus is a light grey bar with dark text, as TV boxes draw it. */
+val LocalInSettingsSheet = staticCompositionLocalOf { false }
 
 /**
  * Stage type: a design size and weight in the user's main font (Plus Jakarta Sans by default).

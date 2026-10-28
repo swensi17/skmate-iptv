@@ -1,5 +1,6 @@
 package tv.own.owntv.features.setup
 
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -32,14 +33,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.tv.material3.Text
 import org.koin.androidx.compose.koinViewModel
 import tv.own.owntv.R
-import tv.own.owntv.core.brand.AppIcon
 import tv.own.owntv.core.database.entity.SourceEntity
 import tv.own.owntv.core.setup.SourceImporter
 import tv.own.owntv.core.sync.importProgressDisplay
 import tv.own.owntv.core.theme.UiFontScale
 import tv.own.owntv.core.theme.UiZoom
 import tv.own.owntv.features.settings.EpgSyncDialog
-import tv.own.owntv.features.settings.FirstRunLanguageSelector
 import tv.own.owntv.features.settings.RemoteBackupRestoreScreen
 import tv.own.owntv.features.settings.SectionPickerDialog
 import tv.own.owntv.features.settings.SettingValue
@@ -48,7 +47,6 @@ import tv.own.owntv.features.settings.StageFieldRow
 import tv.own.owntv.features.settings.StageSettingRow
 import tv.own.owntv.features.settings.SettingHelp
 import tv.own.owntv.features.shell.PendingShellRequest
-import tv.own.owntv.ui.components.BrandMark
 import tv.own.owntv.ui.components.BrowseMode
 import tv.own.owntv.ui.components.OwnTVAvatar
 import tv.own.owntv.ui.components.OwnTVAvatars
@@ -66,6 +64,8 @@ import tv.own.owntv.ui.theme.StageColors
 import tv.own.owntv.ui.theme.mpx
 import tv.own.owntv.ui.theme.stageAccent
 import tv.own.owntv.ui.theme.stageText
+
+private const val StepSlideMs = 300
 
 private enum class Step { WELCOME, DISPLAY_SIZE, DISCLAIMER, SETUP_CHOICE, SYNC_DEVICE, CREATE_PROFILE, ADD_CONTENT, ADD_SOURCE_REMOTE, ADD_SOURCE, IMPORTING, EXISTING, IMPORT_BACKUP_CHOOSER, IMPORT_BACKUP_REMOTE, IMPORT_BACKUP }
 
@@ -104,8 +104,28 @@ fun Onboarding(firstRun: Boolean, onDone: (Long?) -> Unit, onCancel: () -> Unit,
     LaunchedEffect(step) { if (step == Step.ADD_CONTENT) existing = runCatching { vm.availableExistingSources() }.getOrDefault(emptyList()) }
 
     val accent = stageAccent.accent
-    Box(modifier = modifier.fillMaxSize().stageBackground(accent)) {
-        when (step) {
+    var headerStep by remember { mutableStateOf(WizardStep.LANGUAGE) }
+    Box(modifier = modifier.fillMaxSize().background(SetupBackdrop)) {
+        WizardHeader(headerStep)
+        // Steps slide: forward moves the page off to the left and brings the next one in from the
+        // right, Back the other way round, with a short cross-fade so the backdrop never flashes.
+        androidx.compose.animation.AnimatedContent(
+            targetState = step,
+            transitionSpec = {
+                val forward = targetState.ordinal >= initialState.ordinal
+                val dir = if (forward) 1 else -1
+                (
+                    androidx.compose.animation.slideInHorizontally(androidx.compose.animation.core.tween(StepSlideMs)) { w -> dir * w / 8 } +
+                        androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(StepSlideMs))
+                    ) togetherWith (
+                    androidx.compose.animation.slideOutHorizontally(androidx.compose.animation.core.tween(StepSlideMs)) { w -> -dir * w / 8 } +
+                        androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(StepSlideMs / 2))
+                    )
+            },
+            label = "setupStep",
+        ) { shown ->
+        androidx.compose.runtime.CompositionLocalProvider(LocalWizardHeader provides { s: WizardStep -> headerStep = s }) {
+        when (shown) {
             Step.WELCOME -> WelcomeStep(onNext = { step = Step.DISPLAY_SIZE })
             // Before the disclaimer, which is the first screen with a paragraph of real text on it:
             // if the interface is too small to read, that is the screen it first hurts on.
@@ -148,6 +168,7 @@ fun Onboarding(firstRun: Boolean, onDone: (Long?) -> Unit, onCancel: () -> Unit,
                 onBack = { step = Step.SETUP_CHOICE },
             )
             Step.CREATE_PROFILE -> ProfileStep(
+                existing = vm.profileList.collectAsStateWithLifecycle().value,
                 onCreate = { name, avatar, kids, pin, picture -> vm.createProfile(name.ifBlank { defaultProfileName }, avatar, kids, pin, picture) { step = Step.ADD_CONTENT } },
                 onBack = { if (firstRun) step = Step.SETUP_CHOICE else onCancel() },
             )
@@ -276,6 +297,8 @@ fun Onboarding(firstRun: Boolean, onDone: (Long?) -> Unit, onCancel: () -> Unit,
                 warnWithoutSources = firstRun,
             )
         }
+        }
+        }
         // Semi-auto EPG: after the first playlist imports, ask → sync (live count) → done (overlays "All set!").
         EpgSyncDialog(
             state = epgSync,
@@ -294,18 +317,37 @@ private fun rememberFirstFocus(): FocusRequester {
     return fr
 }
 
-/** The language as a row (OK opens the list), then Get started. */
+/**
+ * The TV above "Welcome!": a small vector Lottie (res/raw/welcome_tv.json, 120 frames at 24 fps)
+ * looping forever. Hardware-rendered and cached by Lottie, so it costs nothing per frame.
+ */
+@Composable
+private fun WelcomeTv() {
+    val composition by com.airbnb.lottie.compose.rememberLottieComposition(
+        com.airbnb.lottie.compose.LottieCompositionSpec.RawRes(R.raw.welcome_tv),
+    )
+    com.airbnb.lottie.compose.LottieAnimation(
+        composition = composition,
+        iterations = com.airbnb.lottie.compose.LottieConstants.IterateForever,
+        modifier = Modifier.padding(bottom = 8.mpx).size(width = 220.mpx, height = 198.mpx),
+    )
+}
+
+/** The TV animation, "Welcome" under it, then Get started with the language globe to its right; all centred. */
 @Composable
 private fun WelcomeStep(onNext: () -> Unit) {
     WizardFrame(
         step = WizardStep.LANGUAGE,
-        title = stringResource(R.string.setup_welcome_title),
-        sub = stringResource(R.string.setup_welcome_sub),
+        title = stringResource(R.string.setup_welcome_short),
+        sub = null,
         back = null,
-        next = WizardAction(stringResource(R.string.setup_get_started), onNext),
-    ) {
-        FirstRunLanguageSelector(Modifier.focusRequester(rememberFirstFocus()))
-    }
+        next = WizardAction(stringResource(R.string.setup_get_started), onNext, rememberFirstFocus()),
+        titleAbove = { WelcomeTv() },
+        titleSize = 64,
+        bodyTop = 0.mpx,
+        matchTitleWidth = true,
+        buttonsTrailing = { tv.own.owntv.features.settings.FirstRunLanguageGlobe() },
+    )
 }
 
 /**
@@ -318,14 +360,13 @@ private fun DisplaySizeStep(onNext: () -> Unit, onBack: () -> Unit) {
     val vm: DisplaySizeViewModel = koinViewModel()
     val zoom by vm.uiZoomPercent.collectAsStateWithLifecycle()
     val fontSize by vm.fontSizePercent.collectAsStateWithLifecycle()
-    val appIcon by vm.appIcon.collectAsStateWithLifecycle()
     val zoomFocus = rememberFirstFocus()
     // Zoom below LOW_RAM_WARN can OOM a 2 GB device, so the first step under the line is gated
     // exactly as the Settings dialog gates it. Accepting once arms the rest of this visit; arriving
     // already below the line (a restored backup) must not nag.
     var lowZoomAccepted by remember { mutableStateOf(zoom < UiZoom.LOW_RAM_WARN) }
     var pendingLowZoom by remember { mutableStateOf<Int?>(null) }
-    var pickIcon by remember { mutableStateOf(false) }
+    var preview by remember { mutableStateOf(true) }
     val stepZoom: (Int) -> Unit = { dir ->
         if (dir > 0) vm.setZoom(zoom + UiZoom.STEP)
         else {
@@ -342,7 +383,7 @@ private fun DisplaySizeStep(onNext: () -> Unit, onBack: () -> Unit) {
         extraLeft = listOf(WizardAction(stringResource(R.string.settings_reset), { vm.reset() })),
     ) {
         StageSettingRow(
-            icon = OwnTVIcon.EXPAND,
+            icon = OwnTVIcon.ZOOM,
             title = stringResource(R.string.settings_ui_zoom),
             desc = stringResource(R.string.setup_line_zoom),
             value = SettingValue.Stepper(stringResource(R.string.common_percent, zoom)),
@@ -351,53 +392,21 @@ private fun DisplaySizeStep(onNext: () -> Unit, onBack: () -> Unit) {
             modifier = Modifier.focusRequester(zoomFocus),
         )
         StageSettingRow(
-            icon = OwnTVIcon.PENCIL,
+            icon = OwnTVIcon.TEXT_SIZE,
             title = stringResource(R.string.settings_font_size),
             desc = stringResource(R.string.setup_line_font),
             value = SettingValue.Stepper(stringResource(R.string.common_percent, fontSize)),
             onClick = { vm.setFontSize(fontSize + UiFontScale.STEP) },
             onStep = { dir -> vm.setFontSize(fontSize + dir * UiFontScale.STEP) },
         )
-        // No restart prompt here: nothing is on the home screen yet, and the pick applies as soon as
-        // the app is next in the background.
-        val icons = AppIcon.entries
-        val at = icons.indexOf(appIcon).coerceAtLeast(0)
+        // The sample, as a row like the others: the same type at the size it will really be.
         StageSettingRow(
-            icon = OwnTVIcon.SPARKLE,
-            title = stringResource(R.string.settings_app_icon),
-            desc = stringResource(R.string.setup_line_app_icon),
-            value = SettingValue.Custom { AppIconSwatches(icons, appIcon) },
-            onClick = { pickIcon = true },
-            onStep = { dir -> vm.setAppIcon(icons[(at + dir + icons.size) % icons.size]) },
+            icon = OwnTVIcon.PLAY_CIRCLE,
+            title = stringResource(R.string.settings_panel_width_preview).lowercase().replaceFirstChar { it.titlecase() },
+            desc = stringResource(R.string.home_row_now_trending),
+            value = SettingValue.Switch(preview),
+            onClick = { preview = !preview },
         )
-        // The sample: a row's own type at the size it will really be.
-        Row(
-            Modifier
-                .padding(top = 14.mpx)
-                .fillMaxWidth()
-                .height(84.mpx)
-                .background(StageColors.Ink.copy(alpha = 0.05f), RoundedCornerShape(20.mpx))
-                .padding(horizontal = 22.mpx),
-            horizontalArrangement = Arrangement.spacedBy(18.mpx),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(stringResource(R.string.settings_panel_width_preview).uppercase(), style = stageText(13, 800, androidx.compose.ui.unit.TextUnit(0.13f, androidx.compose.ui.unit.TextUnitType.Em)), color = StageColors.Dim)
-            Text(stringResource(R.string.home_row_now_trending), style = stageText(21, 700), color = StageColors.Text, modifier = Modifier.weight(1f))
-            Text(stringResource(R.string.common_on), style = stageText(18, 700), color = stageAccent.accent)
-        }
-    }
-
-    // OK on App icon: the icon tiles in a popup (no restart question — nothing is on the home screen yet).
-    if (pickIcon) {
-        val tileFocus = remember { FocusRequester() }
-        LaunchedEffect(Unit) { kotlinx.coroutines.delay(60); runCatching { tileFocus.requestFocus() } }
-        tv.own.owntv.ui.stage.StagePopup(onDismiss = { pickIcon = false }, title = stringResource(R.string.settings_app_icon), eyebrow = null, width = 880.mpx) {
-            tv.own.owntv.ui.components.AppIconPicker(
-                selected = appIcon,
-                onPick = { vm.setAppIcon(it); pickIcon = false },
-                firstFocus = tileFocus,
-            )
-        }
     }
 
     // Accept-the-risk gate for zoom below LOW_RAM_WARN, the same prompt Settings shows. One
@@ -425,35 +434,38 @@ private fun DisplaySizeStep(onNext: () -> Unit, onBack: () -> Unit) {
     }
 }
 
-/** The app icon row's value: the first five icon colours, the chosen one ringed, then "+N". */
-@Composable
-private fun AppIconSwatches(icons: List<AppIcon>, chosen: AppIcon) {
-    val a = stageAccent
-    val shown = (icons.take(5) + chosen).distinct().take(5)
-    Row(horizontalArrangement = Arrangement.spacedBy(8.mpx), verticalAlignment = Alignment.CenterVertically) {
-        shown.forEach { icon ->
-            Box(
-                Modifier
-                    .size(34.mpx)
-                    .then(if (icon == chosen) Modifier.border(2.mpx, a.accent, RoundedCornerShape(9.mpx)) else Modifier),
-                contentAlignment = Alignment.Center,
-            ) { BrandMark(icon, 30.mpx, followAccent = false) }
-        }
-        if (icons.size > shown.size) {
-            Text("+" + localizedInteger(icons.size - shown.size, grouping = false), style = stageText(17, 700), color = StageColors.Muted)
-        }
-    }
-}
-
 /**
  * Who's watching?: Name, Avatar (◀ ▶ through the pictures, the letter first), a picture of the
  * user's own, Kids profile and an optional PIN, then Create profile. The picture is held until then:
  * the profile has no id to store it under before it exists.
  */
 @Composable
-private fun ProfileStep(onCreate: (name: String, avatarId: Int, isKids: Boolean, pin: String?, picture: java.io.File?) -> Unit, onBack: () -> Unit) {
-    var name by remember { mutableStateOf("") }
-    var avatarId by remember { mutableIntStateOf(-1) } // new profiles start on the letter
+private fun ProfileStep(
+    existing: List<tv.own.owntv.core.database.entity.ProfileEntity>,
+    onCreate: (name: String, avatarId: Int, isKids: Boolean, pin: String?, picture: java.io.File?) -> Unit,
+    onBack: () -> Unit,
+) {
+    // Filled in already, so the viewer can just go on; they change it if they like. The name is one no
+    // other profile has (Guest, Guest 2, …) and the person a random one no other profile shows yet.
+    val guestName = stringResource(R.string.setup_guest_profile)
+    val res = androidx.compose.ui.platform.LocalContext.current.resources
+    val taken = remember(existing) { existing.map { it.name.trim().lowercase() }.toSet() }
+    val suggestedName = remember(taken, guestName) {
+        if (guestName.lowercase() !in taken) guestName
+        else (2..existing.size + 2).map { res.getString(R.string.setup_guest_profile_n, it) }.first { it.lowercase() !in taken }
+    }
+    val suggestedAvatar = remember(existing) {
+        val used = existing.map { ((it.avatarId % OwnTVAvatars.COUNT) + OwnTVAvatars.COUNT) % OwnTVAvatars.COUNT }.toSet()
+        ((0 until OwnTVAvatars.COUNT).filter { it !in used }.ifEmpty { (0 until OwnTVAvatars.COUNT).toList() }).random()
+    }
+    var name by remember { mutableStateOf(suggestedName) }
+    var avatarId by remember { mutableIntStateOf(suggestedAvatar) }
+    // The profile list arrives a moment after the step opens: until the viewer changes them, the name
+    // and the person follow the suggestion.
+    var nameTouched by remember { mutableStateOf(false) }
+    var avatarTouched by remember { mutableStateOf(false) }
+    LaunchedEffect(suggestedName) { if (!nameTouched) name = suggestedName }
+    LaunchedEffect(suggestedAvatar) { if (!avatarTouched) avatarId = suggestedAvatar }
     var isKids by remember { mutableStateOf(false) }
     var pin by remember { mutableStateOf("") }
     var picture by remember { mutableStateOf<java.io.File?>(null) }
@@ -471,18 +483,18 @@ private fun ProfileStep(onCreate: (name: String, avatarId: Int, isKids: Boolean,
         next = WizardAction(stringResource(R.string.setup_create_profile), { if (valid) onCreate(name, avatarId, isKids, pin.takeIf { it.isNotBlank() }, picture) }, enabled = valid),
     ) {
         StageFieldRow(
-            OwnTVIcon.PENCIL, nameLabel, name, { name = it }, SettingHelp(nameLabel, fieldHelp),
+            OwnTVIcon.PENCIL, nameLabel, name, { name = it; nameTouched = true }, SettingHelp(nameLabel, fieldHelp),
             placeholder = stringResource(R.string.profiles_name_hint), modifier = Modifier.focusRequester(nameFocus),
         )
-        val ids = (-1 until OwnTVAvatars.COUNT).toList()
+        val ids = (0 until OwnTVAvatars.COUNT).toList()
         val at = ids.indexOf(avatarId).coerceAtLeast(0)
         StageSettingRow(
             icon = OwnTVIcon.PERSON,
             title = stringResource(R.string.setup_avatar),
             desc = stringResource(R.string.setup_avatar_line),
             value = SettingValue.Custom { AvatarStrip(ids, avatarId) },
-            onClick = { avatarId = ids[(at + 1) % ids.size] },
-            onStep = { dir -> avatarId = ids[(at + dir + ids.size) % ids.size] },
+            onClick = { avatarId = ids[(at + 1) % ids.size]; avatarTouched = true },
+            onStep = { dir -> avatarId = ids[(at + dir + ids.size) % ids.size]; avatarTouched = true },
         )
         StageSettingRow(
             icon = OwnTVIcon.IMAGE,
@@ -522,9 +534,9 @@ private fun AvatarStrip(ids: List<Int>, chosen: Int) {
     Row(horizontalArrangement = Arrangement.spacedBy(8.mpx), verticalAlignment = Alignment.CenterVertically) {
         shown.forEach { id ->
             Box(
-                Modifier.size(34.mpx).then(if (id == chosen) Modifier.border(2.mpx, a.accent, CircleShape) else Modifier),
+                Modifier.size(50.mpx).then(if (id == chosen) Modifier.border(3.mpx, tv.own.owntv.ui.brand.SkMateBlue, CircleShape) else Modifier),
                 contentAlignment = Alignment.Center,
-            ) { OwnTVAvatar(avatarId = id, modifier = Modifier.size(30.mpx)) }
+            ) { OwnTVAvatar(avatarId = id, modifier = Modifier.size(44.mpx)) }
         }
         if (ids.size > shown.size) Text("+" + localizedInteger(ids.size - shown.size, grouping = false), style = stageText(17, 700), color = StageColors.Muted)
     }

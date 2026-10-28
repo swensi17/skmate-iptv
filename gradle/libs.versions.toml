@@ -82,6 +82,8 @@ espressoCore = "3.7.0"
 owntvCore = "1.2.0"
 
 [libraries]
+# Lottie (Apache-2.0): the welcome screen's animated hand.
+lottie-compose = { group = "com.airbnb.android", name = "lottie-compose", version = "6.7.1" }
 # The shared engine, from its own repository
 owntv-core = { group = "uz.skmate.iptv", name = "core", version.ref = "owntvCore" }
 owntv-player-core = { group = "uz.skmate.iptv", name = "player-core", version.ref = "owntvCore" }

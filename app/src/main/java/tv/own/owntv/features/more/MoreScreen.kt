@@ -190,7 +190,8 @@ fun MoreScreen(
         // --- The page: everything right of the sheet, below the top-right cluster.
         Box(
             Modifier
-                .padding(start = 520.mpx, top = 128.mpx, end = 64.mpx)
+                // Settings is the sheet on the right edge of the screen, as TV boxes show it.
+                .then(if (selected == MoreItem.SETTINGS && tv.own.owntv.features.settings.SettingsAsSidePanel) Modifier else Modifier.padding(start = 520.mpx, top = 128.mpx, end = 64.mpx))
                 .fillMaxSize()
                 .onFocusChanged { pageFocused = it.hasFocus },
         ) {
