@@ -172,6 +172,16 @@ fun LiveScreen(
     // this screen, and stopping here would abort the stream that was just started. Playback is
     // stopped on fullscreen exit (shell BackHandler) instead.
 
+    // TV-box look: the preview (picture and programme) stays on the channel being watched while focus only
+    // passes over rows — on the way up to the search or the sort, say. It moves to a row focus rests on.
+    var pendingPreview by remember { mutableStateOf<ChannelEntity?>(null) }
+    LaunchedEffect(pendingPreview?.id) {
+        val ch = pendingPreview ?: return@LaunchedEffect
+        delay(PreviewDwellMs)
+        vm.onChannelFocused(ch)
+        pendingPreview = null
+    }
+
     // In-pane preview: play the focused channel after the focus settles (700ms). Disabled while the
     // fullscreen/mini player owns the surface (previewEnabled=false) to avoid two surfaces fighting.
     LaunchedEffect(previewChannel?.id, effectivePreview, previewArmed) {
@@ -179,7 +189,8 @@ fun LiveScreen(
         // it until the user actually focuses a channel (then it plays normally).
         if (!effectivePreview || !previewArmed) return@LaunchedEffect
         val ch = previewChannel ?: return@LaunchedEffect
-        delay(700)
+        // In the TV-box look the dwell above has already waited.
+        delay(if (tv.own.owntv.features.shell.TvBoxNav) 0L else 700L)
         vm.playPreview(ch)
     }
 
@@ -530,9 +541,18 @@ fun LiveScreen(
     // The menu draws itself square beside the open categories (see TvBoxPanels).
     LaunchedEffect(categoriesOpen) { tv.own.owntv.features.shell.components.TvBoxPanels.besideOpen = categoriesOpen }
     DisposableEffect(Unit) { onDispose { tv.own.owntv.features.shell.components.TvBoxPanels.besideOpen = false } }
+    val closeBeside = tv.own.owntv.features.shell.components.TvBoxPanels.closeBeside
+    val closeBesideAtStart = remember { closeBeside }
+    LaunchedEffect(closeBeside) {
+        if (closeBeside != closeBesideAtStart && categoriesOpen) { categoriesOpen = false; focusCurrentRow() }
+    }
     // From the menu (▶ or Back): the categories when they are open beside it, else the shell's default.
     DisposableEffect(onEntryHook) {
-        onEntryHook?.invoke { categoriesOpen && runCatching { railFocus.requestFocus() }.getOrDefault(false) }
+        // Into the categories when they are open; otherwise onto the channel row, never the search above it.
+        onEntryHook?.invoke {
+            if (categoriesOpen) runCatching { railFocus.requestFocus() }.getOrDefault(false)
+            else tv.own.owntv.features.shell.TvBoxNav && focusCurrentRow()
+        }
         onDispose { onEntryHook?.invoke(null) }
     }
     val (categoryEntries, groupsHeading) = liveCategoryEntries(railItems, railCounts)
@@ -584,6 +604,8 @@ fun LiveScreen(
     val panelOn by settingsVm.panelWidthEnabled.getValue(PanelSection.LIVE).collectAsStateWithLifecycle()
     val stageSaved by settingsVm.liveStageWidths.collectAsStateWithLifecycle()
     val stageWidths = stageSaved.takeIf { panelOn && !separate }
+    // TV-box look: focus on this screen is the white card with soft corners, as in the categories.
+    androidx.compose.runtime.CompositionLocalProvider(tv.own.owntv.ui.stage.LocalWhiteFocus provides tv.own.owntv.features.shell.TvBoxNav) {
     BoxWithConstraints(
         modifier = modifier
             .fillMaxSize()
@@ -592,7 +614,8 @@ fun LiveScreen(
         // Horizontal geometry is a fraction of the 1920 design width, so every zoom reflows.
         val screenW = maxWidth
         fun fx(px: Int) = screenW * (px / 1920f)
-        val margin = fx(64)
+        // TV-box look: the list sits closer to the screen's edge, using the room the old rail left.
+        val margin = if (tv.own.owntv.features.shell.TvBoxNav) fx(28) else fx(64)
         val row = screenW - margin * 2
         val previewShown = if (separate) panelShares?.preview != 0 else stageWidths?.preview != 0
         val liveHints = listOf(
@@ -680,7 +703,7 @@ fun LiveScreen(
                 count = count,
                 showChevron = !separate && lockedKey == null,
                 // TV-box look: level with the clock on the right, clear of the search field below.
-                modifier = Modifier.padding(start = fx(84), top = if (tv.own.owntv.features.shell.TvBoxNav) 28.mpx else 52.mpx).width(listX - fx(84) + listWidth),
+                modifier = Modifier.padding(start = if (tv.own.owntv.features.shell.TvBoxNav) fx(48) else fx(84), top = if (tv.own.owntv.features.shell.TvBoxNav) 28.mpx else 52.mpx).width(listX - (if (tv.own.owntv.features.shell.TvBoxNav) fx(48) else fx(84)) + listWidth),
             )
             // Header tools + channel list: one focus group.
             Column(
@@ -688,7 +711,7 @@ fun LiveScreen(
                     .padding(start = listX, top = 118.mpx)
                     .width(listWidth)
                     .fillMaxHeight()
-                    .onFocusChanged { channelPaneFocused = it.hasFocus }
+                    .onFocusChanged { channelPaneFocused = it.hasFocus; if (!it.hasFocus) pendingPreview = null }
                     .chNavPaging(
                         enabled = chNavEnabled,
                         upSkip = chNavUpSkip,
@@ -748,7 +771,12 @@ fun LiveScreen(
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.mpx),
-                    modifier = Modifier.padding(start = 4.mpx).focusGroup(),
+                    // TV-box look: the search and the two tools take the list's whole width.
+                    modifier = Modifier.padding(start = 4.mpx)
+                        .then(if (tv.own.owntv.features.shell.TvBoxNav) Modifier.fillMaxWidth().padding(end = 4.mpx) else Modifier)
+                        // Up to the tools: a row focus only passed over does not take the preview.
+                        .onFocusChanged { if (it.hasFocus) pendingPreview = null }
+                        .focusGroup(),
                 ) {
                     tv.own.owntv.ui.stage.StageSearchField(
                         query = searchQuery,
@@ -758,10 +786,13 @@ fun LiveScreen(
                         // The design's share of the list width, but never more than the two tools leave:
                         // a narrow custom list shrinks the field, not "Guide view".
                         modifier = Modifier
-                            .weight(1f, fill = false)
-                            .width(if (separate) listWidth * (230f / 620f) else listWidth * (456f / 846f))
+                            .then(
+                                if (tv.own.owntv.features.shell.TvBoxNav) Modifier.weight(1f)
+                                else Modifier.weight(1f, fill = false).width(if (separate) listWidth * (230f / 620f) else listWidth * (456f / 846f)),
+                            )
                             .focusRequester(listSearchFocus)
-                            .onFocusChanged { if (it.hasFocus && previewEnabled) vm.stopPreview() }
+                            // TV-box look: the preview keeps playing while the search is used.
+                            .onFocusChanged { if (it.hasFocus && previewEnabled && !tv.own.owntv.features.shell.TvBoxNav) vm.stopPreview() }
                             // ◀ Categories from the search field too, as from the rows (not while typing — a search that found nothing here may be in another category).
                             .onPreviewKeyEvent { e ->
                                 if (e.type == androidx.compose.ui.input.key.KeyEventType.KeyDown &&
@@ -788,10 +819,23 @@ fun LiveScreen(
                     )
                 }
                 Spacer(Modifier.height(20.mpx))
+                // An empty list right after opening is still loading: rows of skeleton for a moment first.
+                var listSettled by remember { mutableStateOf(false) }
+                LaunchedEffect(selectedKey) { listSettled = false; delay(2500); listSettled = true }
+                // TV-box look: a group's rows rise softly into place when they arrive, instead of cutting in.
+                val listFade = remember(selectedKey) { androidx.compose.animation.core.Animatable(if (tv.own.owntv.features.shell.TvBoxNav) 0f else 1f) }
+                val hasRows = channels.itemCount > 0
+                LaunchedEffect(selectedKey, hasRows) {
+                    if (hasRows) listFade.animateTo(1f, androidx.compose.animation.core.tween(ListFadeMs, easing = androidx.compose.animation.core.FastOutSlowInEasing))
+                }
                 if (channels.itemCount == 0) {
-                    Box(Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {
-                        Text(
-                            if (searchQuery.isNotBlank()) stringResource(R.string.content_no_channels_found, searchQuery.trim()) else stringResource(R.string.content_no_channels_here),
+                    val emptyText = if (searchQuery.isNotBlank()) stringResource(R.string.content_no_channels_found, searchQuery.trim()) else stringResource(R.string.content_no_channels_here)
+                    if (tv.own.owntv.features.shell.TvBoxNav && !listSettled && searchQuery.isBlank()) {
+                        ChannelListSkeleton(Modifier.fillMaxWidth().weight(1f))
+                    } else Box(Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {
+                        if (tv.own.owntv.features.shell.TvBoxNav) NoChannelsNote(emptyText)
+                        else Text(
+                            emptyText,
                             style = tv.own.owntv.ui.theme.stageText(20, 500),
                             color = tv.own.owntv.ui.theme.StageColors.Muted,
                         )
@@ -808,7 +852,9 @@ fun LiveScreen(
                     LazyColumn(
                         state = effectiveListState,
                         verticalArrangement = Arrangement.spacedBy(8.mpx),
-                        modifier = Modifier.fillMaxWidth().weight(1f).layout { measurable, constraints ->
+                        modifier = Modifier.fillMaxWidth().weight(1f)
+                            .graphicsLayer { alpha = listFade.value; translationY = (1f - listFade.value) * ListRisePx * density }
+                            .layout { measurable, constraints ->
                             val extra = glowRoom.roundToPx()
                             val placeable = measurable.measure(
                                 constraints.copy(
@@ -869,7 +915,7 @@ fun LiveScreen(
                                         }
                                     },
                                     onFocus = {
-                                        vm.onChannelFocused(channel)
+                                        if (tv.own.owntv.features.shell.TvBoxNav) pendingPreview = channel else vm.onChannelFocused(channel)
                                         if (rememberLive) perCategoryChannelIds[selectedKey] = channel.id
                                     },
                                     onClick = {
@@ -946,6 +992,7 @@ fun LiveScreen(
                     .fillMaxHeight(),
             )
         }
+    }
     }
 
     // A next / later programme opened from the schedule under the stage (▶ Schedule): the TV Guide's
@@ -1558,3 +1605,10 @@ internal fun liveEpgShiftLabel(minutes: Int): String {
         )
     }
 }
+
+/** How long focus rests on a channel row before the preview switches to it (TV-box look). */
+private const val PreviewDwellMs = 1_000L
+
+/** A group's rows fading in, and how far (dp) they rise while they do. */
+private const val ListFadeMs = 240
+private const val ListRisePx = 14f

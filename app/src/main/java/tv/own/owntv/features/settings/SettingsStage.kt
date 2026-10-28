@@ -391,6 +391,8 @@ private fun SettingsSidePage(
     rows: @Composable ColumnScope.() -> Unit,
 ) {
     SettingsSheet(title = group, modifier = modifier, headerTools = tools) {
+        // The search page (no path above its title) is the field and its results; group pages need no field.
+        if (search != null && parent == null) Box(Modifier.padding(start = 24.mpx, end = 24.mpx, bottom = 8.mpx)) { search() }
         if (toolbar != null) Row(
             Modifier.padding(horizontal = 12.mpx).fillMaxWidth().height(72.mpx),
             horizontalArrangement = Arrangement.spacedBy(8.mpx),
@@ -457,6 +459,7 @@ fun SettingsSheet(
 ) {
     val shown = remember { androidx.compose.animation.core.MutableTransitionState(false).apply { targetState = true } }
     BoxWithConstraints(modifier.fillMaxSize()) {
+        val screenW = maxWidth
         // A tap beside the sheet is Back, as on the remote.
         val backDispatcher = androidx.activity.compose.LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
         if (scrim) Box(
@@ -464,12 +467,7 @@ fun SettingsSheet(
                 detectTapGestures { backDispatcher?.onBackPressed() }
             },
         )
-        androidx.compose.animation.AnimatedVisibility(
-            visibleState = shown,
-            enter = androidx.compose.animation.slideInHorizontally(androidx.compose.animation.core.tween(SideInMs, easing = androidx.compose.animation.core.FastOutSlowInEasing)) { if (fromStart) -it / 4 else it / 4 } +
-                androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(SideInMs)),
-            modifier = Modifier.align(Alignment.CenterEnd),
-        ) {
+        Box(Modifier.align(Alignment.CenterEnd)) {
             // Always the dark grey sheet, whatever the app's theme, with SkMate blue for switches.
             CompositionLocalProvider(
                 tv.own.owntv.ui.theme.LocalStagePalette provides (if (tv.own.owntv.ui.theme.LocalStagePalette.current.isLight) tv.own.owntv.ui.theme.StagePalette.Light else tv.own.owntv.ui.theme.StagePalette.Dark),
@@ -479,20 +477,32 @@ fun SettingsSheet(
             // Flush with the right edge, full height, only its outer (left) corners softly rounded.
             Column(
                 Modifier
-                    .width((maxWidth / 3).coerceAtLeast(SideMinWidth).coerceAtMost(maxWidth))
+                    .width((screenW / 3).coerceAtLeast(SideMinWidth).coerceAtMost(screenW))
                     .fillMaxHeight()
                     .clip(RoundedCornerShape(topStart = 20.mpx, bottomStart = 20.mpx))
                     .background(sheetFill()),
             ) {
-                Row(
-                    Modifier.fillMaxWidth().height(SideHeader).background(sheetHeaderFill()).padding(start = 36.mpx, end = 24.mpx, bottom = 26.mpx),
-                    verticalAlignment = Alignment.Bottom,
-                    horizontalArrangement = Arrangement.spacedBy(12.mpx),
+                // The panel stays put; what is inside it slides in — from the right into a group, from
+                // the left on the way back.
+                androidx.compose.animation.AnimatedVisibility(
+                    visibleState = shown,
+                    enter = androidx.compose.animation.slideInHorizontally(androidx.compose.animation.core.tween(SideInMs, easing = androidx.compose.animation.core.FastOutSlowInEasing)) { if (fromStart) -it / 3 else it / 3 } +
+                        androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(SideInMs)),
                 ) {
-                    Text(title, style = stageText(30, 700, (-1f / 46f).em), color = StageColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
-                    if (headerTools != null) Row(horizontalArrangement = Arrangement.spacedBy(8.mpx), verticalAlignment = Alignment.CenterVertically, content = headerTools)
+                    Column {
+                        // The title on the sheet itself, no band behind it.
+                        Row(
+                            Modifier.fillMaxWidth().padding(start = 30.mpx, end = 24.mpx, top = 36.mpx, bottom = 14.mpx),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.mpx),
+                        ) {
+                            Text(title, style = stageText(32, 800, (-1f / 46f).em), color = StageColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+                            if (headerTools != null) Row(horizontalArrangement = Arrangement.spacedBy(8.mpx), verticalAlignment = Alignment.CenterVertically, content = headerTools)
+                        }
+                        // Inset from the panel's edges, so a focused row's grey card has room around it.
+                        Column(Modifier.padding(horizontal = SideFocusInset)) { content() }
+                    }
                 }
-                content()
             }
             }
         }
@@ -510,6 +520,9 @@ private fun sheetHeaderFill(): Color = if (tv.own.owntv.ui.theme.LocalStagePalet
 
 /** A third of the screen, but never so narrow that a row's title and value do not fit. */
 private val SideMinWidth = 600.mpx
+
+/** Room each side of the sheet's rows for their focus card. */
+private val SideFocusInset = 12.mpx
 private val SideHeader = 132.mpx
 private const val SideInMs = 260
 // TV-box greys: the sheet, its header band.

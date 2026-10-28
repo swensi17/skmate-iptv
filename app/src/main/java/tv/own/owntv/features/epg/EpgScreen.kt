@@ -195,6 +195,10 @@ fun EpgScreen(
     previewEnabled: Boolean = true,
     liveMode: Boolean = false,
     onListView: () -> Unit = {},
+    /** Drawn over the full-screen player: no video of its own (the picture plays behind), and focus
+     *  opens on [focusChannelId]'s row. */
+    overlay: Boolean = false,
+    focusChannelId: Long? = null,
     /** How ▶ from the rail enters the guide: at the grid row focus was on (the rail's entry hook, as Home's). */
     onEntryHook: (((() -> Boolean)?) -> Unit)? = null,
 ) {
@@ -276,6 +280,8 @@ fun EpgScreen(
     // Row stage (false): ▲ ▼ move between channels, ◀ leaves for the menu. Cell stage (true): ◀ ▶ go
     // through the programmes. Without it, reaching the channel list meant ◀ past every programme.
     var inCellMode by remember { mutableStateOf(false) }
+    // TV-box look: Live TV's guide is a view of the channel list, so Back from the rows goes back to the list.
+    BackHandler(enabled = tv.own.owntv.features.shell.TvBoxNav && liveMode && !inCellMode && gridHasFocus) { onListView() }
     BackHandler(enabled = inCellMode && gridHasFocus) { inCellMode = false }
     // The programme the block on top shows and the buttons act on: the one under the cursor.
     var selected by remember { mutableStateOf<Pair<ChannelEntity, EpgProgrammeEntity?>?>(null) }
@@ -331,7 +337,7 @@ fun EpgScreen(
     // Back from a channel tuned in the guide: its row again, once the reload has the grid on screen.
     LaunchedEffect(restoreFocus, state.loading, state.channels.size) {
         if (!restoreFocus || state.loading || state.channels.isEmpty()) return@LaunchedEffect
-        val idx = vm.lastTunedChannelId?.let { id -> state.channels.indexOfFirst { it.id == id } }?.takeIf { it >= 0 } ?: 0
+        val idx = (focusChannelId ?: vm.lastTunedChannelId)?.let { id -> state.channels.indexOfFirst { it.id == id } }?.takeIf { it >= 0 } ?: 0
         focusedRow = idx
         delay(80)
         focusGrid(idx)
@@ -455,7 +461,9 @@ fun EpgScreen(
         val timelineW = screenW - fx(48) - labelW - fx(64)
         LaunchedEffect(timelineW) { timelinePx = with(density) { timelineW.roundToPx() } }
 
-        val top = selected ?: state.channels.getOrNull(focusedRow)?.let { ch -> ch to programmeAt(vm.cachedProgrammes(ch), liveNow) }
+        // Read so the block fills in when the row's programmes arrive, not only once a row is focused.
+        val cacheRevision by vm.cacheRevision.collectAsStateWithLifecycle()
+        val top = selected ?: state.channels.getOrNull(focusedRow)?.let { ch -> cacheRevision.let { ch to programmeAt(vm.cachedProgrammes(ch), liveNow) } }
         val topChannel = top?.first
         val topProgramme = top?.second
         val full by produceState<EpgProgrammeEntity?>(null, topProgramme?.id) {
@@ -467,7 +475,7 @@ fun EpgScreen(
         // Top (44 → 404): the video, and beside it the programme under the cursor.
         Row(Modifier.padding(start = fx(64), end = fx(64), top = 44.mpx).fillMaxWidth().height(360.mpx)) {
         val videoChannel = if (effectivePreview) previewChannel ?: topChannel else topChannel
-        GuideVideo(
+        if (!overlay) GuideVideo(
             channel = videoChannel,
             channelLine = videoChannel?.let { listOfNotNull(it.number?.toString(), ProviderTags.parse(it.name).name).joinToString(" · ") },
             nowTitle = videoChannel?.let { ch -> programmeAt(vm.cachedProgrammes(ch), liveNow)?.takeIf { liveNow < it.stopMs }?.title },
@@ -484,7 +492,7 @@ fun EpgScreen(
                     title = shown?.title ?: chName,
                     details = if (shown == null) stringResource(R.string.content_epg_no_programme) else programmeDetailsLine(shown),
                     synopsis = shown?.description,
-                    modifier = Modifier.padding(start = 46.mpx, top = 76.mpx).widthIn(max = 1080.mpx),
+                    modifier = Modifier.padding(start = if (overlay) 0.mpx else 46.mpx, top = 76.mpx).widthIn(max = 1080.mpx),
                 )
             }
             // The key hints at the bottom right of the top area, level with the video's bottom edge.
@@ -495,7 +503,9 @@ fun EpgScreen(
 
         // The control line (452): one row with every guide header button.
         val viewDay by remember { derivedStateOf { localMidnight(timeAt(scrollPx + timelinePx * 3f / 8f)) } }
-        Row(
+        val formatViewDay = tv.own.owntv.ui.format.rememberBestDateFormatter("EEEdMMM")
+        // TV-box look: no buttons over the grid, only the day beside the ruler (drawn with the grid).
+        if (!tv.own.owntv.features.shell.TvBoxNav) Row(
             Modifier.padding(start = fx(68), end = fx(64), top = 48.mpx).fillMaxWidth().height(48.mpx),
             horizontalArrangement = Arrangement.spacedBy(8.mpx),
             verticalAlignment = Alignment.CenterVertically,
@@ -554,7 +564,7 @@ fun EpgScreen(
         }
 
         // The grid: ruler at 518, rows from 566.
-        Box(Modifier.fillMaxWidth().weight(1f).padding(top = 18.mpx)) {
+        Box(Modifier.fillMaxWidth().weight(1f).padding(top = if (tv.own.owntv.features.shell.TvBoxNav) 30.mpx else 18.mpx)) {
             when {
                 state.loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { OwnTVSpinner(sizeDp = 44) }
                 // No EPG feed added yet → a guide it can't fill. Point the user to EPG Sources.
@@ -575,6 +585,12 @@ fun EpgScreen(
                     val gx = fx(48) + labelW
                     // The number column fits the longest channel number (38 = three digits).
                     val numberWidth = maxOf(38f, (state.channels.maxOfOrNull { it.number?.toString()?.length ?: 0 } ?: 0) * 11f).mpx
+                    if (tv.own.owntv.features.shell.TvBoxNav) {
+                        Text(
+                            formatViewDay(viewDay), style = stageText(19, 700), color = tv.own.owntv.ui.brand.SkMateBlue, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.padding(start = fx(48) + 16.mpx).width(labelW - 24.mpx),
+                        )
+                    }
                     GuideRuler(
                         windowStart = state.windowStart, windowEnd = state.windowEnd, now = liveNow, scrollPx = readScrollPx,
                         modifier = Modifier.padding(start = gx).width(timelineW).height(40.mpx),
@@ -618,7 +634,9 @@ fun EpgScreen(
                                     onFocused = {
                                         focusedRow = index
                                         if (cursorTime !in state.windowStart until state.windowEnd) cursorTime = System.currentTimeMillis()
-                                        if (!effectivePreview) liveVm.onChannelFocused(channel)
+                                        // Over the full-screen player the picture is the channel being watched: moving
+                                        // through the rows must not change it — only OK does.
+                                        if (!effectivePreview && !overlay) liveVm.onChannelFocused(channel)
                                     },
                                     onCursor = { cursorTime = it },
                                     onShow = { p -> selected = channel to p },
@@ -650,7 +668,7 @@ fun EpgScreen(
                                 }
                                 .width(3.mpx)
                                 .fillMaxHeight()
-                                .guideNowLine(stageAccent.accent),
+                                .guideNowLine(if (tv.own.owntv.features.shell.TvBoxNav) tv.own.owntv.ui.brand.SkMateBlue else stageAccent.accent),
                         )
                     }
                 }

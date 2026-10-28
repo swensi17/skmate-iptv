@@ -295,6 +295,8 @@ private fun SettingsGroupList(entry: FocusRequester, onOpenGroup: (Int) -> Unit,
                 lastOpenedCard = null; onSearch()
             }
             SettingsCards.forEachIndexed { index, card ->
+                // No Live TV group: its settings belong to the channels screen and its own menus.
+                if (card.nameRes == R.string.settings_live_tv) return@forEachIndexed
                 GroupLine(card.icon, stringResource(card.nameRes), Modifier.then(if (index == back) Modifier.focusRequester(entry) else Modifier)) {
                     lastOpenedCard = index; onOpenGroup(index)
                 }

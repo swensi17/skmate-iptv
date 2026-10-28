@@ -5,6 +5,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import tv.own.owntv.ui.theme.stageTone
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -35,6 +36,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
@@ -97,8 +99,8 @@ private fun Modifier.stageFocusDecor(style: StageFocus, radius: Dp, a: StageAcce
             StageFocus.NONE -> Unit
             StageFocus.FX -> {
                 // A soft grey fill, no ring, round at the ends: the TV-box way of showing focus on a white page.
-                val pill = if (tv.own.owntv.features.shell.TvBoxNav) minOf(size.height / 2f, PillMaxRadius.toPx()) else r
-                drawRoundRect(LightFocusFill, cornerRadius = CornerRadius(pill))
+                val shape = if (tv.own.owntv.features.shell.TvBoxNav) focusCornerPx(size.height, r, PillMaxHeight.toPx()) else r
+                drawRoundRect(LightFocusFill, cornerRadius = CornerRadius(shape))
             }
             StageFocus.FILLED, StageFocus.PRIMARY -> {
                 drawBoxShadow(a.accent.copy(alpha = 0.3f), 30 * px, r, dy = 12 * px)
@@ -163,6 +165,8 @@ fun StageSurface(
     highlighted: Boolean = false,
     /** The focus colours; the player's chrome passes its on-video accent. */
     accent: StageAccent = stageAccent,
+    /** TV-box focus as a pill (round ends); off for list rows that keep softly rounded corners. */
+    pill: Boolean = true,
     content: @Composable BoxScope.(focused: Boolean) -> Unit,
 ) {
     val interaction = remember { MutableInteractionSource() }
@@ -174,18 +178,31 @@ fun StageSurface(
     // The light grey bar of TV-box screens instead of a white ring: in the settings sheet, and on every
     // dark screen while the TV-box look is on.
     val tvBox = tv.own.owntv.features.shell.TvBoxNav
+    // Settings rows keep softly rounded corners, as everywhere in lists.
+    @Suppress("NAME_SHADOWING") val pill = pill && !tv.own.owntv.ui.theme.LocalInSettingsSheet.current
     val sheetFocus = focused && (
-        (focusStyle == StageFocus.FX && (tv.own.owntv.ui.theme.LocalInSettingsSheet.current || (tvBox && !palette.isLight))) ||
+        (focusStyle == StageFocus.FX && (tv.own.owntv.ui.theme.LocalInSettingsSheet.current || (tvBox && (!palette.isLight || !pill)))) ||
             // TV-box look: list items and pills (FILLED) never turn solid black or white either.
-            (tvBox && focusStyle == StageFocus.FILLED)
+            (tvBox && (focusStyle == StageFocus.FILLED || focusStyle == StageFocus.PRIMARY))
         )
+    // On a grey side panel (the menu, the categories) focus is a white card with softly rounded corners.
+    val whiteFocus = focused && tvBox && palette.isLight && LocalWhiteFocus.current &&
+        (focusStyle == StageFocus.FX || focusStyle == StageFocus.FILLED || focusStyle == StageFocus.PRIMARY)
+    val whiteShape = if (pill) focusShape(radius) else androidx.compose.foundation.shape.RoundedCornerShape(WhiteFocusRadius)
     Box(
         modifier = modifier
             .stageLift(focused, focusStyle)
             .then(
                 when {
-                    sheetFocus && palette.isLight -> Modifier.background(LightFocusFill, PillFocusShape)
-                    sheetFocus -> Modifier.background(SheetFocusFill, PillFocusShape)
+                    whiteFocus -> Modifier.shadow(3.mpx, whiteShape, clip = false, ambientColor = WhiteFocusShadow, spotColor = WhiteFocusShadow)
+                        .background(Color.White, whiteShape)
+                    // In the settings sheet the grey bar has the same soft corners as every other focus card.
+                    sheetFocus && palette.isLight -> Modifier.background(
+                        LightFocusFill,
+                        if (pill) focusShape(radius)
+                        else androidx.compose.foundation.shape.RoundedCornerShape(if (tvBox && tv.own.owntv.ui.theme.LocalInSettingsSheet.current) WhiteFocusRadius else radius),
+                    )
+                    sheetFocus -> Modifier.background(SheetFocusFill, if (pill) focusShape(radius) else androidx.compose.foundation.shape.RoundedCornerShape(radius))
                     focused -> Modifier.stageFocusDecor(focusStyle, radius, accent, palette)
                     else -> idle
                 },
@@ -203,7 +220,7 @@ fun StageSurface(
         contentAlignment = contentAlignment,
     ) {
         // The light bar takes the light theme's dark text.
-        if (sheetFocus) {
+        if (sheetFocus || whiteFocus) {
             // On the light grey bar text is dark: the light palette, and an accent whose "on" colour is ink.
             val light = tv.own.owntv.ui.theme.StagePalette.Light
             androidx.compose.runtime.CompositionLocalProvider(
@@ -213,6 +230,13 @@ fun StageSurface(
         } else content(focused)
     }
 }
+
+/** True inside a grey side panel (the menu, the categories): focus there is a white card, see [StageSurface]. */
+val LocalWhiteFocus = androidx.compose.runtime.compositionLocalOf { false }
+
+/** The white card's corners: softly rounded, not a pill. */
+internal val WhiteFocusRadius = 12.mpx
+internal val WhiteFocusShadow = Color(0x33000000)
 
 /** The focused row of the settings sheet. */
 private val SheetFocusFill = Color(0xFFE0E2E4)
@@ -404,14 +428,22 @@ fun StageTool(
     danger: Boolean = false,
 ) {
     val a = stageAccent
-    // TV-box look: a full pill, round at both ends.
-    val r = if (tv.own.owntv.features.shell.TvBoxNav) 24.mpx else StageRadii.Tool
+    // TV-box look: the same softly rounded rectangle as the list rows and the categories.
+    val tvBox = tv.own.owntv.features.shell.TvBoxNav
+    val r = if (tvBox) WhiteFocusRadius else StageRadii.Tool
+    val white = tvBox && LocalWhiteFocus.current
     StageSurface(
         onClick = onClick,
         radius = r,
+        pill = !tvBox,
         modifier = modifier.height(48.mpx),
         idle = if (boxed) Modifier.background(StageColors.ControlFill, RoundedCornerShape(r)) else Modifier,
     ) { focused ->
+        // TV-box look: a boxed tool already sits on grey, so focus adds a clear ring to tell it apart —
+        // unless focus is the white card, which tells it apart by itself.
+        if (focused && boxed && tvBox && !white) {
+            Box(Modifier.matchParentSize().border(2.mpx, StageColors.Text.copy(alpha = 0.55f), RoundedCornerShape(r)))
+        }
         Row(
             Modifier.padding(horizontal = 16.mpx),
             horizontalArrangement = Arrangement.spacedBy(9.mpx),
@@ -526,7 +558,11 @@ fun StageTag(text: String, onAccent: Color? = null, tint: Color? = null) {
         color = onAccent ?: tint ?: StageColors.TagText,
         maxLines = 1, overflow = TextOverflow.Ellipsis,
         modifier = Modifier
-            .background(
+            .then(
+                // TV-box look: a coloured tag is just its text in a thin outline of that colour.
+                if (tv.own.owntv.features.shell.TvBoxNav && tint != null && onAccent == null) {
+                    Modifier.border(1.5f.mpx, tint, RoundedCornerShape(StageRadii.Tag))
+                } else Modifier.background(
                 when {
                     onAccent != null -> Color.Black.copy(alpha = 0.18f)
                     // A coloured tag ("IN USE", "UP TO DATE"): the colour at 20% behind its own text.
@@ -534,6 +570,7 @@ fun StageTag(text: String, onAccent: Color? = null, tint: Color? = null) {
                     else -> StageColors.Ink.copy(alpha = 0.08f)
                 },
                 RoundedCornerShape(StageRadii.Tag),
+            ),
             )
             .padding(horizontal = 7.mpx, vertical = 3.mpx),
     )
@@ -589,6 +626,8 @@ fun StageRow(
         modifier = modifier.height(height),
         focusStyle = StageFocus.FX,
         onLongClick = onLongClick,
+        // List rows: softly rounded corners, not a pill.
+        pill = false,
     ) { focused ->
         Row(
             Modifier.fillMaxWidth().padding(horizontal = horizontalPadding),
@@ -721,7 +760,14 @@ fun StageSheetItem(
         onClick = onClick,
         onLongClick = onLongClick,
         radius = StageRadii.SheetItem,
-        modifier = modifier.fillMaxWidth().then(if (maxLines > 1) Modifier.heightIn(min = 56.mpx) else Modifier.height(56.mpx)),
+        // Category rows: softly rounded corners, not a pill.
+        pill = false,
+        modifier = modifier.fillMaxWidth().then(if (maxLines > 1) Modifier.heightIn(min = 56.mpx) else Modifier.height(56.mpx))
+            // TV-box look: a hairline under each row.
+            .then(if (tv.own.owntv.features.shell.TvBoxNav) Modifier.drawBehind {
+                val h = 1.mpx.toPx()
+                drawRect(Color(0x12000000), topLeft = androidx.compose.ui.geometry.Offset(16.mpx.toPx(), drawContext.size.height - h), size = androidx.compose.ui.geometry.Size(drawContext.size.width - 32.mpx.toPx(), h))
+            } else Modifier),
     ) { focused ->
         Row(
             Modifier.fillMaxWidth().padding(horizontal = 16.mpx, vertical = if (maxLines > 1) 8.mpx else 0.mpx),
@@ -1213,11 +1259,18 @@ fun Modifier.solidCard(radius: Dp): Modifier {
         .background(fill, androidx.compose.foundation.shape.RoundedCornerShape(radius))
 }
 
-/** TV-box focus: round ends on rows and buttons; big cards stop at [PillMaxRadius] so they stay cards. */
-private val PillMaxRadius = 48.mpx
-private val PillFocusShape = object : androidx.compose.ui.graphics.Shape {
+/**
+ * TV-box focus follows the element's own shape: a row or button (up to [PillMaxHeight] tall) gets round
+ * ends; anything bigger — a card, a round avatar — keeps exactly its own corner radius.
+ */
+private val PillMaxHeight = 100.mpx
+
+private fun focusCornerPx(height: Float, ownRadius: Float, pillMaxHeight: Float): Float =
+    if (height <= pillMaxHeight) maxOf(height / 2f, ownRadius) else ownRadius
+
+private fun focusShape(radius: Dp) = object : androidx.compose.ui.graphics.Shape {
     override fun createOutline(size: androidx.compose.ui.geometry.Size, layoutDirection: androidx.compose.ui.unit.LayoutDirection, density: androidx.compose.ui.unit.Density): androidx.compose.ui.graphics.Outline {
-        val r = minOf(size.height / 2f, with(density) { PillMaxRadius.toPx() })
+        val r = with(density) { focusCornerPx(size.height, radius.toPx(), PillMaxHeight.toPx()) }
         return androidx.compose.ui.graphics.Outline.Rounded(androidx.compose.ui.geometry.RoundRect(0f, 0f, size.width, size.height, CornerRadius(r)))
     }
 }

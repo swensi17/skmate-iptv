@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -228,6 +229,11 @@ fun PlayerHud(
     // The match page.
     // A goal toast for another followed match is up: OK switches to it instead of showing the controls.
     onToastOk: (() -> Unit)? = null,
+    // TV-box look, live only: the channel info drawn at the bottom when ▼ or OK is pressed (programme,
+    // times, channel, the stream's chips handed in, how far behind live). Non-null switches the live
+    // player to the TV-box steps: info, then ▼ again for [onOpenGuide] and the other tiles.
+    tvBoxInfo: (@Composable (chips: List<String>, offsetSec: Int?) -> Unit)? = null,
+    onOpenGuide: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
     // Nothing that ticks is read in this root scope: with the controls hidden it used to recompose
@@ -286,6 +292,11 @@ fun PlayerHud(
         nextCardDue && !autoNextDismissed
 
     var controlsVisible by remember { mutableStateOf(true) }
+    // TV-box live steps: the info (controls visible), then ▼ again for the tile row.
+    val tvLive = tv.own.owntv.features.shell.TvBoxNav && isLive && tvBoxInfo != null
+    var tvActions by remember { mutableStateOf(false) }
+    val tvActionFocus = remember { FocusRequester() }
+    LaunchedEffect(controlsVisible) { if (!controlsVisible) tvActions = false }
     var showInfo by remember { mutableStateOf(false) } // stream technical-info overlay
     // Used only by "Report this stream", which writes the current readout into the playback log.
     val reportContext = androidx.compose.ui.platform.LocalContext.current
@@ -295,6 +306,13 @@ fun PlayerHud(
     // this handler is disabled, so Back falls through to the shell, which exits the player. Also disabled
     // while an error/dialog is up (a dialog handles its own Back; an error should exit).
     BackHandler(enabled = controlsVisible && !forceShow) { controlsVisible = false }
+    // Back from the tiles steps back to the info, the way ▲ does.
+    BackHandler(enabled = tvActions && !forceShow) { tvActions = false }
+    LaunchedEffect(tvActions, controlsVisible) {
+        if (!tvLive || !controlsVisible || dialog != HudDialog.NONE) return@LaunchedEffect
+        delay(16)
+        runCatching { if (tvActions) tvActionFocus.requestFocus() else playFocus.requestFocus() }
+    }
     // Channel zap (live only): a brief "now watching" card on up/down without revealing the full HUD.
     val canZap = onChannelUp != null && onChannelDown != null
     var channelFlash by remember { mutableIntStateOf(0) }
@@ -349,7 +367,9 @@ fun PlayerHud(
 
     val zap: (Int) -> Unit = { d ->
         cancelDirectTune()
-        (if (d < 0) onChannelUp else onChannelDown)?.invoke(); channelFlash++
+        (if (d < 0) onChannelUp else onChannelDown)?.invoke()
+        // TV-box look: the new channel's info at the bottom, not a card at the top.
+        if (tvLive) { tvActions = false; controlsVisible = true; wakeTick++ } else channelFlash++
     }
 
     // Restartable timeout: each new digit restarts the ~2 s window. On expiry, submit.
@@ -437,7 +457,12 @@ fun PlayerHud(
     }
     LaunchedEffect(controlsVisible, wakeTick, forceShow, inert) {
         // Don't auto-hide under an overlay — hiding is what triggers the catch-all focus grab below.
-        if (controlsVisible && !forceShow && !inert) { delay(4500); controlsVisible = false }
+        if (controlsVisible && !forceShow && !inert) {
+            delay(4500)
+            // Paused, the info stays up with its pause mark until playing again.
+            snapshotFlow { !tvLive || player.isPlaying.value || player.buffering.value }.first { it }
+            controlsVisible = false
+        }
     }
     LaunchedEffect(controlsVisible, error, dialog, inert, showNextCard) {
         // Never steal focus while a dialog is open (its rows own it) or while a shell overlay is up
@@ -570,6 +595,31 @@ fun PlayerHud(
                 // de facto TV convention (Live Channels, YouTube TV, Pluto TV). All of these keys move
                 // the same way; there is deliberately no split between CH+ and D-pad Up. Wrapping is
                 // intended: CH-/Down from the first channel lands on the last, and vice versa.
+                // TV-box live: ▼ (or OK) shows the channel info, ▼ again the tiles; ▲ steps back down the
+                // same way; ◀ ▶ on the info scrub the timeline where the channel can be rewound.
+                // With it hidden, ▲ ▼ change channel (below) and OK shows the info.
+                tvLive && error == null && !controlsVisible && !inert &&
+                    (e.key == Key.DirectionCenter || e.key == Key.Enter || e.key == Key.NumPadEnter) -> { controlsVisible = true; true }
+                tvLive && error == null && controlsVisible && !tvActions && e.key == Key.DirectionDown -> { tvActions = true; wakeTick++; true }
+                tvLive && error == null && controlsVisible && !tvActions && e.key == Key.DirectionUp -> { controlsVisible = false; true }
+                tvLive && error == null && controlsVisible && tvActions && e.key == Key.DirectionUp -> { tvActions = false; wakeTick++; true }
+                // OK on the info pauses, and OK again carries on from the same moment (a new channel starts live).
+                tvLive && error == null && controlsVisible && !tvActions &&
+                    (e.key == Key.DirectionCenter || e.key == Key.Enter || e.key == Key.NumPadEnter) -> {
+                    if (e.nativeKeyEvent.repeatCount == 0) player.togglePlayPause()
+                    wakeTick++
+                    true
+                }
+                tvLive && error == null && controlsVisible && !tvActions && onScrubLive != null && (e.key == Key.DirectionLeft || e.key == Key.DirectionRight) -> {
+                    onScrubLive(if (e.key == Key.DirectionLeft) LIVE_SCRUB_STEP_SEC else -LIVE_SCRUB_STEP_SEC)
+                    wakeTick++
+                    true
+                }
+                // No archive to scrub: ◀ ▶ on the info open the channel list and history, as with it hidden.
+                tvLive && error == null && controlsVisible && !tvActions && onOpenChannelList != null &&
+                    e.key.horizontalDirection(layoutDirection) == HorizontalDirection.START -> { controlsVisible = false; onOpenChannelList(); true }
+                tvLive && error == null && controlsVisible && !tvActions && onOpenHistoryList != null &&
+                    e.key.horizontalDirection(layoutDirection) == HorizontalDirection.END -> { controlsVisible = false; onOpenHistoryList(); true }
                 canZap && e.key == Key.MediaNext -> { zap(1); true }
                 canZap && e.key == Key.MediaPrevious -> { zap(-1); true }
                 canZap && isLive && !controlsVisible && e.key == Key.DirectionUp -> { zap(1); true }
@@ -656,7 +706,59 @@ fun PlayerHud(
         // stop button one stray D-pad press from the middle of a programme is not a kindness.
         RecordingBadge(modifier = Modifier.align(Alignment.TopEnd))
 
-        if (controlsVisible) {
+        // Paused: one calm mark in the middle.
+        if (tvLive && !isPlaying && !buffering && error == null && !inert) {
+            Box(Modifier.align(Alignment.Center).size(96.dp).background(Color(0x66000000), androidx.compose.foundation.shape.CircleShape), contentAlignment = Alignment.Center) {
+                tv.own.owntv.ui.components.OwnTVIcon(OwnTVIcon.PAUSE, Color.White, Modifier.size(44.dp))
+            }
+        }
+        androidx.compose.animation.AnimatedVisibility(
+            visible = controlsVisible && tvLive && error == null,
+            enter = androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(TvHudFadeMs)) +
+                androidx.compose.animation.slideInVertically(androidx.compose.animation.core.tween(TvHudFadeMs)) { it / 6 },
+            exit = androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(TvHudFadeMs)) +
+                androidx.compose.animation.slideOutVertically(androidx.compose.animation.core.tween(TvHudFadeMs)) { it / 6 },
+            modifier = Modifier.fillMaxSize(),
+        ) {
+          Box(Modifier.fillMaxSize()) {
+            // TV-box look: no transport, no top bar — the channel info at the bottom over a soft shade,
+            // and under it, after ▼, the tiles.
+            // A soft see-through fall-off, never a dark band: the picture stays visible behind the text.
+            Box(Modifier.align(Alignment.BottomStart).fillMaxWidth().height(if (tvActions) 560.dp else 420.dp)
+                .gradientWash(vertical = true, 0.0f to Color.Transparent, 0.5f to TvBoxShade.copy(alpha = 0.35f), 1.0f to TvBoxShade))
+            Column(
+                Modifier.align(Alignment.BottomStart).fillMaxWidth().padding(start = 44.dp, end = 44.dp, bottom = 36.dp),
+                verticalArrangement = Arrangement.spacedBy(22.dp),
+            ) {
+                tvBoxInfo!!(streamChips.ifEmpty { listOfNotNull(videoRes) }, timeshiftOffset())
+                if (tvActions) {
+                    TvBoxActionRow(
+                        listOfNotNull(
+                            onOpenGuide?.let { TvBoxAction(stringResource(R.string.settings_seg_guide), OwnTVIcon.EPG, { controlsVisible = false; it() }) },
+                            onOpenChannelList?.let { TvBoxAction(stringResource(R.string.content_channel_overlay_title), OwnTVIcon.LIST, { controlsVisible = false; it() }) },
+                            onOpenHistoryList?.let { TvBoxAction(stringResource(R.string.content_category_history), OwnTVIcon.HISTORY, { controlsVisible = false; it() }) },
+                            onPreviousChannel?.let { TvBoxAction(stringResource(R.string.player_previous_channel), OwnTVIcon.SKIP_PREVIOUS, { controlsVisible = false; it() }) },
+                            onToggleFavorite?.let {
+                                TvBoxAction(
+                                    stringResource(if (favorite) R.string.content_favorited else R.string.player_tool_favorite),
+                                    if (favorite) OwnTVIcon.FAVORITE else OwnTVIcon.STAR, it, active = favorite,
+                                )
+                            },
+                            TvBoxAction(stringResource(R.string.player_tool_audio), OwnTVIcon.AUDIO, { dialog = HudDialog.AUDIO }).takeIf { audioCount > 1 },
+                            TvBoxAction(stringResource(R.string.player_tool_subtitles), OwnTVIcon.SUBTITLE, { dialog = HudDialog.SUBS }).takeIf { subCount > 0 },
+                            TvBoxAction(stringResource(R.string.player_tool_aspect), OwnTVIcon.ASPECT, { dialog = HudDialog.ZOOM }),
+                        ),
+                        firstFocus = tvActionFocus,
+                        // ◀ past the first tile opens the channel list, as ◀ does everywhere in the player.
+                        onLeftEdge = onOpenChannelList?.let { open -> { controlsVisible = false; open() } },
+                    )
+                } else {
+                    TvBoxInfoFocus(playFocus)
+                }
+            }
+          }
+        }
+        if (controlsVisible && !(tvLive && error == null)) {
             // Scrims: a FLAT semi-transparent panel behind the controls, feathered to transparent only at
             // the inner edge. A pure gradient faded out exactly where the chips and the Now/Next text sit,
             // so those washed out on bright scenes; a hard-edged band would instead draw a visible seam
@@ -840,8 +942,10 @@ fun PlayerHud(
             // A provider wait looks like loading, because that is what it is: the channel is queued behind
             // the panel's own countdown and the engine re-asks by itself. The line under the spinner says
             // why nothing is happening yet, so nobody reaches for Retry (or thinks the channel is dead).
-            buffering -> Column(Modifier.align(Alignment.Center), horizontalAlignment = Alignment.CenterHorizontally) {
-                OwnTVSpinner(sizeDp = 56)
+            // TV-box look: under the channel panel the picture is in a window and the panel draws its own spinner.
+            buffering && !(tvLive && inert) -> Column(Modifier.align(Alignment.Center), horizontalAlignment = Alignment.CenterHorizontally) {
+                // TV-box look: a quiet white spinner, nothing else over the picture while it opens.
+                if (tvLive) OwnTVSpinner(sizeDp = 48, color = Color.White.copy(alpha = 0.9f)) else OwnTVSpinner(sizeDp = 56)
                 val stalledSince = stalledSinceMs
                 if (providerBackOff == null && stalledSince != null) {
                     val showNotice by produceState(false, stalledSince) {
@@ -966,3 +1070,6 @@ fun PlayerHud(
         HudDialog.NONE -> Unit
     }
 }
+
+/** The TV-box info and tiles fading and sliding in and out. */
+private const val TvHudFadeMs = 220

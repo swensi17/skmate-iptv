@@ -95,6 +95,7 @@ internal fun ProgrammeStripCanvas(
     val dimColor = tv.own.owntv.ui.theme.StageColors.Dim
     val ink = tv.own.owntv.ui.theme.StageColors.Ink
     val palette = tv.own.owntv.ui.theme.LocalStagePalette.current
+    val tvBox = tv.own.owntv.features.shell.TvBoxNav
     // A row with nothing in the window says so, rather than looking broken.
     val emptyText = stringResource(R.string.content_epg_no_programme)
     // Clipped at the timeline's left edge only, so a focused cell's glow still spills up and down.
@@ -114,7 +115,7 @@ internal fun ProgrammeStripCanvas(
         }
         val viewW = size.width
         val h = size.height
-        val r = CornerRadius(14 * px)
+        val r = CornerRadius((if (tvBox) 12 else 14) * px)
         // Feeds sometimes carry two programmes for the same time. Each one is drawn from where the one
         // before it ends, so they never sit on top of each other; one hidden completely is left out.
         var shownUntil = windowStart
@@ -127,10 +128,13 @@ internal fun ProgrammeStripCanvas(
             val gx1 = (((gapEnd - windowStart) / 60_000f) * pxPerMin - scrollPx - 3 * px).coerceAtMost(viewW)
             if (gx1 > gx0) {
                 val box = androidx.compose.ui.geometry.Rect(gx0, 0f, gx1, h)
-                drawBoxShadow(a.accent.copy(alpha = 0.4f), 34 * px, r.x, dy = 12 * px, bounds = box)
-                drawRoundRect(a.accent, Offset(gx0, 0f), Size(gx1 - gx0, h), r)
-                focusRing(gx0, gx1 - gx0, h, r)
-                val label = measurer.measure(emptyText, timeStyle.copy(color = a.onAccent), maxLines = 1, softWrap = false)
+                if (tvBox) drawRoundRect(tv.own.owntv.ui.brand.SkMateBlue.copy(alpha = 0.16f), Offset(gx0, 0f), Size(gx1 - gx0, h), r)
+                else {
+                    drawBoxShadow(a.accent.copy(alpha = 0.4f), 34 * px, r.x, dy = 12 * px, bounds = box)
+                    drawRoundRect(a.accent, Offset(gx0, 0f), Size(gx1 - gx0, h), r)
+                    focusRing(gx0, gx1 - gx0, h, r)
+                }
+                val label = measurer.measure(emptyText, timeStyle.copy(color = if (tvBox) textColor else a.onAccent), maxLines = 1, softWrap = false)
                 drawText(label, topLeft = Offset(gx0 + 14 * px, (h - label.size.height) / 2f))
                 drawnAny = true
             }
@@ -148,7 +152,14 @@ internal fun ProgrammeStripCanvas(
             val isNow = now in p.startMs until p.stopMs
             val fade = if (!focused && p.stopMs <= now) 0.5f else 1f
             val box = androidx.compose.ui.geometry.Rect(x, 0f, x + w, h)
-            if (focused) {
+            if (tvBox) {
+                val fill = when {
+                    focused -> tv.own.owntv.ui.brand.SkMateBlue.copy(alpha = 0.16f)
+                    isNow -> ink.copy(alpha = 0.06f)
+                    else -> ink.copy(alpha = 0.035f * fade)
+                }
+                drawRoundRect(fill, Offset(x, 0f), Size(w, h), r)
+            } else if (focused) {
                 drawBoxShadow(a.accent.copy(alpha = 0.4f), 34 * px, r.x, dy = 12 * px, bounds = box)
                 drawRoundRect(a.accent, Offset(x, 0f), Size(w, h), r)
                 focusRing(x, w, h, r)
@@ -158,10 +169,12 @@ internal fun ProgrammeStripCanvas(
             // Text starts at the visible part of a cell that began before the timeline's left edge.
             val tx = maxOf(x, 0f)
             val textW = (x + w - tx - 28 * px).toInt()
-            if (textW <= 4) return@forEachIndexed
-            val titleColor = if (focused) a.onAccent else textColor.copy(alpha = fade)
-            val smallColor = if (focused) Color.Black.copy(alpha = 0.6f) else dimColor.copy(alpha = fade)
-            val iconColor = if (focused) a.onAccent else a.accent.copy(alpha = fade)
+            // A sliver of a programme says nothing readable: in the TV-box look it stays an empty cell.
+            if (textW <= (if (tvBox) 44 * px else 4f)) return@forEachIndexed
+            val onFocus = if (tvBox) textColor else a.onAccent
+            val titleColor = if (focused) onFocus else textColor.copy(alpha = fade)
+            val smallColor = if (focused) (if (tvBox) dimColor else Color.Black.copy(alpha = 0.6f)) else dimColor.copy(alpha = fade)
+            val iconColor = if (focused) onFocus else a.accent.copy(alpha = fade)
             val title = measurer.measure(p.title, titleStyle.copy(color = titleColor), overflow = TextOverflow.Ellipsis, maxLines = 1, softWrap = false, constraints = Constraints(maxWidth = textW))
             drawText(title, topLeft = Offset(tx + 14 * px, 8 * px))
             // The small line: icons first, 8 apart, then the time.

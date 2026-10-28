@@ -2,6 +2,7 @@ package tv.own.owntv.features.shell
 
 import tv.own.owntv.ui.stage.stageGlass
 import androidx.activity.compose.BackHandler
+import tv.own.owntv.core.ui.findActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Arrangement
@@ -28,6 +29,11 @@ import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import kotlin.math.roundToInt
+import androidx.compose.ui.layout.layout
+import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.layout.onPlaced
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.ui.input.pointer.pointerInput
@@ -82,6 +88,8 @@ import tv.own.owntv.player.OwnTVPlayer
 import tv.own.owntv.player.PlayerHud
 import tv.own.owntv.features.shell.components.AvatarPickerDialog
 import tv.own.owntv.features.shell.components.ExitDialog
+import tv.own.owntv.features.shell.components.CategoryContextMenu
+import tv.own.owntv.features.live.displayLabel
 import tv.own.owntv.features.shell.components.IncompleteRestoreDialog
 import tv.own.owntv.features.shell.components.SettingsScreen
 import tv.own.owntv.features.shell.components.SolidAmbientBackdrop
@@ -317,6 +325,21 @@ fun OwnTVShell(
     }.collectAsStateWithLifecycle(emptyList())
     // In-player channel-list overlay (Left while controls hidden, live only).
     var showChannelList by remember { mutableStateOf(false) }
+    // TV-box look: the guide over the full-screen picture, opened from the player's tiles.
+    var showGuideOverlay by remember { mutableStateOf(false) }
+    // The channel that was on when the player's channel panel opened, while the panel previews others.
+    var panelStartChannel by remember { mutableStateOf<tv.own.owntv.core.database.entity.ChannelEntity?>(null) }
+    var panelInset by remember { mutableStateOf(0.dp) }
+    // Holding OK on a category in the player: its options. ◀ past the categories: the app menu.
+    var playerCategoryMenu by remember { mutableStateOf<tv.own.owntv.features.live.LiveRailItem?>(null) }
+    var menuAfterExit by remember { mutableStateOf(false) }
+    LaunchedEffect(playerMode, menuAfterExit) {
+        if (!menuAfterExit || playerMode != PlayerMode.NONE) return@LaunchedEffect
+        kotlinx.coroutines.delay(MenuAfterExitMs)
+        focusRail()
+        menuAfterExit = false
+    }
+    LaunchedEffect(playerMode) { if (playerMode != PlayerMode.FULLSCREEN) showGuideOverlay = false }
     // In-player watch-history list (Right while controls hidden, live only).
     var showHistoryList by remember { mutableStateOf(false) }
     // Multiview: the grid, while it is up, and which tile is waiting for a channel to be picked.
@@ -539,7 +562,10 @@ fun OwnTVShell(
     }
     // The mini-player's own expand button always maximizes.
     val expandPlayer = { resumeVideo(); restoreFocus = false; playerMode = PlayerMode.FULLSCREEN }
-    val exitPlayer = {
+    // TV-box look: Back from full screen first shrinks the picture back into the preview, then leaves.
+    var collapsingFull by remember { mutableStateOf(false) }
+    val exitPlayerNow = {
+        collapsingFull = false
         // Flush the resume position BEFORE the stream is torn down — stop() drops the loaded item's
         // identity, after which neither view model can tell the position was theirs. Both calls are
         // no-ops unless the player is on that section's item.
@@ -557,6 +583,10 @@ fun OwnTVShell(
         restoreFocus = true
         focusRail()
         Unit
+    }
+    val exitPlayer = {
+        if (TvBoxNav && playerMode == PlayerMode.FULLSCREEN && tv.own.owntv.features.shell.components.TvBoxPanels.previewRect != null) collapsingFull = true
+        else exitPlayerNow()
     }
     // A one-stream playlist that a download was using: core paused the download; this asks what next.
     tv.own.owntv.features.downloads.DownloadWatchPrompt(onClosePlayer = { if (playerMode != PlayerMode.NONE) exitPlayer() })
@@ -877,7 +907,9 @@ fun OwnTVShell(
         if (openedSeries == null && searchReturn == MainSection.SERIES && selectedSection == MainSection.SERIES) returnToSearch()
     }
 
-    fun closeMenuToContent() {
+    var lastBackAt by remember { mutableLongStateOf(0L) }
+    val context = androidx.compose.ui.platform.LocalContext.current
+        fun closeMenuToContent() {
         val entry = when (selectedSection) {
             MainSection.HOME -> homeEntry
             MainSection.EPG, MainSection.LIVE_TV -> guideEntry
@@ -888,6 +920,25 @@ fun OwnTVShell(
             else -> null
         }
         if (entry?.invoke() != true) runCatching { contentAreaFocus.requestFocus() }
+    }
+    // TV-box look: the screen, not the menu, has focus when the app opens and after a menu item is chosen.
+    // The new screen registers its entry a frame or two after it composes, so this asks a few times.
+    var contentFocusPending by remember { mutableStateOf(TvBoxNav) }
+    LaunchedEffect(contentFocusPending, selectedSection) {
+        if (!contentFocusPending) return@LaunchedEffect
+        repeat(ContentFocusTries) {
+            kotlinx.coroutines.delay(ContentFocusStepMs)
+            val entry = when (selectedSection) {
+                MainSection.HOME -> homeEntry
+                MainSection.EPG, MainSection.LIVE_TV -> guideEntry
+                MainSection.SPORTS -> sportsEntry
+                MainSection.MORE -> moreEntry
+                else -> null
+            }
+            if (entry?.invoke() == true) { contentFocusPending = false; return@LaunchedEffect }
+        }
+        runCatching { contentAreaFocus.requestFocus() }
+        contentFocusPending = false
     }
     BackHandler {
         when {
@@ -906,8 +957,18 @@ fun OwnTVShell(
             searchReturn == selectedSection && focusedLayer != ShellLayer.SIDEBAR -> returnToSearch()
             // TV-box style: Back on the open menu closes it (focus back to the screen); on the screen it asks to exit.
             TvBoxNav && focusedLayer == ShellLayer.SIDEBAR -> closeMenuToContent()
+            // TV-box style: Back from anything but the channels goes to the channels; there, a second
+            // Back within two seconds leaves the app (no question asked).
+            TvBoxNav && selectedSection != MainSection.LIVE_TV -> { restoreFocus = true; onSelectSection(MainSection.LIVE_TV) }
+            TvBoxNav -> {
+                val now = android.os.SystemClock.uptimeMillis()
+                if (now - lastBackAt < ExitBackWindowMs) context.findActivity()?.finish()
+                else {
+                    lastBackAt = now
+                    android.widget.Toast.makeText(context, context.getString(R.string.shell_press_back_again), android.widget.Toast.LENGTH_SHORT).show()
+                }
+            }
             focusedLayer == ShellLayer.SIDEBAR -> showExit = true
-            TvBoxNav -> showExit = true
             else -> focusRail()
         }
     }
@@ -1053,7 +1114,13 @@ fun OwnTVShell(
                   trendingSearchActive = false
                   restoreTrendingSearchFocus = false
               }
-              onSelectSection(section)
+              // TV-box look: OK on a menu item opens that screen and the menu closes, focus in the screen —
+              // also on the screen already open, which before only re-selected it and left the menu up.
+              if (TvBoxNav && section != MainSection.SEARCH) {
+                  if (section != selectedSection) { contentFocusPending = true; onSelectSection(section) }
+                  else if (tv.own.owntv.features.shell.components.TvBoxPanels.besideOpen) tv.own.owntv.features.shell.components.TvBoxPanels.closeBeside++
+                  else closeMenuToContent()
+              } else onSelectSection(section)
           }
           // Audio Mode: the now-playing bar — in the top bar left of the weather chip, or in the Stage
           // cluster in the Continue pill's place. Present only while PlayerMode.AUDIO.
@@ -1148,6 +1215,23 @@ fun OwnTVShell(
                                 .focusGroup(),
                         ),
                 ) {
+                    // TV-box style the settings sheet opens over the channels, not over an empty page: they are
+                    // drawn behind it, still and out of the remote's reach.
+                    if (TvBoxNav && (selectedSection == MainSection.MORE || selectedSection == MainSection.SETTINGS)) {
+                        Box(
+                            Modifier
+                                .fillMaxSize()
+                                .then(androidx.compose.ui.Modifier.focusProperties { canFocus = false; onEnter = { cancelFocusChange() } })
+                                .focusGroup(),
+                        ) {
+                            LiveScreen(
+                                onFullscreen = {},
+                                onChildFocused = {},
+                                previewEnabled = false,
+                                modifier = Modifier.fillMaxSize(),
+                            )
+                        }
+                    }
                     when {
                         // More — the hub the rail's last item opens. Settings is a row in it.
                         selectedSection == MainSection.MORE -> tv.own.owntv.features.more.MoreScreen(
@@ -1562,9 +1646,40 @@ fun OwnTVShell(
 
       if (multiview == null && (playerMode == PlayerMode.FULLSCREEN || playerMode == PlayerMode.MINI)) {
         val isFull = playerMode == PlayerMode.FULLSCREEN
+        // TV-box look: full screen grows out of the channels screen's preview (and shrinks back into it on
+        // Back), by laying the picture out at the in-between size — a SurfaceView ignores layer scaling.
+        val growFrom = if (TvBoxNav && isFull) tv.own.owntv.features.shell.components.TvBoxPanels.previewRect else null
+        val grow = remember(isFull) { androidx.compose.animation.core.Animatable(if (growFrom != null) 0f else 1f) }
+        LaunchedEffect(grow) { grow.animateTo(1f, androidx.compose.animation.core.tween(FullGrowMs, easing = androidx.compose.animation.core.FastOutSlowInEasing)) }
+        LaunchedEffect(collapsingFull) {
+            if (!collapsingFull) return@LaunchedEffect
+            grow.animateTo(0f, androidx.compose.animation.core.tween(FullShrinkMs, easing = androidx.compose.animation.core.FastOutSlowInEasing))
+            exitPlayerNow()
+        }
+        var parentOrigin by remember { mutableStateOf(androidx.compose.ui.geometry.Offset.Zero) }
         Box(
             modifier = if (isFull) {
-                Modifier.fillMaxSize().background(Color.Black)
+                Modifier.fillMaxSize()
+                    .onPlaced { parentOrigin = it.parentLayoutCoordinates?.positionInRoot() ?: androidx.compose.ui.geometry.Offset.Zero }
+                    .layout { measurable, constraints ->
+                        val w = constraints.maxWidth
+                        val h = constraints.maxHeight
+                        val t = grow.value
+                        val from = growFrom
+                        if (from == null || t >= 1f) {
+                            val p = measurable.measure(androidx.compose.ui.unit.Constraints.fixed(w, h))
+                            layout(w, h) { p.place(0, 0) }
+                        } else {
+                            fun lerp(a: Float, b: Float) = a + (b - a) * t
+                            val left = lerp(from.left - parentOrigin.x, 0f)
+                            val top = lerp(from.top - parentOrigin.y, 0f)
+                            val pw = lerp(from.width, w.toFloat()).roundToInt().coerceAtLeast(1)
+                            val ph = lerp(from.height, h.toFloat()).roundToInt().coerceAtLeast(1)
+                            val p = measurable.measure(androidx.compose.ui.unit.Constraints.fixed(pw, ph))
+                            layout(w, h) { p.place(left.roundToInt(), top.roundToInt()) }
+                        }
+                    }
+                    .background(Color.Black)
             } else {
                 // Dynamic docked size/position: a screen-width fraction at the chosen corner/edge, so it
                 // scales with the panel + UI zoom (never a fixed-size box).
@@ -1573,17 +1688,47 @@ fun OwnTVShell(
                     .clip(RoundedCornerShape(14.dp)).background(Color.Black)
             },
         ) {
+            // TV-box look: with the channel panel open the picture moves into the top-right corner beside it,
+            // laid out at that size (a SurfaceView ignores layer scaling), and comes back when it closes.
+            val docked = TvBoxNav && isFull && zapSource == MainSection.LIVE_TV && (showChannelList || showHistoryList)
+            // The categories open beside the channel list, which moves right with the picture.
+            val dockInset by androidx.compose.animation.core.animateDpAsState(
+                if (docked && showCategoryBrowser) CategoriesColumnWidth else 0.dp,
+                androidx.compose.animation.core.tween(DockMs, easing = androidx.compose.animation.core.FastOutSlowInEasing), label = "dockInset",
+            )
+            panelInset = dockInset
+            val dock by androidx.compose.animation.core.animateFloatAsState(
+                if (docked) 1f else 0f, androidx.compose.animation.core.tween(DockMs, easing = androidx.compose.animation.core.FastOutSlowInEasing), label = "videoDock",
+            )
+            val videoDock = Modifier.fillMaxSize().layout { measurable, constraints ->
+                val w = constraints.maxWidth
+                val h = constraints.maxHeight
+                val t = dock
+                if (t <= 0f) {
+                    val p = measurable.measure(androidx.compose.ui.unit.Constraints.fixed(w, h))
+                    layout(w, h) { p.place(0, 0) }
+                } else {
+                    fun lerp(a: Float, b: Float) = a + (b - a) * t
+                    val dockW = tv.own.owntv.features.shell.components.TvBoxDock.width(w.toDp(), dockInset)
+                    val dw = lerp(w.toFloat(), dockW.toPx()).roundToInt().coerceAtLeast(1)
+                    val dh = lerp(h.toFloat(), (dockW * 9f / 16f).toPx()).roundToInt().coerceAtLeast(1)
+                    val p = measurable.measure(androidx.compose.ui.unit.Constraints.fixed(dw, dh))
+                    layout(w, h) {
+                        p.place(lerp(0f, (tv.own.owntv.features.shell.components.TvBoxDock.Left + dockInset).toPx()).roundToInt(), lerp(0f, tv.own.owntv.features.shell.components.TvBoxDock.Top.toPx()).roundToInt())
+                    }
+                }
+            }
             // "Promote Preview": a Live channel playing on ExoPlayer renders the ExoPlayer surface — in BOTH
             // full-screen AND the docked mini-player (same call site = the surface persists across dock/
             // expand, so playback never blips). Everything else (mpv) renders mpv's surface.
             if (liveOnExo) {
                 tv.own.owntv.player.ExoPreviewSurface(
-                    engine = liveVm.previewEngine, modifier = Modifier.fillMaxSize(),
+                    engine = liveVm.previewEngine, modifier = videoDock,
                     keepAwake = true, autoFrameRate = isFull && autoFrameRate,
                 )
             } else {
                 MpvVideoSurface(
-                    player = player, modifier = Modifier.fillMaxSize(), autoFrameRate = isFull && autoFrameRate,
+                    player = player, modifier = videoDock, autoFrameRate = isFull && autoFrameRate,
                     afrMatchResolution = afrMatchResolution, afrHoldSecs = afrPauseSecs,
                 )
             }
@@ -1683,7 +1828,7 @@ fun OwnTVShell(
                     onAudioMode = toAudioMode,
                     // The channel-list overlay draws ABOVE the HUD; while it's open the HUD goes inert so
                     // its hide/error focus grabs can't yank D-pad focus off the overlay.
-                    inert = showChannelList || showHistoryList || showCategoryBrowser || showSubtitleSearch || showLocalSubPicker || showOtherChannels,
+                    inert = showChannelList || showHistoryList || showCategoryBrowser || showSubtitleSearch || showLocalSubPicker || showOtherChannels || showGuideOverlay,
                     onChannelUp = zap?.let { z -> { z(-1) } },
                     onChannelDown = zap?.let { z -> { z(1) } },
                     onOpenChannelList = if (isTunedLive && liveCanZap) { { showChannelList = true } } else null,
@@ -1752,6 +1897,13 @@ fun OwnTVShell(
                     // In-stream favorite toggle for the current channel/movie/series.
                     favorite = favActive,
                     onToggleFavorite = favToggle,
+                    // TV-box look: the channel info at the bottom, and the guide over the picture.
+                    tvBoxInfo = if (TvBoxNav && isTunedLive) { chips, offset ->
+                        val epg by liveVm.nowNext.collectAsStateWithLifecycle()
+                        val clock by produceState(System.currentTimeMillis()) { while (true) { kotlinx.coroutines.delay(1_000); value = System.currentTimeMillis() } }
+                        tv.own.owntv.features.shell.components.TvBoxPlayerInfo(previewChannel, epg, chips, offset, clock)
+                    } else null,
+                    onOpenGuide = if (TvBoxNav && isTunedLive) { { showGuideOverlay = true } } else null,
                     // The zap banner's now/next. Collected inside the slot, so only the banner redraws.
                     zapGuide = if (isLiveChannel) {
                         {
@@ -1792,7 +1944,8 @@ fun OwnTVShell(
                     onOtherChannels = matchSession?.takeIf { it.options.size > 1 }?.let { { showOtherChannels = true } },
                     otherChannelsCount = (matchSession?.options?.size ?: 1) - 1,
                     onToastOk = goalToast?.let { a -> { switchToMatch(a.match) } },
-                    modifier = Modifier.fillMaxSize(),
+                    // The controls stay out of the way while the picture grows or shrinks.
+                    modifier = Modifier.fillMaxSize().graphicsLayer { alpha = if (collapsingFull) 0f else ((grow.value - 0.7f) / 0.3f).coerceIn(0f, 1f) },
                 )
                 goalToast?.let { a ->
                     tv.own.owntv.features.sports.GoalToast(a, Modifier.align(androidx.compose.ui.Alignment.TopEnd).padding(top = 45.mpx, end = 60.mpx))
@@ -1882,10 +2035,92 @@ fun OwnTVShell(
                         onGoLive = liveVm::dismissTimeshiftResume,
                     )
                 }
+                // TV-box look: the guide drawn over the picture, which keeps playing behind it.
+                if (showGuideOverlay && isFull && isLiveChannel) {
+                    androidx.compose.runtime.CompositionLocalProvider(
+                        tv.own.owntv.ui.theme.LocalStagePalette provides tv.own.owntv.ui.theme.StagePalette.Dark,
+                        tv.own.owntv.ui.theme.LocalStageAccentOverride provides tv.own.owntv.ui.theme.StageAccent(tv.own.owntv.ui.brand.SkMateBlue, Color.White, Color.White),
+                    ) {
+                        // Back anywhere in it closes it (the guide's own handlers, composed after, go first).
+                        BackHandler { showGuideOverlay = false }
+                        Box(Modifier.fillMaxSize().background(GuideOverlayScrim)) {
+                            tv.own.owntv.features.epg.EpgScreen(
+                                onPlayChannel = { ch, _ -> liveVm.watchFromGuide(ch); showGuideOverlay = false },
+                                onPlayCatchup = { ch, prog -> liveVm.playCatchupProgramme(ch, prog); showGuideOverlay = false },
+                                previewEnabled = false,
+                                liveMode = true,
+                                overlay = true,
+                                focusChannelId = previewChannel?.id,
+                                onListView = { showGuideOverlay = false },
+                                restoreFocus = true,
+                                modifier = Modifier.fillMaxSize(),
+                            )
+                        }
+                    }
+                }
                 // Left — the playing channel's own provider category.
                 if (showChannelList && isLiveChannel) {
-                    if (showCategoryBrowser) {
-                        // Second Left — every Live TV category.
+                    if (TvBoxNav && zapChannels.isNotEmpty()) {
+                        // TV-box look: the channel panel stays, beside the categories when they are open.
+                        val playingGuide by liveVm.nowNext.collectAsStateWithLifecycle()
+                        tv.own.owntv.features.shell.components.TvBoxChannelPanel(
+                            channels = zapChannels,
+                            currentId = previewChannel?.id,
+                            title = zapOverlayTitle ?: stringResource(R.string.content_channel_overlay_title),
+                            nowProgrammes = overlayProgrammes,
+                            scheduleFor = liveVm::scheduleFor,
+                            playingGuide = playingGuide,
+                            onSelect = { liveVm.ensurePlaying(it); panelStartChannel = null; showChannelList = false },
+                            // Back after previewing others returns to the channel that was on.
+                            onDismiss = {
+                                panelStartChannel?.let { start -> if (start.id != previewChannel?.id) liveVm.ensurePlaying(start) }
+                                panelStartChannel = null
+                                showChannelList = false
+                            },
+                            onOpenCategories = { liveVm.showCategories() },
+                            onPreview = { ch -> if (panelStartChannel == null) panelStartChannel = previewChannel; liveVm.ensurePlaying(ch) },
+                            inset = panelInset,
+                            active = !showCategoryBrowser,
+                            loading = liveVm.previewEngine.buffering.collectAsStateWithLifecycle().value,
+                            modifier = Modifier.fillMaxSize(),
+                        )
+                    }
+                    if (showCategoryBrowser && TvBoxNav) {
+                        // TV-box look: a dark column at the left edge, the channels and picture moved beside it.
+                        tv.own.owntv.features.shell.components.TvBoxCategoryColumn(
+                            railItems = browserRailItems,
+                            railCounts = browserRailCounts,
+                            currentKey = zapListKey ?: previewChannel?.categoryId?.let { tv.own.owntv.core.live.LiveKey.Folder(it) },
+                            onSelect = { key -> liveVm.loadChannelsForCategory(key) },
+                            onDismiss = { liveVm.hideCategoryBrowser() },
+                            width = CategoriesColumnWidth,
+                            onLongSelect = { playerCategoryMenu = it },
+                            // ◀ past the categories: back to the channels screen with the app menu open.
+                            onOpenMenu = {
+                                liveVm.hideCategoryBrowser()
+                                panelStartChannel = null
+                                showChannelList = false
+                                menuAfterExit = true
+                                exitPlayer()
+                            },
+                        )
+                        playerCategoryMenu?.let { item ->
+                            CategoryContextMenu(
+                                categoryName = item.displayLabel(),
+                                canHide = item.key is tv.own.owntv.core.live.LiveKey.Folder || item.key is tv.own.owntv.core.live.LiveKey.Custom,
+                                canMove = false,
+                                onHide = { liveVm.hideCategory(item.key); playerCategoryMenu = null },
+                                onMove = {},
+                                resetLabel = stringResource(if (item.key is tv.own.owntv.core.live.LiveKey.Custom) R.string.content_category_restore_custom else R.string.content_category_restore_playlist),
+                                onReset = { liveVm.restoreCategory(item.key); playerCategoryMenu = null },
+                                onDismiss = { playerCategoryMenu = null },
+                            )
+                        }
+                    } else if (showCategoryBrowser) {
+                        // Second Left — every Live TV category (dark glass over the picture in the TV-box look).
+                        androidx.compose.runtime.CompositionLocalProvider(
+                            tv.own.owntv.ui.theme.LocalStagePalette provides if (TvBoxNav) tv.own.owntv.ui.theme.StagePalette.Dark else tv.own.owntv.ui.theme.LocalStagePalette.current,
+                        ) {
                         tv.own.owntv.features.shell.components.CategoryBrowserOverlay(
                             railItems = browserRailItems,
                             railCounts = browserRailCounts,
@@ -1895,7 +2130,8 @@ fun OwnTVShell(
                             onDismiss = { liveVm.hideCategoryBrowser() },
                             modifier = Modifier.fillMaxSize(),
                         )
-                    } else if (zapChannels.isNotEmpty()) {
+                        }
+                    } else if (zapChannels.isNotEmpty() && !TvBoxNav) {
                         // First Left — the channels of the current category. A browsed-to category may
                         // hold a single channel, so this renders for any non-empty list.
                         tv.own.owntv.features.shell.components.ChannelListOverlay(
@@ -1915,7 +2151,21 @@ fun OwnTVShell(
                     }
                 }
                 // Right — recently watched, to hop straight back to the previous channel.
-                if (showHistoryList && isLiveChannel && historyChannels.isNotEmpty()) {
+                if (showHistoryList && isLiveChannel && historyChannels.isNotEmpty() && TvBoxNav) {
+                    val playingGuide by liveVm.nowNext.collectAsStateWithLifecycle()
+                    tv.own.owntv.features.shell.components.TvBoxChannelPanel(
+                        channels = historyChannels,
+                        currentId = previewChannel?.id,
+                        title = stringResource(R.string.content_category_recently_watched),
+                        nowProgrammes = overlayProgrammes,
+                        scheduleFor = liveVm::scheduleFor,
+                        playingGuide = playingGuide,
+                        watchedAt = historyWatchedAt,
+                        onSelect = { liveVm.ensurePlaying(it); showHistoryList = false },
+                        onDismiss = { showHistoryList = false },
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                } else if (showHistoryList && isLiveChannel && historyChannels.isNotEmpty()) {
                     tv.own.owntv.features.shell.components.ChannelListOverlay(
                         channels = historyChannels,
                         currentId = previewChannel?.id,
@@ -2114,3 +2364,26 @@ private const val RAIL_KEY_WINDOW_MS = 400L
  * Navigation style setting (Docked / Floating) while on.
  */
 internal const val TvBoxNav = true
+
+/** Two Back presses this close together on the channels leave the app. */
+private const val ExitBackWindowMs = 2_000L
+
+/** Full screen growing out of the preview, and shrinking back into it. */
+private const val FullGrowMs = 340
+private const val FullShrinkMs = 280
+
+/** After leaving full screen for the app menu: long enough for the channels screen to take its focus first. */
+private const val MenuAfterExitMs = 450L
+
+/** The categories column beside the player's channel panel. */
+private val CategoriesColumnWidth = 440.mpx
+
+/** The picture moving into the corner beside the channel panel, and back. */
+private const val DockMs = 300
+
+/** Behind the guide drawn over the playing picture: dark enough to read, light enough to see through. */
+private val GuideOverlayScrim = Color(0xC7000000)
+
+/** How often, and how far apart, the shell tries to put focus in a screen that is still composing. */
+private const val ContentFocusTries = 60
+private const val ContentFocusStepMs = 50L

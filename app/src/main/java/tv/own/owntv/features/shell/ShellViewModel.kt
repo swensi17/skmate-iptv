@@ -203,7 +203,14 @@ class ShellViewModel(
             Triple(online, enabled, loc)
         }.flatMapLatest { (online, enabled, loc) ->
             if (!online || !enabled) flowOf(null as WeatherInfo?)
-            else flow { emit(weatherRepository.get(loc)) }
+            // Kept fresh while shown: every 30 minutes, and a minute after a failed try rather than never.
+            else flow {
+                while (true) {
+                    val w = weatherRepository.get(loc)
+                    emit(w)
+                    kotlinx.coroutines.delay(if (w == null) 60_000L else 30 * 60_000L)
+                }
+            }
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null as WeatherInfo?)
 
     /** °F display for the weather chip (default °C). */

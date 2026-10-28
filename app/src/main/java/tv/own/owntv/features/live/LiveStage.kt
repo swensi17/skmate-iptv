@@ -31,6 +31,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.ui.graphics.graphicsLayer
@@ -154,7 +156,12 @@ internal fun LiveStageRow(
         onClick = onClick,
         onLongClick = onLongClick,
         height = 84.mpx,
-        modifier = modifier.fillMaxWidth().onFocusChanged { if (it.hasFocus) onFocus() },
+        modifier = modifier.fillMaxWidth().onFocusChanged { if (it.hasFocus) onFocus() }
+            // TV-box look: a hairline under each channel.
+            .then(if (tv.own.owntv.features.shell.TvBoxNav) Modifier.drawBehind {
+                val h = 1.mpx.toPx()
+                drawRect(RowLine, topLeft = androidx.compose.ui.geometry.Offset(20.mpx.toPx(), drawContext.size.height - h), size = androidx.compose.ui.geometry.Size(drawContext.size.width - 40.mpx.toPx(), h))
+            } else Modifier),
     ) { focused ->
         if (showNumber) {
             Text(
@@ -281,11 +288,17 @@ internal fun LiveStagePane(
     val surfaceAlpha by androidx.compose.animation.core.animateFloatAsState(if (skeleton) 0f else 1f, androidx.compose.animation.core.tween(if (skeleton) 0 else 260), label = "previewSurface")
     val videoR = 28.mpx
     val videoShadow = tv.own.owntv.ui.theme.stageShadow(0.55f)
+    // The last place the preview was is kept when this screen goes: full screen shrinks back into it.
     Column(modifier) {
         Box(
             Modifier
                 .fillMaxWidth()
                 .aspectRatio(16f / 9f)
+                .then(
+                    if (tv.own.owntv.features.shell.TvBoxNav) {
+                        Modifier.onGloballyPositioned { tv.own.owntv.features.shell.components.TvBoxPanels.previewRect = it.boundsInRoot() }
+                    } else Modifier,
+                )
                 .drawBehind {
                     drawBoxShadow(videoShadow, 80.mpx.toPx(), videoR.toPx(), dy = 30.mpx.toPx())
                 }
@@ -293,6 +306,15 @@ internal fun LiveStagePane(
                 .background(Color.Black),
             contentAlignment = Alignment.Center,
         ) {
+            // No channel to show (an empty profile): a quiet note instead of a black box.
+            if (channel == null && tv.own.owntv.features.shell.TvBoxNav) {
+                Box(Modifier.fillMaxSize().background(if (tv.own.owntv.ui.theme.LocalStagePalette.current.isLight) Color(0xFFEDEEF0) else Color(0xFF1E2125)), contentAlignment = Alignment.Center) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.mpx)) {
+                        tv.own.owntv.ui.components.OwnTVIcon(tv.own.owntv.ui.components.OwnTVIcon.PLAY_CIRCLE, StageColors.Dim, Modifier.size(44.mpx))
+                        Text(stringResource(R.string.content_preview_pick_channel), style = stageText(19, 600), color = StageColors.Muted)
+                    }
+                }
+            }
             if (channel != null) {
                 ChannelLogoTile(
                     logoUrl = channel.displayLogoUrl,
@@ -304,7 +326,8 @@ internal fun LiveStagePane(
             if (skeleton) PreviewSkeleton(Modifier.fillMaxSize())
             else if (loading) OwnTVSpinner(sizeDp = 28)
             // `.shade`: black 72% at the bottom, clear by 42% up — a video-sized gradient, one pass.
-            Box(Modifier.fillMaxSize().background(Brush.verticalGradient(0.58f to Color.Transparent, 1f to Color.Black.copy(alpha = 0.72f))))
+            // The shade is for the channel line over a picture; the empty "pick a channel" box has neither.
+            if (channel != null) Box(Modifier.fillMaxSize().background(Brush.verticalGradient(0.58f to Color.Transparent, 1f to Color.Black.copy(alpha = 0.72f))))
             Box(Modifier.fillMaxSize().drawBehind { drawInnerRing(Color.White.copy(alpha = 0.08f), 1.mpx.toPx(), videoR.toPx()) })
             if (channel != null) {
                 if (tv.own.owntv.features.shell.TvBoxNav) {
@@ -356,7 +379,10 @@ internal fun LiveStagePane(
         var textWait by remember { mutableStateOf(true) }
         LaunchedEffect(channel?.id) { textWait = true; kotlinx.coroutines.delay(1500); textWait = false }
         Column(Modifier.fillMaxWidth().padding(start = 4.mpx, end = 4.mpx, top = 34.mpx)) {
-            if (now == null && channel != null && textWait && tv.own.owntv.features.shell.TvBoxNav) TextSkeleton()
+            if (now == null && channel != null && tv.own.owntv.features.shell.TvBoxNav) {
+                if (textWait) TextSkeleton()
+                else NoGuideCard()
+            }
             if (now != null) {
                 Text(now.title, style = stageText(42, 800, (-0.5).mpxSp), color = StageColors.Text, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 Text(
@@ -576,12 +602,29 @@ internal fun LiveCategories(
         if (e.type == KeyEventType.KeyDown && e.key == Key.DirectionRight) { onNavigateRight(); true } else false
     }
     val a = stageAccent
+    // TV-box look: focus resting on a group counts down 3, 2, 1 beside it and then opens it, no OK needed.
+    var dwellIndex by remember { mutableStateOf<Int?>(null) }
+    var countdown by remember { androidx.compose.runtime.mutableIntStateOf(0) }
+    val select by androidx.compose.runtime.rememberUpdatedState(onSelect)
+    LaunchedEffect(dwellIndex, selectedIndex) {
+        val i = dwellIndex
+        if (!sheet || !tv.own.owntv.features.shell.TvBoxNav || i == null || i == selectedIndex) return@LaunchedEffect
+        try {
+            kotlinx.coroutines.delay(CountdownQuietMs) // passing over a row shows nothing
+            for (n in CountdownFrom downTo 1) { countdown = n; kotlinx.coroutines.delay(CountdownStepMs) }
+            countdown = 0
+            select(i)
+        } finally { countdown = 0 }
+    }
+    androidx.compose.runtime.CompositionLocalProvider(tv.own.owntv.ui.stage.LocalWhiteFocus provides (sheet && tv.own.owntv.features.shell.TvBoxNav)) {
     Column(
         modifier
             .then(
                 when {
                     // TV-box style: a full-height strip of the screen's own grey, not a floating card.
-                    sheet && tv.own.owntv.features.shell.TvBoxNav -> Modifier.background(if (tv.own.owntv.ui.theme.LocalStagePalette.current.isLight) androidx.compose.ui.graphics.Color.White else androidx.compose.ui.graphics.Color(0xFF232629), tv.own.owntv.features.shell.components.TvBoxEdgeShape).padding(horizontal = 16.mpx, vertical = 30.mpx)
+                    sheet && tv.own.owntv.features.shell.TvBoxNav -> Modifier.background(if (tv.own.owntv.ui.theme.LocalStagePalette.current.isLight) tv.own.owntv.features.shell.components.TvBoxPanelLight else androidx.compose.ui.graphics.Color(0xFF232629), tv.own.owntv.features.shell.components.TvBoxEdgeShape)
+                        // The page's own colour, set off from the screen by a hairline on its open side.
+                        .drawBehind { drawRect(androidx.compose.ui.graphics.Color(0x14000000), topLeft = androidx.compose.ui.geometry.Offset(drawContext.size.width - 1.mpx.toPx(), 0f), size = androidx.compose.ui.geometry.Size(1.mpx.toPx(), drawContext.size.height)) }.padding(horizontal = 16.mpx, vertical = 30.mpx)
                     sheet -> Modifier.stageGlass(StageRadii.Sheet, overContent = true).padding(horizontal = 16.mpx, vertical = 26.mpx)
                     else -> Modifier
                 },
@@ -594,7 +637,7 @@ internal fun LiveCategories(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(sheetTitle, style = stageText(26, 800), color = StageColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
-                Text(sheetHint, style = stageText(17, 400), color = StageColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(start = 16.mpx))
+                if (!tv.own.owntv.features.shell.TvBoxNav) Text(sheetHint, style = stageText(17, 400), color = StageColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(start = 16.mpx))
             }
         }
         // Edge-only scrolling, as the channel list (no double step on ▼).
@@ -624,7 +667,8 @@ internal fun LiveCategories(
             // Room for the 2 px outer focus ring, which the list would otherwise clip.
             contentPadding = PaddingValues(start = 4.mpx, end = 4.mpx, top = 4.mpx, bottom = 8.mpx),
         ) {
-            item(key = "__search__") {
+            // TV-box look: a search field only where there are enough groups to need one.
+            if (!tv.own.owntv.features.shell.TvBoxNav || entries.size > CategorySearchMin || query.isNotEmpty()) item(key = "__search__") {
                 StageSearchField(
                     query = query,
                     onQueryChange = setQuery,
@@ -653,20 +697,24 @@ internal fun LiveCategories(
                 }
                 item(key = entry.item.key.toString()) {
                     val rowModifier = Modifier.focusRequester(rowFocusers[pos]).then(rightKey)
-                        .onFocusChanged { if (it.hasFocus) onRowFocus(index) }
+                        .onFocusChanged {
+                            if (it.hasFocus) { onRowFocus(index); dwellIndex = index } else if (dwellIndex == index) dwellIndex = null
+                        }
                     val selected = index == selectedIndex
+                    val counting = countdown > 0 && dwellIndex == index
                     if (sheet) {
                         StageSheetItem(
                             text = entry.label,
                             onClick = { onSelect(index) },
-                            icon = entry.icon,
-                            count = entry.count?.let { tv.own.owntv.ui.components.formatCount(it) },
+                            // TV-box look: every group carries the TV mark, so the list reads as channel groups.
+                            icon = entry.icon ?: if (tv.own.owntv.features.shell.TvBoxNav) tv.own.owntv.ui.components.OwnTVIcon.LIVE_TV else null,
+                            count = if (counting) null else entry.count?.let { tv.own.owntv.ui.components.formatCount(it) },
                             selected = selected,
                             maxLines = 2,
                             tags = if (entry.name?.tags.isNullOrEmpty()) null else { focused ->
                                 entry.name.tags.forEach { StageTag(it, onAccent = if (focused) tv.own.owntv.ui.theme.stageAccent.onAccent else null) }
                             },
-                            trailing = entry.mark?.let { m -> { _ -> StagePlaylistMark(m) } },
+                            trailing = if (counting) { _ -> CategoryCountdown(countdown) } else entry.mark?.let { m -> { _ -> StagePlaylistMark(m) } },
                             onLongClick = { onLongSelect(index) },
                             modifier = rowModifier,
                         )
@@ -677,6 +725,7 @@ internal fun LiveCategories(
             }
         }
         }
+    }
     }
 }
 
@@ -721,6 +770,33 @@ private fun LiveColumnItem(
             entry.count?.let { Text(tv.own.owntv.ui.components.formatCount(it), style = stageText(15, 700), color = on ?: StageColors.Dim, maxLines = 1, overflow = TextOverflow.Ellipsis) }
             entry.mark?.let { m -> Box(Modifier.size(7.mpx).background(m.shownColor, RoundedCornerShape(50))) }
         }
+    }
+}
+
+/** The group countdown: a quiet moment, then [CountdownFrom] steps of [CountdownStepMs]. */
+private const val CountdownQuietMs = 400L
+private const val CountdownFrom = 3
+private const val CountdownStepMs = 800L
+
+/** "3", "2", "1" in a brand-blue ring that fills as the group is about to open. */
+@Composable
+private fun CategoryCountdown(n: Int) {
+    val blue = tv.own.owntv.ui.brand.SkMateBlue
+    val progress = remember { androidx.compose.animation.core.Animatable(0f) }
+    LaunchedEffect(Unit) {
+        progress.animateTo(1f, androidx.compose.animation.core.tween((CountdownFrom * CountdownStepMs).toInt(), easing = androidx.compose.animation.core.LinearEasing))
+    }
+    Box(
+        Modifier.size(30.mpx).drawBehind {
+            val w = 2.5f * 1.mpx.toPx()
+            val inset = w / 2f
+            val arcSize = androidx.compose.ui.geometry.Size(size.width - w, size.height - w)
+            drawArc(blue.copy(alpha = 0.18f), 0f, 360f, false, topLeft = androidx.compose.ui.geometry.Offset(inset, inset), size = arcSize, style = androidx.compose.ui.graphics.drawscope.Stroke(w))
+            drawArc(blue, -90f, 360f * progress.value, false, topLeft = androidx.compose.ui.geometry.Offset(inset, inset), size = arcSize, style = androidx.compose.ui.graphics.drawscope.Stroke(w, cap = androidx.compose.ui.graphics.StrokeCap.Round))
+        },
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(n.toString(), style = stageText(15, 800), color = blue, maxLines = 1)
     }
 }
 
@@ -773,3 +849,54 @@ private fun TextSkeleton() {
         Box(Modifier.fillMaxWidth(0.8f).height(14.mpx).background(bar, RoundedCornerShape(7.mpx)))
     }
 }
+
+/** A channel with no programme guide: a short note at the top, then three quiet bars where the
+ *  programme, time and synopsis would be — the layout keeps its shape instead of going blank. */
+@Composable
+private fun NoGuideCard() {
+    val bar = StageColors.Text.copy(alpha = 0.06f)
+    Column(verticalArrangement = Arrangement.spacedBy(14.mpx)) {
+        Text(stringResource(R.string.content_no_guide), style = stageText(22, 700), color = StageColors.Muted, maxLines = 1)
+        Box(Modifier.fillMaxWidth(0.45f).height(16.mpx).background(bar, RoundedCornerShape(8.mpx)))
+        Box(Modifier.fillMaxWidth().height(14.mpx).background(bar, RoundedCornerShape(7.mpx)))
+        Box(Modifier.fillMaxWidth(0.75f).height(14.mpx).background(bar, RoundedCornerShape(7.mpx)))
+    }
+}
+
+/** The hairline between channel rows. */
+private val RowLine = Color(0x14000000)
+
+/** Channel rows standing in while the list loads. */
+@Composable
+internal fun ChannelListSkeleton(modifier: Modifier = Modifier) {
+    val pulse by androidx.compose.animation.core.rememberInfiniteTransition(label = "listSkeleton").animateFloat(
+        initialValue = 0.05f, targetValue = 0.10f,
+        animationSpec = androidx.compose.animation.core.infiniteRepeatable(androidx.compose.animation.core.tween<Float>(900), androidx.compose.animation.core.RepeatMode.Reverse),
+        label = "listSkeletonPulse",
+    )
+    val bar = StageColors.Text.copy(alpha = pulse)
+    Column(modifier) {
+        repeat(8) {
+            Row(Modifier.fillMaxWidth().height(84.mpx).padding(horizontal = 20.mpx), horizontalArrangement = Arrangement.spacedBy(18.mpx), verticalAlignment = Alignment.CenterVertically) {
+                Box(Modifier.width(40.mpx).height(16.mpx).background(bar, RoundedCornerShape(8.mpx)))
+                Box(Modifier.size(76.mpx, 54.mpx).background(bar, RoundedCornerShape(12.mpx)))
+                Column(verticalArrangement = Arrangement.spacedBy(8.mpx)) {
+                    Box(Modifier.width(220.mpx).height(18.mpx).background(bar, RoundedCornerShape(9.mpx)))
+                    Box(Modifier.width(300.mpx).height(12.mpx).background(bar, RoundedCornerShape(6.mpx)))
+                }
+            }
+        }
+    }
+}
+
+/** A profile with no channels: a calm message in the middle of the list. */
+@Composable
+internal fun NoChannelsNote(text: String, modifier: Modifier = Modifier) {
+    Column(modifier, horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(14.mpx)) {
+        tv.own.owntv.ui.components.OwnTVIcon(tv.own.owntv.ui.components.OwnTVIcon.LIVE_TV, StageColors.Dim, Modifier.size(48.mpx))
+        Text(text, style = stageText(22, 600), color = StageColors.Muted, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+    }
+}
+
+/** Below this many entries the categories need no search field. */
+private const val CategorySearchMin = 20
