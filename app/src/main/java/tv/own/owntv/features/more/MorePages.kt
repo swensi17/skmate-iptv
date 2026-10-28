@@ -226,9 +226,9 @@ private val SettingsCards = listOf(
 private var lastOpenedCard: Int? = null
 
 @Composable
-internal fun SettingsPage(entry: FocusRequester, pinned: Int, onOpenGroup: (Int) -> Unit, onSearch: () -> Unit) {
+internal fun SettingsPage(entry: FocusRequester, pinned: Int, onOpenGroup: (Int) -> Unit, onSearch: () -> Unit, extras: List<SettingsExtra> = emptyList()) {
     if (tv.own.owntv.features.settings.SettingsAsSidePanel) {
-        SettingsGroupList(entry, onOpenGroup, onSearch)
+        SettingsGroupList(entry, onOpenGroup, onSearch, extras)
         return
     }
     val back = lastOpenedCard
@@ -283,9 +283,9 @@ internal fun SettingsPage(entry: FocusRequester, pinned: Int, onOpenGroup: (Int)
  * each opening its page in the same sheet.
  */
 @Composable
-private fun SettingsGroupList(entry: FocusRequester, onOpenGroup: (Int) -> Unit, onSearch: () -> Unit) {
+private fun SettingsGroupList(entry: FocusRequester, onOpenGroup: (Int) -> Unit, onSearch: () -> Unit, extras: List<SettingsExtra>) {
     val back = lastOpenedCard
-    tv.own.owntv.features.settings.SettingsSheet(title = stringResource(R.string.common_nav_settings), scrim = false, fromStart = back != null) {
+    tv.own.owntv.features.settings.SettingsSheet(title = stringResource(R.string.common_nav_settings), scrim = true, fromStart = back != null) {
         Column(
             Modifier.fillMaxWidth().weight(1f).focusGroup().verticalScroll(androidx.compose.foundation.rememberScrollState())
                 .padding(start = 12.mpx, end = 12.mpx, top = 12.mpx, bottom = 40.mpx),
@@ -299,6 +299,9 @@ private fun SettingsGroupList(entry: FocusRequester, onOpenGroup: (Int) -> Unit,
                     lastOpenedCard = index; onOpenGroup(index)
                 }
             }
+            // What used to be More's own list: backup, sync, the error log, About, switching profile.
+            if (extras.isNotEmpty()) Box(Modifier.padding(horizontal = 24.mpx, vertical = 10.mpx).fillMaxWidth().height(1.mpx).background(StageColors.Text.copy(alpha = 0.12f)))
+            extras.forEach { e -> GroupLine(e.icon, e.title, onClick = { lastOpenedCard = null; e.onClick() }) }
         }
     }
 }
@@ -742,3 +745,6 @@ internal fun AboutPage(vm: MoreCountsViewModel, entry: FocusRequester, onOpenLan
         UpdateDialog(onDismiss = { showUpdate = false }, checkOnOpen = true)
     }
 }
+
+/** A line of the settings sheet that opens one of More's own pages. */
+internal class SettingsExtra(val icon: OwnTVIcon, val title: String, val onClick: () -> Unit)

@@ -70,6 +70,12 @@ internal fun androidx.compose.ui.graphics.drawscope.DrawScope.drawStageGlyph(
     sizePx: Float,
     filled: Boolean = false,
 ) {
+    // The Phosphor set first, as [OwnTVIcon] draws it.
+    phosphorPath(icon, filled)?.let { ph ->
+        val k = sizePx / PHOSPHOR_GRID
+        translate(topLeft.x, topLeft.y) { scale(k, k, pivot = Offset.Zero) { drawPath(ph, tint, style = Fill) } }
+        return
+    }
     val path = StagePaths[icon] ?: return
     val s = sizePx / 24f
     translate(topLeft.x, topLeft.y) {
@@ -91,10 +97,11 @@ fun OwnTVIcon(
         fun p(x: Float, y: Float) = Offset(x * s, y * s)
         val stroke = Stroke(width = 2f * s, cap = StrokeCap.Round, join = StrokeJoin.Round)
 
-        // SkMate's line-icon pack first ([uiPackPath]): one family across the app where it has a glyph.
-        val packPath = uiPackPath(icon)
-        if (packPath != null) {
-            scale(s, s, pivot = Offset.Zero) { drawPath(packPath, tint, style = Fill) }
+        // SkMate's icon set ([phosphorPath], Phosphor Icons): one family for every icon in the app.
+        val phosphor = phosphorPath(icon, filled)
+        if (phosphor != null) {
+            val k = size.minDimension / PHOSPHOR_GRID
+            scale(k, k, pivot = Offset.Zero) { drawPath(phosphor, tint, style = Fill) }
             return@Canvas
         }
         val stagePath = StagePaths[icon]

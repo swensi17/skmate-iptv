@@ -28,6 +28,9 @@ import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -674,13 +677,25 @@ fun OwnTVShell(
     // keeps the compact room, so nothing behind it moves).
     val widenDocked = navStyle == tv.own.owntv.core.settings.SettingsRepository.NavStyle.DOCKED && navSize == tv.own.owntv.core.settings.SettingsRepository.NavSize.COMPACT && navWiden != null && railFocused
     val railSize = if (widenDocked) navWiden ?: navSize else navSize
+    // A tap beside the open TV-box menu closes it even where touch mode keeps focus on it; the next ◀ / ▶
+    // (a new rail key time) opens it again.
+    var menuTappedAway by remember { mutableStateOf(false) }
+    LaunchedEffect(railKeyAt) { menuTappedAway = false }
     val railState = when {
+        // As TV boxes do it: no side menu on screen until ◀ brings focus to it.
+        TvBoxNav -> if (railFocused && !menuTappedAway) tv.own.owntv.features.shell.components.RailState.OPEN else tv.own.owntv.features.shell.components.RailState.HIDDEN
         widenDocked -> tv.own.owntv.features.shell.components.RailState.OPEN
         navStyle == tv.own.owntv.core.settings.SettingsRepository.NavStyle.DOCKED -> tv.own.owntv.features.shell.components.RailState.PINNED
         railFocused -> tv.own.owntv.features.shell.components.RailState.OPEN
         railIdleHidden -> tv.own.owntv.features.shell.components.RailState.HIDDEN
         else -> tv.own.owntv.features.shell.components.RailState.CAPSULE
     }
+    // The open TV-box menu's width, eased, by which the screen slides right while it is open.
+    val menuPush by androidx.compose.animation.core.animateDpAsState(
+        if (TvBoxNav && railState == tv.own.owntv.features.shell.components.RailState.OPEN) tv.own.owntv.features.shell.components.tvBoxMenuWidth(navSize) else 0.dp,
+        androidx.compose.animation.core.tween(280, easing = androidx.compose.animation.core.FastOutSlowInEasing),
+        label = "menuPush",
+    )
     // The playlist chip reflects the active filter: "All playlists" when none is chosen (id <= 0), the
     // chosen playlist's name otherwise. With a single playlist there's nothing to switch, so just its name.
     val playlistLabel = when {
@@ -832,6 +847,10 @@ fun OwnTVShell(
     // too (but never while fullscreen/mini plays).
     // The preview runs on the ExoPlayer live engine, not mpv: stopping only mpv here (as when the preview
     // was mpv) left it decoding and holding a provider connection after a shortcut or deep link out.
+    // TV-box style there is no Home, Movies, Series or Downloads screen: the channels are the home.
+    LaunchedEffect(selectedSection) {
+        if (TvBoxNav && selectedSection in tv.own.owntv.features.shell.components.TvBoxHiddenSections) onSelectSection(MainSection.LIVE_TV)
+    }
     LaunchedEffect(selectedSection, playerMode) {
         if (selectedSection != MainSection.LIVE_TV && selectedSection != MainSection.EPG && playerMode == PlayerMode.NONE) liveVm.stopPreview()
         if (selectedSection != MainSection.HOME || playerMode != PlayerMode.NONE) homeVm.stopPreview()
@@ -1092,10 +1111,12 @@ fun OwnTVShell(
                             // edge (or beside a docked rail).
                             Modifier
                                 .padding(
-                                    start = if (navStyle == tv.own.owntv.core.settings.SettingsRepository.NavStyle.DOCKED) {
+                                    start = if (!TvBoxNav && navStyle == tv.own.owntv.core.settings.SettingsRepository.NavStyle.DOCKED) {
                                         tv.own.owntv.features.shell.components.railDockedReserve(navSize)
                                     } else 0.dp,
                                 )
+                                // TV-box style the open menu pushes the screen to the right, as one strip.
+                                .graphicsLayer { translationX = menuPush.toPx() }
                                 // ◀ with nothing further left in the content goes back to the rail, however the
                                 // content was entered. The D-pad search alone missed it whenever the open rail
                                 // overlapped the content's left edge, which left Back as the only way out.
@@ -1134,6 +1155,7 @@ fun OwnTVShell(
                             onEntryHook = { moreEntry = it },
                             restoreFocus = restoreFocus,
                             onRestored = { restoreFocus = false },
+                            onLeave = { onSelectSection(MainSection.HOME) },
                             modifier = Modifier
                                 .fillMaxSize()
                                 .onFocusChanged { if (it.hasFocus) focusedLayer = ShellLayer.CONTENT }
@@ -1215,7 +1237,7 @@ fun OwnTVShell(
                                 sportsMatchRequests.pendingMatch.value = m to null
                                 onSelectSection(MainSection.SPORTS)
                             },
-                            contentStart = if (navStyle == tv.own.owntv.core.settings.SettingsRepository.NavStyle.DOCKED) 64.mpx else 150.mpx,
+                            contentStart = if (TvBoxNav || navStyle == tv.own.owntv.core.settings.SettingsRepository.NavStyle.DOCKED) 64.mpx else 150.mpx,
                             modifier = Modifier.fillMaxSize(),
                         )
 
@@ -1308,7 +1330,7 @@ fun OwnTVShell(
                             restoreFocus = restoreFocus,
                             onRestored = { restoreFocus = false },
                             onEntryHook = { downloadsEntry = it },
-                            contentStart = if (navStyle == tv.own.owntv.core.settings.SettingsRepository.NavStyle.DOCKED) 64.mpx else 150.mpx,
+                            contentStart = if (TvBoxNav || navStyle == tv.own.owntv.core.settings.SettingsRepository.NavStyle.DOCKED) 64.mpx else 150.mpx,
                             modifier = Modifier.fillMaxSize(),
                         )
 
@@ -1318,7 +1340,7 @@ fun OwnTVShell(
                             onChildFocused = { focusedLayer = ShellLayer.CONTENT },
                             onEntryHook = { sportsEntry = it },
                             active = playerMode == PlayerMode.NONE,
-                            contentStart = if (navStyle == tv.own.owntv.core.settings.SettingsRepository.NavStyle.DOCKED) 64.mpx else 150.mpx,
+                            contentStart = if (TvBoxNav || navStyle == tv.own.owntv.core.settings.SettingsRepository.NavStyle.DOCKED) 64.mpx else 150.mpx,
                             modifier = Modifier.fillMaxSize(),
                         )
 
@@ -1374,6 +1396,29 @@ fun OwnTVShell(
                 onPlaylistPillBounds = { playlistPillBounds = it },
                 modifier = Modifier.align(Alignment.TopEnd).onFocusChanged { clusterFocused = it.hasFocus }.focusGroup(),
             )
+            // While the menu is open a tap anywhere beside it closes it, focus going back to the screen.
+            if (TvBoxNav && railState == tv.own.owntv.features.shell.components.RailState.OPEN) {
+                val entry = when (selectedSection) {
+                    MainSection.HOME -> homeEntry
+                    MainSection.EPG, MainSection.LIVE_TV -> guideEntry
+                    MainSection.MOVIES, MainSection.SERIES -> vodEntry
+                    MainSection.DOWNLOADS -> downloadsEntry
+                    MainSection.MORE -> moreEntry
+                    MainSection.SPORTS -> sportsEntry
+                    else -> null
+                }
+                Box(
+                    Modifier
+                        .fillMaxSize()
+                        .padding(start = menuPush)
+                        .pointerInput(entry) {
+                            detectTapGestures {
+                                menuTappedAway = true
+                                if (entry?.invoke() != true) runCatching { contentAreaFocus.requestFocus() }
+                            }
+                        },
+                )
+            }
             tv.own.owntv.features.shell.components.StageRail(
                 state = railState,
                 size = railSize,
@@ -2046,3 +2091,10 @@ private fun railDetail(section: MainSection, d: RailDetails): String? = when (se
 
 /** How recently ◀ / ▶ or [focusRail] must have happened for a rail visit to open the rail. */
 private const val RAIL_KEY_WINDOW_MS = 400L
+
+/**
+ * The side menu as TV boxes show it: hidden, nothing at the screen edge, until ◀ from the content's
+ * left edge focuses it; it opens over the content and goes again when focus leaves it. Overrides the
+ * Navigation style setting (Docked / Floating) while on.
+ */
+internal const val TvBoxNav = true

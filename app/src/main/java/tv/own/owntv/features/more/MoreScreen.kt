@@ -29,6 +29,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
@@ -93,12 +94,15 @@ fun MoreScreen(
     onEntryHook: (((() -> Boolean)?) -> Unit)? = null,
     /** Back from Settings: land on the Settings page's first card instead of the rail. */
     restoreFocus: Boolean = false,
+    /** TV-box style: Back from the settings sheet leaves More altogether (to Home). */
+    onLeave: () -> Unit = {},
     onRestored: () -> Unit = {},
     modifier: Modifier = Modifier,
     vm: MoreCountsViewModel = koinViewModel(),
     settingsVm: SettingsViewModel = koinViewModel(),
 ) {
     var selected by rememberSaveable { mutableStateOf(MoreItem.SETTINGS) }
+    val sheetOnly = tv.own.owntv.features.settings.SettingsAsSidePanel
     val itemFocus = remember { MoreItem.entries.associateWith { FocusRequester() } }
     // What OK / ▶ focuses on the page: a fixed target, or the page's own choice (its first row).
     val pageTarget = remember { FocusRequester() }
@@ -109,10 +113,17 @@ fun MoreScreen(
     // Like the rail: ▲ ▼ move focus, OK selects the item (its page shows, focus stays on the item),
     // ▶ goes into the page that is shown.
     val choose: (MoreItem) -> Unit = { item -> if (item != selected) { selected = item; pageEntry = null } }
+    // A page picked in the settings sheet takes focus once it is on screen.
+    LaunchedEffect(selected) {
+        if (!sheetOnly || selected == MoreItem.SETTINGS) return@LaunchedEffect
+        repeat(10) { withFrameNanos { }; if (enterPage()) return@LaunchedEffect; kotlinx.coroutines.delay(50) }
+    }
 
     // The rail's ▶ lands on the item the sheet was last on.
+    // TV-box style there is no More list on screen: More is the settings sheet on the right, its other
+    // pages opened from that sheet, and Back from the sheet leaves for Home.
     DisposableEffect(onEntryHook) {
-        onEntryHook?.invoke { runCatching { itemFocus.getValue(selected).requestFocus() }.getOrDefault(false) }
+        onEntryHook?.invoke { if (sheetOnly) enterPage() else runCatching { itemFocus.getValue(selected).requestFocus() }.getOrDefault(false) }
         onDispose { onEntryHook?.invoke(null) }
     }
     LaunchedEffect(restoreFocus) {
@@ -122,8 +133,19 @@ fun MoreScreen(
         if (!enterPage()) runCatching { itemFocus.getValue(selected).requestFocus() }
         onRestored()
     }
+    // Opening More puts focus straight into the sheet.
+    LaunchedEffect(sheetOnly) {
+        if (!sheetOnly) return@LaunchedEffect
+        repeat(10) { if (pageFocused) return@LaunchedEffect; enterPage(); kotlinx.coroutines.delay(60) }
+    }
     // Composed before the page, so a page's own Back (a step popup, a dialog) still wins over it.
-    BackHandler(enabled = pageFocused) { backToSheet() }
+    BackHandler(enabled = pageFocused) {
+        when {
+            !sheetOnly -> backToSheet()
+            selected != MoreItem.SETTINGS -> { selected = MoreItem.SETTINGS; pageEntry = null }
+            else -> onLeave()
+        }
+    }
 
     val favorites by vm.favorites.collectAsStateWithLifecycle()
     val history by vm.history.collectAsStateWithLifecycle()
@@ -135,10 +157,16 @@ fun MoreScreen(
     var logVersion by remember { mutableIntStateOf(0) }
     val logCount by produceState(0, logVersion) { value = withContext(Dispatchers.IO) { PlaybackErrorLog.read(context).size } }
 
+    // Inside Settings only its sheet on the right shows, as on a TV box: the More list slides away
+    // while focus is in the settings, and comes back with ◀ or Back.
+    val settingsOnly = tv.own.owntv.features.settings.SettingsAsSidePanel
+    val sheetAway by androidx.compose.animation.core.animateFloatAsState(if (settingsOnly) 1f else 0f, androidx.compose.animation.core.tween(260), label = "moreSheetAway")
     Box(modifier.fillMaxSize().onFocusChanged { if (it.hasFocus) onChildFocused() }) {
         // --- The sheet (`.gsheet`, 440 wide at 24 / 24 / 24): the full height.
         Column(
             Modifier
+                .graphicsLayer { translationX = -sheetAway * size.width * 1.1f; alpha = 1f - sheetAway }
+                .focusProperties { if (settingsOnly) canFocus = false }
                 .padding(start = 24.mpx, top = 24.mpx, bottom = 24.mpx)
                 .width(440.mpx)
                 .fillMaxHeight()
@@ -191,7 +219,13 @@ fun MoreScreen(
         Box(
             Modifier
                 // Settings is the sheet on the right edge of the screen, as TV boxes show it.
-                .then(if (selected == MoreItem.SETTINGS && tv.own.owntv.features.settings.SettingsAsSidePanel) Modifier else Modifier.padding(start = 520.mpx, top = 128.mpx, end = 64.mpx))
+                .then(
+                    when {
+                        selected == MoreItem.SETTINGS && sheetOnly -> Modifier
+                        sheetOnly -> Modifier.padding(start = 96.mpx, top = 128.mpx, end = 64.mpx)
+                        else -> Modifier.padding(start = 520.mpx, top = 128.mpx, end = 64.mpx)
+                    },
+                )
                 .fillMaxSize()
                 .onFocusChanged { pageFocused = it.hasFocus },
         ) {
@@ -199,6 +233,13 @@ fun MoreScreen(
             when (selected) {
                 MoreItem.SETTINGS -> SettingsPage(
                     entry = pageTarget, pinned = pinned.size,
+                    extras = if (!sheetOnly) emptyList() else listOfNotNull(
+                        SettingsExtra(OwnTVIcon.DOWNLOADS, stringResource(R.string.settings_backup_restore)) { choose(MoreItem.BACKUP) },
+                        SettingsExtra(OwnTVIcon.PHONE, stringResource(R.string.local_sync_title)) { choose(MoreItem.LOCAL_SYNC) },
+                        SettingsExtra(OwnTVIcon.WARNING, stringResource(R.string.settings_playback_error_log)) { choose(MoreItem.ERROR_LOG) },
+                        SettingsExtra(OwnTVIcon.INFO, stringResource(R.string.settings_about)) { choose(MoreItem.ABOUT) },
+                        SettingsExtra(OwnTVIcon.PERSON, stringResource(R.string.more_profile_switch), onClick = onSwitchProfile),
+                    ),
                     onOpenGroup = { onOpenSettings(it, false) },
                     onSearch = { onOpenSettings(null, true) },
                 )

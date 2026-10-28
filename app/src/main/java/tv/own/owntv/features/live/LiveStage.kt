@@ -525,7 +525,14 @@ internal fun LiveCategories(
     val a = stageAccent
     Column(
         modifier
-            .then(if (sheet) Modifier.stageGlass(StageRadii.Sheet, overContent = true).padding(horizontal = 16.mpx, vertical = 26.mpx) else Modifier),
+            .then(
+                when {
+                    // TV-box style: a full-height strip of the screen's own grey, not a floating card.
+                    sheet && tv.own.owntv.features.shell.TvBoxNav -> Modifier.background(androidx.compose.ui.graphics.Color(0xFF232629)).padding(horizontal = 16.mpx, vertical = 40.mpx)
+                    sheet -> Modifier.stageGlass(StageRadii.Sheet, overContent = true).padding(horizontal = 16.mpx, vertical = 26.mpx)
+                    else -> Modifier
+                },
+            ),
     ) {
         if (sheet) {
             Row(

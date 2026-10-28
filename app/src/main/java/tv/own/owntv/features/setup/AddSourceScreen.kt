@@ -541,7 +541,12 @@ fun AddSourceScreen(
                 modifier = Modifier.width(440.mpx).height(76.mpx).focusRequester(startImportFocus),
             ) { focused ->
                 if (focused) Box(Modifier.matchParentSize().background(tv.own.owntv.ui.brand.SkMateBlue, RoundedCornerShape(38.mpx)))
-                val tint = if (canStart) androidx.compose.ui.graphics.Color.White else StageColors.Dim
+                // Over the text-coloured fill the label takes the page colour, so it reads in both themes.
+                val tint = when {
+                    focused -> androidx.compose.ui.graphics.Color.White
+                    canStart -> tv.own.owntv.ui.theme.LocalStagePalette.current.page
+                    else -> StageColors.Dim
+                }
                 Row(horizontalArrangement = Arrangement.spacedBy(12.mpx), verticalAlignment = Alignment.CenterVertically) {
                     OwnTVIcon(OwnTVIcon.DOWNLOADS, tint, Modifier.size(26.mpx))
                     Text(submitLabel, style = stageText(22, 800), color = tint, maxLines = 1)
