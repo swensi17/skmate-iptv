@@ -1,0 +1,115 @@
+name: Build
+
+# Every push and pull request (spec, section 9): ktlint, detekt, unit tests, Android lint, licence
+# gate, assembleDebug. Releases are a separate workflow (release.yml), so nothing here signs or
+# publishes anything.
+#
+# ktlint and detekt run as pinned CLI jars (checksums below) rather than Gradle plugins: they then
+# never fight the AGP/Kotlin versions. Findings that predate the fork live in config/lint/*-baseline.xml;
+# anything new fails the job.
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: read   # core, player-core and libmpv from swensi17/skmate-iptv-core's GitHub Packages
+
+# Gradle reads these to resolve GitHub Packages; GitHub asks for a token even for public packages.
+env:
+  GITHUB_ACTOR: ${{ github.actor }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  KTLINT_VERSION: "1.8.0"
+  KTLINT_SHA256: "a3fd620207d5c40da6ca789b95e7f823c54e854b7fade7f613e91096a3706d75"
+  DETEKT_VERSION: "1.23.8"
+  DETEKT_SHA256: "2ce2ff952e150baf28a29cda70a363b0340b3e81a55f43e51ec5edffc3d066c1"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  style:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Fetch ktlint and detekt (pinned, checksum-verified)
+        run: |
+          set -euo pipefail
+          curl -fsSL -o ktlint "https://github.com/pinterest/ktlint/releases/download/${KTLINT_VERSION}/ktlint"
+          curl -fsSL -o detekt.jar "https://github.com/detekt/detekt/releases/download/v${DETEKT_VERSION}/detekt-cli-${DETEKT_VERSION}-all.jar"
+          echo "${KTLINT_SHA256}  ktlint" | sha256sum -c -
+          echo "${DETEKT_SHA256}  detekt.jar" | sha256sum -c -
+          chmod +x ktlint
+
+      - name: ktlint
+        run: ./ktlint --baseline=config/lint/ktlint-baseline.xml "app/src/**/*.kt" "baselineprofile/src/**/*.kt"
+
+      - name: detekt
+        if: always()
+        run: java -jar detekt.jar --input app/src/main/java,app/src/test --baseline config/lint/detekt-baseline.xml --build-upon-default-config
+
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v4
+        with:
+          packages: 'platform-tools'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Unit tests
+        run: |
+          chmod +x ./gradlew
+          ./gradlew testStandardDebugUnitTest --stacktrace
+
+      - name: Licence gate (GPL-3.0-compatible dependencies only)
+        if: always()
+        run: |
+          ./gradlew :app:licenseeAndroidStandardRelease --stacktrace
+          python3 tools/licenses/gen_third_party.py check
+
+      - name: Android lint
+        if: always()
+        run: ./gradlew lintStandardDebug --stacktrace
+
+      - name: Assemble debug APK
+        run: ./gradlew :app:assembleStandardDebug --stacktrace
+
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v7
+        with:
+          name: SkMate-IPTV-debug-${{ github.sha }}
+          path: app/build/outputs/apk/standard/debug/*.apk
+          if-no-files-found: error
+
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: check-reports
+          path: |
+            app/build/reports/tests/**
+            app/build/reports/lint-results-*.html
+            app/build/reports/licensee/**
+          if-no-files-found: warn
