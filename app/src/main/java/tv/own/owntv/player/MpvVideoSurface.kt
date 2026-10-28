@@ -9,9 +9,12 @@ import android.view.TextureView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
@@ -144,6 +147,15 @@ fun MpvVideoSurface(
 }
 
 /**
+ * The [ExoPreviewSurface]s composed for each engine, oldest first; only the last one has a video view.
+ * The full-screen player is drawn over the channels screen, whose preview stays composed beneath it (so
+ * do the screens behind Settings and the menu). An engine has one output: with two views the newest took
+ * it, and when that one closed the engine was left with none — a black preview, or the last frame of
+ * another channel showing through. Now the covered view is removed and built again when it is on top.
+ */
+private val surfaceOwners = mutableStateMapOf<LivePreviewEngine, List<Any>>()
+
+/**
  * Hosts the [LivePreviewEngine]'s ExoPlayer video (a [SurfaceView]) for the Live preview pane AND the
  * promoted full-screen live player. Zoom/aspect is done by sizing the view itself via [Modifier.videoZoom]
  * — the same math as the mpv path, so a Live channel zooms identically whether it plays on ExoPlayer
@@ -189,7 +201,15 @@ fun ExoPreviewSurface(
         // 4K codec per Surface — see LivePreviewEngine.recreateSurface.
         val surfaceGeneration by engine.surfaceGeneration.collectAsStateWithLifecycle()
         val viewModifier = Modifier.videoZoom(zoom, aspect, videoSize, maxWidth, maxHeight)
-        key(surfaceGeneration) {
+        val owner = remember { Any() }
+        DisposableEffect(engine) {
+            surfaceOwners[engine] = surfaceOwners[engine].orEmpty() + owner
+            onDispose {
+                val rest = surfaceOwners[engine].orEmpty() - owner
+                if (rest.isEmpty()) surfaceOwners.remove(engine) else surfaceOwners[engine] = rest
+            }
+        }
+        if (surfaceOwners[engine]?.lastOrNull() === owner) key(surfaceGeneration) {
             if (useTextureView) {
                 AndroidView(
                     modifier = viewModifier,

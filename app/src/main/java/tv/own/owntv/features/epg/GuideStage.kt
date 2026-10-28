@@ -35,6 +35,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.focus.FocusRequester
@@ -121,6 +123,12 @@ internal fun GuideVideo(
     Box(
         modifier
             .aspectRatio(16f / 9f)
+            // TV-box look: full screen grows out of here and shrinks back into it, as from the channel list.
+            .then(
+                if (tv.own.owntv.features.shell.TvBoxNav) {
+                    Modifier.onGloballyPositioned { tv.own.owntv.features.shell.components.TvBoxPanels.previewRect = it.boundsInRoot() }
+                } else Modifier,
+            )
             .drawBehind { drawBoxShadow(videoShadow, 80.mpx.toPx(), r.toPx(), dy = 30.mpx.toPx()) }
             .clip(RoundedCornerShape(r))
             .background(Color.Black),
@@ -136,7 +144,7 @@ internal fun GuideVideo(
         Box(Modifier.fillMaxSize().background(Brush.verticalGradient(0.58f to Color.Transparent, 1f to Color.Black.copy(alpha = 0.72f))))
         Box(Modifier.fillMaxSize().drawBehind { drawInnerRing(Color.White.copy(alpha = 0.08f), 1.mpx.toPx(), r.toPx()) })
         if (channel != null) {
-            Box(Modifier.align(Alignment.TopStart).padding(start = 20.mpx, top = 18.mpx)) { StageLiveBadge(stringResource(R.string.player_live)) }
+            if (!tv.own.owntv.features.shell.TvBoxNav) Box(Modifier.align(Alignment.TopStart).padding(start = 20.mpx, top = 18.mpx)) { StageLiveBadge(stringResource(R.string.player_live)) }
             Text(
                 buildAnnotatedString {
                     append(channelLine.orEmpty())
@@ -219,6 +227,8 @@ internal fun GuideRuler(
 ) {
     val formatTime = rememberSystemTimeFormatter()
     val a = stageAccent
+    val chipFill = if (tv.own.owntv.features.shell.TvBoxNav) tv.own.owntv.ui.brand.SkMateBlue else a.accent
+    val chipText = if (tv.own.owntv.features.shell.TvBoxNav) Color.White else a.onAccent
     val slotMs = GuideGridDefaults.SlotMin * 60_000L
     val first = windowStart + (slotMs - windowStart % slotMs) % slotMs
     val times = generateSequence(first) { it + slotMs }.takeWhile { it < windowEnd }
@@ -232,8 +242,8 @@ internal fun GuideRuler(
             }
             if (nowIn) {
                 Text(
-                    formatTime(now), style = stageText(15, 800).copy(fontFeatureSettings = Tabular), color = a.onAccent, maxLines = 1, overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.background(a.accent, RoundedCornerShape(8.mpx)).padding(horizontal = 9.mpx, vertical = 3.mpx),
+                    formatTime(now), style = stageText(15, 800).copy(fontFeatureSettings = Tabular), color = chipText, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.background(chipFill, RoundedCornerShape(8.mpx)).padding(horizontal = 9.mpx, vertical = 3.mpx),
                 )
             }
         },
@@ -262,7 +272,7 @@ internal fun GuideRuler(
  */
 @Composable
 internal fun GuideChannelLabel(channel: ChannelEntity, name: String, dot: Color?, selected: Boolean, numberWidth: Dp, modifier: Modifier = Modifier) {
-    val a = stageAccent
+    val a = if (tv.own.owntv.features.shell.TvBoxNav) stageAccent.copy(accent = tv.own.owntv.ui.brand.SkMateBlue) else stageAccent
     Row(
         modifier.padding(start = 8.mpx),
         horizontalArrangement = Arrangement.spacedBy(10.mpx),

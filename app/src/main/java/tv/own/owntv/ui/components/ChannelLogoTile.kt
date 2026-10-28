@@ -87,6 +87,10 @@ fun ChannelLogoTile(
     }
 
     Box(modifier.background(background), contentAlignment = Alignment.Center) {
+        // While the logo is on its way: a soft grey placeholder, so the row never pops from empty to full.
+        if (showLogo && loaded == null && tv.own.owntv.features.shell.TvBoxNav) {
+            Box(Modifier.matchParentSize().background(tv.own.owntv.ui.theme.StageColors.Text.copy(alpha = 0.06f), androidx.compose.foundation.shape.RoundedCornerShape(10)))
+        }
         if (showLogo) {
             AsyncImage(
                 model = request,

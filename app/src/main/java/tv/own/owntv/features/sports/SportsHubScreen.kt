@@ -1,6 +1,8 @@
 package tv.own.owntv.features.sports
 
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.foundation.background
+import tv.own.owntv.core.epg.displayLogoUrl
 import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -176,6 +178,9 @@ fun SportsHubScreen(
     }
     // TV-box style: just the sport on the user's channels now, one line each — no chips, leagues or cards.
     val simple = tv.own.owntv.features.shell.TvBoxNav
+    // The search through the guide takes a moment; until then (or a rebuild) the rows show as skeletons.
+    var settled by remember { mutableStateOf(false) }
+    androidx.compose.runtime.LaunchedEffect(Unit) { kotlinx.coroutines.delay(SKELETON_MS); settled = true }
     Box(modifier.fillMaxSize().onFocusChanged { if (it.hasFocus) onChildFocused() }) {
         LazyColumn(
             Modifier.fillMaxSize().focusGroup(),
@@ -230,7 +235,15 @@ fun SportsHubScreen(
             }
 
             val nothing = live.isEmpty() && soon.isEmpty() && onNow.isEmpty()
-            if (simple && onNow.isEmpty()) {
+            if (simple && onNow.isEmpty() && (!settled || state.rebuilding)) {
+                // Still finding what is on: rows of the real rows' shape instead of "nothing on".
+                item(key = "simpleSkeleton") {
+                    Column(Modifier.padding(top = 24.mpx)) {
+                        RowHeader(contentStart, stringResource(R.string.sports_on_channels_now), null)
+                        OnChannelsSkeleton(Modifier.padding(start = contentStart - 18.mpx, end = 64.mpx))
+                    }
+                }
+            } else if (simple && onNow.isEmpty()) {
                 item(key = "simpleEmpty") {
                     Text(
                         stringResource(R.string.sports_empty_nothing),
@@ -553,7 +566,7 @@ private fun OnChannelsRow(item: GuideSportItem, now: Long, modifier: Modifier, o
     val locale = LocalConfiguration.current.locales[0]
     StageRow(onClick = onClick, height = 96.mpx, modifier = modifier, horizontalPadding = 18.mpx) { _ ->
         ChannelLogoTile(
-            logoUrl = ch.logoUrl,
+            logoUrl = ch.displayLogoUrl,
             modifier = Modifier.size(78.mpx, 48.mpx).background(stageStillBack, RoundedCornerShape(10.mpx)),
             fill = Color.Transparent,
         ) {
@@ -571,6 +584,32 @@ private fun OnChannelsRow(item: GuideSportItem, now: Long, modifier: Modifier, o
             )
             val span = (item.stopMs - item.startMs).coerceAtLeast(1)
             StageProgress(((now - item.startMs).toFloat() / span).coerceIn(0f, 1f), Modifier.padding(top = 7.mpx).fillMaxWidth(0.7f), flat = true)
+        }
+    }
+}
+
+/** How long the hub waits for "on your channels now" before it says there is nothing on. */
+private const val SKELETON_MS = 3_000L
+
+/** Rows the shape of [OnChannelsRow] — logo, two lines, progress — while the hub looks for what is on. */
+@Composable
+private fun OnChannelsSkeleton(modifier: Modifier = Modifier) {
+    val pulse by androidx.compose.animation.core.rememberInfiniteTransition(label = "sportsSkeleton").animateFloat(
+        initialValue = 0.05f, targetValue = 0.10f,
+        animationSpec = androidx.compose.animation.core.infiniteRepeatable(androidx.compose.animation.core.tween<Float>(900), androidx.compose.animation.core.RepeatMode.Reverse),
+        label = "sportsSkeletonPulse",
+    )
+    val bar = StageColors.Text.copy(alpha = pulse)
+    Column(modifier) {
+        repeat(5) {
+            Row(Modifier.fillMaxWidth().height(96.mpx).padding(horizontal = 18.mpx), horizontalArrangement = Arrangement.spacedBy(18.mpx), verticalAlignment = Alignment.CenterVertically) {
+                Box(Modifier.size(78.mpx, 48.mpx).background(bar, RoundedCornerShape(10.mpx)))
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(9.mpx)) {
+                    Box(Modifier.fillMaxWidth(0.42f).height(20.mpx).background(bar, RoundedCornerShape(10.mpx)))
+                    Box(Modifier.fillMaxWidth(0.30f).height(14.mpx).background(bar, RoundedCornerShape(7.mpx)))
+                    Box(Modifier.fillMaxWidth(0.7f).height(4.mpx).background(bar, RoundedCornerShape(2.mpx)))
+                }
+            }
         }
     }
 }

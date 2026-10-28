@@ -186,6 +186,7 @@ fun StageRail(
         slide.animateTo(target, slideSpec)
     }
 
+    androidx.compose.runtime.CompositionLocalProvider(tv.own.owntv.ui.stage.LocalWhiteFocus provides tvBox) {
     Box(modifier.fillMaxSize()) {
         // TV-box style the menu pushes the screen aside instead of dimming it.
         if (state == RailState.OPEN && open && !tvBox) {
@@ -250,14 +251,15 @@ fun StageRail(
                         tvBoxStrip && TvBoxPanels.besideOpen -> run {
                             val line = StageColors.Ink.copy(alpha = 0.10f)
                             Modifier
-                            .background(if (tv.own.owntv.ui.theme.LocalStagePalette.current.isLight) androidx.compose.ui.graphics.Color.White else TvBoxMenuFill)
+                            .background(if (tv.own.owntv.ui.theme.LocalStagePalette.current.isLight) tv.own.owntv.features.shell.components.TvBoxPanelLight else TvBoxMenuFill)
                             .drawBehind {
                                 val w = 1.mpx.toPx()
                                 val box = drawContext.size
                                 drawRect(line, topLeft = androidx.compose.ui.geometry.Offset(box.width - w, 0f), size = androidx.compose.ui.geometry.Size(w, box.height))
                             }
                         }
-                        tvBoxStrip -> Modifier.background(if (tv.own.owntv.ui.theme.LocalStagePalette.current.isLight) androidx.compose.ui.graphics.Color.White else TvBoxMenuFill, TvBoxEdgeShape)
+                        tvBoxStrip -> Modifier.background(if (tv.own.owntv.ui.theme.LocalStagePalette.current.isLight) tv.own.owntv.features.shell.components.TvBoxPanelLight else TvBoxMenuFill, TvBoxEdgeShape)
+                            .drawBehind { drawRect(androidx.compose.ui.graphics.Color(0x14000000), topLeft = androidx.compose.ui.geometry.Offset(drawContext.size.width - 1.mpx.toPx(), 0f), size = androidx.compose.ui.geometry.Size(1.mpx.toPx(), drawContext.size.height)) }
                         open -> Modifier.stageGlass(34.mpx, overContent = true)
                         else -> Modifier
                     },
@@ -270,12 +272,12 @@ fun StageRail(
             verticalArrangement = Arrangement.spacedBy(6.mpx),
         ) {
             if (tvBox) {
-                // The SK letters in brand blue instead of the logo; the icons sit in the middle, the profile at the bottom.
-                androidx.tv.material3.Text(
-                    stringResource(R.string.brand_wordmark_first),
-                    style = tv.own.owntv.ui.theme.stageText(26, 900),
-                    color = tv.own.owntv.ui.brand.SkMateBlue,
-                    modifier = Modifier.align(Alignment.CenterHorizontally).pointerInput(Unit) { detectTapGestures { onSelect(MainSection.HOME) } },
+                // "sk", the first two letters of the logo; the icons sit in the middle, the profile at the bottom.
+                androidx.compose.foundation.Image(
+                    painter = androidx.compose.ui.res.painterResource(R.drawable.skmate_logo_sk),
+                    contentDescription = stringResource(R.string.app_name),
+                    modifier = Modifier.align(Alignment.CenterHorizontally).height(30.mpx)
+                        .pointerInput(Unit) { detectTapGestures { onSelect(MainSection.HOME) } },
                 )
                 Spacer(Modifier.weight(1f))
             } else RailBrand(open, onHome = { onSelect(MainSection.HOME) })
@@ -310,6 +312,7 @@ fun StageRail(
             if (!tvBox) RailSeparator(open)
             RailProfile(open, profileName, profileLine.takeIf { counts }, avatarId, avatarPath, onSwitchProfile, onPickAvatar)
         }
+    }
     }
 }
 
@@ -395,7 +398,8 @@ private fun RailItem(
     accentIcon: Boolean = false,
 ) {
     val a = stageAccent
-    val r = 20.mpx
+    // TV-box look: a round item, so its own fill and the focus are one circle.
+    val r = if (tv.own.owntv.features.shell.TvBoxNav) 29.mpx else 20.mpx
     // TV-box look: focus is the soft grey fill (FX), the section in use a faint one; no rings.
     val tvBox = tv.own.owntv.features.shell.TvBoxNav
     StageSurface(
@@ -528,4 +532,11 @@ internal val TvBoxEdgeShape = RoundedCornerShape(topEnd = 20.mpx, bottomEnd = 20
  */
 object TvBoxPanels {
     var besideOpen by androidx.compose.runtime.mutableStateOf(false)
+    /** Bumped by OK on the menu's open screen: the panel beside the menu closes, focus goes to the list. */
+    var closeBeside by androidx.compose.runtime.mutableIntStateOf(0)
+    /** Where the channels screen's preview is, in root pixels: full screen grows out of it and back into it. */
+    var previewRect by androidx.compose.runtime.mutableStateOf<androidx.compose.ui.geometry.Rect?>(null)
 }
+
+/** The light side panels: the soft grey the screen's backdrop shows beside them. */
+val TvBoxPanelLight = androidx.compose.ui.graphics.Color(0xFFEFF2F5)

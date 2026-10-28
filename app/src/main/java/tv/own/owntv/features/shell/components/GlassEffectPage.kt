@@ -1,6 +1,7 @@
 package tv.own.owntv.features.shell.components
 
 import tv.own.owntv.ui.theme.stageTone
+import tv.own.owntv.core.epg.displayLogoUrl
 import tv.own.owntv.ui.theme.LocalStagePalette
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -325,7 +326,7 @@ private fun GlassBackgroundPreview() {
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Text((ch.number ?: (i + 1)).toString(), style = stageText(21, 700), color = StageColors.Dim, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.width(52.mpx))
-                            LivePlate(ch.logoUrl, 78.mpx, 54.mpx)
+                            LivePlate(ch.displayLogoUrl, 78.mpx, 54.mpx)
                             Text(ch.name, style = stageText(22, 700), color = StageColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         }
                     }

@@ -183,7 +183,7 @@ class EpgViewModel(
                     sourceId = channel.sourceId,
                     channelId = channel.id,
                     channelName = channel.name,
-                    channelIconUrl = channel.logoUrl,
+                    channelIconUrl = channel.displayLogoUrl,
                     epgChannelId = channel.epgChannelId,
                     streamUrl = channel.streamUrl,
                     httpHeaders = channel.httpHeaders,

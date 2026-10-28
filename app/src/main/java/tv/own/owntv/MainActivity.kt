@@ -63,6 +63,13 @@ open class MainActivity : ComponentActivity() {
 
     /** Esc on a keyboard (or the emulator's) is Back, as on the remote. */
     override fun dispatchKeyEvent(event: android.view.KeyEvent): Boolean {
+        // Back held down (about a second of key repeats) closes the app outright, TV-box style.
+        if (tv.own.owntv.features.shell.TvBoxNav && event.keyCode == android.view.KeyEvent.KEYCODE_BACK &&
+            event.action == android.view.KeyEvent.ACTION_DOWN && (event.isLongPress || event.repeatCount >= LONG_BACK_REPEATS)
+        ) {
+            finish()
+            return true
+        }
         if (event.keyCode == android.view.KeyEvent.KEYCODE_ESCAPE) {
             return super.dispatchKeyEvent(
                 android.view.KeyEvent(event.downTime, event.eventTime, event.action, android.view.KeyEvent.KEYCODE_BACK, event.repeatCount),
@@ -71,6 +78,11 @@ open class MainActivity : ComponentActivity() {
         return super.dispatchKeyEvent(event)
     }
     companion object {
+        /** The fade between the top-level screens (the profile gate and the app). */
+        private const val ScreenFadeMs = 320
+        /** Key repeats of a held Back that count as "hold to exit" (about a second). */
+        private const val LONG_BACK_REPEATS = 12
+
         private const val TAG = "OwnTVHome"
 
         /** Bounded wait for the startup database probe (see [probeDatabase]). */
@@ -285,7 +297,13 @@ open class MainActivity : ComponentActivity() {
             LaunchedEffect(loadedProfileId != null) {
                 if (loadedProfileId != null) Perf.stamp("profile-id-loaded")
             }
-            val shouldShowProfileGate = profilesLoaded && tv.own.owntv.features.profiles.profileGateRequired(profiles)
+            // TV-box look: the app opens straight into the profile used last, as a set-top box does; "Who's
+            // watching?" only asks for a PIN-locked one, or when the menu's profile button asks to switch.
+            val shouldShowProfileGate = profilesLoaded && if (tv.own.owntv.features.shell.TvBoxNav) {
+                profiles.firstOrNull { it.id == loadedProfileId }?.pinHash != null
+            } else {
+                tv.own.owntv.features.profiles.profileGateRequired(profiles)
+            }
             // Keep the pure launch policy in the actual composition path as well as in its unit
             // tests. The policy checks the Room list, active-id membership, and authentication as
             // one decision; a future branch must not accidentally make the shell depend on only
@@ -386,7 +404,19 @@ open class MainActivity : ComponentActivity() {
 
                         Box(modifier = Modifier.fillMaxSize()) {
                         val profile = activeProfileId
+                        // Which screen is up, so moving between them (the gate → the app) fades instead of cutting.
+                        val screen = when {
+                            profile == null || !profilesLoaded -> 0
+                            addingProfile -> 1
+                            profile < 0L -> 2
+                            !activeProfileKnown -> 3
+                            gateRequired && !authenticatedForActiveProfile -> 4
+                            shellReady -> 5
+                            else -> 6
+                        }
+                        androidx.compose.animation.Crossfade(screen, animationSpec = androidx.compose.animation.core.tween(ScreenFadeMs), label = "screen") { shown ->
                         when {
+                            shown != screen -> Unit // the screen fading out keeps no live content
                             profile == null || !profilesLoaded -> Unit // active id / Room list loading
                             // Adding a profile from the gate → onboard the new profile.
                             addingProfile -> Onboarding(
@@ -459,6 +489,7 @@ open class MainActivity : ComponentActivity() {
                             // the shell. The known loading/onboarding/gate cases are above; a blank
                             // frame is safer than rendering protected content if a new state is added.
                             else -> Unit
+                        }
                         }
                         } // end foreground Box (above the background layer)
                     }

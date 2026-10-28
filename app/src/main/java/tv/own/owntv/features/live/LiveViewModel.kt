@@ -244,7 +244,7 @@ class LiveViewModel(
                 sourceId = channel.sourceId,
                 channelId = channel.id,
                 channelName = channel.name,
-                channelIconUrl = channel.logoUrl,
+                channelIconUrl = channel.displayLogoUrl,
                 epgChannelId = channel.epgChannelId,
                 streamUrl = channel.streamUrl,
                 httpHeaders = channel.httpHeaders,
@@ -628,7 +628,9 @@ class LiveViewModel(
             // Customizations are applied to each fresh PagingData inside the pager chain — a PagingData
             // that the UI already collected must never be re-transformed (Paging forbids re-collection,
             // which is why hiding a channel used to crash). A customization change re-creates the pager.
-            Pager(PagingConfig(pageSize = 80, prefetchDistance = 40, initialLoadSize = 120, maxSize = 400)) {
+            // A small first page (60) so a group's first rows show at once on a weak box; the rest follows
+            // in pages of 50 as the list scrolls, at most 300 rows held in memory.
+            Pager(PagingConfig(pageSize = 50, prefetchDistance = 25, initialLoadSize = 60, maxSize = 300)) {
                 pagingSource(key, c, query, sort)
             }.flow.map { paging ->
                 val cust = cs.cust
@@ -1411,7 +1413,7 @@ class LiveViewModel(
             if (tuned.id == currentChannel.id) {
                 return tv.own.owntv.player.DirectTuneResult.Found(
                     tv.own.owntv.player.DirectTuneChannelInfo(
-                        tuned.number, tuned.name, tuned.logoUrl, restarted = false,
+                        tuned.number, tuned.name, tuned.displayLogoUrl, restarted = false,
                     ),
                 )
             }
@@ -1421,7 +1423,7 @@ class LiveViewModel(
 
             return tv.own.owntv.player.DirectTuneResult.Found(
                 tv.own.owntv.player.DirectTuneChannelInfo(
-                    tuned.number, tuned.name, tuned.logoUrl, restarted = true,
+                    tuned.number, tuned.name, tuned.displayLogoUrl, restarted = true,
                 ),
             )
         } catch (e: kotlinx.coroutines.CancellationException) {
@@ -1629,6 +1631,10 @@ class LiveViewModel(
     /** Full description for a programme picked in the catch-up dialog. The list query drops it to stay
      *  under the CursorWindow limit, so the detail popup fetches it on demand (same as the Guide). */
     suspend fun programmeDescription(programmeId: Long): String? = epgReader.programmeDescription(programmeId)
+
+    /** [ch]'s guide around now — what was on, what is on, what follows — for the player's channel panel. */
+    suspend fun scheduleFor(ch: ChannelEntity): tv.own.owntv.core.live.EpgNowNext? =
+        runCatching { epgReader.nowNext(ch, custom.value, epgOffset.value) }.getOrNull()
 
     /** True while a catch-up **archive programme** is what's on screen, rather than the live stream.
      *  The HUD keys off this: an archive is VOD-style playback, so it must offer the mpv/ExoPlayer VOD
