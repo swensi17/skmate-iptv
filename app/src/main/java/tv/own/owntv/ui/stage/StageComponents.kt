@@ -96,10 +96,9 @@ private fun Modifier.stageFocusDecor(style: StageFocus, radius: Dp, a: StageAcce
             StageFocus.OUTLINE -> drawInnerRing(a.accent, 2.5f * px, r)
             StageFocus.NONE -> Unit
             StageFocus.FX -> {
-                // SkMate blue: a faint wash with a clear ring, readable from the sofa and one colour
-                // with the buttons' focus.
-                drawRoundRect(tv.own.owntv.ui.brand.SkMateBlue.copy(alpha = 0.08f), cornerRadius = CornerRadius(r))
-                drawInnerRing(tv.own.owntv.ui.brand.SkMateBlue, 2.5f * px, r)
+                // A soft grey fill, no ring, round at the ends: the TV-box way of showing focus on a white page.
+                val pill = if (tv.own.owntv.features.shell.TvBoxNav) minOf(size.height / 2f, PillMaxRadius.toPx()) else r
+                drawRoundRect(LightFocusFill, cornerRadius = CornerRadius(pill))
             }
             StageFocus.FILLED, StageFocus.PRIMARY -> {
                 drawBoxShadow(a.accent.copy(alpha = 0.3f), 30 * px, r, dy = 12 * px)
@@ -172,13 +171,21 @@ fun StageSurface(
     // A mouse or touch click focuses what it clicked, as the remote would have, so the highlight and the
     // next D-pad press both start from there instead of wherever focus was left.
     val self = remember { androidx.compose.ui.focus.FocusRequester() }
-    val sheetFocus = focused && focusStyle == StageFocus.FX && tv.own.owntv.ui.theme.LocalInSettingsSheet.current
+    // The light grey bar of TV-box screens instead of a white ring: in the settings sheet, and on every
+    // dark screen while the TV-box look is on.
+    val tvBox = tv.own.owntv.features.shell.TvBoxNav
+    val sheetFocus = focused && (
+        (focusStyle == StageFocus.FX && (tv.own.owntv.ui.theme.LocalInSettingsSheet.current || (tvBox && !palette.isLight))) ||
+            // TV-box look: list items and pills (FILLED) never turn solid black or white either.
+            (tvBox && focusStyle == StageFocus.FILLED)
+        )
     Box(
         modifier = modifier
             .stageLift(focused, focusStyle)
             .then(
                 when {
-                    sheetFocus -> Modifier.background(SheetFocusFill, androidx.compose.foundation.shape.RoundedCornerShape(radius))
+                    sheetFocus && palette.isLight -> Modifier.background(LightFocusFill, PillFocusShape)
+                    sheetFocus -> Modifier.background(SheetFocusFill, PillFocusShape)
                     focused -> Modifier.stageFocusDecor(focusStyle, radius, accent, palette)
                     else -> idle
                 },
@@ -196,13 +203,22 @@ fun StageSurface(
         contentAlignment = contentAlignment,
     ) {
         // The light bar takes the light theme's dark text.
-        if (sheetFocus) androidx.compose.runtime.CompositionLocalProvider(LocalStagePalette provides tv.own.owntv.ui.theme.StagePalette.Light) { content(focused) }
-        else content(focused)
+        if (sheetFocus) {
+            // On the light grey bar text is dark: the light palette, and an accent whose "on" colour is ink.
+            val light = tv.own.owntv.ui.theme.StagePalette.Light
+            androidx.compose.runtime.CompositionLocalProvider(
+                LocalStagePalette provides light,
+                tv.own.owntv.ui.theme.LocalStageAccentOverride provides tv.own.owntv.ui.theme.StageAccent(accent.accent, light.text, light.text),
+            ) { content(focused) }
+        } else content(focused)
     }
 }
 
 /** The focused row of the settings sheet. */
 private val SheetFocusFill = Color(0xFFE0E2E4)
+
+/** Focus on a light page: a grey a step darker than the page, no ring. */
+private val LightFocusFill = Color(0xFFE7E8EA)
 
 /** The PRIMARY (1.04) and POSTER (1.08, from 50% 40%) lift; FX and FILLED stay put. An episode lifts 1.06 from 50% 30%. */
 @Composable
@@ -302,7 +318,7 @@ fun StageButton(
         idle = if (tinted) Modifier.background(a.accent.copy(alpha = 0.2f), RoundedCornerShape(r)) else Modifier.stageGlass(r),
         contentAlignment = Alignment.Center,
     ) { focused ->
-        val color = if (focused) a.onAccent else if (tinted) a.accent else StageColors.Text
+        val color = if (focused) tv.own.owntv.ui.theme.stageAccent.onAccent else if (tinted) a.accent else StageColors.Text
         Row(
             Modifier.then(if (round) Modifier else Modifier.padding(horizontal = 30.mpx)),
             horizontalArrangement = Arrangement.spacedBy(12.mpx),
@@ -313,7 +329,7 @@ fun StageButton(
             if (trailing != null) {
                 // On a tinted button the trailing part is the label's accent at 70% ("· 12 min left").
                 val idle = if (tinted) a.accent.copy(alpha = 0.7f) else StageColors.Muted
-                Text(trailing, style = stageText(textSize, 600), color = if (focused) a.onAccent else idle, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(trailing, style = stageText(textSize, 600), color = if (focused) tv.own.owntv.ui.theme.stageAccent.onAccent else idle, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
             if (trailingIcon != null) StageIcon(trailingIcon, color, textSize.mpx)
         }
@@ -353,7 +369,7 @@ fun StagePill(
             horizontalArrangement = Arrangement.spacedBy(10.mpx),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            val on = if (focused) a.onAccent else null
+            val on = if (focused) tv.own.owntv.ui.theme.stageAccent.onAccent else null
             if (icon != null) StageIcon(icon, on ?: a.accent, 20.mpx, iconFilled)
             if (small != null) Text(small, style = stageText(15, 700), color = on ?: StageColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis)
             Text(
@@ -388,7 +404,8 @@ fun StageTool(
     danger: Boolean = false,
 ) {
     val a = stageAccent
-    val r = StageRadii.Tool
+    // TV-box look: a full pill, round at both ends.
+    val r = if (tv.own.owntv.features.shell.TvBoxNav) 24.mpx else StageRadii.Tool
     StageSurface(
         onClick = onClick,
         radius = r,
@@ -400,10 +417,10 @@ fun StageTool(
             horizontalArrangement = Arrangement.spacedBy(9.mpx),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            val color = if (focused) a.onAccent else if (danger) StageColors.Danger else StageColors.Muted
+            val color = if (focused) tv.own.owntv.ui.theme.stageAccent.onAccent else if (danger) StageColors.Danger else StageColors.Muted
             if (icon != null) StageIcon(icon, color, 20.mpx)
             if (text != null) Text(text, style = stageText(18, 700), color = color, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            if (value != null) Text(value, style = stageText(18, 700), color = if (focused) a.onAccent else if (valueAccent) a.accent else StageColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            if (value != null) Text(value, style = stageText(18, 700), color = if (focused) tv.own.owntv.ui.theme.stageAccent.onAccent else if (valueAccent) a.accent else StageColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis)
             if (trailingIcon != null) StageIcon(trailingIcon, color, 20.mpx)
         }
     }
@@ -439,7 +456,7 @@ fun StageTab(label: String, count: String, selected: Boolean, onClick: () -> Uni
             horizontalArrangement = Arrangement.spacedBy(10.mpx),
             verticalAlignment = Alignment.Bottom,
         ) {
-            val on = if (focused) a.onAccent else null
+            val on = if (focused) tv.own.owntv.ui.theme.stageAccent.onAccent else null
             Text(label, style = stageText(22, 700), color = on ?: if (selected) StageColors.Text else StageColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.alignByBaseline())
             Text(count, style = stageText(16, 600), color = on ?: StageColors.Dim, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.alignByBaseline())
         }
@@ -586,7 +603,8 @@ fun StageRow(
 fun StageMenu(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
     Column(
         modifier
-            .stageGlass(StageRadii.Menu, overContent = true)
+            // TV-box look: a solid card, never see-through.
+            .then(if (tv.own.owntv.features.shell.TvBoxNav) Modifier.solidCard(StageRadii.Menu) else Modifier.stageGlass(StageRadii.Menu, overContent = true))
             .padding(start = 16.mpx, end = 16.mpx, top = 22.mpx, bottom = 16.mpx),
         content = content,
     )
@@ -617,6 +635,7 @@ fun StageMenuHeader(title: String, subtitle: String?, leading: (@Composable () -
  */
 @Composable
 fun StageGroupLabel(text: String, sheet: Boolean = false) {
+    // TV-box look: a hairline above each group of a menu, so its parts read apart.
     Text(
         text,
         style = if (sheet) stageText(13, 800, 0.12.em) else stageText(12.5f, 800, 0.13.em),
@@ -648,10 +667,19 @@ fun StageMenuItem(
     leading: (@Composable () -> Unit)? = null,
 ) {
     val a = stageAccent
+    // TV-box look: taller rows, each closed off by a hairline under it.
+    val tvBox = tv.own.owntv.features.shell.TvBoxNav
+    val line = StageColors.Text.copy(alpha = 0.08f)
     StageSurface(
         onClick = onClick,
         radius = StageRadii.MenuItem,
-        modifier = modifier.fillMaxWidth().height(50.mpx).alpha(if (enabled) 1f else 0.45f),
+        modifier = modifier.fillMaxWidth().height(if (tvBox) 60.mpx else 50.mpx).alpha(if (enabled) 1f else 0.45f)
+            .then(
+                if (tvBox) Modifier.drawBehind {
+                    val h = 1.mpx.toPx()
+                    drawRect(line, topLeft = androidx.compose.ui.geometry.Offset(14.mpx.toPx(), drawContext.size.height - h), size = androidx.compose.ui.geometry.Size(drawContext.size.width - 28.mpx.toPx(), h))
+                } else Modifier,
+            ),
         enabled = enabled,
     ) { focused ->
         Row(
@@ -659,10 +687,10 @@ fun StageMenuItem(
             horizontalArrangement = Arrangement.spacedBy(14.mpx),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            val on = if (focused) a.onAccent else null
-            if (icon != null) StageIcon(icon, on ?: StageColors.Muted, 21.mpx, iconFilled)
+            val on = if (focused) tv.own.owntv.ui.theme.stageAccent.onAccent else null
+            if (icon != null) StageIcon(icon, on ?: StageColors.Muted, if (tvBox) 24.mpx else 21.mpx, iconFilled)
             leading?.invoke()
-            Text(text, style = stageText(19, 600), color = on ?: StageColors.MenuItemText, maxLines = 1,
+            Text(text, style = stageText(if (tvBox) 21 else 19, 600), color = on ?: StageColors.MenuItemText, maxLines = 1,
                 overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
             if (value != null) Text(value, style = stageText(15, 700), color = on ?: StageColors.Dim, maxLines = 1, overflow = TextOverflow.Ellipsis)
             if (checked) StageIcon(OwnTVIcon.CHECK, on ?: a.accent, 22.mpx)
@@ -700,9 +728,11 @@ fun StageSheetItem(
             horizontalArrangement = Arrangement.spacedBy(14.mpx),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            val on = if (focused) a.onAccent else null
+            // Read inside the item, so a focus bar's own colours (TV-box grey) apply.
+            val on = if (focused) stageAccent.onAccent else null
             // The dot has `margin-right: -4px`: a 3 px slot it overflows, so it sits 10 px from the text.
-            if (selected && !focused) {
+            // TV-box look: no dot; the chosen item is told by its bold text alone.
+            if (selected && !focused && !tv.own.owntv.features.shell.TvBoxNav) {
                 Box(Modifier.width(3.mpx).wrapContentWidth(Alignment.Start, unbounded = true)) { StageSelectedDot() }
             }
             if (icon != null) StageIcon(icon, on ?: if (selected) a.accent else StageColors.Muted, 22.mpx)
@@ -764,7 +794,8 @@ fun StageGroupItem(
             horizontalArrangement = Arrangement.spacedBy(16.mpx),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            val on = if (focused) a.onAccent else null
+            // Read here, inside the item, so a focus bar's own colours (TV-box grey) apply.
+            val on = if (focused) stageAccent.onAccent else null
             StageIcon(icon, on ?: if (selected) a.accent else StageColors.Muted, 23.mpx)
             Text(text, style = stageText(20, 700), color = on ?: if (selected) a.accent else StageColors.ItemText,
                 maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
@@ -1086,7 +1117,7 @@ fun StageMenuChoice(
                 Text(
                     label,
                     style = stageText(17, 700),
-                    color = if (focused) a.onAccent else if (on) a.accent else StageColors.Muted,
+                    color = if (focused) tv.own.owntv.ui.theme.stageAccent.onAccent else if (on) a.accent else StageColors.Muted,
                     maxLines = 1, overflow = TextOverflow.Ellipsis,
                 )
             }
@@ -1170,3 +1201,23 @@ val stageStillBack: Color
     @Composable
     @androidx.compose.runtime.ReadOnlyComposable
     get() = if (LocalStagePalette.current.isLight) StageColors.Ink.copy(alpha = 0.06f) else Color(0xFF0F1518)
+
+/** A solid card in the page's own colours (white, or the dark grey), with a soft shadow: TV-box menus and popups. */
+@Composable
+fun Modifier.solidCard(radius: Dp): Modifier {
+    val light = LocalStagePalette.current.isLight
+    val fill = if (light) Color.White else Color(0xFF232629)
+    val shadow = Color.Black.copy(alpha = if (light) 0.16f else 0.5f)
+    return this
+        .drawBehind { drawBoxShadow(shadow, 40.mpx.toPx(), radius.toPx(), dy = 14.mpx.toPx()) }
+        .background(fill, androidx.compose.foundation.shape.RoundedCornerShape(radius))
+}
+
+/** TV-box focus: round ends on rows and buttons; big cards stop at [PillMaxRadius] so they stay cards. */
+private val PillMaxRadius = 48.mpx
+private val PillFocusShape = object : androidx.compose.ui.graphics.Shape {
+    override fun createOutline(size: androidx.compose.ui.geometry.Size, layoutDirection: androidx.compose.ui.unit.LayoutDirection, density: androidx.compose.ui.unit.Density): androidx.compose.ui.graphics.Outline {
+        val r = minOf(size.height / 2f, with(density) { PillMaxRadius.toPx() })
+        return androidx.compose.ui.graphics.Outline.Rounded(androidx.compose.ui.geometry.RoundRect(0f, 0f, size.width, size.height, CornerRadius(r)))
+    }
+}

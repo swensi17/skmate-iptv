@@ -92,6 +92,10 @@ fun StageSearchField(
     val imeWatcher = LocalTvImeWatcher.current
     val imeMetrics = LocalTvImeMetrics.current
     val focus = stageAccent.focus
+    // TV-box look: a plain rectangle with small corners; focus fills it light instead of a ring.
+    val tvBox = tv.own.owntv.features.shell.TvBoxNav
+    val r = if (tvBox) height / 2 else radius
+    val lit = pillFocused || editing
     LaunchedEffect(editing) {
         onEditingChange(editing)
         if (editing) {
@@ -113,8 +117,8 @@ fun StageSearchField(
     Box(
         modifier
             .height(height)
-            .background(StageColors.ControlFill, RoundedCornerShape(radius))
-            .then(if (pillFocused || editing) Modifier.drawBehind { drawOuterRing(focus, 2.mpx.toPx(), radius.toPx()) } else Modifier)
+            .background(if (tvBox && lit) SearchLitFill else StageColors.ControlFill, RoundedCornerShape(r))
+            .then(if (lit && !tvBox) Modifier.drawBehind { drawOuterRing(focus, 2.mpx.toPx(), r.toPx()) } else Modifier)
             .focusRequester(pillFocus)
             .clickable(interaction, null) { if (onActivate != null) onActivate() else editing = true },
         contentAlignment = Alignment.CenterStart,
@@ -124,10 +128,10 @@ fun StageSearchField(
             horizontalArrangement = Arrangement.spacedBy(12.mpx),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            OwnTVIcon(OwnTVIcon.SEARCH, if (pillFocused || editing) StageColors.Text else StageColors.Dim, Modifier.size(18.mpx))
+            OwnTVIcon(OwnTVIcon.SEARCH, if (tvBox && lit) SearchLitText else if (lit) StageColors.Text else StageColors.Dim, Modifier.size(20.mpx))
             Box(Modifier.weight(1f)) {
                 if (query.isEmpty()) {
-                    Text(placeholder, style = stageText(18, 400), color = StageColors.Dim, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(placeholder, style = stageText(18, 400), color = if (tvBox && lit) SearchLitText.copy(alpha = 0.6f) else StageColors.Dim, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
                 BasicTextField(
                     value = query,
@@ -187,6 +191,8 @@ fun StageSearchField(
 @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
 fun StageKeyHints(hints: List<Pair<String, String>>, modifier: Modifier = Modifier, textSize: Int = 17) {
+    // TV-box style: no rows of key hints on the screens; the remote's keys speak for themselves.
+    if (tv.own.owntv.features.shell.TvBoxNav) return
     androidx.compose.foundation.layout.FlowRow(
         modifier,
         horizontalArrangement = Arrangement.spacedBy(26.mpx),
@@ -262,3 +268,7 @@ fun StageProgress(fraction: Float, modifier: Modifier = Modifier, flat: Boolean 
             },
     )
 }
+
+/** The focused search field in the TV-box look, and its text. */
+private val SearchLitFill = androidx.compose.ui.graphics.Color(0xFFE0E2E4)
+private val SearchLitText = androidx.compose.ui.graphics.Color(0xFF121212)

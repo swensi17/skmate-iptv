@@ -44,6 +44,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.ui.focus.FocusRequester
@@ -459,7 +460,7 @@ fun SettingsSheet(
         // A tap beside the sheet is Back, as on the remote.
         val backDispatcher = androidx.activity.compose.LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
         if (scrim) Box(
-            Modifier.fillMaxSize().background(SideScrim).pointerInput(backDispatcher) {
+            Modifier.fillMaxSize().background(if (tv.own.owntv.ui.theme.LocalStagePalette.current.isLight) Color(0x33000000) else SideScrim).pointerInput(backDispatcher) {
                 detectTapGestures { backDispatcher?.onBackPressed() }
             },
         )
@@ -471,14 +472,16 @@ fun SettingsSheet(
         ) {
             // Always the dark grey sheet, whatever the app's theme, with SkMate blue for switches.
             CompositionLocalProvider(
-                tv.own.owntv.ui.theme.LocalStagePalette provides tv.own.owntv.ui.theme.StagePalette.Dark,
+                tv.own.owntv.ui.theme.LocalStagePalette provides (if (tv.own.owntv.ui.theme.LocalStagePalette.current.isLight) tv.own.owntv.ui.theme.StagePalette.Light else tv.own.owntv.ui.theme.StagePalette.Dark),
                 tv.own.owntv.ui.theme.LocalStageAccentOverride provides tv.own.owntv.ui.theme.StageAccent(tv.own.owntv.ui.brand.SkMateBlue, Color.White, Color.White),
                 tv.own.owntv.ui.theme.LocalInSettingsSheet provides true,
             ) {
+            // Flush with the right edge, full height, only its outer (left) corners softly rounded.
             Column(
                 Modifier
                     .width((maxWidth / 3).coerceAtLeast(SideMinWidth).coerceAtMost(maxWidth))
                     .fillMaxHeight()
+                    .clip(RoundedCornerShape(topStart = 20.mpx, bottomStart = 20.mpx))
                     .background(sheetFill()),
             ) {
                 Row(
@@ -499,9 +502,11 @@ fun SettingsSheet(
 /** Rows inside the sheet: the value under the title instead of on the right (see [StageSettingRow]). */
 val LocalSettingsSide = androidx.compose.runtime.staticCompositionLocalOf { false }
 
-private fun sheetFill(): Color = SideFill
+@Composable
+private fun sheetFill(): Color = if (tv.own.owntv.ui.theme.LocalStagePalette.current.isLight) Color.White else SideFill
 
-private fun sheetHeaderFill(): Color = SideHeaderFill
+@Composable
+private fun sheetHeaderFill(): Color = if (tv.own.owntv.ui.theme.LocalStagePalette.current.isLight) Color(0xFFF2F3F5) else SideHeaderFill
 
 /** A third of the screen, but never so narrow that a row's title and value do not fit. */
 private val SideMinWidth = 600.mpx
@@ -858,7 +863,7 @@ fun StageSettingRow(
             horizontalArrangement = Arrangement.spacedBy(18.mpx),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            OwnTVIcon(icon, StageColors.Muted, Modifier.size(if (side) 28.mpx else 32.mpx))
+            OwnTVIcon(icon, StageColors.Muted, Modifier.size(if (side) 32.mpx else 36.mpx))
             Column(Modifier.weight(1f)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(10.mpx), verticalAlignment = Alignment.CenterVertically) {
                     Text(title, style = stageText(21, if (side) 600 else 700), color = if (enabled) StageColors.Text else StageColors.Dim, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
@@ -1369,7 +1374,7 @@ fun StageActionColumn(actions: List<StageAction>, back: FocusRequester?, first: 
                         act.danger -> StageColors.Danger
                         else -> StageColors.Text
                     }
-                    OwnTVIcon(act.icon, if (focused) a.onAccent else if (act.danger) StageColors.Danger else a.accent, Modifier.size(20.mpx))
+                    OwnTVIcon(act.icon, if (focused) tv.own.owntv.ui.theme.stageAccent.onAccent else if (act.danger) StageColors.Danger else a.accent, Modifier.size(20.mpx))
                     Text(act.label, style = stageText(18, 700), color = c, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
             }

@@ -106,6 +106,8 @@ fun LiveScreen(
     lockedKey: LiveKey? = null,
     /** Guide view (Live TV tool row): opens the TV Guide until an in-place guide exists. */
     onOpenGuide: () -> Unit = {},
+    /** Hands the shell what leaving the menu does here: back into the open categories, if any. */
+    onEntryHook: (((() -> Boolean)?) -> Unit)? = null,
 ) {
     val vm: LiveViewModel = koinViewModel()
     // Locking and unlocking are one pair: the pin belongs to this screen's lifetime, not to the view
@@ -491,7 +493,8 @@ fun LiveScreen(
     val scheduleFocus = remember { FocusRequester() }
     var openProgramme by remember { mutableStateOf<Pair<ChannelEntity, tv.own.owntv.core.parser.XtEpgEntry>?>(null) }
     // Back closes the sheet: one level out.
-    androidx.activity.compose.BackHandler(enabled = categoriesOpen) { categoriesOpen = false; focusCurrentRow() }
+    // TV-box style only while focus is in the categories: Back on the menu beside them closes the menu first.
+    androidx.activity.compose.BackHandler(enabled = categoriesOpen && (railPaneFocused || !tv.own.owntv.features.shell.TvBoxNav)) { categoriesOpen = false; focusCurrentRow() }
     LaunchedEffect(categoriesOpen) {
         if (categoriesOpen) { withFrameNanos { }; runCatching { railFocus.requestFocus() } }
         // However the sheet closed (Back, a pick, ◀ to the rail), the next one starts fresh.
@@ -500,7 +503,12 @@ fun LiveScreen(
 
     // Focus from the categories to the channel list: the remembered channel, else the first row.
     fun focusChannelList() {
-        val targetId = if (rememberLive) perCategoryChannelIds[selectedKey] ?: previewChannel?.id else previewChannel?.id
+        // TV-box style: back to the channel on screen now (the preview), whatever was remembered before.
+        val targetId = when {
+            tv.own.owntv.features.shell.TvBoxNav -> previewChannel?.id ?: perCategoryChannelIds[selectedKey]
+            rememberLive -> perCategoryChannelIds[selectedKey] ?: previewChannel?.id
+            else -> previewChannel?.id
+        }
         scope.launch {
             if (channels.itemCount > 0) {
                 val targetIdx = if (targetId != null) {
@@ -519,6 +527,14 @@ fun LiveScreen(
         }
     }
 
+    // The menu draws itself square beside the open categories (see TvBoxPanels).
+    LaunchedEffect(categoriesOpen) { tv.own.owntv.features.shell.components.TvBoxPanels.besideOpen = categoriesOpen }
+    DisposableEffect(Unit) { onDispose { tv.own.owntv.features.shell.components.TvBoxPanels.besideOpen = false } }
+    // From the menu (▶ or Back): the categories when they are open beside it, else the shell's default.
+    DisposableEffect(onEntryHook) {
+        onEntryHook?.invoke { categoriesOpen && runCatching { railFocus.requestFocus() }.getOrDefault(false) }
+        onDispose { onEntryHook?.invoke(null) }
+    }
     val (categoryEntries, groupsHeading) = liveCategoryEntries(railItems, railCounts)
     val headerLabel = if (selectedItem?.key is LiveKey.Folder || selectedItem?.key is LiveKey.Custom) ProviderTags.parse(selectedLabel).name else selectedLabel
 
@@ -527,11 +543,14 @@ fun LiveScreen(
     val categoriesModifier = Modifier
         .onFocusChanged {
             railPaneFocused = it.hasFocus
-            if (it.hasFocus && previewEnabled) vm.stopPreview()
+            // TV-box style the preview keeps playing beside the open categories, so coming back does not restart it.
+            if (it.hasFocus && previewEnabled && !tv.own.owntv.features.shell.TvBoxNav) vm.stopPreview()
             // The sheet closes when focus leaves it (◀ to the rail) — not while its own menus are open,
             // and not on the "unfocused" report every node gets when it first attaches.
             if (it.hasFocus) sheetHadFocus = true
-            else if (sheetHadFocus && categoriesOpen && contextCategory == null && categoryMoveState == null) {
+            // TV-box style the menu opens beside the categories (◀ again), so they stay; the list taking
+            // focus closes them instead (see the list's focus below).
+            else if (!tv.own.owntv.features.shell.TvBoxNav && sheetHadFocus && categoriesOpen && contextCategory == null && categoryMoveState == null) {
                 sheetHadFocus = false
                 categoriesOpen = false
             }
@@ -647,6 +666,7 @@ fun LiveScreen(
         Box(
             Modifier
                 .fillMaxSize()
+                .onFocusChanged { if (tvBox && it.hasFocus && categoriesOpen) categoriesOpen = false }
                 .then(
                     when {
                         tvBox -> Modifier.graphicsLayer { translationX = listPush.toPx() }
@@ -659,7 +679,8 @@ fun LiveScreen(
                 category = headerLabel,
                 count = count,
                 showChevron = !separate && lockedKey == null,
-                modifier = Modifier.padding(start = fx(84), top = 52.mpx).width(listX - fx(84) + listWidth),
+                // TV-box look: level with the clock on the right, clear of the search field below.
+                modifier = Modifier.padding(start = fx(84), top = if (tv.own.owntv.features.shell.TvBoxNav) 28.mpx else 52.mpx).width(listX - fx(84) + listWidth),
             )
             // Header tools + channel list: one focus group.
             Column(
@@ -757,11 +778,13 @@ fun LiveScreen(
                         icon = OwnTVIcon.SORT,
                         value = if (sortMode == tv.own.owntv.core.settings.SettingsRepository.SortMode.ALPHA) stringResource(R.string.settings_sort_alpha) else stringResource(R.string.content_epg_sort_provider),
                         onClick = vm::toggleSort,
+                        boxed = tv.own.owntv.features.shell.TvBoxNav,
                     )
                     tv.own.owntv.ui.stage.StageTool(
                         text = stringResource(R.string.content_live_guide_view),
                         icon = OwnTVIcon.GRID,
                         onClick = onOpenGuide,
+                        boxed = tv.own.owntv.features.shell.TvBoxNav,
                     )
                 }
                 Spacer(Modifier.height(20.mpx))

@@ -2125,7 +2125,8 @@ class LiveViewModel(
         /** How long a channel must stay tuned before it counts as watched — see [recordLiveHistory]. */
         const val HISTORY_DEBOUNCE_MS = 5_000L
         /** The preview pane's video ceiling on a 2 GB TV. */
-        const val PREVIEW_MAX_HEIGHT = 720
+        // The preview pane is small: 540 lines are enough there and leave the decoder room to stay smooth.
+        const val PREVIEW_MAX_HEIGHT = 540
         const val TAG = "OwnTVHome"
         // In-player channel lists: one category is normally far smaller, but cap the uncategorized
         // → All Channels fallback so a huge playlist can't be pulled into memory on every tune.

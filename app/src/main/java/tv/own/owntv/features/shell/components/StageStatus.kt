@@ -4,9 +4,12 @@ import android.text.format.DateFormat
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
+import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
@@ -81,6 +84,8 @@ fun StageStatusCluster(
         // The pills' top lines up with the top of the clock's digits, not with the block's middle.
         verticalAlignment = Alignment.Top,
     ) {
+        // TV-box look: the clock alone, no pills (Last channel, playlist) — minimal.
+        if (!tv.own.owntv.features.shell.TvBoxNav)
         // Top, not centred: a taller audio bar (focused / open) must not push the playlist pill down.
         Row(Modifier.padding(top = 6.mpx), horizontalArrangement = Arrangement.spacedBy(12.mpx), verticalAlignment = Alignment.Top) {
             when {
@@ -153,6 +158,7 @@ fun StageClock(weatherInfo: WeatherInfo?, fahrenheit: Boolean, colors: ClockColo
         // Unclipped (the GradientTextures glows clip to the node, which drew a hard box); a few hundred
         // pixels, so a brush is fine here. Drawn as a circle squashed to an oval around the block.
         modifier = Modifier.drawBehind {
+            if (light && tv.own.owntv.features.shell.TvBoxNav) return@drawBehind
             if (light) {
                 val dx = 16.mpx.toPx()
                 val dy = 10.mpx.toPx()
@@ -180,6 +186,24 @@ fun StageClock(weatherInfo: WeatherInfo?, fahrenheit: Boolean, colors: ClockColo
             }
         },
     ) {
+        if (tv.own.owntv.features.shell.TvBoxNav) {
+            // TV-box look: date over weather, beside the time and as tall as it; the digits roll.
+            Row(horizontalArrangement = Arrangement.spacedBy(12.mpx), verticalAlignment = Alignment.CenterVertically) {
+                // The weather mark beside both lines, as tall as they are; date and degrees roll like the digits.
+                if (weatherInfo != null) WeatherConditionIcon(weatherInfo, Modifier.size(42.mpx))
+                Column(horizontalAlignment = Alignment.Start) {
+                    val sub: TextStyle = stageText(19, 600).copy(shadow = shadow)
+                    RollingText(date, sub, dateColor)
+                    if (weatherInfo != null) {
+                        val degrees = if (fahrenheit) (weatherInfo.temperatureC * 9 / 5 + 32).toInt() else weatherInfo.temperatureC.toInt()
+                        RollingText(stringResource(R.string.common_weather_degrees_city, degrees, weatherInfo.city).trim(), sub, weatherColor)
+                    }
+                }
+                Spacer(Modifier.width(6.mpx))
+                RollingText(time, stageText(40, 700, (-0.5).mpxSp).copy(fontFeatureSettings = "tnum", shadow = shadow, lineHeight = 40.mpxSp), timeColor)
+            }
+            return@Column
+        }
         Text(
             time,
             style = stageText(40, 700, (-0.5).mpxSp).copy(fontFeatureSettings = "tnum", shadow = shadow, lineHeight = 40.mpxSp),
@@ -213,3 +237,26 @@ fun StageClock(weatherInfo: WeatherInfo?, fahrenheit: Boolean, colors: ClockColo
         }
     }
 }
+
+/** [text] whose changed characters roll up into place, as the iPhone's counters do (the clock's digits). */
+@Composable
+private fun RollingText(text: String, style: TextStyle, color: Color) {
+    Row {
+        text.forEachIndexed { i, ch ->
+            androidx.compose.runtime.key(i) {
+                androidx.compose.animation.AnimatedContent(
+                    targetState = ch,
+                    transitionSpec = {
+                        (androidx.compose.animation.slideInVertically(androidx.compose.animation.core.tween(RollMs)) { it } +
+                            androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(RollMs))) togetherWith
+                            (androidx.compose.animation.slideOutVertically(androidx.compose.animation.core.tween(RollMs)) { -it } +
+                                androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(RollMs)))
+                    },
+                    label = "clockDigit",
+                ) { c -> Text(c.toString(), style = style, color = color, maxLines = 1) }
+            }
+        }
+    }
+}
+
+private const val RollMs = 420

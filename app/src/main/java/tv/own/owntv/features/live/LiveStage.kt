@@ -31,6 +31,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.focus.FocusRequester
@@ -107,7 +110,8 @@ private val Tabular = "tnum"
 internal fun LiveHeader(category: String, count: Int, showChevron: Boolean, modifier: Modifier = Modifier) {
     Row(modifier, horizontalArrangement = Arrangement.spacedBy(22.mpx), verticalAlignment = Alignment.Bottom) {
         Text(stringResource(R.string.common_nav_live_tv), style = stageText(46, 800, (-1).mpxSp), color = StageColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis)
-        Row(
+        // TV-box look: just the title; the group shows in the categories, no ‹ group · count line.
+        if (!tv.own.owntv.features.shell.TvBoxNav) Row(
             Modifier.padding(bottom = 3.mpx),
             horizontalArrangement = Arrangement.spacedBy(12.mpx),
             verticalAlignment = Alignment.CenterVertically,
@@ -155,7 +159,8 @@ internal fun LiveStageRow(
         if (showNumber) {
             Text(
                 channel.number?.toString().orEmpty(),
-                style = stageText(20, 600).copy(textAlign = TextAlign.End, fontFeatureSettings = Tabular),
+                // TV-box look: from the left, so the numbers start on the search field's line.
+                style = stageText(20, 600).copy(textAlign = if (tv.own.owntv.features.shell.TvBoxNav) TextAlign.Start else TextAlign.End, fontFeatureSettings = Tabular),
                 color = if (focused) stageTone(Color(0xFFE6F2EE), StageColors.FxLine) else StageColors.Dim,
                 maxLines = 1, overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.width(50.mpx),
@@ -254,6 +259,26 @@ internal fun LiveStagePane(
     val playing = showVideo && previewState != tv.own.owntv.player.LivePreviewEngine.State.ERROR &&
         previewState != tv.own.owntv.player.LivePreviewEngine.State.IDLE
     val loading = showVideo && previewState == tv.own.owntv.player.LivePreviewEngine.State.LOADING
+    // Skeleton until the focused channel has really started: a new channel hides the surface (so the old
+    // channel's last frame never mixes with the new one) and shows a soft shimmer, which fades once this
+    // channel has loaded and played for a moment.
+    var sawLoadingFor by remember { mutableStateOf<Long?>(null) }
+    var readyFor by remember { mutableStateOf<Long?>(null) }
+    LaunchedEffect(previewState, channel?.id) {
+        val id = channel?.id ?: return@LaunchedEffect
+        when (previewState) {
+            tv.own.owntv.player.LivePreviewEngine.State.LOADING -> { sawLoadingFor = id; readyFor = null }
+            tv.own.owntv.player.LivePreviewEngine.State.PLAYING -> if (sawLoadingFor == id) {
+                // Long enough for the stream to settle into its real picture size: a fast zap otherwise
+                // showed the first frames small in a corner before they filled the pane.
+                kotlinx.coroutines.delay(800); readyFor = id
+            }
+            else -> Unit
+        }
+    }
+    val skeleton = showVideo && channel != null && readyFor != channel.id &&
+        previewState != tv.own.owntv.player.LivePreviewEngine.State.ERROR
+    val surfaceAlpha by androidx.compose.animation.core.animateFloatAsState(if (skeleton) 0f else 1f, androidx.compose.animation.core.tween(if (skeleton) 0 else 260), label = "previewSurface")
     val videoR = 28.mpx
     val videoShadow = tv.own.owntv.ui.theme.stageShadow(0.55f)
     Column(modifier) {
@@ -275,14 +300,31 @@ internal fun LiveStagePane(
                     fill = Color.Transparent,
                 ) { OwnTVIcon(OwnTVIcon.LIVE_TV, tint = StageColors.Dim, modifier = Modifier.size(56.mpx)) }
             }
-            if (playing) tv.own.owntv.player.ExoPreviewSurface(engine = previewEngine, modifier = Modifier.fillMaxSize())
-            if (loading) OwnTVSpinner(sizeDp = 28)
+            if (playing) tv.own.owntv.player.ExoPreviewSurface(engine = previewEngine, modifier = Modifier.fillMaxSize().graphicsLayer { alpha = surfaceAlpha })
+            if (skeleton) PreviewSkeleton(Modifier.fillMaxSize())
+            else if (loading) OwnTVSpinner(sizeDp = 28)
             // `.shade`: black 72% at the bottom, clear by 42% up — a video-sized gradient, one pass.
             Box(Modifier.fillMaxSize().background(Brush.verticalGradient(0.58f to Color.Transparent, 1f to Color.Black.copy(alpha = 0.72f))))
             Box(Modifier.fillMaxSize().drawBehind { drawInnerRing(Color.White.copy(alpha = 0.08f), 1.mpx.toPx(), videoR.toPx()) })
             if (channel != null) {
-                Box(Modifier.align(Alignment.TopStart).padding(start = 24.mpx, top = 22.mpx)) { StageLiveBadge(stringResource(R.string.player_live)) }
-                if (playing && streamChips.isNotEmpty()) {
+                if (tv.own.owntv.features.shell.TvBoxNav) {
+                    // As Apple TV writes it: one quiet line of grey text on a soft glass capsule —
+                    // "Live · 480p · 25 fps · Stereo" — instead of a red badge and boxed chips.
+                    val facts = listOf(stringResource(R.string.player_live)) +
+                        (if (playing) streamChips.filterNot { it.contains(':') || it.endsWith("Mbps") } else emptyList())
+                    Text(
+                        facts.joinToString(SpecSeparator),
+                        style = stageText(15, 600),
+                        color = Color.White.copy(alpha = 0.82f),
+                        maxLines = 1,
+                        modifier = Modifier
+                            .align(Alignment.TopStart)
+                            .padding(start = 20.mpx, top = 18.mpx)
+                            .background(Color.Black.copy(alpha = 0.32f), androidx.compose.foundation.shape.RoundedCornerShape(50))
+                            .padding(horizontal = 14.mpx, vertical = 6.mpx),
+                    )
+                } else Box(Modifier.align(Alignment.TopStart).padding(start = 24.mpx, top = 22.mpx)) { StageLiveBadge(stringResource(R.string.player_live)) }
+                if (!tv.own.owntv.features.shell.TvBoxNav && playing && streamChips.isNotEmpty()) {
                     Row(Modifier.align(Alignment.TopEnd).padding(end = 22.mpx, top = 22.mpx), horizontalArrangement = Arrangement.spacedBy(6.mpx)) {
                         // Three facts — quality, frame rate, sound: the
                         // engine's aspect ratio ("16:9") and declared bitrate ("4.2 Mbps") are left out.
@@ -310,7 +352,11 @@ internal fun LiveStagePane(
             }
         }
         val now = nowNext?.now
+        // Text skeleton while a new channel's programme is being looked up (a second at most).
+        var textWait by remember { mutableStateOf(true) }
+        LaunchedEffect(channel?.id) { textWait = true; kotlinx.coroutines.delay(1500); textWait = false }
         Column(Modifier.fillMaxWidth().padding(start = 4.mpx, end = 4.mpx, top = 34.mpx)) {
+            if (now == null && channel != null && textWait && tv.own.owntv.features.shell.TvBoxNav) TextSkeleton()
             if (now != null) {
                 Text(now.title, style = stageText(42, 800, (-0.5).mpxSp), color = StageColors.Text, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 Text(
@@ -325,21 +371,26 @@ internal fun LiveStagePane(
                 now.description?.takeIf { it.isNotBlank() }?.let {
                     Text(
                         it, style = stageText(19, 400).copy(lineHeight = (19 * 1.55f).mpxSp), color = stageTone(Color(0xFFCCD6D2), StageColors.Body),
-                        maxLines = 3, overflow = TextOverflow.Ellipsis,
+                        maxLines = 4, overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.padding(top = 18.mpx),
                     )
                 }
             }
             val next = nowNext?.next
             val later = nowNext?.upcoming?.firstOrNull()
+            // TV-box look: the rest of the evening too, one under the other, scrolling when long.
+            val more = if (tv.own.owntv.features.shell.TvBoxNav) nowNext?.upcoming.orEmpty().drop(1).take(6) else emptyList()
             if (next != null) {
-                Row(
+                // Next and later one under the other, as a schedule reads.
+                Column(
                     Modifier
-                        .padding(top = 22.mpx)
+                        .padding(top = 18.mpx)
                         .offset(x = (-12).mpx)
+                        .fillMaxWidth()
+                        .heightIn(max = 240.mpx)
+                        .verticalScroll(androidx.compose.foundation.rememberScrollState())
                         .focusGroup(),
-                    // 30 between the two, less the 12 + 12 each entry pads itself with for its focus fill.
-                    horizontalArrangement = Arrangement.spacedBy(6.mpx),
+                    verticalArrangement = Arrangement.spacedBy(2.mpx),
                 ) {
                     // ◀ from next goes back to the channel it belongs to, not to whatever lies to the left.
                     LiveScheduleItem(
@@ -349,6 +400,7 @@ internal fun LiveStagePane(
                         },
                     )
                     if (later != null) LiveScheduleItem(later, accentTime = false, onClick = { onOpenProgramme(later) })
+                    more.forEach { p -> LiveScheduleItem(p, accentTime = false, onClick = { onOpenProgramme(p) }) }
                 }
             }
         }
@@ -363,16 +415,17 @@ internal fun LiveStagePane(
 private fun LiveScheduleItem(p: XtEpgEntry, accentTime: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val formatTime = rememberSystemTimeFormatter()
     val a = stageAccent
-    StageSurface(onClick = onClick, radius = 12.mpx, modifier = modifier) { focused ->
+    // TV-box look: the whole line is the row, so its focus runs the full width of the pane.
+    StageSurface(onClick = onClick, radius = 12.mpx, modifier = if (tv.own.owntv.features.shell.TvBoxNav) modifier.fillMaxWidth() else modifier) { focused ->
         Text(
             buildAnnotatedString {
-                withStyle(SpanStyle(fontWeight = FontWeight.Bold, fontFeatureSettings = Tabular, color = if (focused) a.onAccent else if (accentTime) a.accent else StageColors.Muted)) {
+                withStyle(SpanStyle(fontWeight = FontWeight.Bold, fontFeatureSettings = Tabular, color = if (focused) tv.own.owntv.ui.theme.stageAccent.onAccent else if (accentTime) a.accent else StageColors.Muted)) {
                     append(formatTime(p.startMs))
                 }
                 append("  ")
                 append(p.title)
             },
-            style = stageText(18, 400), color = if (focused) a.onAccent else if (accentTime) StageColors.Text else StageColors.Muted,
+            style = stageText(if (tv.own.owntv.features.shell.TvBoxNav) 20 else 18, 400), color = if (focused) tv.own.owntv.ui.theme.stageAccent.onAccent else if (accentTime) StageColors.Text else StageColors.Muted,
             maxLines = 1, overflow = TextOverflow.Ellipsis,
             modifier = Modifier.padding(horizontal = 12.mpx, vertical = 6.mpx),
         )
@@ -528,7 +581,7 @@ internal fun LiveCategories(
             .then(
                 when {
                     // TV-box style: a full-height strip of the screen's own grey, not a floating card.
-                    sheet && tv.own.owntv.features.shell.TvBoxNav -> Modifier.background(androidx.compose.ui.graphics.Color(0xFF232629)).padding(horizontal = 16.mpx, vertical = 40.mpx)
+                    sheet && tv.own.owntv.features.shell.TvBoxNav -> Modifier.background(if (tv.own.owntv.ui.theme.LocalStagePalette.current.isLight) androidx.compose.ui.graphics.Color.White else androidx.compose.ui.graphics.Color(0xFF232629), tv.own.owntv.features.shell.components.TvBoxEdgeShape).padding(horizontal = 16.mpx, vertical = 30.mpx)
                     sheet -> Modifier.stageGlass(StageRadii.Sheet, overContent = true).padding(horizontal = 16.mpx, vertical = 26.mpx)
                     else -> Modifier
                 },
@@ -611,7 +664,7 @@ internal fun LiveCategories(
                             selected = selected,
                             maxLines = 2,
                             tags = if (entry.name?.tags.isNullOrEmpty()) null else { focused ->
-                                entry.name.tags.forEach { StageTag(it, onAccent = if (focused) a.onAccent else null) }
+                                entry.name.tags.forEach { StageTag(it, onAccent = if (focused) tv.own.owntv.ui.theme.stageAccent.onAccent else null) }
                             },
                             trailing = entry.mark?.let { m -> { _ -> StagePlaylistMark(m) } },
                             onLongClick = { onLongSelect(index) },
@@ -653,7 +706,7 @@ private fun LiveColumnItem(
             horizontalArrangement = Arrangement.spacedBy(12.mpx),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            val on = if (focused) a.onAccent else null
+            val on = if (focused) tv.own.owntv.ui.theme.stageAccent.onAccent else null
             entry.icon?.let { OwnTVIcon(it, on ?: StageColors.Muted, Modifier.size(20.mpx)) }
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.mpx)) {
                 Text(
@@ -668,5 +721,55 @@ private fun LiveColumnItem(
             entry.count?.let { Text(tv.own.owntv.ui.components.formatCount(it), style = stageText(15, 700), color = on ?: StageColors.Dim, maxLines = 1, overflow = TextOverflow.Ellipsis) }
             entry.mark?.let { m -> Box(Modifier.size(7.mpx).background(m.shownColor, RoundedCornerShape(50))) }
         }
+    }
+}
+
+/** Between the facts on the preview's line. */
+private const val SpecSeparator = "  ·  "
+
+/** The preview's placeholder while a channel starts: a dark card with a slow, soft light sweep. Cheap: one brush. */
+@Composable
+private fun PreviewSkeleton(modifier: Modifier) {
+    val sweep by androidx.compose.animation.core.rememberInfiniteTransition(label = "skeleton").animateFloat(
+        initialValue = -1f, targetValue = 2f,
+        animationSpec = androidx.compose.animation.core.infiniteRepeatable(androidx.compose.animation.core.tween<Float>(1300, easing = androidx.compose.animation.core.LinearEasing)),
+        label = "skeletonSweep",
+    )
+    Box(
+        modifier
+            .background(SkeletonBase)
+            .drawBehind {
+                val w = size.width
+                val x = sweep * w
+                drawRect(
+                    Brush.linearGradient(
+                        0f to Color.Transparent, 0.5f to Color.White.copy(alpha = 0.07f), 1f to Color.Transparent,
+                        start = androidx.compose.ui.geometry.Offset(x - w * 0.4f, 0f),
+                        end = androidx.compose.ui.geometry.Offset(x + w * 0.4f, size.height),
+                    ),
+                )
+            },
+    )
+}
+
+private val SkeletonBase = Color(0xFF1A1C1F)
+
+/** Bars standing in for the programme's title, time and synopsis while they load. */
+@Composable
+private fun TextSkeleton() {
+    val pulse by androidx.compose.animation.core.rememberInfiniteTransition(label = "textSkeleton").animateFloat(
+        initialValue = 0.05f, targetValue = 0.11f,
+        animationSpec = androidx.compose.animation.core.infiniteRepeatable(
+            androidx.compose.animation.core.tween<Float>(900), androidx.compose.animation.core.RepeatMode.Reverse,
+        ),
+        label = "textSkeletonPulse",
+    )
+    val bar = StageColors.Text.copy(alpha = pulse)
+    Column(verticalArrangement = Arrangement.spacedBy(14.mpx)) {
+        Box(Modifier.fillMaxWidth(0.7f).height(40.mpx).background(bar, RoundedCornerShape(10.mpx)))
+        Box(Modifier.fillMaxWidth(0.25f).height(16.mpx).background(bar, RoundedCornerShape(8.mpx)))
+        Box(Modifier.fillMaxWidth().height(6.mpx).background(bar, RoundedCornerShape(3.mpx)))
+        Box(Modifier.fillMaxWidth(0.95f).height(14.mpx).background(bar, RoundedCornerShape(7.mpx)))
+        Box(Modifier.fillMaxWidth(0.8f).height(14.mpx).background(bar, RoundedCornerShape(7.mpx)))
     }
 }

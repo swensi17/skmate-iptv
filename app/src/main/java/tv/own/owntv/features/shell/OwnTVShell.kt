@@ -877,6 +877,18 @@ fun OwnTVShell(
         if (openedSeries == null && searchReturn == MainSection.SERIES && selectedSection == MainSection.SERIES) returnToSearch()
     }
 
+    fun closeMenuToContent() {
+        val entry = when (selectedSection) {
+            MainSection.HOME -> homeEntry
+            MainSection.EPG, MainSection.LIVE_TV -> guideEntry
+            MainSection.MOVIES, MainSection.SERIES -> vodEntry
+            MainSection.DOWNLOADS -> downloadsEntry
+            MainSection.MORE -> moreEntry
+            MainSection.SPORTS -> sportsEntry
+            else -> null
+        }
+        if (entry?.invoke() != true) runCatching { contentAreaFocus.requestFocus() }
+    }
     BackHandler {
         when {
             playerMode == PlayerMode.FULLSCREEN -> exitPlayer()
@@ -892,7 +904,10 @@ fun OwnTVShell(
             selectedSection == MainSection.SETTINGS -> { restoreFocus = true; onSelectSection(MainSection.MORE) }
             // Reached from a Search result: Back returns to Search once, its query, tab and row kept.
             searchReturn == selectedSection && focusedLayer != ShellLayer.SIDEBAR -> returnToSearch()
+            // TV-box style: Back on the open menu closes it (focus back to the screen); on the screen it asks to exit.
+            TvBoxNav && focusedLayer == ShellLayer.SIDEBAR -> closeMenuToContent()
             focusedLayer == ShellLayer.SIDEBAR -> showExit = true
+            TvBoxNav -> showExit = true
             else -> focusRail()
         }
     }
@@ -1298,6 +1313,7 @@ fun OwnTVShell(
                         selectedSection == MainSection.LIVE_TV -> LiveScreen(
                             onFullscreen = { openFullscreen() },
                             onOpenGuide = { liveVm.setLiveView(tv.own.owntv.core.settings.SettingsRepository.LiveView.GUIDE) },
+                            onEntryHook = { guideEntry = it },
                             onChildFocused = { focusedLayer = ShellLayer.CONTENT },
                             previewEnabled = playerMode == PlayerMode.NONE,
                             restoreFocus = restoreFocus,

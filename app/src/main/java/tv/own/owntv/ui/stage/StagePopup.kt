@@ -95,7 +95,7 @@ fun StagePopup(
                     .padding(top = if (ime.visible) edge else 0.mpx)
                     .width(width.coerceAtMost(maxWidth - edge * 2))
                     .heightIn(max = room.coerceAtLeast(120.mpx))
-                    .stageGlass(30.mpx, overContent = true)
+                    .then(if (tv.own.owntv.features.shell.TvBoxNav) Modifier.solidCard(30.mpx) else Modifier.stageGlass(30.mpx, overContent = true))
                     // Taps on the panel itself stay on it instead of reaching the closing backdrop.
                     .pointerInput(Unit) { detectTapGestures { } }
                     .then(if (scroll) Modifier.verticalScroll(rememberScrollState()) else Modifier)

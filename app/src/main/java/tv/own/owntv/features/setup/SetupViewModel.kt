@@ -36,7 +36,29 @@ class SetupViewModel(
     private val appScope: kotlinx.coroutines.CoroutineScope,
     private val profiles: tv.own.owntv.core.profile.ProfileManager,
     private val profileDao: tv.own.owntv.core.database.dao.ProfileDao,
+    context: android.content.Context,
 ) : ViewModel() {
+
+    /** The profile this onboarding created and has not finished yet: removed if the wizard is left. */
+    private val pending = context.getSharedPreferences(PENDING_PREFS, android.content.Context.MODE_PRIVATE)
+
+    init {
+        // A wizard left half way last time (Back out of the app, the TV switched off) leaves no profile.
+        dropPendingProfile()
+    }
+
+    private fun dropPendingProfile() {
+        val id = pending.getLong(PENDING_ID, -1L)
+        if (id < 0L) return
+        pending.edit().remove(PENDING_ID).apply()
+        appScope.launch { profileDao.getById(id)?.let { runCatching { profiles.delete(it) } } }
+    }
+
+    /** Left without finishing (Cancel, Back out): the half-made profile goes too. */
+    override fun onCleared() {
+        dropPendingProfile()
+        super.onCleared()
+    }
 
     // ---- Remote (companion) add-source: a LAN web form fills the Add Source screen from another device. ----
     /** Server lifecycle (Idle / Starting / Listening with PIN+QR / Failed) for the Remote screen. */
@@ -101,6 +123,7 @@ class SetupViewModel(
     fun createProfile(name: String, avatarId: Int, isKids: Boolean, pin: String?, picture: File?, onCreated: (Long) -> Unit = {}) {
         viewModelScope.launch {
             val id = importer.createProfile(name, avatarId, isKids, pin)
+            pending.edit().putLong(PENDING_ID, id).apply()
             if (picture != null) profileDao.getById(id)?.let { profiles.setCustomAvatar(it, picture) }
             onCreated(id)
         }
@@ -212,7 +235,10 @@ class SetupViewModel(
     // A backup may restore several profiles or a PIN-locked active profile. Restoring data is not
     // authenticating a viewer, so let MainActivity require the selected profile's PIN rather than
     // treating the restore as a gate pass.
-    private fun onRestored(onDone: (Long?) -> Unit) = onDone(null)
+    private fun onRestored(onDone: (Long?) -> Unit) {
+        pending.edit().remove(PENDING_ID).apply()
+        onDone(null)
+    }
 
     fun reset() = importer.reset()
 
@@ -238,6 +264,13 @@ class SetupViewModel(
 
     /** Completes onboarding → makes the new profile active, routing the app into the shell. */
     fun finish(onDone: (Long?) -> Unit = {}) {
+        // Finished: the profile is kept.
+        pending.edit().remove(PENDING_ID).apply()
         viewModelScope.launch { onDone(importer.finish()) }
+    }
+
+    private companion object {
+        const val PENDING_PREFS = "setup_pending"
+        const val PENDING_ID = "pending_profile_id"
     }
 }
