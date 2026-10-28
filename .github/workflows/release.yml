@@ -1,0 +1,145 @@
+name: Release
+
+# Tag vX.Y.Z (or a manual run naming an existing tag) -> signed APKs, SHA-256 sums and a GitHub
+# Release (spec, section 8). The in-app updater reads this repository's latest release, so a
+# release must never appear unsigned: the job fails if the signing secrets are missing.
+#
+# Assets:
+#   SkMate-IPTV-vX.Y.Z-arm.apk      arm64-v8a + armeabi-v7a, every real TV box
+#   SkMate-IPTV-vX.Y.Z-x86_64.apk   emulators and rare Intel boxes
+#   SkMate-IPTV.apk                 copy of the arm APK under a fixed name for
+#                                   https://github.com/swensi17/skmate-iptv/releases/latest/download/SkMate-IPTV.apk
+#   SHA256SUMS.txt                  sha256 of every APK above
+#   mapping-vX.Y.Z.txt              R8 mapping, to read crash stack traces
+on:
+  push:
+    tags: [ "v*" ]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing tag to release, e.g. v0.0.1"
+        required: true
+
+permissions:
+  contents: write   # create the release
+  packages: read    # core, player-core and libmpv from GitHub Packages
+
+env:
+  GITHUB_ACTOR: ${{ github.actor }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  TAG: ${{ inputs.tag || github.ref_name }}
+
+concurrency:
+  group: release-${{ inputs.tag || github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v4
+        with:
+          packages: 'platform-tools'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Version from the tag
+        id: ver
+        run: |
+          set -euo pipefail
+          [[ "$TAG" =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)$ ]] || { echo "::error::Tag $TAG is not vX.Y.Z"; exit 1; }
+          MA=${BASH_REMATCH[1]}; MI=${BASH_REMATCH[2]}; PA=${BASH_REMATCH[3]}
+          CODE=$(( MA * 10000 + MI * 100 + PA ))   # v1.2.3 -> 10203; v0.0.1 -> 1
+          echo "name=${TAG#v}" >> "$GITHUB_OUTPUT"
+          echo "code=$CODE" >> "$GITHUB_OUTPUT"
+          echo "Version ${TAG#v} (code $CODE)"
+
+      - name: Decode the signing keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        run: |
+          set -euo pipefail
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo "::error::KEYSTORE_BASE64 is not set. A release must be signed with the project key."
+            exit 1
+          fi
+          echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.keystore"
+          echo "KEYSTORE_FILE=$RUNNER_TEMP/release.keystore" >> "$GITHUB_ENV"
+
+      - name: Build signed release APKs
+        env:
+          VERSION_NAME: ${{ steps.ver.outputs.name }}
+          VERSION_CODE: ${{ steps.ver.outputs.code }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          chmod +x ./gradlew
+          ./gradlew :app:assembleStandardRelease :app:assembleX86_64Release --stacktrace
+
+      - name: Verify signatures and package
+        env:
+          NAME: ${{ steps.ver.outputs.name }}
+          EXPECTED_CERT_SHA256: ${{ secrets.SIGNING_CERT_SHA256 }}
+        run: |
+          set -euo pipefail
+          BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -n1)
+          mkdir -p dist
+          ARM=$(ls app/build/outputs/apk/standard/release/*.apk | head -n1)
+          X86=$(ls app/build/outputs/apk/x86_64/release/*.apk | head -n1)
+          cp "$ARM" "dist/SkMate-IPTV-v$NAME-arm.apk"
+          cp "$X86" "dist/SkMate-IPTV-v$NAME-x86_64.apk"
+          cp "$ARM" "dist/SkMate-IPTV.apk"
+          for apk in dist/*.apk; do
+            CERT=$("$BT/apksigner" verify --print-certs "$apk" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p')
+            [ -n "$CERT" ] || { echo "::error::$apk is not signed"; exit 1; }
+            if [ -n "$EXPECTED_CERT_SHA256" ] && [ "$CERT" != "$EXPECTED_CERT_SHA256" ]; then
+              echo "::error::$apk is signed with an unexpected certificate"; exit 1
+            fi
+          done
+          (cd dist && sha256sum *.apk > SHA256SUMS.txt && cat SHA256SUMS.txt)
+          MAP=app/build/outputs/mapping/standardRelease/mapping.txt
+          [ -f "$MAP" ] && cp "$MAP" "dist/mapping-v$NAME.txt" || true
+
+      - name: Release notes from CHANGELOG.md
+        run: |
+          awk -v ver="$TAG" '
+            $0 ~ ("^## " ver "([ \t]|$)") { flag=1; next }
+            /^## v/ && flag { flag=0 }
+            flag { print }
+          ' CHANGELOG.md > dist/RELEASE_NOTES.md || true
+          [ -s dist/RELEASE_NOTES.md ] || echo "See the commits for $TAG." > dist/RELEASE_NOTES.md
+          cat dist/RELEASE_NOTES.md
+
+      - name: Keep the mapping file as a workflow artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: mapping-${{ steps.ver.outputs.name }}
+          path: dist/mapping-*.txt
+          if-no-files-found: warn
+
+      - name: Publish the GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NAME: ${{ steps.ver.outputs.name }}
+        run: |
+          set -euo pipefail
+          FILES=(dist/SkMate-IPTV-v$NAME-arm.apk dist/SkMate-IPTV-v$NAME-x86_64.apk dist/SkMate-IPTV.apk dist/SHA256SUMS.txt)
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "${FILES[@]}" --clobber
+            gh release edit "$TAG" --notes-file dist/RELEASE_NOTES.md
+          else
+            gh release create "$TAG" "${FILES[@]}" --title "SkMate IPTV $TAG" --notes-file dist/RELEASE_NOTES.md --verify-tag
+          fi
