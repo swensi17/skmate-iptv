@@ -1341,6 +1341,8 @@ fun OwnTVShell(
                 }
             }
           }
+            // Settings (and More, which opens it) is a sheet over the right side: the clock and the playlist pill would sit on its title.
+            if ((selectedSection != MainSection.SETTINGS && selectedSection != MainSection.MORE) || !tv.own.owntv.features.settings.SettingsAsSidePanel)
             tv.own.owntv.features.shell.components.StageStatusCluster(
                 continuePill = continueTarget?.let { target ->
                     val live = target.kind == tv.own.owntv.features.home.ContinueKind.LIVE

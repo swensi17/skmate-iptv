@@ -1,5 +1,7 @@
 package tv.own.owntv.ui.stage
 
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Arrangement
@@ -76,7 +78,13 @@ fun StagePopup(
         val ime = LocalTvImeMetrics.current
         val density = LocalDensity.current
         BoxWithConstraints(
-            Modifier.fillMaxSize().background(StageColors.Scrim).trapAllFocusExit().focusGroup(),
+            Modifier
+                .fillMaxSize()
+                .background(StageColors.Scrim)
+                // A tap or click anywhere outside the panel closes it, like Back (mouse, touch, emulator).
+                .pointerInput(onDismiss) { detectTapGestures { onDismiss() } }
+                .trapAllFocusExit()
+                .focusGroup(),
             contentAlignment = if (ime.visible) Alignment.TopCenter else Alignment.Center,
         ) {
             val edge = 40.mpx
@@ -88,6 +96,8 @@ fun StagePopup(
                     .width(width.coerceAtMost(maxWidth - edge * 2))
                     .heightIn(max = room.coerceAtLeast(120.mpx))
                     .stageGlass(30.mpx, overContent = true)
+                    // Taps on the panel itself stay on it instead of reaching the closing backdrop.
+                    .pointerInput(Unit) { detectTapGestures { } }
                     .then(if (scroll) Modifier.verticalScroll(rememberScrollState()) else Modifier)
                     .padding(30.mpx),
             ) {
@@ -240,18 +250,23 @@ fun StagePopupOption(
     }
 }
 
-/** `.radio`: 24 px, a 2 px dim ring; chosen = a 7 px accent ring (white on the focused row). */
+/**
+ * The single-choice marker: a check on the chosen row (accent; white on the focused row) and nothing on
+ * the others, as Android TV's own lists do. Same 24 px slot either way, so the titles stay aligned.
+ */
 @Composable
 fun StagePopupRadio(on: Boolean, focused: Boolean) {
     val a = stageAccent
-    val dim = StageColors.Dim
-    Box(
-        Modifier.size(24.mpx).drawBehind {
-            val r = size.minDimension / 2f
-            if (on) drawInnerRing(if (focused) Color.White else a.accent, 7.mpx.toPx(), r)
-            else drawInnerRing(dim, 2.mpx.toPx(), r)
-        },
-    )
+    Box(Modifier.size(24.mpx), contentAlignment = Alignment.Center) {
+        // Blue (SkMate's link blue) on a light page; white only over a dark focused row.
+        val light = tv.own.owntv.ui.theme.LocalStagePalette.current.isLight
+        val tint = when {
+            light -> tv.own.owntv.ui.brand.SkMateBlue
+            focused -> Color.White
+            else -> a.accent
+        }
+        if (on) tv.own.owntv.ui.components.OwnTVIcon(tv.own.owntv.ui.components.OwnTVIcon.CHECK, tint, Modifier.size(24.mpx))
+    }
 }
 
 /** A tick box for multi-select rows: 24 px, a 2 px dim ring; ticked = accent fill with a tick (white fill on the focused row). */

@@ -7,6 +7,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import tv.own.owntv.core.database.entity.SourceEntity
@@ -57,6 +58,10 @@ class SetupViewModel(
 
     fun startRemoteRestore(port: Int) = companion.startForBackupRestore(port)
     fun stopRemoteRestore() = companion.stop()
+
+    /** The profiles there are already: a new one is offered a name and an avatar none of them has. */
+    val profileList: StateFlow<List<tv.own.owntv.core.database.entity.ProfileEntity>> = profileDao.observeAll()
+        .stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5_000), emptyList())
 
     val state: StateFlow<SourceImporter.ImportState> = importer.state
     val progress = importer.progress

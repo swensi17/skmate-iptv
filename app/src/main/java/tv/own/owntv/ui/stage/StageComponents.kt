@@ -1,5 +1,7 @@
 package tv.own.owntv.ui.stage
 
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.input.pointer.pointerInput
 import tv.own.owntv.ui.theme.stageTone
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
@@ -74,8 +76,11 @@ import tv.own.owntv.ui.theme.stageText
  *  PRIMARY  buttons: accent fill, 3 px ring outside, a larger glow, lifted to 1.04.
  *  POSTER   posters: 3 px focus ring + 4 px accent-35% ring outside, glow, lifted to 1.08.
  */
-/** OUTLINE: a ring only, no fill and no lift (the navigation rail's icons). */
-enum class StageFocus { FX, FILLED, PRIMARY, POSTER, OUTLINE }
+/**
+ * OUTLINE: a ring only, no fill and no lift (the navigation rail's icons). NONE: nothing; the host
+ * draws focus itself (the setup buttons' sliding highlight).
+ */
+enum class StageFocus { FX, FILLED, PRIMARY, POSTER, OUTLINE, NONE }
 
 /** A focus treatment on a custom-built element (the audio card), drawn exactly as [StageSurface] draws it. */
 @Composable
@@ -89,13 +94,12 @@ private fun Modifier.stageFocusDecor(style: StageFocus, radius: Dp, a: StageAcce
         // `.mine.light`: the accent is the ring, set off from the item by a page-coloured gap.
         when (style) {
             StageFocus.OUTLINE -> drawInnerRing(a.accent, 2.5f * px, r)
+            StageFocus.NONE -> Unit
             StageFocus.FX -> {
-                drawBoxShadow(a.accent.copy(alpha = 0.18f), 30 * px, r, dy = 10 * px)
-                drawRoundRect(
-                    Brush.horizontalGradient(listOf(a.accent.copy(alpha = 0.18f), a.accent.copy(alpha = 0.06f))),
-                    cornerRadius = CornerRadius(r),
-                )
-                drawInnerRing(a.accent, 2.5f * px, r)
+                // SkMate blue: a faint wash with a clear ring, readable from the sofa and one colour
+                // with the buttons' focus.
+                drawRoundRect(tv.own.owntv.ui.brand.SkMateBlue.copy(alpha = 0.08f), cornerRadius = CornerRadius(r))
+                drawInnerRing(tv.own.owntv.ui.brand.SkMateBlue, 2.5f * px, r)
             }
             StageFocus.FILLED, StageFocus.PRIMARY -> {
                 drawBoxShadow(a.accent.copy(alpha = 0.3f), 30 * px, r, dy = 12 * px)
@@ -113,6 +117,7 @@ private fun Modifier.stageFocusDecor(style: StageFocus, radius: Dp, a: StageAcce
     }
     when (style) {
         StageFocus.OUTLINE -> drawInnerRing(Color.White, 2.5f * px, r)
+        StageFocus.NONE -> Unit
         StageFocus.FX -> {
             drawBoxShadow(a.accent.copy(alpha = 0.28f), 44 * px, r)
             // A row-sized sweep: small enough to stay a brush (see GradientTextures).
@@ -164,14 +169,40 @@ fun StageSurface(
     val interaction = remember { MutableInteractionSource() }
     val focused = interaction.collectIsFocusedAsState().value || highlighted
     val palette = LocalStagePalette.current
+    // A mouse or touch click focuses what it clicked, as the remote would have, so the highlight and the
+    // next D-pad press both start from there instead of wherever focus was left.
+    val self = remember { androidx.compose.ui.focus.FocusRequester() }
+    val sheetFocus = focused && focusStyle == StageFocus.FX && tv.own.owntv.ui.theme.LocalInSettingsSheet.current
     Box(
         modifier = modifier
             .stageLift(focused, focusStyle)
-            .then(if (focused) Modifier.stageFocusDecor(focusStyle, radius, accent, palette) else idle)
+            .then(
+                when {
+                    sheetFocus -> Modifier.background(SheetFocusFill, androidx.compose.foundation.shape.RoundedCornerShape(radius))
+                    focused -> Modifier.stageFocusDecor(focusStyle, radius, accent, palette)
+                    else -> idle
+                },
+            )
+            .focusRequester(self)
+            .pointerInput(Unit) {
+                awaitPointerEventScope {
+                    while (true) {
+                        val e = awaitPointerEvent(androidx.compose.ui.input.pointer.PointerEventPass.Initial)
+                        if (e.type == androidx.compose.ui.input.pointer.PointerEventType.Press) runCatching { self.requestFocus() }
+                    }
+                }
+            }
             .stageClickable(interaction, enabled, onClick, onLongClick),
         contentAlignment = contentAlignment,
-    ) { content(focused) }
+    ) {
+        // The light bar takes the light theme's dark text.
+        if (sheetFocus) androidx.compose.runtime.CompositionLocalProvider(LocalStagePalette provides tv.own.owntv.ui.theme.StagePalette.Light) { content(focused) }
+        else content(focused)
+    }
 }
+
+/** The focused row of the settings sheet. */
+private val SheetFocusFill = Color(0xFFE0E2E4)
 
 /** The PRIMARY (1.04) and POSTER (1.08, from 50% 40%) lift; FX and FILLED stay put. An episode lifts 1.06 from 50% 30%. */
 @Composable
@@ -1085,7 +1116,7 @@ fun StageRatingChip(rating: String, modifier: Modifier = Modifier, small: Boolea
  * ("controls inside the rows").
  */
 @Composable
-fun StageStepper(value: String) {
+fun StageStepper(value: String, onStep: ((Int) -> Unit)? = null) {
     Row(
         Modifier
             .background(StageColors.ControlFill, RoundedCornerShape(13.mpx))
@@ -1093,7 +1124,9 @@ fun StageStepper(value: String) {
         horizontalArrangement = Arrangement.spacedBy(4.mpx),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Box(Modifier.size(34.mpx), contentAlignment = Alignment.Center) {
+        // − and + take a mouse click or a tap themselves (the row's own click is "next value", which
+        // made a click on − go up). Not focusable: on the remote ◀ ▶ on the row stay the way to step.
+        Box(Modifier.size(34.mpx).stepTap(onStep, -1), contentAlignment = Alignment.Center) {
             Text("−", style = stageText(20, 700), color = StageColors.Muted)
         }
         Text(
@@ -1104,11 +1137,14 @@ fun StageStepper(value: String) {
             textAlign = androidx.compose.ui.text.style.TextAlign.Center,
             modifier = Modifier.widthIn(min = 64.mpx),
         )
-        Box(Modifier.size(34.mpx), contentAlignment = Alignment.Center) {
+        Box(Modifier.size(34.mpx).stepTap(onStep, 1), contentAlignment = Alignment.Center) {
             Text("+", style = stageText(20, 700), color = StageColors.Muted)
         }
     }
 }
+
+private fun Modifier.stepTap(onStep: ((Int) -> Unit)?, dir: Int): Modifier =
+    if (onStep == null) this else pointerInput(onStep, dir) { detectTapGestures { onStep(dir) } }
 
 /** `.sw2`: 56×32 switch, display only like [StageStepper]. */
 @Composable

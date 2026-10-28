@@ -5,6 +5,9 @@
 #   tools/dev/tv.sh            release build (R8, real speed: use it to judge smoothness)
 #   tools/dev/tv.sh --fast     debug build (no R8, installs sooner, slower at runtime)
 #   tools/dev/tv.sh --log      only follow the app's log on the TV
+#   tools/dev/tv.sh --watch    "save and see": rebuild (debug) and reinstall on every saved file in the
+#                              app or core sources, about 10-15 s from save to screen; Ctrl+C to stop
+#   add --emu to any of them to target the Android TV emulator instead of the TV
 #
 # Environment (all optional):
 #   SKMATE_TV       adb address of the TV            (default 192.168.1.105:5555; emulator-5554 for the
@@ -27,13 +30,17 @@ SIGNING="${SKMATE_SIGNING:-$HOME/dev/skmate-secrets/signing.properties}"
 ADB="${ANDROID_HOME:-$HOME/Library/Android/sdk}/platform-tools/adb"
 PKG="uz.skmate.iptv"
 MODE="release"
+WATCH=0
 
-case "${1:-}" in
-  --fast) MODE="debug" ;;
-  --log) MODE="log" ;;
-  "") ;;
-  *) echo "usage: $0 [--fast|--log]" >&2; exit 2 ;;
-esac
+for arg in "$@"; do
+  case "$arg" in
+    --fast) MODE="debug" ;;
+    --log) MODE="log" ;;
+    --watch) MODE="debug"; WATCH=1 ;;
+    --emu) TV="emulator-5554" ;;
+    *) echo "usage: $0 [--fast|--log|--watch] [--emu]" >&2; exit 2 ;;
+  esac
+done
 
 follow_log() {
   local pid
@@ -73,13 +80,41 @@ export GITHUB_ACTOR="${GITHUB_ACTOR:-$(gh api user --jq .login)}"
 export GITHUB_TOKEN="${GITHUB_TOKEN:-$(gh auth token)}"
 
 if [ "$MODE" = "debug" ]; then export SKMATE_DEV_SIGN=1; TASK=":app:assembleStandardDebug"; OUT="standard/debug"; else TASK=":app:assembleStandardRelease"; OUT="standard/release"; fi
-echo "building $VERSION_NAME ($VERSION_CODE), $MODE, core from $CORE"
-(cd "$ROOT" && sh ./gradlew -q "-Powntv.corePath=$CORE" "$TASK")
-APK="$(ls "$ROOT"/app/build/outputs/apk/$OUT/*.apk | head -n1)"
 
-echo "installing on $TV"
-"$ADB" -s "$TV" install -r "$APK" | tail -n1
-"$ADB" -s "$TV" logcat -c
-"$ADB" -s "$TV" shell monkey -p "$PKG" -c android.intent.category.LEANBACK_LAUNCHER 1 >/dev/null 2>&1
+deploy() {
+  local started=$SECONDS
+  echo "building $VERSION_NAME ($VERSION_CODE), $MODE, core from $CORE"
+  (cd "$ROOT" && sh ./gradlew -q "-Powntv.corePath=$CORE" "$TASK") || return 1
+  local apk
+  apk="$(ls "$ROOT"/app/build/outputs/apk/$OUT/*.apk | head -n1)"
+  echo "installing on $TV"
+  "$ADB" -s "$TV" install -r "$apk" | tail -n1
+  "$ADB" -s "$TV" logcat -c
+  "$ADB" -s "$TV" shell monkey -p "$PKG" -c android.intent.category.LEANBACK_LAUNCHER 1 >/dev/null 2>&1
+  echo "on screen in $(( SECONDS - started )) s"
+}
+
+if [ "$WATCH" = "1" ]; then
+  # Poll once a second for a source file newer than the last build (no extra tools needed), let a
+  # burst of saves settle, then build and reinstall. A failed build prints its errors and waits for
+  # the next save.
+  STAMP="$(mktemp)"
+  trap 'rm -f "$STAMP"' EXIT
+  deploy || true
+  touch "$STAMP"
+  echo "--- watching app and core sources, Ctrl+C to stop ---"
+  while true; do
+    sleep 1
+    changed="$(find "$ROOT/app/src" "$CORE/core/src" "$CORE/player-core/src" -type f \
+      \( -name '*.kt' -o -name '*.xml' -o -name '*.json' \) -newer "$STAMP" -print -quit 2>/dev/null || true)"
+    [ -z "$changed" ] && continue
+    sleep 0.5
+    touch "$STAMP"
+    echo "--- changed: ${changed#"$ROOT"/} ---"
+    deploy || echo "--- build failed, fix and save again ---"
+  done
+fi
+
+deploy
 sleep 2
 [ "${SKMATE_NO_LOG:-}" = "1" ] || follow_log

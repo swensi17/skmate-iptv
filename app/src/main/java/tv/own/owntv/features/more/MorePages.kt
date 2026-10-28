@@ -4,6 +4,7 @@ import tv.own.owntv.ui.theme.stageTone
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Arrangement
@@ -226,6 +227,10 @@ private var lastOpenedCard: Int? = null
 
 @Composable
 internal fun SettingsPage(entry: FocusRequester, pinned: Int, onOpenGroup: (Int) -> Unit, onSearch: () -> Unit) {
+    if (tv.own.owntv.features.settings.SettingsAsSidePanel) {
+        SettingsGroupList(entry, onOpenGroup, onSearch)
+        return
+    }
     val back = lastOpenedCard
     val profiles = tv.own.owntv.features.settings.profileCount()
     Column(Modifier.fillMaxSize().focusGroup()) {
@@ -269,6 +274,41 @@ internal fun SettingsPage(entry: FocusRequester, pinned: Int, onOpenGroup: (Int)
                     }
                 }
             }
+        }
+    }
+}
+
+/**
+ * Settings as TV boxes list it: the sheet on the right with the groups as plain lines (Search first),
+ * each opening its page in the same sheet.
+ */
+@Composable
+private fun SettingsGroupList(entry: FocusRequester, onOpenGroup: (Int) -> Unit, onSearch: () -> Unit) {
+    val back = lastOpenedCard
+    tv.own.owntv.features.settings.SettingsSheet(title = stringResource(R.string.common_nav_settings), scrim = false, fromStart = back != null) {
+        Column(
+            Modifier.fillMaxWidth().weight(1f).focusGroup().verticalScroll(androidx.compose.foundation.rememberScrollState())
+                .padding(start = 12.mpx, end = 12.mpx, top = 12.mpx, bottom = 40.mpx),
+            verticalArrangement = Arrangement.spacedBy(2.mpx),
+        ) {
+            GroupLine(OwnTVIcon.SEARCH, stringResource(R.string.more_settings_search), Modifier.then(if (back == null) Modifier.focusRequester(entry) else Modifier)) {
+                lastOpenedCard = null; onSearch()
+            }
+            SettingsCards.forEachIndexed { index, card ->
+                GroupLine(card.icon, stringResource(card.nameRes), Modifier.then(if (index == back) Modifier.focusRequester(entry) else Modifier)) {
+                    lastOpenedCard = index; onOpenGroup(index)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun GroupLine(icon: OwnTVIcon, title: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    StageSurface(onClick = onClick, radius = 16.mpx, focusStyle = StageFocus.FX, modifier = modifier.fillMaxWidth().height(64.mpx)) { focused ->
+        Row(Modifier.padding(horizontal = 24.mpx), horizontalArrangement = Arrangement.spacedBy(18.mpx), verticalAlignment = Alignment.CenterVertically) {
+            OwnTVIcon(icon, if (focused) StageColors.Text else StageColors.Muted, Modifier.size(26.mpx))
+            Text(title, style = stageText(21, 600), color = StageColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
     }
 }

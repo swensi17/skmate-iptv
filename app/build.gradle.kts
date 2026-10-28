@@ -350,6 +350,7 @@ val verifyI18nLiterals = tasks.register<VerifyI18nLiterals>("verifyI18nLiterals"
 tasks.named("preBuild") { dependsOn(verifyI18nLiterals) }
 
 dependencies {
+    implementation(libs.lottie.compose)
     // The shared data/settings/sync module. It lives in its own repository now — see
     // https://github.com/swensi17/skmate-iptv-core. Set owntv.corePath in ~/.gradle/gradle.properties to
     // build against its source instead of this pinned version.

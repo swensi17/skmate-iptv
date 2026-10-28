@@ -3,6 +3,18 @@ package tv.own.owntv.features.setup
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Column
+import androidx.compose.ui.focus.focusRequester
+import tv.own.owntv.ui.theme.mpx
+import tv.own.owntv.ui.theme.StageColors
+import tv.own.owntv.ui.theme.stageText
+import androidx.compose.ui.Alignment
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.background
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -42,7 +54,7 @@ import tv.own.owntv.features.settings.SettingValue
 import tv.own.owntv.features.settings.StageAction
 import tv.own.owntv.features.settings.StageActionColumn
 import tv.own.owntv.features.settings.StageFieldRow
-import tv.own.owntv.features.settings.StageFullPage
+import tv.own.owntv.features.settings.StageFormPage
 import tv.own.owntv.features.settings.StageSettingRow
 import tv.own.owntv.features.settings.StageSettingsHeading
 import androidx.compose.ui.focus.focusProperties
@@ -119,11 +131,16 @@ fun AddSourceScreen(
     ) -> Unit)? = null,
 ) {
     val editing = initial != null
+    // Adding asks only what the source cannot work without; everything else keeps its default and is
+    // changed later by editing the source in Settings, where the whole form is shown.
+    val full = editing
     var kind by remember {
         mutableStateOf(
             when (initial?.type) {
                 SourceType.M3U -> SourceKind.M3U
                 SourceType.STALKER -> SourceKind.STALKER
+                // A new source starts on M3U, the commonest kind of playlist.
+                null -> SourceKind.M3U
                 else -> SourceKind.XTREAM
             },
         )
@@ -143,7 +160,11 @@ fun AddSourceScreen(
     var epgUrl by remember(initial) { mutableStateOf(initial?.epgUrl ?: "") }
     var userAgent by remember(initial) { mutableStateOf(initial?.userAgent ?: "") }
     var referer by remember(initial) { mutableStateOf(initial?.httpReferer ?: "") }
-    var autoRefresh by remember(initialAutoRefresh) { mutableStateOf(initialAutoRefresh) }
+    // A new source refreshes itself twice a day unless the caller says otherwise; the full form
+    // (editing from Settings) shows and changes it.
+    var autoRefresh by remember(initialAutoRefresh) {
+        mutableStateOf(if (initial == null && initialAutoRefresh.mode == PlaylistAutoRefresh.OFF) PlaylistRefresh(PlaylistAutoRefresh.HOURS_12) else initialAutoRefresh)
+    }
     var isDefault by remember(initialIsDefault) { mutableStateOf(initialIsDefault) }
     var preferHls by remember(initial) { mutableStateOf(initial?.preferHls == true) }
     // Edit: On(=Now)/Off from persisted flags. Add: default all Now for Xtream; Stalker defaults
@@ -381,7 +402,52 @@ fun AddSourceScreen(
     val showContentToggles = kind == SourceKind.XTREAM || kind == SourceKind.STALKER
     val hasAnySectionOn = syncLive != SyncScopeChoice.Off || syncMovies != SyncScopeChoice.Off || syncSeries != SyncScopeChoice.Off
     val macValid = tv.own.owntv.core.stalker.StalkerClient.canonicalizeMac(mac) != null
-    val canStart = when (kind) {
+    // What is wrong with what was typed, shown in red under the form; nothing for an empty field.
+    val hasScheme = { url: String -> url.contains("://") }
+    val errorScheme = stringResource(R.string.setup_error_address_scheme)
+    val errorPortal = stringResource(R.string.setup_error_portal_address)
+    val errorMac = stringResource(R.string.setup_error_mac, stringResource(R.string.setup_mac_invalid))
+    val errors = when (kind) {
+        SourceKind.XTREAM -> listOfNotNull(errorScheme.takeIf { server.isNotBlank() && !hasScheme(server.trim()) })
+        SourceKind.M3U -> listOfNotNull(errorScheme.takeIf { m3uUrl.isNotBlank() && !m3uUrl.startsWith("/") && !hasScheme(m3uUrl.trim()) })
+        SourceKind.STALKER -> listOfNotNull(
+            errorPortal.takeIf { portalUrl.isNotBlank() && !tv.own.owntv.core.stalker.StalkerClient.isValidPortalUrl(portalUrl) },
+            errorMac.takeIf { mac.isNotBlank() && !macValid },
+        )
+    }
+    // The source is checked on its own once the address (and the login) look complete: a short pause
+    // after the last keystroke, then the same request "Test connection" makes. A green check in the
+    // address field means it answered; otherwise the reason shows in red under the form, and import
+    // stays off until the check passes.
+    val localFile = kind == SourceKind.M3U && m3uUrl.startsWith("/")
+    val checkReady = !editing && errors.isEmpty() && !localFile && when (kind) {
+        SourceKind.XTREAM -> server.isNotBlank() && username.isNotBlank() && password.isNotBlank()
+        SourceKind.M3U -> m3uUrl.isNotBlank()
+        SourceKind.STALKER -> portalUrl.isNotBlank() && mac.isNotBlank()
+    }
+    var check by remember { mutableStateOf<SourceCheck>(SourceCheck.Idle) }
+    LaunchedEffect(kind, m3uUrl, server, username, password, portalUrl, mac, checkReady) {
+        check = SourceCheck.Idle
+        if (!checkReady) return@LaunchedEffect
+        kotlinx.coroutines.delay(CheckPauseMs)
+        check = SourceCheck.Checking
+        check = when (val r = runCatching { sourceTester.test(formSource()) }.getOrNull()) {
+            is tv.own.owntv.core.repository.SourceTestResult.Ok -> SourceCheck.Ok
+            is tv.own.owntv.core.repository.SourceTestResult.AuthFailed -> SourceCheck.Failed(R.string.setup_error_login)
+            is tv.own.owntv.core.repository.SourceTestResult.Expired -> SourceCheck.Failed(R.string.setup_error_expired)
+            else -> if (r == null || r is tv.own.owntv.core.repository.SourceTestResult.Unreachable) SourceCheck.Failed(R.string.setup_error_unreachable) else SourceCheck.Ok
+        }
+    }
+    val checkError = (check as? SourceCheck.Failed)?.let { stringResource(it.message) }
+    val checkMark: @Composable () -> Unit = {
+        when (check) {
+            SourceCheck.Ok -> OwnTVIcon(OwnTVIcon.CHECK, CheckGreen, Modifier.size(28.mpx))
+            is SourceCheck.Failed -> OwnTVIcon(OwnTVIcon.CLOSE, StageColors.Danger, Modifier.size(26.mpx))
+            SourceCheck.Checking -> Text(stringResource(R.string.setup_testing), style = stageText(16, 600), color = StageColors.Dim, maxLines = 1)
+            SourceCheck.Idle -> Unit
+        }
+    }
+    val canStart = errors.isEmpty() && (editing || localFile || check == SourceCheck.Ok) && when (kind) {
         SourceKind.XTREAM -> server.isNotBlank() && username.isNotBlank() && password.isNotBlank() && hasAnySectionOn
         SourceKind.M3U -> m3uUrl.isNotBlank()
         SourceKind.STALKER -> tv.own.owntv.core.stalker.StalkerClient.isValidPortalUrl(portalUrl) && macValid && hasAnySectionOn
@@ -434,6 +500,7 @@ fun AddSourceScreen(
         keyboardType: KeyboardType = KeyboardType.Text,
         about: String? = null,
         modifier: Modifier = Modifier,
+        trailing: (@Composable () -> Unit)? = null,
     ) = StageFieldRow(
         icon = OwnTVIcon.PENCIL,
         label = label,
@@ -446,19 +513,46 @@ fun AddSourceScreen(
         backLabel = parent,
         submitHint = submitHint,
         modifier = modifier.then(toSubmit),
+        trailing = trailing,
     )
 
     Box(modifier.fillMaxSize()) {
-    StageFullPage(
+    StageFormPage(
         parents = listOf(parent),
         title = pageTitle,
-        count = "",
         onBack = onBack,
         rowsFocus = firstFocus,
-        settingsRoot = false,
+        footer = {
+          Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(20.mpx)) {
+            (errors + listOfNotNull(checkError)).forEach { error ->
+                Row(horizontalArrangement = Arrangement.spacedBy(10.mpx), verticalAlignment = Alignment.CenterVertically) {
+                    OwnTVIcon(OwnTVIcon.WARNING, StageColors.Danger, Modifier.size(24.mpx))
+                    Text(error, style = stageText(18, 600), color = StageColors.Danger)
+                }
+            }
+            // The form's one button, under the rows; dim and out of the focus path until the form can be sent.
+            tv.own.owntv.ui.stage.StageSurface(
+                onClick = { submit() },
+                radius = 38.mpx,
+                focusStyle = tv.own.owntv.ui.stage.StageFocus.NONE,
+                enabled = canStart,
+                idle = Modifier.background(if (canStart) StageColors.Text else StageColors.Text.copy(alpha = 0.08f), RoundedCornerShape(38.mpx)),
+                contentAlignment = Alignment.Center,
+                modifier = Modifier.width(440.mpx).height(76.mpx).focusRequester(startImportFocus),
+            ) { focused ->
+                if (focused) Box(Modifier.matchParentSize().background(tv.own.owntv.ui.brand.SkMateBlue, RoundedCornerShape(38.mpx)))
+                val tint = if (canStart) androidx.compose.ui.graphics.Color.White else StageColors.Dim
+                Row(horizontalArrangement = Arrangement.spacedBy(12.mpx), verticalAlignment = Alignment.CenterVertically) {
+                    OwnTVIcon(OwnTVIcon.DOWNLOADS, tint, Modifier.size(26.mpx))
+                    Text(submitLabel, style = stageText(22, 800), color = tint, maxLines = 1)
+                }
+            }
+          }
+        },
     ) {
         // Type: locked while editing (a source can't change its type).
-        val kinds = listOfNotNull(SourceKind.XTREAM, SourceKind.M3U, SourceKind.STALKER.takeIf { onStartStalker != null })
+        // M3U first: it is the default and the commonest.
+        val kinds = listOfNotNull(SourceKind.M3U, SourceKind.XTREAM, SourceKind.STALKER.takeIf { onStartStalker != null })
         val kindLabels = kinds.map {
             stringResource(
                 when (it) {
@@ -482,11 +576,11 @@ fun AddSourceScreen(
                 if (editing) listOf(back to parent) else listOf("◀ ▶" to stringResource(R.string.settings_key_change), back to parent),
             ),
         )
-        field(stringResource(R.string.setup_source_name_optional), name, { name = it }, placeholder = stringResource(R.string.setup_default_iptv))
+        if (full) field(stringResource(R.string.setup_source_name_optional), name, { name = it }, placeholder = stringResource(R.string.setup_default_iptv))
 
         when (kind) {
             SourceKind.XTREAM -> {
-                field(stringResource(R.string.setup_server_url), server, { server = it }, placeholder = stringResource(R.string.setup_server_example), keyboardType = KeyboardType.Uri)
+                field(stringResource(R.string.setup_server_url), server, { server = it }, placeholder = stringResource(R.string.setup_server_example), keyboardType = KeyboardType.Uri, trailing = checkMark)
                 field(stringResource(R.string.setup_username), username, { username = it })
                 field(stringResource(if (editing) R.string.setup_password_keep else R.string.setup_password), password, { password = it }, password = true)
             }
@@ -494,7 +588,7 @@ fun AddSourceScreen(
                 field(
                     stringResource(R.string.setup_playlist_url_local_file), m3uUrl, { m3uUrl = it },
                     placeholder = stringResource(R.string.setup_playlist_example), keyboardType = KeyboardType.Uri,
-                    about = stringResource(R.string.settings_help_playlist_url),
+                    about = stringResource(R.string.settings_help_playlist_url), trailing = checkMark,
                 )
                 val picked = remember(m3uUrl) { if (m3uUrl.startsWith("/")) java.io.File(m3uUrl).name else null }
                 val fileTitle = stringResource(R.string.settings_choose_local_file)
@@ -509,12 +603,13 @@ fun AddSourceScreen(
                 )
             }
             SourceKind.STALKER -> {
-                field(stringResource(R.string.setup_portal_url), portalUrl, { portalUrl = it }, placeholder = stringResource(R.string.setup_portal_example), keyboardType = KeyboardType.Uri)
+                field(stringResource(R.string.setup_portal_url), portalUrl, { portalUrl = it }, placeholder = stringResource(R.string.setup_portal_example), keyboardType = KeyboardType.Uri, trailing = checkMark)
                 field(
                     stringResource(R.string.setup_mac_address), mac, { mac = it },
                     placeholder = stringResource(R.string.setup_mac_example),
                     about = if (mac.isNotBlank() && !macValid) stringResource(R.string.setup_mac_invalid) else null,
                 )
+                if (full) {
                 StageSettingsHeading(stringResource(R.string.setup_stalker_advanced_identity), 5)
                 field(stringResource(R.string.setup_stalker_serial_number_optional), stalkerSerialNumber, { stalkerSerialNumber = it })
                 field(stringResource(R.string.setup_stalker_device_id_optional), stalkerDeviceId, { stalkerDeviceId = it })
@@ -530,8 +625,11 @@ fun AddSourceScreen(
                     modifier = toSubmit,
                     help = help(presetTitle, stringResource(R.string.setup_device_model_preset_title), openKeys),
                 )
+                }
             }
         }
+
+        if (full) {
 
         StageSettingsHeading(stringResource(R.string.settings_form_optional), null)
         field(stringResource(R.string.setup_user_agent_optional), userAgent, { userAgent = it }, placeholder = stringResource(R.string.setup_user_agent_example))
@@ -626,6 +724,7 @@ fun AddSourceScreen(
                 modifier = toSubmit,
                 help = help(hideTitle, hideDesc, switchKeys),
             )
+        }
         }
     }
       // In-app, TV-safe file picker (SAF / system file picker is missing on many TVs).
@@ -773,3 +872,17 @@ private fun SyncScopeStageRow(
         help = help,
     )
 }
+
+/** The automatic check of a new source while its form is filled in. */
+private sealed interface SourceCheck {
+    data object Idle : SourceCheck
+    data object Checking : SourceCheck
+    data object Ok : SourceCheck
+    data class Failed(val message: Int) : SourceCheck
+}
+
+/** How long typing must pause before the source is checked. */
+private const val CheckPauseMs = 900L
+
+/** The check mark of a source that answered. */
+private val CheckGreen = androidx.compose.ui.graphics.Color(0xFF1FA34A)

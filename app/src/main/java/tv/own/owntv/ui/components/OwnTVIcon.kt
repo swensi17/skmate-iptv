@@ -91,6 +91,12 @@ fun OwnTVIcon(
         fun p(x: Float, y: Float) = Offset(x * s, y * s)
         val stroke = Stroke(width = 2f * s, cap = StrokeCap.Round, join = StrokeJoin.Round)
 
+        // SkMate's line-icon pack first ([uiPackPath]): one family across the app where it has a glyph.
+        val packPath = uiPackPath(icon)
+        if (packPath != null) {
+            scale(s, s, pivot = Offset.Zero) { drawPath(packPath, tint, style = Fill) }
+            return@Canvas
+        }
         val stagePath = StagePaths[icon]
         if (stagePath != null) {
             scale(s, s, pivot = Offset.Zero) {

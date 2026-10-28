@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
@@ -23,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -33,6 +35,7 @@ import androidx.tv.material3.Text
 import tv.own.owntv.R
 import tv.own.owntv.core.database.entity.ProfileEntity
 import tv.own.owntv.ui.components.OwnTVAvatar
+import tv.own.owntv.ui.theme.mpx
 import tv.own.owntv.ui.components.OwnTVIcon
 
 /**
@@ -49,8 +52,15 @@ fun ProfileGate(onEnter: (Long) -> Unit, onAddProfile: () -> Unit, modifier: Mod
     var pinError by remember { mutableStateOf(false) }
     val firstFocus = remember { FocusRequester() }
 
+    // The row is lazy and the window may not have focus yet on the first frames: keep asking until the
+    // row really holds focus (a second at most), so OK works at once without a first arrow press.
+    var rowHasFocus by remember { mutableStateOf(false) }
     LaunchedEffect(profiles.isNotEmpty()) {
-        if (profiles.isNotEmpty()) runCatching { firstFocus.requestFocus() }
+        if (profiles.isNotEmpty()) repeat(20) {
+            if (rowHasFocus) return@LaunchedEffect
+            runCatching { firstFocus.requestFocus() }
+            kotlinx.coroutines.delay(60)
+        }
     }
 
     fun choose(p: ProfileEntity) {
@@ -68,10 +78,12 @@ fun ProfileGate(onEnter: (Long) -> Unit, onAddProfile: () -> Unit, modifier: Mod
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(stringResource(R.string.profiles_gate_title), style = tv.own.owntv.ui.theme.stageText(54, 700), color = tv.own.owntv.ui.theme.StageColors.Text)
-            Spacer(Modifier.height(36.dp))
+            Spacer(Modifier.height(48.mpx))
+            // Centred while the profiles fit; a longer row scrolls, never running off the screen.
             LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(28.dp),
-                modifier = Modifier.focusGroup().padding(horizontal = 48.dp),
+                horizontalArrangement = Arrangement.spacedBy(40.mpx, Alignment.CenterHorizontally),
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 96.mpx, vertical = 16.mpx),
+                modifier = Modifier.fillMaxWidth().onFocusChanged { rowHasFocus = it.hasFocus }.focusGroup(),
             ) {
                 items(profiles, key = { it.id }) { p ->
                     ProfileTile(
@@ -101,15 +113,16 @@ fun ProfileGate(onEnter: (Long) -> Unit, onAddProfile: () -> Unit, modifier: Mod
 @Composable
 private fun ProfileTile(profile: ProfileEntity, modifier: Modifier = Modifier, onClick: () -> Unit) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        // Round, like the avatar in it: focus is a blue ring around the person.
         tv.own.owntv.ui.stage.StageSurface(
             onClick = onClick,
-            radius = 24.dp,
-            modifier = modifier.size(132.dp),
+            radius = TileSize / 2,
+            modifier = modifier.size(TileSize),
             focusStyle = tv.own.owntv.ui.stage.StageFocus.FX,
             contentAlignment = Alignment.Center,
         ) { _ ->
             Box(contentAlignment = Alignment.TopEnd) {
-                OwnTVAvatar(avatarId = profile.avatarId, imagePath = profile.avatarPath.orEmpty(), modifier = Modifier.size(104.dp))
+                OwnTVAvatar(avatarId = profile.avatarId, imagePath = profile.avatarPath.orEmpty(), modifier = Modifier.size(AvatarSize))
                 if (profile.pinHash != null) {
                     Box(Modifier.size(26.dp).clip(CircleShape).background(tv.own.owntv.ui.theme.StageColors.Ink.copy(alpha = 0.12f)), contentAlignment = Alignment.Center) {
                         OwnTVIcon(OwnTVIcon.SETTINGS, tint = tv.own.owntv.ui.theme.StageColors.Text, modifier = Modifier.size(14.dp))
@@ -117,8 +130,8 @@ private fun ProfileTile(profile: ProfileEntity, modifier: Modifier = Modifier, o
                 }
             }
         }
-        Spacer(Modifier.height(10.dp))
-        Text(profile.name, style = tv.own.owntv.ui.theme.stageText(32, 600), color = tv.own.owntv.ui.theme.StageColors.Text, textAlign = TextAlign.Center)
+        Spacer(Modifier.height(16.mpx))
+        Text(profile.name, style = tv.own.owntv.ui.theme.stageText(24, 700), color = tv.own.owntv.ui.theme.StageColors.Text, textAlign = TextAlign.Center, maxLines = 1)
         if (profile.isKids) {
             Text(stringResource(R.string.profiles_kids_badge), style = tv.own.owntv.ui.theme.stageText(20, 500), color = tv.own.owntv.ui.theme.stageAccent.accent)
         }
@@ -130,19 +143,23 @@ private fun AddTile(onClick: () -> Unit) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         tv.own.owntv.ui.stage.StageSurface(
             onClick = onClick,
-            radius = 24.dp,
-            modifier = Modifier.size(132.dp),
+            radius = TileSize / 2,
+            modifier = Modifier.size(TileSize),
             focusStyle = tv.own.owntv.ui.stage.StageFocus.FX,
             contentAlignment = Alignment.Center,
         ) { _ ->
             Box(
-                modifier = Modifier.size(104.dp).clip(CircleShape).background(tv.own.owntv.ui.theme.StageColors.Ink.copy(alpha = 0.08f)),
+                modifier = Modifier.size(AvatarSize).clip(CircleShape).background(tv.own.owntv.ui.theme.StageColors.Ink.copy(alpha = 0.08f)),
                 contentAlignment = Alignment.Center,
             ) {
-                OwnTVIcon(OwnTVIcon.ADD, tint = tv.own.owntv.ui.theme.StageColors.Muted, modifier = Modifier.size(40.dp))
+                OwnTVIcon(OwnTVIcon.ADD, tint = tv.own.owntv.ui.theme.StageColors.Muted, modifier = Modifier.size(48.mpx))
             }
         }
-        Spacer(Modifier.height(10.dp))
-        Text(stringResource(R.string.profiles_add), style = tv.own.owntv.ui.theme.stageText(32, 600), color = tv.own.owntv.ui.theme.StageColors.Muted)
+        Spacer(Modifier.height(16.mpx))
+        Text(stringResource(R.string.profiles_add), style = tv.own.owntv.ui.theme.stageText(24, 700), color = tv.own.owntv.ui.theme.StageColors.Muted, maxLines = 1)
     }
 }
+
+/** A profile's round tile, and the avatar inside it (the ring of focus sits in the gap). */
+private val TileSize = 176.mpx
+private val AvatarSize = 156.mpx

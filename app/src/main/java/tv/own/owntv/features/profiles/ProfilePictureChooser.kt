@@ -1,6 +1,7 @@
 package tv.own.owntv.features.profiles
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -9,7 +10,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import tv.own.owntv.R
 import tv.own.owntv.features.settings.SettingsViewModel
-import tv.own.owntv.ui.components.BackgroundImageChooserDialog
 import tv.own.owntv.ui.components.BrowseMode
 import tv.own.owntv.ui.components.RemoteBackgroundDialog
 import tv.own.owntv.ui.components.StorageBrowser
@@ -33,13 +33,38 @@ internal fun ProfilePictureChooser(
 ) {
     var source by remember { mutableStateOf(Source.CHOOSE) }
     when (source) {
-        Source.CHOOSE -> BackgroundImageChooserDialog(
-            hasImage = hasImage,
-            onPickLocal = { source = Source.LOCAL },
-            onPickRemote = { source = Source.REMOTE },
-            onClear = onClear,
+        Source.CHOOSE -> tv.own.owntv.ui.stage.StageSidePanel(
             onDismiss = onDismiss,
-        )
+            title = stringResource(R.string.profiles_avatar_own_picture),
+            subtitle = stringResource(R.string.profiles_avatar_own_picture_sub),
+        ) { close ->
+            val first = remember { androidx.compose.ui.focus.FocusRequester() }
+            androidx.compose.runtime.LaunchedEffect(Unit) {
+                kotlinx.coroutines.delay(80)
+                runCatching { first.requestFocus() }
+            }
+            tv.own.owntv.ui.stage.StageSidePanelOption(
+                tv.own.owntv.ui.components.OwnTVIcon.FOLDER,
+                stringResource(R.string.setup_from_device),
+                onClick = { source = Source.LOCAL },
+                subtitle = stringResource(R.string.setup_from_device_line),
+                modifier = androidx.compose.ui.Modifier.focusRequester(first),
+            )
+            tv.own.owntv.ui.stage.StageSidePanelOption(
+                tv.own.owntv.ui.components.OwnTVIcon.PHONE,
+                stringResource(R.string.setup_from_phone),
+                onClick = { source = Source.REMOTE },
+                subtitle = stringResource(R.string.setup_from_phone_line),
+            )
+            if (hasImage) {
+                tv.own.owntv.ui.stage.StageSidePanelOption(
+                    tv.own.owntv.ui.components.OwnTVIcon.TRASH,
+                    stringResource(R.string.common_clear),
+                    onClick = { close(); onClear() },
+                    danger = true,
+                )
+            }
+        }
         Source.LOCAL -> StorageBrowser(
             title = stringResource(R.string.profiles_avatar_own_picture),
             mode = BrowseMode.FILE,

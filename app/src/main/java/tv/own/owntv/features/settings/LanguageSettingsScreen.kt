@@ -2,6 +2,7 @@ package tv.own.owntv.features.settings
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,6 +16,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -81,6 +83,35 @@ fun FirstRunLanguageSelector(modifier: Modifier = Modifier) {
     }
 }
 
+/**
+ * The welcome screen's language control: a round globe button beside Get started that opens the
+ * language list. A first run that still follows the device starts in Russian.
+ */
+@Composable
+fun FirstRunLanguageGlobe(modifier: Modifier = Modifier) {
+    val viewModel: LanguageSettingsViewModel = koinViewModel()
+    val currentTag by viewModel.currentTag.collectAsStateWithLifecycle()
+    LaunchedEffect(Unit) {
+        if (currentTag == SupportedLocales.SYSTEM_DEFAULT_TAG) viewModel.setLocale(FirstRunLanguage)
+    }
+    var showPicker by remember { mutableStateOf(false) }
+    tv.own.owntv.ui.stage.StageSurface(
+        onClick = { showPicker = true },
+        radius = 38.mpx,
+        // Focus: SkMate blue fill, as the buttons beside it.
+        focusStyle = tv.own.owntv.ui.stage.StageFocus.NONE,
+        idle = Modifier.border(2.mpx, StageColors.Text.copy(alpha = 0.14f), CircleShape),
+        contentAlignment = Alignment.Center,
+        modifier = modifier.size(76.mpx),
+    ) { focused ->
+        if (focused) Box(Modifier.matchParentSize().background(tv.own.owntv.ui.brand.SkMateBlue, CircleShape))
+        OwnTVIcon(OwnTVIcon.LANGUAGE, if (focused) Color.White else StageColors.Text, Modifier.size(38.mpx))
+    }
+    if (showPicker) {
+        FirstRunLanguagePopup(viewModel = viewModel, currentTag = currentTag, onDismiss = { showPicker = false })
+    }
+}
+
 @Composable
 private fun FirstRunLanguagePopup(
     viewModel: LanguageSettingsViewModel,
@@ -94,26 +125,25 @@ private fun FirstRunLanguagePopup(
     val selectedFocus = remember { FocusRequester() }
     val listState = rememberLazyListState(initialFirstVisibleItemIndex = selectedIndex)
 
-    fun choose(tag: String) {
-        viewModel.setLocale(tag)
-        onDismiss()
-    }
 
     LaunchedEffect(Unit) {
         kotlinx.coroutines.delay(80)
         runCatching { selectedFocus.requestFocus() }
     }
-    tv.own.owntv.ui.stage.StagePopup(onDismiss = onDismiss, title = stringResource(R.string.settings_language), width = 760.mpx, scroll = false) {
+    tv.own.owntv.ui.stage.StageSidePanel(onDismiss = onDismiss, title = stringResource(R.string.settings_language)) { close ->
+        fun choose(tag: String) {
+            viewModel.setLocale(tag)
+            close()
+        }
         LazyColumn(
             state = listState,
             modifier = Modifier.fillMaxWidth().weight(1f, fill = false),
             verticalArrangement = Arrangement.spacedBy(4.mpx),
         ) {
             item(key = SupportedLocales.SYSTEM_DEFAULT_TAG) {
-                LanguageRow(
+                SidePanelLanguageRow(
                     endonym = stringResource(R.string.settings_language_system_default),
                     englishName = stringResource(R.string.settings_language_system_default_description),
-                    coverage = null,
                     selected = currentTag.isEmpty(),
                     onClick = { choose(SupportedLocales.SYSTEM_DEFAULT_TAG) },
                     modifier = if (currentTag.isEmpty()) Modifier.focusRequester(selectedFocus) else Modifier,
@@ -121,10 +151,9 @@ private fun FirstRunLanguagePopup(
             }
             items(viewModel.pickerRows, key = { it.languageTag }) { locale ->
                 val selected = locale.languageTag == currentTag
-                LanguageRow(
+                SidePanelLanguageRow(
                     endonym = locale.endonym,
                     englishName = locale.englishName,
-                    coverage = null,
                     selected = selected,
                     onClick = { choose(locale.languageTag) },
                     modifier = if (selected) Modifier.focusRequester(selectedFocus) else Modifier,
@@ -264,22 +293,48 @@ private fun TranslateBlock() {
 }
 
 /** `.opt` with a radio: the language in its own name over its English one, and its coverage when known. */
+/**
+ * A row of the side panel's language list: a round highlight while focused, and the language in use
+ * filled SkMate blue with a white check on the right.
+ */
 @Composable
-private fun LanguageRow(
+private fun SidePanelLanguageRow(
     endonym: String,
     englishName: String,
-    coverage: Int?,
     selected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    tv.own.owntv.ui.stage.StagePopupOption(
-        title = endonym,
-        subtitle = englishName,
+    val shape = RoundedCornerShape(38.mpx)
+    tv.own.owntv.ui.stage.StageSurface(
         onClick = onClick,
-        modifier = modifier,
-        chosen = selected,
-        leading = { f -> tv.own.owntv.ui.stage.StagePopupRadio(selected, f) },
-        value = coverage?.let { stringResource(R.string.settings_language_coverage, it) },
-    )
+        radius = 38.mpx,
+        focusStyle = tv.own.owntv.ui.stage.StageFocus.NONE,
+        modifier = modifier.fillMaxWidth().height(76.mpx),
+    ) { focused ->
+        val fill = when {
+            selected -> tv.own.owntv.ui.brand.SkMateBlue
+            focused -> StageColors.Text.copy(alpha = 0.07f)
+            else -> Color.Transparent
+        }
+        Box(
+            Modifier.matchParentSize().then(
+                if (selected && focused) Modifier.border(3.mpx, tv.own.owntv.ui.brand.SkMateBlue.copy(alpha = 0.35f), shape) else Modifier,
+            ).padding(if (selected && focused) 5.mpx else 0.mpx).background(fill, shape),
+        )
+        Row(
+            Modifier.fillMaxWidth().padding(horizontal = 28.mpx),
+            horizontalArrangement = Arrangement.spacedBy(16.mpx),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(Modifier.weight(1f)) {
+                Text(endonym, style = stageText(22, 700), color = if (selected) Color.White else StageColors.Text, maxLines = 1)
+                Text(englishName, style = stageText(15, 500), color = if (selected) Color.White.copy(alpha = 0.8f) else StageColors.Muted, maxLines = 1)
+            }
+            if (selected) OwnTVIcon(OwnTVIcon.CHECK, Color.White, Modifier.size(26.mpx))
+        }
+    }
 }
+
+/** The language a first run starts in while it still follows the device. */
+private const val FirstRunLanguage = "ru"
