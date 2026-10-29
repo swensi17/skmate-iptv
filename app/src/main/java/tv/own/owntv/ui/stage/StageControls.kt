@@ -95,7 +95,7 @@ fun StageSearchField(
     val focus = stageAccent.focus
     // TV-box look: a plain rectangle with small corners; focus fills it light instead of a ring.
     val tvBox = tv.own.owntv.features.shell.TvBoxNav
-    val r = if (tvBox) WhiteFocusRadius else radius
+    val r = if (tvBox) 4.mpx else radius
     // Among the list's white focus cards the chosen field is one too: white, lifted, no ring.
     val white = tvBox && LocalWhiteFocus.current
     val lit = pillFocused || editing
@@ -124,7 +124,7 @@ fun StageSearchField(
             .background(if (lit && white) Color.White else if (tvBox && lit) SearchLitFill else StageColors.ControlFill, RoundedCornerShape(r))
             .then(if (lit && !tvBox) Modifier.drawBehind { drawOuterRing(focus, 2.mpx.toPx(), r.toPx()) } else Modifier)
             // TV-box look: the light fill plus a clear ring, so the field reads as chosen on a white page.
-            .then(if (lit && tvBox && !white) Modifier.border(2.mpx, SearchLitText.copy(alpha = 0.55f), RoundedCornerShape(r)) else Modifier)
+            .then(Modifier)
             .focusRequester(pillFocus)
             .clickable(interaction, null) { if (onActivate != null) onActivate() else editing = true },
         contentAlignment = Alignment.CenterStart,
