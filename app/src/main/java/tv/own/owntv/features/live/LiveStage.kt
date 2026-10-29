@@ -3,6 +3,7 @@ package tv.own.owntv.features.live
 import tv.own.owntv.ui.theme.stageTone
 import tv.own.owntv.ui.theme.stageShadow
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -151,11 +152,14 @@ internal fun LiveStageRow(
     onLongClick: () -> Unit,
     modifier: Modifier = Modifier,
     trailing: (@Composable () -> Unit)? = null,
+    /** This channel is the one in the preview: a small blue "playing" mark at the row's end (TV-box look). */
+    playing: Boolean = false,
 ) {
+    val tvBox = tv.own.owntv.features.shell.TvBoxNav
     StageRow(
         onClick = onClick,
         onLongClick = onLongClick,
-        height = 84.mpx,
+        height = if (tvBox) 92.mpx else 84.mpx,
         modifier = modifier.fillMaxWidth().onFocusChanged { if (it.hasFocus) onFocus() }
             // TV-box look: a hairline under each channel.
             .then(if (tv.own.owntv.features.shell.TvBoxNav) Modifier.drawBehind {
@@ -175,7 +179,7 @@ internal fun LiveStageRow(
         }
         LivePlate(channel.displayLogoUrl, 76.mpx, 54.mpx)
         Column(Modifier.weight(1f)) {
-            Text(name.name, style = stageText(22, 700), color = if (focused) StageColors.FxText else StageColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(name.name, style = stageText(if (tvBox) 23 else 22, 700), color = if (focused) StageColors.FxText else StageColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis)
             val title = now?.title ?: nowTitle
             if (title != null) {
                 val left = now?.let { timeLeftText(minutesLeft(it)) }
@@ -185,17 +189,19 @@ internal fun LiveStageRow(
                         append(title)
                         if (left != null) withStyle(SpanStyle(color = (if (focused) StageColors.FxLine else StageColors.Muted).copy(alpha = 0.6f))) { append(" · $left") }
                     },
-                    style = stageText(17, 400), color = if (focused) StageColors.FxLine else StageColors.Muted,
+                    style = stageText(if (tvBox) 18 else 17, 400), color = if (focused) StageColors.FxLine else StageColors.Muted,
                     maxLines = 1, overflow = TextOverflow.Ellipsis,
                 )
             }
             if (now != null) {
                 Spacer(Modifier.height(8.mpx))
-                StageProgress(progressOf(now), Modifier.width(300.mpx), flat = true)
+                // TV-box look: the bar runs the whole width of the row's text, to the row's end.
+                StageProgress(progressOf(now), if (tvBox) Modifier.fillMaxWidth() else Modifier.width(300.mpx), flat = true)
             }
         }
         if (trailing != null) trailing()
         else Row(horizontalArrangement = Arrangement.spacedBy(8.mpx), verticalAlignment = Alignment.CenterVertically) {
+            if (playing && tvBox) PlayingBars(Modifier.padding(start = 6.mpx))
             name.tags.forEach { StageTag(it) }
             if (channel.catchup) OwnTVIcon(OwnTVIcon.REWIND, StageColors.Dim, Modifier.size(22.mpx))
             if (isFavorite) OwnTVIcon(OwnTVIcon.FAVORITE, stageAccent.accent, Modifier.size(22.mpx), filled = true)
@@ -254,6 +260,8 @@ internal fun LiveStagePane(
     channelName: String?,
     nowNext: EpgNowNext?,
     previewEngine: tv.own.owntv.player.LivePreviewEngine,
+    /** Non-null: the pane's channel plays on this mpv player (ExoPlayer could not open it). */
+    mpvPlayer: tv.own.owntv.player.OwnTVPlayer? = null,
     showVideo: Boolean,
     singleSessionBlocked: Boolean,
     scheduleFocus: FocusRequester,
@@ -278,12 +286,12 @@ internal fun LiveStagePane(
             tv.own.owntv.player.LivePreviewEngine.State.PLAYING -> if (sawLoadingFor == id) {
                 // Long enough for the stream to settle into its real picture size: a fast zap otherwise
                 // showed the first frames small in a corner before they filled the pane.
-                kotlinx.coroutines.delay(800); readyFor = id
+                kotlinx.coroutines.delay(PictureSettleMs); readyFor = id
             }
             else -> Unit
         }
     }
-    val skeleton = showVideo && channel != null && readyFor != channel.id &&
+    val skeleton = showVideo && channel != null && readyFor != channel.id && mpvPlayer == null &&
         previewState != tv.own.owntv.player.LivePreviewEngine.State.ERROR
     val surfaceAlpha by androidx.compose.animation.core.animateFloatAsState(if (skeleton) 0f else 1f, androidx.compose.animation.core.tween(if (skeleton) 0 else 260), label = "previewSurface")
     val videoR = 28.mpx
@@ -322,8 +330,13 @@ internal fun LiveStagePane(
                     fill = Color.Transparent,
                 ) { OwnTVIcon(OwnTVIcon.LIVE_TV, tint = StageColors.Dim, modifier = Modifier.size(56.mpx)) }
             }
-            if (playing) tv.own.owntv.player.ExoPreviewSurface(engine = previewEngine, modifier = Modifier.fillMaxSize().graphicsLayer { alpha = surfaceAlpha })
-            if (skeleton) PreviewSkeleton(Modifier.fillMaxSize())
+            if (mpvPlayer != null && showVideo) tv.own.owntv.player.MpvVideoSurface(player = mpvPlayer, modifier = Modifier.fillMaxSize(), autoFrameRate = false)
+            else if (playing) tv.own.owntv.player.ExoPreviewSurface(engine = previewEngine, modifier = Modifier.fillMaxSize().graphicsLayer { alpha = surfaceAlpha })
+            if (skeleton) {
+                PreviewSkeleton(Modifier.fillMaxSize())
+                // TV-box look: the same spinner as the player while the channel opens.
+                if (tv.own.owntv.features.shell.TvBoxNav && channel != null) OwnTVSpinner(sizeDp = 36, color = Color.White.copy(alpha = 0.85f))
+            }
             else if (loading) OwnTVSpinner(sizeDp = 28)
             // `.shade`: black 72% at the bottom, clear by 42% up — a video-sized gradient, one pass.
             // The shade is for the channel line over a picture; the empty "pick a channel" box has neither.
@@ -335,17 +348,21 @@ internal fun LiveStagePane(
                     // "Live · 480p · 25 fps · Stereo" — instead of a red badge and boxed chips.
                     val facts = listOf(stringResource(R.string.player_live)) +
                         (if (playing) streamChips.filterNot { it.contains(':') || it.endsWith("Mbps") } else emptyList())
-                    Text(
-                        facts.joinToString(SpecSeparator),
-                        style = stageText(15, 600),
-                        color = Color.White.copy(alpha = 0.82f),
-                        maxLines = 1,
-                        modifier = Modifier
-                            .align(Alignment.TopStart)
-                            .padding(start = 20.mpx, top = 18.mpx)
-                            .background(Color.Black.copy(alpha = 0.32f), androidx.compose.foundation.shape.RoundedCornerShape(50))
-                            .padding(horizontal = 14.mpx, vertical = 6.mpx),
-                    )
+                    // As the player writes them: each fact in a thin white outline, no capsule behind.
+                    Row(
+                        Modifier.align(Alignment.TopStart).padding(start = 20.mpx, top = 18.mpx),
+                        horizontalArrangement = Arrangement.spacedBy(8.mpx),
+                    ) {
+                        facts.take(4).forEach { fact ->
+                            Text(
+                                fact.uppercase(), style = stageText(14, 700), color = Color.White.copy(alpha = 0.92f), maxLines = 1,
+                                modifier = Modifier
+                                    .background(Color.Black.copy(alpha = 0.18f), RoundedCornerShape(5.mpx))
+                                    .border(1.mpx, Color.White.copy(alpha = 0.7f), RoundedCornerShape(5.mpx))
+                                    .padding(horizontal = 8.mpx, vertical = 3.mpx),
+                            )
+                        }
+                    }
                 } else Box(Modifier.align(Alignment.TopStart).padding(start = 24.mpx, top = 22.mpx)) { StageLiveBadge(stringResource(R.string.player_live)) }
                 if (!tv.own.owntv.features.shell.TvBoxNav && playing && streamChips.isNotEmpty()) {
                     Row(Modifier.align(Alignment.TopEnd).padding(end = 22.mpx, top = 22.mpx), horizontalArrangement = Arrangement.spacedBy(6.mpx)) {
@@ -800,8 +817,6 @@ private fun CategoryCountdown(n: Int) {
     }
 }
 
-/** Between the facts on the preview's line. */
-private const val SpecSeparator = "  ·  "
 
 /** The preview's placeholder while a channel starts: a dark card with a slow, soft light sweep. Cheap: one brush. */
 @Composable
@@ -900,3 +915,32 @@ internal fun NoChannelsNote(text: String, modifier: Modifier = Modifier) {
 
 /** Below this many entries the categories need no search field. */
 private const val CategorySearchMin = 20
+
+/** After the first picture: long enough for the stream to settle into its real size, short enough not to feel slow. */
+private const val PictureSettleMs = 250L
+
+/** Three blue bars rising and falling: the row's channel is the one playing in the preview. */
+@Composable
+private fun PlayingBars(modifier: Modifier = Modifier) {
+    val t by androidx.compose.animation.core.rememberInfiniteTransition(label = "playingBars").animateFloat(
+        initialValue = 0f, targetValue = 1f,
+        animationSpec = androidx.compose.animation.core.infiniteRepeatable(androidx.compose.animation.core.tween<Float>(900, easing = androidx.compose.animation.core.LinearEasing)),
+        label = "playingBarsPhase",
+    )
+    val blue = tv.own.owntv.ui.brand.SkMateBlue
+    Box(
+        modifier.size(22.mpx).drawBehind {
+            val w = size.width / 5f
+            for (i in 0 until 3) {
+                val phase = (t + i * 0.33f) % 1f
+                val h = size.height * (0.35f + 0.65f * kotlin.math.abs(kotlin.math.sin(phase * Math.PI)).toFloat())
+                drawRoundRect(
+                    blue,
+                    topLeft = androidx.compose.ui.geometry.Offset(i * 2 * w, size.height - h),
+                    size = androidx.compose.ui.geometry.Size(w, h),
+                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(w / 2f),
+                )
+            }
+        },
+    )
+}

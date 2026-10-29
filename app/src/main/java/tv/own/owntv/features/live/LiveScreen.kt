@@ -182,6 +182,22 @@ fun LiveScreen(
         pendingPreview = null
     }
 
+    // TV-box look: back from full screen the preview takes the channel again at once, wherever focus lands —
+    // into the menu, say, where no row focus would ask for it and the pane stayed black.
+    LaunchedEffect(effectivePreview) {
+        if (!tv.own.owntv.features.shell.TvBoxNav || !effectivePreview) return@LaunchedEffect
+        delay(ReturnPreviewMs)
+        previewChannel?.let { vm.playPreview(it) }
+    }
+
+    // ExoPlayer could not open the pane's channel: the same channel on mpv, as full screen does.
+    val previewState by vm.previewEngine.state.collectAsStateWithLifecycle()
+    val previewOnMpv by vm.previewOnMpv.collectAsStateWithLifecycle()
+    LaunchedEffect(previewState, previewChannel?.id, effectivePreview) {
+        if (!effectivePreview || previewState != tv.own.owntv.player.LivePreviewEngine.State.ERROR) return@LaunchedEffect
+        previewChannel?.let { vm.previewFallback(it) }
+    }
+
     // In-pane preview: play the focused channel after the focus settles (700ms). Disabled while the
     // fullscreen/mini player owns the surface (previewEnabled=false) to avoid two surfaces fighting.
     LaunchedEffect(previewChannel?.id, effectivePreview, previewArmed) {
@@ -643,8 +659,9 @@ fun LiveScreen(
         } else {
             // The design's geometry.
             colW = fx(350); sheetW = fx(450)
-            listW = if (separate) fx(620) else fx(846)
             stageW = if (separate) fx(766) else fx(912)
+            // TV-box look: the list runs right up to the preview, no empty band between them.
+            listW = if (separate) fx(620) else if (tv.own.owntv.features.shell.TvBoxNav) row - stageW - gapStage else fx(846)
         }
         val listX = if (separate) margin + colW + gapCat else margin
         val listWidth = if (previewShown) listW else row - (listX - margin)
@@ -889,6 +906,7 @@ fun LiveScreen(
                                     isFavorite = favoriteIds.contains(channel.id),
                                     showNumber = showChannelNumbers,
                                     mark = playlistMarks[channel.sourceId],
+                                    playing = isPreviewed && effectivePreview,
                                     modifier = Modifier.gridFocusTarget(
                                         itemId = channel.id, index = index,
                                         contextId = contextChannelId, contextFocus = contextFocus,
@@ -954,6 +972,7 @@ fun LiveScreen(
                     channelName = previewChannel?.let { ProviderTags.parse(it.name).name },
                     nowNext = nowNext,
                     previewEngine = vm.previewEngine,
+                    mpvPlayer = vm.player.takeIf { previewChannel?.id != null && previewOnMpv == previewChannel?.id },
                     showVideo = effectivePreview,
                     singleSessionBlocked = previewBlockedSingleSession,
                     scheduleFocus = scheduleFocus,
@@ -1607,8 +1626,11 @@ internal fun liveEpgShiftLabel(minutes: Int): String {
 }
 
 /** How long focus rests on a channel row before the preview switches to it (TV-box look). */
-private const val PreviewDwellMs = 1_000L
+private const val PreviewDwellMs = 500L
 
 /** A group's rows fading in, and how far (dp) they rise while they do. */
 private const val ListFadeMs = 240
 private const val ListRisePx = 14f
+
+/** After full screen: how long the picture has to shrink back before the preview takes the channel. */
+private const val ReturnPreviewMs = 350L
