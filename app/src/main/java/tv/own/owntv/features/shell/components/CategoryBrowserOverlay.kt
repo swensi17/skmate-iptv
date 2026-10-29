@@ -203,6 +203,8 @@ fun TvBoxCategoryColumn(
             style = tv.own.owntv.ui.theme.stageText(24, 700), color = c.text, maxLines = 1,
             modifier = Modifier.padding(horizontal = 28.mpx),
         )
+        @OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
+                androidx.compose.runtime.CompositionLocalProvider(androidx.compose.foundation.gestures.LocalBringIntoViewSpec provides tv.own.owntv.features.live.edgeScrollSpec) {
         androidx.compose.foundation.lazy.LazyColumn(
             state = listState,
             modifier = Modifier.fillMaxWidth().weight(1f).padding(top = 14.mpx),
@@ -238,6 +240,7 @@ fun TvBoxCategoryColumn(
                     }
                 }
             }
+        }
         }
     }
 }

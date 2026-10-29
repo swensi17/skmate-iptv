@@ -106,6 +106,8 @@ fun TvBoxChannelPanel(
     active: Boolean = true,
     /** The picture is opening a channel: a spinner in the middle of the picture's window. */
     loading: Boolean = false,
+    /** How far the picture has moved into its corner (0 = full screen, 1 = docked): the window follows it. */
+    dockProgress: () -> Float = { 1f },
 ) {
     val formatTime = rememberSystemTimeFormatter()
     val c = tvBoxPanelColors()
@@ -118,6 +120,8 @@ fun TvBoxChannelPanel(
     val focusedIndex = remember(channels, focusedId) { channels.indexOfFirst { it.id == focusedId }.coerceAtLeast(0) }
     val listState = rememberLazyListState()
     val firstFocus = remember { FocusRequester() }
+    // Back from the categories: the channel being watched again, not wherever the list was left.
+    LaunchedEffect(active) { if (active && currentId != null) focusedId = currentId }
     LaunchedEffect(channels, active) {
         // Only scroll when the focused row is off screen: the list re-emits as programmes load.
         val visible = listState.layoutInfo.visibleItemsInfo.any { it.index == focusedIndex }
@@ -156,13 +160,19 @@ fun TvBoxChannelPanel(
             Modifier.fillMaxSize()
                 .graphicsLayer { compositingStrategy = androidx.compose.ui.graphics.CompositingStrategy.Offscreen }
                 .drawBehind {
-                    drawRect(c.fill)
+                    // The clear window travels with the picture, from the whole screen into the corner,
+                    // so the picture is seen shrinking, not jumping inside a fixed frame.
+                    val t = dockProgress()
+                    fun lerp(a: Float, b: Float) = a + (b - a) * t
+                    drawRect(c.fill.copy(alpha = c.fill.alpha * t))
+                    val left = lerp(0f, (TvBoxDock.Left + inset).toPx())
+                    val top = lerp(0f, TvBoxDock.Top.toPx())
                     drawRoundRect(
                         Color.Transparent,
-                        topLeft = Offset((TvBoxDock.Left + inset).toPx(), TvBoxDock.Top.toPx()),
-                        size = Size(dockW.toPx(), (dockW * 9f / 16f).toPx()),
-                        // Softly rounded: the panel's dark covers the picture's square corners.
-                        cornerRadius = CornerRadius(TvBoxDock.Radius.toPx()),
+                        topLeft = Offset(left, top),
+                        size = Size(lerp(size.width, dockW.toPx()), lerp(size.height, (dockW * 9f / 16f).toPx())),
+                        // Softly rounded: the panel covers the picture's square corners.
+                        cornerRadius = CornerRadius(TvBoxDock.Radius.toPx() * t),
                         blendMode = androidx.compose.ui.graphics.BlendMode.Clear,
                     )
                 },
@@ -187,6 +197,8 @@ fun TvBoxChannelPanel(
                     .padding(top = 36.mpx),
             ) {
                 Text(title, style = stageText(24, 700), color = c.text, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(horizontal = 28.mpx))
+                @OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
+                androidx.compose.runtime.CompositionLocalProvider(androidx.compose.foundation.gestures.LocalBringIntoViewSpec provides tv.own.owntv.features.live.edgeScrollSpec) {
                 LazyColumn(
                     state = listState,
                     modifier = Modifier.fillMaxWidth().weight(1f).padding(top = 14.mpx),
@@ -206,6 +218,7 @@ fun TvBoxChannelPanel(
                             modifier = if (index == focusedIndex) Modifier.focusRequester(firstFocus) else Modifier,
                         )
                     }
+                }
                 }
             }
         }

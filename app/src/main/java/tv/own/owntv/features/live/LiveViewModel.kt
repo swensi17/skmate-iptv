@@ -985,6 +985,12 @@ class LiveViewModel(
     val previewBlockedSingleSession: StateFlow<Boolean> = live.previewBlockedSingleSession
 
     /** In-pane preview playback (no history) — triggered by the UI after the focus settles. */
+    /** The channel the preview pane shows on mpv because ExoPlayer could not open it. */
+    val previewOnMpv: StateFlow<Long?> get() = live.previewOnMpv
+
+    /** ExoPlayer failed on the pane's channel: show it there on mpv instead. */
+    fun previewFallback(channel: ChannelEntity) = live.previewFallback(channel, muted = !livePreviewAudio.value)
+
     fun playPreview(channel: ChannelEntity) {
         if (channel.categoryId != null && channel.categoryId in hiddenCategoryIds.value) return
         // Core keeps the preview off a promoted full-screen stream, re-mutes on a re-focus instead of
