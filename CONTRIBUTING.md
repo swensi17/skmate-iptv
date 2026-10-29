@@ -1,6 +1,6 @@
 # Как участвовать в SkMate IPTV
 
-Полное ТЗ: [docs/SPEC.md](docs/SPEC.md). Порядок работы и этапы: [AGENTS.md](AGENTS.md).
+Порядок работы и этапы: [AGENTS.md](AGENTS.md).
 
 ## Правила
 

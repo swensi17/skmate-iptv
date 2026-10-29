@@ -1,4 +1,4 @@
-# Internationalization & Localization for OwnTV
+# Internationalization & Localization for SkMate IPTV
 
 > **Status:** approved implementation plan, **v2**. Phases 0-3 are implemented; Phase 4 remains planned.
 
@@ -52,7 +52,7 @@ Everything not listed above is carried forward from v1 unchanged, including the 
 
 ## The governing architecture
 
-OwnTV's application, domain, repository, Worker and persistence code communicate **semantic facts, values, counts, identifiers and raw external content**. They do not produce resolved translated sentences merely because they run outside Compose. **Compose resolves everything ultimately rendered by Compose.** A small named set of final renderers resolves the user-facing output that Android or the companion server renders outside Compose.
+SkMate IPTV's application, domain, repository, Worker and persistence code communicate **semantic facts, values, counts, identifiers and raw external content**. They do not produce resolved translated sentences merely because they run outside Compose. **Compose resolves everything ultimately rendered by Compose.** A small named set of final renderers resolves the user-facing output that Android or the companion server renders outside Compose.
 
 ```text
 Repositories / Workers / ViewModels
@@ -101,7 +101,7 @@ Presentation layer:
 
 ## Context
 
-OwnTV ships worldwide via GitHub releases with no server component, and its audience (IPTV on Android TV) skews heavily non-English: MENA, LATAM, Europe, South and Southeast Asia. Today the app has **zero** i18n infrastructure. `app/src/main/res/values/strings.xml` contains exactly one entry (`app_name`), and every other user-facing string is a hardcoded Kotlin literal across 261 files / ~60k lines.
+SkMate IPTV ships worldwide via GitHub releases with no server component, and its audience (IPTV on Android TV) skews heavily non-English: MENA, LATAM, Europe, South and Southeast Asia. Today the app has **zero** i18n infrastructure. `app/src/main/res/values/strings.xml` contains exactly one entry (`app_name`), and every other user-facing string is a hardcoded Kotlin literal across 261 files / ~60k lines.
 
 Measured scope (unchanged by v2, see the note below):
 
@@ -135,22 +135,22 @@ malformed localized values.
 
 > Note: appcompat 1.7.1 is **already** on the classpath transitively via `koin-android` and `coil-core-android`. Its `abc_*` resources and ~85 locale folders are in the shipped APK today. This does not change the decision, but it means the locale growth below sits on top of an arsc that already carries significant library i18n, and it is why `localeFilters` earns its place in Phase 0.
 
-**2a. The in-app picker is the sole locale authority on every API level, and OwnTV does not participate in the Android system per-app-language screen.** The framework `LocaleManager.setApplicationLocales()` is API 33+, and this plan's primary target is API 28-33 hardware, so an override layer of our own is required regardless. v1 then proposed a read-only reconcile that adopted a system-set locale at start-up. v2 removes that entirely.
+**2a. The in-app picker is the sole locale authority on every API level, and SkMate IPTV does not participate in the Android system per-app-language screen.** The framework `LocaleManager.setApplicationLocales()` is API 33+, and this plan's primary target is API 28-33 hardware, so an override layer of our own is required regardless. v1 then proposed a read-only reconcile that adopted a system-set locale at start-up. v2 removes that entirely.
 
 Reason: a read-only reconcile creates two authorities that cannot converge. The system value is only writable by us (which we refuse to do, because that call recreates the Activity unless the app declares `configChanges="locale|layoutDirection"`, and this app declares **no** `configChanges` at all today). So the system value goes stale the moment the user picks a language in-app, and "system wins on detection" then silently reverts their in-app choice on the next launch:
 
 ```text
 System picker  = German      (set once, never updated again)
-OwnTV picker   = French      (user's actual, later choice)
+SkMate IPTV picker   = French      (user's actual, later choice)
 Next launch    → stale German wins
 ```
 
-There is no non-writing fix for that. The clean resolution is to not advertise the surface at all: no `generateLocaleConfig`, no hand-written `android:localeConfig`, no `LocaleManager` reads, no reconcile, no provenance tracking, no configuration callback that exists only to detect a system-picker change. Android Settings simply shows no per-app-language entry for OwnTV, exactly as it already does on the API 28-32 majority of the target hardware.
+There is no non-writing fix for that. The clean resolution is to not advertise the surface at all: no `generateLocaleConfig`, no hand-written `android:localeConfig`, no `LocaleManager` reads, no reconcile, no provenance tracking, no configuration callback that exists only to detect a system-picker change. Android Settings simply shows no per-app-language entry for SkMate IPTV, exactly as it already does on the API 28-32 majority of the target hardware.
 
 The architecture becomes:
 
 ```text
-OwnTV in-app picker
+SkMate IPTV in-app picker
         ↓
     LocaleStore
         ↓
@@ -340,7 +340,7 @@ Extract its ~25 strings to Android resources and resolve them at HTML-render tim
 
 OwnTV-authored launcher prose is presentation text even though the Android TV system renders it. Resolve the row name, row description, fallback media type, season and episode labels through a narrow launcher renderer when the existing publisher runs. Provider titles remain raw external content. Do not add a locale-change-triggered republish path: the legacy launcher is low usage, so existing entries may remain in the previous language until the next normal refresh.
 
-### H. Android system UI rendered by OwnTV
+### H. Android system UI rendered by SkMate IPTV
 
 `DownloadNotifications`, the existing system-toast sites in `OwnTVPlayer` and `ExternalPlayerLauncher`, and the external-player chooser are final presentation boundaries. Resolve their fixed OwnTV-authored strings at display time through a locale-wrapped context. Preserve their current behavior; do not add Compose event plumbing solely for internationalization. Any unknown external text passed to one of these renderers remains raw.
 
@@ -445,7 +445,7 @@ fun FriendlySyncFailure.displayText(): String =
 Rules carried forward from v1, all still binding:
 
 - **Internal English exception needles are stable comparison keys and stay English forever.** `"MAC may not be authorized"`, `"Portal handshake"`, `"timeout"` are thrown by our own code and matched by our own code. Translating a thrown message silently breaks classification. Document this at both ends (throw site and classifier) and list them as a safe category in `check_hardcoded_strings.py`.
-- **Preserve exactly the categories already recognized by `friendlySyncError`; internationalization does not expand error interpretation.** Existing friendly OwnTV output becomes translated. A null or blank message maps to `Generic`. A non-empty message that the current mapper does not recognize remains `Unknown(rawMessage)` byte for byte.
+- **Preserve exactly the categories already recognized by `friendlySyncError`; internationalization does not expand error interpretation.** Existing friendly SkMate IPTV output becomes translated. A null or blank message maps to `Generic`. A non-empty message that the current mapper does not recognize remains `Unknown(rawMessage)` byte for byte.
 - **Known categories become translated only at presentation time.**
 - **Unknown provider/server text remains raw.** No resource exists for arbitrary upstream text and none can.
 - **EPG and sync persistence store the original raw exception text.** `EpgSyncWorker.kt:60` ⟨verify⟩ classifies today and `:64` ⟨verify⟩ calls `store.markError(source.id, message)`, which `EpgSourceStore.kt:86` ⟨verify⟩ writes into a DataStore-backed JSON list. `EpgSourceStore.kt:165` ⟨verify⟩ then does `s.lastError?.let { put("err", it) }`, exporting it into the user's backup. So `markError` stores the raw exception text and classification happens at render.
@@ -572,7 +572,7 @@ Provider movie, show, episode and channel titles remain raw external content.
 
 Use a narrow launcher presentation helper that reads the current `LocaleStore` value, creates a locale-wrapped context at publication time, and supplies the resolved strings to the existing builders. It is an approved final-renderer boundary, not permission for repositories generally to resolve resources.
 
-**Priority decision:** the legacy Android TV launcher is used by a small minority of OwnTV users, and the current publisher does not target the Google TV launcher. Do not introduce a special locale-change observer, coordination worker or immediate republish operation. Existing entries may remain in the previous language until the next normal publisher run. When that run occurs, every newly written OwnTV-authored field uses the current locale.
+**Priority decision:** the legacy Android TV launcher is used by a small minority of SkMate IPTV users, and the current publisher does not target the Google TV launcher. Do not introduce a special locale-change observer, coordination worker or immediate republish operation. Existing entries may remain in the previous language until the next normal publisher run. When that run occurs, every newly written OwnTV-authored field uses the current locale.
 
 ---
 
@@ -738,7 +738,7 @@ Resources.getSystem().configuration.locales
 
 `Resources.getSystem()` is allowed here only as the source of **device locale metadata**. App strings must never be resolved from it.
 
-This distinction matters after a custom locale has already wrapped the Application. That wrapped Application context can report the previous app locale; it cannot be used to discover what the TV currently uses. Selecting "System default" must immediately apply the current device locale, persist `""`, and continue following later device-locale changes. If none of the device locales has packaged OwnTV resources, ordinary Android resource fallback selects source English.
+This distinction matters after a custom locale has already wrapped the Application. That wrapped Application context can report the previous app locale; it cannot be used to discover what the TV currently uses. Selecting "System default" must immediately apply the current device locale, persist `""`, and continue following later device-locale changes. If none of the device locales has packaged SkMate IPTV resources, ordinary Android resource fallback selects source English.
 
 #### Backup interaction (two steps, down from three)
 
@@ -824,7 +824,7 @@ Also removed with it: the known upstream non-determinism issue [281825213](https
 
 - It strips **library** locale folders at merge time. appcompat 1.7.1 alone contributes ~85 locale
   folders to the APK that ships today. Setting the filter to the explicitly packaged catalogue set
-  removes them before OwnTV translations are added. The Phase 0 baseline is recorded; later measurements
+  removes them before SkMate IPTV translations are added. The Phase 0 baseline is recorded; later measurements
   cover only qualifiers promoted for release.
 - It is what makes the catalogue packaging flags meaningful. `app/build.gradle.kts` reads only
   `packaged = true` entries and never infers packaging from catalogue membership or coverage. A
@@ -1073,7 +1073,7 @@ This is where the canonical/display split lands: `ChannelGenre.label` stays the 
 
 ### Batch 7. `player/`
 
-`PlayerHud`, `OwnTVPlayer` (~35 error strings), `ExoSubtitleEngine`, `LivePreviewEngine`, `PlayerDiagnostics`, `AudioNowPlayingBar`, `ZoomMode`, `MiniPlayerPosition`, and `core/player/ExternalPlayerLauncher.kt`. Categories 1, 3 and 8. `ZoomMode` and `MiniPlayerPosition` are UI enums and may carry `@StringRes` directly. Preserve the existing system-toast and chooser behavior; resolve fixed OwnTV messages at display time through the current-locale context. Do not add Compose event plumbing solely for this migration.
+`PlayerHud`, `OwnTVPlayer` (~35 error strings), `ExoSubtitleEngine`, `LivePreviewEngine`, `PlayerDiagnostics`, `AudioNowPlayingBar`, `ZoomMode`, `MiniPlayerPosition`, and `core/player/ExternalPlayerLauncher.kt`. Categories 1, 3 and 8. `ZoomMode` and `MiniPlayerPosition` are UI enums and may carry `@StringRes` directly. Preserve the existing system-toast and chooser behavior; resolve fixed SkMate IPTV messages at display time through the current-locale context. Do not add Compose event plumbing solely for this migration.
 
 ### Batch 8. `features/downloads` / `subtitles` / `profiles` / `customize` / `update`
 
@@ -1584,11 +1584,11 @@ Switch between a Latin locale and Arabic or a CJK locale, and confirm **only the
 1. Start in English and switch to German without recreation.
 2. Trigger a system configuration change such as font scale or dark mode.
 3. Confirm Compose and `Locale.getDefault()` remain German; the startup locale must not return.
-4. Set the TV language to French, then choose OwnTV's "System default".
-5. Confirm OwnTV immediately changes to French and persists `""`, not `"fr"`.
-6. Change the TV language to Spanish while OwnTV follows system.
+4. Set the TV language to French, then choose SkMate IPTV's "System default".
+5. Confirm SkMate IPTV immediately changes to French and persists `""`, not `"fr"`.
+6. Change the TV language to Spanish while SkMate IPTV follows system.
 7. Confirm the next configuration callback applies Spanish.
-8. Repeat with a TV language outside the 24 supported languages and confirm OwnTV falls back to source English.
+8. Repeat with a TV language outside the 24 supported languages and confirm SkMate IPTV falls back to source English.
 
 ### E. Configuration-only profile-gate retention
 
@@ -1606,7 +1606,7 @@ This proves the flag lives in an Activity-scoped ViewModel without saved-state r
 2. Switch to Deutsch **without restarting**.
 3. Open the companion page from another device.
 4. Confirm the generated HTML is German.
-5. Trigger an existing `OwnTVPlayer` system toast and an `ExternalPlayerLauncher` fallback/chooser; confirm fixed OwnTV text is German.
+5. Trigger an existing `OwnTVPlayer` system toast and an `ExternalPlayerLauncher` fallback/chooser; confirm fixed SkMate IPTV text is German.
 6. Start a download; confirm the notification uses German and the existing notification channel's visible name updates when the renderer runs.
 7. Let the normal legacy Android TV launcher publisher run; confirm newly published OwnTV-authored row, description, media type, season and episode prose is German.
 8. Confirm a language change does **not** start a special launcher republish operation; old entries may stay in the previous language until the next normal run.
@@ -1746,7 +1746,7 @@ The current baseline is a subset of the **merge-base** baseline.
 
 ### Named non-Compose renderers
 
-- Companion HTML, notifications, existing system toasts/chooser UI and launcher publication resolve fixed OwnTV text using the current locale at render time.
+- Companion HTML, notifications, existing system toasts/chooser UI and launcher publication resolve fixed SkMate IPTV text using the current locale at render time.
 - Unknown external text remains byte-for-byte raw.
 - Rebuilding a download notification updates the existing channel's localized visible name.
 - Normal launcher publication uses the current locale, but a locale change does not trigger a special republish.
@@ -1776,7 +1776,7 @@ Reconciles the 2026-07-28 review with the 2026-07-29 (v2) architectural decision
 
 | # | Finding | Resolution (current) | Section |
 |---|---|---|---|
-| 1 | `setApplicationLocales()` contradicts the no-recreation contract | Never call it. **v2 goes further:** read-only reconciliation created stale competing authorities and silently lost the user's in-app choice, so OwnTV does not advertise or support the Android system per-app-language picker at all. Generated locale config and all reconciliation removed. The in-app picker is the sole authority | Arch 2a, 0b, Gradle |
+| 1 | `setApplicationLocales()` contradicts the no-recreation contract | Never call it. **v2 goes further:** read-only reconciliation created stale competing authorities and silently lost the user's in-app choice, so SkMate IPTV does not advertise or support the Android system per-app-language picker at all. Generated locale config and all reconciliation removed. The in-app picker is the sole authority | Arch 2a, 0b, Gradle |
 | 2 | Application-backed resources stay on the startup locale | **v2 supersedes `LocaleContextProvider`.** General non-presentation code does not resolve user-facing resources. Compose uses live wrapped resources. Named final non-Compose renderers create locale-specific contexts at render time. `OwnTVApp.onConfigurationChanged` re-applies the current store value so process defaults cannot revert to the startup locale | Governing architecture, 0b, named renderers |
 | 3 | Phase 0 would advertise ~85 untranslated dependency locales | `localeFilters` ships in Phase 0, fed from `locales.json` `resourceQualifier`, starting at `en` + `en-rGB`. The `generateLocaleConfig` half is dropped with the system picker; the filter is retained for APK size and dependency-locale control | 0b Gradle, 4c |
 | 4 | Error mapper cannot return `@StringRes Int` | **v2 supersedes `UiText`.** Use a semantic classifier returning `FriendlySyncFailure`. Migrate full vertical slices through an additive API or one atomic batch. Raw EPG persistence and friendly EPG rendering ship together, so no phase exposes raw exceptions to users | Errors section, Phase 1 batch 1b |

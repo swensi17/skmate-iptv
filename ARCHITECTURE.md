@@ -1,7 +1,6 @@
 # Архитектура SkMate IPTV
 
-SkMate IPTV — форк [OwnTV](https://github.com/swensi17/skmate-iptv) (GPL-3.0). Архитектура и алгоритмы
-унаследованы; название, значок, выпуск и дальнейшие функции свои. Требования: [docs/SPEC.md](docs/SPEC.md).
+SkMate IPTV — нативный IPTV-плеер для Android TV на Kotlin и Jetpack Compose for TV, GPL-3.0 (см. [NOTICE](NOTICE)).
 
 ## Репозитории и модули
 
@@ -28,11 +27,11 @@ skmate-iptv (этот репозиторий)          skmate-iptv-core         
 
 ## Имена
 
-Пакеты Kotlin (`tv.own.owntv…`) и внутренние имена ресурсов (`owntv_…`) оставлены от исходного
-проекта: их не видит пользователь, а одинаковые имена позволяют переносить исправления из OwnTV.
+Пакеты Kotlin (`tv.own.owntv…`) и внутренние имена ресурсов (`owntv_…`) — внутренние идентификаторы,
+пользователь их не видит.
 Пользователь видит только то, что задано в ядре: `tools/brand/brand.json` (название) и
 `tools/brand/render_skmate.py` (значок, баннер, экран запуска). `applicationId` приложения —
-`uz.skmate.iptv`, поэтому SkMate IPTV ставится рядом с OwnTV и не пересекается с ним.
+`uz.skmate.iptv`, поэтому SkMate IPTV ставится рядом с SkMate IPTV и не пересекается с ним.
 
 ## Сборка и выпуск
 

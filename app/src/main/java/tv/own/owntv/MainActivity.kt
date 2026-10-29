@@ -62,6 +62,7 @@ private const val BG_TAG = "BgImage"
 open class MainActivity : ComponentActivity() {
 
     /** Esc on a keyboard (or the emulator's) is Back, as on the remote. */
+    @Suppress("RestrictedApi") // androidx.core marks the override restricted; the app is not in that library group
     override fun dispatchKeyEvent(event: android.view.KeyEvent): Boolean {
         // Back held down (about a second of key repeats) closes the app outright, TV-box style.
         if (tv.own.owntv.features.shell.TvBoxNav && event.keyCode == android.view.KeyEvent.KEYCODE_BACK &&

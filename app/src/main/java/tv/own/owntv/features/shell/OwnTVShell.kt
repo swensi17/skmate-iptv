@@ -923,6 +923,7 @@ fun OwnTVShell(
 
     var lastBackAt by remember { mutableLongStateOf(0L) }
     val context = androidx.compose.ui.platform.LocalContext.current
+    val pressBackAgain = androidx.compose.ui.res.stringResource(R.string.shell_press_back_again)
         fun closeMenuToContent() {
         if (playerMode == PlayerMode.FULLSCREEN) { runCatching { playerFocus.requestFocus() }; return }
         val entry = when (selectedSection) {
@@ -980,7 +981,7 @@ fun OwnTVShell(
                 if (now - lastBackAt < ExitBackWindowMs) context.findActivity()?.finish()
                 else {
                     lastBackAt = now
-                    android.widget.Toast.makeText(context, context.getString(R.string.shell_press_back_again), android.widget.Toast.LENGTH_SHORT).show()
+                    android.widget.Toast.makeText(context, pressBackAgain, android.widget.Toast.LENGTH_SHORT).show()
                 }
             }
             focusedLayer == ShellLayer.SIDEBAR -> showExit = true
@@ -1512,7 +1513,7 @@ fun OwnTVShell(
             }
           }
             // Settings (and More, which opens it) is a sheet over the right side: the clock and the playlist pill would sit on its title.
-            if ((selectedSection != MainSection.SETTINGS && selectedSection != MainSection.MORE) || !tv.own.owntv.features.settings.SettingsAsSidePanel)
+            if ((selectedSection != MainSection.SETTINGS && selectedSection != MainSection.MORE) || !tv.own.owntv.features.settings.SettingsAsSidePanel) {
             tv.own.owntv.features.shell.components.StageStatusCluster(
                 continuePill = continueTarget?.let { target ->
                     val live = target.kind == tv.own.owntv.features.home.ContinueKind.LIVE
@@ -1544,6 +1545,7 @@ fun OwnTVShell(
                 onPlaylistPillBounds = { playlistPillBounds = it },
                 modifier = Modifier.align(Alignment.TopEnd).onFocusChanged { clusterFocused = it.hasFocus }.focusGroup(),
             )
+            }
             // While the menu is open a tap anywhere beside it closes it, focus going back to the screen.
             if (TvBoxNav && railState == tv.own.owntv.features.shell.components.RailState.OPEN) {
                 val entry = when (selectedSection) {

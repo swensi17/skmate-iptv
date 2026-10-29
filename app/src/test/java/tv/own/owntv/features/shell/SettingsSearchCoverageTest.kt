@@ -155,6 +155,8 @@ class SettingsSearchCoverageTest {
         "settings_sources_test_title", "player_subtitles_sign_in_title", "settings_open_subtitles_setup_title",
         "settings_panel_width_dialog_title", "settings_panel_width_disable_preview_title",
         "settings_record_watching_warning_title",
+        // The bottom "Add" buttons of the playlist and guide-source lists: actions, not settings.
+        "settings_sources_add", "content_epg_add",
     )
 
     @Test
