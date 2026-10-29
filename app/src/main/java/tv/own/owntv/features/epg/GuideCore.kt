@@ -115,7 +115,7 @@ internal fun ProgrammeStripCanvas(
         }
         val viewW = size.width
         val h = size.height
-        val r = CornerRadius((if (tvBox) 12 else 14) * px)
+        val r = CornerRadius((if (tvBox) 4 else 14) * px)
         // Feeds sometimes carry two programmes for the same time. Each one is drawn from where the one
         // before it ends, so they never sit on top of each other; one hidden completely is left out.
         var shownUntil = windowStart

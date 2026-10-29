@@ -1226,19 +1226,28 @@ fun OwnTVShell(
                                 .focusGroup(),
                         ),
                 ) {
-                    // TV-box style the settings sheet opens over the channels, not over an empty page: they are
-                    // drawn behind it, still and out of the remote's reach.
-                    if (TvBoxNav && (selectedSection == MainSection.MORE || selectedSection == MainSection.SETTINGS)) {
+                    // TV-box style the channels list is one screen that stays put: the settings sheet opens over it, and
+                    // the picture in its preview goes on playing, because it is the same screen and the same video
+                    // surface, not a copy built anew behind the sheet. Behind the sheet it is out of the remote's reach.
+                    val channelsHere = selectedSection == MainSection.LIVE_TV
+                    if (TvBoxNav && ((channelsHere && liveView != tv.own.owntv.core.settings.SettingsRepository.LiveView.GUIDE) ||
+                            selectedSection == MainSection.MORE || selectedSection == MainSection.SETTINGS)) {
                         Box(
                             Modifier
                                 .fillMaxSize()
-                                .then(androidx.compose.ui.Modifier.focusProperties { canFocus = false; onEnter = { cancelFocusChange() } })
-                                .focusGroup(),
+                                .then(
+                                    if (channelsHere) Modifier
+                                    else androidx.compose.ui.Modifier.focusProperties { canFocus = false; onEnter = { cancelFocusChange() } }.focusGroup(),
+                                ),
                         ) {
                             LiveScreen(
-                                onFullscreen = {},
-                                onChildFocused = {},
-                                previewEnabled = false,
+                                onFullscreen = { if (channelsHere) openFullscreen() },
+                                onOpenGuide = { liveVm.setLiveView(tv.own.owntv.core.settings.SettingsRepository.LiveView.GUIDE) },
+                                onEntryHook = { if (channelsHere) guideEntry = it },
+                                onChildFocused = { if (channelsHere) focusedLayer = ShellLayer.CONTENT },
+                                previewEnabled = playerMode == PlayerMode.NONE,
+                                restoreFocus = channelsHere && restoreFocus,
+                                onRestored = { if (channelsHere) restoreFocus = false },
                                 modifier = Modifier.fillMaxSize(),
                             )
                         }
@@ -1405,16 +1414,8 @@ fun OwnTVShell(
                                 .focusGroup(),
                         )
 
-                        selectedSection == MainSection.LIVE_TV -> LiveScreen(
-                            onFullscreen = { openFullscreen() },
-                            onOpenGuide = { liveVm.setLiveView(tv.own.owntv.core.settings.SettingsRepository.LiveView.GUIDE) },
-                            onEntryHook = { guideEntry = it },
-                            onChildFocused = { focusedLayer = ShellLayer.CONTENT },
-                            previewEnabled = playerMode == PlayerMode.NONE,
-                            restoreFocus = restoreFocus,
-                            onRestored = { restoreFocus = false },
-                            modifier = Modifier.fillMaxSize(),
-                        )
+                        // The channels list is drawn above, outside this switch, so it survives the settings sheet.
+                        selectedSection == MainSection.LIVE_TV -> Unit
 
                         selectedSection == MainSection.MOVIES -> MoviesScreen(
                             onFullscreen = { openFullscreen() },
