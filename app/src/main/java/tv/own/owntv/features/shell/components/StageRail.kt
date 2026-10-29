@@ -418,8 +418,8 @@ private fun RailItem(
         modifier = modifier.then(if (open) Modifier.fillMaxWidth().heightIn(min = 60.mpx) else Modifier.size(58.mpx)),
         idle = when {
             !active -> Modifier
-            tvBox -> Modifier.background(StageColors.Text.copy(alpha = 0.06f), RoundedCornerShape(r))
-            open -> Modifier.background(a.accent.copy(alpha = 0.14f), RoundedCornerShape(r))
+            tvBox -> Modifier.background(StageColors.Text.copy(alpha = 0.06f), tv.own.owntv.ui.stage.FocusBarShape)
+            open -> Modifier.background(tv.own.owntv.ui.theme.StageColors.Text.copy(alpha = 0.07f), tv.own.owntv.ui.stage.FocusBarShape)
             else -> Modifier.drawBehind { drawInnerRing(a.accent, 2.mpx.toPx(), r.toPx()) }
         },
         contentAlignment = if (open) Alignment.CenterStart else Alignment.Center,

@@ -467,6 +467,15 @@ fun SettingsSheet(
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val shown = remember { androidx.compose.animation.core.MutableTransitionState(false).apply { targetState = true } }
+    // The panel comes in as one piece (with its shade), only when Settings is first opened; moving between its
+    // pages keeps it in place and slides just the page. A page change recreates this composable, so "still
+    // here" is told by how recently the previous one went.
+    val continuing = remember { android.os.SystemClock.uptimeMillis() - lastSheetGoneAt < 600L }
+    val panelIn = remember { androidx.compose.animation.core.Animatable(if (continuing) 0f else 1f) }
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        if (panelIn.value > 0f) panelIn.animateTo(0f, androidx.compose.animation.core.tween(if (tv.own.owntv.ui.theme.DevicePerf.lite) 150 else 260, easing = androidx.compose.animation.core.FastOutSlowInEasing))
+    }
+    androidx.compose.runtime.DisposableEffect(Unit) { onDispose { lastSheetGoneAt = android.os.SystemClock.uptimeMillis() } }
     val sheetFocus = remember { FocusRequester() }
     var sheetHasFocus by remember { androidx.compose.runtime.mutableStateOf(true) }
     val windowFocused = androidx.compose.ui.platform.LocalWindowInfo.current.isWindowFocused
@@ -480,11 +489,11 @@ fun SettingsSheet(
         // A tap beside the sheet is Back, as on the remote.
         val backDispatcher = androidx.activity.compose.LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
         if (scrim) Box(
-            Modifier.fillMaxSize().background(if (tv.own.owntv.ui.theme.LocalStagePalette.current.isLight) Color(0x33000000) else SideScrim).pointerInput(backDispatcher) {
+            Modifier.fillMaxSize().graphicsLayer { alpha = 1f - panelIn.value }.background(if (tv.own.owntv.ui.theme.LocalStagePalette.current.isLight) Color(0x33000000) else SideScrim).pointerInput(backDispatcher) {
                 detectTapGestures { backDispatcher?.onBackPressed() }
             },
         )
-        Box(Modifier.align(Alignment.CenterEnd)) {
+        Box(Modifier.align(Alignment.CenterEnd).graphicsLayer { translationX = panelIn.value * size.width }) {
             // Always the dark grey sheet, whatever the app's theme, with SkMate blue for switches.
             CompositionLocalProvider(
                 tv.own.owntv.ui.theme.LocalStagePalette provides (if (tv.own.owntv.ui.theme.LocalStagePalette.current.isLight) tv.own.owntv.ui.theme.StagePalette.Light else tv.own.owntv.ui.theme.StagePalette.Dark),
@@ -532,6 +541,9 @@ fun SettingsSheet(
         }
     }
 }
+
+/** When the last settings sheet left the screen (uptime ms): a new one right after it is the next page, not a new opening. */
+private var lastSheetGoneAt = 0L
 
 /** Rows inside the sheet: the value under the title instead of on the right (see [StageSettingRow]). */
 val LocalSettingsSide = androidx.compose.runtime.staticCompositionLocalOf { false }
@@ -874,7 +886,7 @@ fun StageSettingRow(
         enabled = enabled,
         // A span member, or the row whose actions the panel is showing while focus is in them.
         // …or the row whose choices are open in the panel.
-        idle = if (marked || keepPanel || (panel?.editor != null && panel.opener === self)) Modifier.background(a.accent.copy(alpha = 0.14f), RoundedCornerShape(StageRadii.Row)) else Modifier,
+        idle = if (marked || keepPanel || (panel?.editor != null && panel.opener === self)) Modifier.background(StageColors.Text.copy(alpha = 0.07f), tv.own.owntv.ui.stage.FocusBarShape) else Modifier,
         onLongClick = onLongClick?.let { l -> { longAt = android.os.SystemClock.uptimeMillis(); l() } },
         modifier = modifier
             .focusRequester(self)

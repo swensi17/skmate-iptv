@@ -286,7 +286,7 @@ private fun ChannelLine(
         modifier
             .fillMaxWidth()
             .height(92.mpx)
-            .background(if (focused) c.focus else Color.Transparent, androidx.compose.ui.graphics.RectangleShape)
+            .background(if (focused) c.focus else Color.Transparent, tv.own.owntv.ui.stage.FocusBarShape)
             .onFocusChanged { if (it.isFocused) onFocus() }
             .clickable(interactionSource = interaction, indication = null, onClick = onClick)
             .padding(horizontal = 16.mpx),

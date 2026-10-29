@@ -92,6 +92,11 @@ fun Modifier.stageFocusLook(style: StageFocus, radius: Dp): Modifier =
 private fun Modifier.stageFocusDecor(style: StageFocus, radius: Dp, a: StageAccent, palette: StagePalette) = drawBehind {
     val r = radius.toPx()
     val px = 1.mpx.toPx()
+    // One focus on the TV: the same grey bar, corners barely softened, whatever the row or button is made of.
+    if (tv.own.owntv.features.shell.TvBoxNav && (style == StageFocus.FX || style == StageFocus.FILLED || style == StageFocus.PRIMARY)) {
+        drawRoundRect(if (palette.isLight) LightFocusFill else SheetFocusFill, cornerRadius = CornerRadius(4.mpx.toPx()))
+        return@drawBehind
+    }
     if (palette.isLight) {
         // `.mine.light`: the accent is the ring, set off from the item by a page-coloured gap.
         when (style) {
@@ -197,7 +202,7 @@ fun StageSurface(
                 when {
                     // One focus everywhere: a plain grey bar, square, across the whole line. No card, no outline, no shadow.
                     whiteFocus || sheetFocus ->
-                        Modifier.background(if (palette.isLight) LightFocusFill else SheetFocusFill, androidx.compose.ui.graphics.RectangleShape)
+                        Modifier.background(if (palette.isLight) LightFocusFill else SheetFocusFill, FocusBarShape)
                     focused -> Modifier.stageFocusDecor(focusStyle, radius, accent, palette)
                     else -> idle
                 },
@@ -233,6 +238,9 @@ val LocalWhiteFocus = androidx.compose.runtime.compositionLocalOf { false }
 internal val WhiteFocusRadius = 16.mpx
 
 /** The thin line round a focused row, button or tile: dark on a light page, light on a dark one. */
+/** The focus bar's corners: square, barely softened. */
+internal val FocusBarShape = androidx.compose.foundation.shape.RoundedCornerShape(4.mpx)
+
 internal val FocusLine = 1.mpx
 
 /** The thin line's colour: the page's ink, light-handed. */
@@ -438,12 +446,12 @@ fun StageTool(
         radius = r,
         pill = !tvBox,
         modifier = modifier.height(48.mpx),
-        idle = if (boxed) Modifier.background(StageColors.ControlFill, if (tvBox) androidx.compose.ui.graphics.RectangleShape else RoundedCornerShape(r)) else Modifier,
+        idle = if (boxed) Modifier.background(StageColors.ControlFill, if (tvBox) FocusBarShape else RoundedCornerShape(r)) else Modifier,
     ) { focused ->
         // TV-box look: a boxed tool already sits on grey, so focus adds a clear ring to tell it apart —
         // unless focus is the white card, which tells it apart by itself.
         if (focused && boxed && tvBox) {
-            Box(Modifier.matchParentSize().background(StageColors.Text.copy(alpha = 0.09f), androidx.compose.ui.graphics.RectangleShape))
+            Box(Modifier.matchParentSize().background(StageColors.Text.copy(alpha = 0.09f), FocusBarShape))
         }
         Row(
             Modifier.padding(horizontal = 16.mpx),
@@ -516,7 +524,7 @@ fun StageSegmented(
             // Coming in from above or below lands on the chosen option, not the nearest one.
             .focusProperties { onEnter = { optionFocus.getOrNull(selected)?.let { runCatching { it.requestFocus() } } } }
             .focusGroup()
-            .background(StageColors.ControlFill, RoundedCornerShape(15.mpx))
+            .background(StageColors.ControlFill, segShape(15))
             .padding(4.mpx),
         horizontalArrangement = Arrangement.spacedBy(2.mpx),
     ) {
@@ -524,12 +532,13 @@ fun StageSegmented(
             val on = i == selected
             StageSurface(
                 onClick = { onSelect(i) },
-                radius = 11.mpx,
+                radius = if (tv.own.owntv.features.shell.TvBoxNav) 4.mpx else 11.mpx,
                 modifier = Modifier.height(40.mpx).focusRequester(optionFocus[i]),
-                idle = if (on) Modifier.background(LocalStagePalette.current.segmentOn, RoundedCornerShape(11.mpx)) else Modifier,
+                idle = if (on) Modifier.background(LocalStagePalette.current.segmentOn, segShape(11)) else Modifier,
             ) { focused ->
                 val color = when {
-                    focused -> a.onAccent
+                    // Read here, not above: the grey focus bar swaps the accent for dark ink.
+                    focused -> stageAccent.onAccent
                     on -> StageColors.Text
                     else -> StageColors.Muted
                 }
@@ -1283,3 +1292,7 @@ private fun focusShape(radius: Dp) = object : androidx.compose.ui.graphics.Shape
         return androidx.compose.ui.graphics.Outline.Rounded(androidx.compose.ui.geometry.RoundRect(0f, 0f, size.width, size.height, CornerRadius(r)))
     }
 }
+
+/** Segment corners: barely rounded on the TV, like every focus bar. */
+@androidx.compose.runtime.Composable
+private fun segShape(r: Int) = androidx.compose.foundation.shape.RoundedCornerShape(if (tv.own.owntv.features.shell.TvBoxNav) 4.mpx else r.mpx)
