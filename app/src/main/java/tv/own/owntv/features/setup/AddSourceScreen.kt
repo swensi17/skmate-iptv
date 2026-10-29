@@ -542,14 +542,14 @@ fun AddSourceScreen(
             // The form's one button, under the rows; dim and out of the focus path until the form can be sent.
             tv.own.owntv.ui.stage.StageSurface(
                 onClick = { submit() },
-                radius = 38.mpx,
+                radius = 16.mpx,
                 focusStyle = tv.own.owntv.ui.stage.StageFocus.NONE,
                 enabled = canStart,
-                idle = Modifier.background(if (canStart) StageColors.Text else StageColors.Text.copy(alpha = 0.08f), RoundedCornerShape(38.mpx)),
+                idle = Modifier.background(if (canStart) StageColors.Text else StageColors.Text.copy(alpha = 0.08f), RoundedCornerShape(16.mpx)),
                 contentAlignment = Alignment.Center,
                 modifier = Modifier.width(440.mpx).height(76.mpx).focusRequester(startImportFocus),
             ) { focused ->
-                if (focused) Box(Modifier.matchParentSize().background(tv.own.owntv.ui.brand.SkMateBlue, RoundedCornerShape(38.mpx)))
+                if (focused) Box(Modifier.matchParentSize().background(tv.own.owntv.ui.brand.SkMateBlue, RoundedCornerShape(16.mpx)))
                 // Over the text-coloured fill the label takes the page colour, so it reads in both themes.
                 val tint = when {
                     focused -> androidx.compose.ui.graphics.Color.White

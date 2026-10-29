@@ -89,6 +89,9 @@ deploy() {
   apk="$(ls "$ROOT"/app/build/outputs/apk/$OUT/*.apk | head -n1)"
   echo "installing on $TV"
   "$ADB" -s "$TV" install -r "$apk" | tail -n1
+  # A fresh install runs half-interpreted until the system gets round to compiling it (minutes to hours
+  # on a TV); a release build is compiled now, so what is on screen is the real speed.
+  [ "$MODE" = "release" ] && "$ADB" -s "$TV" shell cmd package compile -m speed -f "$PKG" >/dev/null 2>&1 || true
   "$ADB" -s "$TV" logcat -c
   "$ADB" -s "$TV" shell monkey -p "$PKG" -c android.intent.category.LEANBACK_LAUNCHER 1 >/dev/null 2>&1
   echo "on screen in $(( SECONDS - started )) s"

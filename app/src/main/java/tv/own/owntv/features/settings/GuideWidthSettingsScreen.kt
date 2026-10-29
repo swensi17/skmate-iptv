@@ -114,10 +114,6 @@ private fun GuideWidthDialog(
             }
             Box(Modifier.padding(horizontal = 8.mpx, vertical = 14.mpx)) { GuideWidthDiagram(savedShares) }
         }
-        androidx.compose.foundation.layout.Row(Modifier.fillMaxWidth().padding(top = 8.mpx), horizontalArrangement = Arrangement.spacedBy(12.mpx, Alignment.End)) {
-            tv.own.owntv.ui.stage.StageButton(stringResource(R.string.common_reset), onClick = { onSave(savedEnabled, GuideWidthLimits.defaults) }, height = 52.mpx, textSize = 18)
-            tv.own.owntv.ui.stage.StageButton(stringResource(R.string.common_done), onClick = onDismiss, height = 52.mpx, textSize = 18, tinted = true)
-        }
     }
 }
 

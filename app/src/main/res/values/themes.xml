@@ -39,7 +39,7 @@
         <item name="windowSplashScreenAnimatedIcon">@drawable/owntv_splash_static_board</item>
     </style>
     <style name="Theme.OwnTV.Starting.Eggshell">
-        <item name="windowSplashScreenAnimatedIcon">@drawable/owntv_splash_static_eggshell</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/skmate_splash</item>
     </style>
     <style name="Theme.OwnTV.Starting.Olive">
         <item name="windowSplashScreenAnimatedIcon">@drawable/owntv_splash_static_olive</item>

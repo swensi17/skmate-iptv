@@ -179,7 +179,8 @@ fun StageSurface(
     // dark screen while the TV-box look is on.
     val tvBox = tv.own.owntv.features.shell.TvBoxNav
     // Settings rows keep softly rounded corners, as everywhere in lists.
-    @Suppress("NAME_SHADOWING") val pill = pill && !tv.own.owntv.ui.theme.LocalInSettingsSheet.current
+    // One focus shape everywhere: the rounded rectangle of the side menu, never a round pill.
+    @Suppress("NAME_SHADOWING") val pill = false
     val sheetFocus = focused && (
         (focusStyle == StageFocus.FX && (tv.own.owntv.ui.theme.LocalInSettingsSheet.current || (tvBox && (!palette.isLight || !pill)))) ||
             // TV-box look: list items and pills (FILLED) never turn solid black or white either.
@@ -235,7 +236,7 @@ fun StageSurface(
 val LocalWhiteFocus = androidx.compose.runtime.compositionLocalOf { false }
 
 /** The white card's corners: softly rounded, not a pill. */
-internal val WhiteFocusRadius = 12.mpx
+internal val WhiteFocusRadius = 16.mpx
 internal val WhiteFocusShadow = Color(0x33000000)
 
 /** The focused row of the settings sheet. */
@@ -1247,7 +1248,7 @@ fun StageSwitch(on: Boolean) {
 }
 
 /** The switch knob's slide. */
-private const val SwitchMs = 200
+private val SwitchMs: Int get() = if (tv.own.owntv.ui.theme.DevicePerf.lite) 0 else 200
 
 
 /** The tile behind a channel logo or a missing picture (`#0f1518`); ink 6% on the light page. */

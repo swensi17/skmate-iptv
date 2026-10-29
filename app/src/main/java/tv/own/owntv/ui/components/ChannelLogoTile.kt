@@ -83,7 +83,12 @@ fun ChannelLogoTile(
     // hardware config costs nothing and is what makes the ink measurement possible at all.
     val platformContext = LocalPlatformContext.current
     val request = remember(logoUrl, platformContext) {
-        ImageRequest.Builder(platformContext).data(logoUrl).allowHardware(false).build()
+        // Decoded at the size it is drawn at (a channel logo can be a 1000 px picture): a bitmap that big
+        // costs a slow decode, a slow upload to the GPU and memory, which is what made a fast scroll stutter.
+        ImageRequest.Builder(platformContext).data(logoUrl).allowHardware(false)
+            .size(coil3.size.Size(LogoDecodePx, LogoDecodePx))
+            .precision(coil3.size.Precision.INEXACT)
+            .build()
     }
 
     Box(modifier.background(background), contentAlignment = Alignment.Center) {
@@ -116,6 +121,9 @@ fun ChannelLogoTile(
         }
     }
 }
+
+/** The side, in pixels, a logo is decoded to: more than a row or a tile ever shows. */
+private const val LogoDecodePx = 160
 
 /** Mean ink colour per logo URL, measured once per app run. [LOGO_INK_NONE] means "leave it alone". */
 private val logoInk = ConcurrentHashMap<String, Int>()

@@ -18,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
@@ -32,6 +33,7 @@ import tv.own.owntv.core.companion.CompanionServerState
 import tv.own.owntv.features.settings.SettingHelp
 import tv.own.owntv.features.settings.SettingPanelHeading
 import tv.own.owntv.features.settings.SettingValue
+import tv.own.owntv.features.settings.CenterWindow
 import tv.own.owntv.features.settings.StageFullPage
 import tv.own.owntv.features.settings.StageSettingRow
 import tv.own.owntv.ui.components.OwnTVIcon
@@ -57,6 +59,8 @@ fun RemoteSetupScreen(
     onPayloadReceived: (CompanionPayload) -> Unit,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
+    /** A window in the middle of the screen instead of the side sheet. */
+    windowed: Boolean = false,
 ) {
     val rowsFocus = remember { FocusRequester() }
     LaunchedEffect(Unit) {
@@ -74,6 +78,32 @@ fun RemoteSetupScreen(
         hints = listOf(stringResource(R.string.common_back) to stringResource(R.string.settings_key_stop_back)),
     )
     val panel: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit = { RemotePanel(state) }
+    if (windowed) {
+        val newPin = remember { FocusRequester() }
+        androidx.compose.runtime.LaunchedEffect(Unit) { kotlinx.coroutines.delay(120); runCatching { newPin.requestFocus() } }
+        CenterWindow(onDismiss = onBack, modifier = modifier, width = 900.mpx) {
+            Text(stringResource(R.string.setup_from_phone), style = stageText(32, 800, (-0.02f).em), color = StageColors.Text, maxLines = 1)
+            Column(Modifier.padding(top = 24.mpx), horizontalAlignment = Alignment.CenterHorizontally) { panel() }
+            val line = when (state) {
+                CompanionServerState.Idle, CompanionServerState.Starting -> stringResource(R.string.setup_opening)
+                is CompanionServerState.Listening -> stringResource(R.string.settings_remote_nothing_yet)
+                is CompanionServerState.Failed -> state.failure.displayText()
+                CompanionServerState.Locked -> companionLockedText()
+            }
+            Text(line, style = stageText(19, 500), color = StageColors.Muted, maxLines = 2, modifier = Modifier.padding(top = 4.mpx))
+            Text(stringResource(R.string.settings_remote_details_note), style = stageText(16, 500), color = StageColors.Dim, modifier = Modifier.padding(top = 10.mpx))
+            Row(Modifier.padding(top = 26.mpx), horizontalArrangement = Arrangement.spacedBy(14.mpx)) {
+                tv.own.owntv.ui.stage.StageButton(
+                    stringResource(R.string.settings_remote_new_pin),
+                    onClick = { onStopListener(); onStartListener(CompanionLink.DEFAULT_PORT) },
+                    modifier = Modifier.focusRequester(newPin),
+                    tinted = true,
+                )
+                tv.own.owntv.ui.stage.StageButton(stringResource(R.string.common_back), onClick = onBack)
+            }
+        }
+        return
+    }
     StageFullPage(
         parents = listOf(stringResource(R.string.setup_add_source)),
         title = stringResource(R.string.setup_from_phone),
@@ -138,7 +168,6 @@ private fun RemotePanel(state: CompanionServerState) {
             }
         }
     }
-    Box(Modifier.size(18.mpx))
 }
 
 private val PanelText: Color @Composable get() = stageTone(Color(0xFFD3DCD8), StageColors.Body)

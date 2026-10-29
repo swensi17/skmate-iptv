@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -727,7 +728,8 @@ fun OwnTVShell(
     }
     // The open TV-box menu's width, eased, by which the screen slides right while it is open.
     val menuPush by androidx.compose.animation.core.animateDpAsState(
-        if (TvBoxNav && railState == tv.own.owntv.features.shell.components.RailState.OPEN) tv.own.owntv.features.shell.components.tvBoxMenuWidth(navSize) else 0.dp,
+        // Weak TVs do not slide the whole screen aside (a full frame redrawn per step); the menu lies over it.
+        if (TvBoxNav && !tv.own.owntv.ui.theme.DevicePerf.lite && railState == tv.own.owntv.features.shell.components.RailState.OPEN) tv.own.owntv.features.shell.components.tvBoxMenuWidth(navSize) else 0.dp,
         androidx.compose.animation.core.tween(280, easing = androidx.compose.animation.core.FastOutSlowInEasing),
         label = "menuPush",
     )
@@ -1515,7 +1517,9 @@ fun OwnTVShell(
                 Box(
                     Modifier
                         .fillMaxSize()
-                        .padding(start = menuPush)
+                        // Read at layout time: a padding here recomposed the whole screen on every
+                        // frame of the menu's slide, which is what made it stutter on slower TVs.
+                        .offset { androidx.compose.ui.unit.IntOffset(menuPush.roundToPx(), 0) }
                         .pointerInput(entry) {
                             detectTapGestures {
                                 menuTappedAway = true
@@ -1877,12 +1881,12 @@ fun OwnTVShell(
                     favorite = favActive,
                     onToggleFavorite = favToggle,
                     // TV-box look: the channel info at the bottom, and the guide over the picture.
-                    tvBoxInfo = if (TvBoxNav && isTunedLive) { chips, offset ->
+                    tvBoxInfo = if (TvBoxNav && (isTunedLive || (isLiveStream && !catchupActive))) { chips, offset ->
                         val epg by liveVm.nowNext.collectAsStateWithLifecycle()
                         val clock by produceState(System.currentTimeMillis()) { while (true) { kotlinx.coroutines.delay(1_000); value = System.currentTimeMillis() } }
                         tv.own.owntv.features.shell.components.TvBoxPlayerInfo(previewChannel, epg, chips, offset, clock)
                     } else null,
-                    onOpenGuide = if (TvBoxNav && isTunedLive) { { showGuideOverlay = true } } else null,
+                    onOpenGuide = if (TvBoxNav && (isTunedLive || (isLiveStream && !catchupActive))) { { showGuideOverlay = true } } else null,
                     // The zap banner's now/next. Collected inside the slot, so only the banner redraws.
                     zapGuide = if (isLiveChannel) {
                         {
@@ -2295,17 +2299,18 @@ internal const val TvBoxNav = true
 private const val ExitBackWindowMs = 2_000L
 
 /** Full screen growing out of the preview, and shrinking back into it. */
-private const val FullGrowMs = 340
-private const val FullShrinkMs = 280
+/** Resizing the picture frame by frame reallocates the video's buffers each step: weak TVs jump straight to the result. */
+private val FullGrowMs: Int get() = if (tv.own.owntv.ui.theme.DevicePerf.lite) 0 else 340
+private val FullShrinkMs: Int get() = if (tv.own.owntv.ui.theme.DevicePerf.lite) 0 else 280
 
 /** After leaving full screen for the app menu: long enough for the channels screen to take its focus first. */
-private const val MenuAfterExitMs = 450L
+private val MenuAfterExitMs: Long get() = if (tv.own.owntv.ui.theme.DevicePerf.lite) 60L else 450L
 
 /** The categories column beside the player's channel panel. */
 internal val CategoriesColumnWidth = 440.mpx
 
 /** The picture moving into the corner beside the channel panel, and back. */
-private const val DockMs = 300
+private val DockMs: Int get() = if (tv.own.owntv.ui.theme.DevicePerf.lite) 0 else 300
 
 
 /** How often, and how far apart, the shell tries to put focus in a screen that is still composing. */

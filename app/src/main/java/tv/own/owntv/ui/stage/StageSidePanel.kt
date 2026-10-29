@@ -136,10 +136,10 @@ fun StageSidePanelOption(
     subtitle: String? = null,
     danger: Boolean = false,
 ) {
-    val shape = androidx.compose.foundation.shape.RoundedCornerShape(38.mpx)
+    val shape = androidx.compose.foundation.shape.RoundedCornerShape(16.mpx)
     StageSurface(
         onClick = onClick,
-        radius = 38.mpx,
+        radius = 16.mpx,
         focusStyle = StageFocus.NONE,
         modifier = modifier.fillMaxWidth().heightIn(min = 76.mpx),
     ) { focused ->

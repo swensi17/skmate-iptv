@@ -83,13 +83,6 @@ fun MiniPlayerSettingsDialog(onDismiss: () -> Unit) {
                     onSelect = { vm.setMiniPlayerPosition(row[it]) },
                 )
             }
-            Row(Modifier.fillMaxWidth().padding(top = 12.mpx), horizontalArrangement = Arrangement.spacedBy(12.mpx, Alignment.End)) {
-                tv.own.owntv.ui.stage.StageButton(stringResource(R.string.common_reset), onClick = {
-                    vm.setMiniPlayerSize(MiniPlayerSize.DEFAULT)
-                    vm.setMiniPlayerPosition(MiniPlayerPosition.DEFAULT)
-                }, height = 52.mpx, textSize = 18)
-                tv.own.owntv.ui.stage.StageButton(stringResource(R.string.common_done), onClick = onDismiss, height = 52.mpx, textSize = 18, tinted = true)
-            }
         }
     }
     // Two settings: in the page's panel, a Stage popup elsewhere.
