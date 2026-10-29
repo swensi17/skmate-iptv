@@ -12,4 +12,15 @@
     <string name="motion_speed_fast">Fast</string>
     <string name="motion_speed_normal">Normal</string>
     <string name="motion_speed_slow">Slow</string>
+    <string name="settings_update_auto">Install updates automatically</string>
+    <string name="settings_update_auto_desc">A newer version is downloaded and installed by itself</string>
+    <string name="settings_update_every">Look for updates</string>
+    <string name="settings_update_every_desc">How often the TV checks for a new version while it is on</string>
+    <string name="update_every_start">At start</string>
+    <string name="update_every_6h">Every 6 hours</string>
+    <string name="update_every_day">Once a day</string>
+    <string name="settings_update_window">When to install</string>
+    <string name="settings_update_window_desc">Any time, or only at night from 02:00 to 06:00</string>
+    <string name="update_window_any">Any time</string>
+    <string name="update_window_night">At night</string>
 </resources>

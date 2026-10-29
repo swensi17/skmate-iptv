@@ -12,4 +12,15 @@
     <string name="motion_speed_fast">Быстро</string>
     <string name="motion_speed_normal">Обычно</string>
     <string name="motion_speed_slow">Медленно</string>
+    <string name="settings_update_auto">Обновлять автоматически</string>
+    <string name="settings_update_auto_desc">Новая версия скачивается и ставится сама</string>
+    <string name="settings_update_every">Проверять обновления</string>
+    <string name="settings_update_every_desc">Как часто телевизор ищет новую версию, пока включён</string>
+    <string name="update_every_start">При запуске</string>
+    <string name="update_every_6h">Каждые 6 часов</string>
+    <string name="update_every_day">Раз в день</string>
+    <string name="settings_update_window">Когда устанавливать</string>
+    <string name="settings_update_window_desc">В любое время или только ночью с 02:00 до 06:00</string>
+    <string name="update_window_any">В любое время</string>
+    <string name="update_window_night">Ночью</string>
 </resources>
