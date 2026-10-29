@@ -1,12 +1,12 @@
-# OwnTV OpenSubtitles proxy (Cloudflare Worker)
+# SkMate IPTV OpenSubtitles proxy (Cloudflare Worker)
 
 A tiny Cloudflare Worker that proxies OpenSubtitles `/api/v1/...` REST calls, injects a
 server-side application consumer key (`Api-Key`), and edge-caches subtitle **search** responses
-for a few hours. Users still sign in with their **own** OpenSubtitles account inside OwnTV; only
+for a few hours. Users still sign in with their **own** OpenSubtitles account inside SkMate IPTV; only
 the app's consumer key lives here, so it never ships in the APK. This is the same proxy logic
-OwnTV's built-in default OpenSubtitles server runs.
+SkMate IPTV's built-in default OpenSubtitles server runs.
 
-You can run your **own free copy** and point OwnTV at it — no programming needed. A personal
+You can run your **own free copy** and point SkMate IPTV at it — no programming needed. A personal
 copy serves only your own devices, so it needs none of the abuse-protection the public
 deployment carries (see [`../README.md`](../README.md)).
 

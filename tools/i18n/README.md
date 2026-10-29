@@ -1,4 +1,4 @@
-# OwnTV TV app — i18n checks
+# SkMate IPTV TV app — i18n checks
 
 **The strings themselves are not in this repository.** Every `strings*.xml`, the language catalogue
 that owns them, the Weblate integration and the translator guide live in the core library repo:

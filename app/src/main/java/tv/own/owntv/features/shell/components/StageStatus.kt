@@ -85,7 +85,7 @@ fun StageStatusCluster(
         verticalAlignment = Alignment.Top,
     ) {
         // TV-box look: the clock alone, no pills (Last channel, playlist) — minimal.
-        if (!tv.own.owntv.features.shell.TvBoxNav)
+        if (!tv.own.owntv.features.shell.TvBoxNav) {
         // Top, not centred: a taller audio bar (focused / open) must not push the playlist pill down.
         Row(Modifier.padding(top = 6.mpx), horizontalArrangement = Arrangement.spacedBy(12.mpx), verticalAlignment = Alignment.Top) {
             when {
@@ -112,6 +112,7 @@ fun StageStatusCluster(
                         if (playlistDownFocusRequester != null) down = playlistDownFocusRequester
                     },
             )
+        }
         }
         StageClock(weatherInfo, weatherFahrenheit, clockColors)
     }

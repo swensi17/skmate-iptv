@@ -15,6 +15,7 @@ Do not edit by hand. SkMate IPTV itself is GPL-3.0-or-later; see LICENSE and NOT
 | `androidx.appcompat:appcompat-resources` | 1.7.1 | Apache-2.0 |
 | `androidx.arch.core:core-common` | 2.2.0 | Apache-2.0 |
 | `androidx.arch.core:core-runtime` | 2.2.0 | Apache-2.0 |
+| `androidx.asynclayoutinflater:asynclayoutinflater` | 1.0.0 | Apache-2.0 |
 | `androidx.autofill:autofill` | 1.0.0 | Apache-2.0 |
 | `androidx.collection:collection` | 1.5.0 | Apache-2.0 |
 | `androidx.collection:collection-jvm` | 1.5.0 | Apache-2.0 |
@@ -53,6 +54,7 @@ Do not edit by hand. SkMate IPTV itself is GPL-3.0-or-later; see LICENSE and NOT
 | `androidx.compose.ui:ui-util-android` | 1.12.0 | Apache-2.0 |
 | `androidx.concurrent:concurrent-futures` | 1.2.0 | Apache-2.0 |
 | `androidx.concurrent:concurrent-futures-ktx` | 1.2.0 | Apache-2.0 |
+| `androidx.coordinatorlayout:coordinatorlayout` | 1.0.0 | Apache-2.0 |
 | `androidx.core:core` | 1.19.0 | Apache-2.0 |
 | `androidx.core:core-ktx` | 1.19.0 | Apache-2.0 |
 | `androidx.core:core-splashscreen` | 1.2.0 | Apache-2.0 |
@@ -81,6 +83,9 @@ Do not edit by hand. SkMate IPTV itself is GPL-3.0-or-later; see LICENSE and NOT
 | `androidx.fragment:fragment-ktx` | 1.8.9 | Apache-2.0 |
 | `androidx.graphics:graphics-path` | 1.0.1 | Apache-2.0 |
 | `androidx.interpolator:interpolator` | 1.0.0 | Apache-2.0 |
+| `androidx.legacy:legacy-support-core-ui` | 1.0.0 | Apache-2.0 |
+| `androidx.legacy:legacy-support-core-utils` | 1.0.0 | Apache-2.0 |
+| `androidx.legacy:legacy-support-v4` | 1.0.0 | Apache-2.0 |
 | `androidx.lifecycle:lifecycle-common` | 2.11.0 | Apache-2.0 |
 | `androidx.lifecycle:lifecycle-common-jvm` | 2.11.0 | Apache-2.0 |
 | `androidx.lifecycle:lifecycle-livedata` | 2.11.0 | Apache-2.0 |
@@ -103,6 +108,8 @@ Do not edit by hand. SkMate IPTV itself is GPL-3.0-or-later; see LICENSE and NOT
 | `androidx.lifecycle:lifecycle-viewmodel-savedstate` | 2.11.0 | Apache-2.0 |
 | `androidx.lifecycle:lifecycle-viewmodel-savedstate-android` | 2.11.0 | Apache-2.0 |
 | `androidx.loader:loader` | 1.0.0 | Apache-2.0 |
+| `androidx.localbroadcastmanager:localbroadcastmanager` | 1.0.0 | Apache-2.0 |
+| `androidx.media:media` | 1.0.0 | Apache-2.0 |
 | `androidx.media3:media3-common` | 1.11.1 | Apache-2.0 |
 | `androidx.media3:media3-container` | 1.11.1 | Apache-2.0 |
 | `androidx.media3:media3-database` | 1.11.1 | Apache-2.0 |
@@ -130,6 +137,7 @@ Do not edit by hand. SkMate IPTV itself is GPL-3.0-or-later; see LICENSE and NOT
 | `androidx.paging:paging-compose` | 3.5.1 | Apache-2.0 |
 | `androidx.paging:paging-compose-android` | 3.5.1 | Apache-2.0 |
 | `androidx.paging:paging-runtime` | 3.5.1 | Apache-2.0 |
+| `androidx.print:print` | 1.0.0 | Apache-2.0 |
 | `androidx.profileinstaller:profileinstaller` | 1.4.1 | Apache-2.0 |
 | `androidx.recyclerview:recyclerview` | 1.3.0 | Apache-2.0 |
 | `androidx.resourceinspection:resourceinspection-annotation` | 1.0.1 | Apache-2.0 |
@@ -145,6 +153,7 @@ Do not edit by hand. SkMate IPTV itself is GPL-3.0-or-later; see LICENSE and NOT
 | `androidx.savedstate:savedstate-compose` | 1.5.0 | Apache-2.0 |
 | `androidx.savedstate:savedstate-compose-android` | 1.5.0 | Apache-2.0 |
 | `androidx.savedstate:savedstate-ktx` | 1.5.0 | Apache-2.0 |
+| `androidx.slidingpanelayout:slidingpanelayout` | 1.0.0 | Apache-2.0 |
 | `androidx.sqlite:sqlite` | 2.6.2 | Apache-2.0 |
 | `androidx.sqlite:sqlite-android` | 2.6.2 | Apache-2.0 |
 | `androidx.sqlite:sqlite-bundled` | 2.6.2 | Apache-2.0 |
@@ -152,6 +161,7 @@ Do not edit by hand. SkMate IPTV itself is GPL-3.0-or-later; see LICENSE and NOT
 | `androidx.sqlite:sqlite-framework` | 2.6.2 | Apache-2.0 |
 | `androidx.sqlite:sqlite-framework-android` | 2.6.2 | Apache-2.0 |
 | `androidx.startup:startup-runtime` | 1.2.0 | Apache-2.0 |
+| `androidx.swiperefreshlayout:swiperefreshlayout` | 1.0.0 | Apache-2.0 |
 | `androidx.tracing:tracing` | 1.2.0 | Apache-2.0 |
 | `androidx.tracing:tracing-ktx` | 1.2.0 | Apache-2.0 |
 | `androidx.tv:tv-material` | 1.1.0 | Apache-2.0 |
@@ -171,6 +181,8 @@ Do not edit by hand. SkMate IPTV itself is GPL-3.0-or-later; see LICENSE and NOT
 | `co.touchlab:stately-concurrent-collections-jvm` | 2.1.0 | Apache-2.0 |
 | `co.touchlab:stately-strict` | 2.1.0 | Apache-2.0 |
 | `co.touchlab:stately-strict-jvm` | 2.1.0 | Apache-2.0 |
+| `com.airbnb.android:lottie` | 6.7.1 | Apache-2.0 |
+| `com.airbnb.android:lottie-compose` | 6.7.1 | Apache-2.0 |
 | `com.github.albfernandez:juniversalchardet` | 2.5.0 | MPL-1.1 OR GPL OR LGPL (used under the GPL) |
 | `com.google.accompanist:accompanist-drawablepainter` | 0.37.3 | Apache-2.0 |
 | `com.google.guava:failureaccess` | 1.0.2 | Apache-2.0 |
@@ -247,6 +259,7 @@ Do not edit by hand. SkMate IPTV itself is GPL-3.0-or-later; see LICENSE and NOT
 | `org.jetbrains.kotlinx:kotlinx-serialization-json` | 1.7.3 | Apache-2.0 |
 | `org.jetbrains.kotlinx:kotlinx-serialization-json-jvm` | 1.7.3 | Apache-2.0 |
 | `org.jspecify:jspecify` | 1.0.0 | Apache-2.0 |
-| `uz.skmate.iptv:core` | 1.2.0 | GPL-3.0 (SkMate IPTV core, fork of OwnTV_Core) |
+| `org.videolan.android:libvlc-all` | 3.7.7 | https://www.gnu.org/licenses/old-licenses/lgpl-2.1.en.html |
+| `uz.skmate.iptv:core` | 1.3.0 | GPL-3.0 (SkMate IPTV core, fork of OwnTV_Core) |
 | `uz.skmate.iptv:libmpv` | 2026.10.4 | GPL-3.0-or-later (binaries: mpv, FFmpeg), MIT (wrapper); source: swensi17/skmate-iptv-libmpv |
-| `uz.skmate.iptv:player-core` | 1.2.0 | GPL-3.0 (SkMate IPTV core, fork of OwnTV_Core) |
+| `uz.skmate.iptv:player-core` | 1.3.0 | GPL-3.0 (SkMate IPTV core, fork of OwnTV_Core) |

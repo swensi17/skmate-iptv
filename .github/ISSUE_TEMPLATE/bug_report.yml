@@ -1,12 +1,12 @@
 name: Bug report
-description: Something not working in OwnTV (playback, EPG, import, UI…)
+description: Something not working in SkMate IPTV (playback, EPG, import, UI…)
 title: "[Bug] "
 labels: [bug]
 body:
   - type: markdown
     attributes:
       value: |
-        Thanks for helping improve OwnTV! The more detail you give, the faster it gets fixed.
+        Thanks for helping improve SkMate IPTV! The more detail you give, the faster it gets fixed.
 
   - type: checkboxes
     id: mandatory_checks
@@ -39,7 +39,7 @@ body:
     attributes:
       label: The on-screen error ⚠️ important
       description: >
-        When playback fails, OwnTV shows a friendly message AND a small "err: ..." line at the bottom of
+        When playback fails, SkMate IPTV shows a friendly message AND a small "err: ..." line at the bottom of
         the player. Copy that EXACT "err: ..." text here (or photograph it).
       placeholder: "err: "
       render: text
@@ -62,7 +62,7 @@ body:
       value: |
         - **Device & model:**
         - **Fire OS / Android version:**
-        - **OwnTV version:**
+        - **SkMate IPTV version:**
         - **Playlist type:** Xtream / M3U URL / local M3U file
         - **Content type:** Live TV / Movie / Series / Catch-up / EPG
     validations:

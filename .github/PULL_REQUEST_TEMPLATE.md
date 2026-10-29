@@ -1,4 +1,4 @@
-<!-- Thanks for contributing to OwnTV! Please fill this in so it's easy to review. -->
+<!-- Thanks for contributing to SkMate IPTV! Please fill this in so it's easy to review. -->
 
 ## Before you open this PR (required)
 <!-- These are mandatory — PRs that duplicate an existing in-app feature are closed. -->
@@ -14,7 +14,7 @@
 
 
 ## How was it tested?
-<!-- IMPORTANT: OwnTV is a TV app — please test on a REAL Android TV / Fire TV device, not the emulator
+<!-- IMPORTANT: SkMate IPTV is a TV app — please test on a REAL Android TV / Fire TV device, not the emulator
      only. The emulator misses a lot: HDR, hardware decoding, surround/passthrough, and real remote
      (D-pad) behaviour. -->
 - **Device(s) tested on:** <!-- e.g. Fire TV Stick 4K Max, NVIDIA Shield, TCL Google TV -->
@@ -24,5 +24,5 @@
 - [ ] Builds locally (`./gradlew assembleDebug`) and CI is green
 - [ ] **Tested on a real Android TV / Fire TV device** (not emulator only) — D-pad/remote navigation works
 - [ ] No user data is wiped (Room migrations stay additive)
-- [ ] Keeps OwnTV player-only (no bundled channels/content)
+- [ ] Keeps SkMate IPTV player-only (no bundled channels/content)
 - [ ] Commit messages are clear (they become the release notes)

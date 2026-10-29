@@ -476,7 +476,7 @@ licensee {
     allowUrl("https://developer.android.com/studio/terms.html") {
         because("Android SDK components, redistributable as part of an Android app")
     }
-    // Our own core (GPL-3.0-or-later, fork of OwnTV_Core) and the libmpv build (GPL-3.0-or-later
+    // Our own core (GPL-3.0-or-later) and the libmpv build (GPL-3.0-or-later
     // binaries, MIT wrapper) are published without an SPDX id in their POMs.
     allowDependency("uz.skmate.iptv", "core", libs.versions.owntvCore.get()) { because("GPL-3.0, our own core: swensi17/skmate-iptv-core") }
     allowDependency("uz.skmate.iptv", "player-core", libs.versions.owntvCore.get()) { because("GPL-3.0, our own core: swensi17/skmate-iptv-core") }
@@ -485,5 +485,7 @@ licensee {
     }
     // Tri-licensed MPL-1.1 / GPL / LGPL; we take it under the GPL.
     allowDependency("com.github.albfernandez", "juniversalchardet", "2.5.0") { because("MPL-1.1 OR GPL OR LGPL, used under the GPL") }
+    // VLC's player library: LGPL-2.1-or-later (the POM only gives the licence page URL), compatible with our GPL-3.0.
+    allowDependency("org.videolan.android", "libvlc-all", "3.7.7") { because("LGPL-2.1-or-later, used as a dynamically linked library") }
     allowDependency("uz.skmate.iptv", "libmpv", "2026.10.4") { because("GPL-3.0-or-later binaries, MIT wrapper: swensi17/skmate-iptv-libmpv") }
 }

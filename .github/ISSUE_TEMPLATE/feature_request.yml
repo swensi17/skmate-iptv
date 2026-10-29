@@ -1,5 +1,5 @@
 name: Feature request / idea
-description: Suggest an improvement for OwnTV
+description: Suggest an improvement for SkMate IPTV
 title: "[Idea] "
 labels: [enhancement]
 body:
@@ -22,7 +22,7 @@ body:
     id: idea
     attributes:
       label: The idea
-      description: What would you like OwnTV to do?
+      description: What would you like SkMate IPTV to do?
     validations:
       required: true
 
