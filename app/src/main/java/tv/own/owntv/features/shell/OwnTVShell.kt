@@ -894,7 +894,9 @@ fun OwnTVShell(
         if (TvBoxNav && selectedSection in tv.own.owntv.features.shell.components.TvBoxHiddenSections) onSelectSection(MainSection.LIVE_TV)
     }
     LaunchedEffect(selectedSection, playerMode) {
-        if (selectedSection != MainSection.LIVE_TV && selectedSection != MainSection.EPG && playerMode == PlayerMode.NONE) liveVm.stopPreview()
+        // TV-box style Settings is a sheet over the channels screen: the preview behind it keeps playing.
+        val settingsOverLive = TvBoxNav && (selectedSection == MainSection.MORE || selectedSection == MainSection.SETTINGS)
+        if (selectedSection != MainSection.LIVE_TV && selectedSection != MainSection.EPG && !settingsOverLive && playerMode == PlayerMode.NONE) liveVm.stopPreview()
         if (selectedSection != MainSection.HOME || playerMode != PlayerMode.NONE) homeVm.stopPreview()
     }
 

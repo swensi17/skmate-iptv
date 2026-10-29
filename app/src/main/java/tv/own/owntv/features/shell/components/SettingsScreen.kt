@@ -1139,23 +1139,23 @@ fun SettingsScreen(
     val group = SettingsGroup.entries[selectedGroup.coerceIn(0, SettingsGroup.entries.size - 1)]
     val inQuick = group == SettingsGroup.QUICK
     // A group of several subsections lists them first, one word each; a subsection opens its rows.
+    // Everything a group holds is on its one page, each subsection under its own heading: no list of subsections
+    // to open first, no page with one or two rows on it.
     val parts = if (searching) emptyList() else settingsParts(group, selectedRows)
-    val part = openPart?.let(parts::getOrNull)
+    val part: SettingsPart? = null
     BackHandler(enabled = tab == SettingsTab.ROOT && part != null && deepReturnKey == null && !searching) {
         lastPart = openPart ?: 0
         openPart = null
     }
     LaunchedEffect(part == null) {
-        if (part == null && parts.size >= 2 && videoRowKey == null && returningRowFocus == null) {
-            repeat(10) { withFrameNanos { }; if (runCatching { partFocus[lastPart.coerceIn(0, partFocus.size - 1)].requestFocus() }.getOrDefault(false)) return@LaunchedEffect }
-        } else if (part != null && videoRowKey == null && returningRowFocus == null) {
+        if (parts.size >= 2 && videoRowKey == null && returningRowFocus == null) {
             repeat(10) { withFrameNanos { }; if (runCatching { rowsFocus.requestFocus() }.getOrDefault(false)) return@LaunchedEffect }
         }
     }
     val pageCount = when {
         searching && searchQuery.isBlank() -> ""
         searching -> pluralStringResource(R.plurals.settings_match_count, searchResults.size, searchResults.size)
-        parts.size >= 2 -> ""
+        parts.size >= 2 && group.video == null -> ""
         group.video != null -> videoGroupCount(group.video, settingsVm).let { n ->
             val all = n + if (group == SettingsGroup.WATCHING) 4 else 0
             pluralStringResource(R.plurals.settings_setting_count, all, all)
@@ -1200,12 +1200,12 @@ fun SettingsScreen(
                 searching -> searchResults.forEach { e ->
                     StageSearchResultRow(e.icon, e.group, e.title, e.chip, onClick = e.onClick)
                 }
-                parts.size >= 2 && part == null -> parts.forEachIndexed { i, p ->
-                    tv.own.owntv.features.more.GroupLine(p.icon, p.title, Modifier.focusRequester(partFocus[i])) { lastPart = i; openPart = i }
+                parts.size >= 2 && group.video == null -> parts.forEachIndexed { i, p ->
+                    if (p.video == null) StageSettingsHeading(p.title, p.rows.size, first = i == 0)
+                    SettingsPartBody(
+                        p, pageScroll, openMiniPlayer, videoRowKey, quickPinned, extras, { menuRow = it }, menuReturnKey, menuReturnFocus,
+                    )
                 }
-                parts.size >= 2 && part != null -> SettingsPartBody(
-                    part, pageScroll, openMiniPlayer, videoRowKey, quickPinned, extras, { menuRow = it }, menuReturnKey, menuReturnFocus,
-                )
                 group.video != null -> {
                     VideoPlayerGroupRows(
                         group.video, pageScroll,
@@ -3028,7 +3028,7 @@ private fun SettingsPartBody(
     menuReturnFocus: FocusRequester,
 ) {
     if (part.video != null) {
-        VideoPlayerGroupRows(part.video, scroll, openMiniPlayer = openMiniPlayer, focusRowKey = focusRowKey, onlyPart = part.videoPart)
+        VideoPlayerGroupRows(part.video, scroll, openMiniPlayer = openMiniPlayer, focusRowKey = focusRowKey, firstHeading = false)
     }
     part.rows.forEach { row ->
         RootRowStage(
