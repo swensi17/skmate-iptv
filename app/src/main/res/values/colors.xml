@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Launch-window background. Matches DarkBackground (#040E0B) so cold start is seamless. -->
-    <color name="owntv_window_bg">#040e0b</color>
+    <!-- Launch-window background: the light page of the app, so the cold start has no dark screen before the first frame. -->
+    <color name="owntv_window_bg">#f2f4f7</color>
     <!-- Adaptive launcher icon background. -->
     <color name="owntv_icon_bg">#050914</color>
 </resources>

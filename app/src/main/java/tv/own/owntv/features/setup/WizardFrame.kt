@@ -186,7 +186,7 @@ internal fun WizardFrame(
                             .offset(x = highlightX)
                             .size(width = each, height = 76.mpx)
                             .graphicsLayer { alpha = highlightAlpha }
-                            .background(SkMateBlue, RoundedCornerShape(38.mpx)),
+                            .background(SkMateBlue, RoundedCornerShape(16.mpx)),
                     )
                     Row(horizontalArrangement = Arrangement.spacedBy(gap), verticalAlignment = Alignment.CenterVertically) {
                         buttons.forEachIndexed { i, (action, primary) ->
@@ -222,11 +222,11 @@ private fun WizardButton(action: WizardAction, width: Dp, primary: Boolean, modi
     val fill = if (primary) a.accent.copy(alpha = if (action.enabled) 1f else 0.3f) else StageColors.Ink.copy(alpha = 0.06f)
     StageSurface(
         onClick = action.onClick,
-        radius = 38.mpx,
+        radius = 16.mpx,
         // Focus = the blue highlight behind the row slides under this button; no decor of its own.
         focusStyle = StageFocus.NONE,
         enabled = action.enabled,
-        idle = Modifier.background(fill, RoundedCornerShape(38.mpx)),
+        idle = Modifier.background(fill, RoundedCornerShape(16.mpx)),
         contentAlignment = Alignment.Center,
         modifier = modifier.width(width).height(76.mpx).then(action.focus?.let { Modifier.focusRequester(it) } ?: Modifier),
     ) { focused ->
@@ -327,9 +327,9 @@ internal fun WizardCards(cards: List<WizardCard>, firstFocus: FocusRequester? = 
         cards.forEachIndexed { i, card ->
             StageSurface(
                 onClick = card.onClick,
-                radius = 22.mpx,
+                radius = 16.mpx,
                 focusStyle = StageFocus.FX,
-                idle = Modifier.background(StageColors.Ink.copy(alpha = 0.05f), RoundedCornerShape(22.mpx)),
+                idle = Modifier.background(StageColors.Ink.copy(alpha = 0.05f), RoundedCornerShape(16.mpx)),
                 contentAlignment = Alignment.TopStart,
                 modifier = Modifier
                     .weight(1f)

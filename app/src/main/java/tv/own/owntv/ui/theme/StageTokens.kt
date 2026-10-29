@@ -215,13 +215,13 @@ fun stageShadow(alpha: Float): Color = LocalStagePalette.current.shadow(alpha)
 object StageRadii {
     val Sheet = 32.mpx
     val Menu = 28.mpx
-    val Button = 22.mpx
-    val Row = 20.mpx
-    val Pill = 17.mpx
+    val Button = 16.mpx
+    val Row = 16.mpx
+    val Pill = 16.mpx
     val Poster = 16.mpx
     val SheetItem = 16.mpx
-    val Tool = 15.mpx
-    val MenuItem = 14.mpx
+    val Tool = 16.mpx
+    val MenuItem = 16.mpx
     val Plate = 12.mpx
     val Tag = 6.mpx
 }

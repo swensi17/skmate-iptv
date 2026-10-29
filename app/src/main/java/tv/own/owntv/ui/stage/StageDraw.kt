@@ -62,7 +62,8 @@ fun DrawScope.drawBoxShadow(
     spread: Float = 0f,
     bounds: Rect = size.toRect(),
 ) {
-    if (color.alpha <= 0f) return
+    // A soft shadow is a blur the GPU redraws every frame; weak TVs go without (see DevicePerf).
+    if (color.alpha <= 0f || tv.own.owntv.ui.theme.DevicePerf.lite) return
     val shadowRadius = ((blur / 2f - 0.5f) / 0.57735f).coerceAtLeast(0.1f)
     val box = roundRect(bounds, spread, radius, dy)
     clipPath(roundRectPath(roundRect(bounds, 0f, radius)), ClipOp.Difference) {
@@ -151,7 +152,8 @@ private fun Modifier.drawBehindLights(lights: DrawScope.(Float, Float) -> Unit) 
     onDrawBehind { lights(size.width, size.height) }
 }
 
-private fun DrawScope.light(color: Color, alpha: Float, center: Offset, rx: Float, ry: Float, end: Float) =
+private fun DrawScope.light(color: Color, alpha: Float, center: Offset, rx: Float, ry: Float, end: Float) {
+    if (tv.own.owntv.ui.theme.DevicePerf.lite) return
     drawEllipticalGlow(
         colors = listOf(color.copy(alpha = alpha), color.copy(alpha = 0f)),
         positions = listOf(0f, end),
@@ -159,6 +161,7 @@ private fun DrawScope.light(color: Color, alpha: Float, center: Offset, rx: Floa
         radiusX = rx,
         radiusY = ry,
     )
+}
 
 /**
  * The Stage glass panel (`.mine .glass`), for chrome only: rail, sheets, menus, pills, cards.

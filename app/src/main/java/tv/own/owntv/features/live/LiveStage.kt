@@ -827,11 +827,12 @@ private fun CategoryCountdown(n: Int) {
 /** The preview's placeholder while a channel starts: a dark card with a slow, soft light sweep. Cheap: one brush. */
 @Composable
 private fun PreviewSkeleton(modifier: Modifier) {
-    val sweep by androidx.compose.animation.core.rememberInfiniteTransition(label = "skeleton").animateFloat(
+    // On a weak TV the placeholder stands still: a sweeping light redraws the picture's area every frame.
+    val sweep = if (tv.own.owntv.ui.theme.DevicePerf.lite) 2f else androidx.compose.animation.core.rememberInfiniteTransition(label = "skeleton").animateFloat(
         initialValue = -1f, targetValue = 2f,
         animationSpec = androidx.compose.animation.core.infiniteRepeatable(androidx.compose.animation.core.tween<Float>(1300, easing = androidx.compose.animation.core.LinearEasing)),
         label = "skeletonSweep",
-    )
+    ).value
     Box(
         modifier
             .background(SkeletonBase)
@@ -928,21 +929,20 @@ private const val PictureSettleMs = 250L
 /** Playing with no load seen: how long to wait for one before taking the stream as this channel's. */
 private const val NoLoadWaitMs = 700L
 
-/** Three blue bars rising and falling: the row's channel is the one playing in the preview. */
+/**
+ * Three blue bars: the row's channel is the one playing in the preview. Standing still — a bar that
+ * keeps moving redraws the whole screen sixty times a second, and the weaker TVs then stutter on
+ * every key press.
+ */
 @Composable
 private fun PlayingBars(modifier: Modifier = Modifier) {
-    val t by androidx.compose.animation.core.rememberInfiniteTransition(label = "playingBars").animateFloat(
-        initialValue = 0f, targetValue = 1f,
-        animationSpec = androidx.compose.animation.core.infiniteRepeatable(androidx.compose.animation.core.tween<Float>(900, easing = androidx.compose.animation.core.LinearEasing)),
-        label = "playingBarsPhase",
-    )
     val blue = tv.own.owntv.ui.brand.SkMateBlue
     Box(
         modifier.size(22.mpx).drawBehind {
             val w = size.width / 5f
+            val heights = floatArrayOf(0.55f, 1f, 0.75f)
             for (i in 0 until 3) {
-                val phase = (t + i * 0.33f) % 1f
-                val h = size.height * (0.35f + 0.65f * kotlin.math.abs(kotlin.math.sin(phase * Math.PI)).toFloat())
+                val h = size.height * heights[i]
                 drawRoundRect(
                     blue,
                     topLeft = androidx.compose.ui.geometry.Offset(i * 2 * w, size.height - h),

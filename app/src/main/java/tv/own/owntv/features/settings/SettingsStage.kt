@@ -412,7 +412,7 @@ private fun SettingsSidePage(
                         .focusRequester(rowsFocus)
                         .focusGroup()
                         .verticalScroll(scroll)
-                        .padding(start = 12.mpx, end = 12.mpx, top = 12.mpx, bottom = 40.mpx),
+                        .padding(start = 4.mpx, end = 4.mpx, top = 12.mpx, bottom = 40.mpx),
                     verticalArrangement = Arrangement.spacedBy(2.mpx),
                     content = rows,
                 )
@@ -464,6 +464,14 @@ fun SettingsSheet(
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val shown = remember { androidx.compose.animation.core.MutableTransitionState(false).apply { targetState = true } }
+    val sheetFocus = remember { FocusRequester() }
+    var sheetHasFocus by remember { androidx.compose.runtime.mutableStateOf(true) }
+    val windowFocused = androidx.compose.ui.platform.LocalWindowInfo.current.isWindowFocused
+    androidx.compose.runtime.LaunchedEffect(sheetHasFocus, windowFocused) {
+        if (sheetHasFocus || !windowFocused) return@LaunchedEffect
+        kotlinx.coroutines.delay(700)
+        runCatching { sheetFocus.requestFocus() }
+    }
     BoxWithConstraints(modifier.fillMaxSize()) {
         val screenW = maxWidth
         // A tap beside the sheet is Back, as on the remote.
@@ -483,7 +491,7 @@ fun SettingsSheet(
             // Flush with the right edge, full height, only its outer (left) corners softly rounded.
             Column(
                 Modifier
-                    .width((if (wide) screenW * 0.64f else screenW / 3).coerceAtLeast(SideMinWidth).coerceAtMost(screenW))
+                    .width((if (wide) screenW * 0.64f else screenW * 0.37f).coerceAtLeast(SideMinWidth).coerceAtMost(screenW))
                     .fillMaxHeight()
                     .clip(RoundedCornerShape(topStart = 20.mpx, bottomStart = 20.mpx))
                     .background(sheetFill()),
@@ -506,7 +514,14 @@ fun SettingsSheet(
                             if (headerTools != null) Row(horizontalArrangement = Arrangement.spacedBy(8.mpx), verticalAlignment = Alignment.CenterVertically, content = headerTools)
                         }
                         // Inset from the panel's edges, so a focused row's grey card has room around it.
-                        Column(Modifier.padding(horizontal = SideFocusInset)) { content() }
+                        // A focus group of its own: if focus is lost inside the sheet (a page closed under it) it
+                        // comes back to the first line instead of leaving the sheet with no highlight at all.
+                        Column(
+                            Modifier.padding(horizontal = SideFocusInset)
+                                .focusRequester(sheetFocus)
+                                .onFocusChanged { sheetHasFocus = it.hasFocus }
+                                .focusGroup(),
+                        ) { content() }
                     }
                 }
             }
@@ -528,9 +543,10 @@ private fun sheetHeaderFill(): Color = if (tv.own.owntv.ui.theme.LocalStagePalet
 private val SideMinWidth = 600.mpx
 
 /** Room each side of the sheet's rows for their focus card. */
-private val SideFocusInset = 12.mpx
+private val SideFocusInset = 6.mpx
 private val SideHeader = 132.mpx
-private const val SideInMs = 260
+/** The sheet's slide: short, and none to speak of on a weak TV. */
+private val SideInMs: Int get() = if (tv.own.owntv.ui.theme.DevicePerf.lite) 60 else 260
 // TV-box greys: the sheet, its header band.
 private val SideFill = Color(0xFF232629)
 private val SideHeaderFill = Color(0xFF333639)
@@ -1156,14 +1172,32 @@ fun StageFormPage(
     rows: @Composable ColumnScope.() -> Unit,
 ) {
     androidx.activity.compose.BackHandler { onBack() }
-    CompositionLocalProvider(LocalSettingsPanel provides null, LocalBringIntoViewSpec provides edgeScrollSpec) {
-        BoxWithConstraints(modifier.fillMaxSize()) {
+    val windowed = LocalFormWindow.current
+    CompositionLocalProvider(
+        LocalSettingsPanel provides null, LocalBringIntoViewSpec provides edgeScrollSpec,
+        tv.own.owntv.ui.theme.LocalStageAccentOverride provides (
+            if (windowed) tv.own.owntv.ui.theme.StageAccent(tv.own.owntv.ui.brand.SkMateBlue, Color.White, Color.White)
+            else tv.own.owntv.ui.theme.LocalStageAccentOverride.current
+        ),
+    ) {
+        BoxWithConstraints(
+            modifier.fillMaxSize().then(
+                if (windowed) Modifier.background(windowScrim()).pointerInput(Unit) { detectTapGestures { onBack() } } else Modifier,
+            ),
+        ) {
             Column(
                 Modifier
                     .align(Alignment.Center)
                     .width(FormWidth.coerceAtMost(maxWidth - 128.mpx))
-                    .fillMaxHeight()
-                    .padding(top = 116.mpx, bottom = 60.mpx),
+                    .then(
+                        if (windowed) Modifier
+                            .heightIn(max = maxHeight * 0.92f)
+                            .clip(RoundedCornerShape(26.mpx))
+                            .background(sheetFill())
+                            .pointerInput(Unit) { detectTapGestures { } }
+                            .padding(horizontal = 40.mpx, vertical = 34.mpx)
+                        else Modifier.fillMaxHeight().padding(top = 116.mpx, bottom = 60.mpx),
+                    ),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 // A short form sits in the middle of the screen; a long one fills it and scrolls.
                 verticalArrangement = Arrangement.Center,
@@ -1183,13 +1217,69 @@ fun StageFormPage(
                         .focusRequester(rowsFocus)
                         .focusGroup()
                         .verticalScroll(androidx.compose.foundation.rememberScrollState())
-                        .padding(bottom = 48.mpx),
+                        .padding(bottom = if (windowed) 8.mpx else 48.mpx),
                     verticalArrangement = Arrangement.spacedBy(6.mpx),
                 ) {
                     rows()
                     Box(Modifier.fillMaxWidth().padding(top = 28.mpx), contentAlignment = Alignment.Center) { footer() }
                 }
             }
+        }
+    }
+}
+
+/** On while a form is drawn as a centred window with a scrim (the playlists and guides add / edit forms). */
+val LocalFormWindow = androidx.compose.runtime.staticCompositionLocalOf { false }
+
+@Composable
+private fun windowScrim(): Color = if (tv.own.owntv.ui.theme.LocalStagePalette.current.isLight) Color(0x66000000) else Color(0xAA000000)
+
+/**
+ * A window in the middle of the screen over a scrim: a card the theme's colour, [content] inside it.
+ * Back, or a tap beside it, calls [onDismiss].
+ */
+@Composable
+fun CenterWindow(onDismiss: () -> Unit, modifier: Modifier = Modifier, width: androidx.compose.ui.unit.Dp = 820.mpx, content: @Composable ColumnScope.() -> Unit) {
+    androidx.activity.compose.BackHandler { onDismiss() }
+    CompositionLocalProvider(
+        tv.own.owntv.ui.theme.LocalStageAccentOverride provides tv.own.owntv.ui.theme.StageAccent(tv.own.owntv.ui.brand.SkMateBlue, Color.White, Color.White),
+    ) {
+        BoxWithConstraints(modifier.fillMaxSize().background(windowScrim()).pointerInput(Unit) { detectTapGestures { onDismiss() } }) {
+            Column(
+                Modifier
+                    .align(Alignment.Center)
+                    .width(width.coerceAtMost(maxWidth - 128.mpx))
+                    .heightIn(max = maxHeight * 0.92f)
+                    .clip(RoundedCornerShape(26.mpx))
+                    .background(sheetFill())
+                    .pointerInput(Unit) { detectTapGestures { } }
+                    .padding(horizontal = 40.mpx, vertical = 34.mpx),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                content = content,
+            )
+        }
+    }
+}
+
+/**
+ * What OK on a playlist or a guide offers: its actions in a small popup (the side sheet has no
+ * room for the panel they used to sit in).
+ */
+@Composable
+fun RowActionsPopup(title: String, actions: List<StageAction>, onDismiss: () -> Unit) {
+    val first = remember { FocusRequester() }
+    androidx.compose.runtime.LaunchedEffect(Unit) { kotlinx.coroutines.delay(80); runCatching { first.requestFocus() } }
+    tv.own.owntv.ui.stage.StagePopup(onDismiss = onDismiss, title = title, eyebrow = null, width = 600.mpx) {
+        actions.forEachIndexed { i, a ->
+            tv.own.owntv.ui.stage.StagePopupOption(
+                title = a.label,
+                onClick = { onDismiss(); a.onClick() },
+                danger = a.danger,
+                modifier = if (i == 0) Modifier.focusRequester(first) else Modifier,
+                leading = { _ ->
+                    OwnTVIcon(a.icon, if (a.danger) StageColors.Danger else StageColors.Text, Modifier.size(28.mpx))
+                },
+            )
         }
     }
 }
@@ -1413,3 +1503,39 @@ fun SpanHelpBlock() {
 /** " · " between two parts of a line (the eyebrow format with both parts empty, so it is localised). */
 @Composable
 fun dotSeparator(): String = stringResource(R.string.settings_breadcrumb_eyebrow, "", "")
+
+/**
+ * A card of the information pages: a big name, a small label over or under it, a line of explanation.
+ * With [onClick] it takes focus and OK (a grey rounded rectangle when focused, like the menu's rows);
+ * without it, it is only read. One column of them, ▲ ▼ between, no sideways moves.
+ */
+@Composable
+fun StageInfoCard(
+    title: String,
+    modifier: Modifier = Modifier,
+    label: String? = null,
+    body: String? = null,
+    icon: OwnTVIcon? = null,
+    onClick: (() -> Unit)? = null,
+) {
+    val shape = RoundedCornerShape(StageRadii.Row)
+    val content: @Composable () -> Unit = {
+        Row(Modifier.fillMaxWidth().padding(horizontal = 24.mpx, vertical = 20.mpx), horizontalArrangement = Arrangement.spacedBy(20.mpx), verticalAlignment = Alignment.CenterVertically) {
+            if (icon != null) OwnTVIcon(icon, StageColors.Text, Modifier.size(34.mpx))
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.mpx)) {
+                Text(title, style = stageText(26, 800), color = StageColors.Text, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                if (label != null) Text(label, style = stageText(15, 700), color = StageColors.Dim, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                if (body != null) Text(body, style = stageText(20, 500), color = StageColors.Muted, maxLines = 3, overflow = TextOverflow.Ellipsis)
+            }
+        }
+    }
+    if (onClick == null) {
+        Box(modifier.fillMaxWidth().background(StageColors.ControlFill, shape)) { content() }
+    } else {
+        StageSurface(
+            onClick = onClick, radius = StageRadii.Row, focusStyle = StageFocus.FX,
+            idle = Modifier.background(StageColors.ControlFill, shape),
+            modifier = modifier.fillMaxWidth(),
+        ) { _ -> content() }
+    }
+}

@@ -179,7 +179,8 @@ fun StageRail(
     // Slide in from the edge (320 ms, or a snap with animations off): the capsule when it leaves
     // HIDDEN, the open rail each time it opens.
     val slide = remember { Animatable(0f) }
-    val slideSpec: androidx.compose.animation.core.AnimationSpec<Float> = ownTvTween(320)
+    // Weak TVs show the menu in a few frames instead of twenty: at their frame rate a long slide is a stutter.
+    val slideSpec: androidx.compose.animation.core.AnimationSpec<Float> = ownTvTween(if (tv.own.owntv.ui.theme.DevicePerf.lite) 110 else 320)
     LaunchedEffect(open, state == RailState.HIDDEN) {
         val target = if (state == RailState.HIDDEN) -1f else 0f
         if (open) slide.snapTo(-1f)
@@ -205,9 +206,10 @@ fun StageRail(
                 .graphicsLayer {
                     val travel = (width + edge).toPx()
                     translationX = slide.value * travel * (if (rtl) -1f else 1f)
+                    // Fades as it slides out, so its shadow never lingers at the edge once hidden. Read here,
+                    // at draw time: as a plain alpha it recomposed the whole rail on every frame of the slide.
+                    alpha = if (state == RailState.HIDDEN) (1f + slide.value).coerceIn(0f, 1f) else 1f
                 }
-                // Fades as it slides out, so its shadow never lingers at the edge once hidden.
-                .alpha(if (state == RailState.HIDDEN) (1f + slide.value).coerceIn(0f, 1f) else 1f)
                 .onFocusChanged {
                     // Every entry from the content lands on the selected section, not on whatever item
                     // happens to line up; moves inside the rail do not re-trigger this.

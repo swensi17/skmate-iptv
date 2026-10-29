@@ -68,7 +68,7 @@ import tv.own.owntv.ui.theme.stageAccent
 import tv.own.owntv.ui.theme.stageText
 
 /** The sheet's items, top to bottom. [DEVELOPER] exists only in local builds (BuildConfig.DEV_TOOLS). */
-private enum class MoreItem { SETTINGS, FAVORITES, HISTORY, BACKUP, LOCAL_SYNC, ERROR_LOG, ABOUT, DEVELOPER }
+private enum class MoreItem { SETTINGS, FAVORITES, HISTORY, BACKUP, LOCAL_SYNC, ABOUT, DEVELOPER }
 
 /**
  * More: the glass section sheet, topped by the profile, and one page on the right
@@ -154,8 +154,6 @@ fun MoreScreen(
     val playlists by vm.playlistCount.collectAsStateWithLifecycle()
     val pinned by settingsVm.quickPinnedKeys.collectAsStateWithLifecycle()
     val context = LocalContext.current
-    var logVersion by remember { mutableIntStateOf(0) }
-    val logCount by produceState(0, logVersion) { value = withContext(Dispatchers.IO) { PlaybackErrorLog.read(context).size } }
 
     // Inside Settings only its sheet on the right shows, as on a TV box: the More list slides away
     // while focus is in the settings, and comes back with ◀ or Back.
@@ -199,7 +197,6 @@ fun MoreScreen(
             )
             item(MoreItem.LOCAL_SYNC, OwnTVIcon.PHONE, stringResource(R.string.local_sync_title), stringResource(if (sync.listening) R.string.common_on else R.string.common_off), false)
             GroupLabel(stringResource(R.string.settings_app_group))
-            item(MoreItem.ERROR_LOG, OwnTVIcon.WARNING, stringResource(R.string.settings_playback_error_log), logCount.toString(), false)
             item(MoreItem.ABOUT, OwnTVIcon.INFO, stringResource(R.string.settings_about), BuildConfig.VERSION_NAME, false)
             // Maintainer-only; DEV_TOOLS is a compile-time constant, so R8 removes it from published APKs.
             if (BuildConfig.DEV_TOOLS) item(MoreItem.DEVELOPER, OwnTVIcon.GEAR, "Developer", "DEV", false)
@@ -235,10 +232,9 @@ fun MoreScreen(
                 MoreItem.SETTINGS -> SettingsPage(
                     entry = pageTarget, pinned = pinned.size,
                     extras = if (!sheetOnly) emptyList() else listOfNotNull(
-                        SettingsExtra(OwnTVIcon.DOWNLOADS, stringResource(R.string.settings_backup_restore)) { choose(MoreItem.BACKUP) },
-                        SettingsExtra(OwnTVIcon.PHONE, stringResource(R.string.local_sync_title)) { choose(MoreItem.LOCAL_SYNC) },
-                        SettingsExtra(OwnTVIcon.WARNING, stringResource(R.string.settings_playback_error_log)) { choose(MoreItem.ERROR_LOG) },
-                        SettingsExtra(OwnTVIcon.INFO, stringResource(R.string.settings_about)) { choose(MoreItem.ABOUT) },
+                        SettingsExtra(OwnTVIcon.DOWNLOADS, stringResource(R.string.settings_short_backup)) { choose(MoreItem.BACKUP) },
+                        SettingsExtra(OwnTVIcon.PHONE, stringResource(R.string.settings_short_sync)) { choose(MoreItem.LOCAL_SYNC) },
+                        SettingsExtra(OwnTVIcon.INFO, stringResource(R.string.settings_short_about)) { choose(MoreItem.ABOUT) },
                         SettingsExtra(OwnTVIcon.PERSON, stringResource(R.string.more_profile_switch), onClick = onSwitchProfile),
                     ),
                     onOpenGroup = { onOpenSettings(it, false) },
@@ -255,8 +251,7 @@ fun MoreScreen(
                 )
                 MoreItem.BACKUP -> InSheet(sheetOnly, stringResource(R.string.settings_backup_restore)) { BackupScreen(entry = pageTarget, modifier = Modifier.fillMaxSize()) }
                 MoreItem.LOCAL_SYNC -> InSheet(sheetOnly, stringResource(R.string.local_sync_title)) { LocalSyncScreen(entry = pageTarget, modifier = Modifier.fillMaxSize()) }
-                MoreItem.ERROR_LOG -> InSheet(sheetOnly, stringResource(R.string.settings_playback_error_log)) { ErrorLogPage(setEntry = setEntry, onCountChanged = { logVersion++ }, titled = !sheetOnly) }
-                MoreItem.ABOUT -> InSheet(sheetOnly, stringResource(R.string.settings_about)) { AboutPage(vm = vm, entry = pageTarget, onOpenLanguage = { onOpenSettings(11, false) }) }
+                MoreItem.ABOUT -> InSheet(sheetOnly, stringResource(R.string.settings_about)) { AboutPage(vm = vm, entry = pageTarget) }
                 MoreItem.DEVELOPER -> Box(Modifier.focusRequester(pageTarget).focusGroup()) { DeveloperScreen(onBack = backToSheet) }
             }
         }
@@ -312,7 +307,7 @@ private fun relativeShort(at: Long): String =
     ).toString()
 
 /** The pages that open in the settings sheet like a settings group does, not as a screen of their own. */
-private val SheetPages = setOf(MoreItem.BACKUP, MoreItem.LOCAL_SYNC, MoreItem.ERROR_LOG, MoreItem.ABOUT)
+private val SheetPages = setOf(MoreItem.BACKUP, MoreItem.LOCAL_SYNC, MoreItem.ABOUT)
 
 @Composable
 private fun InSheet(sheet: Boolean, title: String, content: @Composable () -> Unit) {

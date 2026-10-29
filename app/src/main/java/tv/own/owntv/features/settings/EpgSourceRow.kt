@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
@@ -71,6 +72,8 @@ internal fun EpgRow(
     }
     val back = rowFocus ?: remember { FocusRequester() }
     val actions = epgSourceActions(deleting, syncState, orderActions, onResync, onCancelSync, onEdit, onDelete)
+    var menu by remember { androidx.compose.runtime.mutableStateOf(false) }
+    if (menu) RowActionsPopup(source.name, actions) { menu = false }
     StageSettingRow(
         icon = OwnTVIcon.EPG,
         title = source.name,
@@ -83,7 +86,7 @@ internal fun EpgRow(
             badge != null -> SettingValue.Action(badge)
             else -> null
         },
-        onClick = { if (actions.isNotEmpty()) runCatching { actionsFocus.requestFocus() } },
+        onClick = { if (actions.isNotEmpty()) menu = true },
         keepPanel = keepPanel,
         help = SettingHelp(
             title = source.name,
@@ -101,7 +104,6 @@ internal fun EpgRow(
         ),
         modifier = Modifier
             .focusRequester(back)
-            .focusProperties { if (actions.isNotEmpty()) right = actionsFocus }
             .onFocusChanged { if (it.isFocused) onFocused() },
     )
 }

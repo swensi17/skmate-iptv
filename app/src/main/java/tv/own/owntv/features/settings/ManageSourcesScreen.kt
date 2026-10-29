@@ -151,6 +151,7 @@ fun ManageSourcesScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
         }
     }
 
+    androidx.compose.runtime.CompositionLocalProvider(LocalFormWindow provides true) {
     Box(modifier = modifier.fillMaxSize()) {
         if (editingSource != null) {
             val src = editingSource!!
@@ -201,6 +202,7 @@ fun ManageSourcesScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
                         onPayloadReceived = { addMode = AddMode.MANUAL },
                         onBack = { vm.stopRemoteListener(); addMode = null },
                         modifier = Modifier,
+                        windowed = true,
                     )
                     AddMode.MANUAL -> AddSourceScreen(
                         onStartXtream = { n, server, u, p, ua, ref, epg, autoRefresh, live, movies, series, isDefault, preferHls ->
@@ -283,13 +285,6 @@ fun ManageSourcesScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
                 count = "",
                 onBack = onBack,
                 handleBack = false,
-                toolbar = {
-                    tv.own.owntv.ui.stage.StageTool(
-                        stringResource(R.string.settings_sources_add), onClick = { showAdd = true },
-                        icon = tv.own.owntv.ui.components.OwnTVIcon.ADD, boxed = true,
-                        modifier = Modifier.focusRequester(addFocus),
-                    )
-                },
             ) {
                 if (sources.isEmpty()) StageSettingsNote(stringResource(R.string.settings_sources_empty), null)
                 sources.forEachIndexed { index, source ->
@@ -321,6 +316,15 @@ fun ManageSourcesScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
                         onDelete = { contextId = source.id; contextIndex = index; confirmDelete = source },
                     )
                 }
+                // The add row closes the list, full width like every row above it.
+                StageSettingRow(
+                    icon = tv.own.owntv.ui.components.OwnTVIcon.ADD,
+                    title = stringResource(R.string.settings_sources_add),
+                    desc = null,
+                    value = null,
+                    onClick = { showAdd = true },
+                    modifier = Modifier.focusRequester(addFocus),
+                )
             }
         }
 
@@ -367,6 +371,7 @@ fun ManageSourcesScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
                 onDismiss = { confirmDelete = null },
             )
         }
+    }
     }
 }
 
@@ -430,12 +435,14 @@ private fun SourceRow(
         StageAction(OwnTVIcon.SPARKLE, stringResource(R.string.settings_sources_clean_names), onCleanNames),
         StageAction(OwnTVIcon.TRASH, stringResource(R.string.settings_sources_delete), onDelete, danger = true),
     )
+    var menu by remember { mutableStateOf(false) }
+    if (menu) RowActionsPopup(source.name, actions) { menu = false }
     StageSettingRow(
         icon = OwnTVIcon.PLAYLIST,
         title = source.name,
         desc = line.ifBlank { typeName },
         value = status?.let { SettingValue.Action(it) },
-        onClick = { runCatching { actionsFocus.requestFocus() } },
+        onClick = { if (actions.isNotEmpty()) menu = true },
         keepPanel = keepPanel,
         help = SettingHelp(
             title = source.name,
@@ -459,7 +466,6 @@ private fun SourceRow(
         ),
         modifier = Modifier
             .focusRequester(back)
-            .focusProperties { right = actionsFocus }
             .onFocusChanged { if (it.isFocused) onFocused() },
     )
 }

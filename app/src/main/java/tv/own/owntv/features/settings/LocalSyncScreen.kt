@@ -130,28 +130,27 @@ fun LocalSyncScreen(
     ) {
         if (!tv.own.owntv.ui.theme.LocalInSettingsSheet.current) Text(stringResource(R.string.local_sync_title), style = stageText(42, 800, (-1).mpxSp), color = StageColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis)
         Text(stringResource(R.string.more_sync_description), style = stageText(18, 500), color = StageColors.Muted, modifier = Modifier.padding(top = 10.mpx))
-        Row(
-            Modifier.padding(top = 26.mpx).fillMaxWidth().height(IntrinsicSize.Min),
-            horizontalArrangement = Arrangement.spacedBy(20.mpx),
-        ) {
-            SyncTile(
-                icon = OwnTVIcon.PHONE,
+        // One column of cards, ▲ ▼ between them: Sync mode (a switch), Connect, then the devices.
+        Column(Modifier.padding(top = 22.mpx), verticalArrangement = Arrangement.spacedBy(10.mpx)) {
+            StageInfoCard(
                 title = stringResource(R.string.local_sync_mode),
+                label = stringResource(if (listening != null) R.string.common_on else R.string.common_off),
                 body = stringResource(R.string.more_sync_mode_description),
+                icon = OwnTVIcon.PHONE,
+                modifier = Modifier.focusRequester(firstFocus),
                 onClick = { if (listening != null) vm.stopHosting() else vm.startHosting() },
-                modifier = Modifier.weight(1f).fillMaxHeight().focusRequester(firstFocus),
-            ) { StageSwitch(on = listening != null) }
-            SyncTile(
-                icon = OwnTVIcon.SEARCH,
+            )
+            StageInfoCard(
                 title = stringResource(R.string.local_sync_connect),
                 body = stringResource(R.string.local_sync_connect_description),
+                icon = OwnTVIcon.SEARCH,
+                modifier = Modifier.focusRequester(connectFocus),
                 onClick = { stepFocus.value = connectFocus; vm.beginPairing() },
-                modifier = Modifier.weight(1f).fillMaxHeight().focusRequester(connectFocus),
-            ) { OwnTVIcon(OwnTVIcon.CHEVRON, StageColors.Muted, Modifier.size(20.mpx)) }
+            )
         }
 
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(20.mpx)) {
-            Column(Modifier.weight(1f)) {
+        Column(Modifier.fillMaxWidth()) {
+            Column(Modifier.fillMaxWidth()) {
                 if (paired.isNotEmpty()) {
                     Text(
                         stringResource(R.string.local_sync_paired_devices).uppercase(androidx.compose.ui.platform.LocalConfiguration.current.locales[0]),
@@ -187,7 +186,7 @@ fun LocalSyncScreen(
                     tv.own.owntv.ui.stage.StageButton(stringResource(R.string.settings_close), onClick = vm::dismissError, modifier = Modifier.padding(top = 8.mpx))
                 }
             }
-            listening?.let { Box(Modifier.padding(top = 30.mpx)) { HostingCard(it, vm.deviceName) } }
+            listening?.let { Box(Modifier.padding(top = 20.mpx)) { HostingCard(it, vm.deviceName) } }
         }
 
         // Each step is a popup over the page, not a block spliced into it: a popup owns its focus.

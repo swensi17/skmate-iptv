@@ -70,8 +70,8 @@ import tv.own.owntv.features.home.ChannelPlate
 import tv.own.owntv.features.home.OnNowCard
 import tv.own.owntv.features.home.timeLeftText
 import tv.own.owntv.features.shell.components.ClearHistoryDialog
+import tv.own.owntv.features.settings.StageInfoCard
 import tv.own.owntv.features.shell.components.GITHUB_REPO
-import tv.own.owntv.features.shell.components.TELEGRAM_LINK
 import tv.own.owntv.features.shell.components.playbackDisplayName
 import tv.own.owntv.features.update.UpdateDialog
 import tv.own.owntv.player.PlaybackErrorLog
@@ -225,6 +225,9 @@ private val SettingsCards = listOf(
 /** The card last opened, so Back from its group lands on it again rather than on the search field. */
 private var lastOpenedCard: Int? = null
 
+/** The line below the groups (Backup, Sync, About, …) last opened, so Back lands on it and not at the top. */
+private var lastOpenedExtra: Int? = null
+
 @Composable
 internal fun SettingsPage(entry: FocusRequester, pinned: Int, onOpenGroup: (Int) -> Unit, onSearch: () -> Unit, extras: List<SettingsExtra> = emptyList()) {
     if (tv.own.owntv.features.settings.SettingsAsSidePanel) {
@@ -288,20 +291,22 @@ private fun SettingsGroupList(entry: FocusRequester, onOpenGroup: (Int) -> Unit,
     tv.own.owntv.features.settings.SettingsSheet(title = stringResource(R.string.common_nav_settings), scrim = true, fromStart = back != null) {
         Column(
             Modifier.fillMaxWidth().weight(1f).focusGroup().verticalScroll(androidx.compose.foundation.rememberScrollState())
-                .padding(start = 12.mpx, end = 12.mpx, top = 12.mpx, bottom = 40.mpx),
+                .padding(start = 4.mpx, end = 4.mpx, top = 12.mpx, bottom = 40.mpx),
             verticalArrangement = Arrangement.spacedBy(2.mpx),
         ) {
             SettingsCards.forEachIndexed { index, card ->
                 // No Live TV group: its settings belong to the channels screen and its own menus.
                 if (card.nameRes == R.string.settings_live_tv) return@forEachIndexed
                 // One word each, as Android TV names its own settings; the page itself carries the full name.
-                GroupLine(card.icon, stringResource(card.shortRes), Modifier.then(if (index == back || (back == null && index == 0)) Modifier.focusRequester(entry) else Modifier)) {
-                    lastOpenedCard = index; onOpenGroup(index)
+                GroupLine(card.icon, stringResource(card.shortRes), Modifier.then(if (index == back || (back == null && lastOpenedExtra == null && index == 0)) Modifier.focusRequester(entry) else Modifier)) {
+                    lastOpenedCard = index; lastOpenedExtra = null; onOpenGroup(index)
                 }
             }
             // What used to be More's own list: backup, sync, the error log, About, switching profile.
             if (extras.isNotEmpty()) Box(Modifier.padding(horizontal = 24.mpx, vertical = 10.mpx).fillMaxWidth().height(1.mpx).background(StageColors.Text.copy(alpha = 0.12f)))
-            extras.forEach { e -> GroupLine(e.icon, e.title, onClick = { lastOpenedCard = null; e.onClick() }) }
+            extras.forEachIndexed { i, e ->
+                GroupLine(e.icon, e.title, Modifier.then(if (lastOpenedExtra == i) Modifier.focusRequester(entry) else Modifier), onClick = { lastOpenedCard = null; lastOpenedExtra = i; e.onClick() })
+            }
         }
     }
 }
@@ -310,7 +315,7 @@ private fun SettingsGroupList(entry: FocusRequester, onOpenGroup: (Int) -> Unit,
 internal fun GroupLine(icon: OwnTVIcon, title: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
     // As Android TV's own settings list: a tall row, a large icon and one bold word.
     StageSurface(onClick = onClick, radius = 16.mpx, focusStyle = StageFocus.FX, modifier = modifier.fillMaxWidth().height(80.mpx)) { focused ->
-        Row(Modifier.padding(horizontal = 26.mpx), horizontalArrangement = Arrangement.spacedBy(24.mpx), verticalAlignment = Alignment.CenterVertically) {
+        Row(Modifier.padding(horizontal = 20.mpx), horizontalArrangement = Arrangement.spacedBy(22.mpx), verticalAlignment = Alignment.CenterVertically) {
             OwnTVIcon(icon, StageColors.Text.copy(alpha = if (focused) 1f else 0.85f), Modifier.size(32.mpx))
             Text(title, style = stageText(25, 700), color = StageColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
@@ -576,171 +581,52 @@ internal fun HistoryPage(
 }
 
 // ---------------------------------------------------------------------------------------------
-// Error log
-// ---------------------------------------------------------------------------------------------
-
-@Composable
-internal fun ErrorLogPage(setEntry: (() -> Boolean) -> Unit, onCountChanged: () -> Unit, titled: Boolean = true) {
-    val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-    var refresh by remember { mutableIntStateOf(0) }
-    var exportPath by remember { mutableStateOf<String?>(null) }
-    var exportFailed by remember { mutableStateOf(false) }
-    val entries by produceState<List<PlaybackErrorLog.Entry>?>(initialValue = null, refresh) {
-        value = withContext(Dispatchers.IO) { PlaybackErrorLog.read(context) }
-    }
-    val exportFocus = remember { FocusRequester() }
-    val firstRow = remember { FocusRequester() }
-    val sep = stringResource(R.string.content_epg_bits_separator)
-
-    Column(Modifier.fillMaxSize().focusGroup()) {
-        PageHead(if (titled) stringResource(R.string.settings_playback_error_log) else "") {
-            Text((entries?.size ?: 0).toString(), style = stageText(22, 700), color = StageColors.Muted)
-            Spacer(Modifier.weight(1f))
-            // Export also carries the live diagnostics ring, so it stays even when the list is empty.
-            StageTool(stringResource(R.string.settings_export), boxed = true, icon = OwnTVIcon.DOWNLOADS, modifier = Modifier.focusRequester(exportFocus), onClick = {
-                scope.launch {
-                    val path = withContext(Dispatchers.IO) { PlaybackErrorLog.export(context) }
-                    exportPath = path
-                    exportFailed = path == null
-                }
-            })
-            if (!entries.isNullOrEmpty()) StageTool(stringResource(R.string.settings_clear_log), icon = OwnTVIcon.TRASH, danger = true, onClick = {
-                PlaybackErrorLog.clear(context)
-                exportPath = null
-                exportFailed = false
-                refresh++
-                onCountChanged()
-                runCatching { exportFocus.requestFocus() }
-            })
-        }
-        androidx.compose.runtime.SideEffect { setEntry { runCatching { (if (entries.isNullOrEmpty()) exportFocus else firstRow).requestFocus() }.getOrDefault(false) } }
-        Text(stringResource(R.string.settings_playback_error_description_full), style = stageText(17, 500), color = StageColors.Muted, modifier = Modifier.padding(top = 10.mpx))
-        exportPath?.let { Text(stringResource(R.string.settings_backup_saved_to, it), style = stageText(16, 500), color = stageAccent.accent, modifier = Modifier.padding(top = 8.mpx)) }
-        if (exportFailed) Text(stringResource(R.string.settings_backup_export_error), style = stageText(16, 500), color = StageColors.Danger, modifier = Modifier.padding(top = 8.mpx))
-        val list = entries
-        when {
-            list == null -> Unit
-            list.isEmpty() -> EmptyNote(stringResource(R.string.settings_no_playback_errors))
-            else -> LazyColumn(Modifier.padding(top = 22.mpx).fillMaxSize(), contentPadding = PaddingValues(bottom = 40.mpx)) {
-                itemsIndexed(list) { i, e ->
-                    val kind = when (e.kind) {
-                        PlaybackErrorLog.Kind.ERROR -> stringResource(R.string.settings_playback_kind_error) to StageColors.Danger
-                        PlaybackErrorLog.Kind.EVENT -> stringResource(R.string.settings_playback_kind_event) to StageColors.TagText
-                        PlaybackErrorLog.Kind.REPORT -> stringResource(R.string.settings_playback_kind_report) to StageColors.Warn
-                    }
-                    StageActionRow(
-                        height = 96.mpx,
-                        focus = if (i == 0) firstRow else null,
-                        onClick = {},
-                        titleSize = 21,
-                        leading = {
-                            Text(
-                                kind.first.uppercase(androidx.compose.ui.platform.LocalConfiguration.current.locales[0]),
-                                style = stageText(13, 800, 0.05.em), color = kind.second, maxLines = 1, overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.widthIn(min = 72.mpx)
-                                    .background(if (kind.second == StageColors.TagText) StageColors.Ink.copy(alpha = 0.08f) else kind.second.copy(alpha = 0.16f), RoundedCornerShape(6.mpx))
-                                    .padding(horizontal = 7.mpx, vertical = 3.mpx),
-                                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                            )
-                        },
-                        title = e.reason?.displayText() ?: e.legacyReason ?: e.engine.playbackDisplayName(),
-                        line = listOfNotNull(
-                            e.engine.playbackDisplayName(),
-                            stringResource(if (e.live) R.string.settings_live else R.string.settings_vod),
-                            e.mediaSpec()?.displayText() ?: e.spec,
-                        ).joinToString(sep),
-                        trailing = { Text(formatBestDateTime(context, "dMMM", e.atMs), style = stageText(17, 500), color = StageColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                        extra = { focused ->
-                            if (focused) {
-                                e.raw?.let { Text(it, style = stageText(15, 500), color = StageColors.Dim, maxLines = 3, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 8.mpx)) }
-                                Text(stringResource(R.string.settings_device_details, e.model, e.android), style = stageText(15, 500), color = StageColors.Dim, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 4.mpx))
-                            }
-                        },
-                    )
-                }
-            }
-        }
-    }
-}
-
-// ---------------------------------------------------------------------------------------------
 // About
 // ---------------------------------------------------------------------------------------------
 
+/** A thank-you, then cards: the app and its version (OK checks for updates), the code's address, a disclaimer. */
 @Composable
-internal fun AboutPage(vm: MoreCountsViewModel, entry: FocusRequester, onOpenLanguage: () -> Unit) {
-    val context = LocalContext.current
+internal fun AboutPage(vm: MoreCountsViewModel, entry: FocusRequester) {
     val manager: UpdateManager = koinInject()
     val updateState by manager.state.collectAsStateWithLifecycle()
-    val checkedAt by vm.lastUpdateCheckAt.collectAsStateWithLifecycle()
     var showUpdate by remember { mutableStateOf(false) }
     val updateFocus = remember { FocusRequester() }
     var updateWasOpen by remember { mutableStateOf(false) }
     LaunchedEffect(showUpdate) { if (showUpdate) updateWasOpen = true else if (updateWasOpen) { updateWasOpen = false; withFrameNanos { }; runCatching { updateFocus.requestFocus() } } }
-    val sep = stringResource(R.string.content_epg_bits_separator)
-    val accent = stageAccent.accent
 
-    Column(Modifier.fillMaxSize().focusGroup()) {
-        Row(horizontalArrangement = Arrangement.spacedBy(40.mpx), verticalAlignment = Alignment.CenterVertically) {
-            // The app's own icon (150) and the wordmark (300).
-            BrandMark(rememberAppliedIcon(), 150.mpx)
-            Column {
-                Wordmark(300.mpx)
-                Row(Modifier.padding(top = 16.mpx), horizontalArrangement = Arrangement.spacedBy(14.mpx), verticalAlignment = Alignment.CenterVertically) {
-                    Text(stringResource(R.string.settings_about_version, BuildConfig.VERSION_NAME), style = stageText(22, 700), color = StageColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    // Only what a real check said: no tag before one has run.
-                    val tag = when (updateState) {
-                        UpdateManager.State.UpToDate -> stringResource(R.string.more_about_up_to_date)
-                        is UpdateManager.State.Available -> stringResource(R.string.update_available)
-                        else -> null
-                    }
-                    tag?.let {
-                        Text(it.uppercase(androidx.compose.ui.platform.LocalConfiguration.current.locales[0]), style = stageText(13, 800, 0.05.em), color = accent, maxLines = 1, overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.background(accent.copy(alpha = 0.2f), RoundedCornerShape(6.mpx)).padding(horizontal = 7.mpx, vertical = 3.mpx))
-                    }
-                }
-                Text(
-                    listOfNotNull(
-                        checkedAt?.let { stringResource(R.string.more_about_checked, recordingWhen(it)) },
-                        stringResource(R.string.more_about_license),
-                    ).joinToString(sep),
-                    style = stageText(17, 500), color = StageColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.padding(top = 6.mpx),
-                )
-            }
+    Column(Modifier.fillMaxSize().focusGroup().verticalScroll(androidx.compose.foundation.rememberScrollState()).padding(bottom = 40.mpx), verticalArrangement = Arrangement.spacedBy(12.mpx)) {
+        Row(Modifier.padding(top = 8.mpx, start = 4.mpx), horizontalArrangement = Arrangement.spacedBy(14.mpx), verticalAlignment = Alignment.CenterVertically) {
+            OwnTVIcon(OwnTVIcon.FAVORITE, StageColors.Danger, Modifier.size(38.mpx), filled = true)
+            Text(stringResource(R.string.about_thanks_title), style = stageText(36, 800), color = StageColors.Text, maxLines = 1)
         }
-        Text(stringResource(R.string.more_about_description), style = stageText(18, 500).copy(lineHeight = 29.mpxSp), color = stageTone(Color(0xFFD3DCD8), StageColors.Body),
-            modifier = Modifier.padding(top = 26.mpx).widthIn(max = 860.mpx))
-        Text(stringResource(R.string.settings_contributions), style = stageText(16, 500), color = StageColors.Dim,
-            modifier = Modifier.padding(top = 10.mpx, bottom = 24.mpx).widthIn(max = 860.mpx))
-        StageTile(Modifier.width(640.mpx)) {
-            Row(horizontalArrangement = Arrangement.spacedBy(20.mpx), verticalAlignment = Alignment.CenterVertically) {
-                Image(
-                    painter = painterResource(R.drawable.telegram_qr),
-                    contentDescription = stringResource(R.string.settings_telegram_qr),
-                    modifier = Modifier.size(150.mpx).clip(RoundedCornerShape(14.mpx)).background(Color.White),
-                )
-                Column {
-                    Text(stringResource(R.string.settings_join_telegram), style = stageText(22, 800), color = StageColors.Text)
-                    Text(TELEGRAM_LINK, style = stageText(17, 500), color = accent, modifier = Modifier.padding(top = 4.mpx))
-                    Text(stringResource(R.string.more_about_scan), style = stageText(15.5f, 500), color = StageColors.Muted, modifier = Modifier.padding(top = 8.mpx))
-                }
-            }
+        Text(stringResource(R.string.about_thanks_body), style = stageText(19, 500), color = StageColors.Muted, modifier = Modifier.padding(horizontal = 4.mpx, vertical = 6.mpx))
+        Text(stringResource(R.string.about_info), style = stageText(28, 800), color = StageColors.Text, modifier = Modifier.padding(start = 4.mpx, top = 14.mpx, bottom = 2.mpx))
+        // Only what a real check said: no tag before one has run.
+        val tag = when (updateState) {
+            UpdateManager.State.UpToDate -> stringResource(R.string.more_about_up_to_date)
+            is UpdateManager.State.Available -> stringResource(R.string.update_available)
+            else -> null
         }
-        Row(Modifier.padding(top = 22.mpx), horizontalArrangement = Arrangement.spacedBy(10.mpx)) {
-            // The link is for reading: a TV has no browser to open it in.
-            Row(
-                Modifier.height(44.mpx).background(StageColors.ControlFill, RoundedCornerShape(15.mpx)).padding(horizontal = 16.mpx),
-                horizontalArrangement = Arrangement.spacedBy(9.mpx), verticalAlignment = Alignment.CenterVertically,
-            ) {
-                OwnTVIcon(OwnTVIcon.NETWORK, StageColors.Text, Modifier.size(18.mpx))
-                Text(GITHUB_REPO, style = stageText(16, 700), color = StageColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            }
-            val languages = SupportedLocales.all.count { it.packaged }
-            StageTool(pluralStringResource(R.plurals.more_about_languages, languages, languages), onClick = onOpenLanguage, icon = OwnTVIcon.LIST, boxed = true, modifier = Modifier.focusRequester(entry))
-            StageTool(stringResource(R.string.settings_check_updates), onClick = { showUpdate = true }, icon = OwnTVIcon.REFRESH, boxed = true, modifier = Modifier.focusRequester(updateFocus))
+        StageInfoCard(
+            title = stringResource(R.string.app_name),
+            label = stringResource(R.string.about_card_app),
+            body = listOfNotNull(stringResource(R.string.settings_about_version, BuildConfig.VERSION_NAME), tag).joinToString(" · "),
+            icon = OwnTVIcon.REFRESH,
+            onClick = { showUpdate = true },
+            modifier = Modifier.focusRequester(entry).focusRequester(updateFocus),
+        )
+        StageInfoCard(
+            title = GITHUB_REPO.removePrefix("github.com/"),
+            label = stringResource(R.string.about_card_code),
+            body = stringResource(R.string.about_card_source),
+            icon = OwnTVIcon.NETWORK,
+            onClick = {},
+        )
+        Row(Modifier.padding(start = 4.mpx, top = 22.mpx), horizontalArrangement = Arrangement.spacedBy(8.mpx), verticalAlignment = Alignment.CenterVertically) {
+            OwnTVIcon(OwnTVIcon.WARNING, StageColors.Muted, Modifier.size(20.mpx))
+            Text(stringResource(R.string.about_disclaimer_title), style = stageText(17, 800), color = StageColors.Text)
         }
+        Text(stringResource(R.string.about_disclaimer), style = stageText(17, 500), color = StageColors.Muted, modifier = Modifier.padding(start = 4.mpx))
     }
     if (showUpdate) {
         UpdateDialog(onDismiss = { showUpdate = false }, checkOnOpen = true)

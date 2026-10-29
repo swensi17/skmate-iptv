@@ -227,61 +227,40 @@ fun BackupScreen(
             }
         }
 
-        Row(
-            Modifier.padding(top = 22.mpx).fillMaxWidth().height(IntrinsicSize.Min),
-            horizontalArrangement = Arrangement.spacedBy(20.mpx),
-        ) {
-            // Back up now: the card lights up while either of its two buttons holds focus.
-            var backupFocused by remember { mutableStateOf(false) }
-            StageTile(
-                modifier = Modifier.weight(1f).fillMaxHeight().onFocusChanged { backupFocused = it.hasFocus }.focusGroup(),
-                focusedLook = backupFocused,
-            ) { focused ->
-                OwnTVIcon(OwnTVIcon.DOWNLOADS, if (focused) StageColors.Text else StageColors.Muted, Modifier.size(30.mpx))
-                Text(stringResource(R.string.more_backup_now), style = stageText(24, 800), color = StageColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 10.mpx))
-                Text(stringResource(R.string.more_backup_now_body), style = stageText(16, 500), color = if (focused) StageColors.Text.copy(alpha = 0.8f) else StageColors.Muted, modifier = Modifier.padding(top = 6.mpx))
-                Row(Modifier.padding(top = 16.mpx), horizontalArrangement = Arrangement.spacedBy(8.mpx)) {
-                    BackupTool(stringResource(R.string.more_backup_file_tv), OwnTVIcon.FOLDER, Modifier.focusRequester(firstFocus)) { startExport(false, firstFocus) }
-                    BackupTool(stringResource(R.string.settings_backup_remote), OwnTVIcon.NETWORK, Modifier.focusRequester(phoneFocus)) { startExport(true, phoneFocus) }
-                }
-            }
-            // Restore: the same two ways as Back up now, as buttons on the card — no chooser popup.
-            var restoreFocused by remember { mutableStateOf(false) }
-            val restoreRemoteFocus = remember { FocusRequester() }
-            StageTile(
-                modifier = Modifier.weight(1f).fillMaxHeight().onFocusChanged { restoreFocused = it.hasFocus }.focusGroup(),
-                focusedLook = restoreFocused,
-            ) { focused ->
-                OwnTVIcon(OwnTVIcon.REFRESH, if (focused) StageColors.Text else StageColors.Muted, Modifier.size(30.mpx))
-                Text(stringResource(R.string.settings_backup_restore_action), style = stageText(24, 800), color = StageColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 10.mpx))
-                Text(stringResource(R.string.more_restore_body), style = stageText(16, 500), color = if (focused) StageColors.Text.copy(alpha = 0.8f) else StageColors.Muted, modifier = Modifier.padding(top = 6.mpx))
-                Row(Modifier.padding(top = 16.mpx), horizontalArrangement = Arrangement.spacedBy(8.mpx)) {
-                    BackupTool(stringResource(R.string.more_backup_file_tv), OwnTVIcon.FOLDER, Modifier.focusRequester(restoreBtnFocus)) {
-                        if (!working) { dialogReturn = restoreBtnFocus; browser = BrowseMode.FILE; showBrowser = true }
-                    }
-                    BackupTool(stringResource(R.string.settings_backup_remote), OwnTVIcon.NETWORK, Modifier.focusRequester(restoreRemoteFocus)) {
-                        if (!working) { dialogReturn = restoreRemoteFocus; showRemoteRestore = true }
-                    }
-                }
-            }
-        }
-
-        Text(
-            stringResource(R.string.more_backup_included).uppercase(androidx.compose.ui.platform.LocalConfiguration.current.locales[0]),
-            style = stageText(13, 800, 0.13.em), color = StageColors.Dim, maxLines = 1, overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.padding(top = 28.mpx, bottom = 12.mpx),
-        )
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(10.mpx), verticalArrangement = Arrangement.spacedBy(10.mpx)) {
-            BackupManager.Section.entries.forEach { section ->
-                Row(
-                    Modifier.height(44.mpx).background(StageColors.ControlFill, RoundedCornerShape(15.mpx)).padding(horizontal = 16.mpx),
-                    horizontalArrangement = Arrangement.spacedBy(9.mpx),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    OwnTVIcon(OwnTVIcon.CHECK, stageAccent.accent, Modifier.size(18.mpx))
-                    Text(stringResource(sectionLabelRes(section)), style = stageText(16, 700), color = StageColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                }
-            }
+        // One column of cards, ▲ ▼ between them: a copy goes to this TV's folder or to another device, and
+        // a copy comes back the same two ways.
+        val restoreRemoteFocus = remember { FocusRequester() }
+        Column(Modifier.padding(top = 22.mpx), verticalArrangement = Arrangement.spacedBy(10.mpx)) {
+            StageInfoCard(
+                title = stringResource(R.string.more_backup_file_tv),
+                label = stringResource(R.string.more_backup_now),
+                body = stringResource(R.string.more_backup_now_body),
+                icon = OwnTVIcon.FOLDER,
+                modifier = Modifier.focusRequester(firstFocus),
+                onClick = { startExport(false, firstFocus) },
+            )
+            StageInfoCard(
+                title = stringResource(R.string.settings_backup_remote),
+                label = stringResource(R.string.more_backup_now),
+                icon = OwnTVIcon.NETWORK,
+                modifier = Modifier.focusRequester(phoneFocus),
+                onClick = { startExport(true, phoneFocus) },
+            )
+            StageInfoCard(
+                title = stringResource(R.string.more_backup_file_tv),
+                label = stringResource(R.string.settings_backup_restore_action),
+                body = stringResource(R.string.more_restore_body),
+                icon = OwnTVIcon.REFRESH,
+                modifier = Modifier.focusRequester(restoreBtnFocus),
+                onClick = { if (!working) { dialogReturn = restoreBtnFocus; browser = BrowseMode.FILE; showBrowser = true } },
+            )
+            StageInfoCard(
+                title = stringResource(R.string.settings_backup_remote),
+                label = stringResource(R.string.settings_backup_restore_action),
+                icon = OwnTVIcon.NETWORK,
+                modifier = Modifier.focusRequester(restoreRemoteFocus),
+                onClick = { if (!working) { dialogReturn = restoreRemoteFocus; showRemoteRestore = true } },
+            )
         }
 
         // What the last action did — the same sentences as before, in Stage type.

@@ -177,4 +177,4 @@ internal fun rememberVideoDock(
 
 
 /** The picture moving into the panel's corner, and back. */
-private const val DockAnimMs = 300
+private val DockAnimMs: Int get() = if (tv.own.owntv.ui.theme.DevicePerf.lite) 0 else 300

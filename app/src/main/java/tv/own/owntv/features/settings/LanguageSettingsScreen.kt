@@ -97,7 +97,7 @@ fun FirstRunLanguageGlobe(modifier: Modifier = Modifier) {
     var showPicker by remember { mutableStateOf(false) }
     tv.own.owntv.ui.stage.StageSurface(
         onClick = { showPicker = true },
-        radius = 38.mpx,
+        radius = 16.mpx,
         // Focus: SkMate blue fill, as the buttons beside it.
         focusStyle = tv.own.owntv.ui.stage.StageFocus.NONE,
         idle = Modifier.border(2.mpx, StageColors.Text.copy(alpha = 0.14f), CircleShape),
@@ -305,10 +305,10 @@ private fun SidePanelLanguageRow(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val shape = RoundedCornerShape(38.mpx)
+    val shape = RoundedCornerShape(16.mpx)
     tv.own.owntv.ui.stage.StageSurface(
         onClick = onClick,
-        radius = 38.mpx,
+        radius = 16.mpx,
         focusStyle = tv.own.owntv.ui.stage.StageFocus.NONE,
         modifier = modifier.fillMaxWidth().height(76.mpx),
     ) { focused ->

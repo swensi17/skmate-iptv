@@ -28,9 +28,9 @@
         <item name="android:windowSplashScreenBrandingImage">@drawable/owntv_splash_name_board</item>
     </style>
     <style name="Theme.OwnTV.Starting.Eggshell">
-        <item name="windowSplashScreenAnimatedIcon">@drawable/owntv_splash_eggshell</item>
-        <item name="windowSplashScreenAnimationDuration">800</item>
-        <item name="android:windowSplashScreenBrandingImage">@drawable/owntv_splash_name_eggshell</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/skmate_splash</item>
+        <item name="windowSplashScreenAnimationDuration">0</item>
+        <item name="android:windowSplashScreenBrandingImage">@null</item>
     </style>
     <style name="Theme.OwnTV.Starting.Olive">
         <item name="windowSplashScreenAnimatedIcon">@drawable/owntv_splash_olive</item>

@@ -106,12 +106,6 @@ fun EpgSourcesScreen(onBack: () -> Unit, modifier: Modifier = Modifier, startOnA
         count = "",
         onBack = onBack,
         modifier = modifier,
-        toolbar = {
-            tv.own.owntv.ui.stage.StageTool(
-                stringResource(R.string.content_epg_add), onClick = { adding = true },
-                icon = OwnTVIcon.ADD, boxed = true, modifier = Modifier.focusRequester(addFocus),
-            )
-        },
     ) {
         if (sources.isEmpty()) StageSettingsNote(stringResource(R.string.settings_epg_sources_empty), null)
         sources.forEachIndexed { index, source ->
@@ -145,6 +139,15 @@ fun EpgSourcesScreen(onBack: () -> Unit, modifier: Modifier = Modifier, startOnA
                 )
             }
         }
+        // The add row closes the list, full width like every row above it.
+        StageSettingRow(
+            icon = OwnTVIcon.ADD,
+            title = stringResource(R.string.content_epg_add),
+            desc = null,
+            value = null,
+            onClick = { adding = true },
+            modifier = Modifier.focusRequester(addFocus),
+        )
     }
 
     confirmDelete?.let { s ->
