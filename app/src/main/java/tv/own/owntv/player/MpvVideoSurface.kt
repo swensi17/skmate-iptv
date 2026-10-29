@@ -167,6 +167,8 @@ private val surfaceOwners = mutableStateMapOf<LivePreviewEngine, List<Any>>()
 fun ExoPreviewSurface(
     engine: LivePreviewEngine,
     modifier: Modifier = Modifier,
+    /** A change here covers the picture until it is redrawn (the channel panel docking it, or letting it go). */
+    revealKey: Any? = null,
     keepAwake: Boolean = false,
     autoFrameRate: Boolean = false,
     /**
@@ -268,8 +270,10 @@ fun ExoPreviewSurface(
         val state by engine.state.collectAsStateWithLifecycle()
         // Keyed on the box's size too: when the picture moves (the channel panel docking it, or letting it go) the
         // frame already on screen is drawn at the old size for a moment, so it is covered until redrawn.
-        val revealed by androidx.compose.runtime.produceState(false, state, maxWidth, maxHeight) {
-            if (state == LivePreviewEngine.State.PLAYING) { kotlinx.coroutines.delay(RevealAfterMs); value = true } else value = false
+        val revealed by androidx.compose.runtime.produceState(false, state, maxWidth, maxHeight, revealKey) {
+            // Covered again at once on every change (produceState keeps its last value across keys otherwise).
+            value = false
+            if (state == LivePreviewEngine.State.PLAYING) { kotlinx.coroutines.delay(RevealAfterMs); value = true }
         }
         if (!revealed) androidx.compose.foundation.layout.Box(Modifier.matchParentSize().background(Color.Black))
     }

@@ -105,9 +105,9 @@ fun MoreScreen(
     // Back out of Settings: the sheet slides away to the right first, and only then does More leave.
     var leaving by remember { mutableStateOf(false) }
     val leaveProgress by androidx.compose.animation.core.animateFloatAsState(
-        if (leaving) 1f else 0f, androidx.compose.animation.core.tween(if (tv.own.owntv.ui.theme.DevicePerf.lite) 120 else 220), label = "settingsLeave",
+        if (leaving) 1f else 0f, androidx.compose.animation.core.snap(), label = "settingsLeave",
     )
-    LaunchedEffect(leaving) { if (leaving) { kotlinx.coroutines.delay(if (tv.own.owntv.ui.theme.DevicePerf.lite) 130L else 230L); onLeave() } }
+    LaunchedEffect(leaving) { if (leaving) onLeave() } // closes at once, no slide-out to wait for
     val sheetOnly = tv.own.owntv.features.settings.SettingsAsSidePanel
     val itemFocus = remember { MoreItem.entries.associateWith { FocusRequester() } }
     // What OK / ▶ focuses on the page: a fixed target, or the page's own choice (its first row).
@@ -173,7 +173,7 @@ fun MoreScreen(
     // Inside Settings only its sheet on the right shows, as on a TV box: the More list slides away
     // while focus is in the settings, and comes back with ◀ or Back.
     val settingsOnly = tv.own.owntv.features.settings.SettingsAsSidePanel
-    val sheetAway by androidx.compose.animation.core.animateFloatAsState(if (settingsOnly) 1f else 0f, androidx.compose.animation.core.tween(260), label = "moreSheetAway")
+    val sheetAway by androidx.compose.animation.core.animateFloatAsState(if (settingsOnly) 1f else 0f, androidx.compose.animation.core.snap(), label = "moreSheetAway")
     Box(modifier.fillMaxSize().onFocusChanged { if (it.hasFocus) onChildFocused() }) {
         // --- The sheet (`.gsheet`, 440 wide at 24 / 24 / 24): the full height.
         Column(

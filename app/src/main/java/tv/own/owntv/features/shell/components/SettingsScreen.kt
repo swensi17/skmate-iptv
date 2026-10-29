@@ -637,6 +637,25 @@ fun SettingsScreen(
             focus = animationsRowFocus,
             onClick = { saveScroll(); dialogReturn = animationsRowFocus; showAnimations = true },
         ),
+        // Smooth or instant, per thing that moves, and how fast: see MotionPrefs.
+        RootRow(
+            "motion_smooth", TileTone.SECONDARY, OwnTVIcon.MOTION,
+            title = stringResource(R.string.settings_motion_menu), desc = stringResource(R.string.settings_motion_menu_desc),
+            chip = stringResource(if (tv.own.owntv.ui.theme.MotionPrefs.smooth) R.string.motion_smooth else R.string.motion_instant),
+            chipTone = TileTone.SECONDARY,
+            onClick = { tv.own.owntv.ui.theme.MotionPrefs.toggleSmooth() },
+        ),
+        RootRow(
+            "motion_speed", TileTone.SECONDARY, OwnTVIcon.MOTION,
+            title = stringResource(R.string.settings_motion_speed), desc = stringResource(R.string.settings_motion_speed_desc),
+            chip = stringResource(when (tv.own.owntv.ui.theme.MotionPrefs.speed) {
+                tv.own.owntv.ui.theme.MotionPrefs.Speed.FAST -> R.string.motion_speed_fast
+                tv.own.owntv.ui.theme.MotionPrefs.Speed.NORMAL -> R.string.motion_speed_normal
+                tv.own.owntv.ui.theme.MotionPrefs.Speed.SLOW -> R.string.motion_speed_slow
+            }),
+            chipTone = TileTone.SECONDARY,
+            onClick = { tv.own.owntv.ui.theme.MotionPrefs.nextSpeed() },
+        ),
         RootRow(
             tabRowKey(SettingsTab.WEATHER), TileTone.SECONDARY, OwnTVIcon.WEATHER,
             title = stringResource(R.string.settings_weather),

@@ -180,7 +180,7 @@ fun StageRail(
     // HIDDEN, the open rail each time it opens.
     val slide = remember { Animatable(0f) }
     // Weak TVs show the menu in a few frames instead of twenty: at their frame rate a long slide is a stutter.
-    val slideSpec: androidx.compose.animation.core.AnimationSpec<Float> = ownTvTween(if (tv.own.owntv.ui.theme.DevicePerf.lite) 110 else 320)
+    val slideSpec: androidx.compose.animation.core.AnimationSpec<Float> = if (tv.own.owntv.ui.theme.MotionPrefs.smoothMenu) androidx.compose.animation.core.tween(tv.own.owntv.ui.theme.MotionPrefs.ms(300), easing = androidx.compose.animation.core.FastOutSlowInEasing) else androidx.compose.animation.core.snap()
     LaunchedEffect(open, state == RailState.HIDDEN) {
         val target = if (state == RailState.HIDDEN) -1f else 0f
         if (open) slide.snapTo(-1f)
@@ -525,7 +525,7 @@ internal fun RailAvatar(initial: String, size: Int = 46, textSize: Int = 20, ava
 }
 
 /** The TV-box menu's sheet: the grey of the settings sheet. */
-private val TvBoxMenuFill = androidx.compose.ui.graphics.Color(0xFF232629)
+internal val TvBoxMenuFill = androidx.compose.ui.graphics.Color(0xFF232629)
 
 /** Sections the TV-box menu leaves out: Home is the channels themselves. */
 internal val TvBoxHiddenSections = setOf(MainSection.HOME, MainSection.MOVIES, MainSection.SERIES, MainSection.DOWNLOADS)

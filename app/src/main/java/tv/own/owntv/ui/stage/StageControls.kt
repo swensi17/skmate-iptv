@@ -263,11 +263,14 @@ fun StageProgress(fraction: Float, modifier: Modifier = Modifier, flat: Boolean 
             .height(if (flat) 4.mpx else 6.mpx)
             .drawBehind {
                 val r = CornerRadius(size.height / 2f)
-                drawRoundRect(ink.copy(alpha = if (flat) 0.10f else 0.12f), cornerRadius = r)
+                drawRoundRect(ink.copy(alpha = if (flat) 0.16f else 0.12f), cornerRadius = r)
 
                 val w = size.width * fraction.coerceIn(0f, 1f)
                 if (w > 0f) {
-                    val fill = if (flat) Brush.linearGradient(listOf(a.accent, a.accent))
+                    // TV-box rows: the bar is the text's own ink, so it stays readable on the light focus bar of a dark
+                    // screen (the accent there is white, and white on light grey vanished).
+                    val flatInk = if (tv.own.owntv.features.shell.TvBoxNav) ink else a.accent
+                    val fill = if (flat) Brush.linearGradient(listOf(flatInk, flatInk))
                     else Brush.horizontalGradient(listOf(a.accent, a.focus), endX = w)
                     drawRoundRect(fill, size = Size(w, size.height), cornerRadius = r)
                 }

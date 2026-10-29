@@ -10,6 +10,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
@@ -74,11 +75,12 @@ internal fun TvBoxPlayerPanels(
             active = !categoriesOpen,
             loading = loading,
             dockProgress = dockProgress,
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize().slideInFromLeft(Unit),
         )
     }
     if (categoriesOpen) {
         TvBoxCategoryColumn(
+            modifier = Modifier.slideInFromLeft(categoriesOpen),
             railItems = railItems,
             railCounts = railCounts,
             currentKey = categoryKey,
@@ -178,4 +180,18 @@ internal fun rememberVideoDock(
 
 
 /** The picture moving into the panel's corner, and back. */
-private val DockAnimMs: Int get() = if (tv.own.owntv.ui.theme.DevicePerf.lite) 0 else 300
+private val DockAnimMs: Int get() = if (tv.own.owntv.ui.theme.MotionPrefs.smooth) tv.own.owntv.ui.theme.MotionPrefs.ms(220) else 0
+
+/**
+ * A panel over the picture slides in from the left when it appears (and again when [key] changes), at the one
+ * motion setting the side menu and a channel opening use; at once when that setting is off.
+ */
+@Composable
+private fun Modifier.slideInFromLeft(key: Any): Modifier {
+    val smooth = tv.own.owntv.ui.theme.MotionPrefs.smooth
+    val shift = androidx.compose.runtime.remember(key) { androidx.compose.animation.core.Animatable(if (smooth) 1f else 0f) }
+    androidx.compose.runtime.LaunchedEffect(shift) {
+        shift.animateTo(0f, androidx.compose.animation.core.tween(tv.own.owntv.ui.theme.MotionPrefs.ms(240), easing = androidx.compose.animation.core.FastOutSlowInEasing))
+    }
+    return graphicsLayer { translationX = -shift.value * size.width * 0.25f; alpha = 1f - shift.value }
+}

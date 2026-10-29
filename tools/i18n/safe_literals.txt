@@ -696,6 +696,7 @@
 2	technical	app/src/main/java/tv/own/owntv/features/shell/components/SettingsScreen.kt	jpg
 3	preference-key	app/src/main/java/tv/own/owntv/features/shell/components/SettingsScreen.kt	live_layout
 3	preference-key	app/src/main/java/tv/own/owntv/features/shell/components/SettingsScreen.kt	live_opens_in
+1	technical	app/src/main/java/tv/own/owntv/features/shell/components/SettingsScreen.kt	motion_speed
 1	protocol	app/src/main/java/tv/own/owntv/features/shell/components/SettingsScreen.kt	mpv
 3	preference-key	app/src/main/java/tv/own/owntv/features/shell/components/SettingsScreen.kt	navigation
 2	technical	app/src/main/java/tv/own/owntv/features/shell/components/SettingsScreen.kt	png
@@ -1583,5 +1584,8 @@
 1	technical	app/src/main/java/tv/own/owntv/ui/stage/StagePopup.kt	$value ›
 1	technical	app/src/main/java/tv/own/owntv/ui/stage/StageSidePanel.kt	panelScrim
 1	technical	app/src/main/java/tv/own/owntv/ui/theme/Glass.kt	glassPosition
+1	technical	app/src/main/java/tv/own/owntv/ui/theme/MotionPrefs.kt	motion
+1	technical	app/src/main/java/tv/own/owntv/ui/theme/MotionPrefs.kt	smooth_menu
+1	technical	app/src/main/java/tv/own/owntv/ui/theme/MotionPrefs.kt	speed
 2	empty	app/src/main/java/tv/own/owntv/ui/theme/OwnTVColors.kt	\0
 2	empty	app/src/main/java/tv/own/owntv/ui/theme/Theme.kt	\0
