@@ -92,7 +92,8 @@ data class StagePalette(
             menuItemText = Color(0xFFDDE0E3),
             tagText = Color(0xFFC9CDD1),
             ink = Color.White,
-            page = Color(0xFF131619),
+            // The side menu's grey (TvBoxMenuFill): the page and the panels on it read as one surface.
+            page = Color(0xFF232629),
             glassTint = Color(0xFF1E2125),
             glassOff = Color(0xFF1E2125),
             ok = Color(0xFF7BE3A4),

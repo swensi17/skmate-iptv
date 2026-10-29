@@ -471,9 +471,9 @@ fun SettingsSheet(
     // pages keeps it in place and slides just the page. A page change recreates this composable, so "still
     // here" is told by how recently the previous one went.
     val continuing = remember { android.os.SystemClock.uptimeMillis() - lastSheetGoneAt < 600L }
-    val panelIn = remember { androidx.compose.animation.core.Animatable(if (continuing) 0f else 1f) }
+    val panelIn = remember { androidx.compose.animation.core.Animatable(0f) }
     androidx.compose.runtime.LaunchedEffect(Unit) {
-        if (panelIn.value > 0f) panelIn.animateTo(0f, androidx.compose.animation.core.tween(if (tv.own.owntv.ui.theme.DevicePerf.lite) 150 else 260, easing = androidx.compose.animation.core.FastOutSlowInEasing))
+        if (panelIn.value > 0f) panelIn.snapTo(0f)
     }
     androidx.compose.runtime.DisposableEffect(Unit) { onDispose { lastSheetGoneAt = android.os.SystemClock.uptimeMillis() } }
     val sheetFocus = remember { FocusRequester() }
@@ -561,7 +561,8 @@ private val SideMinWidth = 600.mpx
 private val SideFocusInset = 0.mpx
 private val SideHeader = 132.mpx
 /** The sheet's slide: short, and none to speak of on a weak TV. */
-private val SideInMs: Int get() = if (tv.own.owntv.ui.theme.DevicePerf.lite) 60 else 260
+/** Settings change pages at once: no slide, no fade, nothing for a weak TV to draw in between. */
+private val SideInMs: Int get() = 0
 // TV-box greys: the sheet, its header band.
 private val SideFill = Color(0xFF232629)
 private val SideHeaderFill = Color(0xFF333639)

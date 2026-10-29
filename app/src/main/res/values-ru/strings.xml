@@ -3,4 +3,13 @@
     <string name="content_search_channels">Поиск каналов…</string>
     <string name="content_search_movies">Поиск фильмов…</string>
     <string name="content_search_series">Поиск сериалов…</string>
+    <string name="settings_motion_menu">Плавные переходы</string>
+    <string name="settings_motion_menu_desc">Боковое меню, открытие канала и панели поверх картинки двигаются плавно или меняются сразу</string>
+    <string name="settings_motion_speed">Скорость анимации</string>
+    <string name="settings_motion_speed_desc">Как быстро двигаются меню и плеер</string>
+    <string name="motion_smooth">Плавно</string>
+    <string name="motion_instant">Сразу</string>
+    <string name="motion_speed_fast">Быстро</string>
+    <string name="motion_speed_normal">Обычно</string>
+    <string name="motion_speed_slow">Медленно</string>
 </resources>

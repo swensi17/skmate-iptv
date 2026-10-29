@@ -734,8 +734,8 @@ fun OwnTVShell(
     // The open TV-box menu's width, eased, by which the screen slides right while it is open.
     val menuPush by androidx.compose.animation.core.animateDpAsState(
         // Weak TVs do not slide the whole screen aside (a full frame redrawn per step); the menu lies over it.
-        if (TvBoxNav && !tv.own.owntv.ui.theme.DevicePerf.lite && railState == tv.own.owntv.features.shell.components.RailState.OPEN) tv.own.owntv.features.shell.components.tvBoxMenuWidth(navSize) else 0.dp,
-        androidx.compose.animation.core.tween(280, easing = androidx.compose.animation.core.FastOutSlowInEasing),
+        if (TvBoxNav && tv.own.owntv.ui.theme.MotionPrefs.smoothMenu && railState == tv.own.owntv.features.shell.components.RailState.OPEN) tv.own.owntv.features.shell.components.tvBoxMenuWidth(navSize) else 0.dp,
+        androidx.compose.animation.core.tween(tv.own.owntv.ui.theme.MotionPrefs.ms(300), easing = androidx.compose.animation.core.FastOutSlowInEasing),
         label = "menuPush",
     )
     // The playlist chip reflects the active filter: "All playlists" when none is chosen (id <= 0), the
@@ -990,7 +990,13 @@ fun OwnTVShell(
 
     // With Glass on, the shell's own base paints must be transparent so the background (rendered in
     // MainActivity behind this shell) shows through the gaps between and around panels. Solid otherwise.
-    val shellBase = if (LocalGlass.current.enabled) Color.Transparent else tv.own.owntv.ui.theme.LocalStagePalette.current.page
+    // TV-box dark look: the whole screen is the side menu's grey, not black, so the panels and the page are one surface.
+    val darkTvBox = TvBoxNav && !tv.own.owntv.ui.theme.LocalStagePalette.current.isLight
+    val shellBase = when {
+        LocalGlass.current.enabled -> Color.Transparent
+        darkTvBox -> tv.own.owntv.features.shell.components.TvBoxMenuFill
+        else -> tv.own.owntv.ui.theme.LocalStagePalette.current.page
+    }
 
     // Long-press Back (the second way in). Deliberately timed from the FIRST KeyDown rather than counted from
     // key repeats: several TVs re-fire KeyDown while a key is held, so a repeat-counting version fires
@@ -1206,7 +1212,7 @@ fun OwnTVShell(
                     .background(shellBase)
                     // The Stage page, across the whole width — under a docked rail's reserve too.
                     // Over a picture it draws only the Accent light; the picture shows through.
-                    .stageBackground(tv.own.owntv.ui.theme.stageAccent.accent),
+                    .then(if (darkTvBox) Modifier else Modifier.stageBackground(tv.own.owntv.ui.theme.stageAccent.accent)),
             ) {
                 // Live TV's view (List / Guide), and how a guide — the TV Guide or Live TV's Guide view —
                 // starts a channel or an archive programme: through LiveViewModel, the one live path.
@@ -1304,7 +1310,7 @@ fun OwnTVShell(
                             onEntryHook = { moreEntry = it },
                             restoreFocus = restoreFocus,
                             onRestored = { restoreFocus = false },
-                            onLeave = { onSelectSection(MainSection.HOME) },
+                            onLeave = { onSelectSection(if (TvBoxNav) MainSection.LIVE_TV else MainSection.HOME) },
                             modifier = Modifier
                                 .fillMaxSize()
                                 .onFocusChanged { if (it.hasFocus) focusedLayer = ShellLayer.CONTENT }
@@ -1682,8 +1688,9 @@ fun OwnTVShell(
         val isFull = playerMode == PlayerMode.FULLSCREEN
         // TV-box look: full screen grows out of the channels screen's preview (and shrinks back into it on
         // Back), by laying the picture out at the in-between size — a SurfaceView ignores layer scaling.
-        // Opens straight to full screen, no growing out of the preview: nothing to animate, nothing to load.
-        val growFrom: androidx.compose.ui.geometry.Rect? = null
+        // Smooth (the default): the picture opens out of the preview like a curtain, black while it moves (see
+        // ExoPreviewSurface), the picture shown once in place. Instant when the user turned it off.
+        val growFrom = if (TvBoxNav && isFull && tv.own.owntv.ui.theme.MotionPrefs.smoothPlayer) tv.own.owntv.features.shell.components.TvBoxPanels.previewRect else null
         val grow = remember(isFull) { androidx.compose.animation.core.Animatable(if (growFrom != null) 0f else 1f) }
         LaunchedEffect(grow) { grow.animateTo(1f, androidx.compose.animation.core.tween(FullGrowMs, easing = androidx.compose.animation.core.FastOutSlowInEasing)) }
         LaunchedEffect(collapsingFull) {
@@ -1732,7 +1739,7 @@ fun OwnTVShell(
             // expand, so playback never blips). Everything else (mpv) renders mpv's surface.
             if (liveOnExo) {
                 tv.own.owntv.player.ExoPreviewSurface(
-                    engine = liveVm.previewEngine, modifier = videoDock,
+                    engine = liveVm.previewEngine, modifier = videoDock, revealKey = docked,
                     keepAwake = true, autoFrameRate = isFull && autoFrameRate,
                 )
             } else {
@@ -1909,7 +1916,9 @@ fun OwnTVShell(
                     favorite = favActive,
                     onToggleFavorite = favToggle,
                     // TV-box look: the channel info at the bottom, and the guide over the picture.
-                    tvBoxInfo = if (TvBoxNav && (isTunedLive || (isLiveStream && !catchupActive))) { chips, offset ->
+                    // Every live channel, also in the beat between two of them when the engine has not yet said it is live:
+                    // the old full control bar must never show there.
+                    tvBoxInfo = if (TvBoxNav && !catchupActive) { chips, offset ->
                         val epg by liveVm.nowNext.collectAsStateWithLifecycle()
                         val clock by produceState(System.currentTimeMillis()) { while (true) { kotlinx.coroutines.delay(1_000); value = System.currentTimeMillis() } }
                         tv.own.owntv.features.shell.components.TvBoxPlayerInfo(previewChannel, epg, chips, offset, clock)
@@ -2341,8 +2350,8 @@ private const val ExitBackWindowMs = 2_000L
 
 /** Full screen growing out of the preview, and shrinking back into it. */
 /** Resizing the picture frame by frame reallocates the video's buffers each step: weak TVs jump straight to the result. */
-private val FullGrowMs: Int get() = 0
-private val FullShrinkMs: Int get() = 0
+private val FullGrowMs: Int get() = if (tv.own.owntv.ui.theme.MotionPrefs.smoothPlayer) tv.own.owntv.ui.theme.MotionPrefs.ms(320) else 0
+private val FullShrinkMs: Int get() = if (tv.own.owntv.ui.theme.MotionPrefs.smoothPlayer) tv.own.owntv.ui.theme.MotionPrefs.ms(260) else 0
 
 /** After leaving full screen for the app menu: long enough for the channels screen to take its focus first. */
 private val MenuAfterExitMs: Long get() = if (tv.own.owntv.ui.theme.DevicePerf.lite) 60L else 450L
@@ -2351,7 +2360,8 @@ private val MenuAfterExitMs: Long get() = if (tv.own.owntv.ui.theme.DevicePerf.l
 internal val CategoriesColumnWidth = 440.mpx
 
 /** The picture moving into the corner beside the channel panel, and back. */
-private val DockMs: Int get() = if (tv.own.owntv.ui.theme.DevicePerf.lite) 0 else 300
+/** The picture moves into the corner beside the channel panel, and back, at once: a sliding picture showed its old frame. */
+private val DockMs: Int get() = 0
 
 
 /** How often, and how far apart, the shell tries to put focus in a screen that is still composing. */

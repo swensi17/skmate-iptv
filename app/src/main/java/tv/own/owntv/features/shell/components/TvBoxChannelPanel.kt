@@ -348,7 +348,8 @@ internal fun tvBoxPanelColors(): TvBoxPanelColors =
     if (tv.own.owntv.ui.theme.LocalStagePalette.current.isLight) {
         TvBoxPanelColors(Color(0xF2EEF1F4), Color(0xFF16181D), Color(0xCC16181D), Color(0x8C16181D), Color(0xFFDDE0E4), Color(0xFF16181D), Color(0x1A000000))
     } else {
-        TvBoxPanelColors(Color(0xEB0E1013), Color.White, Color.White.copy(alpha = 0.8f), Color.White.copy(alpha = 0.55f), Color(0xFF353A40), Color.White, Color(0x1FFFFFFF))
+        // Dark: the side menu's grey (TvBoxMenuFill), the focus bar a step lighter on it.
+        TvBoxPanelColors(Color(0xF2232629), Color.White, Color.White.copy(alpha = 0.8f), Color.White.copy(alpha = 0.55f), Color(0xFF3A3F45), Color.White, Color(0x1FFFFFFF))
     }
 private const val ScheduleSettleMs = 250L
 private const val MaxScheduleRows = 14
