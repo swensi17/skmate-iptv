@@ -222,6 +222,7 @@ fun MoreScreen(
                 .then(
                     when {
                         selected == MoreItem.SETTINGS && sheetOnly -> Modifier
+                        sheetOnly && selected in SheetPages -> Modifier
                         sheetOnly -> Modifier.padding(start = 96.mpx, top = 128.mpx, end = 64.mpx)
                         else -> Modifier.padding(start = 520.mpx, top = 128.mpx, end = 64.mpx)
                     },
@@ -252,10 +253,10 @@ fun MoreScreen(
                     onClearHistory = { settingsVm.clearWatchHistory(it) },
                     onPlayChannel = onPlayChannel, onPlayMovie = onPlayMovie, onPlayEpisode = onPlayEpisode, onOpenSeries = onOpenSeries,
                 )
-                MoreItem.BACKUP -> BackupScreen(entry = pageTarget, modifier = Modifier.fillMaxSize())
-                MoreItem.LOCAL_SYNC -> LocalSyncScreen(entry = pageTarget, modifier = Modifier.fillMaxSize())
-                MoreItem.ERROR_LOG -> ErrorLogPage(setEntry = setEntry, onCountChanged = { logVersion++ })
-                MoreItem.ABOUT -> AboutPage(vm = vm, entry = pageTarget, onOpenLanguage = { onOpenSettings(8, false) })
+                MoreItem.BACKUP -> InSheet(sheetOnly, stringResource(R.string.settings_backup_restore)) { BackupScreen(entry = pageTarget, modifier = Modifier.fillMaxSize()) }
+                MoreItem.LOCAL_SYNC -> InSheet(sheetOnly, stringResource(R.string.local_sync_title)) { LocalSyncScreen(entry = pageTarget, modifier = Modifier.fillMaxSize()) }
+                MoreItem.ERROR_LOG -> InSheet(sheetOnly, stringResource(R.string.settings_playback_error_log)) { ErrorLogPage(setEntry = setEntry, onCountChanged = { logVersion++ }, titled = !sheetOnly) }
+                MoreItem.ABOUT -> InSheet(sheetOnly, stringResource(R.string.settings_about)) { AboutPage(vm = vm, entry = pageTarget, onOpenLanguage = { onOpenSettings(11, false) }) }
                 MoreItem.DEVELOPER -> Box(Modifier.focusRequester(pageTarget).focusGroup()) { DeveloperScreen(onBack = backToSheet) }
             }
         }
@@ -309,3 +310,14 @@ private fun relativeShort(at: Long): String =
     android.text.format.DateUtils.getRelativeTimeSpanString(
         at, System.currentTimeMillis(), android.text.format.DateUtils.MINUTE_IN_MILLIS,
     ).toString()
+
+/** The pages that open in the settings sheet like a settings group does, not as a screen of their own. */
+private val SheetPages = setOf(MoreItem.BACKUP, MoreItem.LOCAL_SYNC, MoreItem.ERROR_LOG, MoreItem.ABOUT)
+
+@Composable
+private fun InSheet(sheet: Boolean, title: String, content: @Composable () -> Unit) {
+    if (!sheet) { content(); return }
+    tv.own.owntv.features.settings.SettingsSheet(title = title, wide = true) {
+        Box(Modifier.fillMaxWidth().weight(1f).padding(start = 18.mpx, end = 18.mpx, top = 8.mpx, bottom = 24.mpx)) { content() }
+    }
+}

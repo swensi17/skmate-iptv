@@ -280,6 +280,7 @@ fun StageSettingsPage(
                     )
                 }) else null,
                 tools = tools, toolbar = toolbar, list = list, scroll = scroll, rowsFocus = rowsFocus, rows = rows,
+                top = panelTop,
             )
         } else
         BoxWithConstraints(modifier.fillMaxSize()) {
@@ -389,8 +390,11 @@ private fun SettingsSidePage(
     scroll: ScrollState,
     rowsFocus: FocusRequester,
     rows: @Composable ColumnScope.() -> Unit,
+    /** What a page shows above its rows (the remote pages' QR, address and PIN). */
+    top: (@Composable ColumnScope.() -> Unit)? = null,
 ) {
     SettingsSheet(title = group, modifier = modifier, headerTools = tools) {
+        if (top != null) Column(Modifier.padding(start = 24.mpx, end = 24.mpx, bottom = 4.mpx), content = top)
         // The search page (no path above its title) is the field and its results; group pages need no field.
         if (search != null && parent == null) Box(Modifier.padding(start = 24.mpx, end = 24.mpx, bottom = 8.mpx)) { search() }
         if (toolbar != null) Row(
@@ -455,6 +459,8 @@ fun SettingsSheet(
     scrim: Boolean = true,
     /** The list of groups comes back from the left; a group's page comes in from the right. */
     fromStart: Boolean = false,
+    /** Pages laid out for a wide screen (backup, sync, the log) take most of it instead of a third. */
+    wide: Boolean = false,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val shown = remember { androidx.compose.animation.core.MutableTransitionState(false).apply { targetState = true } }
@@ -477,7 +483,7 @@ fun SettingsSheet(
             // Flush with the right edge, full height, only its outer (left) corners softly rounded.
             Column(
                 Modifier
-                    .width((screenW / 3).coerceAtLeast(SideMinWidth).coerceAtMost(screenW))
+                    .width((if (wide) screenW * 0.64f else screenW / 3).coerceAtLeast(SideMinWidth).coerceAtMost(screenW))
                     .fillMaxHeight()
                     .clip(RoundedCornerShape(topStart = 20.mpx, bottomStart = 20.mpx))
                     .background(sheetFill()),

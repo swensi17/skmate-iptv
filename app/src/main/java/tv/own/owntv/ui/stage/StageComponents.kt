@@ -1227,19 +1227,27 @@ private fun Modifier.stepTap(onStep: ((Int) -> Unit)?, dir: Int): Modifier =
 @Composable
 fun StageSwitch(on: Boolean) {
     val a = stageAccent
+    // The knob slides and the track's colour fades, as a phone switch does, instead of jumping.
+    val spec = androidx.compose.animation.core.tween<Float>(SwitchMs, easing = androidx.compose.animation.core.FastOutSlowInEasing)
+    val t by androidx.compose.animation.core.animateFloatAsState(if (on) 1f else 0f, spec, label = "switchKnob")
+    val off = StageColors.Ink.copy(alpha = 0.14f)
+    val knobOff = LocalStagePalette.current.knobOff
     Box(
         Modifier
             .size(56.mpx, 32.mpx)
-            .background(if (on) a.accent else StageColors.Ink.copy(alpha = 0.14f), RoundedCornerShape(16.mpx)),
+            .background(androidx.compose.ui.graphics.lerp(off, a.accent, t), RoundedCornerShape(16.mpx)),
     ) {
         Box(
             Modifier
-                .offset(x = if (on) 28.mpx else 4.mpx, y = 4.mpx)
+                .offset(x = 4.mpx + 24.mpx * t, y = 4.mpx)
                 .size(24.mpx)
-                .background(if (on) Color.White else LocalStagePalette.current.knobOff, CircleShape),
+                .background(androidx.compose.ui.graphics.lerp(knobOff, Color.White, t), CircleShape),
         )
     }
 }
+
+/** The switch knob's slide. */
+private const val SwitchMs = 200
 
 
 /** The tile behind a channel logo or a missing picture (`#0f1518`); ink 6% on the light page. */

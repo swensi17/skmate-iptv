@@ -251,6 +251,10 @@ fun SettingsScreen(
     val saveScroll = { savedScrollPx = pageScroll.value }
     // The rows column: fresh entry and a lost focus land here, on the page's first row.
     val rowsFocus = remember { FocusRequester() }
+    // The subsection of the group that is open (its index), or null for the group's list of them.
+    var openPart by rememberSaveable { mutableStateOf<Int?>(null) }
+    var lastPart by rememberSaveable { mutableIntStateOf(0) }
+    val partFocus = remember { List(8) { FocusRequester() } }
     // Opens the search field's keyboard as it appears, so one OK reaches typing (More's search box too).
     var searchAutoEdit by remember { mutableStateOf(false) }
     LaunchedEffect(searchAutoEdit) { if (searchAutoEdit) { kotlinx.coroutines.delay(1000); searchAutoEdit = false } }
@@ -381,6 +385,9 @@ fun SettingsScreen(
         val ref = tv.own.owntv.features.settings.VIDEO_QUICK_ROWS.first { it.key == key }
         deepReturnKey = if (fromQuick) key else null
         videoRowKey = key
+        openPart = tv.own.owntv.features.settings.videoGroupOf(ref.section).let { g ->
+            if (g == VideoGroup.DIAGNOSTICS) APP_DIAGNOSTICS_PART else g.parts.indexOfFirst { ref.section in it.second }
+        }
         // Leave search too: an empty query while still searching draws no page at all.
         searchQuery = ""; searchMode = false
         selectedGroup = SettingsGroup.of(tv.own.owntv.features.settings.videoGroupOf(ref.section)).ordinal
@@ -797,7 +804,7 @@ fun SettingsScreen(
         ),
         // About and the error log live in More. A page of facts and a log are
         // not preferences; both are More rows now, opening the very same dialogs.
-    )
+    ).filterNot { it.key in RemovedRootKeys }
 
     // --- Two-pane root: the flat list above is still the single source of truth for order, tone,
     // icon, chip and click of every row. Here it is only *sliced* into (heading, its rows) so the
@@ -884,6 +891,7 @@ fun SettingsScreen(
     // its group and scroll were kept above the sub-screen dispatch, so leave them untouched.
     LaunchedEffect(selectedGroup) {
         if (displayedGroup != selectedGroup) {
+            if (videoRowKey == null) openPart = null
             runCatching { pageScroll.scrollTo(0) }
             displayedGroup = selectedGroup
             if (videoRowKey == null) for (attempt in 0 until 10) { withFrameNanos { }; if (runCatching { rowsFocus.requestFocus() }.getOrDefault(false)) break }
@@ -1130,9 +1138,24 @@ fun SettingsScreen(
     }
     val group = SettingsGroup.entries[selectedGroup.coerceIn(0, SettingsGroup.entries.size - 1)]
     val inQuick = group == SettingsGroup.QUICK
+    // A group of several subsections lists them first, one word each; a subsection opens its rows.
+    val parts = if (searching) emptyList() else settingsParts(group, selectedRows)
+    val part = openPart?.let(parts::getOrNull)
+    BackHandler(enabled = tab == SettingsTab.ROOT && part != null && deepReturnKey == null && !searching) {
+        lastPart = openPart ?: 0
+        openPart = null
+    }
+    LaunchedEffect(part == null) {
+        if (part == null && parts.size >= 2 && videoRowKey == null && returningRowFocus == null) {
+            repeat(10) { withFrameNanos { }; if (runCatching { partFocus[lastPart.coerceIn(0, partFocus.size - 1)].requestFocus() }.getOrDefault(false)) return@LaunchedEffect }
+        } else if (part != null && videoRowKey == null && returningRowFocus == null) {
+            repeat(10) { withFrameNanos { }; if (runCatching { rowsFocus.requestFocus() }.getOrDefault(false)) return@LaunchedEffect }
+        }
+    }
     val pageCount = when {
         searching && searchQuery.isBlank() -> ""
         searching -> pluralStringResource(R.plurals.settings_match_count, searchResults.size, searchResults.size)
+        parts.size >= 2 -> ""
         group.video != null -> videoGroupCount(group.video, settingsVm).let { n ->
             val all = n + if (group == SettingsGroup.WATCHING) 4 else 0
             pluralStringResource(R.plurals.settings_setting_count, all, all)
@@ -1158,7 +1181,8 @@ fun SettingsScreen(
     ) {
         StageSettingsPage(
             panel = panel,
-            group = if (searching) stringResource(R.string.common_nav_settings) else stringResource(group.titleRes),
+            group = if (searching) stringResource(R.string.common_nav_settings) else part?.title ?: stringResource(group.titleRes),
+            parents = if (part != null) listOf(stringResource(group.titleRes)) else emptyList(),
             count = pageCount,
             searchQuery = searchQuery,
             onSearchQuery = { searchQuery = it },
@@ -1168,7 +1192,7 @@ fun SettingsScreen(
             rowsFocus = rowsFocus,
             modifier = modifier,
             searchAutoEdit = searchAutoEdit,
-            panelTop = if (group == SettingsGroup.APPEARANCE && !searching) ({ tv.own.owntv.features.settings.SettingsLivePreview() }) else null,
+            
         ) {
             when {
                 searching && searchQuery.isBlank() -> Unit
@@ -1176,13 +1200,18 @@ fun SettingsScreen(
                 searching -> searchResults.forEach { e ->
                     StageSearchResultRow(e.icon, e.group, e.title, e.chip, onClick = e.onClick)
                 }
+                parts.size >= 2 && part == null -> parts.forEachIndexed { i, p ->
+                    tv.own.owntv.features.more.GroupLine(p.icon, p.title, Modifier.focusRequester(partFocus[i])) { lastPart = i; openPart = i }
+                }
+                parts.size >= 2 && part != null -> SettingsPartBody(
+                    part, pageScroll, openMiniPlayer, videoRowKey, quickPinned, extras, { menuRow = it }, menuReturnKey, menuReturnFocus,
+                )
                 group.video != null -> {
                     VideoPlayerGroupRows(
                         group.video, pageScroll,
                         openMiniPlayer = openMiniPlayer,
                         focusRowKey = videoRowKey,
                     )
-                    if (group == SettingsGroup.WATCHING) tv.own.owntv.features.settings.RecordingSettingsRows(pageScroll)
                 }
                 group == SettingsGroup.PROFILE -> tv.own.owntv.features.settings.ProfileSettingsRows()
                 // Only Quick can be empty, and only because the user emptied it.
@@ -2908,4 +2937,104 @@ private fun serviceRowExtras(vm: SettingsViewModel): Map<String, RowExtra> {
         "tab_NETWORK" to RowExtra(SettingValue.Opens(if (proxy.usable) "${proxy.host}:${proxy.port}" else off)),
         "tab_DNS" to RowExtra(SettingValue.Opens(if (dns.enabled && dnsHost.isNotBlank()) dnsHost else if (dns.enabled) on else off)),
     )
+}
+
+
+/** One subsection of a settings group: its name and icon in the group's list, and what it holds. */
+private class SettingsPart(
+    val title: String,
+    val icon: OwnTVIcon,
+    val rows: List<RootRow> = emptyList(),
+    val video: VideoGroup? = null,
+    val videoPart: Int = 0,
+)
+
+/**
+ * Rows of features this app no longer has — Movies, Series, Downloads, recording, the Home screen
+ * rows, the icon choice — so their settings are gone from the list too.
+ */
+private val RemovedRootKeys = setOf(
+    "vod_layout", "tab_METADATA", "tab_OPEN_SUBTITLES", "tab_HOME", "app_icon", "brand_accent",
+)
+
+/** Where App's diagnostics part sits among its parts. */
+private const val APP_DIAGNOSTICS_PART = 2
+
+private class PartDef(val titleRes: Int, val icon: OwnTVIcon, val keys: Set<String>)
+
+/** The root-row groups that split into subsections; the part with no keys takes the rows left over. */
+private fun partDefs(group: SettingsGroup): List<PartDef> = when (group) {
+    SettingsGroup.SOURCES -> listOf(
+        PartDef(R.string.settings_sources_title, OwnTVIcon.PLAYLIST, setOf("tab_SOURCES", "tab_EPG")),
+        PartDef(R.string.settings_part_guide_catchup, OwnTVIcon.EPG, emptySet()),
+    )
+    SettingsGroup.APPEARANCE -> listOf(
+        PartDef(R.string.settings_part_theme, OwnTVIcon.PALETTE, setOf("theme", "accent", "focus_highlight", "tab_GLASS_EFFECT", "ambient_glow")),
+        PartDef(R.string.settings_part_text, OwnTVIcon.TEXT_SIZE, setOf("fonts", "popup_size", "ui_zoom")),
+        PartDef(R.string.settings_part_extras, OwnTVIcon.SPARKLE, emptySet()),
+    )
+    SettingsGroup.LAYOUT -> listOf(
+        PartDef(R.string.settings_part_navigation, OwnTVIcon.MENU, setOf("navigation", "live_layout", "live_opens_in", "tab_CH_NAV")),
+        PartDef(R.string.settings_part_lists, OwnTVIcon.LIST_GRID, emptySet()),
+    )
+    SettingsGroup.APP -> listOf(
+        PartDef(R.string.settings_app_group, OwnTVIcon.INFO, emptySet()),
+        PartDef(R.string.settings_group_network, OwnTVIcon.NETWORK, setOf("tab_NETWORK", "tab_DNS")),
+    )
+    else -> emptyList()
+}
+
+@Composable
+private fun settingsParts(group: SettingsGroup, rows: List<RootRow>): List<SettingsPart> {
+    val video = group.video
+    if (video != null) {
+        val icons = when (group) {
+            SettingsGroup.PLAYER -> listOf(OwnTVIcon.PLAY, OwnTVIcon.NETWORK)
+            SettingsGroup.PICTURE -> listOf(OwnTVIcon.VIDEO, OwnTVIcon.REFRESH)
+            SettingsGroup.SOUND -> listOf(OwnTVIcon.HEADPHONES, OwnTVIcon.LANGUAGE)
+            SettingsGroup.LIVE -> listOf(OwnTVIcon.LIVE_TV, OwnTVIcon.CLOCK)
+            else -> listOf(OwnTVIcon.SEEK_FORWARD, OwnTVIcon.MULTIVIEW)
+        }
+        return video.parts.mapIndexed { i, (titleRes, _) ->
+            SettingsPart(stringResource(titleRes), icons.getOrElse(i) { OwnTVIcon.LIST }, video = video, videoPart = i)
+        }
+    }
+    val defs = partDefs(group)
+    if (defs.isEmpty()) return emptyList()
+    val claimed = defs.flatMap { it.keys }.toSet()
+    val result = defs.map { def ->
+        SettingsPart(
+            stringResource(def.titleRes), def.icon,
+            rows = if (def.keys.isEmpty()) rows.filter { it.key !in claimed } else rows.filter { it.key in def.keys },
+        )
+    }.filter { it.rows.isNotEmpty() }
+    // App closes with the player diagnostics, which are not root rows.
+    return if (group == SettingsGroup.APP) result + SettingsPart(stringResource(R.string.settings_diagnostics), OwnTVIcon.WARNING, video = VideoGroup.DIAGNOSTICS) else result
+}
+
+/** The rows of one open subsection. */
+@Composable
+private fun SettingsPartBody(
+    part: SettingsPart,
+    scroll: androidx.compose.foundation.ScrollState,
+    openMiniPlayer: Boolean,
+    focusRowKey: String?,
+    quickPinned: List<String>,
+    extras: Map<String, RowExtra>,
+    onLongClick: (RootRow) -> Unit,
+    menuReturnKey: String?,
+    menuReturnFocus: FocusRequester,
+) {
+    if (part.video != null) {
+        VideoPlayerGroupRows(part.video, scroll, openMiniPlayer = openMiniPlayer, focusRowKey = focusRowKey, onlyPart = part.videoPart)
+    }
+    part.rows.forEach { row ->
+        RootRowStage(
+            row,
+            pinned = row.key in quickPinned,
+            onLongClick = { onLongClick(row) },
+            focus = if (row.key == menuReturnKey) menuReturnFocus else null,
+            extra = extras[row.key],
+        )
+    }
 }

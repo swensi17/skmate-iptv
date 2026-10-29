@@ -283,10 +283,16 @@ internal fun LiveStagePane(
         val id = channel?.id ?: return@LaunchedEffect
         when (previewState) {
             tv.own.owntv.player.LivePreviewEngine.State.LOADING -> { sawLoadingFor = id; readyFor = null }
-            tv.own.owntv.player.LivePreviewEngine.State.PLAYING -> if (sawLoadingFor == id) {
+            tv.own.owntv.player.LivePreviewEngine.State.PLAYING -> {
                 // Long enough for the stream to settle into its real picture size: a fast zap otherwise
                 // showed the first frames small in a corner before they filled the pane.
-                kotlinx.coroutines.delay(PictureSettleMs); readyFor = id
+                // A new channel's load starts within a moment of the switch and cancels this wait (the
+                // effect restarts on LOADING), so only a stream that really goes on playing gets here.
+                kotlinx.coroutines.delay(if (sawLoadingFor == id) PictureSettleMs else NoLoadWaitMs)
+                // Already playing with no load seen here (back from full screen, where the same stream
+                // went on playing): the picture is ready now — waiting for a LOADING that never comes
+                // left the skeleton spinning over a channel that could already be heard.
+                readyFor = id
             }
             else -> Unit
         }
@@ -918,6 +924,9 @@ private const val CategorySearchMin = 20
 
 /** After the first picture: long enough for the stream to settle into its real size, short enough not to feel slow. */
 private const val PictureSettleMs = 250L
+
+/** Playing with no load seen: how long to wait for one before taking the stream as this channel's. */
+private const val NoLoadWaitMs = 700L
 
 /** Three blue bars rising and falling: the row's channel is the one playing in the preview. */
 @Composable

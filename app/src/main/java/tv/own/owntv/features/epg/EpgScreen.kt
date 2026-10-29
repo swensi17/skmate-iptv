@@ -497,6 +497,13 @@ fun EpgScreen(
             }
             // The key hints at the bottom right of the top area, level with the video's bottom edge.
             Box(Modifier.align(Alignment.BottomEnd)) { GuideKeyHints(cellMode = inCellMode && gridHasFocus) }
+            // TV-box look: the way back to the channel list, in sight — not only behind Back.
+            if (tv.own.owntv.features.shell.TvBoxNav && liveMode && !overlay) {
+                StageTool(
+                    text = stringResource(R.string.content_live_list_view), icon = OwnTVIcon.LIST, onClick = onListView, boxed = true,
+                    modifier = Modifier.align(Alignment.BottomEnd),
+                )
+            }
         }
 
         }
