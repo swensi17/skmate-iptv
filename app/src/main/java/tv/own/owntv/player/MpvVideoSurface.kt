@@ -169,6 +169,9 @@ fun ExoPreviewSurface(
     modifier: Modifier = Modifier,
     /** A change here covers the picture until it is redrawn (the channel panel docking it, or letting it go). */
     revealKey: Any? = null,
+    /** Cover the picture while the surface changes size (the full-screen player growing out of the preview). Off for
+     *  the preview pane, whose size moves with the menus beside it and must not blink black every time. */
+    coverOnResize: Boolean = false,
     keepAwake: Boolean = false,
     autoFrameRate: Boolean = false,
     /**
@@ -270,7 +273,7 @@ fun ExoPreviewSurface(
         val state by engine.state.collectAsStateWithLifecycle()
         // Keyed on the box's size too: when the picture moves (the channel panel docking it, or letting it go) the
         // frame already on screen is drawn at the old size for a moment, so it is covered until redrawn.
-        val revealed by androidx.compose.runtime.produceState(false, state, maxWidth, maxHeight, revealKey) {
+        val revealed by androidx.compose.runtime.produceState(false, state, if (coverOnResize) maxWidth else null, if (coverOnResize) maxHeight else null, revealKey) {
             // Covered again at once on every change (produceState keeps its last value across keys otherwise).
             value = false
             if (state == LivePreviewEngine.State.PLAYING) { kotlinx.coroutines.delay(RevealAfterMs); value = true }

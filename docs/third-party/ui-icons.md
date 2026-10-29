@@ -12,3 +12,10 @@
 - **Social marks (About page):** GitHub and Telegram from Phosphor Icons (the IconScout pack, free for commercial use),
   Twitter from Unicons (IconScout, free for commercial use, no attribution). SVG sources: `tools/icons/github.svg`,
   `telegram.svg`, `twitter.svg`; drawn by `ui/components/SocialIcons.kt`.
+
+## Social marks (About page)
+
+From IconScout, free for commercial use, no attribution required; converted to vector drawables in `app/src/main/res/drawable/`:
+- `social_telegram.xml` — "Telegram", Icon 54 (flat, round).
+- `social_github.xml` — "github", Sandy (flat); filled light for the grey sheet.
+- `social_x.xml` — "x twitter", Sandy (flat), set in a round black badge.

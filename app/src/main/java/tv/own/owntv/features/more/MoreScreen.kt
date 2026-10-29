@@ -267,7 +267,7 @@ fun MoreScreen(
                 )
                 MoreItem.BACKUP -> InSheet(sheetOnly, stringResource(R.string.settings_backup_restore)) { BackupScreen(entry = pageTarget, modifier = Modifier.fillMaxSize()) }
                 MoreItem.LOCAL_SYNC -> InSheet(sheetOnly, stringResource(R.string.local_sync_title)) { LocalSyncScreen(entry = pageTarget, modifier = Modifier.fillMaxSize()) }
-                MoreItem.ABOUT -> InSheet(sheetOnly, stringResource(R.string.settings_about)) { AboutPage(vm = vm, entry = pageTarget) }
+                MoreItem.ABOUT -> InSheet(sheetOnly, stringResource(R.string.settings_about), trailing = tv.own.owntv.BuildConfig.VERSION_NAME.substringBefore('-'), edgeToEdge = true) { AboutPage(vm = vm, entry = pageTarget) }
                 MoreItem.DEVELOPER -> Box(Modifier.focusRequester(pageTarget).focusGroup()) { DeveloperScreen(onBack = backToSheet) }
             }
         }
@@ -326,9 +326,14 @@ private fun relativeShort(at: Long): String =
 private val SheetPages = setOf(MoreItem.BACKUP, MoreItem.LOCAL_SYNC, MoreItem.ABOUT)
 
 @Composable
-private fun InSheet(sheet: Boolean, title: String, content: @Composable () -> Unit) {
+private fun InSheet(sheet: Boolean, title: String, trailing: String? = null, edgeToEdge: Boolean = false, content: @Composable () -> Unit) {
     if (!sheet) { content(); return }
-    tv.own.owntv.features.settings.SettingsSheet(title = title) {
-        Box(Modifier.fillMaxWidth().weight(1f).padding(start = 18.mpx, end = 18.mpx, top = 8.mpx, bottom = 24.mpx)) { content() }
+    tv.own.owntv.features.settings.SettingsSheet(
+        title = title,
+        // On the title's line, at its size: About's version number.
+        headerTools = trailing?.let { t -> { androidx.tv.material3.Text(t, style = tv.own.owntv.ui.theme.stageText(32, 800), color = tv.own.owntv.ui.theme.StageColors.Muted, maxLines = 1) } },
+    ) {
+        // Edge to edge: the rows' focus bar runs across the whole sheet, as the settings rows' does.
+        Box(Modifier.fillMaxWidth().weight(1f).padding(start = if (edgeToEdge) 0.mpx else 18.mpx, end = if (edgeToEdge) 0.mpx else 18.mpx, top = 8.mpx, bottom = 24.mpx)) { content() }
     }
 }

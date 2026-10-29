@@ -44,8 +44,6 @@ fun AudioOnlyBadge(modifier: Modifier = Modifier, compact: Boolean = false) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(if (compact) 0.dp else 12.dp),
             modifier = Modifier
-                .clip(RoundedCornerShape(18.dp))
-                .background(Color.White.copy(alpha = 0.06f))
                 .padding(horizontal = if (compact) 14.dp else 36.dp, vertical = if (compact) 14.dp else 28.dp),
         ) {
             OwnTVIcon(

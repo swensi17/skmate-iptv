@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- X, in a round black badge (mark: IconScout "x twitter" by Sandy, free for commercial use). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="24dp" android:height="24dp" android:viewportWidth="48" android:viewportHeight="48">
+    <path android:fillColor="#000000" android:pathData="M24,0A24,24 0,1 1,24 48A24,24 0,1 1,24 0Z" />
+    <group android:scaleX="0.5" android:scaleY="0.5" android:translateX="12" android:translateY="12">
+        <path android:fillColor="#FFFFFF" android:pathData="M36.6526,3.8078H43.3995L28.6594,20.6548L46,43.5797H32.4225L21.7881,29.6759L9.61989,43.5797H2.86886L18.6349,25.56L2,3.8078H15.9222L25.5348,16.5165L36.6526,3.8078ZM34.2846,39.5414H38.0232L13.8908,7.63406H9.87892L34.2846,39.5414Z" />
+    </group>
+</vector>
