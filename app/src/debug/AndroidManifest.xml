@@ -7,5 +7,9 @@
         <activity
             android:name="tv.own.owntv.core.i18n.FontFallbackQaActivity"
             android:exported="true" />
+        <activity
+            android:name="tv.own.owntv.dev.VlcProbeActivity"
+            android:exported="true"
+            android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen" />
     </application>
 </manifest>
