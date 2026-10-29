@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import tv.own.owntv.ui.components.reportOkHeld
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
@@ -201,7 +202,7 @@ internal fun LiveStageRow(
         }
         if (trailing != null) trailing()
         else Row(horizontalArrangement = Arrangement.spacedBy(8.mpx), verticalAlignment = Alignment.CenterVertically) {
-            if (playing && tvBox) PlayingBars(Modifier.padding(start = 6.mpx))
+            if (playing && tvBox) tv.own.owntv.ui.components.PlayingMark(Modifier.padding(start = 6.mpx))
             name.tags.forEach { StageTag(it) }
             if (channel.catchup) OwnTVIcon(OwnTVIcon.REWIND, StageColors.Dim, Modifier.size(22.mpx))
             if (isFavorite) OwnTVIcon(OwnTVIcon.FAVORITE, stageAccent.accent, Modifier.size(22.mpx), filled = true)
@@ -577,6 +578,8 @@ internal fun LiveCategories(
     onSearchQueryChange: ((String) -> Unit)? = null,
     /** The category search is being typed in (the player's sheet then leaves ◀ to the text cursor). */
     onSearchEditingChange: (Boolean) -> Unit = {},
+    /** A menu of a group is open: nothing may open by itself meanwhile. */
+    paused: Boolean = false,
 ) {
     var localQuery by remember { mutableStateOf("") }
     val query = searchQuery ?: localQuery
@@ -627,18 +630,15 @@ internal fun LiveCategories(
     val a = stageAccent
     // TV-box look: focus resting on a group counts down 3, 2, 1 beside it and then opens it, no OK needed.
     var dwellIndex by remember { mutableStateOf<Int?>(null) }
-    var countdown by remember { androidx.compose.runtime.mutableIntStateOf(0) }
-    val select by androidx.compose.runtime.rememberUpdatedState(onSelect)
-    LaunchedEffect(dwellIndex, selectedIndex) {
-        val i = dwellIndex
-        if (!sheet || !tv.own.owntv.features.shell.TvBoxNav || i == null || i == selectedIndex) return@LaunchedEffect
-        try {
-            kotlinx.coroutines.delay(CountdownQuietMs) // passing over a row shows nothing
-            for (n in CountdownFrom downTo 1) { countdown = n; kotlinx.coroutines.delay(CountdownStepMs) }
-            countdown = 0
-            select(i)
-        } finally { countdown = 0 }
-    }
+    var okHeld by remember { mutableStateOf(false) }
+    val countdown = tv.own.owntv.ui.components.rememberDwellCountdown(
+        focusKey = dwellIndex,
+        armed = sheet && tv.own.owntv.features.shell.TvBoxNav && dwellIndex != null && dwellIndex != selectedIndex,
+        paused = paused || okHeld,
+        quietMs = tv.own.owntv.ui.components.DwellTiming.CategoryQuietMs,
+        stepMs = tv.own.owntv.ui.components.DwellTiming.StepMs,
+        onFire = { dwellIndex?.let(onSelect) },
+    )
     androidx.compose.runtime.CompositionLocalProvider(tv.own.owntv.ui.stage.LocalWhiteFocus provides (sheet && tv.own.owntv.features.shell.TvBoxNav)) {
     Column(
         modifier
@@ -719,7 +719,7 @@ internal fun LiveCategories(
                     }
                 }
                 item(key = entry.item.key.toString()) {
-                    val rowModifier = Modifier.focusRequester(rowFocusers[pos]).then(rightKey)
+                    val rowModifier = Modifier.focusRequester(rowFocusers[pos]).then(rightKey).then(Modifier.reportOkHeld { okHeld = it })
                         .onFocusChanged {
                             if (it.hasFocus) { onRowFocus(index); dwellIndex = index } else if (dwellIndex == index) dwellIndex = null
                         }
@@ -737,7 +737,7 @@ internal fun LiveCategories(
                             tags = if (entry.name?.tags.isNullOrEmpty()) null else { focused ->
                                 entry.name.tags.forEach { StageTag(it, onAccent = if (focused) tv.own.owntv.ui.theme.stageAccent.onAccent else null) }
                             },
-                            trailing = if (counting) { _ -> CategoryCountdown(countdown) } else entry.mark?.let { m -> { _ -> StagePlaylistMark(m) } },
+                            trailing = if (counting) { _ -> tv.own.owntv.ui.components.CountdownRing(countdown, tv.own.owntv.ui.components.DwellTiming.CategoryTotalMs) } else entry.mark?.let { m -> { _ -> StagePlaylistMark(m) } },
                             onLongClick = { onLongSelect(index) },
                             modifier = rowModifier,
                         )
@@ -795,34 +795,6 @@ private fun LiveColumnItem(
         }
     }
 }
-
-/** The group countdown: a quiet moment, then [CountdownFrom] steps of [CountdownStepMs]. */
-private const val CountdownQuietMs = 400L
-private const val CountdownFrom = 3
-private const val CountdownStepMs = 800L
-
-/** "3", "2", "1" in a brand-blue ring that fills as the group is about to open. */
-@Composable
-private fun CategoryCountdown(n: Int) {
-    val blue = tv.own.owntv.ui.brand.SkMateBlue
-    val progress = remember { androidx.compose.animation.core.Animatable(0f) }
-    LaunchedEffect(Unit) {
-        progress.animateTo(1f, androidx.compose.animation.core.tween((CountdownFrom * CountdownStepMs).toInt(), easing = androidx.compose.animation.core.LinearEasing))
-    }
-    Box(
-        Modifier.size(30.mpx).drawBehind {
-            val w = 2.5f * 1.mpx.toPx()
-            val inset = w / 2f
-            val arcSize = androidx.compose.ui.geometry.Size(size.width - w, size.height - w)
-            drawArc(blue.copy(alpha = 0.18f), 0f, 360f, false, topLeft = androidx.compose.ui.geometry.Offset(inset, inset), size = arcSize, style = androidx.compose.ui.graphics.drawscope.Stroke(w))
-            drawArc(blue, -90f, 360f * progress.value, false, topLeft = androidx.compose.ui.geometry.Offset(inset, inset), size = arcSize, style = androidx.compose.ui.graphics.drawscope.Stroke(w, cap = androidx.compose.ui.graphics.StrokeCap.Round))
-        },
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(n.toString(), style = stageText(15, 800), color = blue, maxLines = 1)
-    }
-}
-
 
 /** The preview's placeholder while a channel starts: a dark card with a slow, soft light sweep. Cheap: one brush. */
 @Composable
@@ -928,28 +900,3 @@ private const val PictureSettleMs = 250L
 
 /** Playing with no load seen: how long to wait for one before taking the stream as this channel's. */
 private const val NoLoadWaitMs = 700L
-
-/**
- * Three blue bars: the row's channel is the one playing in the preview. Standing still — a bar that
- * keeps moving redraws the whole screen sixty times a second, and the weaker TVs then stutter on
- * every key press.
- */
-@Composable
-private fun PlayingBars(modifier: Modifier = Modifier) {
-    val blue = tv.own.owntv.ui.brand.SkMateBlue
-    Box(
-        modifier.size(22.mpx).drawBehind {
-            val w = size.width / 5f
-            val heights = floatArrayOf(0.55f, 1f, 0.75f)
-            for (i in 0 until 3) {
-                val h = size.height * heights[i]
-                drawRoundRect(
-                    blue,
-                    topLeft = androidx.compose.ui.geometry.Offset(i * 2 * w, size.height - h),
-                    size = androidx.compose.ui.geometry.Size(w, h),
-                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(w / 2f),
-                )
-            }
-        },
-    )
-}

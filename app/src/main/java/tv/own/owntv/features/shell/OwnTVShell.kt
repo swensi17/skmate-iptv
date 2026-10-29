@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
+import androidx.compose.ui.zIndex
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -153,6 +154,8 @@ fun OwnTVShell(
 
     val scope = rememberCoroutineScope()
     val sidebarFocus = remember { FocusRequester() }
+    // Where focus goes when the menu, opened over a full-screen picture, is closed again.
+    val playerFocus = remember { FocusRequester() }
     // When focus was last sent to the rail on purpose: ◀ / ▶ from the content, or the app itself
     // ([focusRail]). A rail visit that follows neither does not open the floating rail (#7.1).
     var railKeyAt by remember { mutableLongStateOf(0L) }
@@ -917,6 +920,7 @@ fun OwnTVShell(
     var lastBackAt by remember { mutableLongStateOf(0L) }
     val context = androidx.compose.ui.platform.LocalContext.current
         fun closeMenuToContent() {
+        if (playerMode == PlayerMode.FULLSCREEN) { runCatching { playerFocus.requestFocus() }; return }
         val entry = when (selectedSection) {
             MainSection.HOME -> homeEntry
             MainSection.EPG, MainSection.LIVE_TV -> guideEntry
@@ -1529,6 +1533,7 @@ fun OwnTVShell(
                 )
             }
             tv.own.owntv.features.shell.components.StageRail(
+                modifier = Modifier.zIndex(1f),
                 state = railState,
                 size = railSize,
                 length = navLength,
@@ -1545,7 +1550,7 @@ fun OwnTVShell(
                 avatarPath = avatarPath,
                 selectedItemFocusRequester = sidebarFocus,
                 contentFocusRequester = contentAreaFocus,
-                enterContent = when (selectedSection) {
+                enterContent = if (playerMode == PlayerMode.FULLSCREEN) ({ runCatching { playerFocus.requestFocus() }.isSuccess }) else when (selectedSection) {
                     MainSection.HOME -> homeEntry
                     MainSection.EPG, MainSection.LIVE_TV -> guideEntry
                     MainSection.MOVIES, MainSection.SERIES -> vodEntry
@@ -1667,7 +1672,7 @@ fun OwnTVShell(
         }
         var parentOrigin by remember { mutableStateOf(androidx.compose.ui.geometry.Offset.Zero) }
         Box(
-            modifier = if (isFull) {
+            modifier = (if (isFull) {
                 Modifier.fillMaxSize()
                     .onPlaced { parentOrigin = it.parentLayoutCoordinates?.positionInRoot() ?: androidx.compose.ui.geometry.Offset.Zero }
                     .layout { measurable, constraints ->
@@ -1695,7 +1700,7 @@ fun OwnTVShell(
                 Modifier.align(miniPos.alignment).padding(24.dp)
                     .fillMaxWidth(tv.own.owntv.core.player.MiniPlayerSize.fraction(miniSizePct)).aspectRatio(16f / 9f)
                     .clip(RoundedCornerShape(14.dp)).background(Color.Black)
-            },
+            }).then(if (isFull) Modifier.focusRequester(playerFocus).focusGroup() else Modifier),
         ) {
             // TV-box look: with the channel panel open the picture moves into the top-right corner beside it,
             // laid out at that size (a SurfaceView ignores layer scaling), and comes back when it closes.
@@ -1811,7 +1816,9 @@ fun OwnTVShell(
                     onAudioMode = toAudioMode,
                     // The channel-list overlay draws ABOVE the HUD; while it's open the HUD goes inert so
                     // its hide/error focus grabs can't yank D-pad focus off the overlay.
-                    inert = showChannelList || showHistoryList || showCategoryBrowser || showSubtitleSearch || showLocalSubPicker || showOtherChannels || showGuideOverlay,
+                    inert = showChannelList || showHistoryList || showCategoryBrowser || showSubtitleSearch || showLocalSubPicker || showOtherChannels || showGuideOverlay ||
+                        // The menu opened over the picture owns the D-pad: the HUD must not pull focus back to itself.
+                        (railHasFocus && playerMode == PlayerMode.FULLSCREEN),
                     onChannelUp = zap?.let { z -> { z(-1) } },
                     onChannelDown = zap?.let { z -> { z(1) } },
                     onOpenChannelList = if (isTunedLive && liveCanZap) { { showChannelList = true } } else null,
@@ -2041,9 +2048,12 @@ fun OwnTVShell(
                             onClose = { showChannelList = false },
                             // The picture first comes back from its corner, then shrinks into the preview:
                             // both at once resized the video surface faster than some decoders follow.
+                            // The menu opens where the viewer is: over the picture, which stays playing.
                             onOpenMenu = {
                                 showChannelList = false
-                                menuAfterExit = true
+                                liveVm.hideCategoryBrowser()
+                                // After the HUD has taken its focus back from the closing panels, not before.
+                                scope.launch { kotlinx.coroutines.delay(220); focusRail() }
                             },
                         )
                     } else if (showCategoryBrowser) {

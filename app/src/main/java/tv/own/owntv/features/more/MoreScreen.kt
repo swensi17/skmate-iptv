@@ -102,6 +102,12 @@ fun MoreScreen(
     settingsVm: SettingsViewModel = koinViewModel(),
 ) {
     var selected by rememberSaveable { mutableStateOf(MoreItem.SETTINGS) }
+    // Back out of Settings: the sheet slides away to the right first, and only then does More leave.
+    var leaving by remember { mutableStateOf(false) }
+    val leaveProgress by androidx.compose.animation.core.animateFloatAsState(
+        if (leaving) 1f else 0f, androidx.compose.animation.core.tween(if (tv.own.owntv.ui.theme.DevicePerf.lite) 120 else 220), label = "settingsLeave",
+    )
+    LaunchedEffect(leaving) { if (leaving) { kotlinx.coroutines.delay(if (tv.own.owntv.ui.theme.DevicePerf.lite) 130L else 230L); onLeave() } }
     val sheetOnly = tv.own.owntv.features.settings.SettingsAsSidePanel
     val itemFocus = remember { MoreItem.entries.associateWith { FocusRequester() } }
     // What OK / ▶ focuses on the page: a fixed target, or the page's own choice (its first row).
@@ -117,6 +123,15 @@ fun MoreScreen(
     LaunchedEffect(selected) {
         if (!sheetOnly || selected == MoreItem.SETTINGS) return@LaunchedEffect
         repeat(10) { withFrameNanos { }; if (enterPage()) return@LaunchedEffect; kotlinx.coroutines.delay(50) }
+    }
+
+    // Back from a page opened out of the settings list: the list is back with focus on the line it came from.
+    var previousItem by remember { mutableStateOf(selected) }
+    LaunchedEffect(selected) {
+        val was = previousItem
+        previousItem = selected
+        if (!sheetOnly || selected != MoreItem.SETTINGS || was == MoreItem.SETTINGS) return@LaunchedEffect
+        repeat(12) { withFrameNanos { }; if (enterPage()) return@LaunchedEffect; kotlinx.coroutines.delay(40) }
     }
 
     // The rail's ▶ lands on the item the sheet was last on.
@@ -143,7 +158,7 @@ fun MoreScreen(
         when {
             !sheetOnly -> backToSheet()
             selected != MoreItem.SETTINGS -> { selected = MoreItem.SETTINGS; pageEntry = null }
-            else -> onLeave()
+            else -> leaving = true
         }
     }
 
@@ -225,6 +240,7 @@ fun MoreScreen(
                     },
                 )
                 .fillMaxSize()
+                .graphicsLayer { translationX = leaveProgress * size.width * 0.3f; alpha = 1f - leaveProgress }
                 .onFocusChanged { pageFocused = it.hasFocus },
         ) {
             val setEntry: (() -> Boolean) -> Unit = { pageEntry = it }
@@ -312,7 +328,7 @@ private val SheetPages = setOf(MoreItem.BACKUP, MoreItem.LOCAL_SYNC, MoreItem.AB
 @Composable
 private fun InSheet(sheet: Boolean, title: String, content: @Composable () -> Unit) {
     if (!sheet) { content(); return }
-    tv.own.owntv.features.settings.SettingsSheet(title = title, wide = true) {
+    tv.own.owntv.features.settings.SettingsSheet(title = title) {
         Box(Modifier.fillMaxWidth().weight(1f).padding(start = 18.mpx, end = 18.mpx, top = 8.mpx, bottom = 24.mpx)) { content() }
     }
 }

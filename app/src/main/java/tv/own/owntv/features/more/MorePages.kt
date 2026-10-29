@@ -71,6 +71,7 @@ import tv.own.owntv.features.home.OnNowCard
 import tv.own.owntv.features.home.timeLeftText
 import tv.own.owntv.features.shell.components.ClearHistoryDialog
 import tv.own.owntv.features.settings.StageInfoCard
+import tv.own.owntv.ui.components.SocialIcon
 import tv.own.owntv.features.shell.components.GITHUB_REPO
 import tv.own.owntv.features.shell.components.playbackDisplayName
 import tv.own.owntv.features.update.UpdateDialog
@@ -291,8 +292,8 @@ private fun SettingsGroupList(entry: FocusRequester, onOpenGroup: (Int) -> Unit,
     tv.own.owntv.features.settings.SettingsSheet(title = stringResource(R.string.common_nav_settings), scrim = true, fromStart = back != null) {
         Column(
             Modifier.fillMaxWidth().weight(1f).focusGroup().verticalScroll(androidx.compose.foundation.rememberScrollState())
-                .padding(start = 4.mpx, end = 4.mpx, top = 12.mpx, bottom = 40.mpx),
-            verticalArrangement = Arrangement.spacedBy(2.mpx),
+                .padding(start = 0.mpx, end = 0.mpx, top = 12.mpx, bottom = 40.mpx),
+            verticalArrangement = Arrangement.spacedBy(0.mpx),
         ) {
             SettingsCards.forEachIndexed { index, card ->
                 // No Live TV group: its settings belong to the channels screen and its own menus.
@@ -314,8 +315,8 @@ private fun SettingsGroupList(entry: FocusRequester, onOpenGroup: (Int) -> Unit,
 @Composable
 internal fun GroupLine(icon: OwnTVIcon, title: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
     // As Android TV's own settings list: a tall row, a large icon and one bold word.
-    StageSurface(onClick = onClick, radius = 16.mpx, focusStyle = StageFocus.FX, modifier = modifier.fillMaxWidth().height(80.mpx)) { focused ->
-        Row(Modifier.padding(horizontal = 20.mpx), horizontalArrangement = Arrangement.spacedBy(22.mpx), verticalAlignment = Alignment.CenterVertically) {
+    StageSurface(onClick = onClick, radius = 0.mpx, focusStyle = StageFocus.FX, modifier = modifier.fillMaxWidth().height(80.mpx)) { focused ->
+        Row(Modifier.padding(horizontal = 30.mpx), horizontalArrangement = Arrangement.spacedBy(22.mpx), verticalAlignment = Alignment.CenterVertically) {
             OwnTVIcon(icon, StageColors.Text.copy(alpha = if (focused) 1f else 0.85f), Modifier.size(32.mpx))
             Text(title, style = stageText(25, 700), color = StageColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
@@ -594,34 +595,52 @@ internal fun AboutPage(vm: MoreCountsViewModel, entry: FocusRequester) {
     var updateWasOpen by remember { mutableStateOf(false) }
     LaunchedEffect(showUpdate) { if (showUpdate) updateWasOpen = true else if (updateWasOpen) { updateWasOpen = false; withFrameNanos { }; runCatching { updateFocus.requestFocus() } } }
 
-    Column(Modifier.fillMaxSize().focusGroup().verticalScroll(androidx.compose.foundation.rememberScrollState()).padding(bottom = 40.mpx), verticalArrangement = Arrangement.spacedBy(12.mpx)) {
-        Row(Modifier.padding(top = 8.mpx, start = 4.mpx), horizontalArrangement = Arrangement.spacedBy(14.mpx), verticalAlignment = Alignment.CenterVertically) {
-            OwnTVIcon(OwnTVIcon.FAVORITE, StageColors.Danger, Modifier.size(38.mpx), filled = true)
-            Text(stringResource(R.string.about_thanks_title), style = stageText(36, 800), color = StageColors.Text, maxLines = 1)
+    val line: @Composable () -> Unit = {
+        Box(Modifier.fillMaxWidth().padding(horizontal = 4.mpx).height(1.mpx).background(StageColors.Text.copy(alpha = 0.12f)))
+    }
+    Column(Modifier.fillMaxSize().focusGroup().verticalScroll(androidx.compose.foundation.rememberScrollState()).padding(bottom = 40.mpx)) {
+        // The thanks and its heart sit side by side: the heart follows the last word.
+        Row(Modifier.padding(top = 8.mpx, start = 4.mpx, end = 8.mpx), horizontalArrangement = Arrangement.spacedBy(12.mpx), verticalAlignment = Alignment.CenterVertically) {
+            Text(stringResource(R.string.about_thanks_title), style = stageText(32, 800), color = StageColors.Text, maxLines = 2, modifier = Modifier.weight(1f, fill = false))
+            OwnTVIcon(OwnTVIcon.FAVORITE, StageColors.Danger, Modifier.size(36.mpx), filled = true)
         }
-        Text(stringResource(R.string.about_thanks_body), style = stageText(19, 500), color = StageColors.Muted, modifier = Modifier.padding(horizontal = 4.mpx, vertical = 6.mpx))
-        Text(stringResource(R.string.about_info), style = stageText(28, 800), color = StageColors.Text, modifier = Modifier.padding(start = 4.mpx, top = 14.mpx, bottom = 2.mpx))
+        Text(stringResource(R.string.about_thanks_body), style = stageText(19, 500), color = StageColors.Muted, modifier = Modifier.padding(horizontal = 4.mpx, vertical = 8.mpx))
+        Text(stringResource(R.string.about_info), style = stageText(28, 800), color = StageColors.Text, modifier = Modifier.padding(start = 4.mpx, top = 14.mpx, bottom = 6.mpx))
         // Only what a real check said: no tag before one has run.
         val tag = when (updateState) {
             UpdateManager.State.UpToDate -> stringResource(R.string.more_about_up_to_date)
             is UpdateManager.State.Available -> stringResource(R.string.update_available)
             else -> null
         }
+        line()
         StageInfoCard(
             title = stringResource(R.string.app_name),
             label = stringResource(R.string.about_card_app),
             body = listOfNotNull(stringResource(R.string.settings_about_version, BuildConfig.VERSION_NAME), tag).joinToString(" · "),
             icon = OwnTVIcon.REFRESH,
+            plain = true,
             onClick = { showUpdate = true },
             modifier = Modifier.focusRequester(entry).focusRequester(updateFocus),
         )
+        line()
         StageInfoCard(
-            title = GITHUB_REPO.removePrefix("github.com/"),
-            label = stringResource(R.string.about_card_code),
-            body = stringResource(R.string.about_card_source),
-            icon = OwnTVIcon.NETWORK,
-            onClick = {},
+            title = SOCIAL_HANDLE, label = stringResource(R.string.about_card_code), body = "github.com/$SOCIAL_HANDLE",
+            plain = true, onClick = {},
+            iconContent = { SocialIcon(SocialIcon.GITHUB, StageColors.Text, Modifier.size(34.mpx)) },
         )
+        line()
+        StageInfoCard(
+            title = SOCIAL_HANDLE, label = "Telegram", body = "t.me/$SOCIAL_HANDLE",
+            plain = true, onClick = {},
+            iconContent = { SocialIcon(SocialIcon.TELEGRAM, StageColors.Text, Modifier.size(34.mpx)) },
+        )
+        line()
+        StageInfoCard(
+            title = SOCIAL_HANDLE, label = "X (Twitter)", body = "x.com/$SOCIAL_HANDLE",
+            plain = true, onClick = {},
+            iconContent = { SocialIcon(SocialIcon.TWITTER, StageColors.Text, Modifier.size(34.mpx)) },
+        )
+        line()
         Row(Modifier.padding(start = 4.mpx, top = 22.mpx), horizontalArrangement = Arrangement.spacedBy(8.mpx), verticalAlignment = Alignment.CenterVertically) {
             OwnTVIcon(OwnTVIcon.WARNING, StageColors.Muted, Modifier.size(20.mpx))
             Text(stringResource(R.string.about_disclaimer_title), style = stageText(17, 800), color = StageColors.Text)
@@ -635,3 +654,6 @@ internal fun AboutPage(vm: MoreCountsViewModel, entry: FocusRequester) {
 
 /** A line of the settings sheet that opens one of More's own pages. */
 internal class SettingsExtra(val icon: OwnTVIcon, val title: String, val onClick: () -> Unit)
+
+/** The author's name on GitHub, Telegram and X. */
+private const val SOCIAL_HANDLE = "swensi17"

@@ -86,6 +86,7 @@ internal fun TvBoxPlayerPanels(
             onDismiss = { liveVm.hideCategoryBrowser() },
             width = categoriesWidth,
             onLongSelect = { categoryMenu = it },
+            paused = categoryMenu != null,
             onOpenMenu = {
                 liveVm.hideCategoryBrowser()
                 startChannel = null

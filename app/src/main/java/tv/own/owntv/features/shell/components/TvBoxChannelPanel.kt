@@ -2,6 +2,7 @@ package tv.own.owntv.features.shell.components
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -138,19 +139,16 @@ fun TvBoxChannelPanel(
         delay(ScheduleSettleMs)
         value = scheduleFor(ch)
     }
-    // Focus resting on another channel counts down 3, 2, 1 beside it, then shows it in the picture.
-    var countdown by remember { mutableIntStateOf(0) }
-    LaunchedEffect(focused?.id, currentId, active) {
-        countdown = 0
-        val ch = focused ?: return@LaunchedEffect
-        if (!active || ch.id == currentId || onPreview == null) return@LaunchedEffect
-        try {
-            delay(CountdownQuietMs)
-            for (n in CountdownFrom downTo 1) { countdown = n; delay(CountdownStepMs) }
-            countdown = 0
-            onPreview(ch)
-        } finally { countdown = 0 }
-    }
+    // Focus resting on another channel counts down 3, 2, 1 beside it, then shows it in the picture: the same rule
+    // as the categories (see rememberDwellCountdown), only a shorter quiet moment.
+    val countdown = tv.own.owntv.ui.components.rememberDwellCountdown(
+        focusKey = focused?.id,
+        armed = active && focused != null && focused.id != currentId && onPreview != null,
+        paused = false,
+        quietMs = tv.own.owntv.ui.components.DwellTiming.ChannelQuietMs,
+        stepMs = tv.own.owntv.ui.components.DwellTiming.StepMs,
+        onFire = { focused?.let { onPreview?.invoke(it) } },
+    )
     val now = System.currentTimeMillis()
     androidx.compose.foundation.layout.BoxWithConstraints(modifier.fillMaxSize()) {
         val screenW = maxWidth
@@ -288,8 +286,7 @@ private fun ChannelLine(
         modifier
             .fillMaxWidth()
             .height(92.mpx)
-            .then(if (focused) Modifier.shadow(3.mpx, RoundedCornerShape(12.mpx), clip = false, ambientColor = Color(0x33000000), spotColor = Color(0x33000000)) else Modifier)
-            .background(if (focused) c.focus else Color.Transparent, RoundedCornerShape(12.mpx))
+            .background(if (focused) c.focus else Color.Transparent, androidx.compose.ui.graphics.RectangleShape)
             .onFocusChanged { if (it.isFocused) onFocus() }
             .clickable(interactionSource = interaction, indication = null, onClick = onClick)
             .padding(horizontal = 16.mpx),
@@ -305,32 +302,16 @@ private fun ChannelLine(
             }
             if (now != null) {
                 Text(now.title, style = stageText(16, 500), color = soft, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Bar(((nowMs - now.startMs).toFloat() / (now.stopMs - now.startMs).coerceAtLeast(1)).coerceIn(0f, 1f), 240.mpx, base = ink)
+                // The same thin line as the channels list: blue, the whole width, running out as the programme does.
+                tv.own.owntv.ui.stage.StageProgress(((nowMs - now.startMs).toFloat() / (now.stopMs - now.startMs).coerceAtLeast(1)).coerceIn(0f, 1f), Modifier.fillMaxWidth(), flat = true)
             } else {
                 Text(stringResource(R.string.content_no_guide_short), style = stageText(16, 500), color = soft, maxLines = 1)
             }
         }
-        if (countdown > 0) Countdown(countdown)
+        if (countdown > 0) tv.own.owntv.ui.components.CountdownRing(countdown, tv.own.owntv.ui.components.DwellTiming.CategoryTotalMs, diameter = 32.mpx)
+        else if (playing) tv.own.owntv.ui.components.PlayingMark()
         else if (trailing != null) Text(trailing, style = stageText(15, 500), color = soft, maxLines = 1)
     }
-}
-
-/** "3", "2", "1" in a brand-blue ring that fills until the channel shows in the picture. */
-@Composable
-private fun Countdown(n: Int) {
-    val progress = remember { androidx.compose.animation.core.Animatable(0f) }
-    LaunchedEffect(Unit) {
-        progress.animateTo(1f, androidx.compose.animation.core.tween((CountdownFrom * CountdownStepMs).toInt(), easing = androidx.compose.animation.core.LinearEasing))
-    }
-    Box(
-        Modifier.size(32.mpx).drawBehind {
-            val w = 2.5f * 1.mpx.toPx()
-            val arc = Size(size.width - w, size.height - w)
-            drawArc(SkMateBlue.copy(alpha = 0.2f), 0f, 360f, false, topLeft = Offset(w / 2, w / 2), size = arc, style = androidx.compose.ui.graphics.drawscope.Stroke(w))
-            drawArc(SkMateBlue, -90f, 360f * progress.value, false, topLeft = Offset(w / 2, w / 2), size = arc, style = androidx.compose.ui.graphics.drawscope.Stroke(w, cap = androidx.compose.ui.graphics.StrokeCap.Round))
-        },
-        contentAlignment = Alignment.Center,
-    ) { Text(n.toString(), style = stageText(15, 800), color = SkMateBlue, maxLines = 1) }
 }
 
 /** Minutes left, as the rest of the app says it. */
@@ -365,12 +346,9 @@ internal data class TvBoxPanelColors(val fill: Color, val text: Color, val soft:
 @Composable
 internal fun tvBoxPanelColors(): TvBoxPanelColors =
     if (tv.own.owntv.ui.theme.LocalStagePalette.current.isLight) {
-        TvBoxPanelColors(Color(0xF2EEF1F4), Color(0xFF16181D), Color(0xCC16181D), Color(0x8C16181D), Color.White, Color(0xFF16181D), Color(0x1A000000))
+        TvBoxPanelColors(Color(0xF2EEF1F4), Color(0xFF16181D), Color(0xCC16181D), Color(0x8C16181D), Color(0xFFDDE0E4), Color(0xFF16181D), Color(0x1A000000))
     } else {
-        TvBoxPanelColors(Color(0xEB0E1013), Color.White, Color.White.copy(alpha = 0.8f), Color.White.copy(alpha = 0.55f), Color.White, Color(0xFF16181D), Color(0x1FFFFFFF))
+        TvBoxPanelColors(Color(0xEB0E1013), Color.White, Color.White.copy(alpha = 0.8f), Color.White.copy(alpha = 0.55f), Color(0xFF353A40), Color.White, Color(0x1FFFFFFF))
     }
 private const val ScheduleSettleMs = 250L
-private const val CountdownQuietMs = 400L
-private const val CountdownFrom = 3
-private const val CountdownStepMs = 700L
 private const val MaxScheduleRows = 14

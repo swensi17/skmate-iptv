@@ -195,15 +195,9 @@ fun StageSurface(
             .stageLift(focused, focusStyle)
             .then(
                 when {
-                    whiteFocus -> Modifier.shadow(3.mpx, whiteShape, clip = false, ambientColor = WhiteFocusShadow, spotColor = WhiteFocusShadow)
-                        .background(Color.White, whiteShape)
-                    // In the settings sheet the grey bar has the same soft corners as every other focus card.
-                    sheetFocus && palette.isLight -> Modifier.background(
-                        LightFocusFill,
-                        if (pill) focusShape(radius)
-                        else androidx.compose.foundation.shape.RoundedCornerShape(if (tvBox && tv.own.owntv.ui.theme.LocalInSettingsSheet.current) WhiteFocusRadius else radius),
-                    )
-                    sheetFocus -> Modifier.background(SheetFocusFill, if (pill) focusShape(radius) else androidx.compose.foundation.shape.RoundedCornerShape(radius))
+                    // One focus everywhere: a plain grey bar, square, across the whole line. No card, no outline, no shadow.
+                    whiteFocus || sheetFocus ->
+                        Modifier.background(if (palette.isLight) LightFocusFill else SheetFocusFill, androidx.compose.ui.graphics.RectangleShape)
                     focused -> Modifier.stageFocusDecor(focusStyle, radius, accent, palette)
                     else -> idle
                 },
@@ -237,6 +231,12 @@ val LocalWhiteFocus = androidx.compose.runtime.compositionLocalOf { false }
 
 /** The white card's corners: softly rounded, not a pill. */
 internal val WhiteFocusRadius = 16.mpx
+
+/** The thin line round a focused row, button or tile: dark on a light page, light on a dark one. */
+internal val FocusLine = 1.mpx
+
+/** The thin line's colour: the page's ink, light-handed. */
+internal fun focusLineColor(ink: Color): Color = ink.copy(alpha = 0.35f)
 internal val WhiteFocusShadow = Color(0x33000000)
 
 /** The focused row of the settings sheet. */
@@ -438,12 +438,12 @@ fun StageTool(
         radius = r,
         pill = !tvBox,
         modifier = modifier.height(48.mpx),
-        idle = if (boxed) Modifier.background(StageColors.ControlFill, RoundedCornerShape(r)) else Modifier,
+        idle = if (boxed) Modifier.background(StageColors.ControlFill, if (tvBox) androidx.compose.ui.graphics.RectangleShape else RoundedCornerShape(r)) else Modifier,
     ) { focused ->
         // TV-box look: a boxed tool already sits on grey, so focus adds a clear ring to tell it apart —
         // unless focus is the white card, which tells it apart by itself.
-        if (focused && boxed && tvBox && !white) {
-            Box(Modifier.matchParentSize().border(2.mpx, StageColors.Text.copy(alpha = 0.55f), RoundedCornerShape(r)))
+        if (focused && boxed && tvBox) {
+            Box(Modifier.matchParentSize().background(StageColors.Text.copy(alpha = 0.09f), androidx.compose.ui.graphics.RectangleShape))
         }
         Row(
             Modifier.padding(horizontal = 16.mpx),
@@ -782,7 +782,7 @@ fun StageSheetItem(
             if (selected && !focused && !tv.own.owntv.features.shell.TvBoxNav) {
                 Box(Modifier.width(3.mpx).wrapContentWidth(Alignment.Start, unbounded = true)) { StageSelectedDot() }
             }
-            if (icon != null) StageIcon(icon, on ?: if (selected) a.accent else StageColors.Muted, 22.mpx)
+            if (icon != null) StageIcon(icon, on ?: if (selected) a.accent else StageColors.Muted, 28.mpx)
             val label = @Composable { m: Modifier ->
                 Text(
                     text,

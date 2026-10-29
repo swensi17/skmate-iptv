@@ -67,6 +67,12 @@ fun CategoryBrowserOverlay(
     onSelect: (LiveKey) -> Unit,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
+    /** The sheet's width: 440 beside the channel panel, the same everywhere else. */
+    width: androidx.compose.ui.unit.Dp = 440.mpx,
+    onLongSelect: (LiveRailItem) -> Unit = {},
+    /** ◀ opens the app menu instead of going back to the channels (the player's panel). */
+    onOpenMenu: (() -> Unit)? = null,
+    paused: Boolean = false,
 ) {
     val layoutDirection = LocalLayoutDirection.current
     val (entries, groupsHeading) = liveCategoryEntries(railItems, railCounts)
@@ -108,7 +114,8 @@ fun CategoryBrowserOverlay(
             sheet = true,
             listState = listState,
             onSelect = { onSelect(entries[it].item.key) },
-            onLongSelect = {},
+            onLongSelect = { onLongSelect(entries[it].item) },
+            paused = paused,
             // TV-box look: ▶ goes back to the channel list beside it.
             onNavigateRight = { if (tv.own.owntv.features.shell.TvBoxNav) onDismiss() },
             focusRequester = listFocus,
@@ -120,13 +127,13 @@ fun CategoryBrowserOverlay(
                 .align(Alignment.CenterStart)
                 // TV-box look: flush with the left edge, the full height.
                 .then(if (tv.own.owntv.features.shell.TvBoxNav) Modifier else Modifier.padding(horizontal = 20.mpx, vertical = 22.mpx))
-                .width(440.mpx)
+                .width(width)
                 .fillMaxHeight()
                 .onFocusChanged { hasFocus = it.hasFocus }
                 .onPreviewKeyEvent { e ->
                     // Pushing outward from logical Start returns to the channel list.
                     if (!typing && e.type == KeyEventType.KeyDown && e.key.horizontalDirection(layoutDirection) == HorizontalDirection.START) {
-                        onDismiss(); true
+                        if (onOpenMenu != null) onOpenMenu() else onDismiss(); true
                     } else false
                 }
                 .chNavPaging(
@@ -146,10 +153,9 @@ fun CategoryBrowserOverlay(
 private const val FIRST_SCREEN_ROWS = 10
 
 /**
- * The TV-box player's categories: a column at the left edge beside the channel panel, a hairline between
- * them, one large row per category (icon, name, count) in the theme's glass — the focused one a white card,
- * the playing list's category in brand blue. Focus resting on another counts down 3, 2, 1 and opens it;
- * OK opens it at once, holding OK offers its options, ▶ or Back returns to the channels, ◀ the app menu.
+ * The TV-box player's categories: the same sheet as on the channels screen ([LiveCategories], through
+ * [CategoryBrowserOverlay]) at the left edge beside the channel panel. ▶ or Back returns to the channels,
+ * ◀ opens the app menu. Rows, selection, the 3-2-1 and the options menu are not repeated here.
  */
 @Composable
 fun TvBoxCategoryColumn(
@@ -162,108 +168,10 @@ fun TvBoxCategoryColumn(
     modifier: Modifier = Modifier,
     onLongSelect: (LiveRailItem) -> Unit = {},
     onOpenMenu: (() -> Unit)? = null,
+    paused: Boolean = false,
 ) {
-    val c = tvBoxPanelColors()
-    val (entries, _) = liveCategoryEntries(railItems, railCounts)
-    val selectedIndex = remember(entries, currentKey) { entries.indexOfFirst { it.item.key == currentKey }.coerceAtLeast(0) }
-    val listState = rememberLazyListState()
-    val focus = remember { FocusRequester() }
-    var focusedIndex by remember { mutableIntStateOf(selectedIndex) }
-    var countdown by remember { mutableIntStateOf(0) }
-    val select by androidx.compose.runtime.rememberUpdatedState(onSelect)
-    LaunchedEffect(Unit) {
-        runCatching { listState.scrollToItem((selectedIndex - 3).coerceAtLeast(0)) }
-        withFrameNanos { }
-        runCatching { focus.requestFocus() }
-    }
-    LaunchedEffect(focusedIndex, selectedIndex) {
-        countdown = 0
-        if (focusedIndex == selectedIndex) return@LaunchedEffect
-        val key = entries.getOrNull(focusedIndex)?.item?.key ?: return@LaunchedEffect
-        try {
-            kotlinx.coroutines.delay(CategoryQuietMs)
-            for (n in 3 downTo 1) { countdown = n; kotlinx.coroutines.delay(CategoryStepMs) }
-            countdown = 0
-            select(key)
-        } finally { countdown = 0 }
-    }
-    BackHandler { onDismiss() }
-    androidx.compose.foundation.layout.Column(
-        modifier.width(width).fillMaxHeight()
-            .drawBehind { drawRect(c.line, topLeft = androidx.compose.ui.geometry.Offset(size.width - 1.mpx.toPx(), 0f), size = androidx.compose.ui.geometry.Size(1.mpx.toPx(), size.height)) }
-            .onPreviewKeyEvent { e ->
-                if (e.type == KeyEventType.KeyDown && e.key == Key.DirectionRight) { onDismiss(); true }
-                else if (e.type == KeyEventType.KeyDown && e.key == Key.DirectionLeft) { onOpenMenu?.invoke(); true }
-                else false
-            }
-            .padding(top = 36.mpx),
-    ) {
-        androidx.tv.material3.Text(
-            androidx.compose.ui.res.stringResource(tv.own.owntv.R.string.content_category_browser_title),
-            style = tv.own.owntv.ui.theme.stageText(24, 700), color = c.text, maxLines = 1,
-            modifier = Modifier.padding(horizontal = 28.mpx),
-        )
-        @OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
-                androidx.compose.runtime.CompositionLocalProvider(androidx.compose.foundation.gestures.LocalBringIntoViewSpec provides tv.own.owntv.features.live.edgeScrollSpec) {
-        androidx.compose.foundation.lazy.LazyColumn(
-            state = listState,
-            modifier = Modifier.fillMaxWidth().weight(1f).padding(top = 14.mpx),
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(start = 12.mpx, end = 12.mpx, bottom = 24.mpx),
-            verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(4.mpx),
-        ) {
-            itemsIndexed(entries, key = { _, e -> e.item.key.toString() }) { index, entry ->
-                val interaction = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
-                val focused = interaction.collectIsFocusedAsState().value
-                val ink = if (focused) c.focusInk else c.text
-                val chosen = index == selectedIndex
-                val shape = androidx.compose.foundation.shape.RoundedCornerShape(12.mpx)
-                androidx.compose.foundation.layout.Row(
-                    Modifier.fillMaxWidth().height(68.mpx)
-                        .then(if (index == selectedIndex) Modifier.focusRequester(focus) else Modifier)
-                        .then(if (focused) Modifier.shadow(3.mpx, shape, clip = false, ambientColor = Color(0x33000000), spotColor = Color(0x33000000)) else Modifier)
-                        .background(if (focused) c.focus else Color.Transparent, shape)
-                        .onFocusChanged { if (it.isFocused) focusedIndex = index }
-                        .combinedClickable(interactionSource = interaction, indication = null, onLongClick = { onLongSelect(entry.item) }) { select(entry.item.key) }
-                        .padding(horizontal = 18.mpx),
-                    horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(16.mpx),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    val tint = if (chosen && !focused) tv.own.owntv.ui.brand.SkMateBlue else ink
-                    tv.own.owntv.ui.components.OwnTVIcon(entry.icon ?: tv.own.owntv.ui.components.OwnTVIcon.LIVE_TV, tint.copy(alpha = if (focused || chosen) 1f else 0.7f), Modifier.size(24.mpx))
-                    androidx.tv.material3.Text(
-                        entry.label, style = tv.own.owntv.ui.theme.stageText(21, if (chosen) 700 else 600), color = tint,
-                        maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, modifier = Modifier.weight(1f),
-                    )
-                    if (countdown > 0 && index == focusedIndex) CategoryCountdownRing(countdown)
-                    else entry.count?.let {
-                        androidx.tv.material3.Text(tv.own.owntv.ui.components.formatCount(it), style = tv.own.owntv.ui.theme.stageText(17, 600), color = ink.copy(alpha = 0.55f), maxLines = 1)
-                    }
-                }
-            }
-        }
-        }
-    }
+    CategoryBrowserOverlay(
+        railItems = railItems, railCounts = railCounts, currentKey = currentKey, onSelect = onSelect, onDismiss = onDismiss,
+        modifier = modifier, width = width, onLongSelect = onLongSelect, onOpenMenu = onOpenMenu, paused = paused,
+    )
 }
-
-/** "3", "2", "1" in a brand-blue ring that fills until the category opens. */
-@Composable
-private fun CategoryCountdownRing(n: Int) {
-    val blue = tv.own.owntv.ui.brand.SkMateBlue
-    val progress = remember { androidx.compose.animation.core.Animatable(0f) }
-    LaunchedEffect(Unit) {
-        progress.animateTo(1f, androidx.compose.animation.core.tween((3 * CategoryStepMs).toInt(), easing = androidx.compose.animation.core.LinearEasing))
-    }
-    Box(
-        Modifier.size(30.mpx).drawBehind {
-            val w = 2.5f * 1.mpx.toPx()
-            val arc = androidx.compose.ui.geometry.Size(size.width - w, size.height - w)
-            val tl = androidx.compose.ui.geometry.Offset(w / 2, w / 2)
-            drawArc(blue.copy(alpha = 0.2f), 0f, 360f, false, topLeft = tl, size = arc, style = androidx.compose.ui.graphics.drawscope.Stroke(w))
-            drawArc(blue, -90f, 360f * progress.value, false, topLeft = tl, size = arc, style = androidx.compose.ui.graphics.drawscope.Stroke(w, cap = androidx.compose.ui.graphics.StrokeCap.Round))
-        },
-        contentAlignment = Alignment.Center,
-    ) { androidx.tv.material3.Text(n.toString(), style = tv.own.owntv.ui.theme.stageText(15, 800), color = blue, maxLines = 1) }
-}
-
-private const val CategoryQuietMs = 400L
-private const val CategoryStepMs = 700L

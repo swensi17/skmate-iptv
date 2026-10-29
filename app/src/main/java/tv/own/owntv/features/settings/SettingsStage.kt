@@ -393,16 +393,10 @@ private fun SettingsSidePage(
     /** What a page shows above its rows (the remote pages' QR, address and PIN). */
     top: (@Composable ColumnScope.() -> Unit)? = null,
 ) {
-    SettingsSheet(title = group, modifier = modifier, headerTools = tools) {
+    SettingsSheet(title = group, modifier = modifier) {
         if (top != null) Column(Modifier.padding(start = 24.mpx, end = 24.mpx, bottom = 4.mpx), content = top)
         // The search page (no path above its title) is the field and its results; group pages need no field.
         if (search != null && parent == null) Box(Modifier.padding(start = 24.mpx, end = 24.mpx, bottom = 8.mpx)) { search() }
-        if (toolbar != null) Row(
-            Modifier.padding(horizontal = 12.mpx).fillMaxWidth().height(72.mpx),
-            horizontalArrangement = Arrangement.spacedBy(8.mpx),
-            verticalAlignment = Alignment.CenterVertically,
-            content = toolbar,
-        )
         Box(Modifier.weight(1f).fillMaxWidth()) {
             if (list != null) list(Modifier.fillMaxSize().padding(horizontal = 12.mpx))
             else CompositionLocalProvider(LocalBringIntoViewSpec provides edgeScrollSpec, LocalSettingsSide provides true) {
@@ -412,8 +406,8 @@ private fun SettingsSidePage(
                         .focusRequester(rowsFocus)
                         .focusGroup()
                         .verticalScroll(scroll)
-                        .padding(start = 4.mpx, end = 4.mpx, top = 12.mpx, bottom = 40.mpx),
-                    verticalArrangement = Arrangement.spacedBy(2.mpx),
+                        .padding(start = 0.mpx, end = 0.mpx, top = 12.mpx, bottom = 40.mpx),
+                    verticalArrangement = Arrangement.spacedBy(0.mpx),
                     content = rows,
                 )
             }
@@ -442,6 +436,15 @@ private fun SettingsSidePage(
                     if (current != null && editor != null) SettingPanelEditor(current, panel.help, onClosed = { panel.opener?.let { r -> runCatching { r.requestFocus() } } })
                 }
             }
+        }
+        // The page's own buttons (Sort, Filter, the tools of Customize…) sit under the rows, never over them.
+        if (toolbar != null || tools != null) Row(
+            Modifier.padding(horizontal = 8.mpx, vertical = 14.mpx).fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.mpx),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            toolbar?.invoke(this)
+            tools?.invoke(this)
         }
     }
 }
@@ -543,7 +546,7 @@ private fun sheetHeaderFill(): Color = if (tv.own.owntv.ui.theme.LocalStagePalet
 private val SideMinWidth = 600.mpx
 
 /** Room each side of the sheet's rows for their focus card. */
-private val SideFocusInset = 6.mpx
+private val SideFocusInset = 0.mpx
 private val SideHeader = 132.mpx
 /** The sheet's slide: short, and none to speak of on a weak TV. */
 private val SideInMs: Int get() = if (tv.own.owntv.ui.theme.DevicePerf.lite) 60 else 260
@@ -876,7 +879,7 @@ fun StageSettingRow(
         modifier = modifier
             .focusRequester(self)
             .fillMaxWidth()
-            .then(if (side) Modifier.heightIn(min = 76.mpx) else Modifier.height(84.mpx))
+            .then(if (side) Modifier.heightIn(min = 92.mpx) else Modifier.height(84.mpx))
             .then(
                 if (onStep != null) {
                     Modifier.onPreviewKeyEvent { e ->
@@ -894,21 +897,21 @@ fun StageSettingRow(
         // While focused the panel follows this row, value changes included.
         if ((focused || keepPanel) && panel != null) androidx.compose.runtime.SideEffect { panel.help = help }
         Row(
-            Modifier.fillMaxWidth().padding(horizontal = 22.mpx),
+            Modifier.fillMaxWidth().padding(horizontal = if (side) 30.mpx else 22.mpx),
             horizontalArrangement = Arrangement.spacedBy(18.mpx),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            OwnTVIcon(icon, StageColors.Muted, Modifier.size(if (side) 32.mpx else 36.mpx))
+            OwnTVIcon(icon, StageColors.Muted, Modifier.size(if (side) 38.mpx else 36.mpx))
             Column(Modifier.weight(1f)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(10.mpx), verticalAlignment = Alignment.CenterVertically) {
-                    Text(title, style = stageText(21, if (side) 600 else 700), color = if (enabled) StageColors.Text else StageColors.Dim, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
+                    Text(title, style = stageText(if (side) 26 else 21, if (side) 600 else 700), color = if (enabled) StageColors.Text else StageColors.Dim, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
                     if (pinned) Box(Modifier.size(7.mpx).background(a.accent, CircleShape))
                 }
                 if (side) {
                     // In the sheet the line under the title is the current value, as TV boxes show it.
                     val line = sideValueLine(value) ?: desc
                     if (!line.isNullOrBlank()) Text(
-                        line, style = stageText(16, 500),
+                        line, style = stageText(if (side) 20 else 16, 500),
                         color = if (focused) FocusedDesc else StageColors.Muted,
                         maxLines = 1, overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.padding(top = 3.mpx),
@@ -1517,11 +1520,15 @@ fun StageInfoCard(
     body: String? = null,
     icon: OwnTVIcon? = null,
     onClick: (() -> Unit)? = null,
+    /** No fill behind the card: only the focus plate shows (the About page's rows, split by lines). */
+    plain: Boolean = false,
+    /** Drawn in place of [icon] (a social mark). */
+    iconContent: (@Composable () -> Unit)? = null,
 ) {
     val shape = RoundedCornerShape(StageRadii.Row)
     val content: @Composable () -> Unit = {
         Row(Modifier.fillMaxWidth().padding(horizontal = 24.mpx, vertical = 20.mpx), horizontalArrangement = Arrangement.spacedBy(20.mpx), verticalAlignment = Alignment.CenterVertically) {
-            if (icon != null) OwnTVIcon(icon, StageColors.Text, Modifier.size(34.mpx))
+            if (iconContent != null) iconContent() else if (icon != null) OwnTVIcon(icon, StageColors.Text, Modifier.size(34.mpx))
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.mpx)) {
                 Text(title, style = stageText(26, 800), color = StageColors.Text, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 if (label != null) Text(label, style = stageText(15, 700), color = StageColors.Dim, maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -1530,11 +1537,11 @@ fun StageInfoCard(
         }
     }
     if (onClick == null) {
-        Box(modifier.fillMaxWidth().background(StageColors.ControlFill, shape)) { content() }
+        Box(modifier.fillMaxWidth().then(if (plain) Modifier else Modifier.background(StageColors.ControlFill, shape))) { content() }
     } else {
         StageSurface(
             onClick = onClick, radius = StageRadii.Row, focusStyle = StageFocus.FX,
-            idle = Modifier.background(StageColors.ControlFill, shape),
+            idle = if (plain) Modifier else Modifier.background(StageColors.ControlFill, shape),
             modifier = modifier.fillMaxWidth(),
         ) { _ -> content() }
     }
