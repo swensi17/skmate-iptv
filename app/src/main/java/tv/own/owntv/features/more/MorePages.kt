@@ -205,21 +205,21 @@ private fun counted(nameRes: Int, n: Int) = stringResource(nameRes) + " " + n
 /**
  * The twelve Settings groups, in the order of `SettingsGroup`: a card's index is the group it opens.
  */
-private data class SettingsGroupCard(val icon: OwnTVIcon, val nameRes: Int, val summaryRes: Int, val count: Int?)
+private data class SettingsGroupCard(val icon: OwnTVIcon, val nameRes: Int, val summaryRes: Int, val count: Int?, val shortRes: Int = nameRes)
 
 private val SettingsCards = listOf(
-    SettingsGroupCard(OwnTVIcon.SPARKLE, R.string.settings_group_quick, R.string.settings_group_summary_quick, null),
-    SettingsGroupCard(OwnTVIcon.PERSON, R.string.settings_group_profile, R.string.settings_card_profile, 3),
-    SettingsGroupCard(OwnTVIcon.LIST, R.string.settings_group_sources, R.string.settings_card_sources, 8),
-    SettingsGroupCard(OwnTVIcon.PALETTE, R.string.settings_group_appearance, R.string.settings_card_appearance, 9),
-    SettingsGroupCard(OwnTVIcon.GRID, R.string.settings_group_layout, R.string.settings_card_layout, 10),
-    SettingsGroupCard(OwnTVIcon.MOVIES, R.string.settings_group_content_metadata, R.string.settings_card_content, 3),
-    SettingsGroupCard(OwnTVIcon.PLAY_CIRCLE, R.string.settings_vp_cat_player, R.string.settings_card_player, 10),
-    SettingsGroupCard(OwnTVIcon.EXPAND, R.string.settings_vp_cat_picture, R.string.settings_card_picture, 9),
-    SettingsGroupCard(OwnTVIcon.HEADPHONES, R.string.settings_group_sound_subtitles, R.string.settings_card_sound, 12),
-    SettingsGroupCard(OwnTVIcon.LIVE_TV, R.string.settings_live_tv, R.string.settings_card_live, 12),
-    SettingsGroupCard(OwnTVIcon.REC, R.string.settings_group_watching_recording, R.string.settings_card_watching, 11),
-    SettingsGroupCard(OwnTVIcon.INFO, R.string.settings_group_app, R.string.settings_card_app, 10),
+    SettingsGroupCard(OwnTVIcon.STAR, R.string.settings_group_quick, R.string.settings_group_summary_quick, null, R.string.settings_short_quick),
+    SettingsGroupCard(OwnTVIcon.PERSON, R.string.settings_group_profile, R.string.settings_card_profile, 3, R.string.settings_short_profile),
+    SettingsGroupCard(OwnTVIcon.LIST, R.string.settings_group_sources, R.string.settings_card_sources, 8, R.string.settings_short_sources),
+    SettingsGroupCard(OwnTVIcon.PALETTE, R.string.settings_group_appearance, R.string.settings_card_appearance, 9, R.string.settings_short_appearance),
+    SettingsGroupCard(OwnTVIcon.GRID, R.string.settings_group_layout, R.string.settings_card_layout, 10, R.string.settings_short_layout),
+    SettingsGroupCard(OwnTVIcon.MOVIES, R.string.settings_group_content_metadata, R.string.settings_card_content, 3, R.string.settings_short_content),
+    SettingsGroupCard(OwnTVIcon.PLAY_CIRCLE, R.string.settings_vp_cat_player, R.string.settings_card_player, 10, R.string.settings_short_player),
+    SettingsGroupCard(OwnTVIcon.EXPAND, R.string.settings_vp_cat_picture, R.string.settings_card_picture, 9, R.string.settings_short_picture),
+    SettingsGroupCard(OwnTVIcon.HEADPHONES, R.string.settings_group_sound_subtitles, R.string.settings_card_sound, 12, R.string.settings_short_sound),
+    SettingsGroupCard(OwnTVIcon.LIVE_TV, R.string.settings_live_tv, R.string.settings_card_live, 12, R.string.settings_short_player),
+    SettingsGroupCard(OwnTVIcon.REC, R.string.settings_group_watching_recording, R.string.settings_card_watching, 11, R.string.settings_short_watching),
+    SettingsGroupCard(OwnTVIcon.INFO, R.string.settings_group_app, R.string.settings_card_app, 10, R.string.settings_short_app),
 )
 
 /** The card last opened, so Back from its group lands on it again rather than on the search field. */
@@ -291,13 +291,11 @@ private fun SettingsGroupList(entry: FocusRequester, onOpenGroup: (Int) -> Unit,
                 .padding(start = 12.mpx, end = 12.mpx, top = 12.mpx, bottom = 40.mpx),
             verticalArrangement = Arrangement.spacedBy(2.mpx),
         ) {
-            GroupLine(OwnTVIcon.SEARCH, stringResource(R.string.more_settings_search), Modifier.then(if (back == null) Modifier.focusRequester(entry) else Modifier)) {
-                lastOpenedCard = null; onSearch()
-            }
             SettingsCards.forEachIndexed { index, card ->
                 // No Live TV group: its settings belong to the channels screen and its own menus.
                 if (card.nameRes == R.string.settings_live_tv) return@forEachIndexed
-                GroupLine(card.icon, stringResource(card.nameRes), Modifier.then(if (index == back) Modifier.focusRequester(entry) else Modifier)) {
+                // One word each, as Android TV names its own settings; the page itself carries the full name.
+                GroupLine(card.icon, stringResource(card.shortRes), Modifier.then(if (index == back || (back == null && index == 0)) Modifier.focusRequester(entry) else Modifier)) {
                     lastOpenedCard = index; onOpenGroup(index)
                 }
             }
@@ -309,11 +307,12 @@ private fun SettingsGroupList(entry: FocusRequester, onOpenGroup: (Int) -> Unit,
 }
 
 @Composable
-private fun GroupLine(icon: OwnTVIcon, title: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
-    StageSurface(onClick = onClick, radius = 16.mpx, focusStyle = StageFocus.FX, modifier = modifier.fillMaxWidth().height(64.mpx)) { focused ->
-        Row(Modifier.padding(horizontal = 24.mpx), horizontalArrangement = Arrangement.spacedBy(18.mpx), verticalAlignment = Alignment.CenterVertically) {
-            OwnTVIcon(icon, if (focused) StageColors.Text else StageColors.Muted, Modifier.size(26.mpx))
-            Text(title, style = stageText(21, 600), color = StageColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis)
+internal fun GroupLine(icon: OwnTVIcon, title: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    // As Android TV's own settings list: a tall row, a large icon and one bold word.
+    StageSurface(onClick = onClick, radius = 16.mpx, focusStyle = StageFocus.FX, modifier = modifier.fillMaxWidth().height(80.mpx)) { focused ->
+        Row(Modifier.padding(horizontal = 26.mpx), horizontalArrangement = Arrangement.spacedBy(24.mpx), verticalAlignment = Alignment.CenterVertically) {
+            OwnTVIcon(icon, StageColors.Text.copy(alpha = if (focused) 1f else 0.85f), Modifier.size(32.mpx))
+            Text(title, style = stageText(25, 700), color = StageColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
     }
 }
@@ -581,7 +580,7 @@ internal fun HistoryPage(
 // ---------------------------------------------------------------------------------------------
 
 @Composable
-internal fun ErrorLogPage(setEntry: (() -> Boolean) -> Unit, onCountChanged: () -> Unit) {
+internal fun ErrorLogPage(setEntry: (() -> Boolean) -> Unit, onCountChanged: () -> Unit, titled: Boolean = true) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var refresh by remember { mutableIntStateOf(0) }
@@ -595,7 +594,7 @@ internal fun ErrorLogPage(setEntry: (() -> Boolean) -> Unit, onCountChanged: () 
     val sep = stringResource(R.string.content_epg_bits_separator)
 
     Column(Modifier.fillMaxSize().focusGroup()) {
-        PageHead(stringResource(R.string.settings_playback_error_log)) {
+        PageHead(if (titled) stringResource(R.string.settings_playback_error_log) else "") {
             Text((entries?.size ?: 0).toString(), style = stageText(22, 700), color = StageColors.Muted)
             Spacer(Modifier.weight(1f))
             // Export also carries the live diagnostics ring, so it stays even when the list is empty.

@@ -29,6 +29,9 @@ fun SolidAmbientBackdrop(
     modifier: Modifier = Modifier,
 ) {
     val glass = LocalGlass.current
+    // TV-box look: a plain grey page, no tinted glow — it read as purple on the dark theme and its pulse
+    // redrew the whole screen every frame, which an older TV feels.
+    if (tv.own.owntv.features.shell.TvBoxNav) return
     if (!glowEnabled || glass.enabled || tv.own.owntv.ui.theme.LocalStagePalette.current.isLight) return
 
     val primary = tv.own.owntv.ui.theme.stageAccent.accent

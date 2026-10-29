@@ -296,7 +296,12 @@ fun StageRail(
             }
             items.forEach { section ->
                 RailItem(
-                    icon = if (tvBox && section == MainSection.LIVE_TV) OwnTVIcon.HOME else section.stageIcon,
+                    icon = when {
+                        tvBox && section == MainSection.LIVE_TV -> OwnTVIcon.HOME
+                        // TV-box look: Settings is a gear, as everywhere else on a TV.
+                        tvBox && section == MainSection.MORE -> OwnTVIcon.GEAR
+                        else -> section.stageIcon
+                    },
                     label = stringResource((if (tvBox && section == MainSection.LIVE_TV) MainSection.HOME else section).labelRes),
                     trailing = if (counts) count(section)?.let { NumberFormat.getIntegerInstance(LocalConfiguration.current.locales[0]).format(it) } else null,
                     detail = if (details) detail(section) else null,

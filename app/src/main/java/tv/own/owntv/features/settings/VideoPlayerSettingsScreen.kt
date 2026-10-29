@@ -73,7 +73,7 @@ private const val SECTION_DIAGNOSTICS = 11
  * listed under it. App adds Diagnostics under its own rows; Watching & recording adds Recording after.
  */
 internal enum class VideoGroup(val titleRes: Int, val parts: List<Pair<Int, List<Int>>>) {
-    PLAYER(R.string.settings_vp_cat_player, listOf(R.string.settings_vp_cat_player to listOf(SECTION_PLAYER), R.string.settings_vp_cat_streaming to listOf(SECTION_STREAMING))),
+    PLAYER(R.string.settings_vp_cat_player, listOf(R.string.settings_vp_cat_player to listOf(SECTION_PLAYER))),
     PICTURE(R.string.settings_vp_cat_picture, listOf(R.string.settings_vp_cat_picture to listOf(SECTION_PICTURE), R.string.settings_vp_cat_frame_rate to listOf(SECTION_FRAME_RATE))),
     SOUND(R.string.settings_group_sound_subtitles, listOf(R.string.settings_vp_section_sound to listOf(SECTION_SOUND), R.string.settings_vp_cat_languages to listOf(SECTION_LANGUAGES))),
     LIVE(R.string.settings_live_tv, listOf(R.string.settings_live_tv to listOf(SECTION_LIVE), R.string.settings_vp_cat_live_tuning to listOf(SECTION_LIVE_TUNING))),
@@ -104,7 +104,7 @@ internal fun videoSectionCounts(vm: SettingsViewModel): List<Int> {
     val multiview by vm.multiviewEnabled.collectAsStateWithLifecycle()
     val perPlaylist = sources.isNotEmpty()
     return listOf(
-        5 + (if (perPlaylist) 2 else 0),
+        3 + (if (perPlaylist) 1 else 0),
         5 + (if (vm.tunnelingSupported) 1 else 0),
         3,
         3,
@@ -148,6 +148,11 @@ internal data class VideoQuickRef(
 internal val SUBTITLE_APPEARANCE_SEARCH_ROWS: List<Int> = listOf(
     R.string.settings_subtitle_size, R.string.settings_subtitle_font, R.string.settings_subtitle_color_short,
     R.string.settings_subtitle_position_short, R.string.settings_subtitle_background_transparency,
+)
+
+/** Rows of Movies and Series playback, which this app no longer has: never drawn, never pinned. */
+private val RemovedVideoRows = setOf(
+    "vp_vod_engine", "vp_vod_engine_sources", "vp_reset_pins", "vp_vod_buffer", "vp_vod_timeout", "vp_vod_reconnects", "vp_resume", "vp_autoplay",
 )
 
 /** Every row of this screen that can be pinned to Quick, in the order the sections show them. */
@@ -208,7 +213,7 @@ internal val VIDEO_QUICK_ROWS: List<VideoQuickRef> = listOf(
     VideoQuickRef("vp_measured_stats", SECTION_DIAGNOSTICS, OwnTVIcon.VIDEO, R.string.settings_measured_stats, R.string.settings_measured_stats_description),
     VideoQuickRef("vp_logging", SECTION_DIAGNOSTICS, OwnTVIcon.INFO, R.string.settings_detailed_playback_logging, R.string.settings_detailed_playback_logging_description),
     // No row, so nothing to find or pin, on a TV whose decoders cannot tunnel.
-).filter { it.key != "vp_tunneled" || tv.own.owntv.player.Tunneling.supported }
+).filter { it.key !in RemovedVideoRows && (it.key != "vp_tunneled" || tv.own.owntv.player.Tunneling.supported) }
 
 /**
  * What a Video player row pinned to Quick shows and does over there.
@@ -554,6 +559,8 @@ internal fun VideoPlayerGroupRows(
     focusRowKey: String? = null,
     /** False when other rows come first on the page (App), so the first heading keeps its 18 px gap. */
     firstHeading: Boolean = true,
+    /** Show only this part of the group, with no heading: the page is that part's own. */
+    onlyPart: Int? = null,
 ) {
     val vm: SettingsViewModel = koinViewModel()
     val hw by vm.hwDecoding.collectAsStateWithLifecycle()
@@ -742,7 +749,8 @@ internal fun VideoPlayerGroupRows(
         ),
     ) {
         group.parts.forEachIndexed { partIndex, (headingRes, sections) ->
-            StageSettingsHeading(stringResource(headingRes), sections.sumOf { counts[it] }, first = firstHeading && partIndex == 0)
+            if (onlyPart != null && partIndex != onlyPart) return@forEachIndexed
+            if (onlyPart == null) StageSettingsHeading(stringResource(headingRes), sections.sumOf { counts[it] }, first = firstHeading && partIndex == 0)
             sections.forEach { section ->
                 when (section) {
                     SECTION_PLAYER -> {
@@ -2065,6 +2073,7 @@ internal fun KeyedSettingRow(
     recommended: Int = -1,
     onStep: ((Int) -> Unit)? = null,
 ) {
+    if (quickKey in RemovedVideoRows) return
     val pin = if (quickKey != null) LocalQuickPin.current else null
     val key = helpKey ?: quickKey
     val words = settingWords(key, title, desc)

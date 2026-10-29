@@ -300,7 +300,11 @@ fun Onboarding(firstRun: Boolean, onDone: (Long?) -> Unit, onCancel: () -> Unit,
         }
         }
         // Semi-auto EPG: after the first playlist imports, ask → sync (live count) → done (overlays "All set!").
-        EpgSyncDialog(
+        // TV-box look: no question and no wait — the guide starts downloading and the app opens at once,
+        // so the channels can be watched while it fills in behind them.
+        if (tv.own.owntv.features.shell.TvBoxNav && epgSync is tv.own.owntv.features.settings.EpgSyncUi.Ask) {
+            LaunchedEffect(Unit) { vm.syncPendingEpg(); vm.syncEpgInBackground(onDone) }
+        } else EpgSyncDialog(
             state = epgSync,
             onSync = vm::syncPendingEpg,
             onDismiss = vm::dismissPendingEpg,
@@ -693,13 +697,21 @@ private fun ImportProgressStep(
                 // appears as it lands — no need to sit through a big movies/series sync.
                 next = WizardAction(stringResource(R.string.setup_run_in_background), onBackground, rememberFirstFocus()),
             ) {
-                StageSettingRow(
-                    icon = OwnTVIcon.DOWNLOADS,
-                    title = display?.primaryText() ?: stringResource(R.string.setup_preparing_catalog),
-                    desc = display?.detailText(),
-                    value = null,
-                    onClick = {},
-                )
+                // Where the import is, in the middle under the title: a spinner and the count found so far.
+                androidx.compose.foundation.layout.Column(
+                    Modifier.fillMaxWidth().padding(vertical = 12.mpx),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(10.mpx),
+                ) {
+                    tv.own.owntv.ui.components.OwnTVSpinner(sizeDp = 36, color = tv.own.owntv.ui.brand.SkMateBlue)
+                    Text(
+                        display?.primaryText() ?: stringResource(R.string.setup_preparing_catalog),
+                        style = stageText(24, 700), color = StageColors.Text, textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    )
+                    display?.detailText()?.let {
+                        Text(it, style = stageText(18, 500), color = StageColors.Muted, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                    }
+                }
             }
         }
         is SourceImporter.ImportState.Success -> {

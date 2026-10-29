@@ -10,7 +10,7 @@
 #   add --emu to any of them to target the Android TV emulator instead of the TV
 #
 # Environment (all optional):
-#   SKMATE_TV       adb address of the TV            (default 192.168.1.105:5555; emulator-5554 for the
+#   SKMATE_TV       adb address of the TV            (default 192.168.1.108:5555; emulator-5554 for the
 #                   Android TV emulator: emulator -avd skmate_tv)
 #   SKMATE_CORE     path to skmate-iptv-core          (default ../skmate-iptv-core next to this repo)
 #   SKMATE_SIGNING  properties file with the key      (default ~/dev/skmate-secrets/signing.properties)
@@ -24,7 +24,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-TV="${SKMATE_TV:-192.168.1.105:5555}"
+TV="${SKMATE_TV:-192.168.1.108:5555}"
 CORE="${SKMATE_CORE:-$ROOT/../skmate-iptv-core}"
 SIGNING="${SKMATE_SIGNING:-$HOME/dev/skmate-secrets/signing.properties}"
 ADB="${ANDROID_HOME:-$HOME/Library/Android/sdk}/platform-tools/adb"

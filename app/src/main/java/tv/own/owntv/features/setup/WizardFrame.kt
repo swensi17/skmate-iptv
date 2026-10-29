@@ -12,7 +12,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.foundation.layout.offset
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.animateDpAsState
 import tv.own.owntv.ui.theme.stageAccent
 import androidx.compose.runtime.getValue
 import androidx.compose.animation.shrinkHorizontally
@@ -23,7 +22,6 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.AnimatedVisibility
-import tv.own.owntv.ui.brand.SkMateWordmark
 import tv.own.owntv.ui.brand.SkMateBlue
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.border
@@ -50,6 +48,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onSizeChanged
@@ -168,7 +167,16 @@ internal fun WizardFrame(
                     (titleWidth - if (buttonsTrailing != null) trailingWidth + gap else 0.mpx).coerceAtLeast(260.mpx)
                 } else baseEach
                 // One blue highlight behind the row slides from button to button as ◀ ▶ move the focus.
-                val highlightX by animateDpAsState((each + gap) * focusedIndex, tween(HighlightMs, easing = FastOutSlowInEasing), label = "wizardHighlightX")
+                // Entering the row puts it straight under the focused button; it only slides between buttons.
+                val highlight = remember { androidx.compose.animation.core.Animatable(0f) }
+                var wasInRow by remember { mutableStateOf(false) }
+                LaunchedEffect(focusedIndex, rowFocused) {
+                    val target = focusedIndex.toFloat()
+                    if (rowFocused && wasInRow) highlight.animateTo(target, tween(HighlightMs, easing = FastOutSlowInEasing))
+                    else highlight.snapTo(target)
+                    wasInRow = rowFocused
+                }
+                val highlightX = (each + gap) * highlight.value
                 val highlightAlpha by animateFloatAsState(if (rowFocused) 1f else 0f, tween(HighlightMs), label = "wizardHighlightAlpha")
                 Row(Modifier.padding(top = 28.mpx), horizontalArrangement = Arrangement.spacedBy(gap), verticalAlignment = Alignment.CenterVertically) {
                 if (buttonsTrailing != null && !matchTitleWidth) Spacer(Modifier.width(trailingWidth))
@@ -243,7 +251,12 @@ internal val LocalWizardHeader = staticCompositionLocalOf<((WizardStep) -> Unit)
 /** The SKMATE wordmark top left and the numbered steps top right. */
 @Composable
 internal fun BoxScope.WizardHeader(step: WizardStep) {
-    SkMateWordmark(Modifier.padding(start = 64.mpx, top = 52.mpx), size = 30)
+    // The logo itself, as on the launcher tile.
+    androidx.compose.foundation.Image(
+        painter = androidx.compose.ui.res.painterResource(R.drawable.skmate_logo),
+        contentDescription = stringResource(R.string.app_name),
+        modifier = Modifier.padding(start = 64.mpx, top = 48.mpx).height(40.mpx),
+    )
     StepNumbers(step, Modifier.align(Alignment.TopEnd).padding(end = 64.mpx, top = 52.mpx))
 }
 

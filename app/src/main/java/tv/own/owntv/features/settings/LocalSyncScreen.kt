@@ -128,7 +128,7 @@ fun LocalSyncScreen(
             .focusGroup()
             .trapVerticalFocusExit(),
     ) {
-        Text(stringResource(R.string.local_sync_title), style = stageText(42, 800, (-1).mpxSp), color = StageColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        if (!tv.own.owntv.ui.theme.LocalInSettingsSheet.current) Text(stringResource(R.string.local_sync_title), style = stageText(42, 800, (-1).mpxSp), color = StageColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis)
         Text(stringResource(R.string.more_sync_description), style = stageText(18, 500), color = StageColors.Muted, modifier = Modifier.padding(top = 10.mpx))
         Row(
             Modifier.padding(top = 26.mpx).fillMaxWidth().height(IntrinsicSize.Min),

@@ -51,7 +51,8 @@ fun TvBoxPlayerInfo(channel: ChannelEntity?, nowNext: EpgNowNext?, chips: List<S
         Row(horizontalArrangement = Arrangement.spacedBy(24.mpx), verticalAlignment = Alignment.CenterVertically) {
             ChannelLogoTile(
                 logoUrl = channel?.displayLogoUrl,
-                modifier = Modifier.size(132.mpx).background(LogoPlate, RoundedCornerShape(18.mpx)).padding(14.mpx),
+                // The logo on its own over the picture, no plate behind it.
+                modifier = Modifier.size(132.mpx).padding(6.mpx),
                 fill = Color.Transparent,
             ) { tv.own.owntv.ui.components.OwnTVIcon(OwnTVIcon.LIVE_TV, Color.White.copy(alpha = 0.6f), Modifier.size(56.mpx)) }
             Column(verticalArrangement = Arrangement.spacedBy(8.mpx)) {
@@ -130,7 +131,6 @@ private fun Timeline(progress: Float, behind: Boolean) {
     )
 }
 
-private val LogoPlate = Color(0x26FFFFFF)
 private val Soft = Color.White.copy(alpha = 0.8f)
 private val Faint = Color.White.copy(alpha = 0.62f)
 private const val MaxChips = 4

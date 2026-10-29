@@ -160,10 +160,10 @@ fun AddSourceScreen(
     var epgUrl by remember(initial) { mutableStateOf(initial?.epgUrl ?: "") }
     var userAgent by remember(initial) { mutableStateOf(initial?.userAgent ?: "") }
     var referer by remember(initial) { mutableStateOf(initial?.httpReferer ?: "") }
-    // A new source refreshes itself twice a day unless the caller says otherwise; the full form
+    // A new source refreshes itself every day unless the caller says otherwise; the full form
     // (editing from Settings) shows and changes it.
     var autoRefresh by remember(initialAutoRefresh) {
-        mutableStateOf(if (initial == null && initialAutoRefresh.mode == PlaylistAutoRefresh.OFF) PlaylistRefresh(PlaylistAutoRefresh.HOURS_12) else initialAutoRefresh)
+        mutableStateOf(if (initial == null && initialAutoRefresh.mode == PlaylistAutoRefresh.OFF) PlaylistRefresh(PlaylistAutoRefresh.MANUAL, 1) else initialAutoRefresh)
     }
     var isDefault by remember(initialIsDefault) { mutableStateOf(initialIsDefault) }
     var preferHls by remember(initial) { mutableStateOf(initial?.preferHls == true) }
@@ -431,7 +431,16 @@ fun AddSourceScreen(
         if (!checkReady) return@LaunchedEffect
         kotlinx.coroutines.delay(CheckPauseMs)
         check = SourceCheck.Checking
-        check = when (val r = runCatching { sourceTester.test(formSource()) }.getOrNull()) {
+        // A first request often meets a server still waking up (or Wi-Fi just reconnected), and failing
+        // it at once said "wrong playlist" about one that was fine — retyping a letter only re-ran it.
+        // Unreachable is tried again twice before it is reported; a login or expiry answer is final.
+        var r: tv.own.owntv.core.repository.SourceTestResult? = null
+        for (attempt in 0 until CheckAttempts) {
+            if (attempt > 0) kotlinx.coroutines.delay(CheckRetryMs)
+            r = runCatching { sourceTester.test(formSource()) }.getOrNull()
+            if (r != null && r !is tv.own.owntv.core.repository.SourceTestResult.Unreachable) break
+        }
+        check = when (r) {
             is tv.own.owntv.core.repository.SourceTestResult.Ok -> SourceCheck.Ok
             is tv.own.owntv.core.repository.SourceTestResult.AuthFailed -> SourceCheck.Failed(R.string.setup_error_login)
             is tv.own.owntv.core.repository.SourceTestResult.Expired -> SourceCheck.Failed(R.string.setup_error_expired)
@@ -888,6 +897,10 @@ private sealed interface SourceCheck {
 
 /** How long typing must pause before the source is checked. */
 private const val CheckPauseMs = 900L
+
+/** How many times an unreachable source is tried before the error shows, and how far apart. */
+private const val CheckAttempts = 3
+private const val CheckRetryMs = 1_500L
 
 /** The check mark of a source that answered. */
 private val CheckGreen = androidx.compose.ui.graphics.Color(0xFF1FA34A)

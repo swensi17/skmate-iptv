@@ -87,9 +87,20 @@ private fun StorageBrowserContent(
     onNewFolder: (onCreate: (String) -> Unit) -> Unit,
 ) {
     val context = LocalContext.current
-    val roots = remember { StorageAccess.storageRoots(context) }
-    var current by remember { mutableStateOf<File?>(null) } // null = the roots list
     var hasAccess by remember { mutableStateOf(StorageAccess.hasStorageAccess(context)) }
+    // The app's own folder only when there is no device storage to show: a TV has one storage, and
+    // offering a second, empty place to pick from was only in the way.
+    val roots = remember { StorageAccess.storageRoots(context) }
+        .let { all -> all.filter { it.kind != StorageAccess.RootKind.APP }.ifEmpty { all } }
+    // A TV usually has one storage: open it straight away instead of asking which. Only with a USB
+    // drive (or no access yet) is there a list of places to choose from.
+    val onlyRoot = roots.singleOrNull()?.file
+    var current by remember { mutableStateOf<File?>(onlyRoot.takeIf { hasAccess }) } // null = the roots list
+    val rootFiles = remember(roots) { roots.map { it.file.absolutePath }.toSet() }
+    // Up stops at the storage it is in: above it are system folders nobody needs, which made Back
+    // take a dozen presses to get out.
+    val up: (File) -> Unit = { dir -> current = if (dir.absolutePath in rootFiles) null else dir.parentFile }
+    LaunchedEffect(hasAccess) { if (hasAccess && current == null && onlyRoot != null) current = onlyRoot }
     var refresh by remember { mutableIntStateOf(0) }
     val firstFocus = remember { FocusRequester() }
 
@@ -103,7 +114,8 @@ private fun StorageBrowserContent(
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
-    BackHandler { if (current != null) current = current?.parentFile else onDismiss() }
+    // Back leaves the picker for the page it was opened from, whichever folder it is in.
+    BackHandler { onDismiss() }
 
     // Re-grab focus whenever the listing changes (open / navigate / refresh). Deferred a beat: the
     // clicked row is removed in the same recompose, and its focus teardown lands AFTER an immediate
@@ -165,9 +177,14 @@ private fun StorageBrowserContent(
                         BrowserRow(OwnTVIcon.DOWNLOADS, root.displayLabel(), m) { current = root.file }
                     }
                 } else {
-                    item { BrowserRow(OwnTVIcon.BACK, stringResource(R.string.setup_from_current_folder), Modifier.focusRequester(firstFocus)) { current = dir.parentFile } }
-                    itemsIndexed(folders) { _, f -> BrowserRow(OwnTVIcon.DOWNLOADS, f.name) { current = f } }
-                    itemsIndexed(files) { _, f -> BrowserRow(OwnTVIcon.PLAYLIST, f.name) { onPick(f) } }
+                    // Up a folder — not shown at the top of the only storage, where there is nowhere to go.
+                    val atOnlyRoot = onlyRoot != null && dir.absolutePath == onlyRoot.absolutePath
+                    if (!atOnlyRoot) item { BrowserRow(OwnTVIcon.BACK, stringResource(R.string.setup_from_current_folder), Modifier.focusRequester(firstFocus)) { up(dir) } }
+                    itemsIndexed(folders) { i, f -> BrowserRow(OwnTVIcon.DOWNLOADS, f.name, if (atOnlyRoot && i == 0) Modifier.focusRequester(firstFocus) else Modifier) { current = f } }
+                    itemsIndexed(files) { i, f ->
+                        val first = atOnlyRoot && folders.isEmpty() && i == 0
+                        BrowserRow(OwnTVIcon.PLAYLIST, f.name, if (first) Modifier.focusRequester(firstFocus) else Modifier) { onPick(f) }
+                    }
                 }
             }
 
