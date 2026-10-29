@@ -2261,6 +2261,16 @@ fun OwnTVShell(
         var showChangelog by remember { mutableStateOf(false) }
         val settingsRepo = koinInject<tv.own.owntv.core.settings.SettingsRepository>()
         val updateCheckOnStart by settingsRepo.updateCheckOnStart.collectAsStateWithLifecycle(initialValue = false)
+        // Looks again every few hours while the TV is on, as the update settings say; an update found that way is
+        // shown (and installed, when automatic) by the same card as the one at start.
+        LaunchedEffect(tv.own.owntv.ui.theme.UpdatePrefs.every) {
+            val hours = tv.own.owntv.ui.theme.UpdatePrefs.every.hours
+            if (hours <= 0) return@LaunchedEffect
+            while (true) {
+                kotlinx.coroutines.delay(hours * 3_600_000L)
+                if (!showStartupToast) { showStartupToast = true; updateManager.check() }
+            }
+        }
         LaunchedEffect(updateCheckOnStart) {
             // Once per launch: a rebuilt shell must not bring the "latest version" card back.
             if (updateCheckOnStart && !showStartupToast && !shellVm.startupUpdateCheckDone) {
@@ -2281,10 +2291,20 @@ fun OwnTVShell(
             UpdateDialog(onDismiss = dismissChangelog, checkOnOpen = false)
         } else if (showStartupToast && selectedSection != MainSection.SETTINGS && playerMode == PlayerMode.NONE) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopEnd) {
-                UpdateStatusToast(
-                    onDone = { showStartupToast = false; updateManager.reset() },
-                    onViewChangelog = { showChangelog = true },
-                )
+                androidx.compose.foundation.layout.Column(
+                    Modifier.padding(top = 40.mpx, end = 40.mpx),
+                    verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(12.mpx),
+                ) {
+                    UpdateStatusToast(
+                        onDone = { showStartupToast = false; updateManager.reset() },
+                        onViewChangelog = { showChangelog = true },
+                    )
+                    tv.own.owntv.ui.components.TvNoticeStack()
+                }
+            }
+        } else if (tv.own.owntv.ui.components.TvNotices.items.isNotEmpty()) {
+            Box(Modifier.fillMaxSize().padding(top = 40.mpx, end = 40.mpx), contentAlignment = Alignment.TopEnd) {
+                tv.own.owntv.ui.components.TvNoticeStack()
             }
         }
     }

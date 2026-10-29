@@ -190,6 +190,7 @@ open class MainActivity : ComponentActivity() {
         // postSplashScreenTheme (Theme.OwnTV), so the activity ends up in the same theme as before.
         val splash = installSplashScreen()
         tv.own.owntv.ui.theme.MotionPrefs.init(this)
+        tv.own.owntv.ui.theme.UpdatePrefs.init(this)
         super.onCreate(savedInstanceState)
         val splashDeadline = SystemClock.uptimeMillis() + SPLASH_TIMEOUT_MS
         splash.setKeepOnScreenCondition { !contentReady && SystemClock.uptimeMillis() < splashDeadline }

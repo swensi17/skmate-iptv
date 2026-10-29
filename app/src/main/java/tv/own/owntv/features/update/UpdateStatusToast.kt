@@ -16,6 +16,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import tv.own.owntv.ui.components.tvNoticeCard
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.unit.dp
@@ -51,7 +52,9 @@ fun UpdateStatusToast(onDone: () -> Unit, onViewChangelog: () -> Unit, modifier:
             is UpdateManager.State.Failed -> { delay(2_500); manager.reset(); onDone() }
             // SkMate updates itself: a newer release found at start is downloaded straight away and
             // handed to the system installer (Android 12+ installs silently; 8–11 asks once to confirm).
-            is UpdateManager.State.Available -> manager.downloadAndInstall()
+            // Installs by itself when automatic updates are on and the install window allows it; otherwise the card
+            // says a new version is ready and Settings › About installs it.
+            is UpdateManager.State.Available -> if (tv.own.owntv.ui.theme.UpdatePrefs.auto && tv.own.owntv.ui.theme.UpdatePrefs.mayInstallNow()) manager.downloadAndInstall()
             UpdateManager.State.Idle -> onDone()
             else -> Unit
         }
@@ -59,11 +62,8 @@ fun UpdateStatusToast(onDone: () -> Unit, onViewChangelog: () -> Unit, modifier:
 
     Column(
         modifier = modifier
-            // The Stage glass card, as the top-right pills.
-            .padding(top = 40.mpx, end = 40.mpx)
-            .widthIn(min = 460.mpx, max = 680.mpx)
-            .stageGlass(26.mpx, overContent = true)
-            .padding(horizontal = 26.mpx, vertical = 20.mpx)
+            // The same card as every notice in this corner (see TvNoticeStack).
+            .tvNoticeCard()
             .focusGroup(),
     ) {
         when (val s = state) {

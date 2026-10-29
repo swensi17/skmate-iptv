@@ -807,6 +807,32 @@ fun SettingsScreen(
             chipTone = if (updateCheckOnStart) TileTone.PRIMARY else TileTone.SECONDARY,
             onClick = { settingsVm.setUpdateCheckOnStart(!updateCheckOnStart) },
         ),
+        // Automatic updates: on or off, how often to look while the TV is on, and when installing is allowed.
+        RootRow(
+            "update_auto", TileTone.SECONDARY, OwnTVIcon.REFRESH,
+            title = stringResource(R.string.settings_update_auto), desc = stringResource(R.string.settings_update_auto_desc),
+            chip = stringResource(if (tv.own.owntv.ui.theme.UpdatePrefs.auto) R.string.common_on else R.string.common_off),
+            chipTone = if (tv.own.owntv.ui.theme.UpdatePrefs.auto) TileTone.PRIMARY else TileTone.SECONDARY,
+            onClick = { tv.own.owntv.ui.theme.UpdatePrefs.toggleAuto() },
+        ),
+        RootRow(
+            "update_every", TileTone.SECONDARY, OwnTVIcon.CLOCK,
+            title = stringResource(R.string.settings_update_every), desc = stringResource(R.string.settings_update_every_desc),
+            chip = stringResource(when (tv.own.owntv.ui.theme.UpdatePrefs.every) {
+                tv.own.owntv.ui.theme.UpdatePrefs.Every.START -> R.string.update_every_start
+                tv.own.owntv.ui.theme.UpdatePrefs.Every.HOURS_6 -> R.string.update_every_6h
+                tv.own.owntv.ui.theme.UpdatePrefs.Every.DAY -> R.string.update_every_day
+            }),
+            chipTone = TileTone.SECONDARY,
+            onClick = { tv.own.owntv.ui.theme.UpdatePrefs.nextEvery() },
+        ),
+        RootRow(
+            "update_window", TileTone.SECONDARY, OwnTVIcon.CLOCK,
+            title = stringResource(R.string.settings_update_window), desc = stringResource(R.string.settings_update_window_desc),
+            chip = stringResource(if (tv.own.owntv.ui.theme.UpdatePrefs.window == tv.own.owntv.ui.theme.UpdatePrefs.Window.ANY) R.string.update_window_any else R.string.update_window_night),
+            chipTone = TileTone.SECONDARY,
+            onClick = { tv.own.owntv.ui.theme.UpdatePrefs.nextWindow() },
+        ),
         RootRow(
             tabRowKey(SettingsTab.NETWORK), TileTone.SECONDARY, OwnTVIcon.NETWORK,
             heading = stringResource(R.string.settings_group_network),
