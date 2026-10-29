@@ -598,56 +598,30 @@ internal fun AboutPage(vm: MoreCountsViewModel, entry: FocusRequester) {
     LaunchedEffect(showUpdate) { if (showUpdate) updateWasOpen = true else if (updateWasOpen) { updateWasOpen = false; withFrameNanos { }; runCatching { updateFocus.requestFocus() } } }
 
     val line: @Composable () -> Unit = {
-        Box(Modifier.fillMaxWidth().padding(horizontal = 4.mpx).height(1.mpx).background(StageColors.Text.copy(alpha = 0.12f)))
+        Box(Modifier.fillMaxWidth().padding(horizontal = AboutInset).height(1.mpx).background(StageColors.Text.copy(alpha = 0.12f)))
     }
     Column(Modifier.fillMaxSize().focusGroup().verticalScroll(androidx.compose.foundation.rememberScrollState()).padding(bottom = 40.mpx)) {
-        // The thanks and its heart sit side by side: the heart follows the last word.
-        Row(Modifier.padding(top = 8.mpx, start = 4.mpx, end = 8.mpx), horizontalArrangement = Arrangement.spacedBy(12.mpx), verticalAlignment = Alignment.CenterVertically) {
-            Text(stringResource(R.string.about_thanks_title), style = stageText(32, 800), color = StageColors.Text, maxLines = 2, modifier = Modifier.weight(1f, fill = false))
-            OwnTVIcon(OwnTVIcon.FAVORITE, StageColors.Danger, Modifier.size(36.mpx), filled = true)
+        // The thanks with an outlined heart after it (the version sits beside the page title, see MoreScreen).
+        Row(Modifier.padding(start = AboutInset, end = AboutInset), horizontalArrangement = Arrangement.spacedBy(12.mpx), verticalAlignment = Alignment.CenterVertically) {
+            Text(stringResource(R.string.about_thanks_title), style = stageText(30, 800), color = StageColors.Text, maxLines = 2, modifier = Modifier.weight(1f, fill = false))
+            OwnTVIcon(OwnTVIcon.FAVORITE, StageColors.Danger, Modifier.size(32.mpx), filled = false)
         }
-        Text(stringResource(R.string.about_thanks_body), style = stageText(19, 500), color = StageColors.Muted, modifier = Modifier.padding(horizontal = 4.mpx, vertical = 8.mpx))
-        Text(stringResource(R.string.about_info), style = stageText(28, 800), color = StageColors.Text, modifier = Modifier.padding(start = 4.mpx, top = 14.mpx, bottom = 6.mpx))
-        // Only what a real check said: no tag before one has run.
-        val tag = when (updateState) {
-            UpdateManager.State.UpToDate -> stringResource(R.string.more_about_up_to_date)
-            is UpdateManager.State.Available -> stringResource(R.string.update_available)
-            else -> null
+        Text(stringResource(R.string.about_thanks_body), style = stageText(19, 500), color = StageColors.Muted, modifier = Modifier.padding(start = AboutInset, end = AboutInset, top = 8.mpx, bottom = 14.mpx))
+        // Each link: the network's round mark, its name, what it is for, and the address to type on a phone.
+        val social: @Composable (Int, String, Int, String, Modifier) -> Unit = { mark, name, what, address, mod ->
+            line()
+            StageInfoCard(
+                title = name, label = stringResource(what), body = address,
+                plain = true, onClick = {}, modifier = mod,
+                iconContent = { androidx.compose.foundation.Image(androidx.compose.ui.res.painterResource(mark), null, Modifier.size(44.mpx)) },
+            )
         }
+        social(R.drawable.social_telegram, "Telegram", R.string.about_social_telegram, "t.me/$SOCIAL_HANDLE", Modifier.focusRequester(entry).focusRequester(updateFocus))
+        social(R.drawable.social_github, "GitHub", R.string.about_social_code, "github.com/$SOCIAL_HANDLE", Modifier)
+        social(R.drawable.social_x, "X", R.string.about_social_x, "x.com/$SOCIAL_HANDLE", Modifier)
         line()
-        StageInfoCard(
-            title = stringResource(R.string.app_name),
-            label = stringResource(R.string.about_card_app),
-            body = listOfNotNull(stringResource(R.string.settings_about_version, BuildConfig.VERSION_NAME), tag).joinToString(" · "),
-            icon = OwnTVIcon.REFRESH,
-            plain = true,
-            onClick = { showUpdate = true },
-            modifier = Modifier.focusRequester(entry).focusRequester(updateFocus),
-        )
-        line()
-        StageInfoCard(
-            title = SOCIAL_HANDLE, label = stringResource(R.string.about_card_code), body = "github.com/$SOCIAL_HANDLE",
-            plain = true, onClick = {},
-            iconContent = { SocialIcon(SocialIcon.GITHUB, StageColors.Text, Modifier.size(34.mpx)) },
-        )
-        line()
-        StageInfoCard(
-            title = SOCIAL_HANDLE, label = "Telegram", body = "t.me/$SOCIAL_HANDLE",
-            plain = true, onClick = {},
-            iconContent = { SocialIcon(SocialIcon.TELEGRAM, StageColors.Text, Modifier.size(34.mpx)) },
-        )
-        line()
-        StageInfoCard(
-            title = SOCIAL_HANDLE, label = "X (Twitter)", body = "x.com/$SOCIAL_HANDLE",
-            plain = true, onClick = {},
-            iconContent = { SocialIcon(SocialIcon.TWITTER, StageColors.Text, Modifier.size(34.mpx)) },
-        )
-        line()
-        Row(Modifier.padding(start = 4.mpx, top = 22.mpx), horizontalArrangement = Arrangement.spacedBy(8.mpx), verticalAlignment = Alignment.CenterVertically) {
-            OwnTVIcon(OwnTVIcon.WARNING, StageColors.Muted, Modifier.size(20.mpx))
-            Text(stringResource(R.string.about_disclaimer_title), style = stageText(17, 800), color = StageColors.Text)
-        }
-        Text(stringResource(R.string.about_disclaimer), style = stageText(17, 500), color = StageColors.Muted, modifier = Modifier.padding(start = 4.mpx))
+        // The disclaimer as one paragraph, no heading.
+        Text(stringResource(R.string.about_disclaimer), style = stageText(17, 500), color = StageColors.Muted, modifier = Modifier.padding(start = AboutInset, end = AboutInset, top = 18.mpx))
     }
     if (showUpdate) {
         UpdateDialog(onDismiss = { showUpdate = false }, checkOnOpen = true)
@@ -659,3 +633,6 @@ internal class SettingsExtra(val icon: OwnTVIcon, val title: String, val onClick
 
 /** The author's name on GitHub, Telegram and X. */
 private const val SOCIAL_HANDLE = "swensi17"
+
+/** About's text and lines line up with its rows' content, the rows themselves reach the sheet's edges. */
+private val AboutInset = 24.mpx

@@ -171,13 +171,13 @@
 2	empty	app/src/main/java/tv/own/owntv/features/more/MorePages.kt	\0
 1	technical	app/src/main/java/tv/own/owntv/features/more/MorePages.kt	$it
 1	technical	app/src/main/java/tv/own/owntv/features/more/MorePages.kt	%d:%02d
+1	technical	app/src/main/java/tv/own/owntv/features/more/MorePages.kt	GitHub
 1	technical	app/src/main/java/tv/own/owntv/features/more/MorePages.kt	Telegram
-1	technical	app/src/main/java/tv/own/owntv/features/more/MorePages.kt	X (Twitter)
+1	technical	app/src/main/java/tv/own/owntv/features/more/MorePages.kt	X
 1	technical	app/src/main/java/tv/own/owntv/features/more/MorePages.kt	github.com/$SOCIAL_HANDLE
 1	technical	app/src/main/java/tv/own/owntv/features/more/MorePages.kt	swensi17
 1	technical	app/src/main/java/tv/own/owntv/features/more/MorePages.kt	t.me/$SOCIAL_HANDLE
 1	technical	app/src/main/java/tv/own/owntv/features/more/MorePages.kt	x.com/$SOCIAL_HANDLE
-1	technical	app/src/main/java/tv/own/owntv/features/more/MorePages.kt	·
 1	technical	app/src/main/java/tv/own/owntv/features/more/MoreScreen.kt	DEV
 1	technical	app/src/main/java/tv/own/owntv/features/more/MoreScreen.kt	Developer
 1	technical	app/src/main/java/tv/own/owntv/features/more/MoreScreen.kt	moreSheetAway
