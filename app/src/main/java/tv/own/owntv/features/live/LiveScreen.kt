@@ -675,6 +675,7 @@ fun LiveScreen(
                 listState = catListState,
                 onSelect = onCategorySelect,
                 onLongSelect = onCategoryLongSelect,
+                paused = contextCategory != null || categoryMoveState != null,
                 onNavigateRight = { focusChannelList() },
                 focusRequester = railFocus,
                 focusRowIndex = railFocusRow,
@@ -998,6 +999,7 @@ fun LiveScreen(
                 listState = catListState,
                 onSelect = onCategorySelect,
                 onLongSelect = onCategoryLongSelect,
+                paused = contextCategory != null || categoryMoveState != null,
                 onNavigateRight = { categoriesOpen = false; focusChannelList() },
                 focusRequester = railFocus,
                 focusRowIndex = railFocusRow,
@@ -1626,7 +1628,7 @@ internal fun liveEpgShiftLabel(minutes: Int): String {
 }
 
 /** How long focus rests on a channel row before the preview switches to it (TV-box look). */
-private const val PreviewDwellMs = 500L
+private const val PreviewDwellMs = 1000L
 
 /** A group's rows fading in, and how far (dp) they rise while they do. */
 private const val ListFadeMs = 240

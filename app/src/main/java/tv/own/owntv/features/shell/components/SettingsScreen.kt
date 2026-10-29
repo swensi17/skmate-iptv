@@ -2792,7 +2792,9 @@ private fun stageRowExtras(
         ),
         "accent" to RowExtra(
             SettingValue.Custom {
-                AccentSwatches(presetColors, current)
+                // The sheet is narrow: the colour in use and its code only; the palette opens on OK.
+                if (tv.own.owntv.features.settings.LocalSettingsSide.current) Box(Modifier.size(26.mpx).background(current, androidx.compose.foundation.shape.CircleShape))
+                else AccentSwatches(presetColors, current)
                 Text(hex, style = valueStyle, color = current, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(start = 6.mpx))
             },
             onStep = accentStep,

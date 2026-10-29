@@ -1,12 +1,10 @@
 #!/usr/bin/env bash
+#   tools/dev/tv.sh --emu --watch   on the emulator only: save a file, see it in ~15 s (debug build)
 # Fast development loop on a real TV: build the app WITH the local core sources, sign it with the
 # project key, install it over the installed SkMate IPTV (data kept) and start it.
 #
 #   tools/dev/tv.sh            release build (R8, real speed: use it to judge smoothness)
-#   tools/dev/tv.sh --fast     debug build (no R8, installs sooner, slower at runtime)
 #   tools/dev/tv.sh --log      only follow the app's log on the TV
-#   tools/dev/tv.sh --watch    "save and see": rebuild (debug) and reinstall on every saved file in the
-#                              app or core sources, about 10-15 s from save to screen; Ctrl+C to stop
 #   add --emu to any of them to target the Android TV emulator instead of the TV
 #
 # Environment (all optional):
@@ -35,12 +33,17 @@ WATCH=0
 for arg in "$@"; do
   case "$arg" in
     --fast) MODE="debug" ;;
-    --log) MODE="log" ;;
     --watch) MODE="debug"; WATCH=1 ;;
+    --log) MODE="log" ;;
     --emu) TV="emulator-5554" ;;
-    *) echo "usage: $0 [--fast|--log|--watch] [--emu]" >&2; exit 2 ;;
+    *) echo "usage: $0 [--log] [--emu [--fast|--watch]]" >&2; exit 2 ;;
   esac
 done
+# A debug build runs far slower than the real one: it is for the emulator, which is fast enough to show it;
+# the television always gets the normal (release) build.
+if [ "$MODE" = "debug" ] && [ "$TV" != "emulator-5554" ]; then
+  echo "debug and watch builds are for the emulator only (add --emu): the TV gets the normal build" >&2; exit 2
+fi
 
 follow_log() {
   local pid

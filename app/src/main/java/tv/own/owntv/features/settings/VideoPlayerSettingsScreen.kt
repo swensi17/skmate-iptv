@@ -152,7 +152,7 @@ internal val SUBTITLE_APPEARANCE_SEARCH_ROWS: List<Int> = listOf(
 
 /** Rows of Movies and Series playback, which this app no longer has: never drawn, never pinned. */
 private val RemovedVideoRows = setOf(
-    "vp_vod_engine", "vp_vod_engine_sources", "vp_reset_pins", "vp_vod_buffer", "vp_vod_timeout", "vp_vod_reconnects", "vp_resume", "vp_autoplay",
+    "vp_vod_engine", "vp_vod_engine_sources", "vp_reset_pins", "vp_reset_live_pins", "vp_live_engine_sources", "vp_vod_buffer", "vp_vod_timeout", "vp_vod_reconnects", "vp_resume", "vp_autoplay",
 )
 
 /** Every row of this screen that can be pinned to Quick, in the order the sections show them. */
@@ -750,7 +750,7 @@ internal fun VideoPlayerGroupRows(
     ) {
         group.parts.forEachIndexed { partIndex, (headingRes, sections) ->
             if (onlyPart != null && partIndex != onlyPart) return@forEachIndexed
-            if (onlyPart == null) StageSettingsHeading(stringResource(headingRes), sections.sumOf { counts[it] }, first = firstHeading && partIndex == 0)
+            if (onlyPart == null && group.parts.size > 1) StageSettingsHeading(stringResource(headingRes), sections.sumOf { counts[it] }, first = firstHeading && partIndex == 0)
             sections.forEach { section ->
                 when (section) {
                     SECTION_PLAYER -> {
