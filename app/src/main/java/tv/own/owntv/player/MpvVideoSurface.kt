@@ -220,10 +220,10 @@ fun ExoPreviewSurface(
                             var surface: Surface? = null
                             surfaceTextureListener = object : TextureView.SurfaceTextureListener {
                                 override fun onSurfaceTextureAvailable(texture: SurfaceTexture, width: Int, height: Int) {
-                                    surface = Surface(texture).also { engine.setSurface(it) }
+                                    surface = Surface(texture).also { engine.setSurface(it); engine.setSurfaceSize(width, height) }
                                 }
 
-                                override fun onSurfaceTextureSizeChanged(texture: SurfaceTexture, width: Int, height: Int) = Unit
+                                override fun onSurfaceTextureSizeChanged(texture: SurfaceTexture, width: Int, height: Int) = engine.setSurfaceSize(width, height)
 
                                 override fun onSurfaceTextureDestroyed(texture: SurfaceTexture): Boolean {
                                     surface?.let { engine.detachSurface(it); it.release() }
@@ -244,7 +244,7 @@ fun ExoPreviewSurface(
                         SurfaceView(ctx).apply {
                             holder.addCallback(object : SurfaceHolder.Callback {
                                 override fun surfaceCreated(holder: SurfaceHolder) = engine.setSurface(holder.surface)
-                                override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {}
+                                override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) = engine.setSurfaceSize(width, height)
                                 override fun surfaceDestroyed(holder: SurfaceHolder) = engine.detachSurface(holder.surface)
                             })
                         }
@@ -263,8 +263,18 @@ fun ExoPreviewSurface(
         if (subOn) {
             StyledSubtitleView(cues = cues, modifier = viewModifier)
         }
+        // Between channels the screen is plain black: the old picture, or a new one not yet sized to the window,
+        // never shows. The picture comes in a beat after the new channel's first frame, already in place.
+        val state by engine.state.collectAsStateWithLifecycle()
+        val revealed by androidx.compose.runtime.produceState(false, state) {
+            if (state == LivePreviewEngine.State.PLAYING) { kotlinx.coroutines.delay(RevealAfterMs); value = true } else value = false
+        }
+        if (!revealed) androidx.compose.foundation.layout.Box(Modifier.matchParentSize().background(Color.Black))
     }
 }
+
+/** How long after a channel's first frame its picture is shown: enough for it to be drawn at the window's size. */
+private const val RevealAfterMs = 250L
 
 /**
  * Media3's [androidx.media3.ui.SubtitleView] with the user's subtitle appearance applied —

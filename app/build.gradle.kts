@@ -231,6 +231,8 @@ android {
             // the "Unable to strip the following libraries, packaging them as they are" line on every
             // release task came from. Skipping it packages byte-identical libraries without the noise.
             keepDebugSymbols += "**/*.so"
+            // libVLC and libmpv both ship the NDK C++ runtime.
+            pickFirsts += "**/libc++_shared.so"
         }
     }
 
