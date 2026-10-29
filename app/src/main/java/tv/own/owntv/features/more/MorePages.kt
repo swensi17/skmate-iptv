@@ -298,6 +298,8 @@ private fun SettingsGroupList(entry: FocusRequester, onOpenGroup: (Int) -> Unit,
             SettingsCards.forEachIndexed { index, card ->
                 // No Live TV group: its settings belong to the channels screen and its own menus.
                 if (card.nameRes == R.string.settings_live_tv) return@forEachIndexed
+                // Every Sound & subtitles row belonged to the old engines; with none left the group is not listed.
+                if (card.nameRes == R.string.settings_group_sound_subtitles) return@forEachIndexed
                 // One word each, as Android TV names its own settings; the page itself carries the full name.
                 GroupLine(card.icon, stringResource(card.shortRes), Modifier.then(if (index == back || (back == null && lastOpenedExtra == null && index == 0)) Modifier.focusRequester(entry) else Modifier)) {
                     lastOpenedCard = index; lastOpenedExtra = null; onOpenGroup(index)

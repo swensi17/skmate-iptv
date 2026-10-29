@@ -153,6 +153,14 @@ internal val SUBTITLE_APPEARANCE_SEARCH_ROWS: List<Int> = listOf(
 /** Rows of Movies and Series playback, which this app no longer has: never drawn, never pinned. */
 private val RemovedVideoRows = setOf(
     "vp_vod_engine", "vp_vod_engine_sources", "vp_reset_pins", "vp_reset_live_pins", "vp_live_engine_sources", "vp_vod_buffer", "vp_vod_timeout", "vp_vod_reconnects", "vp_resume", "vp_autoplay",
+    // Live plays on the one libVLC engine: there is no engine to pick, and these were ExoPlayer's or mpv's own
+    // knobs, which that engine does not read. Shown, they would change nothing.
+    "vp_live_engine", "vp_hw", "vp_sw_above_1080p", "vp_hdr", "vp_max_quality", "vp_tunneled",
+    "vp_live_latency", "vp_latency_sources", "vp_preroll", "vp_preroll_sources",
+    "vp_timeshift", "vp_timeshift_window", "vp_timeshift_resume", "vp_live_left_right", "vp_seek_step", "vp_rewind_step",
+    "vp_volume", "vp_reset_volume", "vp_surround", "vp_passthrough", "vp_ffmpeg_audio", "vp_night_mode", "vp_volume_leveling",
+    "vp_audio_sync", "vp_output_audio_delay", "vp_reset_audio_delay", "vp_audio_lang", "vp_sub_lang", "vp_sub_style",
+    "vp_measured_stats",
 )
 
 /** Every row of this screen that can be pinned to Quick, in the order the sections show them. */
@@ -750,7 +758,9 @@ internal fun VideoPlayerGroupRows(
     ) {
         group.parts.forEachIndexed { partIndex, (headingRes, sections) ->
             if (onlyPart != null && partIndex != onlyPart) return@forEachIndexed
-            if (onlyPart == null && group.parts.size > 1) StageSettingsHeading(stringResource(headingRes), sections.sumOf { counts[it] }, first = firstHeading && partIndex == 0)
+            // Counted from the rows still shown: a part whose rows all went (they belonged to the old engines) has no heading.
+            val shown = VIDEO_QUICK_ROWS.count { it.section in sections }
+            if (onlyPart == null && group.parts.size > 1 && shown > 0) StageSettingsHeading(stringResource(headingRes), shown, first = firstHeading && partIndex == 0)
             sections.forEach { section ->
                 when (section) {
                     SECTION_PLAYER -> {

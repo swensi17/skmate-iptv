@@ -266,7 +266,9 @@ fun ExoPreviewSurface(
         // Between channels the screen is plain black: the old picture, or a new one not yet sized to the window,
         // never shows. The picture comes in a beat after the new channel's first frame, already in place.
         val state by engine.state.collectAsStateWithLifecycle()
-        val revealed by androidx.compose.runtime.produceState(false, state) {
+        // Keyed on the box's size too: when the picture moves (the channel panel docking it, or letting it go) the
+        // frame already on screen is drawn at the old size for a moment, so it is covered until redrawn.
+        val revealed by androidx.compose.runtime.produceState(false, state, maxWidth, maxHeight) {
             if (state == LivePreviewEngine.State.PLAYING) { kotlinx.coroutines.delay(RevealAfterMs); value = true } else value = false
         }
         if (!revealed) androidx.compose.foundation.layout.Box(Modifier.matchParentSize().background(Color.Black))
