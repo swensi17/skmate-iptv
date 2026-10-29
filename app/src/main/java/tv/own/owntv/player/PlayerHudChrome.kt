@@ -442,20 +442,8 @@ internal fun BottomBar(
                 // keeps its own composable and condition; only the sequence is shared.
                 PlayerControl.clusterFor(tv = true, cluster = ControlCluster.TOOLS).forEach { control ->
                     when (control) {
-                        PlayerControl.ENGINE -> {
-                            // Live "compatibility mode" (Live TV + channels opened from the Guide):
-                            // pin this channel to mpv. The pill shows the active engine and flips on
-                            // click (teal while pinned to mpv).
-                            if (onToggleCompatMode != null) {
-                                EngineToggle(label = stringResource(if (compatMode == true) R.string.player_engine_mpv else R.string.player_engine_exo), active = compatMode == true, toolLabel = stringResource(R.string.player_tool_engine)) { onToggleCompatMode() }
-                            }
-                            // VOD engine toggle (Movies/Series): flip THIS movie/episode between mpv
-                            // and ExoPlayer. The pill shows the active engine (teal while ExoPlayer
-                            // owns playback).
-                            if (onToggleVodEngine != null) {
-                                EngineToggle(label = stringResource(if (vodOnExo == true) R.string.player_engine_exo else R.string.player_engine_mpv), active = vodOnExo == true, toolLabel = stringResource(R.string.player_tool_engine)) { onToggleVodEngine() }
-                            }
-                        }
+                        // The engine pill is gone: there is one player, so there is nothing to switch.
+                        PlayerControl.ENGINE -> Unit
                         // Aspect/zoom works in every mode now — direct mode resizes the surface view
                         // itself (see MpvVideoSurface), GL mode scales internally.
                         PlayerControl.ASPECT ->

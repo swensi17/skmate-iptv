@@ -156,6 +156,8 @@ fun OwnTVShell(
     val sidebarFocus = remember { FocusRequester() }
     // Where focus goes when the menu, opened over a full-screen picture, is closed again.
     val playerFocus = remember { FocusRequester() }
+    // The menu is being opened over the picture: the HUD must not take focus back meanwhile.
+    var menuPending by remember { mutableStateOf(false) }
     // When focus was last sent to the rail on purpose: ◀ / ▶ from the content, or the app itself
     // ([focusRail]). A rail visit that follows neither does not open the floating rail (#7.1).
     var railKeyAt by remember { mutableLongStateOf(0L) }
@@ -1108,6 +1110,32 @@ fun OwnTVShell(
                 }
             },
     ) {
+    // The side menu, one definition for the browse screens and for the one called up over a full-screen picture.
+    val railMenu: @Composable (onSelect: (MainSection) -> Unit, enterContent: (() -> Boolean)?) -> Unit = { onSelect, enterContent ->
+            tv.own.owntv.features.shell.components.StageRail(
+                modifier = Modifier.zIndex(1f),
+                state = railState,
+                size = railSize,
+                length = navLength,
+                selected = selectedSection,
+                visibleSections = visibleSections,
+                onSelect = onSelect,
+                count = { section -> railCounts[section]?.takeIf { it > 0 } },
+                detail = { section -> railDetail(section, railDetails) },
+                profileName = profileName.ifBlank { stringResource(R.string.common_own_tv_user) },
+                profileLine = stringResource(R.string.shell_rail_profile_line, playlistLabel),
+                onSwitchProfile = onSwitchProfile,
+                onPickAvatar = { showAvatarPicker = true },
+                avatarId = avatarId,
+                avatarPath = avatarPath,
+                selectedItemFocusRequester = sidebarFocus,
+                contentFocusRequester = contentAreaFocus,
+                enterContent = enterContent,
+                onFocused = { focusedLayer = ShellLayer.SIDEBAR },
+                nowPlaying = nowPlayingRail,
+                onNowPlaying = enterNowPlaying,
+            )
+    }
       // Browse UI — hidden while the player is fullscreen (stays visible behind the docked mini-player).
       if (playerMode != PlayerMode.FULLSCREEN) {
         Column(
@@ -1533,37 +1561,15 @@ fun OwnTVShell(
                         },
                 )
             }
-            tv.own.owntv.features.shell.components.StageRail(
-                modifier = Modifier.zIndex(1f),
-                state = railState,
-                size = railSize,
-                length = navLength,
-                selected = selectedSection,
-                visibleSections = visibleSections,
-                onSelect = selectFromNav,
-                count = { section -> railCounts[section]?.takeIf { it > 0 } },
-                detail = { section -> railDetail(section, railDetails) },
-                profileName = profileName.ifBlank { stringResource(R.string.common_own_tv_user) },
-                profileLine = stringResource(R.string.shell_rail_profile_line, playlistLabel),
-                onSwitchProfile = onSwitchProfile,
-                onPickAvatar = { showAvatarPicker = true },
-                avatarId = avatarId,
-                avatarPath = avatarPath,
-                selectedItemFocusRequester = sidebarFocus,
-                contentFocusRequester = contentAreaFocus,
-                enterContent = if (playerMode == PlayerMode.FULLSCREEN) ({ runCatching { playerFocus.requestFocus() }.isSuccess }) else when (selectedSection) {
-                    MainSection.HOME -> homeEntry
-                    MainSection.EPG, MainSection.LIVE_TV -> guideEntry
-                    MainSection.MOVIES, MainSection.SERIES -> vodEntry
-                    MainSection.DOWNLOADS -> downloadsEntry
-                    MainSection.MORE -> moreEntry
-                    MainSection.SPORTS -> sportsEntry
-                    else -> null
-                },
-                onFocused = { focusedLayer = ShellLayer.SIDEBAR },
-                nowPlaying = nowPlayingRail,
-                onNowPlaying = enterNowPlaying,
-            )
+            railMenu(selectFromNav, if (playerMode == PlayerMode.FULLSCREEN) ({ runCatching { playerFocus.requestFocus() }.isSuccess }) else when (selectedSection) {
+                MainSection.HOME -> homeEntry
+                MainSection.EPG, MainSection.LIVE_TV -> guideEntry
+                MainSection.MOVIES, MainSection.SERIES -> vodEntry
+                MainSection.DOWNLOADS -> downloadsEntry
+                MainSection.MORE -> moreEntry
+                MainSection.SPORTS -> sportsEntry
+                else -> null
+            })
           }
         }
         // The solid-mode wizard aura is deliberately drawn after the opaque browse surfaces so it
@@ -1659,11 +1665,23 @@ fun OwnTVShell(
           }
       }
 
+      // The menu over the full-screen picture: the browse screens (and the menu with them) are not composed
+      // then, so it is its own copy of the same menu. Picking another screen leaves the player for it.
+      if (multiview == null && playerMode == PlayerMode.FULLSCREEN) {
+          railMenu(
+              { section ->
+                  if (section == selectedSection) { runCatching { playerFocus.requestFocus() } }
+                  else { exitPlayer(); onSelectSection(section) }
+              },
+              { runCatching { playerFocus.requestFocus() }.isSuccess },
+          )
+      }
       if (multiview == null && (playerMode == PlayerMode.FULLSCREEN || playerMode == PlayerMode.MINI)) {
         val isFull = playerMode == PlayerMode.FULLSCREEN
         // TV-box look: full screen grows out of the channels screen's preview (and shrinks back into it on
         // Back), by laying the picture out at the in-between size — a SurfaceView ignores layer scaling.
-        val growFrom = if (TvBoxNav && isFull) tv.own.owntv.features.shell.components.TvBoxPanels.previewRect else null
+        // Opens straight to full screen, no growing out of the preview: nothing to animate, nothing to load.
+        val growFrom: androidx.compose.ui.geometry.Rect? = null
         val grow = remember(isFull) { androidx.compose.animation.core.Animatable(if (growFrom != null) 0f else 1f) }
         LaunchedEffect(grow) { grow.animateTo(1f, androidx.compose.animation.core.tween(FullGrowMs, easing = androidx.compose.animation.core.FastOutSlowInEasing)) }
         LaunchedEffect(collapsingFull) {
@@ -1701,7 +1719,7 @@ fun OwnTVShell(
                 Modifier.align(miniPos.alignment).padding(24.dp)
                     .fillMaxWidth(tv.own.owntv.core.player.MiniPlayerSize.fraction(miniSizePct)).aspectRatio(16f / 9f)
                     .clip(RoundedCornerShape(14.dp)).background(Color.Black)
-            }).then(if (isFull) Modifier.focusRequester(playerFocus).focusGroup() else Modifier),
+            }).then(if (isFull) Modifier.focusRequester(playerFocus).onFocusChanged { if (it.hasFocus) focusedLayer = ShellLayer.CONTENT }.focusGroup() else Modifier),
         ) {
             // TV-box look: with the channel panel open the picture moves into the top-right corner beside it,
             // laid out at that size (a SurfaceView ignores layer scaling), and comes back when it closes.
@@ -1819,7 +1837,7 @@ fun OwnTVShell(
                     // its hide/error focus grabs can't yank D-pad focus off the overlay.
                     inert = showChannelList || showHistoryList || showCategoryBrowser || showSubtitleSearch || showLocalSubPicker || showOtherChannels || showGuideOverlay ||
                         // The menu opened over the picture owns the D-pad: the HUD must not pull focus back to itself.
-                        (railHasFocus && playerMode == PlayerMode.FULLSCREEN),
+                        (railHasFocus && playerMode == PlayerMode.FULLSCREEN) || menuPending,
                     onChannelUp = zap?.let { z -> { z(-1) } },
                     onChannelDown = zap?.let { z -> { z(1) } },
                     onOpenChannelList = if (isTunedLive && liveCanZap) { { showChannelList = true } } else null,
@@ -2054,7 +2072,17 @@ fun OwnTVShell(
                                 showChannelList = false
                                 liveVm.hideCategoryBrowser()
                                 // After the HUD has taken its focus back from the closing panels, not before.
-                                scope.launch { kotlinx.coroutines.delay(220); focusRail() }
+                                menuPending = true
+                                scope.launch {
+                                    // The panels are leaving and focus is still settling: ask until the menu has it.
+                                    kotlinx.coroutines.delay(220)
+                                    var tries = 0
+                                    while (focusedLayer != ShellLayer.SIDEBAR && tries++ < 12) {
+                                        focusRail()
+                                        kotlinx.coroutines.delay(90)
+                                    }
+                                    menuPending = false
+                                }
                             },
                         )
                     } else if (showCategoryBrowser) {
@@ -2311,8 +2339,8 @@ private const val ExitBackWindowMs = 2_000L
 
 /** Full screen growing out of the preview, and shrinking back into it. */
 /** Resizing the picture frame by frame reallocates the video's buffers each step: weak TVs jump straight to the result. */
-private val FullGrowMs: Int get() = if (tv.own.owntv.ui.theme.DevicePerf.lite) 0 else 340
-private val FullShrinkMs: Int get() = if (tv.own.owntv.ui.theme.DevicePerf.lite) 0 else 280
+private val FullGrowMs: Int get() = 0
+private val FullShrinkMs: Int get() = 0
 
 /** After leaving full screen for the app menu: long enough for the channels screen to take its focus first. */
 private val MenuAfterExitMs: Long get() = if (tv.own.owntv.ui.theme.DevicePerf.lite) 60L else 450L
