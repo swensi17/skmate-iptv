@@ -405,14 +405,22 @@ private fun DisplaySizeStep(onNext: () -> Unit, onBack: () -> Unit) {
             onClick = { vm.setFontSize(fontSize + UiFontScale.STEP) },
             onStep = { dir -> vm.setFontSize(fontSize + dir * UiFontScale.STEP) },
         )
-        val themes = listOf(tv.own.owntv.core.theme.ThemeMode.SYSTEM, tv.own.owntv.core.theme.ThemeMode.DARK, tv.own.owntv.core.theme.ThemeMode.LIGHT)
+        val themes = listOf(
+            tv.own.owntv.core.theme.ThemeMode.SYSTEM,
+            tv.own.owntv.core.theme.ThemeMode.DARK,
+            tv.own.owntv.core.theme.ThemeMode.LIGHT,
+        )
         val themeAt = themes.indexOf(themeMode).coerceAtLeast(0)
         StageSettingRow(
             icon = OwnTVIcon.THEME,
             title = stringResource(R.string.settings_theme),
             desc = stringResource(R.string.setup_line_theme),
             value = SettingValue.Segmented(
-                listOf(stringResource(R.string.settings_theme_system), stringResource(R.string.settings_theme_dark), stringResource(R.string.settings_theme_light)),
+                listOf(
+                    stringResource(R.string.settings_theme_system),
+                    stringResource(R.string.settings_theme_dark),
+                    stringResource(R.string.settings_theme_light),
+                ),
                 themeAt,
             ),
             onClick = { vm.setThemeMode(themes[(themeAt + 1) % themes.size]) },
