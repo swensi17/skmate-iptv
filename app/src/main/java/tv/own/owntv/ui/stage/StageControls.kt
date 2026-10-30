@@ -177,7 +177,8 @@ fun StageSearchField(
                         },
                     textStyle = stageText(18, 500).copy(color = if (lit && (white || tvBox)) SearchLitText else StageColors.Text),
                     singleLine = true,
-                    cursorBrush = SolidColor(stageAccent.accent),
+                    // The caret follows the text: dark on the light fill the field takes while it is chosen, the accent otherwise.
+                    cursorBrush = SolidColor(if (lit && (white || tvBox)) SearchLitText else stageAccent.accent),
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                     keyboardActions = KeyboardActions(onSearch = {
                         editing = false
