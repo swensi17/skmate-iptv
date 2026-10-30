@@ -67,6 +67,7 @@ fun SportsScreen(
     } else if (current == null) {
         SportsHubScreen(
             vm = vm,
+            active = active,
             onOpenMatch = open,
             onPlayChannel = onPlayChannel,
             onChildFocused = onChildFocused,
