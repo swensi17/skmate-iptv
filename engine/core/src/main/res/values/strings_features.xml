@@ -95,6 +95,13 @@
     <!-- Translators: Placeholder in the empty search field. -->
     <string name="search_field_hint">Channels, movies and series</string>
     <string name="search_in_progress">Searching channels, programs, movies and series…</string>
+    <string name="sports_board_search">Search programmes and channels</string>
+    <string name="sports_board_all_countries">All countries</string>
+    <string name="sports_board_sort_time">By start time</string>
+    <string name="sports_board_sort_title">By name A–Z</string>
+    <string name="sports_board_sort_channel">By channel A–Z</string>
+    <string name="sports_board_looking">Looking for sport on your channels…</string>
+    <string name="sports_board_nothing_filtered">Nothing matches these filters.</string>
     <string name="search_caption_channels">Search channels</string>
     <string name="search_caption_programs">Search TV programs</string>
     <string name="search_caption_guide">Search the TV guide</string>

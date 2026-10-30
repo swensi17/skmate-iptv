@@ -182,7 +182,15 @@ fun SportsHubScreen(
     var settled by remember { mutableStateOf(false) }
     androidx.compose.runtime.LaunchedEffect(Unit) { kotlinx.coroutines.delay(SKELETON_MS); settled = true }
     Box(modifier.fillMaxSize().onFocusChanged { if (it.hasFocus) onChildFocused() }) {
-        LazyColumn(
+        if (simple) {
+            SportsBoard(
+                items = state.onNow.values.flatten(),
+                loading = !settled || state.rebuilding,
+                now = now,
+                searchFocus = chipFocus,
+                onPlay = { onPlayChannel(it.channels.first(), it.channels) },
+            )
+        } else LazyColumn(
             Modifier.fillMaxSize().focusGroup(),
             contentPadding = PaddingValues(top = 39.mpx, bottom = 110.mpx),
         ) {

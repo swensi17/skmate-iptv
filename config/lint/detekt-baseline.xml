@@ -597,6 +597,12 @@
     <ID>FunctionNaming:SkMateWordmark.kt$@Composable fun SkMateWordmark(modifier: Modifier = Modifier, size: Int = 30)</ID>
     <ID>FunctionNaming:SocialIcons.kt$@Composable fun SocialIcon(icon: SocialIcon, tint: Color, modifier: Modifier = Modifier)</ID>
     <ID>FunctionNaming:SolidAmbientBackdrop.kt$@Composable fun SolidAmbientBackdrop( glowEnabled: Boolean, pulseEnabled: Boolean, modifier: Modifier = Modifier, )</ID>
+    <ID>FunctionNaming:SportsBoard.kt$@Composable internal fun SportsBoard( items: List&lt;GuideSportItem&gt;, loading: Boolean, now: Long, searchFocus: FocusRequester, onPlay: (GuideSportItem) -&gt; Unit, modifier: Modifier = Modifier, )</ID>
+    <ID>FunctionNaming:SportsBoard.kt$@Composable private fun BoardCard(item: GuideSportItem, now: Long, onClick: () -&gt; Unit)</ID>
+    <ID>FunctionNaming:SportsBoard.kt$@Composable private fun BoardEmpty(loading: Boolean, filtered: Boolean)</ID>
+    <ID>FunctionNaming:SportsBoard.kt$@Composable private fun BoardTitle(count: Int)</ID>
+    <ID>FunctionNaming:SportsBoard.kt$@Composable private fun FilterRow(modifier: Modifier = Modifier, content: LazyListScope.() -&gt; Unit)</ID>
+    <ID>FunctionNaming:SportsBoard.kt$@Composable private fun Text48(text: String, color: Color)</ID>
     <ID>FunctionNaming:SportsFilterPanel.kt$@Composable private fun FilterChip(text: String, on: Boolean, onClick: () -&gt; Unit, onOnly: () -&gt; Unit, modifier: Modifier = Modifier)</ID>
     <ID>FunctionNaming:SportsFilterPanel.kt$@Composable private fun Label(text: String, locale: java.util.Locale)</ID>
     <ID>FunctionNaming:SportsFilterPanel.kt$@Composable private fun SwitchRow(title: String, description: String, on: Boolean, onClick: () -&gt; Unit)</ID>
@@ -871,6 +877,7 @@
     <ID>LongMethod:SetupWizard.kt$@Composable private fun DisplaySizeStep(onNext: () -&gt; Unit, onBack: () -&gt; Unit)</ID>
     <ID>LongMethod:SetupWizard.kt$@Composable private fun ImportProgressStep( state: SourceImporter.ImportState, progress: tv.own.owntv.core.sync.ImportStage?, name: String?, onContinue: () -&gt; Unit, onAddGuide: () -&gt; Unit, onRetry: () -&gt; Unit, onCancel: () -&gt; Unit, onBackground: () -&gt; Unit, )</ID>
     <ID>LongMethod:SetupWizard.kt$@Composable private fun ProfileStep( existing: List&lt;tv.own.owntv.core.database.entity.ProfileEntity&gt;, onCreate: (name: String, avatarId: Int, isKids: Boolean, pin: String?, picture: java.io.File?) -&gt; Unit, onBack: () -&gt; Unit, )</ID>
+    <ID>LongMethod:SportsBoard.kt$@Composable internal fun SportsBoard( items: List&lt;GuideSportItem&gt;, loading: Boolean, now: Long, searchFocus: FocusRequester, onPlay: (GuideSportItem) -&gt; Unit, modifier: Modifier = Modifier, )</ID>
     <ID>LongMethod:SportsFilterPanel.kt$@OptIn(ExperimentalLayoutApi::class) @Composable fun SportsFilterPanel(state: MatchPageState, onFilter: (WatchFilter) -&gt; Unit, onRemember: (Boolean) -&gt; Unit, onDismiss: () -&gt; Unit)</ID>
     <ID>LongMethod:SportsHubScreen.kt$@Composable fun SportsHubScreen( vm: SportsViewModel, onOpenMatch: (Match) -&gt; Unit, onPlayChannel: (ChannelEntity, List&lt;ChannelEntity&gt;) -&gt; Unit, onChildFocused: () -&gt; Unit, onEntryHook: (((() -&gt; Boolean)?) -&gt; Unit)?, contentStart: Dp, modifier: Modifier = Modifier, /** Back from a match: the card it was opened from takes focus again. */ restoreKey: String? = null, )</ID>
     <ID>LongMethod:SportsLeagueScreen.kt$@Composable fun SportsLeagueScreen(vm: SportsViewModel, onOpenMatch: (Match) -&gt; Unit, onBack: () -&gt; Unit, contentStart: Dp, modifier: Modifier = Modifier, active: Boolean = true)</ID>
@@ -1047,6 +1054,7 @@
     <ID>LongParameterList:SetupWizard.kt$( state: SourceImporter.ImportState, wizardStep: WizardStep, onPick: (java.io.File) -&gt; Unit, /** A file is picked: the browser closes, so it is not left behind the restore dialog. */ fileChosen: Boolean, onPassword: (java.io.File, String?) -&gt; Unit, onBack: () -&gt; Unit, )</ID>
     <ID>LongParameterList:SetupWizard.kt$(hasExisting: Boolean, onPhone: () -&gt; Unit, onType: () -&gt; Unit, onExisting: () -&gt; Unit, onImport: () -&gt; Unit, onSkip: () -&gt; Unit)</ID>
     <ID>LongParameterList:ShellViewModel.kt$ShellViewModel$( private val settings: SettingsRepository, private val sourceRepository: SourceRepository, private val profileDao: tv.own.owntv.core.database.dao.ProfileDao, connectivity: ConnectivityObserver, private val launcherIntegrationRepository: LauncherIntegrationRepository, private val epgMigration: tv.own.owntv.core.epg.EpgMigration, private val autoRefresh: tv.own.owntv.core.sync.AutoRefresh, private val weatherRepository: WeatherRepository, private val navVisibility: NavVisibility, private val profiles: tv.own.owntv.core.profile.ProfileManager, private val catalogSyncScheduler: tv.own.owntv.core.sync.work.CatalogSyncScheduler, private val importFinalizer: tv.own.owntv.core.sync.ImportFinalizer, )</ID>
+    <ID>LongParameterList:SportsBoard.kt$( items: List&lt;GuideSportItem&gt;, loading: Boolean, now: Long, searchFocus: FocusRequester, onPlay: (GuideSportItem) -&gt; Unit, modifier: Modifier = Modifier, )</ID>
     <ID>LongParameterList:SportsHubScreen.kt$( m: Match, featured: Boolean, config: SportsConfig, now: Long, reminded: Boolean, onClick: () -&gt; Unit, onPlay: () -&gt; Unit, onHold: () -&gt; Unit, modifier: Modifier = Modifier, )</ID>
     <ID>LongParameterList:SportsHubScreen.kt$( match: Match, config: SportsConfig, channels: List&lt;WatchOption&gt;, now: Long, onFollow: (FollowedTeam) -&gt; Unit, onRemind: () -&gt; Unit, onDismiss: () -&gt; Unit, )</ID>
     <ID>LongParameterList:SportsHubScreen.kt$( text: String, on: Boolean, modifier: Modifier = Modifier, icon: OwnTVIcon? = null, dim: Boolean = false, onLongClick: (() -&gt; Unit)? = null, onClick: () -&gt; Unit, )</ID>
@@ -2413,6 +2421,18 @@
     <ID>MagicNumber:SolidAmbientBackdrop.kt$0.45f</ID>
     <ID>MagicNumber:SolidAmbientBackdrop.kt$0.46f</ID>
     <ID>MagicNumber:SolidAmbientBackdrop.kt$0.54f</ID>
+    <ID>MagicNumber:SportsBoard.kt$0.55f</ID>
+    <ID>MagicNumber:SportsBoard.kt$1560f</ID>
+    <ID>MagicNumber:SportsBoard.kt$18</ID>
+    <ID>MagicNumber:SportsBoard.kt$1920f</ID>
+    <ID>MagicNumber:SportsBoard.kt$20</ID>
+    <ID>MagicNumber:SportsBoard.kt$22</ID>
+    <ID>MagicNumber:SportsBoard.kt$400</ID>
+    <ID>MagicNumber:SportsBoard.kt$46</ID>
+    <ID>MagicNumber:SportsBoard.kt$500</ID>
+    <ID>MagicNumber:SportsBoard.kt$600</ID>
+    <ID>MagicNumber:SportsBoard.kt$700</ID>
+    <ID>MagicNumber:SportsBoard.kt$800</ID>
     <ID>MagicNumber:SportsFilterPanel.kt$0.12f</ID>
     <ID>MagicNumber:SportsFilterPanel.kt$16.5f</ID>
     <ID>MagicNumber:SportsFilterPanel.kt$18</ID>
@@ -5329,6 +5349,16 @@
     <ID>MaxLineLength:SocialIcons.kt$"M88,134.87236l89.91726,79.12718a8,8,0,0,0,13.08288-4.21869L228.61385,45.64829a8,8,0,0,0-10.72308-9.233L33.33393,108.91975a8,8,0,0,0,1.35629,15.29065Z"</ID>
     <ID>MaxLineLength:SocialIcons.kt$drawLine(tint, Offset(88f, 134.872f), Offset(224.112f, 36.569f), strokeWidth = 16f, cap = StrokeCap.Round)</ID>
     <ID>MaxLineLength:SolidAmbientBackdrop.kt$val presence by ringPresence ?: androidx.compose.runtime.remember { androidx.compose.runtime.mutableFloatStateOf(1f) }</ID>
+    <ID>MaxLineLength:SportsBoard.kt$/** One programme: the first channel's logo, "Handball · THW Kiel – SC Magdeburg", the channel and times, and how far it is. */</ID>
+    <ID>MaxLineLength:SportsBoard.kt$LazyRow(modifier.fillMaxWidth().focusGroup(), horizontalArrangement = Arrangement.spacedBy(8.mpx), content = content)</ID>
+    <ID>MaxLineLength:SportsBoard.kt$StageProgress(((now - item.startMs).toFloat() / span).coerceIn(0f, 1f), Modifier.padding(top = 7.mpx).fillMaxWidth(), flat = true)</ID>
+    <ID>MaxLineLength:SportsBoard.kt$StageTab(stringResource(R.string.content_epg_all), localizedInteger(items.size), sports.isEmpty(), { sports = emptySet() }, centered = true)</ID>
+    <ID>MaxLineLength:SportsBoard.kt$StageTab(stringResource(R.string.sports_board_all_countries), localizedInteger(items.size), countries.isEmpty(), { countries = emptySet() }, centered = true)</ID>
+    <ID>MaxLineLength:SportsBoard.kt$ch.name + more + sep + stringResource(R.string.content_epg_time_range, timeText(item.startMs), timeText(item.stopMs))</ID>
+    <ID>MaxLineLength:SportsBoard.kt$countryName(code, locale)</ID>
+    <ID>MaxLineLength:SportsBoard.kt$modifier = Modifier.align(Alignment.Center).widthIn(max = 860.mpx).fillMaxWidth(0.55f).focusRequester(searchFocus)</ID>
+    <ID>MaxLineLength:SportsBoard.kt$val shown = remember(items, query, sports, countries, sort) { SportsBoardFilter.apply(items, query, sports, countries, sort) }</ID>
+    <ID>MaxLineLength:SportsBoard.kt$val shown by animateIntAsState(count, tween(MotionPrefs.dur(500), easing = FastOutSlowInEasing), label = "boardCount")</ID>
     <ID>MaxLineLength:SportsFilterPanel.kt$FlowRow</ID>
     <ID>MaxLineLength:SportsFilterPanel.kt$SportsChip(stringResource(R.string.sports_all_playlists), on = f.sourceIds.isEmpty()) { onFilter(f.copy(sourceIds = emptySet())) }</ID>
     <ID>MaxLineLength:SportsFilterPanel.kt$SportsChip(stringResource(R.string.sports_any), on = f.countries.isEmpty()) { onFilter(f.copy(countries = emptySet())) }</ID>
