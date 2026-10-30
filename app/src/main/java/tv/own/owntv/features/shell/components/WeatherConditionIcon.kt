@@ -2,6 +2,7 @@ package tv.own.owntv.features.shell.components
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.BlendMode
@@ -11,12 +12,25 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import tv.own.owntv.core.weather.WeatherInfo
+import tv.own.owntv.ui.theme.LocalStagePalette
 
 /** The weather symbol beside the temperature in the top-right cluster. */
 @Composable
 internal fun WeatherConditionIcon(info: WeatherInfo, modifier: Modifier = Modifier) {
     val key = info.symbolKey()
-    val sunC = Color(0xFFFFD166); val moonC = Color(0xFFDDF8FF)
+    val light = LocalStagePalette.current.isLight
+    // The hour of the day, to the minute: the sky changes slowly and smoothly with it, so no animation is needed.
+    val hour by androidx.compose.runtime.produceState(currentHour(), info.isDay) {
+        while (true) { value = currentHour(); kotlinx.coroutines.delay(60_000L) }
+    }
+    // A forecast that says "day" at an hour the clock calls night (or the reverse) wins: the sky follows the data.
+    val shown = when {
+        info.isDay && (hour < 6f || hour >= 20f) -> 12f
+        !info.isDay && hour in 7f..19f -> 22f
+        else -> hour
+    }
+    val sky = SkyPhase.at(shown)
+    val sunC = sky.sunColor; val moonC = if (light) Color(0xFF8A9BC4) else Color(0xFFDDF8FF)
     val cloudC = Color(0xFFDDEFE9); val rainC = Color(0xFF76A7FF)
     val snowC = Color(0xFFF0FCFF); val fogC = Color(0xFFDDF8FF)
     val thunderC = Color(0xFFFFD166)
@@ -27,14 +41,33 @@ internal fun WeatherConditionIcon(info: WeatherInfo, modifier: Modifier = Modifi
         val stk = Stroke(width = 4f * s, cap = StrokeCap.Round, join = StrokeJoin.Round)
         fun o(x: Float, y: Float) = Offset(x * s, y * s)
 
+        // The sun and the moon fill the same footprint (a 46 radius), so swapping them never changes the icon's size.
         fun sun(cx: Float, cy: Float, r: Float) {
-            for (i in 0 until 10) { val a = i * kotlin.math.PI.toFloat() / 5f; drawLine(sunC, o(cx + kotlin.math.cos(a) * (r + 8f), cy + kotlin.math.sin(a) * (r + 8f)), o(cx + kotlin.math.cos(a) * (r + 20f), cy + kotlin.math.sin(a) * (r + 20f)), strokeWidth = 4f * s, cap = StrokeCap.Round) }
-            drawCircle(sunC, r * s, o(cx, cy))
+            val k = sky.sun
+            if (k <= 0.01f) return
+            val rr = r * (0.8f + 0.2f * k)
+            val inner = rr + 8f; val outer = rr + 8f + 12f * sky.rays
+            for (i in 0 until 10) {
+                val a = i * kotlin.math.PI.toFloat() / 5f
+                drawLine(sunC.copy(alpha = k), o(cx + kotlin.math.cos(a) * inner, cy + kotlin.math.sin(a) * inner), o(cx + kotlin.math.cos(a) * outer, cy + kotlin.math.sin(a) * outer), strokeWidth = 4f * s, cap = StrokeCap.Round)
+            }
+            drawCircle(sunC.copy(alpha = k), rr * s, o(cx, cy))
+            if (sky.horizon > 0.02f) drawLine(sunC.copy(alpha = 0.8f * sky.horizon), o(cx - 40f, cy + rr + 14f), o(cx + 40f, cy + rr + 14f), strokeWidth = 4f * s, cap = StrokeCap.Round)
         }
         fun moon(cx: Float, cy: Float, r: Float) {
-            drawCircle(moonC, r * s, o(cx, cy))
-            drawCircle(Color.Black, (r * 0.92f * s), o(cx + r * 0.45f * s, cy - r * 0.20f * s), style = fill, blendMode = BlendMode.Clear)
-            listOf(-0.42f to -0.28f, -0.20f to 0.25f, 0.02f to -0.06f).forEach { (dx, dy) -> drawCircle(moonC.copy(alpha = 0.55f), 2.2f * s, o(cx + dx * r, cy + dy * r)) }
+            val k = sky.moon
+            if (k <= 0.01f) return
+            val rr = r * (0.8f + 0.2f * k) * 1.25f
+            val c = moonC.copy(alpha = k)
+            val crescent = Path().apply {
+                addOval(androidx.compose.ui.geometry.Rect(o(cx - rr, cy - rr), o(cx + rr, cy + rr)))
+            }
+            val bite = Path().apply {
+                val br = rr * 0.86f; val bx = cx + rr * 0.5f; val by = cy - rr * 0.2f
+                addOval(androidx.compose.ui.geometry.Rect(o(bx - br, by - br), o(bx + br, by + br)))
+            }
+            drawPath(Path.combine(androidx.compose.ui.graphics.PathOperation.Difference, crescent, bite), c)
+            listOf(0.62f to -0.55f, 0.30f to -0.72f, 0.74f to 0.12f).forEach { (dx, dy) -> drawCircle(c.copy(alpha = 0.7f * k), 1.8f * s, o(cx + dx * rr * 0.9f, cy + dy * rr * 0.9f)) }
         }
         fun cloud(cx: Float, cy: Float, k: Float) {
             drawCircle(cloudC, 16f * k * s, o(cx - 19f * k, cy + 5f * k))
@@ -54,10 +87,8 @@ internal fun WeatherConditionIcon(info: WeatherInfo, modifier: Modifier = Modifi
         fun bolt(cx: Float, cy: Float) { val p = Path().apply { moveTo(cx * s, cy * s); lineTo((cx - 12f) * s, (cy + 26f) * s); lineTo((cx + 1f) * s, (cy + 23f) * s); lineTo((cx - 8f) * s, (cy + 48f) * s); lineTo((cx + 18f) * s, (cy + 15f) * s); lineTo((cx + 4f) * s, (cy + 18f) * s); close() }; drawPath(p, thunderC, style = fill) }
 
         when (key) {
-            "sunny" -> sun(50f, 50f, 23f)
-            "clearNight" -> moon(50f, 50f, 28f)
-            "partlyDay" -> { sun(36f, 36f, 17f); cloud(56f, 60f, 1f) }
-            "partlyNight" -> { moon(36f, 35f, 20f); cloud(56f, 60f, 1f) }
+            "sunny", "clearNight" -> { sun(50f, 50f, 23f); moon(50f, 50f, 23f) }
+            "partlyDay", "partlyNight" -> { sun(36f, 36f, 17f); moon(36f, 36f, 17f); cloud(56f, 60f, 1f) }
             "cloudy" -> { cloud(46f, 48f, 1.15f); cloud(60f, 62f, 0.82f) }
             "fog" -> { cloud(50f, 36f, 0.9f); fog(50f, 58f) }
             "drizzle" -> { cloud(50f, 38f, 1f); drops(35f, 62f, 3, rainC.copy(alpha = 0.72f)) }
@@ -67,4 +98,9 @@ internal fun WeatherConditionIcon(info: WeatherInfo, modifier: Modifier = Modifi
             else -> cloud(46f, 48f, 1.15f)
         }
     }
+}
+
+private fun currentHour(): Float {
+    val c = java.util.Calendar.getInstance()
+    return c.get(java.util.Calendar.HOUR_OF_DAY) + c.get(java.util.Calendar.MINUTE) / 60f
 }

@@ -281,7 +281,8 @@ fun EpgScreen(
     // through the programmes. Without it, reaching the channel list meant ◀ past every programme.
     var inCellMode by remember { mutableStateOf(false) }
     // TV-box look: Live TV's guide is a view of the channel list, so Back from the rows goes back to the list.
-    BackHandler(enabled = tv.own.owntv.features.shell.TvBoxNav && liveMode && !inCellMode && gridHasFocus) { onListView() }
+    // Wherever focus is inside the guide (the grid, a button above it), Back goes back to the list it was opened from.
+    BackHandler(enabled = tv.own.owntv.features.shell.TvBoxNav && liveMode && !inCellMode) { onListView() }
     BackHandler(enabled = inCellMode && gridHasFocus) { inCellMode = false }
     // The programme the block on top shows and the buttons act on: the one under the cursor.
     var selected by remember { mutableStateOf<Pair<ChannelEntity, EpgProgrammeEntity?>?>(null) }

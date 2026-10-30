@@ -91,10 +91,10 @@
     <file name="app/src/main/java/tv/own/owntv/features/epg/EpgScreen.kt">
         <error line="3" column="1" source="standard:import-ordering" />
         <error line="265" column="5" source="standard:spacing-between-declarations-with-comments" />
-        <error line="313" column="5" source="standard:spacing-between-declarations-with-comments" />
-        <error line="508" column="1" source="standard:no-blank-line-before-rbrace" />
-        <error line="684" column="1" source="standard:no-blank-line-before-rbrace" />
-        <error line="885" column="29" source="standard:keyword-spacing" />
+        <error line="314" column="5" source="standard:spacing-between-declarations-with-comments" />
+        <error line="509" column="1" source="standard:no-blank-line-before-rbrace" />
+        <error line="685" column="1" source="standard:no-blank-line-before-rbrace" />
+        <error line="886" column="29" source="standard:keyword-spacing" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/epg/EpgViewModel.kt">
         <error line="5" column="1" source="standard:import-ordering" />
@@ -586,14 +586,14 @@
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt">
         <error line="3" column="1" source="standard:import-ordering" />
-        <error line="1467" column="187" source="standard:wrapping" />
-        <error line="1481" column="26" source="standard:wrapping" />
-        <error line="1525" column="107" source="standard:wrapping" />
-        <error line="1538" column="26" source="standard:wrapping" />
-        <error line="2424" column="19" source="standard:property-naming" />
-        <error line="2436" column="1" source="standard:kdoc" />
-        <error line="2442" column="19" source="standard:property-naming" />
-        <error line="2443" column="19" source="standard:property-naming" />
+        <error line="1469" column="187" source="standard:wrapping" />
+        <error line="1483" column="26" source="standard:wrapping" />
+        <error line="1527" column="107" source="standard:wrapping" />
+        <error line="1540" column="26" source="standard:wrapping" />
+        <error line="2426" column="19" source="standard:property-naming" />
+        <error line="2438" column="1" source="standard:kdoc" />
+        <error line="2444" column="19" source="standard:property-naming" />
+        <error line="2445" column="19" source="standard:property-naming" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/shell/ShellViewModel.kt">
         <error line="3" column="1" source="standard:import-ordering" />

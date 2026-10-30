@@ -2506,6 +2506,21 @@
     <ID>MagicNumber:ShellViewModel.kt$ShellViewModel$60_000L</ID>
     <ID>MagicNumber:SkMateWordmark.kt$0xFF0086FC</ID>
     <ID>MagicNumber:SkMateWordmark.kt$900</ID>
+    <ID>MagicNumber:SkyPhase.kt$SkyPhase.Companion$10f</ID>
+    <ID>MagicNumber:SkyPhase.kt$SkyPhase.Companion$11f</ID>
+    <ID>MagicNumber:SkyPhase.kt$SkyPhase.Companion$12f</ID>
+    <ID>MagicNumber:SkyPhase.kt$SkyPhase.Companion$14f</ID>
+    <ID>MagicNumber:SkyPhase.kt$SkyPhase.Companion$16f</ID>
+    <ID>MagicNumber:SkyPhase.kt$SkyPhase.Companion$19.5f</ID>
+    <ID>MagicNumber:SkyPhase.kt$SkyPhase.Companion$19f</ID>
+    <ID>MagicNumber:SkyPhase.kt$SkyPhase.Companion$20.5f</ID>
+    <ID>MagicNumber:SkyPhase.kt$SkyPhase.Companion$21.5f</ID>
+    <ID>MagicNumber:SkyPhase.kt$SkyPhase.Companion$24f</ID>
+    <ID>MagicNumber:SkyPhase.kt$SkyPhase.Companion$3f</ID>
+    <ID>MagicNumber:SkyPhase.kt$SkyPhase.Companion$4.5f</ID>
+    <ID>MagicNumber:SkyPhase.kt$SkyPhase.Companion$5f</ID>
+    <ID>MagicNumber:SkyPhase.kt$SkyPhase.Companion$6.5f</ID>
+    <ID>MagicNumber:SkyPhase.kt$SkyPhase.Companion$6f</ID>
     <ID>MagicNumber:SocialIcons.kt$134.872f</ID>
     <ID>MagicNumber:SocialIcons.kt$224.112f</ID>
     <ID>MagicNumber:SocialIcons.kt$24f</ID>
@@ -3037,35 +3052,43 @@
     <ID>MagicNumber:VodStage.kt$800</ID>
     <ID>MagicNumber:VodStage.kt$92</ID>
     <ID>MagicNumber:VodStage.kt$92f</ID>
+    <ID>MagicNumber:WeatherConditionIcon.kt$0.01f</ID>
     <ID>MagicNumber:WeatherConditionIcon.kt$0.02f</ID>
-    <ID>MagicNumber:WeatherConditionIcon.kt$0.06f</ID>
-    <ID>MagicNumber:WeatherConditionIcon.kt$0.20f</ID>
-    <ID>MagicNumber:WeatherConditionIcon.kt$0.25f</ID>
-    <ID>MagicNumber:WeatherConditionIcon.kt$0.28f</ID>
-    <ID>MagicNumber:WeatherConditionIcon.kt$0.42f</ID>
-    <ID>MagicNumber:WeatherConditionIcon.kt$0.45f</ID>
+    <ID>MagicNumber:WeatherConditionIcon.kt$0.12f</ID>
+    <ID>MagicNumber:WeatherConditionIcon.kt$0.2f</ID>
+    <ID>MagicNumber:WeatherConditionIcon.kt$0.30f</ID>
+    <ID>MagicNumber:WeatherConditionIcon.kt$0.55f</ID>
+    <ID>MagicNumber:WeatherConditionIcon.kt$0.5f</ID>
+    <ID>MagicNumber:WeatherConditionIcon.kt$0.62f</ID>
+    <ID>MagicNumber:WeatherConditionIcon.kt$0.72f</ID>
+    <ID>MagicNumber:WeatherConditionIcon.kt$0.74f</ID>
     <ID>MagicNumber:WeatherConditionIcon.kt$0.82f</ID>
-    <ID>MagicNumber:WeatherConditionIcon.kt$0.92f</ID>
+    <ID>MagicNumber:WeatherConditionIcon.kt$0.86f</ID>
+    <ID>MagicNumber:WeatherConditionIcon.kt$0.8f</ID>
     <ID>MagicNumber:WeatherConditionIcon.kt$0.9f</ID>
     <ID>MagicNumber:WeatherConditionIcon.kt$0xFF76A7FF</ID>
+    <ID>MagicNumber:WeatherConditionIcon.kt$0xFF8A9BC4</ID>
     <ID>MagicNumber:WeatherConditionIcon.kt$0xFFDDEFE9</ID>
     <ID>MagicNumber:WeatherConditionIcon.kt$0xFFDDF8FF</ID>
     <ID>MagicNumber:WeatherConditionIcon.kt$0xFFF0FCFF</ID>
     <ID>MagicNumber:WeatherConditionIcon.kt$0xFFFFD166</ID>
     <ID>MagicNumber:WeatherConditionIcon.kt$1.05f</ID>
     <ID>MagicNumber:WeatherConditionIcon.kt$1.15f</ID>
+    <ID>MagicNumber:WeatherConditionIcon.kt$1.25f</ID>
+    <ID>MagicNumber:WeatherConditionIcon.kt$1.8f</ID>
     <ID>MagicNumber:WeatherConditionIcon.kt$10</ID>
     <ID>MagicNumber:WeatherConditionIcon.kt$100f</ID>
     <ID>MagicNumber:WeatherConditionIcon.kt$10f</ID>
     <ID>MagicNumber:WeatherConditionIcon.kt$12f</ID>
     <ID>MagicNumber:WeatherConditionIcon.kt$13f</ID>
+    <ID>MagicNumber:WeatherConditionIcon.kt$14f</ID>
     <ID>MagicNumber:WeatherConditionIcon.kt$15f</ID>
     <ID>MagicNumber:WeatherConditionIcon.kt$16f</ID>
     <ID>MagicNumber:WeatherConditionIcon.kt$17f</ID>
     <ID>MagicNumber:WeatherConditionIcon.kt$18f</ID>
     <ID>MagicNumber:WeatherConditionIcon.kt$19f</ID>
-    <ID>MagicNumber:WeatherConditionIcon.kt$2.2f</ID>
     <ID>MagicNumber:WeatherConditionIcon.kt$20f</ID>
+    <ID>MagicNumber:WeatherConditionIcon.kt$22f</ID>
     <ID>MagicNumber:WeatherConditionIcon.kt$23f</ID>
     <ID>MagicNumber:WeatherConditionIcon.kt$24f</ID>
     <ID>MagicNumber:WeatherConditionIcon.kt$26f</ID>
@@ -3079,6 +3102,7 @@
     <ID>MagicNumber:WeatherConditionIcon.kt$39f</ID>
     <ID>MagicNumber:WeatherConditionIcon.kt$3f</ID>
     <ID>MagicNumber:WeatherConditionIcon.kt$4</ID>
+    <ID>MagicNumber:WeatherConditionIcon.kt$40f</ID>
     <ID>MagicNumber:WeatherConditionIcon.kt$46f</ID>
     <ID>MagicNumber:WeatherConditionIcon.kt$48f</ID>
     <ID>MagicNumber:WeatherConditionIcon.kt$4f</ID>
@@ -3087,10 +3111,12 @@
     <ID>MagicNumber:WeatherConditionIcon.kt$56f</ID>
     <ID>MagicNumber:WeatherConditionIcon.kt$58f</ID>
     <ID>MagicNumber:WeatherConditionIcon.kt$5f</ID>
+    <ID>MagicNumber:WeatherConditionIcon.kt$60_000L</ID>
     <ID>MagicNumber:WeatherConditionIcon.kt$60f</ID>
     <ID>MagicNumber:WeatherConditionIcon.kt$62f</ID>
     <ID>MagicNumber:WeatherConditionIcon.kt$65f</ID>
     <ID>MagicNumber:WeatherConditionIcon.kt$66f</ID>
+    <ID>MagicNumber:WeatherConditionIcon.kt$6f</ID>
     <ID>MagicNumber:WeatherConditionIcon.kt$7f</ID>
     <ID>MagicNumber:WeatherConditionIcon.kt$8f</ID>
     <ID>MagicNumber:WeatherConditionIcon.kt$9f</ID>
@@ -3468,7 +3494,6 @@
     <ID>MaxLineLength:DownloadsViewModel.kt$private</ID>
     <ID>MaxLineLength:DwellCountdown.kt$if (e.key == Key.DirectionCenter || e.key == Key.Enter || e.key == Key.NumPadEnter) onHeld(e.type == KeyEventType.KeyDown)</ID>
     <ID>MaxLineLength:EpgScreen.kt$.</ID>
-    <ID>MaxLineLength:EpgScreen.kt$BackHandler(enabled = tv.own.owntv.features.shell.TvBoxNav &amp;&amp; liveMode &amp;&amp; !inCellMode &amp;&amp; gridHasFocus) { onListView() }</ID>
     <ID>MaxLineLength:EpgScreen.kt$Box</ID>
     <ID>MaxLineLength:EpgScreen.kt$CompositionLocalProvider</ID>
     <ID>MaxLineLength:EpgScreen.kt$GuideChannelLabel(channel, name, dot, selected = selectedRow, numberWidth = numberWidth, modifier = Modifier.width(labelWidth))</ID>
@@ -5472,6 +5497,7 @@
     <ID>MaxLineLength:SetupWizard.kt$vm.startXtream(importName!!, server, user, pass, ua, epg, refresh, live, movies, series, preferHls, httpReferer = ref)</ID>
     <ID>MaxLineLength:ShellViewModel.kt$ShellViewModel$.</ID>
     <ID>MaxLineLength:ShellViewModel.kt$ShellViewModel$Log.d(TAG, "activeProfileChanged profile=$pid androidTvHomeEnabled=${settings.androidTvHomeEnabled.first()}")</ID>
+    <ID>MaxLineLength:SkyPhase.kt$SkyPhase.Companion$return SkyPhase(sun = sun, moon = moon, sunColor = color, rays = 0.45f + 0.55f * height, horizon = (1f - height) * sun)</ID>
     <ID>MaxLineLength:SocialIcons.kt$"M22,5.8a8.49,8.49,0,0,1-2.36.64,4.13,4.13,0,0,0,1.81-2.27,8.21,8.21,0,0,1-2.61,1,4.1,4.1,0,0,0-7,3.74A11.64,11.64,0,0,1,3.39,4.62a4.16,4.16,0,0,0-.55,2.07A4.09,4.09,0,0,0,4.66,10.1,4.05,4.05,0,0,1,2.8,9.59v.05a4.1,4.1,0,0,0,3.3,4A3.93,3.93,0,0,1,5,13.81a4.9,4.9,0,0,1-.77-.07,4.11,4.11,0,0,0,3.83,2.84A8.22,8.22,0,0,1,3,18.34a7.93,7.93,0,0,1-1-.06,11.57,11.57,0,0,0,6.29,1.85A11.59,11.59,0,0,0,20,8.45c0-.17,0-.35,0-.53A8.43,8.43,0,0,0,22,5.8Z"</ID>
     <ID>MaxLineLength:SocialIcons.kt$"M84 232a24 24 0 0 0 24-24V160M172 232a24 24 0 0 1-24-24V160M152 160h16a24 24 0 0 1 24 24v8a24 24 0 0 0 24 24M104 160H88a24 24 0 0 0-24 24v8a24 24 0 0 1-24 24M64.51166 76.70377A51.90056 51.90056 0 0 1 68 32a51.9599 51.9599 0 0 1 43.82469 23.9988V56h32.35061V55.9988A51.9599 51.9599 0 0 1 188 32a51.90056 51.90056 0 0 1 3.48834 44.70377l0 0A47.77872 47.77872 0 0 1 200 104v8a48 48 0 0 1-48 48H104a48 48 0 0 1-48-48v-8a47.77872 47.77872 0 0 1 8.51163-27.29627z"</ID>
     <ID>MaxLineLength:SocialIcons.kt$"M88,134.87236l89.91726,79.12718a8,8,0,0,0,13.08288-4.21869L228.61385,45.64829a8,8,0,0,0-10.72308-9.233L33.33393,108.91975a8,8,0,0,0,1.35629,15.29065Z"</ID>
@@ -6170,13 +6196,13 @@
     <ID>MaxLineLength:VodStage.kt$style = stageText(22, 800)</ID>
     <ID>MaxLineLength:VodStage.kt$title = stringResource(if (series) R.string.content_sort_series_title else R.string.content_sort_movies_title)</ID>
     <ID>MaxLineLength:VodStage.kt$val focusKey = ordered.firstOrNull { it.key == firstFocusKey &amp;&amp; it.key !in disabled }?.key ?: ordered.firstOrNull { it.key !in disabled }?.key</ID>
-    <ID>MaxLineLength:WeatherConditionIcon.kt$drawCircle(Color.Black, (r * 0.92f * s), o(cx + r * 0.45f * s, cy - r * 0.20f * s), style = fill, blendMode = BlendMode.Clear)</ID>
-    <ID>MaxLineLength:WeatherConditionIcon.kt$for (i in 0 until 10) { val a = i * kotlin.math.PI.toFloat() / 5f; drawLine(sunC, o(cx + kotlin.math.cos(a) * (r + 8f), cy + kotlin.math.sin(a) * (r + 8f)), o(cx + kotlin.math.cos(a) * (r + 20f), cy + kotlin.math.sin(a) * (r + 20f)), strokeWidth = 4f * s, cap = StrokeCap.Round) }</ID>
+    <ID>MaxLineLength:WeatherConditionIcon.kt$drawLine(sunC.copy(alpha = k), o(cx + kotlin.math.cos(a) * inner, cy + kotlin.math.sin(a) * inner), o(cx + kotlin.math.cos(a) * outer, cy + kotlin.math.sin(a) * outer), strokeWidth = 4f * s, cap = StrokeCap.Round)</ID>
     <ID>MaxLineLength:WeatherConditionIcon.kt$for (i in 0 until 3) { val x = cx + i * 20f; val y = cy + (i % 2) * 4f; val w = 3f * s; val c = StrokeCap.Round; drawLine(snowC, o(x - 7f, y), o(x + 7f, y), w, c); drawLine(snowC, o(x, y - 7f), o(x, y + 7f), w, c); drawLine(snowC, o(x - 5f, y - 5f), o(x + 5f, y + 5f), w, c); drawLine(snowC, o(x + 5f, y - 5f), o(x - 5f, y + 5f), w, c) }</ID>
     <ID>MaxLineLength:WeatherConditionIcon.kt$for (i in 0 until 4) drawLine(fogC.copy(alpha = 0.74f), o(cx - 38f, cy + i * 12f), o(cx + 38f, cy + i * 12f), strokeWidth = 5f * s, cap = StrokeCap.Round)</ID>
     <ID>MaxLineLength:WeatherConditionIcon.kt$for (i in 0 until n) drawLine(c, o(cx + i * 18f, cy), o(cx - 5f + i * 18f, cy + 18f), strokeWidth = 4f * s, cap = StrokeCap.Round)</ID>
     <ID>MaxLineLength:WeatherConditionIcon.kt$fun bolt(cx: Float, cy: Float)</ID>
-    <ID>MaxLineLength:WeatherConditionIcon.kt$listOf(-0.42f to -0.28f, -0.20f to 0.25f, 0.02f to -0.06f).forEach { (dx, dy) -&gt; drawCircle(moonC.copy(alpha = 0.55f), 2.2f * s, o(cx + dx * r, cy + dy * r)) }</ID>
+    <ID>MaxLineLength:WeatherConditionIcon.kt$if (sky.horizon &gt; 0.02f) drawLine(sunC.copy(alpha = 0.8f * sky.horizon), o(cx - 40f, cy + rr + 14f), o(cx + 40f, cy + rr + 14f), strokeWidth = 4f * s, cap = StrokeCap.Round)</ID>
+    <ID>MaxLineLength:WeatherConditionIcon.kt$listOf(0.62f to -0.55f, 0.30f to -0.72f, 0.74f to 0.12f).forEach { (dx, dy) -&gt; drawCircle(c.copy(alpha = 0.7f * k), 1.8f * s, o(cx + dx * rr * 0.9f, cy + dy * rr * 0.9f)) }</ID>
     <ID>MaxLineLength:WeatherSettingsScreen.kt$ColorChoice(muted, stringResource(R.string.settings_clock_color_grey)) { vm.setClockColor(part, muted.hex()) }</ID>
     <ID>MaxLineLength:WeatherSettingsScreen.kt$ColorChoice(stageAccent.accent, stringResource(R.string.settings_clock_color_accent)) { vm.setClockColor(part, ClockColors.ACCENT) }</ID>
     <ID>MaxLineLength:WeatherSettingsScreen.kt$ColorChoice(text, stringResource(R.string.settings_clock_color_white)) { vm.setClockColor(part, text.hex()) }</ID>
