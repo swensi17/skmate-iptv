@@ -512,6 +512,7 @@ fun LiveScreen(
     var moreOpen by remember { mutableStateOf(false) }
     val moreToolFocus = remember { FocusRequester() }
     val fixingGuide by vm.fixingGuide.collectAsStateWithLifecycle()
+    val pickState by vm.pick.collectAsStateWithLifecycle()
     val sortToolFocus = remember { FocusRequester() }
     var sheetHadFocus by remember { mutableStateOf(false) }
     // The current channel's row. After a long-press that row carries contextFocus instead of selFocus
@@ -1248,7 +1249,15 @@ fun LiveScreen(
                     )
                 }
             },
+            onPick = vm::loadPick,
             onDismiss = { moreOpen = false; runCatching { moreToolFocus.requestFocus() } },
+        )
+    }
+    pickState?.let { ps ->
+        LivePickMenu(
+            state = ps, x = 560f, top = 190.mpx,
+            onWatch = { ch -> vm.watchFullscreen(ch, emptyList()); if (!externalPlayerOn) onFullscreen() },
+            onDismiss = { vm.closePick(); runCatching { moreToolFocus.requestFocus() } },
         )
     }
 

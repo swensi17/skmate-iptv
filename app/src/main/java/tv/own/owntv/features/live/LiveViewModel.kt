@@ -137,7 +137,27 @@ class LiveViewModel(
     /** Keeps the preview pane off a one-stream playlist while a download is using it. */
     private val downloadWatchGuard: tv.own.owntv.core.download.DownloadWatchGuard,
     private val guideAutoLink: tv.own.owntv.core.epg.GuideAutoLink,
+    private val searchReader: tv.own.owntv.core.content.SearchReader,
 ) : ViewModel() {
+
+    /** The "On now" list being shown: which one, and what was found (null items while it is loading). */
+    data class PickState(val pick: tv.own.owntv.core.content.SmartPick, val items: List<tv.own.owntv.core.content.ProgrammeSearchResult>?)
+
+    private val _pick = MutableStateFlow<PickState?>(null)
+    val pick: StateFlow<PickState?> = _pick.asStateFlow()
+
+    fun loadPick(pick: tv.own.owntv.core.content.SmartPick) {
+        _pick.value = PickState(pick, null)
+        viewModelScope.launch {
+            val items = runCatching {
+                val sources = activeProfileSources(settings, sourceDao).first { it.profileId >= 0 }
+                tv.own.owntv.core.content.SmartPicks.load(searchReader, sources.profileId, sources, pick)
+            }.getOrDefault(emptyList())
+            if (_pick.value?.pick == pick) _pick.value = PickState(pick, items)
+        }
+    }
+
+    fun closePick() { _pick.value = null }
 
     private val _fixingGuide = MutableStateFlow(false)
 

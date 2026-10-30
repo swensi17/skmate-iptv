@@ -210,6 +210,7 @@ class SearchReader(
         liveSourceIds: List<Long>,
         cust: SectionCustomizations,
         hiddenCats: Set<Long>,
+        horizonMs: Long = PROGRAMME_HORIZON_MS,
     ): List<ProgrammeSearchResult> {
         val now = System.currentTimeMillis()
         // The stored window is widened by [PROGRAMME_SHIFT_SLACK_MS] on both sides, so a shifted channel
@@ -218,7 +219,7 @@ class SearchReader(
         // is on now.
         val rows = variants.likeForms()
             .flatMap { q ->
-                epgDao.searchTitles(q, now - PROGRAMME_SHIFT_SLACK_MS, now + PROGRAMME_HORIZON_MS + PROGRAMME_SHIFT_SLACK_MS, PROGRAMME_ROWS)
+                epgDao.searchTitles(q, now - PROGRAMME_SHIFT_SLACK_MS, now + horizonMs + PROGRAMME_SHIFT_SLACK_MS, PROGRAMME_ROWS)
             }
             .distinctBy { it.id }
         if (rows.isEmpty()) return emptyList()
@@ -239,13 +240,25 @@ class SearchReader(
                 val shift = EpgShift.minutesFor(cust, ch, globalShift)
                 val named = cust.itemNames[CustomizeKeys.channel(ch)]?.let { ch.copy(name = it) } ?: ch
                 EpgShift.apply(EpgDedupe.collapse(byKey[key].orEmpty()), shift)
-                    .filter { it.stopMs > now && it.startMs < now + PROGRAMME_HORIZON_MS }
+                    .filter { it.stopMs > now && it.startMs < now + horizonMs }
                     .map { key to ProgrammeSearchResult(it, named) }
             }
             .distinctBy { (key, found) -> Triple(key, found.programme.startMs, found.programme.title) }
             .map { it.second }
             .sortedWith(compareBy({ it.programme.startMs > now }, { it.programme.startMs }))
             .take(PROGRAMME_LIMIT)
+    }
+
+    /**
+     * Programmes whose title holds any of [words], airing right now (a narrow window, which keeps it quick): only the guide is read, not the
+     * channel, film and series indexes, so a list of a dozen words stays quick. The caller keeps what is on now.
+     */
+    suspend fun programmesFor(profileId: Long, sources: ActiveProfileSources, words: List<String>): List<ProgrammeSearchResult> {
+        if (profileId < 0 || sources.liveSourceIds.isEmpty()) return emptyList()
+        val custLive = customize.observe(profileId, MediaType.LIVE).first()
+        val isKids = profileDao.getById(profileId)?.isKids == true
+        val hidden = hiddenCategoryIds(sources.liveSourceIds, MediaType.LIVE, custLive, isKids)
+        return words.flatMap { programmes(QueryVariants.of(it), sources.liveSourceIds, custLive, hidden, horizonMs = 0L) }
     }
 
     /** One of the curated lists shown before anything is typed. Bounded, and already source-filtered. */

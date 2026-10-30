@@ -9,6 +9,8 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import tv.own.owntv.R
+import tv.own.owntv.core.content.SmartPick
+import tv.own.owntv.core.database.entity.ChannelEntity
 import tv.own.owntv.core.live.LiveSortModes
 import tv.own.owntv.core.settings.SettingsRepository.SortMode
 import tv.own.owntv.features.epg.GuideMenuHost
@@ -68,7 +70,7 @@ internal fun LiveMoreTool(boxed: Boolean, modifier: Modifier = Modifier, onClick
 
 /** The list's extra actions: today only "Fix the guide", each with a line saying what it does. */
 @Composable
-internal fun LiveMoreMenu(x: Float, top: Dp, fixing: Boolean, onFixGuide: () -> Unit, onDismiss: () -> Unit) {
+internal fun LiveMoreMenu(x: Float, top: Dp, fixing: Boolean, onFixGuide: () -> Unit, onPick: (SmartPick) -> Unit, onDismiss: () -> Unit) {
     val focus = remember { FocusRequester() }
     LaunchedEffect(Unit) { runCatching { focus.requestFocus() } }
     GuideMenuHost(x = x, top = top, width = 760.mpx, onDismiss = onDismiss) {
@@ -80,5 +82,44 @@ internal fun LiveMoreMenu(x: Float, top: Dp, fixing: Boolean, onFixGuide: () -> 
             onClick = { if (!fixing) onFixGuide(); onDismiss() },
             modifier = Modifier.focusRequester(focus),
         )
+        SmartPick.entries.forEach { pick ->
+            StageMenuItem(
+                text = stringResource(R.string.live_pick_now, stringResource(pickName(pick))),
+                icon = OwnTVIcon.LIVE_DOT,
+                onClick = { onPick(pick); onDismiss() },
+            )
+        }
+    }
+}
+
+private fun pickName(pick: SmartPick): Int = when (pick) {
+    SmartPick.SPORT -> R.string.live_pick_sport
+    SmartPick.MOVIES -> R.string.live_pick_movies
+    SmartPick.NEWS -> R.string.live_pick_news
+    SmartPick.KIDS -> R.string.live_pick_kids
+}
+
+/** "On now: Sport": the channels airing a match of it this minute, each with its programme; OK tunes it. */
+@Composable
+internal fun LivePickMenu(state: LiveViewModel.PickState, x: Float, top: Dp, onWatch: (ChannelEntity) -> Unit, onDismiss: () -> Unit) {
+    val focus = remember { FocusRequester() }
+    val items = state.items
+    LaunchedEffect(items == null) { runCatching { focus.requestFocus() } }
+    GuideMenuHost(x = x, top = top, width = 760.mpx, onDismiss = onDismiss) {
+        StageMenuHeader(
+            title = stringResource(R.string.live_pick_now, stringResource(pickName(state.pick))),
+            subtitle = stringResource(R.string.live_pick_hint),
+        )
+        when {
+            items == null -> StageMenuItem(text = stringResource(R.string.live_pick_loading), icon = OwnTVIcon.CLOCK, onClick = {}, modifier = Modifier.focusRequester(focus))
+            items.isEmpty() -> StageMenuItem(text = stringResource(R.string.live_pick_empty), icon = OwnTVIcon.INFO, onClick = onDismiss, modifier = Modifier.focusRequester(focus))
+            else -> items.forEachIndexed { i, hit ->
+                StageMenuItem(
+                    text = hit.channel.name, icon = OwnTVIcon.LIVE_DOT, value = hit.programme.title,
+                    onClick = { onWatch(hit.channel); onDismiss() },
+                    modifier = if (i == 0) Modifier.focusRequester(focus) else Modifier,
+                )
+            }
+        }
     }
 }
