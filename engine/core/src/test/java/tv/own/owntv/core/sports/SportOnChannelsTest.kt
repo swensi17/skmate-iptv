@@ -26,7 +26,9 @@ class SportOnChannelsTest {
     private val euro = ch("UK| EUROSPORT 1", "eurosport1")
     private val drama = ch("DE| ZDFneo", "zdfneo")
     private val sky = ch("DE| SKY SPORT BUNDESLIGA 1", "sky.bl1")
-    private val channels = listOf(dyn, dazn, euro, drama, sky)
+    private val match = ch("Матч! Премьер HD", "match.premier")
+    private val kids = ch("Суббота!", "subbota")
+    private val channels = listOf(dyn, dazn, euro, drama, sky, match, kids)
 
     private fun p(id: Long, epg: String, title: String, cat: String? = null, start: Long = now - 600_000) =
         EpgProgrammeLite(id, epg, start, start + 2 * 3_600_000, title, cat)
@@ -53,6 +55,16 @@ class SportOnChannelsTest {
         assertEquals(listOf(GuideSport.HANDBALL, GuideSport.DARTS, GuideSport.SNOOKER), row.keys.toList())
         assertEquals(listOf(dyn), row.getValue(GuideSport.HANDBALL).single().channels)
         assertEquals("Darts: European Championship", row.getValue(GuideSport.DARTS).single().title)
+    }
+
+    @Test fun `a Russian title counts on a sports channel, or when the guide files it as sport`() = runBlocking {
+        val row = SportOnChannels(fake(
+            p(1, "match.premier", "Хоккей. КХЛ. ЦСКА – СКА"),
+            p(2, "subbota", "Маша и Медведь (Вот такой хоккей)"),
+            p(3, "subbota", "Хоккей. Лучшие моменты", cat = "Спорт"),
+        )) { now }.read()
+        val titles = row.values.flatten().map { it.title }.toSet()
+        assertEquals(setOf("Хоккей. КХЛ. ЦСКА – СКА", "Хоккей. Лучшие моменты"), titles)
     }
 
     @Test fun `a bare fixture counts only on a sports channel`() = runBlocking {

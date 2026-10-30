@@ -30,7 +30,7 @@ class SportsBoardFilterTest {
     }
 
     @Test fun countriesAndSportsListed() {
-        assertEquals(listOf("PT", "RS", "RU", "TR"), SportsBoardFilter.countries(items))
+        assertEquals(setOf("PT", "RS", "RU", "TR"), SportsBoardFilter.countries(items).toSet())
         assertEquals(listOf(GuideSport.FOOTBALL, GuideSport.BASKETBALL, GuideSport.TENNIS), SportsBoardFilter.sports(items))
     }
 
@@ -57,5 +57,31 @@ class SportsBoardFilterTest {
         assertEquals(listOf("Монца – Наполи"), SportsBoardFilter.apply(items, "vjywf", emptySet(), emptySet(), BoardSort.TIME).map { it.title })
         assertEquals(listOf("Fenerbahce – Efes"), SportsBoardFilter.apply(items, "fenerbache", emptySet(), emptySet(), BoardSort.TIME).map { it.title })
         assertEquals(listOf("Benfica – Vicente"), SportsBoardFilter.apply(items, "sport tv", emptySet(), emptySet(), BoardSort.TIME).map { it.title })
+    }
+
+    @Test fun relevancePutsTheViewersCountryAndKnownChannelsFirst() {
+        val ru = SportsBoardFilter.apply(items, "", emptySet(), emptySet(), BoardSort.RELEVANCE, SportsBoardFilter.preferredCountries("ru", "UZ"))
+        assertEquals("Монца – Наполи", ru.first().title)
+    }
+
+    @Test fun preferredCountries() {
+        assertEquals(setOf("RU", "UZ"), SportsBoardFilter.preferredCountries("ru", "UZ"))
+        assertEquals(setOf("GB"), SportsBoardFilter.preferredCountries("en", null))
+    }
+
+    @Test fun russianGuideTitlesAreSport() {
+        assertEquals(GuideSport.FOOTBALL, SportOnChannels.sportOf("Футбол. Чемпионат России. Спартак – Зенит", null))
+        assertEquals(GuideSport.ICE_HOCKEY, SportOnChannels.sportOf("Хоккей. КХЛ. ЦСКА – СКА", null))
+        assertEquals(GuideSport.COMBAT, SportOnChannels.sportOf("Профессиональный бокс. Бой за титул", null))
+        assertEquals(GuideSport.MOTORSPORT, SportOnChannels.sportOf("Формула-1. Гран-при Бразилии", null))
+        assertEquals(GuideSport.AMERICAN_FOOTBALL, SportOnChannels.sportOf("Американский футбол. НФЛ", null))
+        assertNull(SportOnChannels.sportOf("Новости дня", null))
+    }
+
+    @Test fun russianSportsChannels() {
+        assertEquals(true, SportOnChannels.isSportsChannel("Матч! Арена HD"))
+        assertEquals(true, SportOnChannels.isSportsChannel("Матч ТВ"))
+        assertEquals(true, SportOnChannels.isSportsChannel("Боец"))
+        assertEquals(false, SportOnChannels.isSportsChannel("Первый канал"))
     }
 }

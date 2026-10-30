@@ -46,11 +46,14 @@ import tv.own.owntv.core.sports.BoardSort
 import tv.own.owntv.core.sports.GuideSport
 import tv.own.owntv.core.sports.GuideSportItem
 import tv.own.owntv.core.sports.SportsBoardFilter
+import tv.own.owntv.features.epg.GuideMenuHost
 import tv.own.owntv.ui.components.OwnTVIcon
 import tv.own.owntv.ui.format.localizedInteger
 import tv.own.owntv.ui.components.ChannelLogoTile
 import tv.own.owntv.ui.stage.StageProgress
 import tv.own.owntv.ui.stage.StageRow
+import tv.own.owntv.ui.stage.StageMenuHeader
+import tv.own.owntv.ui.stage.StageMenuItem
 import tv.own.owntv.ui.stage.StageSearchField
 import tv.own.owntv.ui.stage.StageTab
 import tv.own.owntv.ui.stage.StageTool
@@ -79,11 +82,16 @@ internal fun SportsBoard(
     var query by rememberSaveable { mutableStateOf("") }
     var sports by remember { mutableStateOf(emptySet<GuideSport>()) }
     var countries by remember { mutableStateOf(emptySet<String>()) }
-    var sort by rememberSaveable { mutableStateOf(BoardSort.TIME) }
-    val shown = remember(items, query, sports, countries, sort) { SportsBoardFilter.apply(items, query, sports, countries, sort) }
-    val sportList = remember(items) { SportsBoardFilter.sports(items) }
-    val countryList = remember(items) { SportsBoardFilter.countries(items) }
+    var sort by rememberSaveable { mutableStateOf(BoardSort.RELEVANCE) }
+    var menu by remember { mutableStateOf<BoardMenu?>(null) }
     val locale = LocalConfiguration.current.locales[0]
+    val preferred = remember(locale) { SportsBoardFilter.preferredCountries(locale.language, locale.country.ifBlank { null }) }
+    val shown = remember(items, query, sports, countries, sort, preferred) { SportsBoardFilter.apply(items, query, sports, countries, sort, preferred) }
+    // Sports by how many programmes they have, so the long tail goes into the "More" menu, not the row.
+    val sportList = remember(items) { SportsBoardFilter.sports(items).sortedByDescending { s -> items.count { it.sport == s } } }
+    val rowSports = if (sportList.size > ROW_SPORTS) sportList.take(ROW_SPORTS - 1) else sportList
+    val moreSports = sportList - rowSports.toSet()
+    val countryList = remember(items, locale) { SportsBoardFilter.countries(items).sortedBy { countryName(it, locale).lowercase(locale) } }
 
     BoxWithConstraints(modifier.fillMaxSize()) {
         val gridWidth = maxWidth * (1560f / 1920f)
@@ -97,46 +105,43 @@ internal fun SportsBoard(
         ) {
             item(key = "title", span = { GridItemSpan(maxLineSpan) }) { BoardTitle(shown.size) }
             item(key = "search", span = { GridItemSpan(maxLineSpan) }) {
-                // The field in the middle; the sort button at the right end of the same line.
-                androidx.compose.foundation.layout.Box(Modifier.fillMaxWidth().padding(top = 10.mpx)) {
+                // The field at the left edge, longer; the two dropdowns at the right end of the same line.
+                Row(Modifier.fillMaxWidth().padding(top = 10.mpx), horizontalArrangement = Arrangement.spacedBy(12.mpx), verticalAlignment = Alignment.CenterVertically) {
                     StageSearchField(
                         query = query,
                         onQueryChange = { query = it },
                         placeholder = stringResource(R.string.sports_board_search),
-                        modifier = Modifier.align(Alignment.Center).widthIn(max = 860.mpx).fillMaxWidth(0.55f).focusRequester(searchFocus),
+                        modifier = Modifier.weight(1f).focusRequester(searchFocus),
                     )
+                    if (countryList.size > 1) {
+                        StageTool(
+                            text = null, icon = OwnTVIcon.LANGUAGE,
+                            value = if (countries.isEmpty()) stringResource(R.string.sports_board_all_countries) else countries.sortedBy { countryName(it, locale) }.joinToString(", ") { countryName(it, locale) },
+                            trailingIcon = OwnTVIcon.CHEVRON_DOWN, onClick = { menu = BoardMenu.COUNTRIES }, boxed = true,
+                            modifier = Modifier.widthIn(max = 360.mpx),
+                        )
+                    }
                     StageTool(
                         text = null, icon = OwnTVIcon.SORT, value = stringResource(sortLabel(sort)),
-                        onClick = { sort = BoardSort.entries[(sort.ordinal + 1) % BoardSort.entries.size] },
-                        boxed = true,
-                        modifier = Modifier.align(Alignment.CenterEnd),
+                        trailingIcon = OwnTVIcon.CHEVRON_DOWN, onClick = { menu = BoardMenu.SORT }, boxed = true,
                     )
                 }
             }
             if (sportList.size > 1) item(key = "sports", span = { GridItemSpan(maxLineSpan) }) {
-                FilterRow(Modifier.padding(top = 14.mpx)) {
-                    item(key = "all") {
-                        StageTab(stringResource(R.string.content_epg_all), localizedInteger(items.size), sports.isEmpty(), { sports = emptySet() }, centered = true)
-                    }
-                    items(sportList, key = { it.name }) { s ->
+                // One even line: every button the same width, the whole width of the board.
+                Row(Modifier.fillMaxWidth().padding(top = 14.mpx).focusGroup(), horizontalArrangement = Arrangement.spacedBy(8.mpx)) {
+                    StageTab(stringResource(R.string.content_epg_all), localizedInteger(items.size), sports.isEmpty(), { sports = emptySet() }, Modifier.weight(1f), centered = true)
+                    rowSports.forEach { s ->
                         StageTab(
                             guideSportLabel(s), localizedInteger(items.count { it.sport == s }), s in sports,
                             { sports = if (s in sports) sports - s else sports + s },
-                            centered = true,
+                            Modifier.weight(1f), centered = true,
                         )
                     }
-                }
-            }
-            if (countryList.size > 1) item(key = "countries", span = { GridItemSpan(maxLineSpan) }) {
-                FilterRow(Modifier.padding(top = 8.mpx)) {
-                    item(key = "all") {
-                        StageTab(stringResource(R.string.sports_board_all_countries), localizedInteger(items.size), countries.isEmpty(), { countries = emptySet() }, centered = true)
-                    }
-                    items(countryList, key = { it }) { code ->
+                    if (moreSports.isNotEmpty()) {
                         StageTab(
-                            countryName(code, locale), localizedInteger(items.count { SportsBoardFilter.countryOf(it) == code }), code in countries,
-                            { countries = if (code in countries) countries - code else countries + code },
-                            centered = true,
+                            stringResource(R.string.sports_board_more), localizedInteger(moreSports.sumOf { m -> items.count { it.sport == m } }),
+                            moreSports.any { it in sports }, { menu = BoardMenu.MORE_SPORTS }, Modifier.weight(1f), centered = true,
                         )
                     }
                 }
@@ -151,9 +156,44 @@ internal fun SportsBoard(
             }
         }
     }
+
+    when (menu) {
+        BoardMenu.COUNTRIES -> GuideMenuHost(x = 0f, top = 0.mpx, width = 640.mpx, onDismiss = { menu = null }) {
+            StageMenuHeader(title = stringResource(R.string.sports_board_country_title), subtitle = null)
+            StageMenuItem(stringResource(R.string.sports_board_all_countries), { countries = emptySet() }, checked = countries.isEmpty())
+            countryList.forEach { code ->
+                StageMenuItem(
+                    countryName(code, locale), { countries = if (code in countries) countries - code else countries + code },
+                    checked = code in countries, value = localizedInteger(items.count { SportsBoardFilter.countryOf(it) == code }),
+                )
+            }
+        }
+        BoardMenu.SORT -> GuideMenuHost(x = 0f, top = 0.mpx, width = 560.mpx, onDismiss = { menu = null }) {
+            StageMenuHeader(title = stringResource(R.string.sports_board_sort_title_menu), subtitle = null)
+            BoardSort.entries.forEach { mode ->
+                StageMenuItem(stringResource(sortLabel(mode)), { sort = mode; menu = null }, icon = OwnTVIcon.SORT, checked = mode == sort)
+            }
+        }
+        BoardMenu.MORE_SPORTS -> GuideMenuHost(x = 0f, top = 0.mpx, width = 560.mpx, onDismiss = { menu = null }) {
+            StageMenuHeader(title = stringResource(R.string.sports_board_more), subtitle = null)
+            moreSports.forEach { sp ->
+                StageMenuItem(
+                    guideSportLabel(sp), { sports = if (sp in sports) sports - sp else sports + sp },
+                    checked = sp in sports, value = localizedInteger(items.count { it.sport == sp }),
+                )
+            }
+        }
+        null -> Unit
+    }
 }
 
+private enum class BoardMenu { COUNTRIES, SORT, MORE_SPORTS }
+
+/** Sports shown as buttons in the line, the "More" menu holding the rest. */
+private const val ROW_SPORTS = 7
+
 private fun sortLabel(sort: BoardSort): Int = when (sort) {
+    BoardSort.RELEVANCE -> R.string.sports_board_sort_relevance
     BoardSort.TIME -> R.string.sports_board_sort_time
     BoardSort.TITLE -> R.string.sports_board_sort_title
     BoardSort.CHANNEL -> R.string.sports_board_sort_channel
@@ -166,7 +206,7 @@ private fun countryName(code: String, locale: java.util.Locale): String =
 @Composable
 private fun BoardTitle(count: Int) {
     val shown by animateIntAsState(count, tween(MotionPrefs.dur(500), easing = FastOutSlowInEasing), label = "boardCount")
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.Bottom) {
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Start, verticalAlignment = Alignment.Bottom) {
         Text48(stringResource(R.string.sports_title), StageColors.Text)
         Text48(" " + localizedInteger(shown), stageAccent.accent)
     }
