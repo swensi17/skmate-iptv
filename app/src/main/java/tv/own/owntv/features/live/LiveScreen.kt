@@ -537,6 +537,11 @@ fun LiveScreen(
         else sheetHadFocus = false
     }
 
+    // Opened while the list was still loading, focus has nowhere to land but the search field, and the first OK
+    // then pops a keyboard. When the first rows arrive and focus is still sitting there untouched, move it to the list.
+    var searchHasFocus by remember { mutableStateOf(false) }
+    var landedOnList by remember { mutableStateOf(false) }
+
     // Focus from the categories to the channel list: the remembered channel, else the first row.
     fun focusChannelList() {
         // TV-box style: back to the channel on screen now (the preview), whatever was remembered before.
@@ -561,6 +566,12 @@ fun LiveScreen(
                 runCatching { listSearchFocus.requestFocus() }
             }
         }
+    }
+
+    LaunchedEffect(channels.itemCount > 0) {
+        if (landedOnList || channels.itemCount == 0) return@LaunchedEffect
+        landedOnList = true
+        if (searchHasFocus && !searchEditing && searchQuery.isBlank() && lockedKey == null) focusChannelList()
     }
 
     // The menu draws itself square beside the open categories (see TvBoxPanels).
@@ -818,6 +829,7 @@ fun LiveScreen(
                                 else Modifier.weight(1f, fill = false).width(if (separate) listWidth * (230f / 620f) else listWidth * (456f / 846f)),
                             )
                             .focusRequester(listSearchFocus)
+                            .onFocusChanged { searchHasFocus = it.isFocused }
                             // TV-box look: the preview keeps playing while the search is used.
                             .onFocusChanged { if (it.hasFocus && previewEnabled && !tv.own.owntv.features.shell.TvBoxNav) vm.stopPreview() }
                             // ◀ Categories from the search field too, as from the rows (not while typing — a search that found nothing here may be in another category).
