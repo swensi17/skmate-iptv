@@ -603,7 +603,7 @@ internal fun AboutPage(vm: MoreCountsViewModel, entry: FocusRequester) {
     Column(Modifier.fillMaxSize().focusGroup().verticalScroll(androidx.compose.foundation.rememberScrollState()).padding(bottom = 40.mpx)) {
         // The thanks with an outlined heart after it (the version sits beside the page title, see MoreScreen).
         Row(Modifier.padding(start = AboutInset, end = AboutInset), horizontalArrangement = Arrangement.spacedBy(12.mpx), verticalAlignment = Alignment.CenterVertically) {
-            Text(stringResource(R.string.about_thanks_title), style = stageText(30, 800), color = StageColors.Text, maxLines = 2, modifier = Modifier.weight(1f, fill = false))
+            Text(stringResource(R.string.about_thanks_title), style = stageText(30, 800), color = StageColors.Text, maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
             OwnTVIcon(OwnTVIcon.FAVORITE, StageColors.Danger, Modifier.size(32.mpx), filled = false)
         }
         Text(stringResource(R.string.about_thanks_body), style = stageText(19, 500), color = StageColors.Muted, modifier = Modifier.padding(start = AboutInset, end = AboutInset, top = 8.mpx, bottom = 14.mpx))

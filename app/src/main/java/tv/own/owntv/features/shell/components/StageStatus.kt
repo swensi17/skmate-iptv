@@ -254,7 +254,7 @@ private fun RollingText(text: String, style: TextStyle, color: Color) {
                                 androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(RollMs)))
                     },
                     label = "clockDigit",
-                ) { c -> Text(c.toString(), style = style, color = color, maxLines = 1) }
+                ) { c -> Text(c.toString(), style = style, color = color, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) }
             }
         }
     }

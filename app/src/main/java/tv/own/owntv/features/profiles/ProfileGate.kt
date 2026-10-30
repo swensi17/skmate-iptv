@@ -131,7 +131,7 @@ private fun ProfileTile(profile: ProfileEntity, modifier: Modifier = Modifier, o
             }
         }
         Spacer(Modifier.height(16.mpx))
-        Text(profile.name, style = tv.own.owntv.ui.theme.stageText(24, 700), color = tv.own.owntv.ui.theme.StageColors.Text, textAlign = TextAlign.Center, maxLines = 1)
+        Text(profile.name, style = tv.own.owntv.ui.theme.stageText(24, 700), color = tv.own.owntv.ui.theme.StageColors.Text, textAlign = TextAlign.Center, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
         if (profile.isKids) {
             Text(stringResource(R.string.profiles_kids_badge), style = tv.own.owntv.ui.theme.stageText(20, 500), color = tv.own.owntv.ui.theme.stageAccent.accent)
         }
@@ -156,7 +156,7 @@ private fun AddTile(onClick: () -> Unit) {
             }
         }
         Spacer(Modifier.height(16.mpx))
-        Text(stringResource(R.string.profiles_add), style = tv.own.owntv.ui.theme.stageText(24, 700), color = tv.own.owntv.ui.theme.StageColors.Muted, maxLines = 1)
+        Text(stringResource(R.string.profiles_add), style = tv.own.owntv.ui.theme.stageText(24, 700), color = tv.own.owntv.ui.theme.StageColors.Muted, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
     }
 }
 

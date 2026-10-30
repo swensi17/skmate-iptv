@@ -228,7 +228,7 @@ fun TvBoxChannelPanel(
             if (focused != null) {
                 Row(horizontalArrangement = Arrangement.spacedBy(16.mpx), verticalAlignment = Alignment.CenterVertically) {
                     Logo(focused, 68.mpx, 48.mpx)
-                    focused.number?.let { Text(it.toString(), style = stageText(24, 700), color = Soft, maxLines = 1) }
+                    focused.number?.let { Text(it.toString(), style = stageText(24, 700), color = Soft, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) }
                     Text(focused.name, style = stageText(24, 700), color = c.text, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
                 val entries = schedule?.let { g -> listOfNotNull(g.previous, g.now) + listOfNotNull(g.next) + g.upcoming }
@@ -244,7 +244,7 @@ fun TvBoxChannelPanel(
                             Row(Modifier.fillMaxWidth().height(50.mpx), horizontalArrangement = Arrangement.spacedBy(20.mpx), verticalAlignment = Alignment.CenterVertically) {
                                 Text(
                                     stringResource(R.string.content_live_time_range_plain, formatTime(p.startMs), formatTime(p.stopMs)),
-                                    style = stageText(21, 600), color = if (onAir) SkMateBlue else if (past) Faint else Soft, maxLines = 1,
+                                    style = stageText(21, 600), color = if (onAir) SkMateBlue else if (past) Faint else Soft, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
                                 )
                                 Text(p.title, style = stageText(21, if (onAir) 700 else 500), color = tint, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
                                 if (onAir) {
@@ -252,7 +252,7 @@ fun TvBoxChannelPanel(
                                     Bar(((now - p.startMs).toFloat() / (p.stopMs - p.startMs).coerceAtLeast(1)).coerceIn(0f, 1f), 240.mpx, thick = true, base = c.text)
                                     Text(
                                         stringResource(R.string.home_time_left, durationLeft(p.stopMs - now)),
-                                        style = stageText(19, 600), color = Soft, maxLines = 1,
+                                        style = stageText(19, 600), color = Soft, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
                                     )
                                 }
                             }
@@ -296,7 +296,7 @@ private fun ChannelLine(
         Logo(channel, 72.mpx, 52.mpx)
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.mpx)) {
             Row(horizontalArrangement = Arrangement.spacedBy(10.mpx)) {
-                channel.number?.let { Text(it.toString(), style = stageText(20, 700), color = soft, maxLines = 1) }
+                channel.number?.let { Text(it.toString(), style = stageText(20, 700), color = soft, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) }
                 // The channel being watched: its name in brand blue, nothing else.
                 Text(channel.name, style = stageText(20, 700), color = if (playing) SkMateBlue else ink, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
@@ -305,12 +305,12 @@ private fun ChannelLine(
                 // The same thin line as the channels list: blue, the whole width, running out as the programme does.
                 tv.own.owntv.ui.stage.StageProgress(((nowMs - now.startMs).toFloat() / (now.stopMs - now.startMs).coerceAtLeast(1)).coerceIn(0f, 1f), Modifier.fillMaxWidth(), flat = true)
             } else {
-                Text(stringResource(R.string.content_no_guide_short), style = stageText(16, 500), color = soft, maxLines = 1)
+                Text(stringResource(R.string.content_no_guide_short), style = stageText(16, 500), color = soft, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
             }
         }
         if (countdown > 0) tv.own.owntv.ui.components.CountdownRing(countdown, tv.own.owntv.ui.components.DwellTiming.CategoryTotalMs, diameter = 32.mpx)
         else if (playing) tv.own.owntv.ui.components.PlayingMark()
-        else if (trailing != null) Text(trailing, style = stageText(15, 500), color = soft, maxLines = 1)
+        else if (trailing != null) Text(trailing, style = stageText(15, 500), color = soft, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
     }
 }
 

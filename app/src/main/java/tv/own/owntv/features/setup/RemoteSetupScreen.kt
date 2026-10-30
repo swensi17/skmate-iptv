@@ -82,7 +82,7 @@ fun RemoteSetupScreen(
         val newPin = remember { FocusRequester() }
         androidx.compose.runtime.LaunchedEffect(Unit) { kotlinx.coroutines.delay(120); runCatching { newPin.requestFocus() } }
         CenterWindow(onDismiss = onBack, modifier = modifier, width = 900.mpx) {
-            Text(stringResource(R.string.setup_from_phone), style = stageText(32, 800, (-0.02f).em), color = StageColors.Text, maxLines = 1)
+            Text(stringResource(R.string.setup_from_phone), style = stageText(32, 800, (-0.02f).em), color = StageColors.Text, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
             Column(Modifier.padding(top = 24.mpx), horizontalAlignment = Alignment.CenterHorizontally) { panel() }
             val line = when (state) {
                 CompanionServerState.Idle, CompanionServerState.Starting -> stringResource(R.string.setup_opening)
@@ -90,7 +90,7 @@ fun RemoteSetupScreen(
                 is CompanionServerState.Failed -> state.failure.displayText()
                 CompanionServerState.Locked -> companionLockedText()
             }
-            Text(line, style = stageText(19, 500), color = StageColors.Muted, maxLines = 2, modifier = Modifier.padding(top = 4.mpx))
+            Text(line, style = stageText(19, 500), color = StageColors.Muted, maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, modifier = Modifier.padding(top = 4.mpx))
             Text(stringResource(R.string.settings_remote_details_note), style = stageText(16, 500), color = StageColors.Dim, modifier = Modifier.padding(top = 10.mpx))
             Row(Modifier.padding(top = 26.mpx), horizontalArrangement = Arrangement.spacedBy(14.mpx)) {
                 tv.own.owntv.ui.stage.StageButton(

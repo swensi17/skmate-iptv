@@ -3019,13 +3019,14 @@
     <ID>MaxLineLength:AddSourceScreen.kt$Column</ID>
     <ID>MaxLineLength:AddSourceScreen.kt$Row</ID>
     <ID>MaxLineLength:AddSourceScreen.kt$SettingHelp(title, text, hints = if (submitHint != null) keys.dropLast(1) + submitHint + keys.last() else keys, extra = submitButton)</ID>
-    <ID>MaxLineLength:AddSourceScreen.kt$SourceCheck.Checking -&gt; Text(stringResource(R.string.setup_testing), style = stageText(16, 600), color = StageColors.Dim, maxLines = 1)</ID>
+    <ID>MaxLineLength:AddSourceScreen.kt$SourceCheck.Checking -&gt; Text(stringResource(R.string.setup_testing), style = stageText(16, 600), color = StageColors.Dim, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:AddSourceScreen.kt$SourceKind.M3U -&gt; listOfNotNull(errorScheme.takeIf { m3uUrl.isNotBlank() &amp;&amp; !m3uUrl.startsWith("/") &amp;&amp; !hasScheme(m3uUrl.trim()) })</ID>
     <ID>MaxLineLength:AddSourceScreen.kt$SourceKind.STALKER -&gt; tv.own.owntv.core.stalker.StalkerClient.isValidPortalUrl(portalUrl) &amp;&amp; macValid &amp;&amp; hasAnySectionOn</ID>
     <ID>MaxLineLength:AddSourceScreen.kt$SourceKind.XTREAM -&gt; onStartXtream(name, server, username, password, userAgent, referer, epgUrl, autoRefresh, syncLive, syncMovies, syncSeries, isDefault, preferHls)</ID>
     <ID>MaxLineLength:AddSourceScreen.kt$SyncScopeStageRow(OwnTVIcon.LIVE_TV, stringResource(R.string.setup_live_tv), stringResource(R.string.setup_channels_categories), syncLive, editing, help(stringResource(R.string.setup_live_tv), scopeHelp, changeKeys), toSubmit) { syncLive = it }</ID>
     <ID>MaxLineLength:AddSourceScreen.kt$SyncScopeStageRow(OwnTVIcon.MOVIES, stringResource(R.string.setup_movies), stringResource(R.string.setup_vod_movie_catalog), syncMovies, editing, help(stringResource(R.string.setup_movies), scopeHelp, changeKeys), toSubmit) { syncMovies = it }</ID>
     <ID>MaxLineLength:AddSourceScreen.kt$SyncScopeStageRow(OwnTVIcon.SERIES, stringResource(R.string.setup_series), stringResource(R.string.setup_tv_series_catalog), syncSeries, editing, help(stringResource(R.string.setup_series), scopeHelp, changeKeys), toSubmit) { syncSeries = it }</ID>
+    <ID>MaxLineLength:AddSourceScreen.kt$Text(submitLabel, style = stageText(22, 800), color = tint, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:AddSourceScreen.kt$desc = MAG_USER_AGENTS.firstOrNull { it.userAgent == userAgent }?.let { stringResource(it.labelRes) }</ID>
     <ID>MaxLineLength:AddSourceScreen.kt$desc = picked?.let { stringResource(R.string.setup_local_file_prefix, it) } ?: stringResource(R.string.settings_line_local_file)</ID>
     <ID>MaxLineLength:AddSourceScreen.kt$else -&gt; if (r == null || r is tv.own.owntv.core.repository.SourceTestResult.Unreachable) SourceCheck.Failed(R.string.setup_error_unreachable) else SourceCheck.Ok</ID>
@@ -3202,6 +3203,7 @@
     <ID>MaxLineLength:ContentMenuSettingsScreen.kt$tv.own.owntv.ui.stage.StageButton(stringResource(R.string.common_cancel), onClick = onCancel, height = 52.mpx, textSize = 18)</ID>
     <ID>MaxLineLength:ContentMenuSettingsScreen.kt$tv.own.owntv.ui.stage.StageButton(stringResource(R.string.common_save), onClick = { onSave(keys) }, height = 52.mpx, textSize = 18, tinted = true)</ID>
     <ID>MaxLineLength:ContentMenuSettingsScreen.kt$val value = SettingValue.Opens(stringResource(if (saved.isEmpty()) R.string.settings_subtitle_default else R.string.settings_live_latency_custom))</ID>
+    <ID>MaxLineLength:CountdownRing.kt$Text(n.toString(), style = stageText(15, 800), color = SkMateBlue, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:CountdownRing.kt$drawArc(SkMateBlue, -90f, 360f * fraction, false, topLeft = topLeft, size = arc, style = Stroke(w, cap = StrokeCap.Round))</ID>
     <ID>MaxLineLength:CountdownRing.kt$fun</ID>
     <ID>MaxLineLength:CustomizeItemsScreen.kt$StageAction(OwnTVIcon.CHEVRON_DOWN, stringResource(R.string.settings_row_menu_move_down), onMoveDown, onMoveLongPress)</ID>
@@ -3619,8 +3621,8 @@
     <ID>MaxLineLength:HomeViewModel.kt$HomeViewModel$trendingExtras = previous.trendingExtras.filterKeys { key -&gt; data.trendingItems.any { it.stableKey == key } }</ID>
     <ID>MaxLineLength:HomeViewModel.kt$HomeViewModel$val episode = if (show?.overview.isNullOrBlank()) metadata.resolveEpisode(item.series, item.episode) else null</ID>
     <ID>MaxLineLength:LanguageSettingsScreen.kt$Box(Modifier.padding(top = 22.mpx, bottom = 16.mpx).fillMaxWidth().height(1.mpx).background(StageColors.Ink.copy(alpha = 0.1f)))</ID>
-    <ID>MaxLineLength:LanguageSettingsScreen.kt$Text(endonym, style = stageText(22, 700), color = if (selected) Color.White else StageColors.Text, maxLines = 1)</ID>
-    <ID>MaxLineLength:LanguageSettingsScreen.kt$Text(englishName, style = stageText(15, 500), color = if (selected) Color.White.copy(alpha = 0.8f) else StageColors.Muted, maxLines = 1)</ID>
+    <ID>MaxLineLength:LanguageSettingsScreen.kt$Text(endonym, style = stageText(22, 700), color = if (selected) Color.White else StageColors.Text, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)</ID>
+    <ID>MaxLineLength:LanguageSettingsScreen.kt$Text(englishName, style = stageText(15, 500), color = if (selected) Color.White.copy(alpha = 0.8f) else StageColors.Muted, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:LanguageSettingsScreen.kt$Text(stringResource(R.string.settings_language_contribution_description), style = stageText(16, 500), color = StageColors.Muted)</ID>
     <ID>MaxLineLength:LanguageSettingsScreen.kt$Text(url.removePrefix("https://"), style = stageText(18, 700), color = StageColors.Text, modifier = Modifier.padding(top = 4.mpx))</ID>
     <ID>MaxLineLength:LanguageSettingsScreen.kt$help = SettingHelp(locale.endonym, stringResource(R.string.settings_language_pick_help, locale.endonym), hints = hints, extra = translate)</ID>
@@ -3732,7 +3734,7 @@
     <ID>MaxLineLength:LiveStage.kt$Text(now.title, style = stageText(42, 800, (-0.5).mpxSp), color = StageColors.Text, maxLines = 2, overflow = TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:LiveStage.kt$Text(sheetTitle, style = stageText(26, 800), color = StageColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))</ID>
     <ID>MaxLineLength:LiveStage.kt$Text(stringResource(R.string.common_nav_live_tv), style = stageText(46, 800, (-1).mpxSp), color = StageColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
-    <ID>MaxLineLength:LiveStage.kt$Text(stringResource(R.string.content_no_guide), style = stageText(22, 700), color = StageColors.Muted, maxLines = 1)</ID>
+    <ID>MaxLineLength:LiveStage.kt$Text(stringResource(R.string.content_no_guide), style = stageText(22, 700), color = StageColors.Muted, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:LiveStage.kt$Text(stringResource(R.string.content_preview_pick_channel), style = stageText(19, 600), color = StageColors.Muted)</ID>
     <ID>MaxLineLength:LiveStage.kt$Text(text, style = stageText(22, 600), color = StageColors.Muted, textAlign = androidx.compose.ui.text.style.TextAlign.Center)</ID>
     <ID>MaxLineLength:LiveStage.kt$Text(timeLeftText(minutesLeft(now)), style = stageText(17, 400).copy(fontFeatureSettings = Tabular), color = StageColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
@@ -3960,7 +3962,7 @@
     <ID>MaxLineLength:MorePages.kt$Text(a.text, style = stageText(16, 700), color = c, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:MorePages.kt$Text(stringResource(R.string.about_disclaimer), style = stageText(17, 500), color = StageColors.Muted, modifier = Modifier.padding(start = AboutInset, end = AboutInset, top = 18.mpx))</ID>
     <ID>MaxLineLength:MorePages.kt$Text(stringResource(R.string.about_thanks_body), style = stageText(19, 500), color = StageColors.Muted, modifier = Modifier.padding(start = AboutInset, end = AboutInset, top = 8.mpx, bottom = 14.mpx))</ID>
-    <ID>MaxLineLength:MorePages.kt$Text(stringResource(R.string.about_thanks_title), style = stageText(30, 800), color = StageColors.Text, maxLines = 2, modifier = Modifier.weight(1f, fill = false))</ID>
+    <ID>MaxLineLength:MorePages.kt$Text(stringResource(R.string.about_thanks_title), style = stageText(30, 800), color = StageColors.Text, maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))</ID>
     <ID>MaxLineLength:MorePages.kt$Text(stringResource(R.string.more_settings_pin_hint), style = stageText(17, 500), color = StageColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:MorePages.kt$Text(stringResource(R.string.more_settings_search), style = stageText(19, 500), color = if (focused) StageColors.Text else StageColors.Dim, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:MorePages.kt$Text(stringResource(card.nameRes), style = stageText(24, 800), color = StageColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 14.mpx))</ID>
@@ -4008,7 +4010,7 @@
     <ID>MaxLineLength:MoreScreen.kt$StageSurface</ID>
     <ID>MaxLineLength:MoreScreen.kt$Text(name, style = stageText(24, 800), color = StageColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:MoreScreen.kt$color = if (focused) stageAccent.onAccent else StageColors.Text</ID>
-    <ID>MaxLineLength:MoreScreen.kt$headerTools = trailing?.let { t -&gt; { androidx.tv.material3.Text(t, style = tv.own.owntv.ui.theme.stageText(32, 800), color = tv.own.owntv.ui.theme.StageColors.Muted, maxLines = 1) } }</ID>
+    <ID>MaxLineLength:MoreScreen.kt$headerTools = trailing?.let { t -&gt; { androidx.tv.material3.Text(t, style = tv.own.owntv.ui.theme.stageText(32, 800), color = tv.own.owntv.ui.theme.StageColors.Muted, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) } }</ID>
     <ID>MaxLineLength:MoreScreen.kt$item(MoreItem.ABOUT, OwnTVIcon.INFO, stringResource(R.string.settings_about), BuildConfig.VERSION_NAME, false)</ID>
     <ID>MaxLineLength:MoreScreen.kt$item(MoreItem.FAVORITES, OwnTVIcon.FAVORITE, stringResource(R.string.content_category_favorites), favorites.total.toString(), false)</ID>
     <ID>MaxLineLength:MoreScreen.kt$item(MoreItem.HISTORY, OwnTVIcon.HISTORY, stringResource(R.string.content_category_history), history.total.toString(), false)</ID>
@@ -4596,8 +4598,8 @@
     <ID>MaxLineLength:ProfileGate.kt$OwnTVAvatar(avatarId = profile.avatarId, imagePath = profile.avatarPath.orEmpty(), modifier = Modifier.size(AvatarSize))</ID>
     <ID>MaxLineLength:ProfileGate.kt$OwnTVIcon(OwnTVIcon.ADD, tint = tv.own.owntv.ui.theme.StageColors.Muted, modifier = Modifier.size(48.mpx))</ID>
     <ID>MaxLineLength:ProfileGate.kt$OwnTVIcon(OwnTVIcon.SETTINGS, tint = tv.own.owntv.ui.theme.StageColors.Text, modifier = Modifier.size(14.dp))</ID>
-    <ID>MaxLineLength:ProfileGate.kt$Text(profile.name, style = tv.own.owntv.ui.theme.stageText(24, 700), color = tv.own.owntv.ui.theme.StageColors.Text, textAlign = TextAlign.Center, maxLines = 1)</ID>
-    <ID>MaxLineLength:ProfileGate.kt$Text(stringResource(R.string.profiles_add), style = tv.own.owntv.ui.theme.stageText(24, 700), color = tv.own.owntv.ui.theme.StageColors.Muted, maxLines = 1)</ID>
+    <ID>MaxLineLength:ProfileGate.kt$Text(profile.name, style = tv.own.owntv.ui.theme.stageText(24, 700), color = tv.own.owntv.ui.theme.StageColors.Text, textAlign = TextAlign.Center, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)</ID>
+    <ID>MaxLineLength:ProfileGate.kt$Text(stringResource(R.string.profiles_add), style = tv.own.owntv.ui.theme.stageText(24, 700), color = tv.own.owntv.ui.theme.StageColors.Muted, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:ProfileGate.kt$Text(stringResource(R.string.profiles_gate_title), style = tv.own.owntv.ui.theme.stageText(54, 700), color = tv.own.owntv.ui.theme.StageColors.Text)</ID>
     <ID>MaxLineLength:ProfileGate.kt$Text(stringResource(R.string.profiles_kids_badge), style = tv.own.owntv.ui.theme.stageText(20, 500), color = tv.own.owntv.ui.theme.stageAccent.accent)</ID>
     <ID>MaxLineLength:ProfileGate.kt$contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 96.mpx, vertical = 16.mpx)</ID>
@@ -4628,9 +4630,9 @@
     <ID>MaxLineLength:RemoteBackupRestoreScreen.kt$tv.own.owntv.ui.stage.StageButton(stringResource(R.string.settings_new_pin), onClick = restart, height = 56.mpx, textSize = 19)</ID>
     <ID>MaxLineLength:RemoteBackupRestoreScreen.kt$tv.own.owntv.ui.stage.StageButton(stringResource(R.string.settings_try_again), onClick = restart, height = 56.mpx, textSize = 19)</ID>
     <ID>MaxLineLength:RemoteSetupScreen.kt$Row</ID>
-    <ID>MaxLineLength:RemoteSetupScreen.kt$Text(line, style = stageText(19, 500), color = StageColors.Muted, maxLines = 2, modifier = Modifier.padding(top = 4.mpx))</ID>
+    <ID>MaxLineLength:RemoteSetupScreen.kt$Text(line, style = stageText(19, 500), color = StageColors.Muted, maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, modifier = Modifier.padding(top = 4.mpx))</ID>
     <ID>MaxLineLength:RemoteSetupScreen.kt$Text(stringResource(R.string.settings_remote_details_note), style = stageText(16, 500), color = StageColors.Dim, modifier = Modifier.padding(top = 10.mpx))</ID>
-    <ID>MaxLineLength:RemoteSetupScreen.kt$Text(stringResource(R.string.setup_from_phone), style = stageText(32, 800, (-0.02f).em), color = StageColors.Text, maxLines = 1)</ID>
+    <ID>MaxLineLength:RemoteSetupScreen.kt$Text(stringResource(R.string.setup_from_phone), style = stageText(32, 800, (-0.02f).em), color = StageColors.Text, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:RemoteSetupScreen.kt$Text(url, style = stageText(21, 800), color = StageColors.Text, modifier = Modifier.padding(top = 4.mpx))</ID>
     <ID>MaxLineLength:RemoteSetupScreen.kt$androidx.compose.runtime.LaunchedEffect(Unit) { kotlinx.coroutines.delay(120); runCatching { newPin.requestFocus() } }</ID>
     <ID>MaxLineLength:RemoteShortcutBindingsTest.kt$RemoteShortcutBindingsTest$RemoteShortcutBinding(KeyEvent.KEYCODE_INFO, RemoteShortcutPress.LONG, RemoteShortcutAction.TOGGLE_PLAYBACK_INFO)</ID>
@@ -5076,6 +5078,7 @@
     <ID>MaxLineLength:SettingsStage.kt$Text(label, style = stageText(18, 600), color = if (on || focused) StageColors.Text else StageColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:SettingsStage.kt$Text(label, style = stageText(21, 700), color = StageColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:SettingsStage.kt$Text(p, style = stageText(42, 800, (-1f / 46f).em), color = StageColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))</ID>
+    <ID>MaxLineLength:SettingsStage.kt$Text(parent, style = stageText(30, 700, (-0.02f).em), color = StageColors.Dim, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:SettingsStage.kt$Text(path, style = stageText(15.5f, 500), color = StageColors.Dim, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(bottom = 3.mpx))</ID>
     <ID>MaxLineLength:SettingsStage.kt$Text(placeholder, style = stageText(19, 500), color = StageColors.Dim, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:SettingsStage.kt$Text(src.name, style = stageText(18, 700), color = StageColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))</ID>
@@ -5089,6 +5092,7 @@
     <ID>MaxLineLength:SettingsStage.kt$Text(text.uppercase(), style = stageText(13, 800, 0.13.em), color = StageColors.Dim, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = modifier.padding(bottom = 8.mpx))</ID>
     <ID>MaxLineLength:SettingsStage.kt$Text(title, style = stageText(21, 700), color = StageColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:SettingsStage.kt$Text(title, style = stageText(26, 800), color = StageColors.Text, maxLines = 2, overflow = TextOverflow.Ellipsis)</ID>
+    <ID>MaxLineLength:SettingsStage.kt$Text(title, style = stageText(30, 800, (-0.02f).em), color = StageColors.Text, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:SettingsStage.kt$Text(title, style = stageText(32, 800, (-1f / 46f).em), color = StageColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))</ID>
     <ID>MaxLineLength:SettingsStage.kt$Text(title, style = stageText(if (side) 26 else 21, if (side) 600 else 700), color = if (enabled) StageColors.Text else StageColors.Dim, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))</ID>
     <ID>MaxLineLength:SettingsStage.kt$Text(value, style = stageText(16, 700), color = StageColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
@@ -5630,9 +5634,11 @@
     <ID>MaxLineLength:StageRail.kt$}</ID>
     <ID>MaxLineLength:StageSidePanel.kt$.</ID>
     <ID>MaxLineLength:StageSidePanel.kt$Text(subtitle, style = stageText(17, 500), color = StageColors.Muted, modifier = Modifier.padding(start = 22.mpx, end = 22.mpx, bottom = 28.mpx))</ID>
+    <ID>MaxLineLength:StageSidePanel.kt$Text(title, style = stageText(22, 700), color = tint, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:StageSidePanel.kt$Text(title, style = stageText(34, 800), color = StageColors.Text, modifier = Modifier.padding(start = 22.mpx, bottom = if (subtitle == null) 24.mpx else 8.mpx))</ID>
-    <ID>MaxLineLength:StageSidePanel.kt$if (subtitle != null) Text(subtitle, style = stageText(15, 500), color = StageColors.Muted, maxLines = 2)</ID>
+    <ID>MaxLineLength:StageSidePanel.kt$if (subtitle != null) Text(subtitle, style = stageText(15, 500), color = StageColors.Muted, maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:StageStatus.kt$(</ID>
+    <ID>MaxLineLength:StageStatus.kt$)</ID>
     <ID>MaxLineLength:StageStatus.kt$ContinuePill$data</ID>
     <ID>MaxLineLength:StageStatus.kt$RollingText(stringResource(R.string.common_weather_degrees_city, degrees, weatherInfo.city).trim(), sub, weatherColor)</ID>
     <ID>MaxLineLength:StageStatus.kt$RollingText(time, stageText(40, 700, (-0.5).mpxSp).copy(fontFeatureSettings = "tnum", shadow = shadow, lineHeight = 40.mpxSp), timeColor)</ID>
@@ -5722,15 +5728,19 @@
     <ID>MaxLineLength:TvBoxChannelPanel.kt$Text(focused.name, style = stageText(24, 700), color = c.text, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:TvBoxChannelPanel.kt$Text(now.title, style = stageText(16, 500), color = soft, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:TvBoxChannelPanel.kt$Text(p.title, style = stageText(21, if (onAir) 700 else 500), color = tint, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))</ID>
-    <ID>MaxLineLength:TvBoxChannelPanel.kt$Text(stringResource(R.string.content_no_guide_short), style = stageText(16, 500), color = soft, maxLines = 1)</ID>
+    <ID>MaxLineLength:TvBoxChannelPanel.kt$Text(stringResource(R.string.content_no_guide_short), style = stageText(16, 500), color = soft, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:TvBoxChannelPanel.kt$Text(stringResource(R.string.content_no_guide_short), style = stageText(21, 500), color = Faint, modifier = Modifier.padding(top = 22.mpx))</ID>
     <ID>MaxLineLength:TvBoxChannelPanel.kt$Text(title, style = stageText(24, 700), color = c.text, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(horizontal = 28.mpx))</ID>
     <ID>MaxLineLength:TvBoxChannelPanel.kt$TvBoxPanelColors$internal data</ID>
     <ID>MaxLineLength:TvBoxChannelPanel.kt$TvBoxPanelColors(Color(0xF2232629), Color.White, Color.White.copy(alpha = 0.8f), Color.White.copy(alpha = 0.55f), Color(0xFF3A3F45), Color.White, Color(0x1FFFFFFF))</ID>
     <ID>MaxLineLength:TvBoxChannelPanel.kt$TvBoxPanelColors(Color(0xF2EEF1F4), Color(0xFF16181D), Color(0xCC16181D), Color(0x8C16181D), Color(0xFFDDE0E4), Color(0xFF16181D), Color(0x1A000000))</ID>
     <ID>MaxLineLength:TvBoxChannelPanel.kt$androidx.compose.runtime</ID>
+    <ID>MaxLineLength:TvBoxChannelPanel.kt$channel.number?.let { Text(it.toString(), style = stageText(20, 700), color = soft, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) }</ID>
+    <ID>MaxLineLength:TvBoxChannelPanel.kt$else</ID>
+    <ID>MaxLineLength:TvBoxChannelPanel.kt$focused.number?.let { Text(it.toString(), style = stageText(24, 700), color = Soft, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) }</ID>
     <ID>MaxLineLength:TvBoxChannelPanel.kt$if</ID>
     <ID>MaxLineLength:TvBoxChannelPanel.kt$stringResource(R.string.content_live_time_range_plain, formatTime(p.startMs), formatTime(p.stopMs))</ID>
+    <ID>MaxLineLength:TvBoxChannelPanel.kt$style = stageText(19, 600)</ID>
     <ID>MaxLineLength:TvBoxChannelPanel.kt$style = stageText(21, 600)</ID>
     <ID>MaxLineLength:TvBoxChannelPanel.kt$trailing = watchedAt?.get(ch.id)?.let { if (index == playingIndex) null else formatTime(it) }</ID>
     <ID>MaxLineLength:TvBoxChannelPanel.kt$tv.own.owntv.ui.stage.StageProgress(((nowMs - now.startMs).toFloat() / (now.stopMs - now.startMs).coerceAtLeast(1)).coerceIn(0f, 1f), Modifier.fillMaxWidth(), flat = true)</ID>
@@ -5747,12 +5757,15 @@
     <ID>MaxLineLength:TvBoxPlayerInfo.kt$Row</ID>
     <ID>MaxLineLength:TvBoxPlayerInfo.kt$Text(channel.name, style = stageText(20, 700), color = Color.White, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:TvBoxPlayerInfo.kt$Text(next.title, style = stageText(20, 500), color = Faint, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
-    <ID>MaxLineLength:TvBoxPlayerInfo.kt$Text(stringResource(R.string.player_duration_minutes, left), style = stageText(20, 500), color = Soft, maxLines = 1)</ID>
-    <ID>MaxLineLength:TvBoxPlayerInfo.kt$channel.number?.let { Text(it.toString(), style = stageText(20, 700), color = Color.White, maxLines = 1) }</ID>
+    <ID>MaxLineLength:TvBoxPlayerInfo.kt$Text(range(formatTime, current), style = stageText(20, 500), color = Soft, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)</ID>
+    <ID>MaxLineLength:TvBoxPlayerInfo.kt$Text(range(formatTime, next), style = stageText(20, 500), color = Faint, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)</ID>
+    <ID>MaxLineLength:TvBoxPlayerInfo.kt$Text(stringResource(R.string.player_duration_minutes, left), style = stageText(20, 500), color = Soft, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)</ID>
+    <ID>MaxLineLength:TvBoxPlayerInfo.kt$channel.number?.let { Text(it.toString(), style = stageText(20, 700), color = Color.White, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) }</ID>
     <ID>MaxLineLength:TvBoxPlayerInfo.kt$drawCircle(if (behind) SkMateBlue else Color.White, radius = 7.mpx.toPx(), center = Offset(x.coerceIn(7.mpx.toPx(), size.width - 7.mpx.toPx()), size.height / 2))</ID>
     <ID>MaxLineLength:TvBoxPlayerInfo.kt$drawRoundRect(Color.White.copy(alpha = 0.25f), topLeft = Offset(0f, y), size = Size(size.width, h), cornerRadius = r)</ID>
     <ID>MaxLineLength:TvBoxPlayerInfo.kt$modifier = Modifier.border(1.mpx, Color.White.copy(alpha = 0.45f), RoundedCornerShape(5.mpx)).padding(horizontal = 7.mpx, vertical = 2.mpx)</ID>
     <ID>MaxLineLength:TvBoxPlayerInfo.kt$progress = current?.let { ((watching - it.startMs).toFloat() / (it.stopMs - it.startMs).coerceAtLeast(1)).coerceIn(0f, 1f) } ?: 1f</ID>
+    <ID>MaxLineLength:TvBoxPlayerInfo.kt$text.uppercase()</ID>
     <ID>MaxLineLength:TvBoxPlayerPanels.kt$androidx.compose.animation.core.tween(DockAnimMs, easing = androidx.compose.animation.core.FastOutSlowInEasing)</ID>
     <ID>MaxLineLength:TvBoxPlayerPanels.kt$layout(w, h) { p.place(lerp(0f, (dock.Left + inset.value).toPx()).roundToInt(), lerp(0f, dock.Top.toPx()).roundToInt()) }</ID>
     <ID>MaxLineLength:TvBoxPlayerPanels.kt$private</ID>
@@ -5762,7 +5775,8 @@
     <ID>MaxLineLength:TvBoxPlayerPanels.kt$val shift = androidx.compose.runtime.remember(key) { androidx.compose.animation.core.Animatable(if (smooth) 1f else 0f) }</ID>
     <ID>MaxLineLength:TvBoxPlayerPanels.kt$val spec = androidx.compose.animation.core.tween&lt;Float&gt;(DockAnimMs, easing = androidx.compose.animation.core.FastOutSlowInEasing)</ID>
     <ID>MaxLineLength:TvNotices.kt$.</ID>
-    <ID>MaxLineLength:TvNotices.kt$n.text?.let { Text(it, style = stageText(18, 500), color = tv.own.owntv.ui.theme.StageColors.Muted, maxLines = 3) }</ID>
+    <ID>MaxLineLength:TvNotices.kt$Text(n.title, style = stageText(22, 700), color = tv.own.owntv.ui.theme.StageColors.Text, maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)</ID>
+    <ID>MaxLineLength:TvNotices.kt$n.text?.let { Text(it, style = stageText(18, 500), color = tv.own.owntv.ui.theme.StageColors.Muted, maxLines = 3, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) }</ID>
     <ID>MaxLineLength:UpdateDialog.kt$StageButton(stringResource(R.string.settings_close), onClick = onDismiss, height = 56.mpx, textSize = 19)</ID>
     <ID>MaxLineLength:UpdateDialog.kt$StageButton(stringResource(R.string.settings_close), onClick = onDismiss, height = 56.mpx, textSize = 19, tinted = true, modifier = Modifier.focusRequester(focus))</ID>
     <ID>MaxLineLength:UpdateDialog.kt$StageButton(stringResource(R.string.update_later), onClick = onDismiss, height = 56.mpx, textSize = 19)</ID>

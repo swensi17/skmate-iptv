@@ -1220,10 +1220,10 @@ fun StageFormPage(
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.mpx)) {
                     parents.forEach { parent ->
-                        Text(parent, style = stageText(30, 700, (-0.02f).em), color = StageColors.Dim, maxLines = 1)
+                        Text(parent, style = stageText(30, 700, (-0.02f).em), color = StageColors.Dim, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                         Text("›", style = stageText(30, 700), color = StageColors.Dim)
                     }
-                    Text(title, style = stageText(30, 800, (-0.02f).em), color = StageColors.Text, maxLines = 1)
+                    Text(title, style = stageText(30, 800, (-0.02f).em), color = StageColors.Text, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                 }
                 Column(
                     Modifier

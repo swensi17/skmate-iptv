@@ -328,8 +328,8 @@ private fun SidePanelLanguageRow(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(Modifier.weight(1f)) {
-                Text(endonym, style = stageText(22, 700), color = if (selected) Color.White else StageColors.Text, maxLines = 1)
-                Text(englishName, style = stageText(15, 500), color = if (selected) Color.White.copy(alpha = 0.8f) else StageColors.Muted, maxLines = 1)
+                Text(endonym, style = stageText(22, 700), color = if (selected) Color.White else StageColors.Text, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                Text(englishName, style = stageText(15, 500), color = if (selected) Color.White.copy(alpha = 0.8f) else StageColors.Muted, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
             }
             if (selected) OwnTVIcon(OwnTVIcon.CHECK, Color.White, Modifier.size(26.mpx))
         }

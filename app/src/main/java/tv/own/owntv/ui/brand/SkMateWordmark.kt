@@ -29,7 +29,7 @@ fun SkMateWordmark(modifier: Modifier = Modifier, size: Int = 30) {
             withStyle(SpanStyle(color = tv.own.owntv.ui.theme.StageColors.Text)) { append(second) }
         },
         style = stageText(size, 900).copy(letterSpacing = 0.06.em),
-        maxLines = 1,
+        maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
         modifier = modifier,
     )
 }

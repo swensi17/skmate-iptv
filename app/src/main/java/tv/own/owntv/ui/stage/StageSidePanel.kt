@@ -152,8 +152,8 @@ fun StageSidePanelOption(
         ) {
             tv.own.owntv.ui.components.OwnTVIcon(icon, tint, Modifier.size(30.mpx))
             Column(Modifier.weight(1f)) {
-                Text(title, style = stageText(22, 700), color = tint, maxLines = 1)
-                if (subtitle != null) Text(subtitle, style = stageText(15, 500), color = StageColors.Muted, maxLines = 2)
+                Text(title, style = stageText(22, 700), color = tint, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                if (subtitle != null) Text(subtitle, style = stageText(15, 500), color = StageColors.Muted, maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
             }
         }
     }

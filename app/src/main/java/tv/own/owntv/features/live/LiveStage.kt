@@ -362,7 +362,7 @@ internal fun LiveStagePane(
                     ) {
                         facts.take(4).forEach { fact ->
                             Text(
-                                fact.uppercase(), style = stageText(14, 700), color = Color.White.copy(alpha = 0.92f), maxLines = 1,
+                                fact.uppercase(), style = stageText(14, 700), color = Color.White.copy(alpha = 0.92f), maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
                                 modifier = Modifier
                                     .background(Color.Black.copy(alpha = 0.18f), RoundedCornerShape(5.mpx))
                                     .border(1.mpx, Color.White.copy(alpha = 0.7f), RoundedCornerShape(5.mpx))
@@ -850,7 +850,7 @@ private fun TextSkeleton() {
 private fun NoGuideCard() {
     val bar = StageColors.Text.copy(alpha = 0.06f)
     Column(verticalArrangement = Arrangement.spacedBy(14.mpx)) {
-        Text(stringResource(R.string.content_no_guide), style = stageText(22, 700), color = StageColors.Muted, maxLines = 1)
+        Text(stringResource(R.string.content_no_guide), style = stageText(22, 700), color = StageColors.Muted, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
         Box(Modifier.fillMaxWidth(0.45f).height(16.mpx).background(bar, RoundedCornerShape(8.mpx)))
         Box(Modifier.fillMaxWidth().height(14.mpx).background(bar, RoundedCornerShape(7.mpx)))
         Box(Modifier.fillMaxWidth(0.75f).height(14.mpx).background(bar, RoundedCornerShape(7.mpx)))

@@ -48,8 +48,8 @@ fun TvNoticeStack() {
         TvNotices.items.forEach { n ->
             LaunchedEffect(n.id) { kotlinx.coroutines.delay(n.millis); TvNotices.items.removeAll { it.id == n.id } }
             Column(Modifier.tvNoticeCard(), verticalArrangement = Arrangement.spacedBy(6.mpx)) {
-                Text(n.title, style = stageText(22, 700), color = tv.own.owntv.ui.theme.StageColors.Text, maxLines = 2)
-                n.text?.let { Text(it, style = stageText(18, 500), color = tv.own.owntv.ui.theme.StageColors.Muted, maxLines = 3) }
+                Text(n.title, style = stageText(22, 700), color = tv.own.owntv.ui.theme.StageColors.Text, maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                n.text?.let { Text(it, style = stageText(18, 500), color = tv.own.owntv.ui.theme.StageColors.Muted, maxLines = 3, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) }
             }
         }
     }
