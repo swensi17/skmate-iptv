@@ -204,13 +204,13 @@ private fun MiniBtn(
     val size = if (lead) 38.dp else 30.dp
     StageSurface(
         onClick = onClick,
-        radius = size / 2,
+        radius = 8.dp,
         modifier = modifier.size(size),
         // The dark tiles take focus as light. Play is already the accent circle, so washing it in
         // more accent would say nothing — it fills and takes a white ring instead.
         focusStyle = if (lead) StageFocus.FILLED else StageFocus.FX,
-        // Play is the one accent circle; everything else is a small dark tile.
-        idle = Modifier.background(if (lead) accent else hudInk.copy(alpha = 0.10f), CircleShape),
+        // Play is the one accent tile; everything else is a small dark tile. Softly squared, as every focus on the TV.
+        idle = Modifier.background(if (lead) accent else hudInk.copy(alpha = 0.10f), RoundedCornerShape(8.dp)),
         accent = hudFocus(ring = if (lead) hudInk else accent),
         contentAlignment = Alignment.Center,
     ) { focusedTile ->

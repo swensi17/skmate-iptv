@@ -952,7 +952,7 @@ fun StagePoster(
             if (watched) {
                 Box(
                     Modifier.align(Alignment.TopEnd).padding(8.mpx).size(if (compact) 26.mpx else 30.mpx)
-                        .background(badge.copy(alpha = 0.9f), CircleShape),
+                        .background(badge.copy(alpha = 0.9f), RoundedCornerShape(8.mpx)),
                     contentAlignment = Alignment.Center,
                 ) { StageIcon(OwnTVIcon.CHECK, accent.accent, if (compact) 16.mpx else 18.mpx) }
             } else if (progress != null && progress > 0f) {
@@ -1113,7 +1113,7 @@ fun StageEpisode(
             )
             if (watched) {
                 Box(
-                    Modifier.align(Alignment.TopEnd).padding(10.mpx).size(30.mpx).background(badge.copy(alpha = 0.9f), CircleShape),
+                    Modifier.align(Alignment.TopEnd).padding(10.mpx).size(30.mpx).background(badge.copy(alpha = 0.9f), RoundedCornerShape(8.mpx)),
                     contentAlignment = Alignment.Center,
                 ) { StageIcon(OwnTVIcon.CHECK, accent.accent, 18.mpx) }
             }
@@ -1257,7 +1257,7 @@ fun StageSwitch(on: Boolean) {
 }
 
 /** The switch knob's slide. */
-private val SwitchMs: Int get() = if (tv.own.owntv.ui.theme.DevicePerf.lite) 0 else 200
+private val SwitchMs: Int get() = if (tv.own.owntv.ui.theme.DevicePerf.lite) 0 else tv.own.owntv.ui.theme.MotionPrefs.dur(200)
 
 
 /** The tile behind a channel logo or a missing picture (`#0f1518`); ink 6% on the light page. */

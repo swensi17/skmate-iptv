@@ -440,7 +440,7 @@ private fun AudioBtn(
     val d = if (big) 52.mpx else 44.mpx
     StageSurface(
         onClick = { if (enabled) onClick() },
-        radius = d / 2,
+        radius = 10.mpx,
         modifier = Modifier
             .size(d)
             .alpha(if (enabled) 1f else 0.35f)
@@ -448,7 +448,7 @@ private fun AudioBtn(
             .onFocusChanged { if (it.isFocused) onFocused(slot) }
             .focusProperties { canFocus = focusable && enabled },
         // `.audc .ab.big`: ink 10% (8% in light).
-        idle = if (big) Modifier.background(StageColors.Ink.copy(alpha = if (LocalStagePalette.current.isLight) 0.08f else 0.10f), CircleShape) else Modifier,
+        idle = if (big) Modifier.background(StageColors.Ink.copy(alpha = if (LocalStagePalette.current.isLight) 0.08f else 0.10f), RoundedCornerShape(10.mpx)) else Modifier,
         contentAlignment = Alignment.Center,
     ) { focused ->
         OwnTVIcon(

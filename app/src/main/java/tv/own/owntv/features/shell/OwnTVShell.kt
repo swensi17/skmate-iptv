@@ -581,7 +581,9 @@ fun OwnTVShell(
         subtitleController.clear() // leaving the player drops the OpenSubtitles item context
         if (selectedSection != MainSection.LIVE_TV) liveVm.clearLiveOnExo()
         restoreFocus = true
-        focusRail()
+        // TV-box channels: the screen takes its focus back itself (restoreFocus); focusing the rail here
+        // would open the side menu for a beat and close it again, a flash on every exit from full screen.
+        if (!(TvBoxNav && selectedSection == MainSection.LIVE_TV)) focusRail()
         Unit
     }
     val exitPlayer = {
