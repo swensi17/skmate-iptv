@@ -747,6 +747,10 @@ fun PlayerHud(
                             TvBoxAction(stringResource(R.string.player_tool_audio), OwnTVIcon.AUDIO, { dialog = HudDialog.AUDIO }).takeIf { audioCount > 1 },
                             TvBoxAction(stringResource(R.string.player_tool_subtitles), OwnTVIcon.SUBTITLE, { dialog = HudDialog.SUBS }).takeIf { subCount > 0 },
                             TvBoxAction(stringResource(R.string.player_tool_aspect), OwnTVIcon.ASPECT, { dialog = HudDialog.ZOOM }),
+                            onPip?.let { TvBoxAction(stringResource(R.string.player_tool_mini), OwnTVIcon.PIP, { controlsVisible = false; it() }) },
+                            onMultiview?.let { TvBoxAction(stringResource(R.string.multiview_button), OwnTVIcon.LIST_GRID, { controlsVisible = false; it() }) },
+                            onAudioMode?.let { TvBoxAction(stringResource(R.string.player_tool_audio_only), OwnTVIcon.HEADPHONES, { controlsVisible = false; it() }) },
+                            TvBoxAction(stringResource(R.string.player_sleep_timer), OwnTVIcon.BEDTIME, { dialog = HudDialog.SLEEP_TIMER }),
                         ),
                         firstFocus = tvActionFocus,
                         // ◀ past the first tile opens the channel list, as ◀ does everywhere in the player.

@@ -35,27 +35,29 @@ import tv.own.owntv.ui.theme.stageText
 internal data class TvBoxAction(val label: String, val icon: OwnTVIcon, val onClick: () -> Unit, val active: Boolean = false)
 
 /**
- * The TV-box player's second step (▼ again under the channel info): a row of square tiles — the guide,
- * the channel list, history, the previous channel, favourites, sound, subtitles, picture format. Dark
- * glass over the picture; the focused tile turns white with dark text, as the side panels do.
+ * The TV-box player's second step (▼ again under the channel info): one even row of tools, each a glyph over
+ * its caption, standing straight on the shade with no box around it. Focus is a white disc under the glyph
+ * and a bolder caption, the way a TV's own menus show it.
  */
 @Composable
 internal fun TvBoxActionRow(actions: List<TvBoxAction>, firstFocus: FocusRequester, modifier: Modifier = Modifier, onLeftEdge: (() -> Unit)? = null) {
-    // The tiles share the whole width, as many as there are.
     androidx.compose.foundation.layout.Row(
         modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(12.mpx),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.Top,
     ) {
         actions.forEachIndexed { i, action ->
             val interaction = remember { MutableInteractionSource() }
             val focused = interaction.collectIsFocusedAsState().value
-            val ink = if (focused) Color(0xFF16181D) else Color.White
-            Box(
+            val tint = when {
+                focused -> Color(0xFF16181D)
+                action.active -> tv.own.owntv.ui.brand.SkMateBlue
+                else -> Color.White.copy(alpha = 0.86f)
+            }
+            Column(
                 Modifier
                     .weight(1f)
                     .then(if (i == 0) Modifier.focusRequester(firstFocus) else Modifier)
-                    .height(132.mpx)
-                    .background(if (focused) Color.White else TvBoxTileFill, RoundedCornerShape(TvBoxTileRadius))
                     .onKeyEvent { e ->
                         if (e.type == KeyEventType.KeyUp && (e.key == Key.DirectionCenter || e.key == Key.Enter || e.key == Key.NumPadEnter)) {
                             action.onClick(); true
@@ -64,15 +66,22 @@ internal fun TvBoxActionRow(actions: List<TvBoxAction>, firstFocus: FocusRequest
                         } else false
                     }
                     .focusable(interactionSource = interaction),
-                contentAlignment = Alignment.Center,
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(10.mpx),
             ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.mpx)) {
-                    tv.own.owntv.ui.components.OwnTVIcon(action.icon, if (action.active && !focused) tv.own.owntv.ui.brand.SkMateBlue else ink, Modifier.size(38.mpx), filled = action.active)
-                    Text(
-                        action.label, style = stageText(19, 600), color = ink, maxLines = 2, overflow = TextOverflow.Ellipsis,
-                        textAlign = TextAlign.Center, modifier = Modifier.padding(horizontal = 10.mpx),
-                    )
+                Box(
+                    Modifier.size(64.mpx).background(if (focused) Color.White else Color.Transparent, androidx.compose.foundation.shape.CircleShape),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    tv.own.owntv.ui.components.OwnTVIcon(action.icon, tint, Modifier.size(32.mpx), filled = action.active)
                 }
+                Text(
+                    action.label,
+                    style = stageText(18, if (focused) 700 else 500),
+                    color = if (focused) Color.White else Color.White.copy(alpha = 0.78f),
+                    maxLines = 1, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(horizontal = 4.mpx),
+                )
             }
         }
     }
@@ -81,8 +90,6 @@ internal fun TvBoxActionRow(actions: List<TvBoxAction>, firstFocus: FocusRequest
 /** The TV-box player's bottom shade: clear above, dark under the info and the tiles. */
 internal val TvBoxShade = Color(0xB3000000)
 
-private val TvBoxTileFill = Color(0x2EFFFFFF)
-private val TvBoxTileRadius = 14.mpx
 
 /** A focus holder for the info step: nothing to press, but the keys have to land somewhere. */
 @Composable

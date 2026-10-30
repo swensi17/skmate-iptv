@@ -2068,11 +2068,12 @@ fun OwnTVShell(
                 }
                 // TV-box look: the guide over the picture, and the channel panel with the categories beside it.
                 if (showGuideOverlay && isFull && isLiveChannel) {
-                    TvBoxGuideOverlay(liveVm, previewChannel?.id, onClose = { showGuideOverlay = false })
+                    PanelEnter(fromY = 40f) { TvBoxGuideOverlay(liveVm, previewChannel?.id, onClose = { showGuideOverlay = false }) }
                 }
                 // Left — the playing channel's own provider category.
                 if (showChannelList && isLiveChannel) {
                     if (TvBoxNav) {
+                      PanelEnter(fromX = -48f) {
                         TvBoxPlayerPanels(
                             liveVm = liveVm,
                             previewChannel = previewChannel,
@@ -2107,6 +2108,7 @@ fun OwnTVShell(
                                 }
                             },
                         )
+                      }
                     } else if (showCategoryBrowser) {
                         // Second Left — every Live TV category (dark glass over the picture in the TV-box look).
                         androidx.compose.runtime.CompositionLocalProvider(
@@ -2144,6 +2146,7 @@ fun OwnTVShell(
                 // Right — recently watched, to hop straight back to the previous channel.
                 if (showHistoryList && isLiveChannel && historyChannels.isNotEmpty() && TvBoxNav) {
                     val playingGuide by liveVm.nowNext.collectAsStateWithLifecycle()
+                    PanelEnter(fromX = 48f) {
                     tv.own.owntv.features.shell.components.TvBoxChannelPanel(
                         channels = historyChannels,
                         currentId = previewChannel?.id,
@@ -2156,6 +2159,7 @@ fun OwnTVShell(
                         onDismiss = { showHistoryList = false },
                         modifier = Modifier.fillMaxSize(),
                     )
+                    }
                 } else if (showHistoryList && isLiveChannel && historyChannels.isNotEmpty()) {
                     tv.own.owntv.features.shell.components.ChannelListOverlay(
                         channels = historyChannels,

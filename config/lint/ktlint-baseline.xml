@@ -586,17 +586,17 @@
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt">
         <error line="3" column="1" source="standard:import-ordering" />
-        <error line="2420" column="19" source="standard:property-naming" />
-        <error line="2432" column="1" source="standard:kdoc" />
-        <error line="2438" column="19" source="standard:property-naming" />
-        <error line="2439" column="19" source="standard:property-naming" />
+        <error line="2424" column="19" source="standard:property-naming" />
+        <error line="2436" column="1" source="standard:kdoc" />
+        <error line="2442" column="19" source="standard:property-naming" />
+        <error line="2443" column="19" source="standard:property-naming" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/shell/ShellViewModel.kt">
         <error line="3" column="1" source="standard:import-ordering" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/shell/TvBoxPlayerPanels.kt">
         <error line="3" column="1" source="standard:import-ordering" />
-        <error line="181" column="1" source="standard:no-consecutive-blank-lines" />
+        <error line="209" column="1" source="standard:no-consecutive-blank-lines" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/shell/components/AvatarPickerDialog.kt">
         <error line="3" column="1" source="standard:import-ordering" />
@@ -790,20 +790,20 @@
         <error line="382" column="9" source="standard:keyword-spacing" />
         <error line="727" column="17" source="standard:wrapping" />
         <error line="728" column="133" source="standard:wrapping" />
-        <error line="766" column="17" source="standard:wrapping" />
-        <error line="772" column="17" source="standard:wrapping" />
-        <error line="773" column="17" source="standard:wrapping" />
-        <error line="779" column="17" source="standard:wrapping" />
-        <error line="1089" column="19" source="standard:property-naming" />
+        <error line="770" column="17" source="standard:wrapping" />
+        <error line="776" column="17" source="standard:wrapping" />
+        <error line="777" column="17" source="standard:wrapping" />
+        <error line="783" column="17" source="standard:wrapping" />
+        <error line="1093" column="19" source="standard:property-naming" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/player/PlayerHudChrome.kt">
         <error line="3" column="1" source="standard:import-ordering" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/player/PlayerHudControls.kt">
         <error line="3" column="1" source="standard:import-ordering" />
-        <error line="452" column="45" source="standard:no-multi-spaces" />
-        <error line="483" column="81" source="standard:no-multi-spaces" />
-        <error line="484" column="83" source="standard:no-multi-spaces" />
+        <error line="454" column="45" source="standard:no-multi-spaces" />
+        <error line="485" column="81" source="standard:no-multi-spaces" />
+        <error line="486" column="83" source="standard:no-multi-spaces" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/player/PlayerHudDialogs.kt">
         <error line="3" column="1" source="standard:import-ordering" />
@@ -823,6 +823,7 @@
     </file>
     <file name="app/src/main/java/tv/own/owntv/player/TvBoxLiveHud.kt">
         <error line="3" column="1" source="standard:import-ordering" />
+        <error line="93" column="1" source="standard:no-consecutive-blank-lines" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/ui/components/AppIconPicker.kt">
         <error line="3" column="1" source="standard:import-ordering" />

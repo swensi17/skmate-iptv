@@ -110,6 +110,34 @@ internal fun TvBoxPlayerPanels(
     }
 }
 
+/**
+ * The one entrance of every panel that opens over the picture (the guide, the channels, the recently watched):
+ * it fades in while sliding a few dozen pixels from the edge it belongs to, over the same time and curve, so
+ * they all arrive the same way instead of cutting in. The first frame (where the panel is built, the costly
+ * one) passes before the motion starts, so the motion itself is not what drops frames. Off with Animations off.
+ */
+@Composable
+internal fun PanelEnter(fromX: Float = 0f, fromY: Float = 0f, content: @Composable () -> Unit) {
+    val duration = tv.own.owntv.ui.theme.MotionPrefs.dur(PANEL_ENTER_MS)
+    val progress = androidx.compose.runtime.remember { androidx.compose.animation.core.Animatable(if (duration == 0) 1f else 0f) }
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        if (duration == 0) return@LaunchedEffect
+        androidx.compose.runtime.withFrameNanos { }
+        progress.animateTo(1f, androidx.compose.animation.core.tween(duration, easing = androidx.compose.animation.core.FastOutSlowInEasing))
+    }
+    val density = androidx.compose.ui.platform.LocalDensity.current.density
+    Box(
+        Modifier.fillMaxSize().graphicsLayer {
+            val left = 1f - progress.value
+            alpha = progress.value
+            translationX = left * fromX * density
+            translationY = left * fromY * density
+        },
+    ) { content() }
+}
+
+private const val PANEL_ENTER_MS = 260
+
 /** The guide over the full-screen picture, which keeps playing behind it. Back closes it. */
 @Composable
 internal fun TvBoxGuideOverlay(liveVm: LiveViewModel, focusChannelId: Long?, onClose: () -> Unit) {
