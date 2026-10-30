@@ -1025,4 +1025,7 @@
     <string name="live_cleanup_none">No repeats in the list</string>
     <string name="live_cleanup_done">Repeats hidden: <xliff:g id="count">%1$d</xliff:g></string>
     <string name="live_no_playlist">No playlist is connected to this profile. Add one in Settings</string>
+    <string name="welcome_telegram_title">Our Telegram chat</string>
+    <string name="welcome_telegram_body">App news, help and talk with other viewers. Ask a question, report a bug or suggest an idea. Find us on Telegram:</string>
+    <string name="welcome_telegram_ok">Got it</string>
 </resources>

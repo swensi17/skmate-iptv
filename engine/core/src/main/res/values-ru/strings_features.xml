@@ -629,4 +629,7 @@
     <string name="live_cleanup_none">Повторов в списке нет</string>
     <string name="live_cleanup_done">Скрыто повторов: <xliff:g id="count">%1$d</xliff:g></string>
     <string name="live_no_playlist">К этому профилю не подключён плейлист. Добавьте его в настройках</string>
+    <string name="welcome_telegram_title">Наш чат в Telegram</string>
+    <string name="welcome_telegram_body">Новости приложения, помощь и общение с другими зрителями. Задайте вопрос, расскажите об ошибке или предложите идею. Найдите нас в Telegram:</string>
+    <string name="welcome_telegram_ok">Понятно</string>
 </resources>

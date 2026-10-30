@@ -740,6 +740,7 @@
     <ID>FunctionNaming:SubtitleSearchScreen.kt$@Composable private fun OpenSubtitlesAttribution()</ID>
     <ID>FunctionNaming:SubtitleSearchScreen.kt$@Composable private fun ResultsList( results: List&lt;SubtitleSearchViewModel.Result&gt;, applyingFileId: Long?, onSelect: (SubtitleSearchViewModel.Result) -&gt; Unit, onEdit: () -&gt; Unit, onShowAll: (() -&gt; Unit)?, onClose: () -&gt; Unit, )</ID>
     <ID>FunctionNaming:SyncStatusPill.kt$@Composable fun SyncStatusPill(modifier: Modifier = Modifier)</ID>
+    <ID>FunctionNaming:TelegramWelcome.kt$@Composable internal fun TelegramWelcome(onDismiss: () -&gt; Unit)</ID>
     <ID>FunctionNaming:TextInputDialog.kt$@Composable fun TextInputDialog( title: String, initial: String = "", onConfirm: (String) -&gt; Unit, onDismiss: () -&gt; Unit, label: String? = null, confirmLabel: String? = null, hint: String? = null, onDelete: (() -&gt; Unit)? = null, allowBlank: Boolean = true, )</ID>
     <ID>FunctionNaming:Theme.kt$@Composable fun OwnTVTheme( themeMode: ThemeMode, accent: AccentColor, systemInDarkTheme: Boolean, customAccent: String = "", focusHighlight: String = "", focusBorderWidthDp: Int = 2, animationLevel: AnimationLevel = AnimationLevel.FULL, mainFontFamily: AppFontFamily = AppFontFamily.PLUS_JAKARTA_SANS, popupFontFamily: AppFontFamily = AppFontFamily.PLUS_JAKARTA_SANS, popupFontSizePercent: Int = PopupFontScale.DEFAULT, popupSizePercent: Int = PopupSizeScale.DEFAULT, content: @Composable () -&gt; Unit, )</ID>
     <ID>FunctionNaming:TimeWheel.kt$@Composable internal fun TimeWheel( value: String, onUp: () -&gt; Unit, onDown: () -&gt; Unit, modifier: Modifier = Modifier, )</ID>
@@ -2131,6 +2132,7 @@
     <ID>MagicNumber:OwnTVShell.kt$16f</ID>
     <ID>MagicNumber:OwnTVShell.kt$1_000</ID>
     <ID>MagicNumber:OwnTVShell.kt$1_200</ID>
+    <ID>MagicNumber:OwnTVShell.kt$1_500</ID>
     <ID>MagicNumber:OwnTVShell.kt$220</ID>
     <ID>MagicNumber:OwnTVShell.kt$25</ID>
     <ID>MagicNumber:OwnTVShell.kt$260</ID>
@@ -2889,6 +2891,14 @@
     <ID>MagicNumber:SyncStatusPill.kt$1_048_576.0</ID>
     <ID>MagicNumber:SyncStatusPill.kt$5000</ID>
     <ID>MagicNumber:SyncStatusPill.kt$600</ID>
+    <ID>MagicNumber:TelegramWelcome.kt$20</ID>
+    <ID>MagicNumber:TelegramWelcome.kt$24</ID>
+    <ID>MagicNumber:TelegramWelcome.kt$30</ID>
+    <ID>MagicNumber:TelegramWelcome.kt$32</ID>
+    <ID>MagicNumber:TelegramWelcome.kt$500</ID>
+    <ID>MagicNumber:TelegramWelcome.kt$600</ID>
+    <ID>MagicNumber:TelegramWelcome.kt$80</ID>
+    <ID>MagicNumber:TelegramWelcome.kt$800</ID>
     <ID>MagicNumber:TextInputDialog.kt$80</ID>
     <ID>MagicNumber:Theme.kt$4</ID>
     <ID>MagicNumber:Theme.kt$6</ID>
@@ -3153,6 +3163,7 @@
     <ID>MatchingDeclarationName:StageComponents.kt$StageFocus</ID>
     <ID>MatchingDeclarationName:StageStatus.kt$ContinuePill</ID>
     <ID>MatchingDeclarationName:StorageBrowser.kt$BrowseMode</ID>
+    <ID>MatchingDeclarationName:TelegramWelcome.kt$TelegramWelcomePrefs</ID>
     <ID>MatchingDeclarationName:TimeFormat.kt$DateFormatterKey</ID>
     <ID>MatchingDeclarationName:TvBoxLiveHud.kt$TvBoxAction</ID>
     <ID>MaxLineLength:AccentPopup.kt$.</ID>
@@ -4360,9 +4371,11 @@
     <ID>MaxLineLength:OwnTVShell.kt$if (movieVm.playByIdAsync(target.movieId, target.positionMs) &amp;&amp; !movieVm.externalPlayerOn.value) openFullscreen(MainSection.MOVIES)</ID>
     <ID>MaxLineLength:OwnTVShell.kt$if (openedSeries == null &amp;&amp; searchReturn == MainSection.SERIES &amp;&amp; selectedSection == MainSection.SERIES) returnToSearch()</ID>
     <ID>MaxLineLength:OwnTVShell.kt$if (playerMode != PlayerMode.MINI &amp;&amp; !liveVm.externalPlayerOn.value) playerMode = PlayerMode.FULLSCREEN</ID>
+    <ID>MaxLineLength:OwnTVShell.kt$if (quiet &amp;&amp; !showTelegram &amp;&amp; !TelegramWelcomePrefs.shown(appContext)) { kotlinx.coroutines.delay(1_500); showTelegram = true }</ID>
     <ID>MaxLineLength:OwnTVShell.kt$if (section == selectedSection) { runCatching { playerFocus.requestFocus() } } else { exitPlayer(); onSelectSection(section) }</ID>
     <ID>MaxLineLength:OwnTVShell.kt$if (selectedSection != MainSection.LIVE_TV &amp;&amp; selectedSection != MainSection.EPG &amp;&amp; !settingsOverLive &amp;&amp; playerMode == PlayerMode.NONE) liveVm.stopPreview()</ID>
     <ID>MaxLineLength:OwnTVShell.kt$if (seriesVm.playFromHomeAsync(target.seriesId, target.episodeId, target.positionMs) &amp;&amp; !seriesVm.externalPlayerOn.value) openFullscreen(MainSection.SERIES)</ID>
+    <ID>MaxLineLength:OwnTVShell.kt$if (showTelegram &amp;&amp; quiet) TelegramWelcome(onDismiss = { showTelegram = false; TelegramWelcomePrefs.markShown(appContext) })</ID>
     <ID>MaxLineLength:OwnTVShell.kt$inert</ID>
     <ID>MaxLineLength:OwnTVShell.kt$java.text.NumberFormat.getPercentInstance(androidx.compose.ui.platform.LocalConfiguration.current.locales[0]).format(it)</ID>
     <ID>MaxLineLength:OwnTVShell.kt$jumpBackOptions = if (isTunedLive &amp;&amp; previewChannel?.catchup == true) liveVm::currentJumpOptions else null</ID>
@@ -5938,6 +5951,13 @@
     <ID>MaxLineLength:SyncStatusPill.kt$if (sync.channels &gt; 0) add(pluralStringResource(R.plurals.sync_count_channels, sync.channels, compactCount(context, sync.channels)))</ID>
     <ID>MaxLineLength:SyncStatusPill.kt$if (sync.programmes &gt; 0) add(pluralStringResource(R.plurals.sync_count_epg, sync.programmes, compactCount(context, sync.programmes)))</ID>
     <ID>MaxLineLength:SyncStatusPill.kt$private</ID>
+    <ID>MaxLineLength:TelegramWelcome.kt$Column</ID>
+    <ID>MaxLineLength:TelegramWelcome.kt$Image(painter = painterResource(R.drawable.social_telegram), contentDescription = null, modifier = Modifier.size(96.mpx))</ID>
+    <ID>MaxLineLength:TelegramWelcome.kt$StageButton(stringResource(R.string.welcome_telegram_ok), onClick = onDismiss, modifier = Modifier.focusRequester(ok))</ID>
+    <ID>MaxLineLength:TelegramWelcome.kt$TelegramWelcomePrefs$fun shown(context: Context): Boolean</ID>
+    <ID>MaxLineLength:TelegramWelcome.kt$Text("t.me/$CHAT_HANDLE", style = stageText(24, 600), color = StageColors.Text, textAlign = TextAlign.Center)</ID>
+    <ID>MaxLineLength:TelegramWelcome.kt$Text(stringResource(R.string.welcome_telegram_body), style = stageText(20, 500), color = StageColors.Muted, textAlign = TextAlign.Center)</ID>
+    <ID>MaxLineLength:TelegramWelcome.kt$Text(stringResource(R.string.welcome_telegram_title), style = stageText(32, 800), color = StageColors.Text, textAlign = TextAlign.Center)</ID>
     <ID>MaxLineLength:TextInputDialog.kt$if (onDelete != null) tv.own.owntv.ui.stage.StageButton(stringResource(R.string.common_delete), onClick = onDelete, height = 56.mpx, textSize = 19)</ID>
     <ID>MaxLineLength:TextInputDialog.kt$tv.own.owntv.ui.stage.StageButton(resolvedConfirmLabel, onClick = { if (allowBlank || value.isNotBlank()) onConfirm(value.trim()) }, height = 56.mpx, textSize = 19, tinted = true)</ID>
     <ID>MaxLineLength:TextInputDialog.kt$tv.own.owntv.ui.stage.StageButton(stringResource(R.string.common_cancel), onClick = onDismiss, height = 56.mpx, textSize = 19)</ID>
