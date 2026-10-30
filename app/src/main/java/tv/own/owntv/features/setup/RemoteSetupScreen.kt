@@ -92,7 +92,14 @@ fun RemoteSetupScreen(
             }
             Text(line, style = stageText(19, 500), color = StageColors.Muted, maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, modifier = Modifier.padding(top = 4.mpx))
             Text(stringResource(R.string.settings_remote_details_note), style = stageText(16, 500), color = StageColors.Dim, modifier = Modifier.padding(top = 10.mpx))
-            Row(Modifier.padding(top = 26.mpx), horizontalArrangement = Arrangement.spacedBy(14.mpx)) {
+            // The phone must be on the same network as this television, or the address will not open.
+            Text(
+                wifiNotice(state), style = stageText(18, 600), color = Color(0xFFE5484D),
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center, maxLines = 3,
+                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                modifier = Modifier.padding(top = 18.mpx),
+            )
+            Row(Modifier.padding(top = 22.mpx), horizontalArrangement = Arrangement.spacedBy(14.mpx)) {
                 tv.own.owntv.ui.stage.StageButton(
                     stringResource(R.string.settings_remote_new_pin),
                     onClick = { onStopListener(); onStartListener(CompanionLink.DEFAULT_PORT) },
@@ -171,3 +178,28 @@ private fun RemotePanel(state: CompanionServerState) {
 }
 
 private val PanelText: Color @Composable get() = stageTone(Color(0xFFD3DCD8), StageColors.Body)
+
+/**
+ * "Connect to your own Wi-Fi": the network's name when the system gives it (it hides it from apps
+ * without the location permission, then it reads "<unknown ssid>"), otherwise the address range the
+ * television sits in, which is what the phone has to share.
+ */
+@Composable
+private fun wifiNotice(state: CompanionServerState): String {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val ssid = remember {
+        runCatching {
+            @Suppress("DEPRECATION")
+            val raw = (context.applicationContext.getSystemService(android.content.Context.WIFI_SERVICE) as android.net.wifi.WifiManager).connectionInfo?.ssid
+            raw?.trim('"')?.takeIf { it.isNotBlank() && !it.contains("unknown ssid", ignoreCase = true) }
+        }.getOrNull()
+    }
+    val range = (state as? CompanionServerState.Listening)?.urls?.firstOrNull()?.let { url ->
+        Regex("""(\d+\.\d+\.\d+)\.\d+""").find(url)?.groupValues?.get(1)?.let { "$it.*" }
+    }
+    return when {
+        ssid != null -> stringResource(R.string.setup_remote_wifi_named, ssid)
+        range != null -> stringResource(R.string.setup_remote_wifi_range, range)
+        else -> stringResource(R.string.setup_remote_wifi)
+    }
+}
