@@ -13,5 +13,5 @@ echo "== ktlint"
 echo "== detekt"
 java -jar "$DETEKT" --input app/src/main/java,app/src/test --baseline config/lint/detekt-baseline.xml --build-upon-default-config
 echo "== сборка и тесты"
-./gradlew :app:compileStandardDebugKotlin :engine:core:testDebugUnitTest --console=plain -q
+./gradlew :app:testStandardDebugUnitTest :engine:core:testDebugUnitTest --console=plain -q
 echo "всё зелено, можно пушить"

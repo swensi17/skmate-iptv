@@ -1186,6 +1186,10 @@ fun SettingsScreen(
                     chipTone = TileTone.SECONDARY, showChevron = false
             ) { tv.own.owntv.ui.theme.MotionPrefs.nextSpeed() },
             SettingsSearchEntry(
+                stringResource(R.string.settings_group_appearance), stringResource(R.string.settings_motion_auto), stringResource(R.string.settings_search_keywords_animation), OwnTVIcon.MOTION, TileTone.SECONDARY,
+                chip = stringResource(if (tv.own.owntv.ui.theme.MotionPrefs.auto) R.string.common_on else R.string.common_off), chipTone = TileTone.SECONDARY, showChevron = false
+            ) { tv.own.owntv.ui.theme.MotionPrefs.toggleAuto() },
+            SettingsSearchEntry(
                 stringResource(R.string.settings_group_app), stringResource(R.string.settings_update_auto), stringResource(R.string.settings_search_keywords_update_auto), OwnTVIcon.REFRESH, TileTone.SECONDARY,
                 chip = stringResource(if (tv.own.owntv.ui.theme.UpdatePrefs.auto) R.string.common_on else R.string.common_off), chipTone = TileTone.SECONDARY, showChevron = false
             ) { tv.own.owntv.ui.theme.UpdatePrefs.toggleAuto() },
