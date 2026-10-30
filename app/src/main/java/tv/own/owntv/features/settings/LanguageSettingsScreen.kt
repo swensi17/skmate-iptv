@@ -1,6 +1,5 @@
 package tv.own.owntv.features.settings
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -26,17 +25,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.tv.material3.Text
 import org.koin.androidx.compose.koinViewModel
 import tv.own.owntv.R
-import tv.own.owntv.core.companion.CompanionLink
 import tv.own.owntv.core.i18n.SupportedLocale
 import tv.own.owntv.core.i18n.SupportedLocales
 import tv.own.owntv.ui.components.OwnTVIcon
@@ -194,7 +190,6 @@ fun LanguageSettingsScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
         stringResource(R.string.common_ok) to stringResource(R.string.settings_key_use),
         stringResource(R.string.common_back) to stringResource(R.string.settings_group_app),
     )
-    val translate: @Composable () -> Unit = { TranslateBlock() }
     StageFullPage(
         parents = listOf(stringResource(R.string.settings_group_app)),
         title = stringResource(R.string.settings_language),
@@ -210,7 +205,7 @@ fun LanguageSettingsScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
             line = stringResource(R.string.settings_language_system_default_description),
             coverage = null,
             selected = currentTag.isEmpty(),
-            help = SettingHelp(systemLabel, stringResource(R.string.settings_language_system_help, systemName), hints = hints, extra = translate),
+            help = SettingHelp(systemLabel, stringResource(R.string.settings_language_system_help, systemName), hints = hints),
             onClick = { viewModel.setLocale(SupportedLocales.SYSTEM_DEFAULT_TAG) },
             modifier = if (currentTag.isEmpty()) Modifier.focusRequester(selectedFocus) else Modifier,
         )
@@ -222,7 +217,7 @@ fun LanguageSettingsScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
                 line = locale.englishName,
                 coverage = coverageBadgePercent(locale),
                 selected = selected,
-                help = SettingHelp(locale.endonym, stringResource(R.string.settings_language_pick_help, locale.endonym), hints = hints, extra = translate),
+                help = SettingHelp(locale.endonym, stringResource(R.string.settings_language_pick_help, locale.endonym), hints = hints),
                 onClick = { viewModel.setLocale(locale.languageTag) },
                 modifier = if (selected) Modifier.focusRequester(selectedFocus) else Modifier,
             )
@@ -258,37 +253,6 @@ private fun LanguageStageRow(
         onClick = onClick,
         modifier = modifier,
         help = help,
-    )
-}
-
-/** The panel's HELP TRANSLATE block: QR and link to the project, then the request note. */
-@Composable
-private fun TranslateBlock() {
-    val url = SupportedLocales.CONTRIBUTION_PROJECT_URL
-    val qr = remember(url) { CompanionLink.renderQr(url) }
-    Box(Modifier.padding(top = 22.mpx, bottom = 16.mpx).fillMaxWidth().height(1.mpx).background(StageColors.Ink.copy(alpha = 0.1f)))
-    SettingPanelHeading(stringResource(R.string.settings_language_help_translate))
-    Row(horizontalArrangement = Arrangement.spacedBy(20.mpx), verticalAlignment = Alignment.CenterVertically) {
-        if (qr != null) {
-            Box(
-                Modifier.size(150.mpx).clip(RoundedCornerShape(16.mpx)).background(Color.White).padding(8.mpx),
-            ) {
-                Image(
-                    bitmap = qr.asImageBitmap(),
-                    contentDescription = stringResource(R.string.settings_language_contribution_qr_description),
-                    modifier = Modifier.fillMaxSize(),
-                )
-            }
-        }
-        Column(Modifier.weight(1f)) {
-            Text(stringResource(R.string.settings_language_contribution_description), style = stageText(16, 500), color = StageColors.Muted)
-            Text(url.removePrefix("https://"), style = stageText(18, 700), color = StageColors.Text, modifier = Modifier.padding(top = 4.mpx))
-        }
-    }
-    Text(
-        stringResource(R.string.settings_language_request_workflow),
-        style = stageText(15, 500), color = StageColors.Muted,
-        modifier = Modifier.padding(top = 14.mpx),
     )
 }
 
