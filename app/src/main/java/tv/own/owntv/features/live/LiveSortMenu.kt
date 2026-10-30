@@ -59,3 +59,26 @@ internal fun LiveSortMenu(current: SortMode, x: Float, top: Dp, onPick: (SortMod
         }
     }
 }
+
+/** "More" tool: icon only, so it costs the search field almost nothing. */
+@Composable
+internal fun LiveMoreTool(boxed: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    StageTool(text = null, icon = OwnTVIcon.MORE, onClick = onClick, boxed = boxed, modifier = modifier)
+}
+
+/** The list's extra actions: today only "Fix the guide", each with a line saying what it does. */
+@Composable
+internal fun LiveMoreMenu(x: Float, top: Dp, fixing: Boolean, onFixGuide: () -> Unit, onDismiss: () -> Unit) {
+    val focus = remember { FocusRequester() }
+    LaunchedEffect(Unit) { runCatching { focus.requestFocus() } }
+    GuideMenuHost(x = x, top = top, width = 760.mpx, onDismiss = onDismiss) {
+        StageMenuHeader(title = stringResource(R.string.live_more_title), subtitle = null)
+        StageMenuItem(
+            text = stringResource(R.string.live_fix_guide),
+            icon = OwnTVIcon.SPARKLE,
+            value = stringResource(if (fixing) R.string.live_fix_guide_running else R.string.live_fix_guide_hint),
+            onClick = { if (!fixing) onFixGuide(); onDismiss() },
+            modifier = Modifier.focusRequester(focus),
+        )
+    }
+}

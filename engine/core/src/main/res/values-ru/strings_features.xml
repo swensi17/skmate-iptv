@@ -600,4 +600,15 @@
     <string name="live_sort_number_hint">Как на кнопках пульта: 1, 2, 3…</string>
     <string name="live_sort_recent">Недавние</string>
     <string name="live_sort_recent_hint">Сначала те, что смотрели последними</string>
+    <string name="live_more_title">Ещё</string>
+    <string name="live_fix_guide">Починить телегид</string>
+    <string name="live_fix_guide_hint">Найти программу каналам без неё</string>
+    <string name="live_fix_guide_running">Подбираем программу…</string>
+    <string name="live_fix_guide_none">Новых совпадений нет: телегид уже подобран или ещё не загружен</string>
+    <plurals name="live_fix_guide_done">
+        <item quantity="one">Подобрали программу для %d канала</item>
+        <item quantity="few">Подобрали программу для %d каналов</item>
+        <item quantity="many">Подобрали программу для %d каналов</item>
+        <item quantity="other">Подобрали программу для %d канала</item>
+    </plurals>
 </resources>
