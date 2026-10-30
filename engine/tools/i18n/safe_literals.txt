@@ -2104,6 +2104,35 @@
 1	technical	core/src/main/java/tv/own/owntv/core/launcher/LauncherRecommendationPlanner.kt	episode:${show.sourceId}:${show.remoteId ?: show.name}:${episode.remoteId ?: "${episode.seasonNumber}-${episode.episodeNumber}"}
 1	technical	core/src/main/java/tv/own/owntv/core/launcher/LauncherRecommendationPlanner.kt	live:${channel.sourceId}:${channel.remoteId ?: channel.name}
 1	technical	core/src/main/java/tv/own/owntv/core/launcher/LauncherRecommendationPlanner.kt	movie:${movie.sourceId}:${movie.remoteId ?: movie.name}
+2	technical	core/src/main/java/tv/own/owntv/core/live/ChannelMirrors.kt	\0
+1	technical	core/src/main/java/tv/own/owntv/core/live/ChannelMirrors.kt	4k
+1	technical	core/src/main/java/tv/own/owntv/core/live/ChannelMirrors.kt	50fps
+1	technical	core/src/main/java/tv/own/owntv/core/live/ChannelMirrors.kt	60fps
+1	technical	core/src/main/java/tv/own/owntv/core/live/ChannelMirrors.kt	8k
+1	regex	core/src/main/java/tv/own/owntv/core/live/ChannelMirrors.kt	[\\[\\](){}]
+1	technical	core/src/main/java/tv/own/owntv/core/live/ChannelMirrors.kt	backup
+1	technical	core/src/main/java/tv/own/owntv/core/live/ChannelMirrors.kt	ch
+1	technical	core/src/main/java/tv/own/owntv/core/live/ChannelMirrors.kt	channel
+1	technical	core/src/main/java/tv/own/owntv/core/live/ChannelMirrors.kt	fhd
+1	technical	core/src/main/java/tv/own/owntv/core/live/ChannelMirrors.kt	h264
+1	technical	core/src/main/java/tv/own/owntv/core/live/ChannelMirrors.kt	h265
+1	technical	core/src/main/java/tv/own/owntv/core/live/ChannelMirrors.kt	hd
+1	technical	core/src/main/java/tv/own/owntv/core/live/ChannelMirrors.kt	hevc
+1	technical	core/src/main/java/tv/own/owntv/core/live/ChannelMirrors.kt	hq
+1	technical	core/src/main/java/tv/own/owntv/core/live/ChannelMirrors.kt	live
+1	technical	core/src/main/java/tv/own/owntv/core/live/ChannelMirrors.kt	lq
+1	technical	core/src/main/java/tv/own/owntv/core/live/ChannelMirrors.kt	mirror
+1	technical	core/src/main/java/tv/own/owntv/core/live/ChannelMirrors.kt	new
+1	technical	core/src/main/java/tv/own/owntv/core/live/ChannelMirrors.kt	reserv
+1	technical	core/src/main/java/tv/own/owntv/core/live/ChannelMirrors.kt	reserve
+1	technical	core/src/main/java/tv/own/owntv/core/live/ChannelMirrors.kt	sd
+1	technical	core/src/main/java/tv/own/owntv/core/live/ChannelMirrors.kt	tv
+1	technical	core/src/main/java/tv/own/owntv/core/live/ChannelMirrors.kt	uhd
+1	technical	core/src/main/java/tv/own/owntv/core/live/ChannelMirrors.kt	vip
+1	technical	core/src/main/java/tv/own/owntv/core/live/ChannelMirrors.kt	канал
+1	technical	core/src/main/java/tv/own/owntv/core/live/ChannelMirrors.kt	резерв
+1	technical	core/src/main/java/tv/own/owntv/core/live/ChannelMirrors.kt	резервный
+1	technical	core/src/main/java/tv/own/owntv/core/live/ChannelMirrors.kt	тв
 1	log	core/src/main/java/tv/own/owntv/core/live/ConnectionLimits.kt	ConnectionLimits
 1	log	core/src/main/java/tv/own/owntv/core/live/ConnectionLimits.kt	measured source ${source.id}: $result
 1	log	core/src/main/java/tv/own/owntv/core/live/ConnectionLimits.kt	no playable channels for source ${source.id}
@@ -5796,12 +5825,14 @@
 1	technical	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	error
 1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	first frame after ${SystemClock.elapsedRealtime() - openedAt}ms
 1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	gave up after $reconnects reconnects ($why)
+1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	open timeout
 1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	picture stuck while data arrives — reopening on the software decoder
 1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	play() engine=$engineId url=${HttpClient.redactUrl(url)} muted=$muted
 1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	reconnect $reconnects/$MAX_RECONNECTS after $why
 1	technical	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	stop() — intentional
 4	technical	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	unused
-1	technical	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	vlc-control
+2	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	vlc-control
+1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	vlc-reap
 1	empty	player-core/src/main/java/tv/own/owntv/player/LiveStreamQuirks.kt	\0
 1	protocol	player-core/src/main/java/tv/own/owntv/player/LiveStreamQuirks.kt	$rewritten?$query
 2	protocol	player-core/src/main/java/tv/own/owntv/player/LiveStreamQuirks.kt	.m3u8

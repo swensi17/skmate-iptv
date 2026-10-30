@@ -1236,15 +1236,14 @@ fun LiveScreen(
     }
 
     if (moreOpen) {
-        val ctx = androidx.compose.ui.platform.LocalContext.current
         LiveMoreMenu(
             x = 760f, top = 190.mpx, fixing = fixingGuide,
             onFixGuide = {
-                multiviewToast.show(ctx.getString(R.string.live_fix_guide_running))
+                multiviewToast.show(multiviewRes.getString(R.string.live_fix_guide_running))
                 vm.fixGuide { n ->
                     multiviewToast.show(
-                        if (n > 0) ctx.resources.getQuantityString(R.plurals.live_fix_guide_done, n, n)
-                        else ctx.getString(R.string.live_fix_guide_none),
+                        if (n > 0) multiviewRes.getQuantityString(R.plurals.live_fix_guide_done, n, n)
+                        else multiviewRes.getString(R.string.live_fix_guide_none),
                         durationMs = 5_000L,
                     )
                 }

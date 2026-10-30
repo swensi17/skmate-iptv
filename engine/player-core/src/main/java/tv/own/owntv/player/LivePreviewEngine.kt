@@ -46,8 +46,8 @@ class LivePreviewEngine(
 
     private val main = Handler(Looper.getMainLooper())
     /** libVLC's stop/open can wait on its own threads; never on the UI thread, or a slow stream freezes the remote. */
-    private val control = android.os.HandlerThread("vlc-control").apply { start() }
-    private val ctl = Handler(control.looper)
+    private var control = android.os.HandlerThread("vlc-control").apply { start() }
+    @Volatile private var ctl = Handler(control.looper)
     private val engineId = System.identityHashCode(this)
     private val vlc: LibVLC by lazy { LibVLC(context.applicationContext, vlcOptions()) }
     private var player: MediaPlayer? = null
@@ -140,7 +140,19 @@ class LivePreviewEngine(
     fun detachSurface(s: Surface) {
         if (surface !== s) return
         surface = null
-        player?.vlcVout?.let { if (it.areViewsAttached()) it.detachViews() }
+        player?.vlcVout?.let { detachBounded(it) }
+    }
+
+    /**
+     * libVLC takes its own lock to detach the views, and a connection stuck on a dead server holds that
+     * lock: called on the main thread that froze the whole interface (an ANR the moment the preview gave
+     * way to full screen). The detach runs on the control thread and the caller waits a short, bounded time.
+     */
+    private fun detachBounded(vout: org.videolan.libvlc.interfaces.IVLCVout) {
+        if (!vout.areViewsAttached()) return
+        val done = java.util.concurrent.CountDownLatch(1)
+        ctl.post { try { if (vout.areViewsAttached()) vout.detachViews() } finally { done.countDown() } }
+        done.await(DETACH_WAIT_MS, java.util.concurrent.TimeUnit.MILLISECONDS)
     }
 
     private var surfaceW = 0
@@ -152,9 +164,15 @@ class LivePreviewEngine(
         player?.let { applyWindow(it) }
     }
 
+    /** On the control thread: libVLC's calls on a surface can wait on a lock a stuck connection holds. */
     private fun applyWindow(p: MediaPlayer) {
         if (surfaceW <= 0 || surfaceH <= 0) return
-        p.vlcVout.setWindowSize(surfaceW, surfaceH)
+        val w = surfaceW; val h = surfaceH
+        ctl.post { applyWindowNow(p, w, h) }
+    }
+
+    private fun applyWindowNow(p: MediaPlayer, w: Int, h: Int) {
+        p.vlcVout.setWindowSize(w, h)
         p.aspectRatio = null
         p.scale = 0f
         // A size change on a picture already showing (the channel panel closing round a docked picture) is only
@@ -163,12 +181,20 @@ class LivePreviewEngine(
         p.updateVideoSurfaces()
     }
 
+    /** An attach is queued on the control thread: an open that clears the queue must queue it again. */
+    @Volatile private var attachPending = false
+
     private fun attach(p: MediaPlayer, s: Surface) {
         val vout = p.vlcVout
-        if (vout.areViewsAttached()) vout.detachViews()
-        vout.setVideoSurface(s, null)
-        vout.attachViews()
-        applyWindow(p)
+        val w = surfaceW; val h = surfaceH
+        attachPending = true
+        ctl.post {
+            attachPending = false
+            if (vout.areViewsAttached()) vout.detachViews()
+            vout.setVideoSurface(s, null)
+            vout.attachViews()
+            if (w > 0 && h > 0) applyWindowNow(p, w, h)
+        }
     }
 
     fun setAutoFrameRateEnabled(@Suppress("UNUSED_PARAMETER") enabled: Boolean) {}
@@ -215,6 +241,7 @@ class LivePreviewEngine(
         val vol = if (muted) 0 else _volume.value
         val gen = ++openGen
         ctl.removeCallbacksAndMessages(null)
+        if (attachPending) surface?.let { attach(p, it) }
         ctl.post {
             p.media = media
             media.release()
@@ -224,8 +251,9 @@ class LivePreviewEngine(
         }
         _error.value = null; _errorInfo.value = null
         _state.value = State.LOADING; _buffering.value = true; _isPlaying.value = false
-        lastShown = 0; lastRead = 0L; stuckChecks = 0
+        lastShown = 0; lastRead = 0L; stuckChecks = 0; sawLife = false
         openedAt = SystemClock.elapsedRealtime()
+        main.removeCallbacks(watchdog)
         main.postDelayed(watchdog, WATCH_MS)
     }
 
@@ -296,49 +324,89 @@ class LivePreviewEngine(
         _subCount.value = textTracks.size
     }
 
-    /** Every [WATCH_MS]: is the picture moving? */
+    /** What libVLC reports about the stream, read off the main thread (see [watchdog]). */
+    private class Snapshot(val shown: Int, val read: Long, val videoTracks: Int, val audioTracks: Int)
+
+    @Volatile private var snapshotBusy = false
+
+    /** Anything at all came back from the stream since the open: bytes, a decoded picture or a found track (HLS reports no bytes). */
+    @Volatile private var sawLife = false
+
+    /** The last snapshot saw more bytes than the one before: the stream is flowing. */
+    @Volatile private var receivingNow = false
+
+    /**
+     * Every [WATCH_MS]: is the picture moving? The counters come from libVLC, whose calls wait on a lock a
+     * connection stuck on a dead server holds, so they are read on the control thread and only the verdict
+     * is taken here. The "nothing arrived" verdict needs no libVLC call at all.
+     */
     private val watchdog = object : Runnable {
         override fun run() {
             val p = player ?: return
             val url = currentUrl ?: return
-            val stats = p.media?.stats
-            if (stats != null) {
-                // Decoded pictures, not displayed ones: with the hardware decoder rendering straight to the surface
-                // libVLC never counts a displayed picture, and that read as a frozen channel.
-                val shown = maxOf(stats.decodedVideo, stats.displayedPictures)
-                val read = stats.demuxReadBytes.toLong()
-                val noVideo = p.videoTracksCount == 0 && p.audioTracksCount > 0
-                _audioOnlyMedia.value = noVideo && SystemClock.elapsedRealtime() - openedAt > AUDIO_ONLY_AFTER_MS
-                val dataFlows = read > lastRead
-                if (!noVideo && dataFlows && shown == lastShown && !_buffering.value) stuckChecks++ else if (shown != lastShown) stuckChecks = 0
-                if (!noVideo && dataFlows && shown == lastShown && SystemClock.elapsedRealtime() - openedAt > FIRST_PICTURE_MS && !hasPlayed) stuckChecks++
-                lastShown = shown; lastRead = read
-                if (stuckChecks >= STUCK_CHECKS) {
-                    stuckChecks = 0
-                    if (!softwareTried) {
-                        LiveDiagnosticsLog.event("picture stuck while data arrives — reopening on the software decoder")
-                        softwareTried = true
-                        SOFTWARE_URLS += url
-                        open(url)
-                        return
-                    }
+            // Nothing has arrived since the open: an unreachable or silent server raises no event of its own,
+            // and without this the picture stayed black for good. Two silent opens is a failure.
+            if (!hasPlayed && SystemClock.elapsedRealtime() - openedAt > OPEN_TIMEOUT_MS && !sawLife) {
+                lost(OPEN_TIMEOUT_WHY, fatalAfter = 1)
+                return
+            }
+            if (!snapshotBusy) {
+                snapshotBusy = true
+                val gen = openGen
+                ctl.post {
+                    val snap = runCatching {
+                        val stats = p.media?.stats
+                        if (stats == null) null else Snapshot(
+                            maxOf(stats.decodedVideo, stats.displayedPictures),
+                            stats.demuxReadBytes.toLong(), p.videoTracksCount, p.audioTracksCount,
+                        )
+                    }.getOrNull()
+                    main.post { snapshotBusy = false; if (gen == openGen && currentUrl == url) judge(snap, url) }
                 }
             }
             main.postDelayed(this, WATCH_MS)
         }
     }
 
+    private fun judge(snap: Snapshot?, url: String) {
+        if (snap == null) return
+        // Decoded pictures, not displayed ones: with the hardware decoder rendering straight to the surface
+        // libVLC never counts a displayed picture, and that read as a frozen channel.
+        val shown = snap.shown
+        val read = snap.read
+        val noVideo = snap.videoTracks == 0 && snap.audioTracks > 0
+        _audioOnlyMedia.value = noVideo && SystemClock.elapsedRealtime() - openedAt > AUDIO_ONLY_AFTER_MS
+        if (read > 0L || shown > 0 || snap.videoTracks > 0 || snap.audioTracks > 0) sawLife = true
+        val dataFlows = read > lastRead
+        receivingNow = dataFlows
+        if (!noVideo && dataFlows && shown == lastShown && !_buffering.value) stuckChecks++ else if (shown != lastShown) stuckChecks = 0
+        if (!noVideo && dataFlows && shown == lastShown && SystemClock.elapsedRealtime() - openedAt > FIRST_PICTURE_MS && !hasPlayed) stuckChecks++
+        lastShown = shown; lastRead = read
+        if (stuckChecks >= STUCK_CHECKS) {
+            stuckChecks = 0
+            if (!softwareTried) {
+                LiveDiagnosticsLog.event("picture stuck while data arrives — reopening on the software decoder")
+                softwareTried = true
+                SOFTWARE_URLS += url
+                open(url)
+            }
+        }
+    }
+
     private val reconnectRun = Runnable { currentUrl?.let { open(it) } }
 
-    private fun lost(why: String) {
+    private fun lost(why: String, fatalAfter: Int = MAX_RECONNECTS) {
         val url = currentUrl ?: return
         if (gaveUp) return
-        if (reconnects >= MAX_RECONNECTS) {
+        if (reconnects >= fatalAfter) {
             gaveUp = true
             LiveDiagnosticsLog.event("gave up after $reconnects reconnects ($why)")
             _state.value = State.ERROR; _isPlaying.value = false; _buffering.value = false
             _error.value = PlaybackFailure.LostConnection
             _errorInfo.value = ErrorInfo(null, null, why)
+            // A server that never answered leaves libVLC's input thread holding the player's lock, and every
+            // later call on it (the next channel's open included) would queue behind. Start over on a new player.
+            if (why == OPEN_TIMEOUT_WHY) replaceWedgedPlayer()
             return
         }
         reconnects++
@@ -352,6 +420,24 @@ class LivePreviewEngine(
             val fresh = runCatching { kotlinx.coroutines.runBlocking { provider.freshUrl() } }.getOrNull()
             if (fresh != null && fresh != url) main.post { if (currentUrl == url) currentUrl = fresh }
         }.start()
+    }
+
+    /**
+     * A server that never answered leaves libVLC's input thread holding the player's lock, and every later
+     * call on that player (the next channel's open included) would queue behind it. The next open starts on
+     * a new player. The old one is never released: `libvlc_media_player_release` destroys that lock while the
+     * input thread still holds it and aborts the whole process. It is let go of (listener off, picture
+     * detached, off every thread in use) and left to finish by itself; one small leak per dead server.
+     */
+    private fun replaceWedgedPlayer() {
+        val oldPlayer = player ?: return
+        player = null
+        attachPending = false
+        control = android.os.HandlerThread("vlc-control").apply { start() }
+        ctl = Handler(control.looper)
+        Thread({
+            runCatching { oldPlayer.setEventListener(null); oldPlayer.vlcVout.detachViews() }
+        }, "vlc-reap").start()
     }
 
     fun stop() {
@@ -383,7 +469,7 @@ class LivePreviewEngine(
 
     val contentBroken: Boolean get() = false
     val stillReconnecting: Boolean get() = !gaveUp && reconnects > 0
-    val receivingData: Boolean get() = (player?.media?.stats?.demuxReadBytes ?: 0).toLong() > lastRead
+    val receivingData: Boolean get() = receivingNow
     val isHlsStream: Boolean get() = currentUrl?.contains(".m3u8", ignoreCase = true) == true
     val providerBackOffsSpent: Int get() = 0
     val activePrerollSecs: Int get() = 0
@@ -449,6 +535,11 @@ class LivePreviewEngine(
         private const val MIN_CACHE_MS = 1_000
         private const val MAX_CACHE_MS = 30_000
         private const val WATCH_MS = 2_000L
+        /** The longest the main thread waits for libVLC to let go of a surface. */
+        private const val DETACH_WAIT_MS = 400L
+        /** No byte received this long after opening: the server is not answering. */
+        private const val OPEN_TIMEOUT_MS = 10_000L
+        private const val OPEN_TIMEOUT_WHY = "open timeout"
         private const val STUCK_CHECKS = 3
         private const val FIRST_PICTURE_MS = 6_000L
         private const val AUDIO_ONLY_AFTER_MS = 5_000L

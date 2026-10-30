@@ -1015,4 +1015,5 @@
     <string name="live_pick_hint">Channels showing it right now</string>
     <string name="live_pick_loading">Searching the guide…</string>
     <string name="live_pick_empty">Nothing yet. Try “Fix the guide”</string>
+    <string name="live_mirror_switched">The channel would not open. Switched to its copy: <xliff:g id="name">%1$s</xliff:g></string>
 </resources>
