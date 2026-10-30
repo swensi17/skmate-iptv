@@ -917,6 +917,7 @@ private fun GuideRow(
                     recordingStarts = recordingStarts,
                     reminderStarts = reminderStarts,
                     scrollPx = scrollPx,
+                    onLightBar = rowSelected,
                 )
             }
         }
