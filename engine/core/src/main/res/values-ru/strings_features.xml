@@ -591,4 +591,13 @@
     <string name="sports_broadcasts_find_first">Нажмите «Найти каналы», чтобы увидеть каналы из телепрограммы с этим матчем.</string>
     <string name="sports_broadcasts_none">Нет данных</string>
     <string name="sports_move_instructions">▲/▼ выбор · OK взять или положить · В конце «Сохранить»</string>
+    <string name="live_screen_title">Ваши каналы</string>
+    <string name="live_sort_title">Сортировка каналов</string>
+    <string name="live_sort_alpha_desc">Я–А</string>
+    <string name="live_sort_alpha_desc_hint">От Я к А</string>
+    <string name="live_sort_alpha_hint">От А к Я</string>
+    <string name="live_sort_number">По номеру</string>
+    <string name="live_sort_number_hint">Как на кнопках пульта: 1, 2, 3…</string>
+    <string name="live_sort_recent">Недавние</string>
+    <string name="live_sort_recent_hint">Сначала те, что смотрели последними</string>
 </resources>

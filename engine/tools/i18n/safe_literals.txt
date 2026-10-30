@@ -2120,6 +2120,21 @@
 1	preference-key	core/src/main/java/tv/own/owntv/core/live/LiveKey.kt	FOLDER:$id
 2	preference-key	core/src/main/java/tv/own/owntv/core/live/LiveKey.kt	HIST
 1	empty	core/src/main/java/tv/own/owntv/core/live/LiveQueries.kt	\0
+1	regex	core/src/main/java/tv/own/owntv/core/live/LiveSort.kt	$c.name ASC
+1	regex	core/src/main/java/tv/own/owntv/core/live/LiveSort.kt	$c.name DESC
+1	regex	core/src/main/java/tv/own/owntv/core/live/LiveSort.kt	$c.sourceId ASC, $c.sortOrder ASC, $c.name ASC
+1	regex	core/src/main/java/tv/own/owntv/core/live/LiveSort.kt	($c.number IS NULL), $c.number ASC, $c.sourceId ASC, $c.sortOrder ASC, $c.name ASC
+1	regex	core/src/main/java/tv/own/owntv/core/live/LiveSort.kt	(h.watchedAt IS NULL), h.watchedAt DESC, $c.sourceId ASC, $c.sortOrder ASC, $c.name ASC
+1	technical	core/src/main/java/tv/own/owntv/core/live/LiveSort.kt	,
+1	regex	core/src/main/java/tv/own/owntv/core/live/LiveSort.kt	?
+1	sql	core/src/main/java/tv/own/owntv/core/live/LiveSort.kt	INNER JOIN custom_category_members m ON m.itemId = c.id AND m.profileId = ? AND m.mediaType = 'LIVE' AND m.contextKey = ?
+1	sql	core/src/main/java/tv/own/owntv/core/live/LiveSort.kt	LEFT JOIN watch_history h ON h.itemId = c.id AND h.mediaType = 'LIVE' AND h.profileId = ?
+1	technical	core/src/main/java/tv/own/owntv/core/live/LiveSort.kt	ORDER BY
+1	regex	core/src/main/java/tv/own/owntv/core/live/LiveSort.kt	SELECT c.* FROM channels c
+1	regex	core/src/main/java/tv/own/owntv/core/live/LiveSort.kt	WHERE c.categoryId = ?
+2	regex	core/src/main/java/tv/own/owntv/core/live/LiveSort.kt	WHERE c.sourceId IN ($marks)
+1	regex	core/src/main/java/tv/own/owntv/core/live/LiveSort.kt	WHERE c.sourceId IN ($marks) AND c.catchup = 1
+1	technical	core/src/main/java/tv/own/owntv/core/live/LiveSort.kt	c
 1	log	core/src/main/java/tv/own/owntv/core/live/ProbeChannelSource.kt	ProbeChannelSource
 1	url	core/src/main/java/tv/own/owntv/core/live/ProbeChannelSource.kt	http
 1	log	core/src/main/java/tv/own/owntv/core/live/ProbeChannelSource.kt	no probe channels for source ${source.id}: ${it.message}

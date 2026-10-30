@@ -989,4 +989,13 @@
     <string name="sports_broadcasts_none">None listed</string>
     <!-- Translators: Move window (Sports settings, and moving categories, channels, films, series and favourites on TV): the arrows choose a row, OK picks it up or puts it down, and only Save or Cancel closes the window. -->
     <string name="sports_move_instructions">▲/▼ to choose · OK to pick up or put down · Save when done</string>
+    <string name="live_screen_title">Your channels</string>
+    <string name="live_sort_title">Sort channels</string>
+    <string name="live_sort_alpha_desc">Z–A</string>
+    <string name="live_sort_alpha_desc_hint">From Z to A</string>
+    <string name="live_sort_alpha_hint">From A to Z</string>
+    <string name="live_sort_number">By number</string>
+    <string name="live_sort_number_hint">Like the remote keys: 1, 2, 3…</string>
+    <string name="live_sort_recent">Recent</string>
+    <string name="live_sort_recent_hint">Most recently watched first</string>
 </resources>

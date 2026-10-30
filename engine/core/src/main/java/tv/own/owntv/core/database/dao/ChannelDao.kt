@@ -6,6 +6,8 @@ import androidx.room.Embedded
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.RawQuery
+import androidx.sqlite.db.SupportSQLiteQuery
 import androidx.room.Transaction
 import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
@@ -38,6 +40,10 @@ data class ChannelWithWatchedAt(
  */
 @Dao
 interface ChannelDao {
+    /** A paged list in an order the fixed queries do not cover (see `liveSortQuery`): Z–A, by number, recently watched. */
+    @RawQuery(observedEntities = [ChannelEntity::class, tv.own.owntv.core.database.entity.WatchHistoryEntity::class])
+    fun pagingSorted(query: SupportSQLiteQuery): PagingSource<Int, ChannelEntity>
+
     /** Batch insert; the sync layer calls this in chunks (~500) inside a transaction. */
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertAll(channels: List<ChannelEntity>)

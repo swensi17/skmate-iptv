@@ -36,6 +36,7 @@ import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import tv.own.owntv.core.live.forLive
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
@@ -507,6 +508,8 @@ fun LiveScreen(
     // Separate panels keeps the categories on screen; the Stage layout opens them as a sheet on Left.
     val separate = liveLayout == tv.own.owntv.core.settings.SettingsRepository.LiveLayout.SEPARATE && lockedKey == null
     var categoriesOpen by remember { mutableStateOf(false) }
+    var sortOpen by remember { mutableStateOf(false) }
+    val sortToolFocus = remember { FocusRequester() }
     var sheetHadFocus by remember { mutableStateOf(false) }
     // The current channel's row. After a long-press that row carries contextFocus instead of selFocus
     // (gridFocusTarget prefers it), so both are tried before falling back to the first row.
@@ -822,12 +825,11 @@ fun LiveScreen(
                                 } else false
                             },
                     )
-                    tv.own.owntv.ui.stage.StageTool(
-                        text = null,
-                        icon = OwnTVIcon.SORT,
-                        value = if (sortMode == tv.own.owntv.core.settings.SettingsRepository.SortMode.ALPHA) stringResource(R.string.settings_sort_alpha) else stringResource(R.string.content_epg_sort_provider),
-                        onClick = vm::toggleSort,
+                    LiveSortTool(
+                        mode = sortMode.forLive(),
                         boxed = tv.own.owntv.features.shell.TvBoxNav,
+                        modifier = Modifier.focusRequester(sortToolFocus),
+                        onClick = { sortOpen = true },
                     )
                     tv.own.owntv.ui.stage.StageTool(
                         text = stringResource(R.string.content_live_guide_view),
@@ -1214,6 +1216,14 @@ fun LiveScreen(
                 )
             }
         }
+    }
+
+    if (sortOpen) {
+        LiveSortMenu(
+            current = sortMode.forLive(), x = 420f, top = 190.mpx,
+            onPick = vm::setSort,
+            onDismiss = { sortOpen = false; runCatching { sortToolFocus.requestFocus() } },
+        )
     }
 
     // Move mode overlay — intercepts D-pad Up/Down/OK/Back while reordering.
