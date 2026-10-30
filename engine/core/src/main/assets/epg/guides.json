@@ -1,0 +1,17 @@
+{
+  "_comment": "Guides SkMate attaches by itself when a playlist is added or refreshed. Data, not code: a new provider is one more entry. 'providers' apply only when the playlist names no guide (url-tvg / x-tvg-url) of its own; 'hosts' are matched against the playlist URL's host and its parent domains. 'shared' guides are added for every playlist, after its own, so they only fill channels the own guide lacks; 'logos': true takes the channel logos from that guide. Checked 2026-10-28.",
+  "providers": [
+    {
+      "name": "TV Team",
+      "hosts": ["tv.team", "troya.tv", "tvteam.eu", "tv-team.org", "epg.team"],
+      "guides": ["http://epg.team/tvteam.xml"]
+    }
+  ],
+  "shared": [
+    {
+      "name": "it999 RU (epg.one)",
+      "url": "http://epg.it999.ru/ru2.xml.gz",
+      "logos": true
+    }
+  ]
+}

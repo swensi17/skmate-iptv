@@ -35,7 +35,7 @@ future_work/
 
 # The PRODUCTION Cloudflare Workers — kept local, never committed.
 #
-# These are the deployments OwnTV's built-in defaults point at, so they carry abuse protection
+# These are the deployments the original defaults pointed at, so they carry abuse protection
 # (per-client access checks, request budgets, rate limits) that must not be public: publishing it
 # would only tell an abuser exactly how to get around it. Root-scoped so `extras/worker/` — the
 # public, unprotected self-host copy users are told to deploy — is NOT caught by this.
@@ -57,3 +57,7 @@ replay_pid*.log
 
 # Local-only archive (old detailed changelogs etc.), never committed
 /archive/
+
+# Internal agent notes and spec: kept local, never committed
+AGENTS.md
+docs/SPEC.md

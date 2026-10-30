@@ -16,9 +16,9 @@ OUT = ROOT / "THIRD_PARTY_LICENSES.md"
 
 # Components shipped without an SPDX id in their POM; their licence is recorded here by hand.
 KNOWN = {
-    "uz.skmate.iptv:core": "GPL-3.0 (SkMate IPTV core, fork of OwnTV_Core)",
-    "uz.skmate.iptv:player-core": "GPL-3.0 (SkMate IPTV core, fork of OwnTV_Core)",
-    "uz.skmate.iptv:libmpv": "GPL-3.0-or-later (binaries: mpv, FFmpeg), MIT (wrapper); source: swensi17/skmate-iptv-libmpv",
+    "uz.skmate.iptv:core": "GPL-3.0 (SkMate IPTV engine)",
+    "uz.skmate.iptv:player-core": "GPL-3.0 (SkMate IPTV engine)",
+    "uz.skmate.iptv:libmpv": "GPL-3.0-or-later (binaries: mpv, FFmpeg), MIT (wrapper); source: libmpv/",
     "com.github.albfernandez:juniversalchardet": "MPL-1.1 OR GPL OR LGPL (used under the GPL)",
     "com.pierfrancescosoffritti.androidyoutubeplayer:core": "MIT",
 }

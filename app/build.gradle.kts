@@ -4,7 +4,7 @@ import javax.inject.Inject
 import org.gradle.process.ExecOperations
 
 // Packaged locale qualifiers are read from tools/i18n/locales.json entries where packaged = true.
-// That catalogue is owned by the core repo (swensi17/skmate-iptv-core), which holds the strings; the copy
+// That catalogue is owned by the engine (engine/tools/i18n), which holds the strings; the copy
 // here exists only because Gradle needs the list before any dependency is resolved. Change it there
 // first, then copy it across, or the app will package a locale set core does not translate.
 // The build consumes the ``resourceQualifier`` field specifically (NOT languageTag, NOT weblateCode): a
@@ -40,12 +40,12 @@ android {
     // the repo. Gradle only reads gradle.properties from GRADLE_USER_HOME or the project dir, so this
     // one is loaded by hand. Declared here because defaultConfig below already needs it.
     val localSigningProps = Properties().apply {
-        val f = File("E:/MEGA/CODE/OwnTV_Gradle/owntv-signing.properties")
+        val f = File(System.getProperty("user.home"), ".skmate/signing.properties")
         if (f.isFile) f.inputStream().use { load(it) }
     }
 
     defaultConfig {
-        // SkMate IPTV's own id: installs beside OwnTV, never over it. The Kotlin namespace stays the
+        // SkMate IPTV's own id: installs beside other builds, never over them. The Kotlin namespace stays the
         // upstream one so the fork keeps merging cleanly.
         applicationId = "uz.skmate.iptv"
         minSdk = 26
@@ -171,7 +171,7 @@ android {
         }
         release {
             // Stable AGP release optimization API. Keep both code and resource shrinking enabled;
-            // the optimized default rules are extended by OwnTV's project-specific keep rules.
+            // the optimized default rules are extended by the project-specific keep rules.
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(
@@ -353,9 +353,7 @@ tasks.named("preBuild") { dependsOn(verifyI18nLiterals) }
 
 dependencies {
     implementation(libs.lottie.compose)
-    // The shared data/settings/sync module. It lives in its own repository now — see
-    // https://github.com/swensi17/skmate-iptv-core. Set owntv.corePath in ~/.gradle/gradle.properties to
-    // build against its source instead of this pinned version.
+    // The shared data/settings/sync module, built from source in /engine.
     implementation(libs.owntv.core)
 
     // The shared playback engine. The TV HUD in app/player/** drives it; it renders nothing itself,
@@ -391,7 +389,7 @@ dependencies {
     implementation(libs.androidx.work.runtime)
 
     // Baseline profiles: installs the merged library profiles (Compose, Media3, Room, ...) into
-    // ART on first launch. OwnTV is sideloaded, so without this the bundled profiles never apply.
+    // ART on first launch. SkMate IPTV is sideloaded, so without this the bundled profiles never apply.
     implementation(libs.androidx.profileinstaller)
 
     // Compat splash screen — branded cold start instead of a blank window.
@@ -418,7 +416,7 @@ dependencies {
 
     // Media playback — libmpv (FFmpeg) is NOT declared here. `:player-core` exposes it as `api`, so it
     // arrives with core, on core's version. Two hosts each naming their own copy is exactly the
-    // duplicate-class / duplicate-.so conflict the swap to OwnTV's own libmpv build ran into.
+    // duplicate-class / duplicate-.so conflict a libmpv swap can run into.
     // Media3 / ExoPlayer — used ONLY for the VOD + image-subtitle (PGS/VOBSUB/DVB) handoff, where it
     // keeps video zero-copy AND renders bitmap subs on its own layer (mpv's direct path can't). Not a
     // sidecar: mpv is stopped first, so the provider only ever sees one connection.
@@ -478,8 +476,8 @@ licensee {
     }
     // Our own core (GPL-3.0-or-later) and the libmpv build (GPL-3.0-or-later
     // binaries, MIT wrapper) are published without an SPDX id in their POMs.
-    allowDependency("uz.skmate.iptv", "core", libs.versions.owntvCore.get()) { because("GPL-3.0, our own core: swensi17/skmate-iptv-core") }
-    allowDependency("uz.skmate.iptv", "player-core", libs.versions.owntvCore.get()) { because("GPL-3.0, our own core: swensi17/skmate-iptv-core") }
+    allowDependency("uz.skmate.iptv", "core", libs.versions.owntvCore.get()) { because("GPL-3.0, our own core: engine/") }
+    allowDependency("uz.skmate.iptv", "player-core", libs.versions.owntvCore.get()) { because("GPL-3.0, our own core: engine/") }
     allowUrl("https://github.com/PierfrancescoSoffritti/android-youtube-player/blob/master/LICENSE") {
         because("MIT (checked on GitHub 2026-10-28)")
     }
@@ -487,5 +485,5 @@ licensee {
     allowDependency("com.github.albfernandez", "juniversalchardet", "2.5.0") { because("MPL-1.1 OR GPL OR LGPL, used under the GPL") }
     // VLC's player library: LGPL-2.1-or-later (the POM only gives the licence page URL), compatible with our GPL-3.0.
     allowDependency("org.videolan.android", "libvlc-all", "3.7.7") { because("LGPL-2.1-or-later, used as a dynamically linked library") }
-    allowDependency("uz.skmate.iptv", "libmpv", "2026.10.4") { because("GPL-3.0-or-later binaries, MIT wrapper: swensi17/skmate-iptv-libmpv") }
+    allowDependency("uz.skmate.iptv", "libmpv", "2026.10.4") { because("GPL-3.0-or-later binaries, MIT wrapper: libmpv/") }
 }

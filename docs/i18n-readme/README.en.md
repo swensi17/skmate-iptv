@@ -87,14 +87,13 @@ The v0.1.0 release APK link was checked on [VirusTotal](https://www.virustotal.c
 
 ## Build from source
 
-JDK 21 and Android SDK (platform 37). The core ([skmate-iptv-core](https://github.com/swensi17/skmate-iptv-core)) comes from GitHub Packages:
+JDK 21 and Android SDK (platform 37). Everything builds from this repository, no tokens or third-party package registries needed:
 
 ```bash
-export GITHUB_ACTOR=<your login> GITHUB_TOKEN=<token with read:packages>
 ./gradlew :app:assembleStandardDebug
 ```
 
-To build against the core sources next to it: `-Powntv.corePath=../skmate-iptv-core`.
+In the repository: `app/` (the app), `engine/` (core: playlist parsing, database, players), `libmpv/` (libmpv sources and build scripts), `libs/` (prebuilt libmpv).
 
 ## Tech stack
 

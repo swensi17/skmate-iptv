@@ -10,7 +10,6 @@
 # Environment (all optional):
 #   SKMATE_TV       adb address of the TV            (default 192.168.1.108:5555; emulator-5554 for the
 #                   Android TV emulator: emulator -avd skmate_tv)
-#   SKMATE_CORE     path to skmate-iptv-core          (default ../skmate-iptv-core next to this repo)
 #   SKMATE_SIGNING  properties file with the key      (default ~/dev/skmate-secrets/signing.properties)
 #   JAVA_HOME       JDK 21                            (default ~/dev/tools/jdk-21*/Contents/Home)
 #   SKMATE_NO_LOG=1 install and start, then return instead of following the log
@@ -23,7 +22,6 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 TV="${SKMATE_TV:-192.168.1.108:5555}"
-CORE="${SKMATE_CORE:-$ROOT/../skmate-iptv-core}"
 SIGNING="${SKMATE_SIGNING:-$HOME/dev/skmate-secrets/signing.properties}"
 ADB="${ANDROID_HOME:-$HOME/Library/Android/sdk}/platform-tools/adb"
 PKG="uz.skmate.iptv"
@@ -63,7 +61,6 @@ if [ -z "${JAVA_HOME:-}" ]; then
   export JAVA_HOME
 fi
 [ -f "$SIGNING" ] || { echo "signing file $SIGNING not found" >&2; exit 1; }
-[ -d "$CORE" ] || { echo "core sources $CORE not found" >&2; exit 1; }
 
 # Version: the newest release tag's code, the name marked as a dev build.
 TAG="$(git -C "$ROOT" describe --tags --abbrev=0 --match 'v*' 2>/dev/null || echo v0.0.0)"
@@ -78,16 +75,13 @@ set -a
 . "$SIGNING"
 set +a
 
-# GitHub Packages: libmpv and anything not in the local core still resolve from there.
-export GITHUB_ACTOR="${GITHUB_ACTOR:-$(gh api user --jq .login)}"
-export GITHUB_TOKEN="${GITHUB_TOKEN:-$(gh auth token)}"
 
 if [ "$MODE" = "debug" ]; then export SKMATE_DEV_SIGN=1; TASK=":app:assembleStandardDebug"; OUT="standard/debug"; else TASK=":app:assembleStandardRelease"; OUT="standard/release"; fi
 
 deploy() {
   local started=$SECONDS
-  echo "building $VERSION_NAME ($VERSION_CODE), $MODE, core from $CORE"
-  (cd "$ROOT" && sh ./gradlew -q "-Powntv.corePath=$CORE" "$TASK") || return 1
+  echo "building $VERSION_NAME ($VERSION_CODE), $MODE"
+  (cd "$ROOT" && sh ./gradlew -q "$TASK") || return 1
   local apk
   apk="$(ls "$ROOT"/app/build/outputs/apk/$OUT/*.apk | head -n1)"
   echo "installing on $TV"
@@ -111,7 +105,7 @@ if [ "$WATCH" = "1" ]; then
   echo "--- watching app and core sources, Ctrl+C to stop ---"
   while true; do
     sleep 1
-    changed="$(find "$ROOT/app/src" "$CORE/core/src" "$CORE/player-core/src" -type f \
+    changed="$(find "$ROOT/app/src" "$ROOT/engine/core/src" "$ROOT/engine/player-core/src" -type f \
       \( -name '*.kt' -o -name '*.xml' -o -name '*.json' \) -newer "$STAMP" -print -quit 2>/dev/null || true)"
     [ -z "$changed" ] && continue
     sleep 0.5

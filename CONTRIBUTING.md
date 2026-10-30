@@ -1,6 +1,5 @@
 # Как участвовать в SkMate IPTV
 
-Порядок работы и этапы: [AGENTS.md](AGENTS.md).
 
 ## Правила
 
@@ -26,17 +25,11 @@
 
 ## Сборка
 
-Нужны JDK 21 и Android SDK (platform 37). Ядро и libmpv приходят из GitHub Packages; GitHub требует
-токен с `read:packages` даже для публичных пакетов. Задайте его переменными окружения (или
-`gpr.user` / `gpr.key` в `~/.gradle/gradle.properties`), не в репозитории:
+Нужны JDK 21 и Android SDK (platform 37). Всё собирается из этого репозитория, токены не нужны:
 
 ```
-export GITHUB_ACTOR=<логин>
-export GITHUB_TOKEN=<токен с read:packages>
 ./gradlew :app:assembleStandardDebug
 ```
-
-Работа над ядром без публикации: `-Powntv.corePath=<путь к skmate-iptv-core>` подставляет его исходники.
 
 ## Проверки (то же, что в CI)
 
@@ -53,5 +46,4 @@ java -jar detekt-cli-1.23.8-all.jar --input app/src/main/java,app/src/test --bas
 
 1. Раздел `## vX.Y.Z` в `CHANGELOG.md`.
 2. Тег `vX.Y.Z` на `main`: `release.yml` собирает подписанные APK, считает SHA-256 и публикует релиз.
-3. Ядро выпускается отдельно тегом `core-X.Y.Z` в `skmate-iptv-core`, затем приложение переходит на
-   новую версию (`owntvCore` в `gradle/libs.versions.toml`).
+3. Ядро выпускается вместе с приложением, отдельных тегов нет.

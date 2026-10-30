@@ -75,10 +75,7 @@ orgJson = "20260814"
 junitExt = "1.3.0"
 espressoCore = "3.7.0"
 
-# --- SkMate IPTV core library (https://github.com/swensi17/skmate-iptv-core, fork of OwnTV_Core) ---
-# Both artifacts always ship on the same version; never split them. Bumping this is how the TV app
-# takes a core change. For local work, owntv.corePath in ~/.gradle/gradle.properties substitutes
-# core's source for these artifacts, and this number is then ignored.
+# --- SkMate IPTV engine (/engine): :core and :player-core, built together with the app ---
 owntvCore = "1.3.0"
 
 [libraries]

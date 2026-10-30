@@ -5,9 +5,9 @@ name: i18n
 #   baseline  — the hardcoded-literal ratchet against the pull-request merge base (not HEAD^, which
 #               is bypassable in a multi-commit PR).
 #   validate  — the Kotlin-side checks: locale-stable number formatting and bounded text overflow.
-#               The strings themselves live in the core repository now, so locales.json schema,
+#               The strings themselves live in /engine now, so locales.json schema,
 #               placeholder/plural parity, translation coverage and the toolkit's own regression
-#               tests run there — see swensi17/skmate-iptv-core's i18n workflow.
+#               tests run in the engine-strings job below.
 #   pseudo    — inspects the BUILT debug and release APKs and proves pseudolocales survived
 #               localeFilters in debug and are absent in release. The flag being set is not proof.
 #
@@ -34,12 +34,6 @@ on:
 
 permissions:
   contents: read
-  packages: read   # core and libmpv from GitHub Packages
-
-# Gradle reads these to resolve GitHub Packages; GitHub asks for a token even for public packages.
-env:
-  GITHUB_ACTOR: ${{ github.actor }}
-  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -120,3 +114,26 @@ jobs:
           REL=$(ls app/build/outputs/apk/standard/release/*.apk | head -1)
           python3 tools/i18n/check_pseudo_locales.py --apk "$DBG" --mode debug
           python3 tools/i18n/check_pseudo_locales.py --apk "$REL" --mode release
+
+  engine-strings:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: engine
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - name: Validate strings and locales.json, print coverage report
+        run: python3 tools/i18n/validate_strings.py --report text
+      - name: SupportedLocales.kt freshness
+        run: python3 tools/i18n/gen_supported_locales.py check
+      - name: Locale-stable Kotlin number formatting
+        run: python3 tools/i18n/check_number_locale.py
+      - name: Bounded Compose text overflow
+        run: python3 tools/i18n/check_text_overflow.py
+      - name: Python i18n tool regression tests
+        run: python3 tools/i18n/test_i18n_tools.py
+      - name: Hardcoded-literal ratchet
+        run: python3 tools/i18n/check_hardcoded_strings.py verify --bootstrap

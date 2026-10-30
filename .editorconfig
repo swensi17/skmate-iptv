@@ -1,5 +1,5 @@
 # Code style for ktlint (CI: build.yml). The rules switched off below are layout rules the upstream
-# OwnTV code does not follow; switching them on would rewrap thousands of lines and make merging
+# the code base does not follow; switching them on would rewrap thousands of lines and make merging
 # upstream changes painful. Remaining findings in existing code live in config/lint/ktlint-baseline.xml;
 # new code must be clean.
 root = true

@@ -87,12 +87,13 @@ v0.1.0 版本的 APK 链接已在 [VirusTotal](https://www.virustotal.com/gui/ur
 
 ## 从源码构建
 
-需要 JDK 21 和 Android SDK（platform 37）。核心库（[skmate-iptv-core](https://github.com/swensi17/skmate-iptv-core)）来自 GitHub Packages：
+需要 JDK 21 和 Android SDK（platform 37）。全部从本仓库构建，不需要令牌或第三方包仓库：
 
 ```bash
-export GITHUB_ACTOR=<你的用户名> GITHUB_TOKEN=<具有 read:packages 权限的令牌>
 ./gradlew :app:assembleStandardDebug
 ```
+
+仓库结构：`app/`（应用）、`engine/`（核心：播放列表解析、数据库、播放器）、`libmpv/`（libmpv 源码与构建脚本）、`libs/`（预编译 libmpv）。
 
 ## 技术栈
 
