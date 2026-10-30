@@ -179,6 +179,21 @@ class LiveViewModel(
         }
     }
 
+    init {
+        // A connection that keeps stalling gets a deeper buffer by itself; say so once per step up.
+        viewModelScope.launch {
+            var shown = 0
+            previewEngine.networkLevel.collect { level ->
+                if (level > shown) {
+                    tv.own.owntv.ui.components.TvNotices.show(
+                        appContext.getString(tv.own.owntv.R.string.live_weak_network, level * tv.own.owntv.player.NETWORK_SECS_PER_LEVEL),
+                    )
+                }
+                shown = level
+            }
+        }
+    }
+
     private suspend fun hopToMirror() {
         val channel = _previewChannel.value ?: return
         if (_catchupActive.value || channel.id != playedChannelId) return
