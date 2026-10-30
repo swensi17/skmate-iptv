@@ -637,14 +637,7 @@ fun SettingsScreen(
             focus = animationsRowFocus,
             onClick = { saveScroll(); dialogReturn = animationsRowFocus; showAnimations = true },
         ),
-        // Smooth or instant, per thing that moves, and how fast: see MotionPrefs.
-        RootRow(
-            "motion_smooth", TileTone.SECONDARY, OwnTVIcon.MOTION,
-            title = stringResource(R.string.settings_motion_menu), desc = stringResource(R.string.settings_motion_menu_desc),
-            chip = stringResource(if (tv.own.owntv.ui.theme.MotionPrefs.smooth) R.string.motion_smooth else R.string.motion_instant),
-            chipTone = TileTone.SECONDARY,
-            onClick = { tv.own.owntv.ui.theme.MotionPrefs.toggleSmooth() },
-        ),
+        // The Animations switch above moves everything or nothing; this is only how fast: see MotionPrefs.
         RootRow(
             "motion_speed", TileTone.SECONDARY, OwnTVIcon.MOTION,
             title = stringResource(R.string.settings_motion_speed), desc = stringResource(R.string.settings_motion_speed_desc),
@@ -1113,8 +1106,6 @@ fun SettingsScreen(
             SettingsSearchEntry(stringResource(R.string.settings_group_app), stringResource(R.string.settings_update_startup), stringResource(R.string.settings_search_keywords_update_auto), OwnTVIcon.REFRESH, TileTone.SECONDARY,
                 chip = if (updateCheckOnStart) stringResource(R.string.common_on) else stringResource(R.string.common_off), chipTone = if (updateCheckOnStart) TileTone.PRIMARY else TileTone.SECONDARY, showChevron = false) { settingsVm.setUpdateCheckOnStart(!updateCheckOnStart) },
             // Transitions and updates: the same rows as on the pages, so search lands on them too.
-            SettingsSearchEntry(stringResource(R.string.settings_group_appearance), stringResource(R.string.settings_motion_menu), stringResource(R.string.settings_search_keywords_animation), OwnTVIcon.MOTION, TileTone.SECONDARY,
-                chip = stringResource(if (tv.own.owntv.ui.theme.MotionPrefs.smooth) R.string.motion_smooth else R.string.motion_instant), chipTone = TileTone.SECONDARY, showChevron = false) { tv.own.owntv.ui.theme.MotionPrefs.toggleSmooth() },
             SettingsSearchEntry(stringResource(R.string.settings_group_appearance), stringResource(R.string.settings_motion_speed), stringResource(R.string.settings_search_keywords_animation), OwnTVIcon.MOTION, TileTone.SECONDARY,
                 chip = stringResource(when (tv.own.owntv.ui.theme.MotionPrefs.speed) {
                     tv.own.owntv.ui.theme.MotionPrefs.Speed.FAST -> R.string.motion_speed_fast

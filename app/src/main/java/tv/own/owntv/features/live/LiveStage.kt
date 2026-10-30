@@ -300,7 +300,7 @@ internal fun LiveStagePane(
     }
     val skeleton = showVideo && channel != null && readyFor != channel.id && mpvPlayer == null &&
         previewState != tv.own.owntv.player.LivePreviewEngine.State.ERROR
-    val surfaceAlpha by androidx.compose.animation.core.animateFloatAsState(if (skeleton) 0f else 1f, androidx.compose.animation.core.tween(if (skeleton) 0 else 260), label = "previewSurface")
+    val surfaceAlpha by androidx.compose.animation.core.animateFloatAsState(if (skeleton) 0f else 1f, androidx.compose.animation.core.tween(if (skeleton) 0 else tv.own.owntv.ui.theme.MotionPrefs.dur(260)), label = "previewSurface")
     val videoR = 28.mpx
     val videoShadow = tv.own.owntv.ui.theme.stageShadow(0.55f)
     // The last place the preview was is kept when this screen goes: full screen shrinks back into it.

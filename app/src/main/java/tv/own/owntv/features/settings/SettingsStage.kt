@@ -418,10 +418,10 @@ private fun SettingsSidePage(
             if (editor != null) shownEditor = editor
             androidx.compose.animation.AnimatedVisibility(
                 visible = editor != null,
-                enter = androidx.compose.animation.slideInHorizontally(androidx.compose.animation.core.tween(SideInMs, easing = androidx.compose.animation.core.FastOutSlowInEasing)) { it / 3 } +
-                    androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(SideInMs)),
-                exit = androidx.compose.animation.slideOutHorizontally(androidx.compose.animation.core.tween(SideInMs)) { it / 3 } +
-                    androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(SideInMs)),
+                enter = androidx.compose.animation.slideInHorizontally(androidx.compose.animation.core.tween(tv.own.owntv.ui.theme.MotionPrefs.dur(SideInMs), easing = androidx.compose.animation.core.FastOutSlowInEasing)) { it / 3 } +
+                    androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(tv.own.owntv.ui.theme.MotionPrefs.dur(SideInMs))),
+                exit = androidx.compose.animation.slideOutHorizontally(androidx.compose.animation.core.tween(tv.own.owntv.ui.theme.MotionPrefs.dur(SideInMs))) { it / 3 } +
+                    androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(tv.own.owntv.ui.theme.MotionPrefs.dur(SideInMs))),
                 modifier = Modifier.matchParentSize(),
             ) {
                 val current = shownEditor
@@ -512,8 +512,8 @@ fun SettingsSheet(
                 // the left on the way back.
                 androidx.compose.animation.AnimatedVisibility(
                     visibleState = shown,
-                    enter = androidx.compose.animation.slideInHorizontally(androidx.compose.animation.core.tween(SideInMs, easing = androidx.compose.animation.core.FastOutSlowInEasing)) { if (fromStart) -it / 3 else it / 3 } +
-                        androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(SideInMs)),
+                    enter = androidx.compose.animation.slideInHorizontally(androidx.compose.animation.core.tween(tv.own.owntv.ui.theme.MotionPrefs.dur(SideInMs), easing = androidx.compose.animation.core.FastOutSlowInEasing)) { if (fromStart) -it / 3 else it / 3 } +
+                        androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(tv.own.owntv.ui.theme.MotionPrefs.dur(SideInMs))),
                 ) {
                     Column {
                         // The title on the sheet itself, no band behind it.
@@ -1000,8 +1000,8 @@ private fun SegmentedDisplay(options: List<String>, selected: Int, onPick: ((Int
     val density = androidx.compose.ui.platform.LocalDensity.current
     val spots = remember(options.size) { androidx.compose.runtime.mutableStateListOf(*Array(options.size) { 0.mpx to 0.mpx }) }
     val target = spots.getOrNull(selected) ?: (0.mpx to 0.mpx)
-    val pillX by androidx.compose.animation.core.animateDpAsState(target.first, androidx.compose.animation.core.spring(dampingRatio = 0.72f, stiffness = 420f), label = "segmentX")
-    val pillW by androidx.compose.animation.core.animateDpAsState(target.second, androidx.compose.animation.core.spring(dampingRatio = 0.72f, stiffness = 420f), label = "segmentW")
+    val pillX by androidx.compose.animation.core.animateDpAsState(target.first, androidx.compose.animation.core.tween(tv.own.owntv.ui.theme.MotionPrefs.dur(160)), label = "segmentX")
+    val pillW by androidx.compose.animation.core.animateDpAsState(target.second, androidx.compose.animation.core.tween(tv.own.owntv.ui.theme.MotionPrefs.dur(160)), label = "segmentW")
     Box(Modifier.background(StageColors.ControlFill, RoundedCornerShape(15.mpx)).padding(4.mpx)) {
         if (pillW > 0.mpx) {
             Box(

@@ -701,7 +701,7 @@ fun LiveScreen(
         val tvBox = tv.own.owntv.features.shell.TvBoxNav
         val listPush by androidx.compose.animation.core.animateDpAsState(
             if (tvBox && categoriesOpen) sheetW else 0.mpx,
-            androidx.compose.animation.core.tween(280, easing = androidx.compose.animation.core.FastOutSlowInEasing),
+            androidx.compose.animation.core.tween(tv.own.owntv.ui.theme.MotionPrefs.dur(280), easing = androidx.compose.animation.core.FastOutSlowInEasing),
             label = "liveListPush",
         )
         Box(
@@ -844,7 +844,7 @@ fun LiveScreen(
                 val listFade = remember(selectedKey) { androidx.compose.animation.core.Animatable(if (tv.own.owntv.features.shell.TvBoxNav) 0f else 1f) }
                 val hasRows = channels.itemCount > 0
                 LaunchedEffect(selectedKey, hasRows) {
-                    if (hasRows) listFade.animateTo(1f, androidx.compose.animation.core.tween(ListFadeMs, easing = androidx.compose.animation.core.FastOutSlowInEasing))
+                    if (hasRows) listFade.animateTo(1f, androidx.compose.animation.core.tween(tv.own.owntv.ui.theme.MotionPrefs.dur(ListFadeMs), easing = androidx.compose.animation.core.FastOutSlowInEasing))
                 }
                 if (channels.itemCount == 0) {
                     val emptyText = if (searchQuery.isNotBlank()) stringResource(R.string.content_no_channels_found, searchQuery.trim()) else stringResource(R.string.content_no_channels_here)
@@ -988,8 +988,8 @@ fun LiveScreen(
 
         androidx.compose.animation.AnimatedVisibility(
             visible = categoriesOpen,
-            enter = androidx.compose.animation.slideInHorizontally(androidx.compose.animation.core.tween(280, easing = androidx.compose.animation.core.FastOutSlowInEasing)) { -it },
-            exit = androidx.compose.animation.slideOutHorizontally(androidx.compose.animation.core.tween(240)) { -it },
+            enter = androidx.compose.animation.slideInHorizontally(androidx.compose.animation.core.tween(tv.own.owntv.ui.theme.MotionPrefs.dur(280), easing = androidx.compose.animation.core.FastOutSlowInEasing)) { -it },
+            exit = androidx.compose.animation.slideOutHorizontally(androidx.compose.animation.core.tween(tv.own.owntv.ui.theme.MotionPrefs.dur(240))) { -it },
         ) {
             LiveCategories(
                 entries = categoryEntries,
