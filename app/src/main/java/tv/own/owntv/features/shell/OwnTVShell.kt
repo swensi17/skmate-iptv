@@ -1509,7 +1509,6 @@ fun OwnTVShell(
                                 .onFocusChanged { if (it.hasFocus) focusedLayer = ShellLayer.CONTENT }
                                 .focusGroup(),
                         )
-
                     }
                 }
             }
