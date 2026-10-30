@@ -51,35 +51,41 @@ M3U and Xtream Codes, TV guide (EPG), catch-up, profiles — built for the remot
 - The app finds a new version on GitHub Releases, verifies its signature and installs it.
 - Can be turned off; choose how often to check (at start / every 6 hours / daily) and when to install (any time / at night).
 
-## What's new in 2.0 (`main`, release in preparation)
+## Rare features: what sets SkMate apart from other IPTV players
 
-| | |
-|:-:|:-:|
-| ![Player toolbar](../screenshots/v2-player-toolbar.jpg) | ![Plain error screen](../screenshots/v2-error-screen.jpg) |
-| **Player toolbar**: icon and caption on every button | **Plain error screen** instead of technical text |
-| ![Sort channels](../screenshots/v2-sort-menu.jpg) | ![Add from phone](../screenshots/v2-add-from-phone.jpg) |
-| **Sorting**: provider order, A–Z, Z–A, by number, recent | **Add a playlist from your phone**, Wi-Fi hint |
+### Several players in one app
+Three engines inside: **ExoPlayer (Media3)**, **mpv** and **libVLC**. The player for live TV and for movies and series is chosen separately and can be **overridden per playlist**: one provider plays best on ExoPlayer, another on mpv. Modes: ExoPlayer first, mpv first, ExoPlayer only, mpv only. The player UI stays **the same**: only the engine underneath changes.
 
-- **Smart search**: any keyboard layout, transliteration, typos, programme search.
-- **Sports board** by country and sport, **"On now"** lists (sport, movies, news, kids).
-- **Channel mirrors**: a channel that will not open switches to its copy from another playlist.
-- **"Fix the guide"**, **hide repeats**, channel sorting, weak-network mode.
-- **Picture-in-picture**, reminders, one dark player, uniform square buttons, smooth panels.
+### It does not leave you on a dead channel
+- **Fallback ladder**: another format (`.ts` ⇄ `.m3u8`), a retry after a pause, tolerant demuxing, the other engine, and only then an error.
+- **Channel mirrors**: a channel that still will not open switches to its copy from another playlist ("Channel HD" → "Channel SD"), closest in quality, and says so.
+- **A silent server no longer freezes the app**: a stream that gives no byte in 10 seconds is an error, not a black screen forever.
+- **Plain error screens** with a picture, a headline and a Retry button instead of technical text.
+- **Weak network**: three stalls in two minutes deepen the buffer by 4 seconds (up to 12); ten quiet minutes bring it back.
+- **The provider's connection limit** is respected.
 
-## How SkMate compares with other IPTV players
+### Search that understands people
+Any keyboard layout, transliteration, typos, start / middle / end of a word, best matches first. It finds **programmes**, not only channels, plus movies and series.
 
-| | SkMate IPTV | TiviMate | IPTV Smarters | Kodi |
-|---|:-:|:-:|:-:|:-:|
-| Free, no ads | ✅ | ❌ paid Premium | ⚠️ | ✅ |
-| Open source | ✅ | ❌ | ❌ | ✅ |
-| Smart search (layout, typos, programmes) | ✅ | ⚠️ | ⚠️ | ⚠️ |
-| Auto fail-over to a channel's mirror | ✅ | — | — | — |
-| Sports board and "On now" | ✅ | — | — | — |
-| One-click guide repair, duplicate hiding | ✅ | — | — | — |
-| Buffer adapts to a weak network | ✅ | — | — | — |
-| Catch-up, reminders, PIN profiles | ✅ | ✅ | ⚠️ | ⚠️ |
+### It knows what is on right now
+**"On now"** (sport, movies, news, kids) from the guide; a **sports board** by country and sport that recognises Russian, Turkish and English sports channels; **reminders** that appear over any screen.
 
-Full comparison and caveats: [COMPARISON.md](../COMPARISON.md). We do not claim SkMate is smoother than TiviMate on low-end boxes: on-device measurements are still to come.
+### A guide that repairs itself
+Several XMLTV sources, automatic matching by channel name even without `tvg-id`, **"Fix the guide"** in one press, **"Hide repeats"** for channels with the same link, catch-up with an archive badge in the list and the guide.
+
+### Your order
+Sort by provider order, A–Z, Z–A, number, recent; groups, custom categories, favourites, history, hide and rename.
+
+### Player and control
+**Picture-in-picture** in the system window, a labelled toolbar, **multiview**, **recording**, **timeshift**, sleep timer, remembered audio and subtitle choices, OpenSubtitles, a stream-info overlay with a one-press report, direct channel numbers.
+
+### Made for the TV
+**Add a playlist from your phone by QR**, **PIN profiles** and a kids mode, an **encrypted backup** and transfer between TVs over Wi-Fi, Android TV home-screen integration, dark and light themes, **25+ languages**, fully remote-controlled.
+
+### Open
+GPL-3.0 source, a signed APK built in GitHub Actions and scanned on VirusTotal. No ads, no account, no data collection.
+
+Full comparison with TiviMate, IPTV Smarters and Kodi and honest caveats: [COMPARISON.md](../COMPARISON.md).
 
 ## FAQ
 
