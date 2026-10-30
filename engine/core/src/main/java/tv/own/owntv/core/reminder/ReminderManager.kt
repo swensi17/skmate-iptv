@@ -73,6 +73,6 @@ class ReminderManager(
     /** Called by [ReminderAlarmReceiver]. */
     internal suspend fun onAlarm() {
         tick.value = clock()
-        scheduler.rearmAll()
+        scheduler.rearmAll(armDue = false)
     }
 }
