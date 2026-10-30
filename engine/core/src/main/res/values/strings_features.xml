@@ -1007,4 +1007,12 @@
         <item quantity="one">Found a schedule for %d channel</item>
         <item quantity="other">Found a schedule for %d channels</item>
     </plurals>
+    <string name="live_pick_now">On now: <xliff:g id="what">%1$s</xliff:g></string>
+    <string name="live_pick_sport">sport</string>
+    <string name="live_pick_movies">movies</string>
+    <string name="live_pick_news">news</string>
+    <string name="live_pick_kids">kids</string>
+    <string name="live_pick_hint">Channels showing it right now</string>
+    <string name="live_pick_loading">Searching the guide…</string>
+    <string name="live_pick_empty">Nothing yet. Try “Fix the guide”</string>
 </resources>

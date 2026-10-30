@@ -611,4 +611,12 @@
         <item quantity="many">Подобрали программу для %d каналов</item>
         <item quantity="other">Подобрали программу для %d канала</item>
     </plurals>
+    <string name="live_pick_now">Сейчас идёт: <xliff:g id="what">%1$s</xliff:g></string>
+    <string name="live_pick_sport">спорт</string>
+    <string name="live_pick_movies">кино</string>
+    <string name="live_pick_news">новости</string>
+    <string name="live_pick_kids">детям</string>
+    <string name="live_pick_hint">Каналы, где это идёт прямо сейчас</string>
+    <string name="live_pick_loading">Ищем в телепрограмме…</string>
+    <string name="live_pick_empty">Пока пусто. Попробуйте «Починить телегид»</string>
 </resources>
