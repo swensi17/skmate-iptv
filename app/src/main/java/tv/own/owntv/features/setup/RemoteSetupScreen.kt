@@ -195,7 +195,8 @@ private fun wifiNotice(state: CompanionServerState): String {
         }.getOrNull()
     }
     val range = (state as? CompanionServerState.Listening)?.urls?.firstOrNull()?.let { url ->
-        Regex("""(\d+\.\d+\.\d+)\.\d+""").find(url)?.groupValues?.get(1)?.let { "$it.*" }
+        val octets = url.substringAfter("//").substringBefore(':').substringBefore('/').split('.')
+        if (octets.size == 4 && octets.all { it.toIntOrNull() != null }) octets.take(3).joinToString(".") + ".*" else null
     }
     return when {
         ssid != null -> stringResource(R.string.setup_remote_wifi_named, ssid)
