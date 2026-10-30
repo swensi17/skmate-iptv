@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -22,7 +23,6 @@ import tv.own.owntv.features.more.CHAT_HANDLE
 import tv.own.owntv.ui.stage.StageButton
 import tv.own.owntv.ui.stage.StagePopup
 import tv.own.owntv.ui.theme.StageColors
-import androidx.compose.foundation.layout.widthIn
 import tv.own.owntv.ui.theme.mpx
 import tv.own.owntv.ui.theme.stageAccent
 import tv.own.owntv.ui.theme.stageText
