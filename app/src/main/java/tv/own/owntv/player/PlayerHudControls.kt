@@ -28,6 +28,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -142,15 +143,8 @@ internal fun TransportCapsule(modifier: Modifier = Modifier, content: @Composabl
  */
 @Composable
 internal fun Dock(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
-    // No clip: the fill and rim already take the shape, and a clip cut off the seek bar's time bubble,
-    // which floats above band A — outside the dock.
-    Column(
-        modifier
-            .background(hudShade(0.55f), RoundedCornerShape(22.dp))
-            .border(1.dp, hudInk.copy(alpha = 0.10f), RoundedCornerShape(22.dp))
-            .padding(horizontal = 18.dp, vertical = 12.dp),
-        content = content,
-    )
+    // No box: the controls stand straight on the scrim, icon over caption, the way a TV's own menu does.
+    Column(modifier.padding(horizontal = 6.dp, vertical = 4.dp), content = content)
 }
 
 /** An end cap of band A: the elapsed or remaining time, in a fixed column so the bar never shifts. */
@@ -281,23 +275,9 @@ private const val TOOL_LABEL_MAX_DP = 132
 
 @Composable
 internal fun SpeedButton(label: String, active: Boolean, toolLabel: String, onClick: () -> Unit) {
-    StageSurface(
-        onClick = onClick,
-        radius = 12.dp,
-        modifier = Modifier.heightIn(min = 44.dp),
-        // Focus as light: the accent rim, a wash of it and a soft glow, all from the accent that reads over video.
-        focusStyle = StageFocus.FX,
-        accent = hudFocus(ring = hudAccent),
-        contentAlignment = Alignment.Center,
-    ) { focused ->
-        // The rate itself is the icon — the extra ">>" glyph read as a seek control next to the real
-        // rewind/forward buttons, and "1.0x" already says everything the button does. Focused, the
-        // word "Speed" joins it so the rate is not the only thing naming the button.
-        val tint = if (active) hudAccent else if (focused) hudInk else hudInk.copy(alpha = 0.78f)
-        Row(Modifier.padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text(label, style = tv.own.owntv.ui.theme.stageText(25, 600), color = tint, fontWeight = FontWeight.SemiBold)
-            ExpandingLabel(focused, toolLabel, value = null, tint = tint)
-        }
+    // The rate itself is the glyph ("1.0x" says everything the button does); the caption names the tool.
+    ToolTile(label = toolLabel, active = active, onClick = onClick) { tint ->
+        Text(label, style = tv.own.owntv.ui.theme.stageText(25, 700), color = tint, fontWeight = FontWeight.Bold)
     }
 }
 
@@ -347,36 +327,58 @@ internal fun CtrlButton(
     label: String,
     onClick: () -> Unit,
 ) {
+    ToolTile(label = label, active = active, activeTint = activeTint, onClick = onClick) { tint ->
+        OwnTVIcon(icon, tint = tint, filled = true, modifier = Modifier.size(26.dp))
+        if (badge != null) {
+            Box(
+                Modifier.align(Alignment.TopEnd).offset(x = 8.dp, y = (-4).dp).size(16.dp).clip(CircleShape).background(hudAccent),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(stringResource(R.string.common_number_grouped, badge), style = tv.own.owntv.ui.theme.stageText(20, 500), color = hudOnAccent, fontWeight = FontWeight.Bold)
+            }
+        }
+    }
+}
+
+/**
+ * One tool of the bottom bar: the glyph over its caption, always both. The caption is the button's name, so
+ * nothing has to be guessed at or waited for (the old buttons showed it only while focused).
+ */
+@Composable
+internal fun ToolTile(
+    label: String,
+    active: Boolean = false,
+    activeTint: Color = hudAccent,
+    onClick: () -> Unit,
+    glyph: @Composable BoxScope.(tint: Color) -> Unit,
+) {
     StageSurface(
         onClick = onClick,
-        radius = 12.dp,
-        // A square 44 dp while collapsed; focus lets it grow sideways to fit its label.
-        modifier = Modifier.height(44.dp).widthIn(min = 44.dp),
+        radius = 14.dp,
+        modifier = Modifier.width(TOOL_TILE_WIDTH_DP.dp).heightIn(min = 74.dp),
         // Focus as light: the accent rim, a wash of it and a soft glow, all from the accent that reads over video.
         focusStyle = StageFocus.FX,
         accent = hudFocus(ring = hudAccent),
         contentAlignment = Alignment.Center,
     ) { focused ->
-        val pad by animateDpAsState(if (focused) 12.dp else 0.dp, ownTvTween(140), label = "toolPadding")
-        val tint = if (active) activeTint else if (focused) hudInk else hudInk.copy(alpha = 0.78f)
-        Row(Modifier.padding(horizontal = pad), verticalAlignment = Alignment.CenterVertically) {
-            Box(contentAlignment = Alignment.Center) {
-                OwnTVIcon(icon, tint = tint, filled = true, modifier = Modifier.size(22.dp))
-                // Collapsed, the count sits on the icon's corner; expanded it moves inline after the
-                // label instead, where it no longer covers a third of the glyph.
-                if (badge != null && !focused) {
-                    Box(
-                        Modifier.align(Alignment.TopEnd).size(15.dp).clip(CircleShape).background(hudAccent),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Text(stringResource(R.string.common_number_grouped, badge), style = tv.own.owntv.ui.theme.stageText(20, 500), color = hudOnAccent, fontWeight = FontWeight.Bold)
-                    }
-                }
-            }
-            ExpandingLabel(focused, label, badge?.let { stringResource(R.string.common_number_grouped, it) }, tint)
+        val tint = if (active) activeTint else if (focused) hudInk else hudInk.copy(alpha = 0.8f)
+        Column(Modifier.padding(horizontal = 6.dp, vertical = 8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+            Box(Modifier.height(28.dp), contentAlignment = Alignment.Center) { glyph(tint) }
+            Spacer(Modifier.height(6.dp))
+            Text(
+                label,
+                style = tv.own.owntv.ui.theme.stageText(19, if (focused) 700 else 500),
+                color = tint,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+            )
         }
     }
 }
+
+/** Width of a tool tile: room for a caption of about a dozen letters. */
+private const val TOOL_TILE_WIDTH_DP = 104
 
 // ---------------- Seekbar ----------------
 
