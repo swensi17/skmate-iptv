@@ -979,6 +979,8 @@ fun OwnTVShell(
             TvBoxNav && focusedLayer == ShellLayer.SIDEBAR -> closeMenuToContent()
             // TV-box style: Back from anything but the channels goes to the channels; there, a second
             // Back within two seconds leaves the app (no question asked).
+            // The guide opened from the side menu: Back returns to the menu it came from, always.
+            TvBoxNav && selectedSection == MainSection.EPG -> focusRail()
             TvBoxNav && selectedSection != MainSection.LIVE_TV -> { restoreFocus = true; onSelectSection(MainSection.LIVE_TV) }
             TvBoxNav -> {
                 val now = android.os.SystemClock.uptimeMillis()
