@@ -3854,9 +3854,11 @@
     <ID>MaxLineLength:LiveViewModel.kt$LiveViewModel$private fun cachedNowPlaying(): Map&lt;Long, tv.own.owntv.core.parser.XtEpgEntry?&gt;</ID>
     <ID>MaxLineLength:LiveViewModel.kt$LiveViewModel$restoreCategoryToDefault(customize, contentOrderDao, pid, MediaType.LIVE, contextKey, categoryRestorePlan(key))</ID>
     <ID>MaxLineLength:LiveViewModel.kt$LiveViewModel$suspend</ID>
+    <ID>MaxLineLength:LiveViewModel.kt$LiveViewModel$tv.own.owntv.ui.components.TvNotices.show(appContext.getString(tv.own.owntv.R.string.live_mirror_switched, mirror.name))</ID>
     <ID>MaxLineLength:LiveViewModel.kt$LiveViewModel$url</ID>
     <ID>MaxLineLength:LiveViewModel.kt$LiveViewModel$userAgent = sourceUa</ID>
     <ID>MaxLineLength:LiveViewModel.kt$LiveViewModel$val</ID>
+    <ID>MaxLineLength:LiveViewModel.kt$LiveViewModel$val mirror = tv.own.owntv.core.live.ChannelMirrors.pick(channel, candidates, mirrorsTried).firstOrNull() ?: return</ID>
     <ID>MaxLineLength:LiveViewModel.kt$LiveViewModel.&lt;no name provided&gt;$override fun removeEldestEntry(eldest: MutableMap.MutableEntry&lt;Long, tv.own.owntv.core.parser.XtEpgEntry?&gt;?)</ID>
     <ID>MaxLineLength:LiveViewModel.kt$LiveViewModel.PickState$data</ID>
     <ID>MaxLineLength:LiveZapListTest.kt$LiveZapListTest$private val list = (1L..5L).map { ChannelEntity(id = it, sourceId = 1, categoryId = 10, name = "Ch $it", streamUrl = "http://x/$it.ts", remoteId = "$it") }</ID>
@@ -6123,6 +6125,7 @@
     <ID>ReturnCount:HomeViewModel.kt$HomeViewModel$private suspend fun versionCount(item: TrendingHomeItem): Int</ID>
     <ID>ReturnCount:LiveViewModel.kt$LiveViewModel$private fun continueAfterCatchup()</ID>
     <ID>ReturnCount:LiveViewModel.kt$LiveViewModel$private suspend fun channelsInRail(key: LiveKey): List&lt;ChannelEntity&gt;</ID>
+    <ID>ReturnCount:LiveViewModel.kt$LiveViewModel$private suspend fun hopToMirror()</ID>
     <ID>ReturnCount:LiveViewModel.kt$LiveViewModel$private suspend fun loadArchiveStream(ch: ChannelEntity, startMs: Long, offsetSec: Int): Long?</ID>
     <ID>ReturnCount:LiveViewModel.kt$LiveViewModel$private suspend fun playChannel(channel: ChannelEntity)</ID>
     <ID>ReturnCount:LiveViewModel.kt$LiveViewModel$suspend fun categoryRestorePlan(key: LiveKey): CategoryRestorePlan</ID>

@@ -159,6 +159,43 @@ class LiveViewModel(
 
     fun closePick() { _pick.value = null }
 
+    // --- Mirrors: when a channel will not play, hop to another copy of it ---------------------------
+
+    /** The copies already tried for the channel the user last chose; cleared by any choice of their own. */
+    private val mirrorsTried = mutableSetOf<Long>()
+    private var hoppingToMirror = false
+
+    /** The channel the user actually opened (not one a list focus previewed): only its failure hops. */
+    private var playedChannelId = -1L
+
+    init {
+        // Two engines can carry a channel: libVLC (the preview engine) and the full player. Either giving up
+        // on it means the channel will not open as it is.
+        viewModelScope.launch {
+            kotlinx.coroutines.flow.merge(
+                previewEngine.error.filterNotNull().map { true },
+                player.error.filterNotNull().map { player.isLiveContent },
+            ).collect { live -> if (live) runCatching { hopToMirror() } }
+        }
+    }
+
+    private suspend fun hopToMirror() {
+        val channel = _previewChannel.value ?: return
+        if (_catchupActive.value || channel.id != playedChannelId) return
+        mirrorsTried += channel.id
+        if (mirrorsTried.size > tv.own.owntv.core.live.ChannelMirrors.MAX_HOPS) return
+        val word = tv.own.owntv.core.live.ChannelMirrors.lookupWord(channel.name) ?: return
+        val sources = activeProfileSources(settings, sourceDao).first { it.profileId >= 0 }
+        val hidden = customize.observe(sources.profileId, MediaType.LIVE).first().hiddenItems
+        val candidates = channelDao.searchListDetailedFts("\"$word\"*", sources.liveSourceIds, MIRROR_LOOKUP_LIMIT)
+            .map { it.channel }
+            .filter { CustomizeKeys.channel(it) !in hidden }
+        val mirror = tv.own.owntv.core.live.ChannelMirrors.pick(channel, candidates, mirrorsTried).firstOrNull() ?: return
+        tv.own.owntv.ui.components.TvNotices.show(appContext.getString(tv.own.owntv.R.string.live_mirror_switched, mirror.name))
+        hoppingToMirror = true
+        try { playChannel(mirror) } finally { hoppingToMirror = false }
+    }
+
     private val _fixingGuide = MutableStateFlow(false)
 
     /** True while "Fix the guide" is running, so the menu item cannot be pressed twice. */
@@ -1571,6 +1608,8 @@ class LiveViewModel(
      *  channel. Direct-tune's background rebuild path calls this without cancelling the rebuild
      *  so the in-flight rebuild it owns isn't killed by its own play. */
     private suspend fun playChannel(channel: ChannelEntity) {
+        if (!hoppingToMirror) mirrorsTried.clear()
+        playedChannelId = channel.id
         val pid = currentProfileId() ?: return
         if (!tv.own.owntv.core.content.AdultCategoryClassifier.allows(pid, channel.categoryId, profileDao, categoryDao)) return
         // Live TV set to play externally: hand the channel over instead of tuning an in-app engine.
@@ -2165,6 +2204,9 @@ class LiveViewModel(
 
     private companion object {
         const val ENGINE_TAG = "LiveEngine"
+
+        /** Rows read when looking for another copy of a channel by its first word. */
+        const val MIRROR_LOOKUP_LIMIT = 300
 
         /** How long a channel must stay tuned before it counts as watched — see [recordLiveHistory]. */
         const val HISTORY_DEBOUNCE_MS = 5_000L

@@ -619,4 +619,5 @@
     <string name="live_pick_hint">Каналы, где это идёт прямо сейчас</string>
     <string name="live_pick_loading">Ищем в телепрограмме…</string>
     <string name="live_pick_empty">Пока пусто. Попробуйте «Починить телегид»</string>
+    <string name="live_mirror_switched">Канал не открылся. Включили копию: <xliff:g id="name">%1$s</xliff:g></string>
 </resources>
