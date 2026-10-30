@@ -25,7 +25,6 @@ import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -291,7 +290,7 @@ internal fun SleepTimerDialog(
  */
 @Composable
 private fun ScreenOffRow(screenOff: ScreenOff = koinInject()) {
-    val context = LocalContext.current
+    val unavailable = stringResource(R.string.player_sleep_timer_screen_off_unavailable)
     var allowed by remember { mutableStateOf(screenOff.isAllowed()) }
     val ask = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { allowed = screenOff.isAllowed() }
     tv.own.owntv.ui.stage.StagePopupOption(
@@ -303,7 +302,7 @@ private fun ScreenOffRow(screenOff: ScreenOff = koinInject()) {
                 allowed = false
             } else {
                 runCatching { ask.launch(screenOff.requestIntent()) }.onFailure {
-                    tv.own.owntv.ui.components.TvNotices.show(context.getString(R.string.player_sleep_timer_screen_off_unavailable), null, 4_000L)
+                    tv.own.owntv.ui.components.TvNotices.show(unavailable, null, 4_000L)
                 }
             }
         },
