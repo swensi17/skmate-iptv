@@ -27,6 +27,7 @@
 1	log	app/src/main/java/tv/own/owntv/MainActivity.kt	blur: crop/scale/blur threw ${t.javaClass.simpleName}: ${t.message}
 1	log	app/src/main/java/tv/own/owntv/MainActivity.kt	blur: decodeFile returned null for $path
 1	log	app/src/main/java/tv/own/owntv/MainActivity.kt	blur: produceState failed: ${it.javaClass.simpleName}: ${it.message}
+1	log	app/src/main/java/tv/own/owntv/MainActivity.kt	could not enter Picture-in-Picture
 1	log	app/src/main/java/tv/own/owntv/MainActivity.kt	database probe failed: $error
 1	performance	app/src/main/java/tv/own/owntv/MainActivity.kt	db-probed
 1	performance	app/src/main/java/tv/own/owntv/MainActivity.kt	destination-ready
