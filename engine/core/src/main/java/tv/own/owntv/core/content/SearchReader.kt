@@ -100,7 +100,8 @@ class SearchReader(
         limit: Int = MATCH_LIMIT,
     ): SearchResults {
         if (profileId < 0 || !sources.hasAny) return SearchResults()
-        val fts = ftsQuery(query)
+        val variants = QueryVariants.of(query)
+        if (variants.all.isEmpty()) return SearchResults()
         val custLive = customize.observe(profileId, MediaType.LIVE).first()
         val custMovie = customize.observe(profileId, MediaType.MOVIE).first()
         val custSeries = customize.observe(profileId, MediaType.SERIES).first()
@@ -110,45 +111,94 @@ class SearchReader(
         val hiddenSeriesCats = hiddenCategoryIds(sources.seriesSourceIds, MediaType.SERIES, custSeries, isKids)
         return SearchResults(
             channels = if (sources.liveSourceIds.isEmpty()) emptyList() else
-                (
-                    if (fts != null) channelDao.searchListDetailedFts(fts, sources.liveSourceIds, limit)
-                    else channelDao.searchListDetailed(query, sources.liveSourceIds, limit)
-                    )
+                gather(
+                    variants, limit, id = { it.channel.id },
+                    fts = { f, n -> channelDao.searchListDetailedFts(f, sources.liveSourceIds, n) },
+                    like = { q, n -> channelDao.searchListDetailed(q, sources.liveSourceIds, n) },
+                )
                     .filter {
-                        CustomizeKeys.channel(it.channel) !in custLive.hiddenItems &&
-                            (it.channel.categoryId == null || it.channel.categoryId !in hiddenLiveCats)
+                        CustomizeKeys.channel(it.row.channel) !in custLive.hiddenItems &&
+                            (it.row.channel.categoryId == null || it.row.channel.categoryId !in hiddenLiveCats)
                     }
-                    .map { row ->
-                        custLive.itemNames[CustomizeKeys.channel(row.channel)]
-                            ?.let { row.copy(channel = row.channel.copy(name = it)) } ?: row
-                    },
+                    .map { f ->
+                        custLive.itemNames[CustomizeKeys.channel(f.row.channel)]
+                            ?.let { f.copy(row = f.row.copy(channel = f.row.channel.copy(name = it))) } ?: f
+                    }
+                    .ranked(variants, limit) { it.channel.name },
             movies = if (sources.movieSourceIds.isEmpty()) emptyList() else
-                (
-                    if (fts != null) movieDao.searchListFts(fts, sources.movieSourceIds, limit)
-                    else movieDao.searchList(query, sources.movieSourceIds, limit)
-                    )
+                gather(
+                    variants, limit, id = { it.id },
+                    fts = { f, n -> movieDao.searchListFts(f, sources.movieSourceIds, n) },
+                    like = { q, n -> movieDao.searchList(q, sources.movieSourceIds, n) },
+                )
                     .filter {
-                        CustomizeKeys.movie(it) !in custMovie.hiddenItems &&
-                            (it.categoryId == null || it.categoryId !in hiddenMovieCats)
+                        CustomizeKeys.movie(it.row) !in custMovie.hiddenItems &&
+                            (it.row.categoryId == null || it.row.categoryId !in hiddenMovieCats)
                     }
-                    .map { m -> custMovie.itemNames[CustomizeKeys.movie(m)]?.let { m.copy(name = it) } ?: m },
+                    .map { f -> custMovie.itemNames[CustomizeKeys.movie(f.row)]?.let { f.copy(row = f.row.copy(name = it)) } ?: f }
+                    .ranked(variants, limit) { it.name },
             series = if (sources.seriesSourceIds.isEmpty()) emptyList() else
-                (
-                    if (fts != null) seriesDao.searchListFts(fts, sources.seriesSourceIds, limit)
-                    else seriesDao.searchList(query, sources.seriesSourceIds, limit)
-                    )
+                gather(
+                    variants, limit, id = { it.id },
+                    fts = { f, n -> seriesDao.searchListFts(f, sources.seriesSourceIds, n) },
+                    like = { q, n -> seriesDao.searchList(q, sources.seriesSourceIds, n) },
+                )
                     .filter {
-                        CustomizeKeys.series(it) !in custSeries.hiddenItems &&
-                            (it.categoryId == null || it.categoryId !in hiddenSeriesCats)
+                        CustomizeKeys.series(it.row) !in custSeries.hiddenItems &&
+                            (it.row.categoryId == null || it.row.categoryId !in hiddenSeriesCats)
                     }
-                    .map { s -> custSeries.itemNames[CustomizeKeys.series(s)]?.let { s.copy(name = it) } ?: s },
+                    .map { f -> custSeries.itemNames[CustomizeKeys.series(f.row)]?.let { f.copy(row = f.row.copy(name = it)) } ?: f }
+                    .ranked(variants, limit) { it.name },
             programmes = if (sources.liveSourceIds.isEmpty()) emptyList() else
-                programmes(query.trim(), sources.liveSourceIds, custLive, hiddenLiveCats),
+                programmes(variants, sources.liveSourceIds, custLive, hiddenLiveCats),
         )
     }
 
+    /** A row a table returned, and whether the table vouched for it (a fuzzy candidate has to earn its place). */
+    private data class Found<T>(val row: T, val certain: Boolean)
+
     /**
-     * Programmes whose title contains [query], from now until [PROGRAMME_HORIZON_MS] ahead, each on a
+     * Every row that may answer [variants], in three passes, each only when the one before found
+     * little: the index for each spelling (prefix of a word), then the substring scans in the case
+     * forms SQLite's LIKE needs, then candidates sharing the first letters of the longest word, for
+     * the fuzzy match to sort out. Each pass is bounded, so a two-letter query stays cheap.
+     */
+    private suspend fun <T> gather(
+        variants: QueryVariants,
+        limit: Int,
+        id: (T) -> Long,
+        fts: suspend (String, Int) -> List<T>,
+        like: suspend (String, Int) -> List<T>,
+    ): List<Found<T>> {
+        val out = LinkedHashMap<Long, Found<T>>()
+        for (v in variants.all) {
+            val f = ftsQuery(v) ?: continue
+            for (row in fts(f, limit)) out.putIfAbsent(id(row), Found(row, true))
+        }
+        if (out.size < WIDEN_BELOW) {
+            for (q in variants.likeForms()) for (row in like(q, limit)) out.putIfAbsent(id(row), Found(row, true))
+        }
+        if (out.size < FUZZY_BELOW) {
+            for (prefix in variants.fuzzyPrefixes()) {
+                for (row in fts("$prefix*", FUZZY_CANDIDATES)) out.putIfAbsent(id(row), Found(row, false))
+            }
+        }
+        return out.values.toList()
+    }
+
+    /** Best answers first: exact name, then its start, a word's start, anywhere in it, one letter off. */
+    private fun <T> List<Found<T>>.ranked(variants: QueryVariants, limit: Int, name: (T) -> String): List<T> =
+        mapNotNull { f ->
+            val norm = SearchText.normalize(name(f.row))
+            val score = SearchRank.score(norm, variants.all) ?: (if (f.certain) SearchRank.OTHER else return@mapNotNull null)
+            Triple(score, norm, f.row)
+        }
+            .sortedWith(compareBy({ it.first }, { it.second.length }, { it.second }))
+            .take(limit)
+            .map { it.third }
+
+    /**
+     * Programmes whose title contains the typed text (in any of its spellings), from now until [PROGRAMME_HORIZON_MS] ahead, each on a
      * channel this profile may see. Only the stored (XMLTV) guide is searched — the provider's own
      * short EPG is fetched per channel and is never in the table.
      *
@@ -156,7 +206,7 @@ class SearchReader(
      * both are looked up. One feed carried by two playlists is one programme: it is listed once.
      */
     private suspend fun programmes(
-        query: String,
+        variants: QueryVariants,
         liveSourceIds: List<Long>,
         cust: SectionCustomizations,
         hiddenCats: Set<Long>,
@@ -166,12 +216,11 @@ class SearchReader(
         // still finds its rows; the exact window is applied after the shift, on the user's clock. The
         // slack stays small: rows that ended before it would use up [PROGRAMME_ROWS] and push out what
         // is on now.
-        val rows = epgDao.searchTitles(
-            query,
-            now - PROGRAMME_SHIFT_SLACK_MS,
-            now + PROGRAMME_HORIZON_MS + PROGRAMME_SHIFT_SLACK_MS,
-            PROGRAMME_ROWS,
-        )
+        val rows = variants.likeForms()
+            .flatMap { q ->
+                epgDao.searchTitles(q, now - PROGRAMME_SHIFT_SLACK_MS, now + PROGRAMME_HORIZON_MS + PROGRAMME_SHIFT_SLACK_MS, PROGRAMME_ROWS)
+            }
+            .distinctBy { it.id }
         if (rows.isEmpty()) return emptyList()
         val byKey = rows.groupBy { it.epgChannelId }
         val keys = byKey.keys.toList()
@@ -257,6 +306,13 @@ class SearchReader(
          * only for a two-letter query that matches most of a 170k-row catalogue.
          */
         const val MATCH_LIMIT = 500
+
+        /** Below this many index hits the substring scans run too; below [FUZZY_BELOW], the fuzzy pass. */
+        private const val WIDEN_BELOW = 30
+        private const val FUZZY_BELOW = 8
+
+        /** Rows the fuzzy pass reads per short prefix before the edit distance decides. */
+        private const val FUZZY_CANDIDATES = 1500
 
         /** How far ahead "On TV" looks, and how many programmes it lists. */
         private const val PROGRAMME_HORIZON_MS = 12 * 60 * 60_000L

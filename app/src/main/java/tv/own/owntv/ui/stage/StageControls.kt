@@ -175,7 +175,7 @@ fun StageSearchField(
                                 else -> false
                             }
                         },
-                    textStyle = stageText(18, 500).copy(color = StageColors.Text),
+                    textStyle = stageText(18, 500).copy(color = if (lit && (white || tvBox)) SearchLitText else StageColors.Text),
                     singleLine = true,
                     cursorBrush = SolidColor(stageAccent.accent),
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),

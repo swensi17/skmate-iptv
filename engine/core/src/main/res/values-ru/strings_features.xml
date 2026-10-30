@@ -46,6 +46,13 @@
     <string name="search_go_to_movie">К фильму</string>
     <string name="search_clear_recent">Очистить недавние запросы</string>
     <string name="search_field_hint">Каналы, фильмы и сериалы</string>
+    <string name="search_in_progress">Ищем каналы, передачи, фильмы и сериалы…</string>
+    <string name="search_caption_channels">Поиск по каналам</string>
+    <string name="search_caption_programs">Поиск по передачам</string>
+    <string name="search_caption_guide">Поиск по телегиду</string>
+    <string name="search_caption_movies">Поиск по фильмам</string>
+    <string name="search_caption_series">Поиск по сериалам</string>
+    <string name="search_caption_layout">В любой раскладке</string>
     <string name="search_card_title">Находите всё в своих плейлистах</string>
     <string name="search_card_body">Каналы, фильмы и сериалы из всех показываемых плейлистов. Выберите результат, чтобы сразу перейти к нему, а там — смотреть, скачать или открыть его параметры. Передачи, которые идут сейчас или позже сегодня, тоже находятся по названию.</string>
     <string name="search_nothing_found">Ничего не найдено по запросу «<xliff:g id="query">%1$s</xliff:g>»</string>

@@ -249,9 +249,12 @@ private fun RollingText(text: String, style: TextStyle, color: Color) {
                     targetState = ch,
                     transitionSpec = {
                         (androidx.compose.animation.slideInVertically(androidx.compose.animation.core.tween(tv.own.owntv.ui.theme.MotionPrefs.dur(RollMs))) { it } +
-                            androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(tv.own.owntv.ui.theme.MotionPrefs.dur(RollMs)))) togetherWith
-                            (androidx.compose.animation.slideOutVertically(androidx.compose.animation.core.tween(tv.own.owntv.ui.theme.MotionPrefs.dur(RollMs))) { -it } +
-                                androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(tv.own.owntv.ui.theme.MotionPrefs.dur(RollMs))))
+                            androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(tv.own.owntv.ui.theme.MotionPrefs.dur(RollMs)))
+                        ) togetherWith
+                            (
+                                androidx.compose.animation.slideOutVertically(androidx.compose.animation.core.tween(tv.own.owntv.ui.theme.MotionPrefs.dur(RollMs))) { -it } +
+                                androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(tv.own.owntv.ui.theme.MotionPrefs.dur(RollMs)))
+                            )
                     },
                     label = "clockDigit",
                 ) { c -> Text(c.toString(), style = style, color = color, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) }

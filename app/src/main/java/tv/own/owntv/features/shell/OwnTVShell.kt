@@ -1167,8 +1167,7 @@ fun OwnTVShell(
               // TV-box look: OK on a menu item opens that screen and the menu closes, focus in the screen —
               // also on the screen already open, which before only re-selected it and left the menu up.
               if (TvBoxNav && section != MainSection.SEARCH) {
-                  if (section != selectedSection) { contentFocusPending = true; onSelectSection(section) }
-                  else if (tv.own.owntv.features.shell.components.TvBoxPanels.besideOpen) tv.own.owntv.features.shell.components.TvBoxPanels.closeBeside++
+                  if (section != selectedSection) { contentFocusPending = true; onSelectSection(section) } else if (tv.own.owntv.features.shell.components.TvBoxPanels.besideOpen) tv.own.owntv.features.shell.components.TvBoxPanels.closeBeside++
                   else closeMenuToContent()
               } else onSelectSection(section)
           }
@@ -1269,8 +1268,11 @@ fun OwnTVShell(
                     // the picture in its preview goes on playing, because it is the same screen and the same video
                     // surface, not a copy built anew behind the sheet. Behind the sheet it is out of the remote's reach.
                     val channelsHere = selectedSection == MainSection.LIVE_TV
-                    if (TvBoxNav && ((channelsHere && liveView != tv.own.owntv.core.settings.SettingsRepository.LiveView.GUIDE) ||
-                            selectedSection == MainSection.MORE || selectedSection == MainSection.SETTINGS)) {
+                    if (TvBoxNav && (
+                        (channelsHere && liveView != tv.own.owntv.core.settings.SettingsRepository.LiveView.GUIDE) ||
+                            selectedSection == MainSection.MORE || selectedSection == MainSection.SETTINGS
+                    )
+                    ) {
                         Box(
                             Modifier
                                 .fillMaxSize()
@@ -1572,7 +1574,9 @@ fun OwnTVShell(
                         },
                 )
             }
-            railMenu(selectFromNav, if (playerMode == PlayerMode.FULLSCREEN) ({ runCatching { playerFocus.requestFocus() }.isSuccess }) else when (selectedSection) {
+            railMenu(
+                selectFromNav,
+                if (playerMode == PlayerMode.FULLSCREEN) ({ runCatching { playerFocus.requestFocus() }.isSuccess }) else when (selectedSection) {
                 MainSection.HOME -> homeEntry
                 MainSection.EPG, MainSection.LIVE_TV -> guideEntry
                 MainSection.MOVIES, MainSection.SERIES -> vodEntry
@@ -1580,7 +1584,8 @@ fun OwnTVShell(
                 MainSection.MORE -> moreEntry
                 MainSection.SPORTS -> sportsEntry
                 else -> null
-            })
+            }
+            )
           }
         }
         // The solid-mode wizard aura is deliberately drawn after the opaque browse surfaces so it
@@ -1681,8 +1686,7 @@ fun OwnTVShell(
       if (multiview == null && playerMode == PlayerMode.FULLSCREEN) {
           railMenu(
               { section ->
-                  if (section == selectedSection) { runCatching { playerFocus.requestFocus() } }
-                  else { exitPlayer(); onSelectSection(section) }
+                  if (section == selectedSection) { runCatching { playerFocus.requestFocus() } } else { exitPlayer(); onSelectSection(section) }
               },
               { runCatching { playerFocus.requestFocus() }.isSuccess },
           )
@@ -1703,7 +1707,8 @@ fun OwnTVShell(
         }
         var parentOrigin by remember { mutableStateOf(androidx.compose.ui.geometry.Offset.Zero) }
         Box(
-            modifier = (if (isFull) {
+            modifier = (
+                if (isFull) {
                 Modifier.fillMaxSize()
                     .onPlaced { parentOrigin = it.parentLayoutCoordinates?.positionInRoot() ?: androidx.compose.ui.geometry.Offset.Zero }
                     .layout { measurable, constraints ->
@@ -1731,7 +1736,8 @@ fun OwnTVShell(
                 Modifier.align(miniPos.alignment).padding(24.dp)
                     .fillMaxWidth(tv.own.owntv.core.player.MiniPlayerSize.fraction(miniSizePct)).aspectRatio(16f / 9f)
                     .clip(RoundedCornerShape(14.dp)).background(Color.Black)
-            }).then(if (isFull) Modifier.focusRequester(playerFocus).onFocusChanged { if (it.hasFocus) focusedLayer = ShellLayer.CONTENT }.focusGroup() else Modifier),
+            }
+            ).then(if (isFull) Modifier.focusRequester(playerFocus).onFocusChanged { if (it.hasFocus) focusedLayer = ShellLayer.CONTENT }.focusGroup() else Modifier),
         ) {
             // TV-box look: with the channel panel open the picture moves into the top-right corner beside it,
             // laid out at that size (a SurfaceView ignores layer scaling), and comes back when it closes.
@@ -2223,8 +2229,10 @@ fun OwnTVShell(
     val epgMatchToast = tv.own.owntv.ui.components.rememberInAppToast()
     val shellLiveView by liveVm.liveView.collectAsStateWithLifecycle()
     val guideOnScreen = playerMode != PlayerMode.FULLSCREEN && multiview == null &&
-        (selectedSection == MainSection.EPG ||
-            (selectedSection == MainSection.LIVE_TV && shellLiveView == tv.own.owntv.core.settings.SettingsRepository.LiveView.GUIDE))
+        (
+            selectedSection == MainSection.EPG ||
+            (selectedSection == MainSection.LIVE_TV && shellLiveView == tv.own.owntv.core.settings.SettingsRepository.LiveView.GUIDE)
+        )
     val currentGuideOnScreen by rememberUpdatedState(guideOnScreen)
     var finishedMatch by remember { mutableStateOf<tv.own.owntv.features.epg.EpgMatchSummary?>(null) }
     LaunchedEffect(epgVm) {
@@ -2335,7 +2343,8 @@ private fun OfflineBanner() {
             stringResource(R.string.content_offline_banner),
             style = tv.own.owntv.ui.theme.stageText(25, 600),
             color = tv.own.owntv.ui.theme.StageColors.Text,
-        ) }
+        )
+    }
     }
 
 /** The line under a rail item at Size = Extra wide; real data only, so most items can have none. */
@@ -2366,12 +2375,13 @@ private const val RAIL_KEY_WINDOW_MS = 400L
  * left edge focuses it; it opens over the content and goes again when focus leaves it. Overrides the
  * Navigation style setting (Docked / Floating) while on.
  */
+@Suppress("ktlint:standard:property-naming")
 internal const val TvBoxNav = true
 
 /** Two Back presses this close together on the channels leave the app. */
+@Suppress("ktlint:standard:property-naming")
 private const val ExitBackWindowMs = 2_000L
 
-/** Full screen growing out of the preview, and shrinking back into it. */
 /** Resizing the picture frame by frame reallocates the video's buffers each step: weak TVs jump straight to the result. */
 private val FullGrowMs: Int get() = if (tv.own.owntv.ui.theme.MotionPrefs.smoothPlayer) tv.own.owntv.ui.theme.MotionPrefs.ms(320) else 0
 private val FullShrinkMs: Int get() = if (tv.own.owntv.ui.theme.MotionPrefs.smoothPlayer) tv.own.owntv.ui.theme.MotionPrefs.ms(260) else 0
@@ -2383,9 +2393,9 @@ private val MenuAfterExitMs: Long get() = if (tv.own.owntv.ui.theme.DevicePerf.l
 internal val CategoriesColumnWidth = 440.mpx
 
 /** The picture moving into the corner beside the channel panel, and back. */
+
 /** The picture moves into the corner beside the channel panel, and back, at once: a sliding picture showed its old frame. */
 private val DockMs: Int get() = 0
-
 
 /** How often, and how far apart, the shell tries to put focus in a screen that is still composing. */
 private const val ContentFocusTries = 60

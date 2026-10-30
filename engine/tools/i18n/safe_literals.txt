@@ -506,6 +506,45 @@
 1	empty	core/src/main/java/tv/own/owntv/core/content/SearchReader.kt	\0
 1	sql	core/src/main/java/tv/own/owntv/core/content/SearchReader.kt	$it*
 1	technical	core/src/main/java/tv/own/owntv/core/content/SearchReader.kt	[^\\p{L}\\p{Nd}]+
+3	technical	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	\0
+3	technical	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	a
+3	technical	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	b
+2	technical	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	c
+3	technical	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	ch
+3	technical	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	d
+4	technical	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	e
+3	technical	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	f
+5	technical	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	g
+4	technical	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	h
+3	technical	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	i
+1	technical	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	iy
+3	technical	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	j
+3	technical	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	k
+2	technical	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	kh
+3	technical	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	l
+3	technical	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	m
+3	technical	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	n
+1	technical	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	ng
+5	technical	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	o
+3	technical	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	p
+3	technical	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	q
+3	technical	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	r
+4	technical	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	s
+1	technical	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	sch
+4	technical	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	sh
+2	technical	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	shch
+3	technical	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	t
+3	technical	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	ts
+3	technical	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	u
+3	technical	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	v
+2	technical	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	w
+3	technical	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	x
+5	technical	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	y
+3	technical	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	ya
+1	technical	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	ye
+1	technical	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	yi
+2	technical	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	yo
+3	technical	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	yu
 1	empty	core/src/main/java/tv/own/owntv/core/customize/BulkRenameSession.kt	\0
 1	regex	core/src/main/java/tv/own/owntv/core/customize/ChannelNameCleanup.kt	$SEPARATORS(?<![\\p{L}\\p{N}])(?:$words)$SEPARATORS$
 1	regex	core/src/main/java/tv/own/owntv/core/customize/ChannelNameCleanup.kt	${RenameRules.COUNTRY_TAG_PATTERN}$SEPARATORS
@@ -569,6 +608,8 @@
 1	room-schema	core/src/main/java/tv/own/owntv/core/database/Migration51To52.kt	channels
 1	room-schema	core/src/main/java/tv/own/owntv/core/database/Migration51To52.kt	movies
 1	room-schema	core/src/main/java/tv/own/owntv/core/database/Migration51To52.kt	series
+1	sql	core/src/main/java/tv/own/owntv/core/database/Migration52To53.kt	DROP TABLE IF EXISTS `$name`
+1	sql	core/src/main/java/tv/own/owntv/core/database/Migration52To53.kt	INSERT INTO `$name`(`$name`) VALUES('rebuild')
 18	sql	core/src/main/java/tv/own/owntv/core/database/OwnTVDatabase.kt	)
 1	room-schema	core/src/main/java/tv/own/owntv/core/database/OwnTVDatabase.kt	,
 1	room-schema	core/src/main/java/tv/own/owntv/core/database/OwnTVDatabase.kt	?
@@ -730,10 +771,6 @@
 1	room-schema	core/src/main/java/tv/own/owntv/core/database/OwnTVDatabase.kt	CREATE UNIQUE INDEX IF NOT EXISTS `index_subtitle_cache_openSubFileId` ON `subtitle_cache` (`openSubFileId`)
 2	room-schema	core/src/main/java/tv/own/owntv/core/database/OwnTVDatabase.kt	CREATE UNIQUE INDEX IF NOT EXISTS `index_tv_provider_programs_profileId_surface_mediaType_groupId` ON `tv_provider_programs` (`profileId`, `surface`, `mediaType`, `groupId`)
 1	sql	core/src/main/java/tv/own/owntv/core/database/OwnTVDatabase.kt	CREATE UNIQUE INDEX IF NOT EXISTS `index_user_data_tombstones_profileId_kind_identity`
-1	room-schema	core/src/main/java/tv/own/owntv/core/database/OwnTVDatabase.kt	CREATE VIRTUAL TABLE IF NOT EXISTS `channels_fts` USING FTS4(`name` TEXT NOT NULL, content=`channels`)
-1	room-schema	core/src/main/java/tv/own/owntv/core/database/OwnTVDatabase.kt	CREATE VIRTUAL TABLE IF NOT EXISTS `episodes_fts` USING FTS4(`name` TEXT NOT NULL, content=`episodes`)
-1	room-schema	core/src/main/java/tv/own/owntv/core/database/OwnTVDatabase.kt	CREATE VIRTUAL TABLE IF NOT EXISTS `movies_fts` USING FTS4(`name` TEXT NOT NULL, content=`movies`)
-1	room-schema	core/src/main/java/tv/own/owntv/core/database/OwnTVDatabase.kt	CREATE VIRTUAL TABLE IF NOT EXISTS `series_fts` USING FTS4(`name` TEXT NOT NULL, content=`series`)
 1	room-schema	core/src/main/java/tv/own/owntv/core/database/OwnTVDatabase.kt	DELETE FROM `epg_programmes`
 1	sql	core/src/main/java/tv/own/owntv/core/database/OwnTVDatabase.kt	DROP INDEX IF EXISTS `index_epg_programmes_sourceId_epgChannelId`
 1	sql	core/src/main/java/tv/own/owntv/core/database/OwnTVDatabase.kt	DROP INDEX IF EXISTS `index_epg_programmes_sourceId`
@@ -1598,6 +1635,7 @@
 1	room-schema	core/src/main/java/tv/own/owntv/core/database/entity/FtsEntities.kt	channels_fts
 1	room-schema	core/src/main/java/tv/own/owntv/core/database/entity/FtsEntities.kt	episodes_fts
 1	room-schema	core/src/main/java/tv/own/owntv/core/database/entity/FtsEntities.kt	movies_fts
+1	sql	core/src/main/java/tv/own/owntv/core/database/entity/FtsEntities.kt	remove_diacritics=1
 1	room-schema	core/src/main/java/tv/own/owntv/core/database/entity/FtsEntities.kt	series_fts
 1	room-schema	core/src/main/java/tv/own/owntv/core/database/entity/MetadataEntities.kt	metadata_cache
 1	room-schema	core/src/main/java/tv/own/owntv/core/database/entity/MetadataEntities.kt	metadata_match

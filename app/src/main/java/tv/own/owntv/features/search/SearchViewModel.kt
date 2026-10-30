@@ -19,11 +19,14 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.transformLatest
 import tv.own.owntv.core.database.dao.CategoryDao
 import tv.own.owntv.core.database.dao.ProfileDao
+import tv.own.owntv.core.epg.displayLogoUrl
 import tv.own.owntv.core.database.entity.MetadataCacheEntity
 import tv.own.owntv.core.database.entity.MovieEntity
 import tv.own.owntv.core.database.entity.SeriesEntity
@@ -67,16 +70,26 @@ class SearchViewModel(
     val query: StateFlow<String> = _query.asStateFlow()
     val results: StateFlow<SearchResults> = _query
         .map { it.trim() }
-        .debounce(300)
+        .debounce(250)
         .distinctUntilChanged()
-        .flatMapLatest { q ->
+        .transformLatest { q ->
             if (q.length < 2) {
-                flowOf(SearchResults())
+                _busy.value = false
+                emit(SearchResults())
             } else {
-                flowOf(search(q))
+                _busy.value = true
+                try {
+                    emit(withContext(Dispatchers.Default) { search(q) })
+                } finally {
+                    _busy.value = false
+                }
             }
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SearchResults())
+
+    /** True from the moment a typed query is being looked up until its results are in. */
+    private val _busy = MutableStateFlow(false)
+    val busy: StateFlow<Boolean> = _busy.asStateFlow()
 
     fun setQuery(q: String) {
         if (q.trim() != _query.value.trim()) lastFocusKey = null
@@ -91,6 +104,23 @@ class SearchViewModel(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     fun clearRecentSearches() { viewModelScope.launch { settings.clearRecentSearches() } }
+
+    /** For each recent term, the picture of its best match (a channel's logo, a film's poster), if any. */
+    val recentLogos: StateFlow<Map<String, String?>> = combine(recentSearches, ctx) { terms, c -> terms.take(RECENT_SHOWN) to c }
+        .distinctUntilChanged()
+        .mapLatest { (terms, c) ->
+            val pid = currentProfileId() ?: return@mapLatest emptyMap()
+            withContext(Dispatchers.Default) {
+                terms.associateWith { term ->
+                    val r = runCatching { searchReader.search(pid, c, term, limit = 3) }.getOrNull() ?: return@associateWith null
+                    r.channels.firstOrNull()?.channel?.displayLogoUrl
+                        ?: r.programmes.firstOrNull()?.channel?.displayLogoUrl
+                        ?: r.movies.firstOrNull()?.posterUrl
+                        ?: r.series.firstOrNull()?.posterUrl
+                }
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyMap())
 
     /** Save the current query into recents — called when the user actually opens a result. */
     fun rememberCurrentQuery() { viewModelScope.launch { settings.addRecentSearch(_query.value) } }
@@ -136,8 +166,10 @@ class SearchViewModel(
 
     /** Category names for the movie and series rows ("2005 · ★ 6.2 · Disney+ Movies"). */
     val categoryNames: StateFlow<Map<Long, String>> = combine(results, curatedResults) { a, b ->
-        (a.movies.mapNotNull { it.categoryId } + a.series.mapNotNull { it.categoryId } +
-            b.movies.mapNotNull { it.categoryId } + b.series.mapNotNull { it.categoryId }).toSet()
+        (
+            a.movies.mapNotNull { it.categoryId } + a.series.mapNotNull { it.categoryId } +
+            b.movies.mapNotNull { it.categoryId } + b.series.mapNotNull { it.categoryId }
+        ).toSet()
     }
         .distinctUntilChanged()
         .mapLatest { ids -> ids.mapNotNull { id -> categoryDao.getById(id)?.let { id to it.name } }.toMap() }
@@ -163,6 +195,11 @@ class SearchViewModel(
             emit(key to cache)
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    companion object {
+        /** Recent terms the empty page lists. */
+        const val RECENT_SHOWN = 8
+    }
 
     private suspend fun currentProfileId(): Long? {
         val preferred = settings.activeProfileId.first()

@@ -120,7 +120,6 @@ private fun FirstRunLanguagePopup(
     val selectedFocus = remember { FocusRequester() }
     val listState = rememberLazyListState(initialFirstVisibleItemIndex = selectedIndex)
 
-
     LaunchedEffect(Unit) {
         kotlinx.coroutines.delay(80)
         runCatching { selectedFocus.requestFocus() }
@@ -255,7 +254,6 @@ private fun LanguageStageRow(
     )
 }
 
-/** `.opt` with a radio: the language in its own name over its English one, and its coverage when known. */
 /**
  * A row of the side panel's language list: a round highlight while focused, and the language in use
  * filled SkMate blue with a white check on the right.
@@ -300,4 +298,5 @@ private fun SidePanelLanguageRow(
 }
 
 /** The language a first run starts in while it still follows the device. */
+@Suppress("ktlint:standard:property-naming")
 private const val FirstRunLanguage = "ru"
