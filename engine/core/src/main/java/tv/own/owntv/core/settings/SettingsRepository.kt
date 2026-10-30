@@ -2711,7 +2711,7 @@ class SettingsRepository(private val context: Context, private val localeStore: 
 
     val themeMode: Flow<ThemeMode> = prefsFlow { prefs ->
         prefs[Keys.THEME_MODE]?.let { runCatching { ThemeMode.valueOf(it) }.getOrNull() }
-            ?: ThemeMode.LIGHT // SkMate: white pages by default
+            ?: ThemeMode.SYSTEM // follows the device until the user picks (setup asks)
     }
 
     suspend fun setThemeMode(mode: ThemeMode) {

@@ -1027,5 +1027,5 @@
     <string name="live_no_playlist">No playlist is connected to this profile. Add one in Settings</string>
     <string name="welcome_telegram_title">Our Telegram chat</string>
     <string name="welcome_telegram_body">App news, help and talk with other viewers. Ask a question, report a bug or suggest an idea. Find us on Telegram:</string>
-    <string name="welcome_telegram_ok">Got it</string>
+    <string name="welcome_telegram_ok">Got it, thanks</string>
 </resources>

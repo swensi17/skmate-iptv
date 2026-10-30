@@ -22,6 +22,7 @@ import tv.own.owntv.features.more.CHAT_HANDLE
 import tv.own.owntv.ui.stage.StageButton
 import tv.own.owntv.ui.stage.StagePopup
 import tv.own.owntv.ui.theme.StageColors
+import androidx.compose.foundation.layout.widthIn
 import tv.own.owntv.ui.theme.mpx
 import tv.own.owntv.ui.theme.stageAccent
 import tv.own.owntv.ui.theme.stageText
@@ -60,7 +61,7 @@ internal fun TelegramWelcome(onDismiss: () -> Unit) {
             Text("t.me/$CHAT_HANDLE", style = stageText(24, 600), color = StageColors.Text, textAlign = TextAlign.Center)
             Spacer(Modifier.height(26.mpx))
             Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(0.mpx)) {
-                StageButton(stringResource(R.string.welcome_telegram_ok), onClick = onDismiss, modifier = Modifier.focusRequester(ok))
+                StageButton(stringResource(R.string.welcome_telegram_ok), onClick = onDismiss, modifier = Modifier.widthIn(min = 320.mpx).focusRequester(ok))
             }
         }
     }

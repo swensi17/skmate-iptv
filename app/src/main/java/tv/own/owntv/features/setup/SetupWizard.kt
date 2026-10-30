@@ -365,6 +365,7 @@ private fun DisplaySizeStep(onNext: () -> Unit, onBack: () -> Unit) {
     val vm: DisplaySizeViewModel = koinViewModel()
     val zoom by vm.uiZoomPercent.collectAsStateWithLifecycle()
     val fontSize by vm.fontSizePercent.collectAsStateWithLifecycle()
+    val themeMode by vm.themeMode.collectAsStateWithLifecycle()
     val zoomFocus = rememberFirstFocus()
     // Zoom below LOW_RAM_WARN can OOM a 2 GB device, so the first step under the line is gated
     // exactly as the Settings dialog gates it. Accepting once arms the rest of this visit; arriving
@@ -403,6 +404,19 @@ private fun DisplaySizeStep(onNext: () -> Unit, onBack: () -> Unit) {
             value = SettingValue.Stepper(stringResource(R.string.common_percent, fontSize)),
             onClick = { vm.setFontSize(fontSize + UiFontScale.STEP) },
             onStep = { dir -> vm.setFontSize(fontSize + dir * UiFontScale.STEP) },
+        )
+        val themes = listOf(tv.own.owntv.core.theme.ThemeMode.SYSTEM, tv.own.owntv.core.theme.ThemeMode.DARK, tv.own.owntv.core.theme.ThemeMode.LIGHT)
+        val themeAt = themes.indexOf(themeMode).coerceAtLeast(0)
+        StageSettingRow(
+            icon = OwnTVIcon.THEME,
+            title = stringResource(R.string.settings_theme),
+            desc = stringResource(R.string.setup_line_theme),
+            value = SettingValue.Segmented(
+                listOf(stringResource(R.string.settings_theme_system), stringResource(R.string.settings_theme_dark), stringResource(R.string.settings_theme_light)),
+                themeAt,
+            ),
+            onClick = { vm.setThemeMode(themes[(themeAt + 1) % themes.size]) },
+            onStep = { dir -> vm.setThemeMode(themes[(themeAt + dir).coerceIn(0, themes.lastIndex)]) },
         )
         // The sample, as a row like the others: the same type at the size it will really be.
         StageSettingRow(

@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import tv.own.owntv.core.settings.SettingsRepository
+import tv.own.owntv.core.theme.ThemeMode
 import tv.own.owntv.core.theme.UiFontScale
 import tv.own.owntv.core.theme.UiZoom
 
@@ -44,6 +45,11 @@ class DisplaySizeViewModel(private val settings: SettingsRepository) : ViewModel
         settings.setFontCustomization(current.copy(sizePercent = UiFontScale.clamp(percent)))
     }
 
+    val themeMode: StateFlow<ThemeMode> = settings.themeMode
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ThemeMode.SYSTEM)
+
+    fun setThemeMode(mode: ThemeMode) = viewModelScope.launch { settings.setThemeMode(mode) }
+
     /** The icon colour picked here reaches the launcher once the app is in the background. */
     val appIcon: StateFlow<AppIcon> = settings.appIcon
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), AppIcon.DEFAULT)
@@ -52,6 +58,7 @@ class DisplaySizeViewModel(private val settings: SettingsRepository) : ViewModel
 
     fun reset() = viewModelScope.launch {
         settings.setUiZoomPercent(UiZoom.DEFAULT)
+        settings.setThemeMode(ThemeMode.SYSTEM)
         val current = settings.fontCustomization.first()
         settings.setFontCustomization(current.copy(sizePercent = UiFontScale.DEFAULT))
     }

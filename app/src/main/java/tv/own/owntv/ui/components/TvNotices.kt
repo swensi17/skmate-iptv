@@ -15,7 +15,18 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.animation.core.FastOutLinearInEasing
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.graphicsLayer
+import kotlinx.coroutines.delay
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.tv.material3.Text
@@ -28,9 +39,9 @@ fun Modifier.tvNoticeCard(): Modifier {
     val light = tv.own.owntv.ui.theme.LocalStagePalette.current.isLight
     return this
         .widthIn(min = 420.mpx, max = 600.mpx)
-        .clip(RoundedCornerShape(10.mpx))
+        .clip(tv.own.owntv.ui.stage.FocusBarShape)
         .background(if (light) tv.own.owntv.features.shell.components.TvBoxPanelLight else tv.own.owntv.features.shell.components.TvBoxMenuFill)
-        .border(1.mpx, tv.own.owntv.ui.theme.StageColors.Muted.copy(alpha = 0.22f), RoundedCornerShape(10.mpx))
+        .border(1.mpx, tv.own.owntv.ui.theme.StageColors.Muted.copy(alpha = 0.22f), tv.own.owntv.ui.stage.FocusBarShape)
         .padding(horizontal = 22.mpx, vertical = 16.mpx)
 }
 
@@ -55,15 +66,41 @@ object TvNotices {
 @Composable
 fun TvNoticeStack() {
     Column(verticalArrangement = Arrangement.spacedBy(12.mpx)) {
-        TvNotices.items.forEach { n ->
-            LaunchedEffect(n.id) { kotlinx.coroutines.delay(n.millis); TvNotices.items.removeAll { it.id == n.id } }
-            Row(Modifier.tvNoticeCard().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(16.mpx)) {
-                Box(Modifier.width(4.mpx).fillMaxHeight().clip(RoundedCornerShape(2.mpx)).background(tv.own.owntv.ui.theme.stageAccent.accent))
-                Column(verticalArrangement = Arrangement.spacedBy(4.mpx)) {
-                    Text(n.title, style = stageText(21, 600), color = tv.own.owntv.ui.theme.StageColors.Text, maxLines = 3, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
-                    n.text?.let { Text(it, style = stageText(18, 500), color = tv.own.owntv.ui.theme.StageColors.Muted, maxLines = 3, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) }
-                }
+        TvNotices.items.forEach { n -> key(n.id) { TvNoticeItem(n) } }
+    }
+}
+
+/** One notice: drops in from the top edge like a blind, waits, and rolls back up before it is removed. */
+@Composable
+private fun TvNoticeItem(n: TvNotices.Notice) {
+    var shown by remember { mutableStateOf(false) }
+    val enterMs = tv.own.owntv.ui.theme.MotionPrefs.dur(320)
+    val exitMs = tv.own.owntv.ui.theme.MotionPrefs.dur(260)
+    val p by animateFloatAsState(
+        targetValue = if (shown) 1f else 0f,
+        animationSpec = tween(if (shown) enterMs else exitMs, easing = if (shown) FastOutSlowInEasing else FastOutLinearInEasing),
+    )
+    LaunchedEffect(n.id) {
+        shown = true
+        delay(n.millis)
+        shown = false
+        delay(exitMs.toLong() + 30)
+        TvNotices.items.removeAll { it.id == n.id }
+    }
+    Row(
+        Modifier
+            .graphicsLayer {
+                translationY = -(1f - p) * (size.height + 48.mpx.toPx())
+                alpha = p
             }
+            .tvNoticeCard()
+            .height(IntrinsicSize.Min),
+        horizontalArrangement = Arrangement.spacedBy(16.mpx),
+    ) {
+        Box(Modifier.width(4.mpx).fillMaxHeight().clip(RoundedCornerShape(2.mpx)).background(tv.own.owntv.ui.theme.stageAccent.accent))
+        Column(verticalArrangement = Arrangement.spacedBy(4.mpx)) {
+            Text(n.title, style = stageText(21, 600), color = tv.own.owntv.ui.theme.StageColors.Text, maxLines = 3, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+            n.text?.let { Text(it, style = stageText(18, 500), color = tv.own.owntv.ui.theme.StageColors.Muted, maxLines = 3, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) }
         }
     }
 }
