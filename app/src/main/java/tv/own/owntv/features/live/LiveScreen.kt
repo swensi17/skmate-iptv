@@ -513,6 +513,7 @@ fun LiveScreen(
     val moreToolFocus = remember { FocusRequester() }
     val fixingGuide by vm.fixingGuide.collectAsStateWithLifecycle()
     val pickState by vm.pick.collectAsStateWithLifecycle()
+    val duplicates by vm.duplicates.collectAsStateWithLifecycle()
     val sortToolFocus = remember { FocusRequester() }
     var sheetHadFocus by remember { mutableStateOf(false) }
     // The current channel's row. After a long-press that row carries contextFocus instead of selFocus
@@ -1249,8 +1250,23 @@ fun LiveScreen(
                 }
             },
             onPick = vm::loadPick,
+            onCleanup = vm::checkDuplicates,
             onDismiss = { moreOpen = false; runCatching { moreToolFocus.requestFocus() } },
         )
+    }
+    duplicates?.let { dupes ->
+        if (dupes.isEmpty()) {
+            LaunchedEffect(Unit) { multiviewToast.show(multiviewRes.getString(R.string.live_cleanup_none)); vm.dismissDuplicates() }
+        } else {
+            tv.own.owntv.ui.stage.StageConfirm(
+                title = stringResource(R.string.live_cleanup_title, dupes.size),
+                body = stringResource(R.string.live_cleanup_body),
+                confirm = stringResource(R.string.live_cleanup_confirm),
+                onConfirm = vm::hideDuplicates,
+                onCancel = vm::dismissDuplicates,
+                focusCancel = true,
+            )
+        }
     }
     pickState?.let { ps ->
         LivePickMenu(

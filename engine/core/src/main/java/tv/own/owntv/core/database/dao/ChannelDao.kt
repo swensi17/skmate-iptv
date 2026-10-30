@@ -40,6 +40,16 @@ data class ChannelWithWatchedAt(
  */
 @Dao
 interface ChannelDao {
+    /**
+     * Channels whose stream link already belongs to an earlier channel of these playlists: the same link
+     * listed twice is one channel shown twice. The first of each link stays. A blank link is never a repeat.
+     */
+    @Query(
+        "SELECT * FROM channels WHERE sourceId IN (:sourceIds) AND streamUrl != '' AND id NOT IN " +
+            "(SELECT MIN(id) FROM channels WHERE sourceId IN (:sourceIds) AND streamUrl != '' GROUP BY streamUrl)",
+    )
+    suspend fun duplicatesByUrl(sourceIds: List<Long>): List<ChannelEntity>
+
     /** A paged list in an order the fixed queries do not cover (see `liveSortQuery`): Z–A, by number, recently watched. */
     @RawQuery(observedEntities = [ChannelEntity::class, tv.own.owntv.core.database.entity.WatchHistoryEntity::class])
     fun pagingSorted(query: SupportSQLiteQuery): PagingSource<Int, ChannelEntity>
