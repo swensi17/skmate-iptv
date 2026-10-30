@@ -317,7 +317,6 @@ internal fun GuideMenuHost(x: Float, top: Dp, width: Dp, onDismiss: () -> Unit, 
                         else Modifier.padding(start = (maxWidth * (x / 1920f)).coerceAtMost(maxWidth - width), top = top, bottom = 24.mpx),
                     )
                     .width(width.coerceAtMost(maxWidth - 64.mpx))
-                    .verticalScroll(rememberScrollState())
                     .trapAllFocusExit()
                     .focusGroup(),
                 content = content,

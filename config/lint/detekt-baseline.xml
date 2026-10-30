@@ -5618,7 +5618,7 @@
     <ID>MaxLineLength:StageComponents.kt$Row</ID>
     <ID>MaxLineLength:StageComponents.kt$StageSurface</ID>
     <ID>MaxLineLength:StageComponents.kt$Text</ID>
-    <ID>MaxLineLength:StageComponents.kt$Text(count, style = stageText(if (centered) 15 else 16, 600), color = on ?: StageColors.Dim, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.alignByBaseline())</ID>
+    <ID>MaxLineLength:StageComponents.kt$Text(count, style = stageText(if (centered) 19 else 16, 700), color = on ?: StageColors.Dim, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.alignByBaseline())</ID>
     <ID>MaxLineLength:StageComponents.kt$Text(label, style = stageText(17, 700), color = color, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:StageComponents.kt$Text(label, style = stageText(if (centered) 20 else 22, 700), color = on ?: if (selected) StageColors.Text else StageColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.alignByBaseline())</ID>
     <ID>MaxLineLength:StageComponents.kt$Text(line, style = stageText(15.5f, 400), color = StageColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
