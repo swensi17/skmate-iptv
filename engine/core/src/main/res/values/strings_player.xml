@@ -593,4 +593,7 @@
     <string name="player_trailer_blocked_body">Its owner only allows it to be played on YouTube.</string>
     <!-- Translators: Popup button: open the trailer in the YouTube app instead. Keep "YouTube" as is. -->
     <string name="player_trailer_open_youtube">Open in YouTube</string>
+    <string name="player_error_title_signal">The channel is not responding</string>
+    <string name="player_error_title_internet">No internet</string>
+    <string name="player_error_title_device">This video cannot be shown</string>
 </resources>

@@ -333,4 +333,7 @@
     <string name="player_trailer_blocked_title">Этот трейлер нельзя воспроизвести в SkMate IPTV</string>
     <string name="player_trailer_blocked_body">Владелец разрешает воспроизведение только на YouTube.</string>
     <string name="player_trailer_open_youtube">Открыть в YouTube</string>
+    <string name="player_error_title_signal">Канал не отвечает</string>
+    <string name="player_error_title_internet">Нет интернета</string>
+    <string name="player_error_title_device">Не удаётся показать видео</string>
 </resources>

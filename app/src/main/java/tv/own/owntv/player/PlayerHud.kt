@@ -882,26 +882,44 @@ fun PlayerHud(
 
         // Status overlay (always shown).
         when {
-            error != null -> Column(Modifier.align(Alignment.Center), horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(stringResource(R.string.player_playback_error), style = tv.own.owntv.ui.theme.stageText(40, 600), color = Color.White)
-                Spacer(Modifier.height(8.dp))
-                error?.let {
+            // A clean screen of its own: a picture of what went wrong, a plain headline, one line of why.
+            // The engine's raw wording stays out of sight in release builds (a debug build still shows it).
+            error != null -> Box(Modifier.fillMaxSize().background(Color(0xFF0B0F14))) {
+              // The button is composed in the same frame as this screen: ask for focus once it exists.
+              LaunchedEffect(Unit) { delay(150); runCatching { retryFocus.requestFocus() } }
+              Column(Modifier.align(Alignment.Center).fillMaxWidth(0.7f), horizontalAlignment = Alignment.CenterHorizontally) {
+                val failure = error
+                val art = failure?.let { errorArtOf(it) } ?: tv.own.owntv.ui.stage.ErrorArt.SIGNAL
+                tv.own.owntv.ui.stage.ErrorIllustration(art, size = 190.dp)
+                Spacer(Modifier.height(26.dp))
+                Text(
+                    stringResource(
+                        when (art) {
+                            tv.own.owntv.ui.stage.ErrorArt.SIGNAL -> R.string.player_error_title_signal
+                            tv.own.owntv.ui.stage.ErrorArt.NO_INTERNET -> R.string.player_error_title_internet
+                            tv.own.owntv.ui.stage.ErrorArt.DEVICE -> R.string.player_error_title_device
+                        },
+                    ),
+                    style = tv.own.owntv.ui.theme.stageText(40, 700), color = Color.White, textAlign = TextAlign.Center,
+                )
+                Spacer(Modifier.height(10.dp))
+                failure?.let {
                     Text(it.displayText(), style = tv.own.owntv.ui.theme.stageText(25, 400), color = Color.White.copy(alpha = 0.7f), textAlign = TextAlign.Center)
                 }
-                // Structured technical detail so a user can report the real cause without adb/logcat:
-                // plain reason → media spec (codec • resolution • decoder) → raw engine/codec line.
                 errorInfo?.let { info ->
                     info.reason?.let {
                         Spacer(Modifier.height(8.dp))
-                        Text(it.displayText(), style = tv.own.owntv.ui.theme.stageText(25, 400), color = Color.White.copy(alpha = 0.92f), textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth(0.8f))
+                        Text(it.displayText(), style = tv.own.owntv.ui.theme.stageText(25, 400), color = Color.White.copy(alpha = 0.92f), textAlign = TextAlign.Center)
                     }
-                    info.spec?.let {
-                        Spacer(Modifier.height(4.dp))
-                        Text(it.displayText(), style = tv.own.owntv.ui.theme.stageText(22, 700), color = Color.White.copy(alpha = 0.55f), textAlign = TextAlign.Center)
-                    }
-                    info.raw?.takeIf { it.isNotBlank() }?.let {
-                        Spacer(Modifier.height(4.dp))
-                        Text(stringResource(R.string.player_raw_error, it), style = tv.own.owntv.ui.theme.stageText(22, 400), color = Color.White.copy(alpha = 0.6f), textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth(0.8f))
+                    if (tv.own.owntv.BuildConfig.DEBUG) {
+                        info.spec?.let {
+                            Spacer(Modifier.height(4.dp))
+                            Text(it.displayText(), style = tv.own.owntv.ui.theme.stageText(22, 700), color = Color.White.copy(alpha = 0.55f), textAlign = TextAlign.Center)
+                        }
+                        info.raw?.takeIf { it.isNotBlank() }?.let {
+                            Spacer(Modifier.height(4.dp))
+                            Text(stringResource(R.string.player_raw_error, it), style = tv.own.owntv.ui.theme.stageText(22, 400), color = Color.White.copy(alpha = 0.6f), textAlign = TextAlign.Center)
+                        }
                     }
                 }
                 // While a recording is what took the picture away, this screen has TWO buttons
@@ -923,21 +941,17 @@ fun PlayerHud(
                     )
                     Spacer(Modifier.height(14.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        tv.own.owntv.ui.stage.StageButton(
+                        tv.own.owntv.ui.stage.ErrorButton(
                             stringResource(R.string.player_keep_watching_stop_recording),
                             onClick = { recordingConflict.stopAndRetry() },
                             modifier = Modifier.focusRequester(retryFocus),
-                            icon = OwnTVIcon.PLAY,
-                            tinted = true,
                         )
-                        tv.own.owntv.ui.stage.StageButton(
-                            stringResource(R.string.settings_close),
-                            onClick = onBack,
-                        )
+                        tv.own.owntv.ui.stage.ErrorButton(stringResource(R.string.settings_close), onClick = onBack)
                     }
                 } else {
-                    tv.own.owntv.ui.stage.StageButton(stringResource(R.string.common_retry), onClick = { player.retry() }, modifier = Modifier.focusRequester(retryFocus), icon = OwnTVIcon.PLAY, tinted = true)
+                    tv.own.owntv.ui.stage.ErrorButton(stringResource(R.string.common_retry), onClick = { player.retry() }, modifier = Modifier.focusRequester(retryFocus))
                 }
+              }
             }
             // A provider wait looks like loading, because that is what it is: the channel is queued behind
             // the panel's own countdown and the engine re-asks by itself. The line under the spinner says
@@ -1073,3 +1087,13 @@ fun PlayerHud(
 
 /** The TV-box info and tiles fading and sliding in and out. */
 private const val TvHudFadeMs = 220
+
+/** Which picture suits a failure: a dead signal, no network, or a device that cannot show the video. */
+internal fun errorArtOf(failure: PlaybackFailure): tv.own.owntv.ui.stage.ErrorArt = when (failure) {
+    PlaybackFailure.NoInternet -> tv.own.owntv.ui.stage.ErrorArt.NO_INTERNET
+    PlaybackFailure.DecoderBusy, PlaybackFailure.DecoderExhausted, PlaybackFailure.FileCorrupt, PlaybackFailure.Surround,
+    PlaybackFailure.ImageSubtitleAudio, PlaybackFailure.ImageFormat, PlaybackFailure.ImageShow,
+    PlaybackFailure.BothEnginesExoFirst, is PlaybackFailure.BothEnginesMpvFirst, is PlaybackFailure.ExoDecode,
+    -> tv.own.owntv.ui.stage.ErrorArt.DEVICE
+    else -> tv.own.owntv.ui.stage.ErrorArt.SIGNAL
+}

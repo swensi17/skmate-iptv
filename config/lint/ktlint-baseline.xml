@@ -794,7 +794,7 @@
         <error line="772" column="17" source="standard:wrapping" />
         <error line="773" column="17" source="standard:wrapping" />
         <error line="779" column="17" source="standard:wrapping" />
-        <error line="1075" column="19" source="standard:property-naming" />
+        <error line="1089" column="19" source="standard:property-naming" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/player/PlayerHudChrome.kt">
         <error line="3" column="1" source="standard:import-ordering" />
@@ -981,6 +981,9 @@
     </file>
     <file name="app/src/main/java/tv/own/owntv/ui/format/TimeFormat.kt">
         <error line="37" column="58" source="standard:function-expression-body" />
+    </file>
+    <file name="app/src/main/java/tv/own/owntv/ui/stage/ErrorIllustration.kt">
+        <error line="3" column="1" source="standard:import-ordering" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/ui/stage/StageComponents.kt">
         <error line="3" column="1" source="standard:import-ordering" />
