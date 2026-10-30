@@ -41,6 +41,7 @@ import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
@@ -607,18 +608,22 @@ internal fun AboutPage(vm: MoreCountsViewModel, entry: FocusRequester) {
             OwnTVIcon(OwnTVIcon.FAVORITE, StageColors.Danger, Modifier.size(32.mpx), filled = false)
         }
         Text(stringResource(R.string.about_thanks_body), style = stageText(19, 500), color = StageColors.Muted, modifier = Modifier.padding(start = AboutInset, end = AboutInset, top = 8.mpx, bottom = 14.mpx))
-        // Each link: the network's round mark, its name, what it is for, and the address to type on a phone.
+        // Each link: the network's round mark, its name, what it is for, and the address. OK shows the
+        // address as a QR code, since a TV has no browser to open it in: the phone opens it instead.
+        var qrFor by remember { mutableStateOf<Pair<String, String>?>(null) }
         val social: @Composable (Int, String, Int, String, Modifier) -> Unit = { mark, name, what, address, mod ->
             line()
             StageInfoCard(
                 title = name, label = stringResource(what), body = address,
-                plain = true, onClick = {}, modifier = mod,
+                plain = true, onClick = { qrFor = name to address }, modifier = mod,
                 iconContent = { androidx.compose.foundation.Image(androidx.compose.ui.res.painterResource(mark), null, Modifier.size(44.mpx)) },
             )
         }
-        social(R.drawable.social_telegram, "Telegram", R.string.about_social_telegram, "t.me/$SOCIAL_HANDLE", Modifier.focusRequester(entry).focusRequester(updateFocus))
+        social(R.drawable.social_telegram, "@$CHAT_HANDLE", R.string.about_social_chat, "t.me/$CHAT_HANDLE", Modifier.focusRequester(entry).focusRequester(updateFocus))
+        social(R.drawable.social_telegram, "Telegram", R.string.about_social_telegram, "t.me/$SOCIAL_HANDLE", Modifier)
         social(R.drawable.social_github, "GitHub", R.string.about_social_code, "github.com/$SOCIAL_HANDLE", Modifier)
         social(R.drawable.social_x, "X", R.string.about_social_x, "x.com/$SOCIAL_HANDLE", Modifier)
+        qrFor?.let { (name, address) -> SocialQrDialog(name, address, onDismiss = { qrFor = null }) }
         line()
         // The disclaimer as one paragraph, no heading.
         Text(stringResource(R.string.about_disclaimer), style = stageText(17, 500), color = StageColors.Muted, modifier = Modifier.padding(start = AboutInset, end = AboutInset, top = 18.mpx))
@@ -633,6 +638,30 @@ internal class SettingsExtra(val icon: OwnTVIcon, val title: String, val onClick
 
 /** The author's name on GitHub, Telegram and X. */
 private const val SOCIAL_HANDLE = "swensi17"
+
+/** SkMate IPTV's public Telegram chat: news, help and talk with other viewers. */
+internal const val CHAT_HANDLE = "skmatetv"
+
+/** A social address as a QR code to scan with a phone, with the address spelled out under it. */
+@Composable
+private fun SocialQrDialog(name: String, address: String, onDismiss: () -> Unit) {
+    val qr = remember(address) { tv.own.owntv.core.companion.CompanionLink.renderQr("https://$address") }
+    val close = remember { FocusRequester() }
+    LaunchedEffect(Unit) { withFrameNanos { }; runCatching { close.requestFocus() } }
+    tv.own.owntv.ui.stage.StagePopup(
+        onDismiss = onDismiss, title = name, body = stringResource(R.string.about_social_qr_body), width = 640.mpx,
+        buttons = { tv.own.owntv.ui.stage.StageButton(stringResource(R.string.common_ok), onClick = onDismiss, height = 56.mpx, textSize = 19, tinted = true, modifier = Modifier.focusRequester(close)) },
+    ) {
+        Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+            if (qr != null) {
+                Box(Modifier.size(300.mpx).clip(RoundedCornerShape(16.mpx)).background(androidx.compose.ui.graphics.Color.White).padding(12.mpx)) {
+                    androidx.compose.foundation.Image(qr.asImageBitmap(), contentDescription = address, modifier = Modifier.fillMaxSize())
+                }
+            }
+            Text(address, style = stageText(22, 700), color = StageColors.Text, modifier = Modifier.padding(top = 16.mpx))
+        }
+    }
+}
 
 /** About's text and lines line up with its rows' content, the rows themselves reach the sheet's edges. */
 private val AboutInset = 24.mpx

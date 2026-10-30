@@ -23,7 +23,9 @@
     <string name="settings_update_window_desc">В любое время или только ночью с 02:00 до 06:00</string>
     <string name="update_window_any">В любое время</string>
     <string name="update_window_night">Ночью</string>
-    <string name="about_social_telegram">Новости и помощь</string>
+    <string name="about_social_chat">Чат SkMate IPTV: новости и помощь</string>
+    <string name="about_social_qr_body">Наведите камеру телефона, чтобы открыть ссылку.</string>
+    <string name="about_social_telegram">Автор</string>
     <string name="about_social_code">Исходный код</string>
     <string name="about_social_x">Новости проекта</string>
 </resources>
