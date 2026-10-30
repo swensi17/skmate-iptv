@@ -51,6 +51,42 @@ M3U and Xtream Codes, TV guide (EPG), catch-up, profiles — built for the remot
 - The app finds a new version on GitHub Releases, verifies its signature and installs it.
 - Can be turned off; choose how often to check (at start / every 6 hours / daily) and when to install (any time / at night).
 
+## What's new in 2.0 (`main`, release in preparation)
+
+| | |
+|:-:|:-:|
+| ![Player toolbar](../screenshots/v2-player-toolbar.jpg) | ![Plain error screen](../screenshots/v2-error-screen.jpg) |
+| **Player toolbar**: icon and caption on every button | **Plain error screen** instead of technical text |
+| ![Sort channels](../screenshots/v2-sort-menu.jpg) | ![Add from phone](../screenshots/v2-add-from-phone.jpg) |
+| **Sorting**: provider order, A–Z, Z–A, by number, recent | **Add a playlist from your phone**, Wi-Fi hint |
+
+- **Smart search**: any keyboard layout, transliteration, typos, programme search.
+- **Sports board** by country and sport, **"On now"** lists (sport, movies, news, kids).
+- **Channel mirrors**: a channel that will not open switches to its copy from another playlist.
+- **"Fix the guide"**, **hide repeats**, channel sorting, weak-network mode.
+- **Picture-in-picture**, reminders, one dark player, uniform square buttons, smooth panels.
+
+## How SkMate compares with other IPTV players
+
+| | SkMate IPTV | TiviMate | IPTV Smarters | Kodi |
+|---|:-:|:-:|:-:|:-:|
+| Free, no ads | ✅ | ❌ paid Premium | ⚠️ | ✅ |
+| Open source | ✅ | ❌ | ❌ | ✅ |
+| Smart search (layout, typos, programmes) | ✅ | ⚠️ | ⚠️ | ⚠️ |
+| Auto fail-over to a channel's mirror | ✅ | — | — | — |
+| Sports board and "On now" | ✅ | — | — | — |
+| One-click guide repair, duplicate hiding | ✅ | — | — | — |
+| Buffer adapts to a weak network | ✅ | — | — | — |
+| Catch-up, reminders, PIN profiles | ✅ | ✅ | ⚠️ | ⚠️ |
+
+Full comparison and caveats: [COMPARISON.md](../COMPARISON.md). We do not claim SkMate is smoother than TiviMate on low-end boxes: on-device measurements are still to come.
+
+## FAQ
+
+**Is this a TiviMate alternative?** Yes: a free, open-source alternative for Android TV, Google TV and Fire TV.
+**Does it include channels?** No. It is only a player: you add your own M3U, Xtream Codes or Stalker source.
+**How do I add a playlist without typing with the remote?** Scan the QR code on the TV with your phone; both must be on the same Wi-Fi.
+
 ## Screenshots
 
 | | |
