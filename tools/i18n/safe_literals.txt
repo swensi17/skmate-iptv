@@ -799,6 +799,16 @@
 1	technical	app/src/main/java/tv/own/owntv/features/shell/components/WeatherConditionIcon.kt	snow
 1	technical	app/src/main/java/tv/own/owntv/features/shell/components/WeatherConditionIcon.kt	sunny
 1	technical	app/src/main/java/tv/own/owntv/features/shell/components/WeatherConditionIcon.kt	thunder
+3	empty	app/src/main/java/tv/own/owntv/features/sports/SportsBoard.kt	\0
+1	regex	app/src/main/java/tv/own/owntv/features/sports/SportsBoard.kt	${it.sport.name}|${it.title}|${it.startMs}
+1	regex	app/src/main/java/tv/own/owntv/features/sports/SportsBoard.kt	+
+2	technical	app/src/main/java/tv/own/owntv/features/sports/SportsBoard.kt	all
+1	technical	app/src/main/java/tv/own/owntv/features/sports/SportsBoard.kt	boardCount
+1	technical	app/src/main/java/tv/own/owntv/features/sports/SportsBoard.kt	countries
+1	technical	app/src/main/java/tv/own/owntv/features/sports/SportsBoard.kt	empty
+1	technical	app/src/main/java/tv/own/owntv/features/sports/SportsBoard.kt	search
+1	technical	app/src/main/java/tv/own/owntv/features/sports/SportsBoard.kt	sports
+1	technical	app/src/main/java/tv/own/owntv/features/sports/SportsBoard.kt	title
 1	empty	app/src/main/java/tv/own/owntv/features/sports/SportsHubScreen.kt	\0
 1	technical	app/src/main/java/tv/own/owntv/features/sports/SportsHubScreen.kt	${scoreText(m.sport, home.score)} – ${scoreText(m.sport, away.score)}
 1	technical	app/src/main/java/tv/own/owntv/features/sports/SportsHubScreen.kt	${sportEmoji(s)} ${sportLabel(s)}

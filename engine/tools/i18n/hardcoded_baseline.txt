@@ -264,6 +264,9 @@
 1	core/src/main/java/tv/own/owntv/core/settings/SubtitleStyle.kt	top_center
 1	core/src/main/java/tv/own/owntv/core/settings/SubtitleStyle.kt	top_left
 1	core/src/main/java/tv/own/owntv/core/settings/SubtitleStyle.kt	top_right
+1	core/src/main/java/tv/own/owntv/core/sports/SportsBoardFilter.kt	(?:^|[\\s|\\[(])([A-Z]{2})[\\])]?\\s*$
+1	core/src/main/java/tv/own/owntv/core/sports/SportsBoardFilter.kt	[\\u0400-\\u04FF]
+1	core/src/main/java/tv/own/owntv/core/sports/SportsBoardFilter.kt	^\\s*[\\[(]?([A-Z]{2})[\\])]?\\s*[|:\\-]
 1	core/src/main/java/tv/own/owntv/core/stalker/StalkerClient.kt	$apiBase?type=epg&action=get_simple_data_table&ch_id=${enc(channelId)}
 1	core/src/main/java/tv/own/owntv/core/stalker/StalkerClient.kt	&date=${enc(date)}&p=$page&JsHttpRequest=1-xml
 1	core/src/main/java/tv/own/owntv/core/stalker/StalkerClient.kt	data

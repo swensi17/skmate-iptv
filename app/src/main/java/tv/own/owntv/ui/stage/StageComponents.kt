@@ -488,11 +488,11 @@ fun StageTab(label: String, count: String, selected: Boolean, onClick: () -> Uni
                                 selected -> a.accent
                                 else -> StageColors.Dim.copy(alpha = 0.45f)
                             },
-                            RoundedCornerShape(12.mpx),
+                            FocusBarShape,
                         )
                     } else Modifier,
                 )
-                .padding(horizontal = if (centered) 4.mpx else 12.mpx)
+                .padding(horizontal = if (centered) 14.mpx else 12.mpx)
                 .padding(top = if (centered) 12.mpx else 6.mpx)
                 .then(
                     if (selected && !centered) {
