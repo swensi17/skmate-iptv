@@ -579,10 +579,10 @@
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/setup/WizardFrame.kt">
         <error line="3" column="1" source="standard:import-ordering" />
+        <error line="296" column="19" source="standard:property-naming" />
+        <error line="298" column="1" source="standard:no-consecutive-blank-lines" />
         <error line="299" column="19" source="standard:property-naming" />
-        <error line="301" column="1" source="standard:no-consecutive-blank-lines" />
-        <error line="302" column="19" source="standard:property-naming" />
-        <error line="351" column="1" source="standard:no-consecutive-blank-lines" />
+        <error line="354" column="1" source="standard:no-consecutive-blank-lines" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt">
         <error line="3" column="1" source="standard:import-ordering" />
@@ -999,13 +999,13 @@
         <error line="191" column="32" source="standard:annotation" />
         <error line="243" column="1" source="standard:kdoc" />
         <error line="244" column="1" source="standard:spacing-between-declarations-with-comments" />
-        <error line="772" column="18" source="standard:wrapping" />
-        <error line="773" column="80" source="standard:wrapping" />
-        <error line="807" column="19" source="standard:wrapping" />
-        <error line="810" column="27" source="standard:wrapping" />
-        <error line="886" column="18" source="standard:wrapping" />
-        <error line="887" column="94" source="standard:wrapping" />
-        <error line="1292" column="1" source="standard:no-consecutive-blank-lines" />
+        <error line="779" column="18" source="standard:wrapping" />
+        <error line="780" column="80" source="standard:wrapping" />
+        <error line="814" column="19" source="standard:wrapping" />
+        <error line="817" column="27" source="standard:wrapping" />
+        <error line="893" column="18" source="standard:wrapping" />
+        <error line="894" column="94" source="standard:wrapping" />
+        <error line="1299" column="1" source="standard:no-consecutive-blank-lines" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/ui/stage/StageControls.kt">
         <error line="3" column="1" source="standard:import-ordering" />

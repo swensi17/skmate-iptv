@@ -186,7 +186,7 @@ internal fun WizardFrame(
                             .offset(x = highlightX)
                             .size(width = each, height = 76.mpx)
                             .graphicsLayer { alpha = highlightAlpha }
-                            .background(SkMateBlue, RoundedCornerShape(16.mpx)),
+                            .background(WizardFocusFill, WizardButtonShape),
                     )
                     Row(horizontalArrangement = Arrangement.spacedBy(gap), verticalAlignment = Alignment.CenterVertically) {
                         buttons.forEachIndexed { i, (action, primary) ->
@@ -219,23 +219,20 @@ internal fun WizardFrame(
 private fun WizardButton(action: WizardAction, width: Dp, primary: Boolean, modifier: Modifier = Modifier, isBack: Boolean = false) {
     val a = stageAccent
     // Family pills: the main one ink (the accent), the others sand.
-    val fill = if (primary) a.accent.copy(alpha = if (action.enabled) 1f else 0.3f) else StageColors.Ink.copy(alpha = 0.06f)
+    // One look for every button of the app: a square grey slab, dark text; the main one is not blue.
+    val fill = StageColors.Ink.copy(alpha = if (primary && !action.enabled) 0.03f else 0.07f)
     StageSurface(
         onClick = action.onClick,
-        radius = 16.mpx,
-        // Focus = the blue highlight behind the row slides under this button; no decor of its own.
+        radius = 4.mpx,
+        // Focus = the grey highlight behind the row slides under this button; no decor of its own.
         focusStyle = StageFocus.NONE,
         enabled = action.enabled,
-        idle = Modifier.background(fill, RoundedCornerShape(16.mpx)),
+        idle = Modifier.background(fill, WizardButtonShape),
         contentAlignment = Alignment.Center,
         modifier = modifier.width(width).height(76.mpx).then(action.focus?.let { Modifier.focusRequester(it) } ?: Modifier),
     ) { focused ->
         // Focused: transparent, so the row's sliding white highlight shows through behind the text.
-        val color = when {
-            focused -> Color.White
-            primary -> a.onAccent
-            else -> StageColors.Text
-        }
+        val color = StageColors.Text.copy(alpha = if (action.enabled) 1f else 0.4f)
         Row(horizontalArrangement = Arrangement.spacedBy(12.mpx), verticalAlignment = Alignment.CenterVertically) {
             // Back says where it goes: an arrow pointing left before the word.
             if (isBack) OwnTVIcon(OwnTVIcon.BACK, color, Modifier.size(26.mpx))
@@ -300,6 +297,12 @@ private const val StepAnimMs = 320
 
 
 private const val HighlightMs = 200
+
+/** The same softly squared corners as every focus bar on the TV. */
+private val WizardButtonShape = RoundedCornerShape(4.mpx)
+
+/** The light grey bar that slides under the focused button. */
+private val WizardFocusFill = Color(0xFFDADCDF)
 
 /** The setup backdrop: the theme's flat page colour (cream paper in the Family light theme). */
 internal val SetupBackdrop: Color @Composable get() = tv.own.owntv.ui.theme.LocalStagePalette.current.page
