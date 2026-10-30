@@ -27,12 +27,20 @@ class ReminderScheduler(
         else -> true
     }
 
-    /** Drop the reminders whose programme has ended and arm the rest. Idempotent: same request code. */
-    suspend fun rearmAll() {
+    /**
+     * Drop the reminders whose programme has ended and arm the rest. Idempotent: same request code.
+     * With [armDue] false a reminder whose moment has already come is left unarmed: its alarm just fired,
+     * and arming it for "now" again made it fire every few seconds for as long as the programme lasted.
+     */
+    suspend fun rearmAll(armDue: Boolean = true) {
         val now = clock()
         reminderDao.all().forEach { reminder ->
             val at = ReminderSchedule.wakeAtFor(reminder, now)
-            if (at == null) cancel(reminder.id) else arm(reminder.id, at)
+            when {
+                at == null -> cancel(reminder.id)
+                !armDue && reminder.remindAtMs <= now -> cancel(reminder.id)
+                else -> arm(reminder.id, at)
+            }
         }
         reminderDao.deleteEnded(now)
     }

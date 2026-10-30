@@ -2043,37 +2043,6 @@ fun OwnTVShell(
                     )
                 }
                 tv.own.owntv.ui.components.InAppToast(localSubToast)
-                // Programme reminders: when one comes up, ask to switch, switch, or only say so (the
-                // Programme reminders setting) — over whatever is on screen, the player included.
-                val reminderManager = koinInject<tv.own.owntv.core.reminder.ReminderManager>()
-                val dueReminders by reminderManager.due.collectAsStateWithLifecycle()
-                val reminderMode by settingsRepo.reminderMode.collectAsStateWithLifecycle(tv.own.owntv.core.settings.SettingsRepository.ReminderMode.ASK)
-                val dueReminder = dueReminders.firstOrNull { it.profileId == activeProfileId }
-                val watchReminder: (tv.own.owntv.core.database.entity.ReminderEntity) -> Unit = { r ->
-                    scope.launch {
-                        reminderManager.dismiss(r.id)
-                        if (liveVm.ensurePlayingByIdAsync(r.channelId)) openFullscreen(MainSection.LIVE_TV)
-                    }
-                }
-                val reminderText = dueReminder?.let { listOf(it.title, tv.own.owntv.features.epg.reminderEyebrow(it)).joinToString(" · ") }
-                LaunchedEffect(dueReminder?.id, reminderMode) {
-                    val r = dueReminder ?: return@LaunchedEffect
-                    when (reminderMode) {
-                        tv.own.owntv.core.settings.SettingsRepository.ReminderMode.SWITCH -> watchReminder(r)
-                        tv.own.owntv.core.settings.SettingsRepository.ReminderMode.NOTIFY -> {
-                            reminderText?.let(localSubToast::show)
-                            reminderManager.dismiss(r.id)
-                        }
-                        tv.own.owntv.core.settings.SettingsRepository.ReminderMode.ASK -> Unit
-                    }
-                }
-                if (dueReminder != null && reminderMode == tv.own.owntv.core.settings.SettingsRepository.ReminderMode.ASK) {
-                    tv.own.owntv.features.epg.ReminderPrompt(
-                        reminder = dueReminder,
-                        onWatch = { watchReminder(dueReminder) },
-                        onDismiss = { scope.launch { reminderManager.dismiss(dueReminder.id) } },
-                    )
-                }
                 // A catch-up pick that could not be resolved. Raised from Live TV wherever an archive
                 // URL comes back null — "Watch from start", "Go back to…" and the external hand-off —
                 // all of which used to fail in complete silence.
@@ -2212,6 +2181,37 @@ fun OwnTVShell(
         }
       }
 
+    // Programme reminders: when one comes up, ask to switch, switch, or only say so (the
+    // Programme reminders setting) — over whatever is on screen, the player included.
+    val reminderManager = koinInject<tv.own.owntv.core.reminder.ReminderManager>()
+    val dueReminders by reminderManager.due.collectAsStateWithLifecycle()
+    val reminderMode by settingsRepo.reminderMode.collectAsStateWithLifecycle(tv.own.owntv.core.settings.SettingsRepository.ReminderMode.ASK)
+    val dueReminder = dueReminders.firstOrNull { it.profileId == activeProfileId }
+    val watchReminder: (tv.own.owntv.core.database.entity.ReminderEntity) -> Unit = { r ->
+        scope.launch {
+            reminderManager.dismiss(r.id)
+            if (liveVm.ensurePlayingByIdAsync(r.channelId)) openFullscreen(MainSection.LIVE_TV)
+        }
+    }
+    val reminderText = dueReminder?.let { listOf(it.title, tv.own.owntv.features.epg.reminderEyebrow(it)).joinToString(" · ") }
+    LaunchedEffect(dueReminder?.id, reminderMode) {
+        val r = dueReminder ?: return@LaunchedEffect
+        when (reminderMode) {
+            tv.own.owntv.core.settings.SettingsRepository.ReminderMode.SWITCH -> watchReminder(r)
+            tv.own.owntv.core.settings.SettingsRepository.ReminderMode.NOTIFY -> {
+                reminderText?.let(localSubToast::show)
+                reminderManager.dismiss(r.id)
+            }
+            tv.own.owntv.core.settings.SettingsRepository.ReminderMode.ASK -> Unit
+        }
+    }
+    if (dueReminder != null && reminderMode == tv.own.owntv.core.settings.SettingsRepository.ReminderMode.ASK) {
+        tv.own.owntv.features.epg.ReminderPrompt(
+            reminder = dueReminder,
+            onWatch = { watchReminder(dueReminder) },
+            onDismiss = { scope.launch { reminderManager.dismiss(dueReminder.id) } },
+        )
+    }
     if (showExit) {
         ExitDialog(onConfirm = onExitApp, onDismiss = { showExit = false })
     }
