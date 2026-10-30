@@ -173,7 +173,8 @@ internal fun SportsBoard(
             }
             gridItems(shown, key = { cardKey(it) }) { item ->
                 val key = cardKey(item)
-                BoardCard(item, now, Modifier.focusRequester(requesters.getOrPut(key) { FocusRequester() })) {
+                val requester = remember(key) { requesters.getOrPut(key) { FocusRequester() } }
+                BoardCard(item, now, Modifier.focusRequester(requester)) {
                     lastKey = key
                     onPlay(item)
                 }
