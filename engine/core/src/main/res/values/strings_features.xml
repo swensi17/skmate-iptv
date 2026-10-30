@@ -1004,8 +1004,8 @@
     <string name="live_fix_guide_running">Matching the guide…</string>
     <string name="live_fix_guide_none">No new matches: the guide is already matched or not downloaded yet</string>
     <plurals name="live_fix_guide_done">
-        <item quantity="one">Found a schedule for %1$d channel</item>
-        <item quantity="other">Found a schedule for %1$d channels</item>
+        <item quantity="one">Found a schedule for <xliff:g id="count">%1$d</xliff:g> channel</item>
+        <item quantity="other">Found a schedule for <xliff:g id="count">%1$d</xliff:g> channels</item>
     </plurals>
     <string name="live_pick_now">On now: <xliff:g id="what">%1$s</xliff:g></string>
     <string name="live_pick_sport">sport</string>
