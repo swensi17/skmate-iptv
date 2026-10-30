@@ -276,6 +276,7 @@
     <string name="setup_display_sub_mobile">Насколько крупно интерфейс и текст отображаются на этом телефоне. Строка ниже меняется по ходу.</string>
     <string name="setup_line_zoom">Всё на экране</string>
     <string name="setup_line_font">Только текст</string>
+    <string name="setup_line_theme">Цвет интерфейса</string>
     <string name="setup_line_app_icon">Как SkMate IPTV выглядит на главном экране телевизора</string>
     <string name="setup_line_app_icon_mobile">Как SkMate IPTV выглядит на главном экране</string>
     <string name="setup_restore_card_line">Из файла или удалённо с другого устройства</string>

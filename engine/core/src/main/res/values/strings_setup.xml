@@ -514,6 +514,7 @@
     <string name="setup_line_zoom">Everything on screen</string>
     <!-- Translators: Line under Font size in setup. -->
     <string name="setup_line_font">Text only</string>
+    <string name="setup_line_theme">Interface colours</string>
     <!-- Translators: Line under App icon in setup. -->
     <string name="setup_line_app_icon">How SkMate IPTV appears on the TV’s home screen</string>
     <!-- Translators: Phone version of setup_line_app_icon: the App icon row's line on the first-run Display step. -->
