@@ -77,6 +77,8 @@ internal fun ProgrammeStripCanvas(
     reminderStarts: Set<Long>,
     /** How far the timeline is scrolled, shared by every row and the ruler. Read only while drawing. */
     scrollPx: () -> Int,
+    /** The whole row stands on the TV-box's light focus bar: dark text and dark washes, or white text vanishes on it. */
+    onLightBar: Boolean = false,
 ) {
     val density = androidx.compose.ui.platform.LocalDensity.current
     val measurer = rememberTextMeasurer(cacheSize = 64)
@@ -91,9 +93,10 @@ internal fun ProgrammeStripCanvas(
         programmes.map { String.format(java.util.Locale.ROOT, rangeTemplate, formatTime(it.startMs), formatTime(it.stopMs)) }
     }
     val recRed = Color(0xFFFF5B5B)
-    val textColor = tv.own.owntv.ui.theme.StageColors.Text
-    val dimColor = tv.own.owntv.ui.theme.StageColors.Dim
-    val ink = tv.own.owntv.ui.theme.StageColors.Ink
+    val onBar = onLightBar && tv.own.owntv.features.shell.TvBoxNav
+    val textColor = if (onBar) BarInk else tv.own.owntv.ui.theme.StageColors.Text
+    val dimColor = if (onBar) BarInk.copy(alpha = 0.62f) else tv.own.owntv.ui.theme.StageColors.Dim
+    val ink = if (onBar) Color.Black else tv.own.owntv.ui.theme.StageColors.Ink
     val palette = tv.own.owntv.ui.theme.LocalStagePalette.current
     val tvBox = tv.own.owntv.features.shell.TvBoxNav
     // A row with nothing in the window says so, rather than looking broken.
@@ -391,3 +394,6 @@ internal fun CatchupPlayerChooser(
         )
     }
 }
+
+/** The dark text the light focus bar carries, as everywhere else on the TV. */
+private val BarInk = Color(0xFF16181D)
