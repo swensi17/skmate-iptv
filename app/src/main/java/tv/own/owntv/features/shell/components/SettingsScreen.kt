@@ -652,6 +652,13 @@ fun SettingsScreen(
             onClick = { tv.own.owntv.ui.theme.MotionPrefs.nextSpeed() },
         ),
         RootRow(
+            "motion_auto", TileTone.SECONDARY, OwnTVIcon.MOTION,
+            title = stringResource(R.string.settings_motion_auto), desc = stringResource(if (tv.own.owntv.ui.theme.MotionPrefs.throttled && tv.own.owntv.ui.theme.MotionPrefs.auto) R.string.settings_motion_auto_off_now else R.string.settings_motion_auto_desc),
+            chip = stringResource(if (tv.own.owntv.ui.theme.MotionPrefs.auto) R.string.common_on else R.string.common_off),
+            chipTone = if (tv.own.owntv.ui.theme.MotionPrefs.auto) TileTone.PRIMARY else TileTone.SECONDARY,
+            onClick = { tv.own.owntv.ui.theme.MotionPrefs.toggleAuto() },
+        ),
+        RootRow(
             tabRowKey(SettingsTab.WEATHER), TileTone.SECONDARY, OwnTVIcon.WEATHER,
             title = stringResource(R.string.settings_weather),
             desc = stringResource(R.string.settings_weather_description_root),

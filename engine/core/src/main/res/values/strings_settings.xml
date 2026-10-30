@@ -3184,4 +3184,7 @@
     <string name="about_card_source">Source code</string>
     <string name="about_disclaimer_title">Disclaimer</string>
     <string name="about_disclaimer">The app has no channels or content of its own: you add your own sources.</string>
+    <string name="settings_motion_auto">Adapt to the device</string>
+    <string name="settings_motion_auto_desc">On a weak box or when frames drop, animations switch off by themselves; on a good one they stay on</string>
+    <string name="settings_motion_auto_off_now">The device cannot keep up: animations are off for now and will be tried again later</string>
 </resources>

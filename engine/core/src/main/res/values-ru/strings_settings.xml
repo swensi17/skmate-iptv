@@ -1786,4 +1786,7 @@
     <string name="about_card_source">Исходный код</string>
     <string name="about_disclaimer_title">Отказ от ответственности</string>
     <string name="about_disclaimer">В приложении нет своих каналов и контента: вы добавляете собственные источники.</string>
+    <string name="settings_motion_auto">Подстраиваться под устройство</string>
+    <string name="settings_motion_auto_desc">На слабой приставке или при лагах анимации сами отключаются, на нормальной включены</string>
+    <string name="settings_motion_auto_off_now">Устройство не успевает: анимации пока отключены, позже проверим снова</string>
 </resources>

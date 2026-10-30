@@ -179,6 +179,7 @@ open class MainActivity : ComponentActivity() {
 
     override fun onStop() {
         super.onStop()
+        tv.own.owntv.ui.theme.MotionPrefs.stopMonitoring()
         // Backgrounded (Home / another app), exited, or logged out: stop playback and free the demuxer
         // cache + decoder buffers — holding them while invisible got the process LMK-killed on real TVs.
         // Every engine: mpv, the Live engine (its audio must stop too), each Multiview tile and the hero.
@@ -188,6 +189,7 @@ open class MainActivity : ComponentActivity() {
 
     override fun onStart() {
         super.onStart()
+        tv.own.owntv.ui.theme.MotionPrefs.startMonitoring()
         // Paired with onStop: bring back what was freed while backgrounded (notably the TV screensaver, which
         // kicks in during a long pause) — a VOD restored paused at its position, and a live channel re-tuned
         // to the live edge — so Play resumes instead of sitting on a dead/empty stream. No-op on fresh launch.
@@ -387,7 +389,8 @@ open class MainActivity : ComponentActivity() {
                 customAccent = customAccent,
                 focusHighlight = focusHighlight,
                 focusBorderWidthDp = focusHighlightWidth,
-                animationLevel = animationLevel,
+                // The user's choice, unless the device is seen struggling: then everything holds still.
+                animationLevel = if (tv.own.owntv.ui.theme.MotionPrefs.active) animationLevel else tv.own.owntv.core.theme.AnimationLevel.OFF,
                 mainFontFamily = fontCustomization.mainFamily,
                 popupFontFamily = fontCustomization.popupFamily,
                 popupFontSizePercent = fontCustomization.popupFontSizePercent,

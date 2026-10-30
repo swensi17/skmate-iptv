@@ -82,6 +82,12 @@ Sort by provider order, A–Z, Z–A, number, recent; groups, custom categories,
 ### Made for the TV
 **Add a playlist from your phone by QR**, **PIN profiles** and a kids mode, an **encrypted backup** and transfer between TVs over Wi-Fi, Android TV home-screen integration, dark and light themes, **25+ languages**, fully remote-controlled.
 
+### Fast on any Android device
+- **Animations adapt on their own.** On a weak box (little memory or few cores) the app starts with animations off. While running it watches frame smoothness: if the screen cannot keep up, animations switch off and are tried again after 10 minutes (at most three times per launch). On a capable device they stay on. The decision is remembered so the next launch does not begin with stutter. An "Adapt to the device" switch is in Settings; the manual animations on/off and speed stay.
+- **A light list.** 5,000+ channels are paged (scrolling does not read the whole database), logos are cached, search uses an index.
+- **Careful with memory.** Video and background engines are released when the app goes to the background; a lean buffer is used on weak devices.
+- **Native builds** for `arm64-v8a` and `armeabi-v7a` (older 32-bit boxes too).
+
 ### Open
 GPL-3.0 source, a signed APK built in GitHub Actions and scanned on VirusTotal. No ads, no account, no data collection.
 
