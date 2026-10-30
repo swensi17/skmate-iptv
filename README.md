@@ -78,6 +78,13 @@ M3U и Xtream Codes, телегид (EPG), архив, профили — упр
 
 Поддерживаются Android TV / Google TV 8.0+, Fire TV, ТВ-приставки на Android (arm64-v8a, armeabi-v7a).
 
+## Безопасность
+
+Ссылка на APK релиза v0.1.0 проверена на [VirusTotal](https://www.virustotal.com/gui/url/05d504ce01ad088e31df5fe963ef495adecafe4fdb005be10bb8738947c0ec53): **0 из 93** сканеров ничего не нашли. Исходный код открыт, сборка идёт в GitHub Actions. Контрольные суммы SHA-256 лежат в релизе (`SHA256SUMS.txt`):
+
+- arm: `e1041da56c2d1f69f3f7f84d5cd3bd64778a03b5f7b3f708855016cd0d608dcd`
+- x86_64: `a9fd75fc7f98c11a6de5051ecad078a66036df0514ddb73a34813df017dbd181`
+
 ## Сборка из исходников
 
 Нужны JDK 21 и Android SDK (platform 37). Ядро ([skmate-iptv-core](https://github.com/swensi17/skmate-iptv-core)) берётся из GitHub Packages:
@@ -101,5 +108,9 @@ SkMate IPTV — только плеер. Приложение не содерж�
 ## Лицензия
 
 [GPL-3.0-or-later](LICENSE). Уведомления об авторских правах — в [NOTICE](NOTICE), сторонние компоненты — в [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md).
+
+## Мы в сети
+
+[Telegram](https://t.me/swensi17) · [X](https://x.com/swensi17) · [GitHub](https://github.com/swensi17)
 
 <sub>Ключевые слова: IPTV player, Android TV, Google TV, Fire TV, M3U, M3U8, Xtream Codes, Stalker, EPG, XMLTV, catch-up, IPTV плеер, ТВ-приставка, телегид, IPTV 播放器, 电视直播.</sub>

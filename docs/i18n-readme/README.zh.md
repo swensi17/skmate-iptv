@@ -78,6 +78,13 @@
 
 支持 Android TV / Google TV 8.0+、Fire TV 以及 Android 机顶盒（arm64-v8a、armeabi-v7a）。
 
+## 安全
+
+v0.1.0 版本的 APK 链接已在 [VirusTotal](https://www.virustotal.com/gui/url/05d504ce01ad088e31df5fe963ef495adecafe4fdb005be10bb8738947c0ec53) 检测：**93 个**扫描引擎中 **0 个**报告问题。源代码公开，构建在 GitHub Actions 中完成。SHA-256 校验值见发布页 (`SHA256SUMS.txt`)：
+
+- arm: `e1041da56c2d1f69f3f7f84d5cd3bd64778a03b5f7b3f708855016cd0d608dcd`
+- x86_64: `a9fd75fc7f98c11a6de5051ecad078a66036df0514ddb73a34813df017dbd181`
+
 ## 从源码构建
 
 需要 JDK 21 和 Android SDK（platform 37）。核心库（[skmate-iptv-core](https://github.com/swensi17/skmate-iptv-core)）来自 GitHub Packages：
@@ -98,3 +105,7 @@ SkMate IPTV 只是播放器，不包含也不提供任何频道、播放列表�
 ## 许可证
 
 [GPL-3.0-or-later](../../LICENSE)。版权声明见 [NOTICE](../../NOTICE)，第三方组件见 [THIRD_PARTY_LICENSES.md](../../THIRD_PARTY_LICENSES.md)。
+
+## 链接
+
+[Telegram](https://t.me/swensi17) · [X](https://x.com/swensi17) · [GitHub](https://github.com/swensi17)

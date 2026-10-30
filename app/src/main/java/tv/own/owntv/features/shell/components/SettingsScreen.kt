@@ -2170,7 +2170,7 @@ private fun CatchupSourceValueHost(settingsVm: SettingsViewModel, src: tv.own.ow
 
 /** The repository line More › About shows. */
 internal const val GITHUB_REPO = "github.com/swensi17/skmate-iptv"
-internal const val TELEGRAM_LINK = "t.me/owntvplayer"
+internal const val TELEGRAM_LINK = "t.me/swensi17"
 
 /**
  * Read-only viewer for the persisted playback error history: the last ~10 failures with their

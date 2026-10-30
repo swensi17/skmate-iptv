@@ -78,6 +78,13 @@ M3U and Xtream Codes, TV guide (EPG), catch-up, profiles — built for the remot
 
 Runs on Android TV / Google TV 8.0+, Fire TV and Android set-top boxes (arm64-v8a, armeabi-v7a).
 
+## Security
+
+The v0.1.0 release APK link was checked on [VirusTotal](https://www.virustotal.com/gui/url/05d504ce01ad088e31df5fe963ef495adecafe4fdb005be10bb8738947c0ec53): **0 of 93** scanners flagged anything. The source code is open and builds run in GitHub Actions. SHA-256 checksums are in the release (`SHA256SUMS.txt`):
+
+- arm: `e1041da56c2d1f69f3f7f84d5cd3bd64778a03b5f7b3f708855016cd0d608dcd`
+- x86_64: `a9fd75fc7f98c11a6de5051ecad078a66036df0514ddb73a34813df017dbd181`
+
 ## Build from source
 
 JDK 21 and Android SDK (platform 37). The core ([skmate-iptv-core](https://github.com/swensi17/skmate-iptv-core)) comes from GitHub Packages:
@@ -100,3 +107,7 @@ SkMate IPTV is a player only. It does not include or provide channels, playlists
 ## License
 
 [GPL-3.0-or-later](../../LICENSE). Copyright notices: [NOTICE](../../NOTICE). Third-party components: [THIRD_PARTY_LICENSES.md](../../THIRD_PARTY_LICENSES.md).
+
+## Links
+
+[Telegram](https://t.me/swensi17) · [X](https://x.com/swensi17) · [GitHub](https://github.com/swensi17)
