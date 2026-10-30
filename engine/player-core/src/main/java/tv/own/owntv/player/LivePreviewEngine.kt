@@ -263,14 +263,26 @@ class LivePreviewEngine(
 
     private fun cachingMs(): Int {
         val secs = liveBufferOverride?.secs ?: liveBufferSecs
-        return ((secs ?: DEFAULT_CACHE_SECS) * 1000).coerceIn(MIN_CACHE_MS, MAX_CACHE_MS)
+        // A connection that keeps stalling gets a deeper buffer on the next open (see [StallMeter]).
+        return (((secs ?: DEFAULT_CACHE_SECS) + stalls.extraSecs()) * 1000).coerceIn(MIN_CACHE_MS, MAX_CACHE_MS)
+    }
+
+    private val stalls = StallMeter(SystemClock::elapsedRealtime)
+    private val _networkLevel = MutableStateFlow(0)
+
+    /** 0 on a healthy connection; 1..3 as stalls pile up and the buffer is deepened. The app says so once. */
+    val networkLevel: StateFlow<Int> = _networkLevel.asStateFlow()
+
+    private fun noteStall() {
+        stalls.onStall()
+        _networkLevel.value = stalls.level()
     }
 
     private fun onEvent(e: MediaPlayer.Event) {
         if (startedGen != openGen) return // still the channel being left
         when (e.type) {
             MediaPlayer.Event.Buffering -> if (e.buffering < 100f) {
-                if (hasPlayed && _stalledSinceMs.value == null) _stalledSinceMs.value = SystemClock.elapsedRealtime()
+                if (hasPlayed && _stalledSinceMs.value == null) { _stalledSinceMs.value = SystemClock.elapsedRealtime(); noteStall() }
                 _buffering.value = true
             } else {
                 _buffering.value = false; _stalledSinceMs.value = null
@@ -410,6 +422,7 @@ class LivePreviewEngine(
             return
         }
         reconnects++
+        if (hasPlayed) noteStall() // a stream that was playing and dropped: the connection, not the channel
         LiveDiagnosticsLog.event("reconnect $reconnects/$MAX_RECONNECTS after $why")
         _state.value = State.LOADING; _buffering.value = true
         if (_stalledSinceMs.value == null) _stalledSinceMs.value = SystemClock.elapsedRealtime()

@@ -1016,4 +1016,5 @@
     <string name="live_pick_loading">Searching the guide…</string>
     <string name="live_pick_empty">Nothing yet. Try “Fix the guide”</string>
     <string name="live_mirror_switched">The channel would not open. Switched to its copy: <xliff:g id="name">%1$s</xliff:g></string>
+    <string name="live_weak_network">Weak network: added <xliff:g id="secs">%1$d</xliff:g> s of buffer so the picture does not break up</string>
 </resources>
