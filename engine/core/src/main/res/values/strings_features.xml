@@ -102,6 +102,10 @@
     <string name="sports_board_sort_channel">By channel A–Z</string>
     <string name="sports_board_looking">Looking for sport on your channels…</string>
     <string name="sports_board_nothing_filtered">Nothing matches these filters.</string>
+    <string name="sports_board_sort_relevance">Most relevant</string>
+    <string name="sports_board_more">More</string>
+    <string name="sports_board_country_title">Country</string>
+    <string name="sports_board_sort_title_menu">Sort</string>
     <string name="search_caption_channels">Search channels</string>
     <string name="search_caption_programs">Search TV programs</string>
     <string name="search_caption_guide">Search the TV guide</string>

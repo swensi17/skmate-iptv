@@ -54,7 +54,9 @@ class SportOnChannels(private val data: WatchData, private val now: () -> Long =
             if (keys.any { WatchMatcher.hit(it, tokens) == WatchMatcher.Hit.CONFIRMED }) return@mapNotNull null
             val sport = sportOf(p.title, p.categories)
             when {
-                sport != null -> Triple(p, sport, false)
+                // A Russian title names a sport in everyday words ("Маша и Медведь (Вот такой хоккей)", a
+                // documentary about a hockey club): it counts on a sports channel, or when the guide files it as sport.
+                sport != null -> Triple(p, sport, hasCyrillic(p.title) && !sportCategory(p.categories))
                 isFixture(p.title) -> Triple(p, GuideSport.OTHER, true)
                 else -> null
             }
@@ -111,6 +113,29 @@ class SportOnChannels(private val data: WatchData, private val now: () -> Long =
             ),
         )
 
+        // Russian guides write the sport out (and decline it: "футбола", "хоккею"), so these are stems matched
+        // against the start of a word. The folded tokens lose "й" and double letters; the raw words keep them.
+        private val CYRILLIC_STEMS: List<Pair<GuideSport, List<String>>> = listOf(
+            GuideSport.AMERICAN_FOOTBALL to listOf("нфл"),
+            GuideSport.ICE_HOCKEY to listOf("хоккей", "кхл", "нхл", "вхл", "мхл"),
+            GuideSport.BASKETBALL to listOf("баскетбол", "втб", "нба"),
+            GuideSport.TENNIS to listOf("теннис"),
+            GuideSport.VOLLEYBALL to listOf("волейбол"),
+            GuideSport.HANDBALL to listOf("гандбол"),
+            GuideSport.COMBAT to listOf("бокс", "единоборств", "смешанные единоборства", "рестлинг", "кикбокс"),
+            GuideSport.MOTORSPORT to listOf("формула", "мотогп", "автоспорт", "ралли", "автогонк", "супербайк"),
+            GuideSport.WINTER to listOf("биатлон", "лыжн", "фигурное катание", "конькобеж", "бобслей", "санн", "сноуборд", "прыжки с трамплина"),
+            GuideSport.ATHLETICS to listOf("легкая атлетика", "легкоатлет", "марафон"),
+            GuideSport.CYCLING to listOf("велоспорт", "велогонк"),
+            GuideSport.SNOOKER to listOf("снукер", "бильярд"),
+            GuideSport.DARTS to listOf("дартс"),
+            GuideSport.GOLF to listOf("гольф"),
+            GuideSport.RUGBY to listOf("регби"),
+            GuideSport.CRICKET to listOf("крикет"),
+            GuideSport.BASEBALL to listOf("бейсбол"),
+            GuideSport.FOOTBALL to listOf("футбол", "рпл", "фнл", "лига чемпионов", "лига европы", "кубок россии"),
+        )
+
         // "American football" is not football; "Formel 1" is not "1"; these phrases decide first.
         private val PHRASES: List<Pair<GuideSport, List<String>>> = listOf(
             GuideSport.AMERICAN_FOOTBALL to listOf("american football", "football americain", "futbol americano"),
@@ -120,7 +145,7 @@ class SportOnChannels(private val data: WatchData, private val now: () -> Long =
         )
 
         // XMLTV categories that say "this is sport" without saying which.
-        private val SPORT_CATEGORY = setOf("sport", "sports", "deporte", "deportes", "spor", "esporte", "live sport")
+        private val SPORT_CATEGORY = setOf("sport", "sports", "deporte", "deportes", "spor", "esporte", "live sport", "спорт", "спортивные", "спортивный", "спортивная")
 
         // A sport-word that alone is too common in other programmes' titles ("Grand Designs", "Super Size").
         private val WEAK = setOf("grand", "prix", "super", "lig", "liga", "serie", "premier", "league", "europa", "champions", "formula", "basket", "del", "odi", "ski")
@@ -128,7 +153,7 @@ class SportOnChannels(private val data: WatchData, private val now: () -> Long =
         private val NON_WORD = Regex("[^\\p{L}\\p{N}]+")
         private val FIXTURE =Regex("\\S\\s+(?:[-–—:]|v|vs\\.?|gegen|contre|x)\\s+\\S", RegexOption.IGNORE_CASE)
         private val SPORTS_CHANNEL = Regex(
-            "sport|dazn|eurosport|bein|espn|tsn|arena|eleven|setanta|tnt ?sport|premier ?sports|canal\\+ ?(?:sport|foot)|movistar ?(?:deportes|liga)|dyn|magenta ?sport|sky ?sport|laliga ?tv|nba ?tv|nfl|mlb|nhl",
+            "sport|спорт|матч|боец|окко|okko|кхл|khl|футбол|хоккей|единоборств|мяч|старт|dazn|eurosport|bein|espn|tsn|arena|eleven|setanta|tnt ?sport|premier ?sports|canal\\+ ?(?:sport|foot)|movistar ?(?:deportes|liga)|dyn|magenta ?sport|sky ?sport|laliga ?tv|nba ?tv|nfl|mlb|nhl",
             RegexOption.IGNORE_CASE,
         )
 
@@ -139,6 +164,7 @@ class SportOnChannels(private val data: WatchData, private val now: () -> Long =
             // Both spellings: folded ("americain") and raw with its digits ("formula 1").
             val phrases = " ${TeamNames.tokens(text).joinToString(" ")} | ${raw.joinToString(" ")} "
             PHRASES.firstOrNull { (_, ps) -> ps.any { " $it " in phrases } }?.let { return it.first }
+            cyrillicSport(raw, text.lowercase())?.let { return it }
             val tokens = TeamNames.tokens(text).toSet() + raw
             val catTokens = categories?.let { TeamNames.tokens(it).toSet() }.orEmpty()
             for ((sport, words) in WORDS) {
@@ -150,6 +176,28 @@ class SportOnChannels(private val data: WatchData, private val now: () -> Long =
             }
             return null
         }
+
+        /** A Russian sport word at the start of a word of the text, "американский футбол" first. */
+        private fun cyrillicSport(words: List<String>, lower: String): GuideSport? {
+            if (lower.contains("американск") && lower.contains("футбол")) return GuideSport.AMERICAN_FOOTBALL
+            if (words.none { w -> w.any { it in '\u0400'..'\u04FF' } }) return null
+            val folded = lower.replace('ё', 'е')
+            for ((sport, stems) in CYRILLIC_STEMS) {
+                for (stem in stems) {
+                    if (stem.contains(' ')) {
+                        if (folded.contains(stem)) return sport
+                    } else if (words.any { it.startsWith(stem) }) {
+                        return sport
+                    }
+                }
+            }
+            return null
+        }
+
+        private fun hasCyrillic(text: String): Boolean = text.any { it in '\u0400'..'\u04FF' }
+
+        private fun sportCategory(categories: String?): Boolean =
+            categories != null && TeamNames.tokens(categories).any { it in SPORT_CATEGORY }
 
         fun isFixture(title: String): Boolean = FIXTURE.containsMatchIn(title)
 

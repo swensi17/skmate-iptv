@@ -139,6 +139,7 @@
     <ID>CyclomaticComplexMethod:SettingsStage.kt$@OptIn(ExperimentalFoundationApi::class) @Composable fun StageSettingsPage( group: String, count: String, searchQuery: String, onSearchQuery: (String) -&gt; Unit, scroll: ScrollState, modifier: Modifier = Modifier, searchFocus: FocusRequester = remember { FocusRequester() }, /** On the rows column: requesting it puts focus on the page's first row. */ rowsFocus: FocusRequester = remember { FocusRequester() }, panel: SettingsPanelState = remember { SettingsPanelState() }, /** A short title with no "Settings ›" before it (the search results page). */ crumb: Boolean = true, panelTop: (@Composable ColumnScope.() -&gt; Unit)? = null, /** A full page's path between "Settings ›" and [group] ("Layout" for Settings › Layout › Panel widths). */ parents: List&lt;String&gt; = emptyList(), /** A full page's own tools in the band, left of the search (which then narrows to 360). */ tools: (@Composable RowScope.() -&gt; Unit)? = null, searchAutoEdit: Boolean = false, onSearchActivate: (() -&gt; Unit)? = null, /** A list page's tool row (Customize's tabs, Sort, Filter…), above the rows. */ toolbar: (@Composable RowScope.() -&gt; Unit)? = null, /** A list too long for one column (Customize): drawn in place of [rows], given the rows' position. */ list: (@Composable (Modifier) -&gt; Unit)? = null, /** Off: the path starts at [parents] ("Add a source › Type it here"), not at Settings. */ settingsRoot: Boolean = true, /** Off where there is no Settings to search (the setup wizard reuses the Add a source pages). */ showSearch: Boolean = true, rows: @Composable ColumnScope.() -&gt; Unit = {}, )</ID>
     <ID>CyclomaticComplexMethod:SettingsViewModel.kt$SettingsViewModel$fun updateSource( id: Long, name: String, urlOrServer: String, user: String, pass: String, userAgent: String, epgUrl: String, autoRefresh: PlaylistRefresh, isDefault: Boolean = false, mac: String = "", stalkerSerialNumber: String = "", stalkerDeviceId: String = "", stalkerDeviceId2: String = "", stalkerSignature: String = "", syncLive: Boolean = true, syncMovies: Boolean = true, syncSeries: Boolean = true, preferHls: Boolean = false, httpReferer: String = "", )</ID>
     <ID>CyclomaticComplexMethod:SetupWizard.kt$@Composable fun Onboarding(firstRun: Boolean, onDone: (Long?) -&gt; Unit, onCancel: () -&gt; Unit, modifier: Modifier = Modifier)</ID>
+    <ID>CyclomaticComplexMethod:SportsBoard.kt$@Composable internal fun SportsBoard( items: List&lt;GuideSportItem&gt;, loading: Boolean, now: Long, searchFocus: FocusRequester, onPlay: (GuideSportItem) -&gt; Unit, modifier: Modifier = Modifier, )</ID>
     <ID>CyclomaticComplexMethod:SportsHubScreen.kt$@Composable fun SportsHubScreen( vm: SportsViewModel, onOpenMatch: (Match) -&gt; Unit, onPlayChannel: (ChannelEntity, List&lt;ChannelEntity&gt;) -&gt; Unit, onChildFocused: () -&gt; Unit, onEntryHook: (((() -&gt; Boolean)?) -&gt; Unit)?, contentStart: Dp, modifier: Modifier = Modifier, /** Back from a match: the card it was opened from takes focus again. */ restoreKey: String? = null, )</ID>
     <ID>CyclomaticComplexMethod:SportsHubScreen.kt$@Composable internal fun MatchCard( m: Match, featured: Boolean, config: SportsConfig, now: Long, reminded: Boolean, onClick: () -&gt; Unit, onPlay: () -&gt; Unit, onHold: () -&gt; Unit, modifier: Modifier = Modifier, )</ID>
     <ID>CyclomaticComplexMethod:SportsLeagueScreen.kt$@Composable fun SportsLeagueScreen(vm: SportsViewModel, onOpenMatch: (Match) -&gt; Unit, onBack: () -&gt; Unit, contentStart: Dp, modifier: Modifier = Modifier, active: Boolean = true)</ID>
@@ -2421,7 +2422,6 @@
     <ID>MagicNumber:SolidAmbientBackdrop.kt$0.45f</ID>
     <ID>MagicNumber:SolidAmbientBackdrop.kt$0.46f</ID>
     <ID>MagicNumber:SolidAmbientBackdrop.kt$0.54f</ID>
-    <ID>MagicNumber:SportsBoard.kt$0.55f</ID>
     <ID>MagicNumber:SportsBoard.kt$1560f</ID>
     <ID>MagicNumber:SportsBoard.kt$18</ID>
     <ID>MagicNumber:SportsBoard.kt$1920f</ID>
@@ -5351,14 +5351,23 @@
     <ID>MaxLineLength:SolidAmbientBackdrop.kt$val presence by ringPresence ?: androidx.compose.runtime.remember { androidx.compose.runtime.mutableFloatStateOf(1f) }</ID>
     <ID>MaxLineLength:SportsBoard.kt$/** One programme: the first channel's logo, "Handball · THW Kiel – SC Magdeburg", the channel and times, and how far it is. */</ID>
     <ID>MaxLineLength:SportsBoard.kt$LazyRow(modifier.fillMaxWidth().focusGroup(), horizontalArrangement = Arrangement.spacedBy(8.mpx), content = content)</ID>
+    <ID>MaxLineLength:SportsBoard.kt$Row</ID>
+    <ID>MaxLineLength:SportsBoard.kt$StageMenuItem(stringResource(R.string.sports_board_all_countries), { countries = emptySet() }, checked = countries.isEmpty())</ID>
+    <ID>MaxLineLength:SportsBoard.kt$StageMenuItem(stringResource(sortLabel(mode)), { sort = mode; menu = null }, icon = OwnTVIcon.SORT, checked = mode == sort)</ID>
     <ID>MaxLineLength:SportsBoard.kt$StageProgress(((now - item.startMs).toFloat() / span).coerceIn(0f, 1f), Modifier.padding(top = 7.mpx).fillMaxWidth(), flat = true)</ID>
-    <ID>MaxLineLength:SportsBoard.kt$StageTab(stringResource(R.string.content_epg_all), localizedInteger(items.size), sports.isEmpty(), { sports = emptySet() }, centered = true)</ID>
-    <ID>MaxLineLength:SportsBoard.kt$StageTab(stringResource(R.string.sports_board_all_countries), localizedInteger(items.size), countries.isEmpty(), { countries = emptySet() }, centered = true)</ID>
+    <ID>MaxLineLength:SportsBoard.kt$StageTab(stringResource(R.string.content_epg_all), localizedInteger(items.size), sports.isEmpty(), { sports = emptySet() }, Modifier.weight(1f), centered = true)</ID>
     <ID>MaxLineLength:SportsBoard.kt$ch.name + more + sep + stringResource(R.string.content_epg_time_range, timeText(item.startMs), timeText(item.stopMs))</ID>
+    <ID>MaxLineLength:SportsBoard.kt$checked = code in countries</ID>
     <ID>MaxLineLength:SportsBoard.kt$countryName(code, locale)</ID>
-    <ID>MaxLineLength:SportsBoard.kt$modifier = Modifier.align(Alignment.Center).widthIn(max = 860.mpx).fillMaxWidth(0.55f).focusRequester(searchFocus)</ID>
-    <ID>MaxLineLength:SportsBoard.kt$val shown = remember(items, query, sports, countries, sort) { SportsBoardFilter.apply(items, query, sports, countries, sort) }</ID>
+    <ID>MaxLineLength:SportsBoard.kt$moreSports.any { it in sports }</ID>
+    <ID>MaxLineLength:SportsBoard.kt$stringResource(R.string.sports_board_more)</ID>
+    <ID>MaxLineLength:SportsBoard.kt$trailingIcon = OwnTVIcon.CHEVRON_DOWN</ID>
+    <ID>MaxLineLength:SportsBoard.kt$val countryList = remember(items, locale) { SportsBoardFilter.countries(items).sortedBy { countryName(it, locale).lowercase(locale) } }</ID>
+    <ID>MaxLineLength:SportsBoard.kt$val preferred = remember(locale) { SportsBoardFilter.preferredCountries(locale.language, locale.country.ifBlank { null }) }</ID>
+    <ID>MaxLineLength:SportsBoard.kt$val shown = remember(items, query, sports, countries, sort, preferred) { SportsBoardFilter.apply(items, query, sports, countries, sort, preferred) }</ID>
     <ID>MaxLineLength:SportsBoard.kt$val shown by animateIntAsState(count, tween(MotionPrefs.dur(500), easing = FastOutSlowInEasing), label = "boardCount")</ID>
+    <ID>MaxLineLength:SportsBoard.kt$val sportList = remember(items) { SportsBoardFilter.sports(items).sortedByDescending { s -&gt; items.count { it.sport == s } } }</ID>
+    <ID>MaxLineLength:SportsBoard.kt$value = if (countries.isEmpty()) stringResource(R.string.sports_board_all_countries) else countries.sortedBy { countryName(it, locale) }.joinToString(", ") { countryName(it, locale) }</ID>
     <ID>MaxLineLength:SportsFilterPanel.kt$FlowRow</ID>
     <ID>MaxLineLength:SportsFilterPanel.kt$SportsChip(stringResource(R.string.sports_all_playlists), on = f.sourceIds.isEmpty()) { onFilter(f.copy(sourceIds = emptySet())) }</ID>
     <ID>MaxLineLength:SportsFilterPanel.kt$SportsChip(stringResource(R.string.sports_any), on = f.countries.isEmpty()) { onFilter(f.copy(countries = emptySet())) }</ID>
@@ -6231,6 +6240,7 @@
     <ID>UnusedPrivateMember:BackupScreen.kt$@Composable private fun BackupTool(text: String, icon: OwnTVIcon, modifier: Modifier = Modifier, onClick: () -&gt; Unit)</ID>
     <ID>UnusedPrivateMember:LocalSyncScreen.kt$@Composable private fun SyncTile( icon: OwnTVIcon, title: String, body: String, onClick: () -&gt; Unit, modifier: Modifier = Modifier, trailing: @Composable () -&gt; Unit, )</ID>
     <ID>UnusedPrivateMember:SettingsStage.kt$@Composable private fun sheetHeaderFill(): Color</ID>
+    <ID>UnusedPrivateMember:SportsBoard.kt$@Composable private fun FilterRow(modifier: Modifier = Modifier, content: LazyListScope.() -&gt; Unit)</ID>
     <ID>UnusedPrivateProperty:EpgViewModel.kt$EpgViewModel$private val connectivity: ConnectivityObserver</ID>
     <ID>UnusedPrivateProperty:MorePages.kt$val updateState by manager.state.collectAsStateWithLifecycle()</ID>
     <ID>UnusedPrivateProperty:MoreScreen.kt$val context = LocalContext.current</ID>

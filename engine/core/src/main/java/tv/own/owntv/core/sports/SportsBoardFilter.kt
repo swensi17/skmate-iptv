@@ -5,8 +5,8 @@ import tv.own.owntv.core.content.SearchRank
 import tv.own.owntv.core.content.SearchText
 import tv.own.owntv.core.database.entity.ChannelEntity
 
-/** The orders the Sports board offers: what began first, the programme's name, the channel's name. */
-enum class BoardSort { TIME, TITLE, CHANNEL }
+/** The orders the Sports board offers: the likeliest first, what began first, the programme's name, the channel's name. */
+enum class BoardSort { RELEVANCE, TIME, TITLE, CHANNEL }
 
 /**
  * Sorting, filtering and searching the sport that is on the user's channels, so the board can show
@@ -34,10 +34,33 @@ object SportsBoardFilter {
     /** The country of an item: the first of its channels that names one. */
     fun countryOf(item: GuideSportItem): String? = item.channels.firstNotNullOfOrNull { countryOf(it.name) }
 
-    /** Countries present, the most common first (ties by code); items with none are not counted. */
-    fun countries(items: List<GuideSportItem>): List<String> =
-        items.mapNotNull(::countryOf).groupingBy { it }.eachCount()
-            .entries.sortedWith(compareBy({ -it.value }, { it.key })).map { it.key }
+    /** Countries present, as codes in no particular order: the caller sorts them by their localized names. */
+    fun countries(items: List<GuideSportItem>): List<String> = items.mapNotNull(::countryOf).distinct()
+
+    /** The countries a viewer who reads [language] most likely watches sport from, before their region. */
+    fun preferredCountries(language: String, region: String?): Set<String> = buildSet {
+        when (language.lowercase()) {
+            "ru" -> add("RU")
+            "uk" -> add("UA")
+            "tr" -> add("TR")
+            "uz" -> { add("UZ"); add("RU") }
+            "kk" -> { add("KZ"); add("RU") }
+            "de" -> add("DE")
+            "en" -> add("GB")
+            else -> Unit
+        }
+        region?.uppercase()?.takeIf { it.length == 2 }?.let { add(it) }
+    }
+
+    /** Channels that carry the big sport of a market, best known first; lower is better. */
+    private val KNOWN = listOf(
+        Regex("матч!?\\s*(?:тв|премьер|футбол|арена|игра|боец|страна)|match", RegexOption.IGNORE_CASE),
+        Regex("боец|кхл|khl|окко|okko|eurosport|евроспорт|setanta|сетанта|viasat|спорт\\s*1|наш\\s*футбол", RegexOption.IGNORE_CASE),
+        Regex("sport|спорт|arena|dazn|bein|espn|sky|tnt", RegexOption.IGNORE_CASE),
+    )
+
+    private fun knownRank(item: GuideSportItem): Int =
+        item.channels.minOf { ch -> KNOWN.indexOfFirst { it.containsMatchIn(ch.name) }.let { if (it < 0) KNOWN.size else it } }
 
     /** Sports present, in the declaration order of [GuideSport]. */
     fun sports(items: List<GuideSportItem>): List<GuideSport> = items.map { it.sport }.distinct().sortedBy { it.ordinal }
@@ -52,6 +75,7 @@ object SportsBoardFilter {
         sports: Set<GuideSport>,
         countries: Set<String>,
         sort: BoardSort,
+        preferred: Set<String> = emptySet(),
     ): List<GuideSportItem> {
         val variants = QueryVariants.of(query)
         val searching = variants.all.isNotEmpty()
@@ -61,12 +85,25 @@ object SportsBoardFilter {
                 (!searching || ranked(item, variants) != null)
         }
         return when {
+            searching && sort == BoardSort.RELEVANCE -> kept.sortedWith(compareBy<GuideSportItem> { ranked(it, variants) }.thenComparing(relevance(preferred)))
             searching && sort == BoardSort.TIME -> kept.sortedWith(compareBy({ ranked(it, variants) }, { it.startMs }))
+            sort == BoardSort.RELEVANCE -> kept.sortedWith(relevance(preferred))
             sort == BoardSort.TIME -> kept.sortedWith(compareBy({ it.startMs }, { it.title.lowercase() }))
             sort == BoardSort.TITLE -> kept.sortedBy { SearchText.normalize(it.title) }
             else -> kept.sortedWith(compareBy({ SearchText.normalize(it.channels.firstOrNull()?.name.orEmpty()) }, { it.startMs }))
         }
     }
+
+    /**
+     * What a viewer most likely wants first: the sport of their own country, on the channels everyone
+     * there knows, shown on many channels, and then what began first.
+     */
+    private fun relevance(preferred: Set<String>): Comparator<GuideSportItem> = compareBy(
+        { if (preferred.isEmpty() || countryOf(it) in preferred) 0 else 1 },
+        { knownRank(it) },
+        { -it.channels.size },
+        { it.startMs },
+    )
 
     private fun ranked(item: GuideSportItem, variants: QueryVariants): Int? {
         val names = (listOf(item.title) + item.channels.map(ChannelEntity::name)).joinToString(" ")

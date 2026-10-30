@@ -54,6 +54,10 @@
     <string name="sports_board_sort_channel">По каналу А–Я</string>
     <string name="sports_board_looking">Ищем спорт на ваших каналах…</string>
     <string name="sports_board_nothing_filtered">По этим фильтрам ничего нет.</string>
+    <string name="sports_board_sort_relevance">По релевантности</string>
+    <string name="sports_board_more">Ещё</string>
+    <string name="sports_board_country_title">Страна</string>
+    <string name="sports_board_sort_title_menu">Сортировка</string>
     <string name="search_caption_channels">Поиск по каналам</string>
     <string name="search_caption_programs">Поиск по передачам</string>
     <string name="search_caption_guide">Поиск по телегиду</string>
