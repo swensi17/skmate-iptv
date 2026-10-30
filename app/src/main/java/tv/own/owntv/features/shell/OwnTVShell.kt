@@ -1718,6 +1718,9 @@ fun OwnTVShell(
       }
       if (multiview == null && (playerMode == PlayerMode.FULLSCREEN || playerMode == PlayerMode.MINI)) {
         val isFull = playerMode == PlayerMode.FULLSCREEN
+        val pipActivity = tv.own.owntv.MainActivity.from(androidx.compose.ui.platform.LocalContext.current)
+        val pipActive = pipActivity?.inPip == true
+        androidx.compose.runtime.SideEffect { pipActivity?.pipEligible = isFull }
         // TV-box look: full screen grows out of the channels screen's preview (and shrinks back into it on
         // Back), by laying the picture out at the in-between size — a SurfaceView ignores layer scaling.
         // Smooth (the default): the picture opens out of the preview like a curtain, black while it moves (see
@@ -1871,136 +1874,139 @@ fun OwnTVShell(
                         }
                     }
                 }
-                PlayerHud(
-                    player = if (liveOnExo) liveVm.previewEngine else mpvEngine, // HUD drives the active engine
-                    onBack = exitPlayer,
-                    onPip = dockPlayer, // PiP/dock works for live on either engine now
-                    onAudioMode = toAudioMode,
-                    // The channel-list overlay draws ABOVE the HUD; while it's open the HUD goes inert so
-                    // its hide/error focus grabs can't yank D-pad focus off the overlay.
-                    inert = showChannelList || showHistoryList || showCategoryBrowser || showSubtitleSearch || showLocalSubPicker || showOtherChannels || showGuideOverlay ||
-                        // The menu opened over the picture owns the D-pad: the HUD must not pull focus back to itself.
-                        (railHasFocus && playerMode == PlayerMode.FULLSCREEN) || menuPending,
-                    onChannelUp = zap?.let { z -> { z(-1) } },
-                    onChannelDown = zap?.let { z -> { z(1) } },
-                    onOpenChannelList = if (isTunedLive && liveCanZap) { { showChannelList = true } } else null,
-                    // Live channels only, and only once Multiview is switched on: the channel on screen
-                    // becomes tile 1 and the grid takes over. Everything it needs is already tuned.
-                    onMultiview = if (multiviewEnabled && isTunedLive && previewChannel != null) {
-                        { multiview = openMultiview(previewChannel, emptyList()) }
-                    } else {
-                        null
-                    },
-                    // The button exists only once the setting is on, and only on a live
-                    // channel: there is nothing to record off a film that is already a file.
-                    // The engine does not come into it. Recording fetches the channel itself rather
-                    // than copying the open stream, so it works the same whichever engine is playing.
-                    onRecordThis = previewChannel
-                        ?.takeIf { recordWatchingEnabled && isTunedLive }
-                        ?.let { channel -> { liveVm.togglePlayerRecording(channel) } },
-                    recordingThis = playerRecording != null,
-                    onOpenHistoryList = if (isTunedLive) { { showHistoryList = true } } else null,
-                    onRewindLive = if (isTunedLive && canRewindLive) liveVm::rewindLive else null,
-                    onForwardLive = if (isTunedLive) liveVm::forwardLive else null,
-                    onGoToLive = if (isTunedLive) liveVm::goToLive else null,
-                    onScrubLive = if (isTunedLive && canRewindLive) liveVm::scrubLive else null,
-                    // Only collected where there is a timeline to draw them on.
-                    liveProgrammes = if (isTunedLive && canRewindLive) timelineProgrammes else emptyList(),
-                    liveGaps = liveVm::timeshiftGaps,
-                    // "Go back to…" is the provider archive's: a copy saved on this device rewinds with the
-                    // bar and the buttons, and must not show a catch-up control on a channel without catch-up.
-                    jumpBackOptions = if (isTunedLive && previewChannel?.catchup == true) liveVm::currentJumpOptions else null,
-                    onJumpBack = if (isTunedLive && previewChannel?.catchup == true) liveVm::jumpBackTo else null,
-                    onPreviousChannel = if (isTunedLive && previousLiveChannel != null) liveVm::previousChannel else null,
-                    jumpBackWindowSec = if (isTunedLive && previewChannel?.catchup == true) liveVm::currentCatchupWindowSec else null,
-                    // Non-null only while an archive is on screen, so movies, episodes and live TV get
-                    // the single real clock and catch-up gets the pair.
-                    watchingWallMs = { watchingWallState.value },
-                    // "End of programme" only at the live edge: rewound, the programme on air is not the one being watched.
-                    sleepProgrammeEndMs = if (isTunedLive && !timeshifted) { { liveVm.nowNext.value?.now?.stopMs } } else null,
-                    liveLeftRightRewinds = liveLeftRightRewinds,
-                    timeshiftOffsetSec = if (isTunedLive) { { timeshiftOffsetState.value } } else null,
-                    onTuneToNumber = if (directTuneEnabled && isTunedLive && isLiveStream && !timeshifted && previewChannel != null) liveVm::tuneByNumber else null,
-                    directTuneContextKey = previewChannel?.id ?: 0L,
-                    // Show the ACTUAL running engine (mpv when pinned OR auto-fallen-back), not just the pin —
-                    // otherwise an auto-fallback to mpv still read "EXO". true = on mpv (pill shows MPV, teal).
-                    compatMode = if (isTunedLive) !liveOnExo else null,
-                    // Hidden while rewound into the archive (same `!timeshifted` rule direct
-                    // tune follows above): switching engine restarts the channel at the live edge, which
-                    // threw the user out of the rewind with the HUD still counting "behind live".
-                    // Also hidden for a protected channel: only ExoPlayer can license it, so the
-                    // toggle's other position is not a compatibility choice but a guaranteed failure.
-                    // A copy saved on this device is the exception: the other engine re-opens the same copy
-                    // at the same moment, so the rewind survives the switch.
-                    onToggleCompatMode = if (isTunedLive && (!timeshifted || onLocalCopy) && previewChannel?.drmConfig == null) liveVm::toggleForceMpv else null,
-                    // VOD engine toggle (movies/series only — live and catch-up channels keep their own
-                    // engine handling above): flip the current item between mpv and ExoPlayer.
-                    vodOnExo = if (!isLiveStream && !isTunedLive) vodExoActive else null,
-                    onToggleVodEngine = if (!isLiveStream && !isTunedLive) player::toggleVodEngine else null,
-                    // ADD SUBTITLES entry: movies/episodes only, and only when the play path set an
-                    // item context. Opens the OpenSubtitles search overlay below.
-                    onSearchSubtitles = if (!isLiveStream && !isLiveChannel && subtitleContext != null) {
-                        { showSubtitleSearch = true }
-                    } else null,
-                    // Local subtitle file: same movie/episode gating, no account needed.
-                    onSelectLocalSubtitle = if (!isLiveStream && !isLiveChannel && subtitleContext != null) {
-                        { showLocalSubPicker = true }
-                    } else null,
-                    // In-stream favorite toggle for the current channel/movie/series.
-                    favorite = favActive,
-                    onToggleFavorite = favToggle,
-                    // TV-box look: the channel info at the bottom, and the guide over the picture.
-                    // Every live channel, also in the beat between two of them when the engine has not yet said it is live:
-                    // the old full control bar must never show there.
-                    tvBoxInfo = if (TvBoxNav && !catchupActive) { chips, offset ->
-                        val epg by liveVm.nowNext.collectAsStateWithLifecycle()
-                        val clock by produceState(System.currentTimeMillis()) { while (true) { kotlinx.coroutines.delay(1_000); value = System.currentTimeMillis() } }
-                        tv.own.owntv.features.shell.components.TvBoxPlayerInfo(previewChannel, epg, chips, offset, clock)
-                    } else null,
-                    onOpenGuide = if (TvBoxNav && (isTunedLive || (isLiveStream && !catchupActive))) { { showGuideOverlay = true } } else null,
-                    // The zap banner's now/next. Collected inside the slot, so only the banner redraws.
-                    zapGuide = if (isLiveChannel) {
-                        {
-                            val guide by liveVm.zapGuide.collectAsStateWithLifecycle()
-                            tv.own.owntv.features.shell.components.ZapGuideLines(guide)
-                        }
-                    } else null,
-                    // Guide card for the playing channel (nowNext follows previewChannel = what's playing).
-                    liveEpgCard = if (isLiveChannel) {
-                        {
+                // In the system's Picture-in-Picture window the picture stands alone: no controls in the corner.
+                if (!pipActive) {
+                    PlayerHud(
+                        player = if (liveOnExo) liveVm.previewEngine else mpvEngine, // HUD drives the active engine
+                        onBack = exitPlayer,
+                        onPip = dockPlayer, // PiP/dock works for live on either engine now
+                        onAudioMode = toAudioMode,
+                        // The channel-list overlay draws ABOVE the HUD; while it's open the HUD goes inert so
+                        // its hide/error focus grabs can't yank D-pad focus off the overlay.
+                        inert = showChannelList || showHistoryList || showCategoryBrowser || showSubtitleSearch || showLocalSubPicker || showOtherChannels || showGuideOverlay ||
+                            // The menu opened over the picture owns the D-pad: the HUD must not pull focus back to itself.
+                            (railHasFocus && playerMode == PlayerMode.FULLSCREEN) || menuPending,
+                        onChannelUp = zap?.let { z -> { z(-1) } },
+                        onChannelDown = zap?.let { z -> { z(1) } },
+                        onOpenChannelList = if (isTunedLive && liveCanZap) { { showChannelList = true } } else null,
+                        // Live channels only, and only once Multiview is switched on: the channel on screen
+                        // becomes tile 1 and the grid takes over. Everything it needs is already tuned.
+                        onMultiview = if (multiviewEnabled && isTunedLive && previewChannel != null) {
+                            { multiview = openMultiview(previewChannel, emptyList()) }
+                        } else {
+                            null
+                        },
+                        // The button exists only once the setting is on, and only on a live
+                        // channel: there is nothing to record off a film that is already a file.
+                        // The engine does not come into it. Recording fetches the channel itself rather
+                        // than copying the open stream, so it works the same whichever engine is playing.
+                        onRecordThis = previewChannel
+                            ?.takeIf { recordWatchingEnabled && isTunedLive }
+                            ?.let { channel -> { liveVm.togglePlayerRecording(channel) } },
+                        recordingThis = playerRecording != null,
+                        onOpenHistoryList = if (isTunedLive) { { showHistoryList = true } } else null,
+                        onRewindLive = if (isTunedLive && canRewindLive) liveVm::rewindLive else null,
+                        onForwardLive = if (isTunedLive) liveVm::forwardLive else null,
+                        onGoToLive = if (isTunedLive) liveVm::goToLive else null,
+                        onScrubLive = if (isTunedLive && canRewindLive) liveVm::scrubLive else null,
+                        // Only collected where there is a timeline to draw them on.
+                        liveProgrammes = if (isTunedLive && canRewindLive) timelineProgrammes else emptyList(),
+                        liveGaps = liveVm::timeshiftGaps,
+                        // "Go back to…" is the provider archive's: a copy saved on this device rewinds with the
+                        // bar and the buttons, and must not show a catch-up control on a channel without catch-up.
+                        jumpBackOptions = if (isTunedLive && previewChannel?.catchup == true) liveVm::currentJumpOptions else null,
+                        onJumpBack = if (isTunedLive && previewChannel?.catchup == true) liveVm::jumpBackTo else null,
+                        onPreviousChannel = if (isTunedLive && previousLiveChannel != null) liveVm::previousChannel else null,
+                        jumpBackWindowSec = if (isTunedLive && previewChannel?.catchup == true) liveVm::currentCatchupWindowSec else null,
+                        // Non-null only while an archive is on screen, so movies, episodes and live TV get
+                        // the single real clock and catch-up gets the pair.
+                        watchingWallMs = { watchingWallState.value },
+                        // "End of programme" only at the live edge: rewound, the programme on air is not the one being watched.
+                        sleepProgrammeEndMs = if (isTunedLive && !timeshifted) { { liveVm.nowNext.value?.now?.stopMs } } else null,
+                        liveLeftRightRewinds = liveLeftRightRewinds,
+                        timeshiftOffsetSec = if (isTunedLive) { { timeshiftOffsetState.value } } else null,
+                        onTuneToNumber = if (directTuneEnabled && isTunedLive && isLiveStream && !timeshifted && previewChannel != null) liveVm::tuneByNumber else null,
+                        directTuneContextKey = previewChannel?.id ?: 0L,
+                        // Show the ACTUAL running engine (mpv when pinned OR auto-fallen-back), not just the pin —
+                        // otherwise an auto-fallback to mpv still read "EXO". true = on mpv (pill shows MPV, teal).
+                        compatMode = if (isTunedLive) !liveOnExo else null,
+                        // Hidden while rewound into the archive (same `!timeshifted` rule direct
+                        // tune follows above): switching engine restarts the channel at the live edge, which
+                        // threw the user out of the rewind with the HUD still counting "behind live".
+                        // Also hidden for a protected channel: only ExoPlayer can license it, so the
+                        // toggle's other position is not a compatibility choice but a guaranteed failure.
+                        // A copy saved on this device is the exception: the other engine re-opens the same copy
+                        // at the same moment, so the rewind survives the switch.
+                        onToggleCompatMode = if (isTunedLive && (!timeshifted || onLocalCopy) && previewChannel?.drmConfig == null) liveVm::toggleForceMpv else null,
+                        // VOD engine toggle (movies/series only — live and catch-up channels keep their own
+                        // engine handling above): flip the current item between mpv and ExoPlayer.
+                        vodOnExo = if (!isLiveStream && !isTunedLive) vodExoActive else null,
+                        onToggleVodEngine = if (!isLiveStream && !isTunedLive) player::toggleVodEngine else null,
+                        // ADD SUBTITLES entry: movies/episodes only, and only when the play path set an
+                        // item context. Opens the OpenSubtitles search overlay below.
+                        onSearchSubtitles = if (!isLiveStream && !isLiveChannel && subtitleContext != null) {
+                            { showSubtitleSearch = true }
+                        } else null,
+                        // Local subtitle file: same movie/episode gating, no account needed.
+                        onSelectLocalSubtitle = if (!isLiveStream && !isLiveChannel && subtitleContext != null) {
+                            { showLocalSubPicker = true }
+                        } else null,
+                        // In-stream favorite toggle for the current channel/movie/series.
+                        favorite = favActive,
+                        onToggleFavorite = favToggle,
+                        // TV-box look: the channel info at the bottom, and the guide over the picture.
+                        // Every live channel, also in the beat between two of them when the engine has not yet said it is live:
+                        // the old full control bar must never show there.
+                        tvBoxInfo = if (TvBoxNav && !catchupActive) { chips, offset ->
                             val epg by liveVm.nowNext.collectAsStateWithLifecycle()
-                            val archiveEpg by liveVm.archiveNowNext.collectAsStateWithLifecycle()
-                            val watching by liveVm.watchingWallMs.collectAsStateWithLifecycle()
-                            // Stacked: what was on air at the replayed moment, then what is on air now.
-                            // The live row is dimmed while an archive plays — it is context, not the
-                            // thing being watched — and returns to full strength back at the live edge.
-                            androidx.compose.foundation.layout.Column(
-                                horizontalAlignment = androidx.compose.ui.Alignment.End,
-                                verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(7.dp),
-                            ) {
-                                if (watching != null) {
+                            val clock by produceState(System.currentTimeMillis()) { while (true) { kotlinx.coroutines.delay(1_000); value = System.currentTimeMillis() } }
+                            tv.own.owntv.features.shell.components.TvBoxPlayerInfo(previewChannel, epg, chips, offset, clock)
+                        } else null,
+                        onOpenGuide = if (TvBoxNav && (isTunedLive || (isLiveStream && !catchupActive))) { { showGuideOverlay = true } } else null,
+                        // The zap banner's now/next. Collected inside the slot, so only the banner redraws.
+                        zapGuide = if (isLiveChannel) {
+                            {
+                                val guide by liveVm.zapGuide.collectAsStateWithLifecycle()
+                                tv.own.owntv.features.shell.components.ZapGuideLines(guide)
+                            }
+                        } else null,
+                        // Guide card for the playing channel (nowNext follows previewChannel = what's playing).
+                        liveEpgCard = if (isLiveChannel) {
+                            {
+                                val epg by liveVm.nowNext.collectAsStateWithLifecycle()
+                                val archiveEpg by liveVm.archiveNowNext.collectAsStateWithLifecycle()
+                                val watching by liveVm.watchingWallMs.collectAsStateWithLifecycle()
+                                // Stacked: what was on air at the replayed moment, then what is on air now.
+                                // The live row is dimmed while an archive plays — it is context, not the
+                                // thing being watched — and returns to full strength back at the live edge.
+                                androidx.compose.foundation.layout.Column(
+                                    horizontalAlignment = androidx.compose.ui.Alignment.End,
+                                    verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(7.dp),
+                                ) {
+                                    if (watching != null) {
+                                        tv.own.owntv.features.shell.components.LiveEpgCard(
+                                            epg = archiveEpg,
+                                            variant = tv.own.owntv.features.shell.components.EpgCardVariant.ARCHIVE,
+                                            atMs = watching,
+                                        )
+                                    }
                                     tv.own.owntv.features.shell.components.LiveEpgCard(
-                                        epg = archiveEpg,
-                                        variant = tv.own.owntv.features.shell.components.EpgCardVariant.ARCHIVE,
-                                        atMs = watching,
+                                        epg = epg,
+                                        modifier = if (watching == null) Modifier else Modifier.alpha(0.55f),
                                     )
                                 }
-                                tv.own.owntv.features.shell.components.LiveEpgCard(
-                                    epg = epg,
-                                    modifier = if (watching == null) Modifier else Modifier.alpha(0.55f),
-                                )
                             }
-                        }
-                    } else null,
-                    matchLine = matchSession?.takeIf { sportsConfig.scoreInInfoBar }?.let { s ->
-                        { tv.own.owntv.features.sports.MatchScoreLine(sportsPlayback, s.match, sportsConfig.spoilerFree) }
-                    },
-                    onOtherChannels = matchSession?.takeIf { it.options.size > 1 }?.let { { showOtherChannels = true } },
-                    otherChannelsCount = (matchSession?.options?.size ?: 1) - 1,
-                    onToastOk = goalToast?.let { a -> { switchToMatch(a.match) } },
-                    // The controls stay out of the way while the picture grows or shrinks.
-                    modifier = Modifier.fillMaxSize().graphicsLayer { alpha = if (collapsingFull) 0f else ((grow.value - 0.7f) / 0.3f).coerceIn(0f, 1f) },
-                )
+                        } else null,
+                        matchLine = matchSession?.takeIf { sportsConfig.scoreInInfoBar }?.let { s ->
+                            { tv.own.owntv.features.sports.MatchScoreLine(sportsPlayback, s.match, sportsConfig.spoilerFree) }
+                        },
+                        onOtherChannels = matchSession?.takeIf { it.options.size > 1 }?.let { { showOtherChannels = true } },
+                        otherChannelsCount = (matchSession?.options?.size ?: 1) - 1,
+                        onToastOk = goalToast?.let { a -> { switchToMatch(a.match) } },
+                        // The controls stay out of the way while the picture grows or shrinks.
+                        modifier = Modifier.fillMaxSize().graphicsLayer { alpha = if (collapsingFull) 0f else ((grow.value - 0.7f) / 0.3f).coerceIn(0f, 1f) },
+                    )
+                }
                 goalToast?.let { a ->
                     tv.own.owntv.features.sports.GoalToast(a, Modifier.align(androidx.compose.ui.Alignment.TopEnd).padding(top = 45.mpx, end = 60.mpx))
                 }

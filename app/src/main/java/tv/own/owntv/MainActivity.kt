@@ -79,6 +79,16 @@ open class MainActivity : ComponentActivity() {
         return super.dispatchKeyEvent(event)
     }
     companion object {
+        /** The activity behind [context], through any wrappers (the localized and themed ones the app puts around it). */
+        fun from(context: android.content.Context): MainActivity? {
+            var c: android.content.Context? = context
+            while (c is android.content.ContextWrapper) {
+                if (c is MainActivity) return c
+                c = c.baseContext
+            }
+            return null
+        }
+
         /** The fade between the top-level screens (the profile gate and the app). */
         private const val ScreenFadeMs = 320
         /** Key repeats of a held Back that count as "hold to exit" (about a second). */
@@ -136,6 +146,35 @@ open class MainActivity : ComponentActivity() {
         setIntent(intent)
         pendingDeepLink = LauncherDeepLink.parse(intent.data)
         Log.d(TAG, "onNewIntent deepLinkHost=${intent.data?.host} deepLinkType=${pendingDeepLink?.javaClass?.simpleName ?: "none"}")
+    }
+
+    /**
+     * True while the window is the system's small Picture-in-Picture one: the screen then shows the
+     * picture alone, with none of the player's controls drawn into a few hundred pixels.
+     */
+    var inPip by mutableStateOf(false)
+        private set
+
+    /**
+     * Set by the shell while a live channel is on full screen: Home then shrinks it into a corner
+     * (Picture-in-Picture) instead of stopping it, the way a streaming app on the same television behaves.
+     */
+    @Volatile var pipEligible = false
+
+    override fun onUserLeaveHint() {
+        super.onUserLeaveHint()
+        if (!pipEligible || android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.O) return
+        if (!packageManager.hasSystemFeature(android.content.pm.PackageManager.FEATURE_PICTURE_IN_PICTURE)) return
+        runCatching {
+            enterPictureInPictureMode(
+                android.app.PictureInPictureParams.Builder().setAspectRatio(android.util.Rational(16, 9)).build(),
+            )
+        }.onFailure { Log.w(TAG, "could not enter Picture-in-Picture", it) }
+    }
+
+    override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: android.content.res.Configuration) {
+        super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
+        inPip = isInPictureInPictureMode
     }
 
     override fun onStop() {

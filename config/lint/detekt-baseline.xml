@@ -1789,11 +1789,13 @@
     <ID>MagicNumber:MainActivity.kt$384</ID>
     <ID>MagicNumber:MainActivity.kt$448</ID>
     <ID>MagicNumber:MainActivity.kt$4f</ID>
+    <ID>MagicNumber:MainActivity.kt$MainActivity$16</ID>
     <ID>MagicNumber:MainActivity.kt$MainActivity$3</ID>
     <ID>MagicNumber:MainActivity.kt$MainActivity$33</ID>
     <ID>MagicNumber:MainActivity.kt$MainActivity$4</ID>
     <ID>MagicNumber:MainActivity.kt$MainActivity$5</ID>
     <ID>MagicNumber:MainActivity.kt$MainActivity$6</ID>
+    <ID>MagicNumber:MainActivity.kt$MainActivity$9</ID>
     <ID>MagicNumber:ManageSourcesScreen.kt$120</ID>
     <ID>MagicNumber:ManageSourcesScreen.kt$16</ID>
     <ID>MagicNumber:ManageSourcesScreen.kt$17</ID>
@@ -3971,8 +3973,10 @@
     <ID>MaxLineLength:MainActivity.kt$MainActivity$androidx.compose.animation</ID>
     <ID>MaxLineLength:MainActivity.kt$MainActivity$event.action == android.view.KeyEvent.ACTION_DOWN</ID>
     <ID>MaxLineLength:MainActivity.kt$MainActivity$if (still) stillLaunchTheme(tv.own.owntv.core.brand.AppIconSwitcher.applied(this@MainActivity)) else 0</ID>
+    <ID>MaxLineLength:MainActivity.kt$MainActivity$override</ID>
     <ID>MaxLineLength:MainActivity.kt$MainActivity$player.onAppBackgrounded()</ID>
     <ID>MaxLineLength:MainActivity.kt$MainActivity$tv.own.owntv.ui.theme.MotionPrefs.animationsOn = animationLevel != tv.own.owntv.core.theme.AnimationLevel.OFF</ID>
+    <ID>MaxLineLength:MainActivity.kt$MainActivity.Companion$/** The activity behind [context], through any wrappers (the localized and themed ones the app puts around it). */</ID>
     <ID>MaxLineLength:MainActivity.kt$if (curAspect &gt; aspect) { ch = decoded.height; cw = (ch * aspect).toInt() } else { cw = decoded.width; ch = (cw / aspect).toInt() }</ID>
     <ID>MaxLineLength:ManageSourcesScreen.kt$?.</ID>
     <ID>MaxLineLength:ManageSourcesScreen.kt$Box</ID>
@@ -4285,6 +4289,7 @@
     <ID>MaxLineLength:OwnTVShell.kt$// Settings is reached through More now, so Back out of its root goes</ID>
     <ID>MaxLineLength:OwnTVShell.kt$// TV-box dark look: the whole screen is the side menu's grey, not black, so the panels and the page are one surface.</ID>
     <ID>MaxLineLength:OwnTVShell.kt$// TV-box style the channels list is one screen that stays put: the settings sheet opens over it, and</ID>
+    <ID>MaxLineLength:OwnTVShell.kt$// The menu opened over the picture owns the D-pad: the HUD must not pull focus back to itself.</ID>
     <ID>MaxLineLength:OwnTVShell.kt$// The same paths Home uses, so the engine ladder, resume and Continue all apply.</ID>
     <ID>MaxLineLength:OwnTVShell.kt$// surface, not a copy built anew behind the sheet. Behind the sheet it is out of the remote's reach.</ID>
     <ID>MaxLineLength:OwnTVShell.kt$LaunchedEffect(goalToast) { if (goalToast != null) { kotlinx.coroutines.delay(GOAL_TOAST_MS); goalToast = null } }</ID>
