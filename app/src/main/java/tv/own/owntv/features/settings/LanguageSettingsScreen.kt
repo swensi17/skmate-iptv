@@ -94,14 +94,13 @@ fun FirstRunLanguageGlobe(modifier: Modifier = Modifier) {
     tv.own.owntv.ui.stage.StageSurface(
         onClick = { showPicker = true },
         radius = 16.mpx,
-        // Focus: SkMate blue fill, as the buttons beside it.
-        focusStyle = tv.own.owntv.ui.stage.StageFocus.NONE,
-        idle = Modifier.border(2.mpx, StageColors.Text.copy(alpha = 0.14f), CircleShape),
+        // Focus: the same grey bar as every button on the TV.
+        focusStyle = tv.own.owntv.ui.stage.StageFocus.FX,
+        idle = Modifier.border(2.mpx, StageColors.Text.copy(alpha = 0.14f), RoundedCornerShape(16.mpx)),
         contentAlignment = Alignment.Center,
         modifier = modifier.size(76.mpx),
     ) { focused ->
-        if (focused) Box(Modifier.matchParentSize().background(tv.own.owntv.ui.brand.SkMateBlue, CircleShape))
-        OwnTVIcon(OwnTVIcon.LANGUAGE, if (focused) Color.White else StageColors.Text, Modifier.size(38.mpx))
+        OwnTVIcon(OwnTVIcon.LANGUAGE, StageColors.Text, Modifier.size(38.mpx))
     }
     if (showPicker) {
         FirstRunLanguagePopup(viewModel = viewModel, currentTag = currentTag, onDismiss = { showPicker = false })
