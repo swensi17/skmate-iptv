@@ -517,7 +517,7 @@ fun StageTab(label: String, count: String, selected: Boolean, onClick: () -> Uni
         ) {
             val on = if (focused) tv.own.owntv.ui.theme.stageAccent.onAccent else null
             Text(label, style = stageText(if (centered) 20 else 22, 700), color = on ?: if (selected) StageColors.Text else StageColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.alignByBaseline())
-            Text(count, style = stageText(if (centered) 19 else 16, 700), color = on ?: StageColors.Dim, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.alignByBaseline())
+            Text(count, style = stageText(if (centered) 19 else 16, 700), color = on ?: if (centered) StageColors.Text.copy(alpha = 0.9f) else StageColors.Dim, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.alignByBaseline())
         }
     }
 }

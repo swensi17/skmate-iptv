@@ -231,7 +231,17 @@ fun SearchScreen(
     LaunchedEffect(channelRows.map { it.id }) { liveVm.ensureNowPlaying(channelRows) }
 
     // Back clears an active query/intent (returning to the launcher) before leaving the screen.
-    BackHandler(enabled = returnToHomeOnBack || query.isNotBlank() || intent != null) {
+    // Not while a stream plays over this screen (then Back belongs to the player), and not for a moment after
+    // it closes: the same press that closed the player must not also clear the search it came from.
+    var backArmed by remember { mutableStateOf(false) }
+    LaunchedEffect(previewEnabled) {
+        backArmed = false
+        if (previewEnabled) {
+            delay(BACK_REARM_MS)
+            backArmed = true
+        }
+    }
+    BackHandler(enabled = backArmed && (returnToHomeOnBack || query.isNotBlank() || intent != null)) {
         vm.setQuery("")
         vm.setIntent(null)
         vm.clearKinds()
@@ -256,6 +266,16 @@ fun SearchScreen(
             }
         }
         runCatching { fieldFocus.requestFocus() }
+    }
+    // Back from a stream opened here: the row that was opened takes the cursor again.
+    LaunchedEffect(previewEnabled) {
+        val back = vm.lastFocusKey
+        if (!previewEnabled || back == null) return@LaunchedEffect
+        repeat(15) {
+            withFrameNanos { }
+            if (runCatching { requesterFor(back).requestFocus() }.getOrDefault(false)) return@LaunchedEffect
+            delay(60)
+        }
     }
     // An intent's list replaces the launcher under the cursor: land on its first row.
     LaunchedEffect(intent, entries.isNotEmpty()) {
@@ -827,6 +847,9 @@ private fun SearchHeader(count: Int, label: String?, modifier: Modifier = Modifi
 }
 
 private const val COUNT_UP_MS = 600
+
+/** How long after a stream closes Back keeps its hands off the search. */
+private const val BACK_REARM_MS = 700L
 
 /** The lookup is running: a line that says so and a thin bar sweeping under it. */
 @Composable

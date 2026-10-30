@@ -25,6 +25,9 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items as gridItems
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.withFrameNanos
+import kotlinx.coroutines.delay
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -76,6 +79,8 @@ internal fun SportsBoard(
     loading: Boolean,
     now: Long,
     searchFocus: FocusRequester,
+    /** False while a stream plays over the board; coming back, focus returns to the card that was opened. */
+    active: Boolean,
     onPlay: (GuideSportItem) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -84,6 +89,17 @@ internal fun SportsBoard(
     var countries by remember { mutableStateOf(emptySet<String>()) }
     var sort by rememberSaveable { mutableStateOf(BoardSort.RELEVANCE) }
     var menu by remember { mutableStateOf<BoardMenu?>(null) }
+    val requesters = remember { HashMap<String, FocusRequester>() }
+    var lastKey by remember { mutableStateOf<String?>(null) }
+    LaunchedEffect(active) {
+        val key = lastKey ?: return@LaunchedEffect
+        if (!active) return@LaunchedEffect
+        repeat(15) {
+            withFrameNanos { }
+            if (runCatching { requesters[key]?.requestFocus() }.getOrNull() == true) return@LaunchedEffect
+            delay(60)
+        }
+    }
     val locale = LocalConfiguration.current.locales[0]
     val preferred = remember(locale) { SportsBoardFilter.preferredCountries(locale.language, locale.country.ifBlank { null }) }
     val shown = remember(items, query, sports, countries, sort, preferred) { SportsBoardFilter.apply(items, query, sports, countries, sort, preferred) }
@@ -96,15 +112,11 @@ internal fun SportsBoard(
     BoxWithConstraints(modifier.fillMaxSize()) {
         val gridWidth = maxWidth * (1560f / 1920f)
         val side = (maxWidth - gridWidth) / 2
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
-            modifier = Modifier.fillMaxSize().focusGroup(),
-            contentPadding = PaddingValues(start = side, end = side, top = 36.mpx, bottom = 110.mpx),
-            horizontalArrangement = Arrangement.spacedBy(20.mpx),
-            verticalArrangement = Arrangement.spacedBy(10.mpx),
-        ) {
-            item(key = "title", span = { GridItemSpan(maxLineSpan) }) { BoardTitle(shown.size) }
-            item(key = "search", span = { GridItemSpan(maxLineSpan) }) {
+        Column(Modifier.fillMaxSize()) {
+            // The title, the search and the sport filters stay put; only the list below them scrolls.
+            Column(Modifier.padding(start = side, end = side, top = 36.mpx).focusGroup()) {
+                BoardTitle(shown.size)
+            run {
                 // The field at the left edge, longer; the two dropdowns at the right end of the same line.
                 Row(Modifier.fillMaxWidth().padding(top = 10.mpx), horizontalArrangement = Arrangement.spacedBy(12.mpx), verticalAlignment = Alignment.CenterVertically) {
                     StageSearchField(
@@ -127,7 +139,7 @@ internal fun SportsBoard(
                     )
                 }
             }
-            if (sportList.size > 1) item(key = "sports", span = { GridItemSpan(maxLineSpan) }) {
+            if (sportList.size > 1) run {
                 // One even line: every button the same width, the whole width of the board.
                 Row(Modifier.fillMaxWidth().padding(top = 14.mpx).focusGroup(), horizontalArrangement = Arrangement.spacedBy(8.mpx)) {
                     StageTab(stringResource(R.string.content_epg_all), localizedInteger(items.size), sports.isEmpty(), { sports = emptySet() }, Modifier.weight(1f), centered = true)
@@ -146,13 +158,26 @@ internal fun SportsBoard(
                     }
                 }
             }
+            }
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2),
+                modifier = Modifier.weight(1f).fillMaxWidth().focusGroup(),
+                contentPadding = PaddingValues(start = side, end = side, top = 14.mpx, bottom = 110.mpx),
+                horizontalArrangement = Arrangement.spacedBy(20.mpx),
+                verticalArrangement = Arrangement.spacedBy(10.mpx),
+            ) {
             if (shown.isEmpty()) {
                 item(key = "empty", span = { GridItemSpan(maxLineSpan) }) {
                     BoardEmpty(loading, query.isNotBlank() || sports.isNotEmpty() || countries.isNotEmpty())
                 }
             }
-            gridItems(shown, key = { "${it.sport.name}|${it.title}|${it.startMs}" }) { item ->
-                BoardCard(item, now) { onPlay(item) }
+            gridItems(shown, key = { cardKey(it) }) { item ->
+                val key = cardKey(item)
+                BoardCard(item, now, Modifier.focusRequester(requesters.getOrPut(key) { FocusRequester() })) {
+                    lastKey = key
+                    onPlay(item)
+                }
+            }
             }
         }
     }
@@ -186,6 +211,8 @@ internal fun SportsBoard(
         null -> Unit
     }
 }
+
+private fun cardKey(item: GuideSportItem) = "${item.sport.name}|${item.title}|${item.startMs}"
 
 private enum class BoardMenu { COUNTRIES, SORT, MORE_SPORTS }
 
@@ -238,9 +265,9 @@ private fun BoardEmpty(loading: Boolean, filtered: Boolean) {
 
 /** One programme: the first channel's logo, "Handball · THW Kiel – SC Magdeburg", the channel and times, and how far it is. */
 @Composable
-private fun BoardCard(item: GuideSportItem, now: Long, onClick: () -> Unit) {
+private fun BoardCard(item: GuideSportItem, now: Long, modifier: Modifier = Modifier, onClick: () -> Unit) {
     val ch = item.channels.first()
-    StageRow(onClick = onClick, height = 96.mpx, modifier = Modifier.fillMaxWidth(), horizontalPadding = 18.mpx) { _ ->
+    StageRow(onClick = onClick, height = 96.mpx, modifier = modifier.fillMaxWidth(), horizontalPadding = 18.mpx) { _ ->
         ChannelLogoTile(
             logoUrl = ch.displayLogoUrl,
             modifier = Modifier.size(78.mpx, 48.mpx).background(stageStillBack, RoundedCornerShape(10.mpx)),

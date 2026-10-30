@@ -107,6 +107,8 @@ private const val SPORT_CHIPS = 8
 @Composable
 fun SportsHubScreen(
     vm: SportsViewModel,
+    /** False while a stream plays over the hub. */
+    active: Boolean,
     onOpenMatch: (Match) -> Unit,
     onPlayChannel: (ChannelEntity, List<ChannelEntity>) -> Unit,
     onChildFocused: () -> Unit,
@@ -188,6 +190,7 @@ fun SportsHubScreen(
                 loading = !settled || state.rebuilding,
                 now = now,
                 searchFocus = chipFocus,
+                active = active,
                 onPlay = { onPlayChannel(it.channels.first(), it.channels) },
             )
         } else LazyColumn(

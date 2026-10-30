@@ -15,8 +15,10 @@
     <ID>ComplexCondition:MovieViewModel.kt$MovieViewModel$cust.hiddenItems.isEmpty() &amp;&amp; cust.itemNames.isEmpty() &amp;&amp; cs.hiddenCats.isEmpty() &amp;&amp; movedFrom.isEmpty()</ID>
     <ID>ComplexCondition:MoviesScreen.kt$e.type == KeyEventType.KeyDown &amp;&amp; e.key == Key.DirectionLeft &amp;&amp; !searchEditing &amp;&amp; lockedKey == null</ID>
     <ID>ComplexCondition:MoviesScreen.kt$sheetHadFocus &amp;&amp; categoriesOpen &amp;&amp; contextCategory == null &amp;&amp; categoryMoveState == null</ID>
+    <ID>ComplexCondition:OwnTVShell.kt$!(TvBoxNav &amp;&amp; (selectedSection == MainSection.LIVE_TV || selectedSection == MainSection.SEARCH || selectedSection == MainSection.SPORTS))</ID>
     <ID>ComplexCondition:OwnTVShell.kt$TvBoxNav &amp;&amp; ( (channelsHere &amp;&amp; liveView != tv.own.owntv.core.settings.SettingsRepository.LiveView.GUIDE) || selectedSection == MainSection.MORE || selectedSection == MainSection.SETTINGS )</ID>
     <ID>ComplexCondition:OwnTVShell.kt$TvBoxNav &amp;&amp; (isTunedLive || (isLiveStream &amp;&amp; !catchupActive))</ID>
+    <ID>ComplexCondition:OwnTVShell.kt$TvBoxNav &amp;&amp; playerMode == PlayerMode.FULLSCREEN &amp;&amp; selectedSection == MainSection.LIVE_TV &amp;&amp; tv.own.owntv.features.shell.components.TvBoxPanels.previewRect != null</ID>
     <ID>ComplexCondition:OwnTVShell.kt$directTuneEnabled &amp;&amp; isTunedLive &amp;&amp; isLiveStream &amp;&amp; !timeshifted &amp;&amp; previewChannel != null</ID>
     <ID>ComplexCondition:OwnTVShell.kt$isTunedLive &amp;&amp; (!timeshifted || onLocalCopy) &amp;&amp; previewChannel?.drmConfig == null</ID>
     <ID>ComplexCondition:OwnTVShell.kt$multiviewEnabled &amp;&amp; multiview == null &amp;&amp; multiviewSelection.isNotEmpty() &amp;&amp; playerMode == PlayerMode.FULLSCREEN &amp;&amp; zapSource == MainSection.LIVE_TV &amp;&amp; previewChannel != null</ID>
@@ -139,8 +141,8 @@
     <ID>CyclomaticComplexMethod:SettingsStage.kt$@OptIn(ExperimentalFoundationApi::class) @Composable fun StageSettingsPage( group: String, count: String, searchQuery: String, onSearchQuery: (String) -&gt; Unit, scroll: ScrollState, modifier: Modifier = Modifier, searchFocus: FocusRequester = remember { FocusRequester() }, /** On the rows column: requesting it puts focus on the page's first row. */ rowsFocus: FocusRequester = remember { FocusRequester() }, panel: SettingsPanelState = remember { SettingsPanelState() }, /** A short title with no "Settings ›" before it (the search results page). */ crumb: Boolean = true, panelTop: (@Composable ColumnScope.() -&gt; Unit)? = null, /** A full page's path between "Settings ›" and [group] ("Layout" for Settings › Layout › Panel widths). */ parents: List&lt;String&gt; = emptyList(), /** A full page's own tools in the band, left of the search (which then narrows to 360). */ tools: (@Composable RowScope.() -&gt; Unit)? = null, searchAutoEdit: Boolean = false, onSearchActivate: (() -&gt; Unit)? = null, /** A list page's tool row (Customize's tabs, Sort, Filter…), above the rows. */ toolbar: (@Composable RowScope.() -&gt; Unit)? = null, /** A list too long for one column (Customize): drawn in place of [rows], given the rows' position. */ list: (@Composable (Modifier) -&gt; Unit)? = null, /** Off: the path starts at [parents] ("Add a source › Type it here"), not at Settings. */ settingsRoot: Boolean = true, /** Off where there is no Settings to search (the setup wizard reuses the Add a source pages). */ showSearch: Boolean = true, rows: @Composable ColumnScope.() -&gt; Unit = {}, )</ID>
     <ID>CyclomaticComplexMethod:SettingsViewModel.kt$SettingsViewModel$fun updateSource( id: Long, name: String, urlOrServer: String, user: String, pass: String, userAgent: String, epgUrl: String, autoRefresh: PlaylistRefresh, isDefault: Boolean = false, mac: String = "", stalkerSerialNumber: String = "", stalkerDeviceId: String = "", stalkerDeviceId2: String = "", stalkerSignature: String = "", syncLive: Boolean = true, syncMovies: Boolean = true, syncSeries: Boolean = true, preferHls: Boolean = false, httpReferer: String = "", )</ID>
     <ID>CyclomaticComplexMethod:SetupWizard.kt$@Composable fun Onboarding(firstRun: Boolean, onDone: (Long?) -&gt; Unit, onCancel: () -&gt; Unit, modifier: Modifier = Modifier)</ID>
-    <ID>CyclomaticComplexMethod:SportsBoard.kt$@Composable internal fun SportsBoard( items: List&lt;GuideSportItem&gt;, loading: Boolean, now: Long, searchFocus: FocusRequester, onPlay: (GuideSportItem) -&gt; Unit, modifier: Modifier = Modifier, )</ID>
-    <ID>CyclomaticComplexMethod:SportsHubScreen.kt$@Composable fun SportsHubScreen( vm: SportsViewModel, onOpenMatch: (Match) -&gt; Unit, onPlayChannel: (ChannelEntity, List&lt;ChannelEntity&gt;) -&gt; Unit, onChildFocused: () -&gt; Unit, onEntryHook: (((() -&gt; Boolean)?) -&gt; Unit)?, contentStart: Dp, modifier: Modifier = Modifier, /** Back from a match: the card it was opened from takes focus again. */ restoreKey: String? = null, )</ID>
+    <ID>CyclomaticComplexMethod:SportsBoard.kt$@Composable internal fun SportsBoard( items: List&lt;GuideSportItem&gt;, loading: Boolean, now: Long, searchFocus: FocusRequester, /** False while a stream plays over the board; coming back, focus returns to the card that was opened. */ active: Boolean, onPlay: (GuideSportItem) -&gt; Unit, modifier: Modifier = Modifier, )</ID>
+    <ID>CyclomaticComplexMethod:SportsHubScreen.kt$@Composable fun SportsHubScreen( vm: SportsViewModel, /** False while a stream plays over the hub. */ active: Boolean, onOpenMatch: (Match) -&gt; Unit, onPlayChannel: (ChannelEntity, List&lt;ChannelEntity&gt;) -&gt; Unit, onChildFocused: () -&gt; Unit, onEntryHook: (((() -&gt; Boolean)?) -&gt; Unit)?, contentStart: Dp, modifier: Modifier = Modifier, /** Back from a match: the card it was opened from takes focus again. */ restoreKey: String? = null, )</ID>
     <ID>CyclomaticComplexMethod:SportsHubScreen.kt$@Composable internal fun MatchCard( m: Match, featured: Boolean, config: SportsConfig, now: Long, reminded: Boolean, onClick: () -&gt; Unit, onPlay: () -&gt; Unit, onHold: () -&gt; Unit, modifier: Modifier = Modifier, )</ID>
     <ID>CyclomaticComplexMethod:SportsLeagueScreen.kt$@Composable fun SportsLeagueScreen(vm: SportsViewModel, onOpenMatch: (Match) -&gt; Unit, onBack: () -&gt; Unit, contentStart: Dp, modifier: Modifier = Modifier, active: Boolean = true)</ID>
     <ID>CyclomaticComplexMethod:SportsMatchScreen.kt$@Composable fun SportsMatchScreen( vm: SportsViewModel, liveVm: LiveViewModel, onPlayChannel: (ChannelEntity, List&lt;ChannelEntity&gt;) -&gt; Unit, onOpenFilters: () -&gt; Unit, onOpenLeague: (Match) -&gt; Unit, onAddPlaylist: () -&gt; Unit, onBack: () -&gt; Unit, contentStart: Dp, modifier: Modifier = Modifier, /** False while the player is full screen over the page. */ active: Boolean = true, )</ID>
@@ -598,8 +600,8 @@
     <ID>FunctionNaming:SkMateWordmark.kt$@Composable fun SkMateWordmark(modifier: Modifier = Modifier, size: Int = 30)</ID>
     <ID>FunctionNaming:SocialIcons.kt$@Composable fun SocialIcon(icon: SocialIcon, tint: Color, modifier: Modifier = Modifier)</ID>
     <ID>FunctionNaming:SolidAmbientBackdrop.kt$@Composable fun SolidAmbientBackdrop( glowEnabled: Boolean, pulseEnabled: Boolean, modifier: Modifier = Modifier, )</ID>
-    <ID>FunctionNaming:SportsBoard.kt$@Composable internal fun SportsBoard( items: List&lt;GuideSportItem&gt;, loading: Boolean, now: Long, searchFocus: FocusRequester, onPlay: (GuideSportItem) -&gt; Unit, modifier: Modifier = Modifier, )</ID>
-    <ID>FunctionNaming:SportsBoard.kt$@Composable private fun BoardCard(item: GuideSportItem, now: Long, onClick: () -&gt; Unit)</ID>
+    <ID>FunctionNaming:SportsBoard.kt$@Composable internal fun SportsBoard( items: List&lt;GuideSportItem&gt;, loading: Boolean, now: Long, searchFocus: FocusRequester, /** False while a stream plays over the board; coming back, focus returns to the card that was opened. */ active: Boolean, onPlay: (GuideSportItem) -&gt; Unit, modifier: Modifier = Modifier, )</ID>
+    <ID>FunctionNaming:SportsBoard.kt$@Composable private fun BoardCard(item: GuideSportItem, now: Long, modifier: Modifier = Modifier, onClick: () -&gt; Unit)</ID>
     <ID>FunctionNaming:SportsBoard.kt$@Composable private fun BoardEmpty(loading: Boolean, filtered: Boolean)</ID>
     <ID>FunctionNaming:SportsBoard.kt$@Composable private fun BoardTitle(count: Int)</ID>
     <ID>FunctionNaming:SportsBoard.kt$@Composable private fun FilterRow(modifier: Modifier = Modifier, content: LazyListScope.() -&gt; Unit)</ID>
@@ -608,7 +610,7 @@
     <ID>FunctionNaming:SportsFilterPanel.kt$@Composable private fun Label(text: String, locale: java.util.Locale)</ID>
     <ID>FunctionNaming:SportsFilterPanel.kt$@Composable private fun SwitchRow(title: String, description: String, on: Boolean, onClick: () -&gt; Unit)</ID>
     <ID>FunctionNaming:SportsFilterPanel.kt$@OptIn(ExperimentalLayoutApi::class) @Composable fun SportsFilterPanel(state: MatchPageState, onFilter: (WatchFilter) -&gt; Unit, onRemember: (Boolean) -&gt; Unit, onDismiss: () -&gt; Unit)</ID>
-    <ID>FunctionNaming:SportsHubScreen.kt$@Composable fun SportsHubScreen( vm: SportsViewModel, onOpenMatch: (Match) -&gt; Unit, onPlayChannel: (ChannelEntity, List&lt;ChannelEntity&gt;) -&gt; Unit, onChildFocused: () -&gt; Unit, onEntryHook: (((() -&gt; Boolean)?) -&gt; Unit)?, contentStart: Dp, modifier: Modifier = Modifier, /** Back from a match: the card it was opened from takes focus again. */ restoreKey: String? = null, )</ID>
+    <ID>FunctionNaming:SportsHubScreen.kt$@Composable fun SportsHubScreen( vm: SportsViewModel, /** False while a stream plays over the hub. */ active: Boolean, onOpenMatch: (Match) -&gt; Unit, onPlayChannel: (ChannelEntity, List&lt;ChannelEntity&gt;) -&gt; Unit, onChildFocused: () -&gt; Unit, onEntryHook: (((() -&gt; Boolean)?) -&gt; Unit)?, contentStart: Dp, modifier: Modifier = Modifier, /** Back from a match: the card it was opened from takes focus again. */ restoreKey: String? = null, )</ID>
     <ID>FunctionNaming:SportsHubScreen.kt$@Composable internal fun MatchCard( m: Match, featured: Boolean, config: SportsConfig, now: Long, reminded: Boolean, onClick: () -&gt; Unit, onPlay: () -&gt; Unit, onHold: () -&gt; Unit, modifier: Modifier = Modifier, )</ID>
     <ID>FunctionNaming:SportsHubScreen.kt$@Composable internal fun SportsChip( text: String, on: Boolean, modifier: Modifier = Modifier, icon: OwnTVIcon? = null, dim: Boolean = false, onLongClick: (() -&gt; Unit)? = null, onClick: () -&gt; Unit, )</ID>
     <ID>FunctionNaming:SportsHubScreen.kt$@Composable private fun CardFooter(venue: String?, reminded: Boolean, followed: Boolean)</ID>
@@ -878,9 +880,9 @@
     <ID>LongMethod:SetupWizard.kt$@Composable private fun DisplaySizeStep(onNext: () -&gt; Unit, onBack: () -&gt; Unit)</ID>
     <ID>LongMethod:SetupWizard.kt$@Composable private fun ImportProgressStep( state: SourceImporter.ImportState, progress: tv.own.owntv.core.sync.ImportStage?, name: String?, onContinue: () -&gt; Unit, onAddGuide: () -&gt; Unit, onRetry: () -&gt; Unit, onCancel: () -&gt; Unit, onBackground: () -&gt; Unit, )</ID>
     <ID>LongMethod:SetupWizard.kt$@Composable private fun ProfileStep( existing: List&lt;tv.own.owntv.core.database.entity.ProfileEntity&gt;, onCreate: (name: String, avatarId: Int, isKids: Boolean, pin: String?, picture: java.io.File?) -&gt; Unit, onBack: () -&gt; Unit, )</ID>
-    <ID>LongMethod:SportsBoard.kt$@Composable internal fun SportsBoard( items: List&lt;GuideSportItem&gt;, loading: Boolean, now: Long, searchFocus: FocusRequester, onPlay: (GuideSportItem) -&gt; Unit, modifier: Modifier = Modifier, )</ID>
+    <ID>LongMethod:SportsBoard.kt$@Composable internal fun SportsBoard( items: List&lt;GuideSportItem&gt;, loading: Boolean, now: Long, searchFocus: FocusRequester, /** False while a stream plays over the board; coming back, focus returns to the card that was opened. */ active: Boolean, onPlay: (GuideSportItem) -&gt; Unit, modifier: Modifier = Modifier, )</ID>
     <ID>LongMethod:SportsFilterPanel.kt$@OptIn(ExperimentalLayoutApi::class) @Composable fun SportsFilterPanel(state: MatchPageState, onFilter: (WatchFilter) -&gt; Unit, onRemember: (Boolean) -&gt; Unit, onDismiss: () -&gt; Unit)</ID>
-    <ID>LongMethod:SportsHubScreen.kt$@Composable fun SportsHubScreen( vm: SportsViewModel, onOpenMatch: (Match) -&gt; Unit, onPlayChannel: (ChannelEntity, List&lt;ChannelEntity&gt;) -&gt; Unit, onChildFocused: () -&gt; Unit, onEntryHook: (((() -&gt; Boolean)?) -&gt; Unit)?, contentStart: Dp, modifier: Modifier = Modifier, /** Back from a match: the card it was opened from takes focus again. */ restoreKey: String? = null, )</ID>
+    <ID>LongMethod:SportsHubScreen.kt$@Composable fun SportsHubScreen( vm: SportsViewModel, /** False while a stream plays over the hub. */ active: Boolean, onOpenMatch: (Match) -&gt; Unit, onPlayChannel: (ChannelEntity, List&lt;ChannelEntity&gt;) -&gt; Unit, onChildFocused: () -&gt; Unit, onEntryHook: (((() -&gt; Boolean)?) -&gt; Unit)?, contentStart: Dp, modifier: Modifier = Modifier, /** Back from a match: the card it was opened from takes focus again. */ restoreKey: String? = null, )</ID>
     <ID>LongMethod:SportsLeagueScreen.kt$@Composable fun SportsLeagueScreen(vm: SportsViewModel, onOpenMatch: (Match) -&gt; Unit, onBack: () -&gt; Unit, contentStart: Dp, modifier: Modifier = Modifier, active: Boolean = true)</ID>
     <ID>LongMethod:SportsMatchScreen.kt$@Composable fun SportsMatchScreen( vm: SportsViewModel, liveVm: LiveViewModel, onPlayChannel: (ChannelEntity, List&lt;ChannelEntity&gt;) -&gt; Unit, onOpenFilters: () -&gt; Unit, onOpenLeague: (Match) -&gt; Unit, onAddPlaylist: () -&gt; Unit, onBack: () -&gt; Unit, contentStart: Dp, modifier: Modifier = Modifier, /** False while the player is full screen over the page. */ active: Boolean = true, )</ID>
     <ID>LongMethod:SportsScreen.kt$@Composable fun SportsScreen( onPlayChannel: (ChannelEntity, List&lt;ChannelEntity&gt;) -&gt; Unit, onAddPlaylist: () -&gt; Unit, onChildFocused: () -&gt; Unit, onEntryHook: (((() -&gt; Boolean)?) -&gt; Unit)?, contentStart: Dp, modifier: Modifier = Modifier, /** False while the player is full screen over the section: its Back is the player's. */ active: Boolean = true, vm: SportsViewModel = koinViewModel(), liveVm: LiveViewModel = koinViewModel(), )</ID>
@@ -1055,11 +1057,11 @@
     <ID>LongParameterList:SetupWizard.kt$( state: SourceImporter.ImportState, wizardStep: WizardStep, onPick: (java.io.File) -&gt; Unit, /** A file is picked: the browser closes, so it is not left behind the restore dialog. */ fileChosen: Boolean, onPassword: (java.io.File, String?) -&gt; Unit, onBack: () -&gt; Unit, )</ID>
     <ID>LongParameterList:SetupWizard.kt$(hasExisting: Boolean, onPhone: () -&gt; Unit, onType: () -&gt; Unit, onExisting: () -&gt; Unit, onImport: () -&gt; Unit, onSkip: () -&gt; Unit)</ID>
     <ID>LongParameterList:ShellViewModel.kt$ShellViewModel$( private val settings: SettingsRepository, private val sourceRepository: SourceRepository, private val profileDao: tv.own.owntv.core.database.dao.ProfileDao, connectivity: ConnectivityObserver, private val launcherIntegrationRepository: LauncherIntegrationRepository, private val epgMigration: tv.own.owntv.core.epg.EpgMigration, private val autoRefresh: tv.own.owntv.core.sync.AutoRefresh, private val weatherRepository: WeatherRepository, private val navVisibility: NavVisibility, private val profiles: tv.own.owntv.core.profile.ProfileManager, private val catalogSyncScheduler: tv.own.owntv.core.sync.work.CatalogSyncScheduler, private val importFinalizer: tv.own.owntv.core.sync.ImportFinalizer, )</ID>
-    <ID>LongParameterList:SportsBoard.kt$( items: List&lt;GuideSportItem&gt;, loading: Boolean, now: Long, searchFocus: FocusRequester, onPlay: (GuideSportItem) -&gt; Unit, modifier: Modifier = Modifier, )</ID>
+    <ID>LongParameterList:SportsBoard.kt$( items: List&lt;GuideSportItem&gt;, loading: Boolean, now: Long, searchFocus: FocusRequester, /** False while a stream plays over the board; coming back, focus returns to the card that was opened. */ active: Boolean, onPlay: (GuideSportItem) -&gt; Unit, modifier: Modifier = Modifier, )</ID>
     <ID>LongParameterList:SportsHubScreen.kt$( m: Match, featured: Boolean, config: SportsConfig, now: Long, reminded: Boolean, onClick: () -&gt; Unit, onPlay: () -&gt; Unit, onHold: () -&gt; Unit, modifier: Modifier = Modifier, )</ID>
     <ID>LongParameterList:SportsHubScreen.kt$( match: Match, config: SportsConfig, channels: List&lt;WatchOption&gt;, now: Long, onFollow: (FollowedTeam) -&gt; Unit, onRemind: () -&gt; Unit, onDismiss: () -&gt; Unit, )</ID>
     <ID>LongParameterList:SportsHubScreen.kt$( text: String, on: Boolean, modifier: Modifier = Modifier, icon: OwnTVIcon? = null, dim: Boolean = false, onLongClick: (() -&gt; Unit)? = null, onClick: () -&gt; Unit, )</ID>
-    <ID>LongParameterList:SportsHubScreen.kt$( vm: SportsViewModel, onOpenMatch: (Match) -&gt; Unit, onPlayChannel: (ChannelEntity, List&lt;ChannelEntity&gt;) -&gt; Unit, onChildFocused: () -&gt; Unit, onEntryHook: (((() -&gt; Boolean)?) -&gt; Unit)?, contentStart: Dp, modifier: Modifier = Modifier, /** Back from a match: the card it was opened from takes focus again. */ restoreKey: String? = null, )</ID>
+    <ID>LongParameterList:SportsHubScreen.kt$( vm: SportsViewModel, /** False while a stream plays over the hub. */ active: Boolean, onOpenMatch: (Match) -&gt; Unit, onPlayChannel: (ChannelEntity, List&lt;ChannelEntity&gt;) -&gt; Unit, onChildFocused: () -&gt; Unit, onEntryHook: (((() -&gt; Boolean)?) -&gt; Unit)?, contentStart: Dp, modifier: Modifier = Modifier, /** Back from a match: the card it was opened from takes focus again. */ restoreKey: String? = null, )</ID>
     <ID>LongParameterList:SportsLeagueScreen.kt$(vm: SportsViewModel, onOpenMatch: (Match) -&gt; Unit, onBack: () -&gt; Unit, contentStart: Dp, modifier: Modifier = Modifier, active: Boolean = true)</ID>
     <ID>LongParameterList:SportsMatchScreen.kt$( vm: SportsViewModel, liveVm: LiveViewModel, onPlayChannel: (ChannelEntity, List&lt;ChannelEntity&gt;) -&gt; Unit, onOpenFilters: () -&gt; Unit, onOpenLeague: (Match) -&gt; Unit, onAddPlaylist: () -&gt; Unit, onBack: () -&gt; Unit, contentStart: Dp, modifier: Modifier = Modifier, /** False while the player is full screen over the page. */ active: Boolean = true, )</ID>
     <ID>LongParameterList:SportsMatchScreen.kt$(o: WatchOption, m: Match, onClick: () -&gt; Unit, onHold: (() -&gt; Unit)?, modifier: Modifier = Modifier, playing: Boolean = false)</ID>
@@ -2241,6 +2243,7 @@
     <ID>MagicNumber:SearchScreen.kt$1100</ID>
     <ID>MagicNumber:SearchScreen.kt$12.5f</ID>
     <ID>MagicNumber:SearchScreen.kt$13</ID>
+    <ID>MagicNumber:SearchScreen.kt$15</ID>
     <ID>MagicNumber:SearchScreen.kt$16</ID>
     <ID>MagicNumber:SearchScreen.kt$16f</ID>
     <ID>MagicNumber:SearchScreen.kt$19</ID>
@@ -2254,6 +2257,7 @@
     <ID>MagicNumber:SearchScreen.kt$44</ID>
     <ID>MagicNumber:SearchScreen.kt$46</ID>
     <ID>MagicNumber:SearchScreen.kt$5</ID>
+    <ID>MagicNumber:SearchScreen.kt$60</ID>
     <ID>MagicNumber:SearchScreen.kt$600</ID>
     <ID>MagicNumber:SearchScreen.kt$64</ID>
     <ID>MagicNumber:SearchScreen.kt$700</ID>
@@ -2422,6 +2426,7 @@
     <ID>MagicNumber:SolidAmbientBackdrop.kt$0.45f</ID>
     <ID>MagicNumber:SolidAmbientBackdrop.kt$0.46f</ID>
     <ID>MagicNumber:SolidAmbientBackdrop.kt$0.54f</ID>
+    <ID>MagicNumber:SportsBoard.kt$15</ID>
     <ID>MagicNumber:SportsBoard.kt$1560f</ID>
     <ID>MagicNumber:SportsBoard.kt$18</ID>
     <ID>MagicNumber:SportsBoard.kt$1920f</ID>
@@ -2430,6 +2435,7 @@
     <ID>MagicNumber:SportsBoard.kt$400</ID>
     <ID>MagicNumber:SportsBoard.kt$46</ID>
     <ID>MagicNumber:SportsBoard.kt$500</ID>
+    <ID>MagicNumber:SportsBoard.kt$60</ID>
     <ID>MagicNumber:SportsBoard.kt$600</ID>
     <ID>MagicNumber:SportsBoard.kt$700</ID>
     <ID>MagicNumber:SportsBoard.kt$800</ID>
@@ -4212,6 +4218,7 @@
     <ID>MaxLineLength:OwnTVShell.kt$else</ID>
     <ID>MaxLineLength:OwnTVShell.kt$grow.animateTo(0f, androidx.compose.animation.core.tween(FullShrinkMs, easing = androidx.compose.animation.core.FastOutSlowInEasing))</ID>
     <ID>MaxLineLength:OwnTVShell.kt$if</ID>
+    <ID>MaxLineLength:OwnTVShell.kt$if (!(TvBoxNav &amp;&amp; (selectedSection == MainSection.LIVE_TV || selectedSection == MainSection.SEARCH || selectedSection == MainSection.SPORTS))) focusRail()</ID>
     <ID>MaxLineLength:OwnTVShell.kt$if (TvBoxNav &amp;&amp; selectedSection in tv.own.owntv.features.shell.components.TvBoxHiddenSections) onSelectSection(MainSection.LIVE_TV)</ID>
     <ID>MaxLineLength:OwnTVShell.kt$if (TvBoxNav &amp;&amp; tv.own.owntv.ui.theme.MotionPrefs.smoothMenu &amp;&amp; railState == tv.own.owntv.features.shell.components.RailState.OPEN) tv.own.owntv.features.shell.components.tvBoxMenuWidth(navSize) else 0.dp</ID>
     <ID>MaxLineLength:OwnTVShell.kt$if (e.key == Key.DirectionLeft || e.key == Key.DirectionRight) railKeyAt = android.os.SystemClock.uptimeMillis()</ID>
@@ -4249,6 +4256,7 @@
     <ID>MaxLineLength:OwnTVShell.kt$private</ID>
     <ID>MaxLineLength:OwnTVShell.kt$private val FullShrinkMs: Int get() = if (tv.own.owntv.ui.theme.MotionPrefs.smoothPlayer) tv.own.owntv.ui.theme.MotionPrefs.ms(260) else 0</ID>
     <ID>MaxLineLength:OwnTVShell.kt$profileName = profileName.ifBlank { stringResource(R.string.common_own_tv_user) }</ID>
+    <ID>MaxLineLength:OwnTVShell.kt$scope.launch { if (liveVm.ensurePlayingByIdAsync(ch.id)) openFullscreen(MainSection.LIVE_TV) }</ID>
     <ID>MaxLineLength:OwnTVShell.kt$selectedSection == MainSection.LIVE_TV &amp;&amp; liveView == tv.own.owntv.core.settings.SettingsRepository.LiveView.GUIDE</ID>
     <ID>MaxLineLength:OwnTVShell.kt$settingsStart = tv.own.owntv.features.shell.components.SettingsStart(group, search)</ID>
     <ID>MaxLineLength:OwnTVShell.kt$shellBindings.firstOrNull { it.press == tv.own.owntv.core.settings.RemoteShortcutPress.LONG }</ID>
@@ -5618,7 +5626,7 @@
     <ID>MaxLineLength:StageComponents.kt$Row</ID>
     <ID>MaxLineLength:StageComponents.kt$StageSurface</ID>
     <ID>MaxLineLength:StageComponents.kt$Text</ID>
-    <ID>MaxLineLength:StageComponents.kt$Text(count, style = stageText(if (centered) 19 else 16, 700), color = on ?: StageColors.Dim, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.alignByBaseline())</ID>
+    <ID>MaxLineLength:StageComponents.kt$Text(count, style = stageText(if (centered) 19 else 16, 700), color = on ?: if (centered) StageColors.Text.copy(alpha = 0.9f) else StageColors.Dim, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.alignByBaseline())</ID>
     <ID>MaxLineLength:StageComponents.kt$Text(label, style = stageText(17, 700), color = color, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:StageComponents.kt$Text(label, style = stageText(if (centered) 20 else 22, 700), color = on ?: if (selected) StageColors.Text else StageColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.alignByBaseline())</ID>
     <ID>MaxLineLength:StageComponents.kt$Text(line, style = stageText(15.5f, 400), color = StageColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>

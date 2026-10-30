@@ -583,11 +583,13 @@ fun OwnTVShell(
         restoreFocus = true
         // TV-box channels: the screen takes its focus back itself (restoreFocus); focusing the rail here
         // would open the side menu for a beat and close it again, a flash on every exit from full screen.
-        if (!(TvBoxNav && selectedSection == MainSection.LIVE_TV)) focusRail()
+        // Search and Sports take their focus back themselves (to the row that was opened): the rail stays shut.
+        if (!(TvBoxNav && (selectedSection == MainSection.LIVE_TV || selectedSection == MainSection.SEARCH || selectedSection == MainSection.SPORTS))) focusRail()
         Unit
     }
     val exitPlayer = {
-        if (TvBoxNav && playerMode == PlayerMode.FULLSCREEN && tv.own.owntv.features.shell.components.TvBoxPanels.previewRect != null) collapsingFull = true
+        // Only the Live TV screen has a preview to shrink into; from Search or Sports the picture simply closes.
+        if (TvBoxNav && playerMode == PlayerMode.FULLSCREEN && selectedSection == MainSection.LIVE_TV && tv.own.owntv.features.shell.components.TvBoxPanels.previewRect != null) collapsingFull = true
         else exitPlayerNow()
     }
     LaunchedEffect(menuAfterExit) {
@@ -1440,14 +1442,10 @@ fun OwnTVShell(
                                 searchReturn = MainSection.SERIES
                                 onSelectSection(MainSection.SERIES)
                             },
+                            // A channel or a programme plays at once, full screen; Back returns to this same search.
                             onGoToChannel = { ch ->
                                 restoreFocus = false
-                                if (liveView == tv.own.owntv.core.settings.SettingsRepository.LiveView.GUIDE) {
-                                    liveVm.setLiveView(tv.own.owntv.core.settings.SettingsRepository.LiveView.LIST)
-                                }
-                                liveVm.revealChannel(ch)
-                                searchReturn = MainSection.LIVE_TV
-                                onSelectSection(MainSection.LIVE_TV)
+                                scope.launch { if (liveVm.ensurePlayingByIdAsync(ch.id)) openFullscreen(MainSection.LIVE_TV) }
                             },
                             onGoToMovie = { movie ->
                                 restoreFocus = false
