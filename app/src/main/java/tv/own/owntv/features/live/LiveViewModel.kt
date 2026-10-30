@@ -136,7 +136,23 @@ class LiveViewModel(
     private val recordings: tv.own.owntv.core.recording.RecordingManager,
     /** Keeps the preview pane off a one-stream playlist while a download is using it. */
     private val downloadWatchGuard: tv.own.owntv.core.download.DownloadWatchGuard,
+    private val guideAutoLink: tv.own.owntv.core.epg.GuideAutoLink,
 ) : ViewModel() {
+
+    private val _fixingGuide = MutableStateFlow(false)
+
+    /** True while "Fix the guide" is running, so the menu item cannot be pressed twice. */
+    val fixingGuide: StateFlow<Boolean> = _fixingGuide.asStateFlow()
+
+    /** Links channels that have no guide to the guide by name; [onDone] gets how many were linked. */
+    fun fixGuide(onDone: (Int) -> Unit) {
+        if (_fixingGuide.value) return
+        viewModelScope.launch {
+            _fixingGuide.value = true
+            val linked = try { guideAutoLink.run() } finally { _fixingGuide.value = false }
+            onDone(linked)
+        }
+    }
 
     // --- "Record what I'm watching" --------------------------------------------------------------
 

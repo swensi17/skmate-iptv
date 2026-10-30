@@ -509,6 +509,9 @@ fun LiveScreen(
     val separate = liveLayout == tv.own.owntv.core.settings.SettingsRepository.LiveLayout.SEPARATE && lockedKey == null
     var categoriesOpen by remember { mutableStateOf(false) }
     var sortOpen by remember { mutableStateOf(false) }
+    var moreOpen by remember { mutableStateOf(false) }
+    val moreToolFocus = remember { FocusRequester() }
+    val fixingGuide by vm.fixingGuide.collectAsStateWithLifecycle()
     val sortToolFocus = remember { FocusRequester() }
     var sheetHadFocus by remember { mutableStateOf(false) }
     // The current channel's row. After a long-press that row carries contextFocus instead of selFocus
@@ -836,6 +839,11 @@ fun LiveScreen(
                         icon = OwnTVIcon.GRID,
                         onClick = onOpenGuide,
                         boxed = tv.own.owntv.features.shell.TvBoxNav,
+                    )
+                    LiveMoreTool(
+                        boxed = tv.own.owntv.features.shell.TvBoxNav,
+                        modifier = Modifier.focusRequester(moreToolFocus),
+                        onClick = { moreOpen = true },
                     )
                 }
                 Spacer(Modifier.height(20.mpx))
@@ -1223,6 +1231,24 @@ fun LiveScreen(
             current = sortMode.forLive(), x = 420f, top = 190.mpx,
             onPick = vm::setSort,
             onDismiss = { sortOpen = false; runCatching { sortToolFocus.requestFocus() } },
+        )
+    }
+
+    if (moreOpen) {
+        val ctx = androidx.compose.ui.platform.LocalContext.current
+        LiveMoreMenu(
+            x = 760f, top = 190.mpx, fixing = fixingGuide,
+            onFixGuide = {
+                multiviewToast.show(ctx.getString(R.string.live_fix_guide_running))
+                vm.fixGuide { n ->
+                    multiviewToast.show(
+                        if (n > 0) ctx.resources.getQuantityString(R.plurals.live_fix_guide_done, n, n)
+                        else ctx.getString(R.string.live_fix_guide_none),
+                        durationMs = 5_000L,
+                    )
+                }
+            },
+            onDismiss = { moreOpen = false; runCatching { moreToolFocus.requestFocus() } },
         )
     }
 
