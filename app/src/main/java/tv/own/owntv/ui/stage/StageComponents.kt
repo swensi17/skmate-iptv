@@ -54,6 +54,9 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.unit.em
 import androidx.tv.material3.Text
 import tv.own.owntv.ui.components.OwnTVIcon
@@ -514,7 +517,7 @@ fun StageTab(label: String, count: String, selected: Boolean, onClick: () -> Uni
         ) {
             val on = if (focused) tv.own.owntv.ui.theme.stageAccent.onAccent else null
             Text(label, style = stageText(if (centered) 20 else 22, 700), color = on ?: if (selected) StageColors.Text else StageColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.alignByBaseline())
-            Text(count, style = stageText(if (centered) 15 else 16, 600), color = on ?: StageColors.Dim, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.alignByBaseline())
+            Text(count, style = stageText(if (centered) 19 else 16, 700), color = on ?: StageColors.Dim, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.alignByBaseline())
         }
     }
 }
@@ -662,17 +665,29 @@ fun StageRow(
     }
 }
 
-/** `.menu`: the options / picker panel (☰ menus, sort pickers, the playlist switcher). */
+/**
+ * `.menu`: the options / picker panel (☰ menus, sort pickers, the playlist switcher).
+ *
+ * It is never taller than the screen: the card keeps its rounded corners at the top and the bottom, and
+ * a long list scrolls inside it, to its very last row. The same on a phone, a TV and a tablet.
+ */
 @Composable
 fun StageMenu(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
+    val screenHeight = androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp.dp
     Column(
         modifier
+            .heightIn(max = (screenHeight - MenuScreenMargin).coerceAtLeast(MenuMinHeight))
             // TV-box look: a solid card, never see-through.
             .then(if (tv.own.owntv.features.shell.TvBoxNav) Modifier.solidCard(StageRadii.Menu) else Modifier.stageGlass(StageRadii.Menu, overContent = true))
             .padding(start = 16.mpx, end = 16.mpx, top = 22.mpx, bottom = 16.mpx),
-        content = content,
-    )
+    ) {
+        Column(Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState()), content = content)
+    }
 }
+
+/** What a menu leaves free above and below it, and the least height it keeps on a very small window. */
+private val MenuScreenMargin = 64.dp
+private val MenuMinHeight = 240.dp
 
 /** `.menu .mh`: the menu's heading — optional leading art, a 23/800 title and a 15 px muted line. */
 @Composable

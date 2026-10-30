@@ -984,17 +984,17 @@
     </file>
     <file name="app/src/main/java/tv/own/owntv/ui/stage/StageComponents.kt">
         <error line="3" column="1" source="standard:import-ordering" />
-        <error line="186" column="1" source="standard:spacing-between-declarations-with-annotations" />
-        <error line="188" column="32" source="standard:annotation" />
-        <error line="240" column="1" source="standard:kdoc" />
-        <error line="241" column="1" source="standard:spacing-between-declarations-with-comments" />
-        <error line="757" column="18" source="standard:wrapping" />
-        <error line="758" column="80" source="standard:wrapping" />
-        <error line="792" column="19" source="standard:wrapping" />
-        <error line="795" column="27" source="standard:wrapping" />
-        <error line="871" column="18" source="standard:wrapping" />
-        <error line="872" column="94" source="standard:wrapping" />
-        <error line="1277" column="1" source="standard:no-consecutive-blank-lines" />
+        <error line="189" column="1" source="standard:spacing-between-declarations-with-annotations" />
+        <error line="191" column="32" source="standard:annotation" />
+        <error line="243" column="1" source="standard:kdoc" />
+        <error line="244" column="1" source="standard:spacing-between-declarations-with-comments" />
+        <error line="772" column="18" source="standard:wrapping" />
+        <error line="773" column="80" source="standard:wrapping" />
+        <error line="807" column="19" source="standard:wrapping" />
+        <error line="810" column="27" source="standard:wrapping" />
+        <error line="886" column="18" source="standard:wrapping" />
+        <error line="887" column="94" source="standard:wrapping" />
+        <error line="1292" column="1" source="standard:no-consecutive-blank-lines" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/ui/stage/StageControls.kt">
         <error line="3" column="1" source="standard:import-ordering" />
