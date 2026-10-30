@@ -43,6 +43,6 @@ fun CountdownRing(n: Int, totalMs: Long, modifier: Modifier = Modifier, diameter
             drawArc(SkMateBlue.copy(alpha = 0.2f), 0f, 360f, false, topLeft = topLeft, size = arc, style = Stroke(w))
             drawArc(SkMateBlue, -90f, 360f * fraction, false, topLeft = topLeft, size = arc, style = Stroke(w, cap = StrokeCap.Round))
         }
-        Text(n.toString(), style = stageText(15, 800), color = SkMateBlue, maxLines = 1)
+        Text(n.toString(), style = stageText(15, 800), color = SkMateBlue, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
     }
 }

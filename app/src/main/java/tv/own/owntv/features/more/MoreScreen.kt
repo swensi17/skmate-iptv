@@ -331,7 +331,7 @@ private fun InSheet(sheet: Boolean, title: String, trailing: String? = null, edg
     tv.own.owntv.features.settings.SettingsSheet(
         title = title,
         // On the title's line, at its size: About's version number.
-        headerTools = trailing?.let { t -> { androidx.tv.material3.Text(t, style = tv.own.owntv.ui.theme.stageText(32, 800), color = tv.own.owntv.ui.theme.StageColors.Muted, maxLines = 1) } },
+        headerTools = trailing?.let { t -> { androidx.tv.material3.Text(t, style = tv.own.owntv.ui.theme.stageText(32, 800), color = tv.own.owntv.ui.theme.StageColors.Muted, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) } },
     ) {
         // Edge to edge: the rows' focus bar runs across the whole sheet, as the settings rows' does.
         Box(Modifier.fillMaxWidth().weight(1f).padding(start = if (edgeToEdge) 0.mpx else 18.mpx, end = if (edgeToEdge) 0.mpx else 18.mpx, top = 8.mpx, bottom = 24.mpx)) { content() }

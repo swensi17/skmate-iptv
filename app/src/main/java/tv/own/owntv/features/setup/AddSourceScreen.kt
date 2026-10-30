@@ -452,7 +452,7 @@ fun AddSourceScreen(
         when (check) {
             SourceCheck.Ok -> OwnTVIcon(OwnTVIcon.CHECK, CheckGreen, Modifier.size(28.mpx))
             is SourceCheck.Failed -> OwnTVIcon(OwnTVIcon.CLOSE, StageColors.Danger, Modifier.size(26.mpx))
-            SourceCheck.Checking -> Text(stringResource(R.string.setup_testing), style = stageText(16, 600), color = StageColors.Dim, maxLines = 1)
+            SourceCheck.Checking -> Text(stringResource(R.string.setup_testing), style = stageText(16, 600), color = StageColors.Dim, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
             SourceCheck.Idle -> Unit
         }
     }
@@ -558,7 +558,7 @@ fun AddSourceScreen(
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(12.mpx), verticalAlignment = Alignment.CenterVertically) {
                     OwnTVIcon(OwnTVIcon.DOWNLOADS, tint, Modifier.size(26.mpx))
-                    Text(submitLabel, style = stageText(22, 800), color = tint, maxLines = 1)
+                    Text(submitLabel, style = stageText(22, 800), color = tint, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                 }
             }
           }

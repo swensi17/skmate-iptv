@@ -62,14 +62,14 @@ fun TvBoxPlayerInfo(channel: ChannelEntity?, nowNext: EpgNowNext?, chips: List<S
                 )
                 Row(horizontalArrangement = Arrangement.spacedBy(16.mpx), verticalAlignment = Alignment.CenterVertically) {
                     if (current != null) {
-                        Text(range(formatTime, current), style = stageText(20, 500), color = Soft, maxLines = 1)
+                        Text(range(formatTime, current), style = stageText(20, 500), color = Soft, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                         MiniBar(((watching - current.startMs).toFloat() / (current.stopMs - current.startMs).coerceAtLeast(1)).coerceIn(0f, 1f))
                         val left = ((current.stopMs - now) / 60_000L).toInt().coerceAtLeast(0)
-                        Text(stringResource(R.string.player_duration_minutes, left), style = stageText(20, 500), color = Soft, maxLines = 1)
+                        Text(stringResource(R.string.player_duration_minutes, left), style = stageText(20, 500), color = Soft, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                     }
                     if (channel != null) {
                         Row(horizontalArrangement = Arrangement.spacedBy(8.mpx)) {
-                            channel.number?.let { Text(it.toString(), style = stageText(20, 700), color = Color.White, maxLines = 1) }
+                            channel.number?.let { Text(it.toString(), style = stageText(20, 700), color = Color.White, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) }
                             Text(channel.name, style = stageText(20, 700), color = Color.White, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         }
                     }
@@ -77,7 +77,7 @@ fun TvBoxPlayerInfo(channel: ChannelEntity?, nowNext: EpgNowNext?, chips: List<S
                 }
                 if (next != null) {
                     Row(horizontalArrangement = Arrangement.spacedBy(16.mpx)) {
-                        Text(range(formatTime, next), style = stageText(20, 500), color = Faint, maxLines = 1)
+                        Text(range(formatTime, next), style = stageText(20, 500), color = Faint, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                         Text(next.title, style = stageText(20, 500), color = Faint, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                 }
@@ -110,7 +110,7 @@ private fun MiniBar(progress: Float) {
 @Composable
 private fun Chip(text: String) {
     Text(
-        text.uppercase(), style = stageText(14, 700), color = Color.White.copy(alpha = 0.85f), maxLines = 1,
+        text.uppercase(), style = stageText(14, 700), color = Color.White.copy(alpha = 0.85f), maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
         modifier = Modifier.border(1.mpx, Color.White.copy(alpha = 0.45f), RoundedCornerShape(5.mpx)).padding(horizontal = 7.mpx, vertical = 2.mpx),
     )
 }
