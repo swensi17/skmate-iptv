@@ -514,6 +514,7 @@ fun LiveScreen(
     val fixingGuide by vm.fixingGuide.collectAsStateWithLifecycle()
     val pickState by vm.pick.collectAsStateWithLifecycle()
     val duplicates by vm.duplicates.collectAsStateWithLifecycle()
+    val hasLiveSources by vm.hasLiveSources.collectAsStateWithLifecycle()
     val sortToolFocus = remember { FocusRequester() }
     var sheetHadFocus by remember { mutableStateOf(false) }
     // The current channel's row. After a long-press that row carries contextFocus instead of selFocus
@@ -859,7 +860,7 @@ fun LiveScreen(
                     if (hasRows) listFade.animateTo(1f, androidx.compose.animation.core.tween(tv.own.owntv.ui.theme.MotionPrefs.dur(ListFadeMs), easing = androidx.compose.animation.core.FastOutSlowInEasing))
                 }
                 if (channels.itemCount == 0) {
-                    val emptyText = if (searchQuery.isNotBlank()) stringResource(R.string.content_no_channels_found, searchQuery.trim()) else stringResource(R.string.content_no_channels_here)
+                    val emptyText = if (searchQuery.isNotBlank()) stringResource(R.string.content_no_channels_found, searchQuery.trim()) else if (!hasLiveSources) stringResource(R.string.live_no_playlist) else stringResource(R.string.content_no_channels_here)
                     if (tv.own.owntv.features.shell.TvBoxNav && !listSettled && searchQuery.isBlank()) {
                         ChannelListSkeleton(Modifier.fillMaxWidth().weight(1f))
                     } else Box(Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {

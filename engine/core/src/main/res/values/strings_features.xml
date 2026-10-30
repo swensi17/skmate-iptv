@@ -1024,4 +1024,5 @@
     <string name="live_cleanup_confirm">Hide</string>
     <string name="live_cleanup_none">No repeats in the list</string>
     <string name="live_cleanup_done">Repeats hidden: <xliff:g id="count">%1$d</xliff:g></string>
+    <string name="live_no_playlist">No playlist is connected to this profile. Add one in Settings</string>
 </resources>

@@ -438,6 +438,10 @@ class LiveViewModel(
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Eagerly, Ctx(-1L, emptyList(), emptyMap()))
 
+    /** False for a profile with no playlist that carries channels: the empty list then says what to do. */
+    val hasLiveSources: StateFlow<Boolean> = ctx.map { it.profileId < 0 || it.sourceIds.isNotEmpty() }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, true)
+
     /** Empty for zero/one active Live source so single-playlist layouts stay unchanged. */
     val providerNames: StateFlow<Map<Long, String>> = ctx
         .map { c -> c.sourceNames.takeIf { it.size > 1 } ?: emptyMap() }
