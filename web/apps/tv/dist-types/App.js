@@ -2,8 +2,10 @@ import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "preact/jsx-ru
 import { useEffect, useState } from "preact/hooks";
 import { Icon, installDpad, watchFrames } from "@skmate/ui";
 import { t } from "./i18n";
-import { demoChannels } from "./state/playlist";
+import { channelKey, loadFavorites, saveFavorites, toggle } from "./state/favorites";
 import { applyAll, load, save } from "./state/settings";
+import { usePlaylists } from "./state/usePlaylists";
+import { Confirm } from "./views/Confirm";
 import { LiveView } from "./views/LiveView";
 import { PlayerView } from "./views/PlayerView";
 import { SearchView } from "./views/SearchView";
@@ -18,11 +20,18 @@ export function App() {
     const [playing, setPlaying] = useState(null);
     const [settings, setSettings] = useState(load);
     const [throttled, setThrottled] = useState(false);
-    const [channels] = useState(demoChannels);
+    const [favorites, setFavorites] = useState(loadFavorites);
+    const [deleting, setDeleting] = useState(null);
+    const pl = usePlaylists();
     useEffect(() => { applyAll(settings, throttled); save(settings); }, [settings, throttled]);
     useEffect(() => watchFrames(() => setThrottled(true)), []);
-    // Back: player → list, any section but the first → the first, in the first → leave the app to the TV.
+    useEffect(() => { saveFavorites(favorites); }, [favorites]);
+    // Back: dialog → closes, player → list, any section but the first → the first, in the first → leave the app to the TV.
     useEffect(() => installDpad(() => {
+        if (deleting) {
+            setDeleting(null);
+            return true;
+        }
         if (playing) {
             setPlaying(null);
             return true;
@@ -32,8 +41,10 @@ export function App() {
             return true;
         }
         return false;
-    }), [playing, section]);
+    }), [deleting, playing, section]);
+    const toggleFavorite = (c) => setFavorites((f) => toggle(f, channelKey(c)));
+    const doomed = deleting ? pl.store.list.find((p) => p.id === deleting) : undefined;
     if (playing)
         return _jsx(PlayerView, { channel: playing });
-    return (_jsxs(_Fragment, { children: [_jsx("nav", { class: "rail", children: NAV.map(([id, icon, label]) => (_jsx("button", { class: "rail-item", "data-focus": `nav-${id}`, "aria-label": t(label), "aria-current": section === id, onClick: () => setSection(id), children: _jsx(Icon, { name: icon }) }, id))) }), _jsxs("main", { class: "content", children: [section === "live" ? _jsx(LiveView, { channels: channels, onOpen: setPlaying }) : null, section === "search" ? _jsx(SearchView, { channels: channels, onOpen: setPlaying }) : null, section === "settings" ? _jsx(SettingsView, { settings: settings, onChange: setSettings }) : null] })] }));
+    return (_jsxs(_Fragment, { children: [_jsx("nav", { class: "rail", children: NAV.map(([id, icon, label]) => (_jsx("button", { class: "rail-item", "data-focus": `nav-${id}`, "aria-label": t(label), "aria-current": section === id, onClick: () => setSection(id), children: _jsx(Icon, { name: icon }) }, id))) }), _jsxs("main", { class: "content", children: [section === "live" ? (_jsx(LiveView, { channels: pl.channels, favorites: favorites, status: pl.status, onOpen: setPlaying, onFav: toggleFavorite, onAddPlaylist: () => setSection("settings"), onDemo: pl.addDemo })) : null, section === "search" ? _jsx(SearchView, { channels: pl.channels, favorites: favorites, onOpen: setPlaying, onFav: toggleFavorite }) : null, section === "settings" ? (_jsx(SettingsView, { settings: settings, onChange: setSettings, store: pl.store, status: pl.status, onAddPlaylist: pl.add, onSelectPlaylist: pl.select, onAskDeletePlaylist: setDeleting })) : null] }), doomed ? (_jsx(Confirm, { title: t("confirmDeleteTitle"), body: doomed.name, confirm: t("playlistDelete"), onCancel: () => setDeleting(null), onConfirm: () => { pl.remove(doomed.id); setDeleting(null); } })) : null] }));
 }

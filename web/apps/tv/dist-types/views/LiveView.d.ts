@@ -1,5 +1,13 @@
 import { type Channel } from "@skmate/core";
-export declare function LiveView({ channels, onOpen }: {
+import type { Status } from "../state/usePlaylists";
+interface Props {
     channels: Channel[];
+    favorites: ReadonlySet<string>;
+    status: Status;
     onOpen: (c: Channel) => void;
-}): import("preact").JSX.Element;
+    onFav: (c: Channel) => void;
+    onAddPlaylist: () => void;
+    onDemo: () => void;
+}
+export declare function LiveView(p: Props): import("preact").JSX.Element;
+export {};
