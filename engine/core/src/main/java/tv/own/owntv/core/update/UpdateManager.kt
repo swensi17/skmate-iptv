@@ -105,6 +105,12 @@ class UpdateManager(
                     .header("User-Agent", tv.own.owntv.core.brand.BrandName.SHORT)
                     .build()
                 client.newCall(request).execute().use { resp ->
+                    // 404 on /releases/latest: nothing has been published yet, so there is nothing newer.
+                    if (resp.code == 404) {
+                        settings.recordUpdateCheck(System.currentTimeMillis())
+                        _state.value = State.UpToDate
+                        return@use
+                    }
                     if (!resp.isSuccessful) throw CheckHttpException(resp.code)
                     val body = resp.body.string()
                     if (body.isBlank()) throw InvalidReleaseResponseException()

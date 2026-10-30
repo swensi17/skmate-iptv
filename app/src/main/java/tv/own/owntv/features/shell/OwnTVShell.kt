@@ -981,7 +981,7 @@ fun OwnTVShell(
                 if (now - lastBackAt < ExitBackWindowMs) context.findActivity()?.finish()
                 else {
                     lastBackAt = now
-                    android.widget.Toast.makeText(context, pressBackAgain, android.widget.Toast.LENGTH_SHORT).show()
+                    tv.own.owntv.ui.components.TvNotices.show(pressBackAgain, null, 2_000L)
                 }
             }
             focusedLayer == ShellLayer.SIDEBAR -> showExit = true
