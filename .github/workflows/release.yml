@@ -118,6 +118,8 @@ jobs:
             /^## v/ && flag { flag=0 }
             flag { print }
           ' CHANGELOG.md > dist/RELEASE_NOTES.md || true
+          # A hand-written page for the release wins; the CHANGELOG section is the fallback.
+          [ -f "docs/release-notes/$TAG.md" ] && cp "docs/release-notes/$TAG.md" dist/RELEASE_NOTES.md
           [ -s dist/RELEASE_NOTES.md ] || echo "See the commits for $TAG." > dist/RELEASE_NOTES.md
           cat dist/RELEASE_NOTES.md
 

@@ -70,27 +70,36 @@ fun TvNoticeStack() {
     }
 }
 
+private const val ENTER_MS = 320
+private const val EXIT_MS = 260
+private const val EXIT_SLACK_MS = 30L
+private const val HIDE_GAP = 48
+
 /** One notice: drops in from the top edge like a blind, waits, and rolls back up before it is removed. */
 @Composable
+@Suppress("FunctionNaming")
 private fun TvNoticeItem(n: TvNotices.Notice) {
     var shown by remember { mutableStateOf(false) }
-    val enterMs = tv.own.owntv.ui.theme.MotionPrefs.dur(320)
-    val exitMs = tv.own.owntv.ui.theme.MotionPrefs.dur(260)
+    val enterMs = tv.own.owntv.ui.theme.MotionPrefs.dur(ENTER_MS)
+    val exitMs = tv.own.owntv.ui.theme.MotionPrefs.dur(EXIT_MS)
     val p by animateFloatAsState(
         targetValue = if (shown) 1f else 0f,
-        animationSpec = tween(if (shown) enterMs else exitMs, easing = if (shown) FastOutSlowInEasing else FastOutLinearInEasing),
+        animationSpec = tween(
+            durationMillis = if (shown) enterMs else exitMs,
+            easing = if (shown) FastOutSlowInEasing else FastOutLinearInEasing,
+        ),
     )
     LaunchedEffect(n.id) {
         shown = true
         delay(n.millis)
         shown = false
-        delay(exitMs.toLong() + 30)
+        delay(exitMs.toLong() + EXIT_SLACK_MS)
         TvNotices.items.removeAll { it.id == n.id }
     }
     Row(
         Modifier
             .graphicsLayer {
-                translationY = -(1f - p) * (size.height + 48.mpx.toPx())
+                translationY = -(1f - p) * (size.height + HIDE_GAP.mpx.toPx())
                 alpha = p
             }
             .tvNoticeCard()

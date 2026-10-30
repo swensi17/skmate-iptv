@@ -61,7 +61,11 @@ internal fun TelegramWelcome(onDismiss: () -> Unit) {
             Text("t.me/$CHAT_HANDLE", style = stageText(24, 600), color = StageColors.Text, textAlign = TextAlign.Center)
             Spacer(Modifier.height(26.mpx))
             Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(0.mpx)) {
-                StageButton(stringResource(R.string.welcome_telegram_ok), onClick = onDismiss, modifier = Modifier.widthIn(min = 320.mpx).focusRequester(ok))
+                StageButton(
+                    stringResource(R.string.welcome_telegram_ok),
+                    onClick = onDismiss,
+                    modifier = Modifier.widthIn(min = 320.mpx).focusRequester(ok),
+                )
             }
         }
     }
