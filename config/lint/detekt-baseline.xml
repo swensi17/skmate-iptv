@@ -3819,7 +3819,7 @@
     <ID>MaxLineLength:LiveScreen.kt$tv.own.owntv.ui.stage.StageButton(stringResource(R.string.content_close), onClick = onDismiss, height = 56.mpx, textSize = 19, tinted = true)</ID>
     <ID>MaxLineLength:LiveScreen.kt$val</ID>
     <ID>MaxLineLength:LiveScreen.kt$val catchupValue = channel.catchupDays.takeIf { it &gt; 0 }?.let { pluralStringResource(R.plurals.settings_epg_guide_days_value, it, it) }</ID>
-    <ID>MaxLineLength:LiveScreen.kt$val emptyText = if (searchQuery.isNotBlank()) stringResource(R.string.content_no_channels_found, searchQuery.trim()) else stringResource(R.string.content_no_channels_here)</ID>
+    <ID>MaxLineLength:LiveScreen.kt$val emptyText = if (searchQuery.isNotBlank()) stringResource(R.string.content_no_channels_found, searchQuery.trim()) else if (!hasLiveSources) stringResource(R.string.live_no_playlist) else stringResource(R.string.content_no_channels_here)</ID>
     <ID>MaxLineLength:LiveScreen.kt$val fullyVisible = row != null &amp;&amp; row.offset &gt;= info.viewportStartOffset &amp;&amp; row.offset + row.size &lt;= info.viewportEndOffset</ID>
     <ID>MaxLineLength:LiveScreen.kt$val headerLabel = if (selectedItem?.key is LiveKey.Folder || selectedItem?.key is LiveKey.Custom) ProviderTags.parse(selectedLabel).name else selectedLabel</ID>
     <ID>MaxLineLength:LiveScreen.kt$val listFade = remember(selectedKey) { androidx.compose.animation.core.Animatable(if (tv.own.owntv.features.shell.TvBoxNav) 0f else 1f) }</ID>

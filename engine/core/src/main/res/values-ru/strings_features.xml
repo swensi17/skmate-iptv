@@ -628,4 +628,5 @@
     <string name="live_cleanup_confirm">Скрыть</string>
     <string name="live_cleanup_none">Повторов в списке нет</string>
     <string name="live_cleanup_done">Скрыто повторов: <xliff:g id="count">%1$d</xliff:g></string>
+    <string name="live_no_playlist">К этому профилю не подключён плейлист. Добавьте его в настройках</string>
 </resources>
