@@ -1464,7 +1464,7 @@ fun OwnTVShell(
                             modifier = Modifier.fillMaxSize(),
                         )
 
-                        selectedSection == MainSection.LIVE_TV && liveView == tv.own.owntv.core.settings.SettingsRepository.LiveView.GUIDE -> EpgScreen(
+                        selectedSection == MainSection.LIVE_TV && liveView == tv.own.owntv.core.settings.SettingsRepository.LiveView.GUIDE -> PanelEnter(fromY = 24f, startAlpha = 0.7f) { EpgScreen(
                             onPlayChannel = guidePlayChannel,
                             onPlayCatchup = guidePlayCatchup,
                             onAddEpg = { openEpgAdd = true; onSelectSection(MainSection.SETTINGS) },
@@ -1478,7 +1478,7 @@ fun OwnTVShell(
                                 .fillMaxSize()
                                 .onFocusChanged { if (it.hasFocus) focusedLayer = ShellLayer.CONTENT }
                                 .focusGroup(),
-                        )
+                        ) }
 
                         // The channels list is drawn above, outside this switch, so it survives the settings sheet.
                         selectedSection == MainSection.LIVE_TV -> Unit
@@ -1522,7 +1522,7 @@ fun OwnTVShell(
                             modifier = Modifier.fillMaxSize(),
                         )
 
-                        selectedSection == MainSection.EPG -> EpgScreen(
+                        selectedSection == MainSection.EPG -> PanelEnter(fromY = 24f, startAlpha = 0.7f) { EpgScreen(
                             onFullscreen = { openFullscreen() },
                             onPlayChannel = guidePlayChannel,
                             onPlayCatchup = guidePlayCatchup,
@@ -1535,7 +1535,7 @@ fun OwnTVShell(
                                 .fillMaxSize()
                                 .onFocusChanged { if (it.hasFocus) focusedLayer = ShellLayer.CONTENT }
                                 .focusGroup(),
-                        )
+                        ) }
                     }
                 }
             }

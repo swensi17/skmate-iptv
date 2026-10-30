@@ -115,9 +115,11 @@ internal fun TvBoxPlayerPanels(
  * it fades in while sliding a few dozen pixels from the edge it belongs to, over the same time and curve, so
  * they all arrive the same way instead of cutting in. The first frame (where the panel is built, the costly
  * one) passes before the motion starts, so the motion itself is not what drops frames. Off with Animations off.
+ * [startAlpha] above zero is for a panel that replaces a screen instead of lying over one: the old screen is gone at once,
+ * so starting from nothing would leave an empty page for a few frames.
  */
 @Composable
-internal fun PanelEnter(fromX: Float = 0f, fromY: Float = 0f, content: @Composable () -> Unit) {
+internal fun PanelEnter(fromX: Float = 0f, fromY: Float = 0f, startAlpha: Float = 0f, content: @Composable () -> Unit) {
     val duration = tv.own.owntv.ui.theme.MotionPrefs.dur(PANEL_ENTER_MS)
     val progress = androidx.compose.runtime.remember { androidx.compose.animation.core.Animatable(if (duration == 0) 1f else 0f) }
     androidx.compose.runtime.LaunchedEffect(Unit) {
@@ -129,7 +131,7 @@ internal fun PanelEnter(fromX: Float = 0f, fromY: Float = 0f, content: @Composab
     Box(
         Modifier.fillMaxSize().graphicsLayer {
             val left = 1f - progress.value
-            alpha = progress.value
+            alpha = startAlpha + (1f - startAlpha) * progress.value
             translationX = left * fromX * density
             translationY = left * fromY * density
         },
