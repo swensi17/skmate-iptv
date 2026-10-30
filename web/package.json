@@ -1,0 +1,23 @@
+{
+  "name": "skmate-web",
+  "private": true,
+  "version": "0.0.1",
+  "description": "SkMate IPTV для LG webOS и Samsung Tizen",
+  "license": "GPL-3.0-only",
+  "workspaces": ["packages/*", "apps/*"],
+  "scripts": {
+    "dev": "npm -w @skmate/tv run dev",
+    "build": "npm -w @skmate/tv run build",
+    "test": "vitest run",
+    "typecheck": "tsc -b packages/core packages/player packages/ui apps/tv",
+    "check": "npm run typecheck && npm test"
+  },
+  "devDependencies": {
+    "@preact/preset-vite": "^2.9.0",
+    "@vitejs/plugin-legacy": "^5.4.0",
+    "terser": "^5.31.0",
+    "typescript": "~5.5.4",
+    "vite": "^5.4.0",
+    "vitest": "^2.0.5"
+  }
+}

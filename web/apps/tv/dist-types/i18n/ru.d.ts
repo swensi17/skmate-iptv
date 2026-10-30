@@ -1,0 +1,25 @@
+export declare const ru: {
+    readonly appName: "SkMate IPTV";
+    readonly navLive: "Ваши каналы";
+    readonly navSearch: "Поиск";
+    readonly navSettings: "Настройки";
+    readonly allChannels: "Все каналы";
+    readonly channelsCount: "{n} каналов";
+    readonly searchPlaceholder: "Название канала";
+    readonly searchHint: "Находит в любой раскладке и с опечатками";
+    readonly searchEmpty: "Ничего не найдено";
+    readonly searchResults: "Найдено: {n}";
+    readonly settingsTheme: "Тема";
+    readonly themeSystem: "Как в системе";
+    readonly themeDark: "Тёмная";
+    readonly themeLight: "Светлая";
+    readonly settingsMotion: "Анимации";
+    readonly motionAuto: "Автоматически";
+    readonly motionOn: "Включены";
+    readonly motionOff: "Выключены";
+    readonly settingsMotionHint: "Автоматически: на слабом телевизоре отключаются сами";
+    readonly playerFailed: "Канал не открылся";
+    readonly playerFailedHint: "Попробуйте другой канал или проверьте плейлист";
+    readonly playerLoading: "Открываем канал…";
+    readonly demoPlaylist: "Демо-плейлист";
+};
