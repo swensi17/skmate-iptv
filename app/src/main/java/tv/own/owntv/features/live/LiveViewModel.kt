@@ -87,6 +87,7 @@ import tv.own.owntv.ui.components.OwnTVIcon
 import tv.own.owntv.core.live.LiveTimeshift
 import tv.own.owntv.core.live.LiveKey
 import tv.own.owntv.features.search.positionOf
+import tv.own.owntv.core.live.forLive
 import tv.own.owntv.core.live.isChannelVisible
 import tv.own.owntv.core.live.liveCountFlow
 import tv.own.owntv.core.live.livePagingSource
@@ -276,13 +277,8 @@ class LiveViewModel(
     val sortMode: StateFlow<SettingsRepository.SortMode> = settings.sortLive
         .stateIn(viewModelScope, SharingStarted.Eagerly, SettingsRepository.SortMode.PLAYLIST)
 
-    fun toggleSort() {
-        viewModelScope.launch {
-            settings.setSortLive(
-                if (sortMode.value == SettingsRepository.SortMode.PLAYLIST) SettingsRepository.SortMode.ALPHA
-                else SettingsRepository.SortMode.PLAYLIST,
-            )
-        }
+    fun setSort(mode: SettingsRepository.SortMode) {
+        viewModelScope.launch { settings.setSortLive(mode.forLive()) }
     }
 
     private val livePreviewAudio: StateFlow<Boolean> = settings.livePreviewAudio

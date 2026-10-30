@@ -113,7 +113,7 @@ private val Tabular = "tnum"
 @Composable
 internal fun LiveHeader(category: String, count: Int, showChevron: Boolean, modifier: Modifier = Modifier) {
     Row(modifier, horizontalArrangement = Arrangement.spacedBy(22.mpx), verticalAlignment = Alignment.Bottom) {
-        Text(stringResource(R.string.common_nav_live_tv), style = stageText(46, 800, (-1).mpxSp), color = StageColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Text(stringResource(R.string.live_screen_title), style = stageText(46, 800, (-1).mpxSp), color = StageColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis)
         // TV-box look: just the title; the group shows in the categories, no ‹ group · count line.
         if (!tv.own.owntv.features.shell.TvBoxNav) Row(
             Modifier.padding(bottom = 3.mpx),

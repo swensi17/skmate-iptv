@@ -33,7 +33,12 @@ fun livePagingSource(
     hasManualOrder: (String) -> Boolean,
 ): PagingSource<Int, ChannelEntity> {
     val ids = sourceIds.ifEmpty { listOf(-1L) }
-    val playlist = sort == SettingsRepository.SortMode.PLAYLIST
+    val playlist = sort.forLive() == SettingsRepository.SortMode.PLAYLIST
+    if (query.isBlank()) {
+        liveSortQuery(key, sort, profileId, sourceIds, null)?.let {
+            return channelDao.pagingSorted(androidx.sqlite.db.SimpleSQLiteQuery(it.sql, it.args.toTypedArray()))
+        }
+    }
     return if (query.isBlank()) {
         when (key) {
             LiveKey.All -> if (playlist) channelDao.pagingAllOriginal(ids) else channelDao.pagingAll(ids)
