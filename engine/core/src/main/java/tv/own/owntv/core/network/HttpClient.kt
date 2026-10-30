@@ -114,10 +114,24 @@ class HttpClient(private val client: OkHttpClient) {
         url: String,
         userAgent: String? = null,
         headers: Map<String, String> = emptyMap(),
-    ): String = get(url, userAgent, headers = headers) { it.readBytes().decodeToString() }
+    ): String = get(url, userAgent, headers = headers) { input ->
+        // A manifest or category list is kilobytes; a server that keeps sending is not one we read.
+        val out = java.io.ByteArrayOutputStream()
+        val buf = ByteArray(16 * 1024)
+        while (true) {
+            val n = input.read(buf)
+            if (n < 0) break
+            out.write(buf, 0, n)
+            if (out.size() > MAX_TEXT_BYTES) throw java.io.IOException("Response larger than $MAX_TEXT_BYTES bytes")
+        }
+        out.toByteArray().decodeToString()
+    }
 
     companion object {
         private const val TAG = "HttpClient"
+
+        /** Upper bound for [getText]. */
+        private const val MAX_TEXT_BYTES = 4 * 1024 * 1024
 
         /** Player-style UA that IPTV panels broadly accept. Overridable per source. */
         const val DEFAULT_USER_AGENT = "VLC/3.0.20 LibVLC/3.0.20"

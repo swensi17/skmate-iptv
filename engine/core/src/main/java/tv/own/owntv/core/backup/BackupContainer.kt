@@ -45,6 +45,11 @@ object BackupContainer {
     private val ZIP_MAGIC = byteArrayOf(0x50, 0x4B, 0x03, 0x04) // "PK"
 
     const val JSON_ENTRY = "backup.json"
+
+    /** Limits for a restored archive: one entry, the whole archive, and its entry count. */
+    private const val MAX_ENTRY_BYTES = 64 * 1024 * 1024
+    private const val MAX_CONTAINER_BYTES = 128L * 1024 * 1024
+    private const val MAX_ENTRIES = 512
     const val WALLPAPER_DIR = "wallpaper/"
 
     /**
@@ -169,7 +174,10 @@ object BackupContainer {
         Kind.LEGACY_JSON -> Payload(json = file.readText(), wallpaper = null)
         // Streamed, not read whole: on a TV every full copy of a large backup counts.
         Kind.CONTAINER -> file.inputStream().buffered().use { unzip(it) }
-        Kind.ENCRYPTED_CONTAINER -> unzip(decryptContainer(file.readBytes(), passphrase).inputStream())
+        Kind.ENCRYPTED_CONTAINER -> {
+            require(file.length() <= MAX_CONTAINER_BYTES) { "Backup file too large" }
+            unzip(decryptContainer(file.readBytes(), passphrase).inputStream())
+        }
         Kind.UNKNOWN -> error("Not an OwnTV backup file")
     }
 
@@ -191,25 +199,50 @@ object BackupContainer {
         }
     }
 
+    /** Reads at most [limit] bytes; `InputStream.readNBytes` only arrived with API 33. */
+    private fun java.io.InputStream.readUpTo(limit: Int): ByteArray {
+        val out = ByteArrayOutputStream()
+        val buf = ByteArray(16 * 1024)
+        while (out.size() < limit) {
+            val n = read(buf, 0, minOf(buf.size, limit - out.size()))
+            if (n < 0) break
+            out.write(buf, 0, n)
+        }
+        return out.toByteArray()
+    }
+
     private fun unzip(input: java.io.InputStream): Payload {
         var json: String? = null
         var wallpaper: Asset? = null
         val subtitles = LinkedHashMap<String, ByteArray>()
         val avatars = LinkedHashMap<String, ByteArray>()
+        var entries = 0
+        var total = 0L
+        // A zip bomb is a small file that inflates to gigabytes. Every entry is read through this
+        // cap, and the whole archive through a second one, so a hostile backup fails fast instead
+        // of taking the app down with it.
+        fun ZipInputStream.readEntry(): ByteArray {
+            val bytes = readUpTo(MAX_ENTRY_BYTES + 1)
+            require(bytes.size <= MAX_ENTRY_BYTES) { "Backup entry too large" }
+            total += bytes.size
+            require(total <= MAX_CONTAINER_BYTES) { "Backup too large" }
+            return bytes
+        }
         ZipInputStream(input).use { zis ->
             while (true) {
                 val entry = zis.nextEntry ?: break
+                require(++entries <= MAX_ENTRIES) { "Too many entries in backup" }
                 val name = entry.name
                 when {
-                    name == JSON_ENTRY -> json = zis.readBytes().toString(Charsets.UTF_8)
+                    name == JSON_ENTRY -> json = zis.readEntry().toString(Charsets.UTF_8)
                     // Zip-slip guard: the name is only ever used as a leaf filename, never joined to a
                     // path, but reject traversal outright so a hand-made container can't get creative.
                     name.startsWith(WALLPAPER_DIR) && !entry.isDirectory && !name.contains("..") ->
-                        wallpaper = Asset(File(name).name, zis.readBytes())
+                        wallpaper = Asset(File(name).name, zis.readEntry())
                     name.startsWith(SUBTITLE_DIR) && !entry.isDirectory && !name.contains("..") ->
-                        subtitles[File(name).name] = zis.readBytes()
+                        subtitles[File(name).name] = zis.readEntry()
                     name.startsWith(AVATAR_DIR) && !entry.isDirectory && !name.contains("..") ->
-                        avatars[File(name).name] = zis.readBytes()
+                        avatars[File(name).name] = zis.readEntry()
                 }
                 zis.closeEntry()
             }

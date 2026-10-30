@@ -444,13 +444,34 @@ class M3uParser {
 private suspend inline fun BufferedReader.forEachLineSafe(action: suspend (String) -> Unit) {
     val ctx = currentCoroutineContext()
     try {
-        var line = readLine()
+        var line = readBoundedLine()
         while (line != null) {
             ctx.ensureActive()
             action(line)
-            line = readLine()
+            line = readBoundedLine()
         }
     } finally {
         close()
+    }
+}
+
+/** A playlist line longer than this is not a playlist line; the rest of it is skipped. */
+private const val MAX_M3U_LINE = 64 * 1024
+
+/**
+ * [BufferedReader.readLine] keeps the whole line in memory first, so a file with no line breaks
+ * (or one deliberately huge line) used to be read whole before the first entry was parsed.
+ */
+private fun BufferedReader.readBoundedLine(): String? {
+    val sb = StringBuilder()
+    var skipping = false
+    while (true) {
+        val c = read()
+        if (c == -1) return if (sb.isEmpty() && !skipping) null else sb.toString()
+        if (c == '\n'.code) return sb.toString()
+        if (c == '\r'.code) continue
+        if (skipping) continue
+        sb.append(c.toChar())
+        if (sb.length >= MAX_M3U_LINE) skipping = true
     }
 }

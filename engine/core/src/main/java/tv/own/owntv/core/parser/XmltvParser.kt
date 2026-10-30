@@ -17,6 +17,12 @@ import java.util.zip.GZIPInputStream
  */
 object XmltvParser {
     private const val TAG = "XmltvParser"
+
+    /** One text node (title, description) is kept up to this many characters. */
+    private const val MAX_TEXT_CHARS = 64 * 1024
+
+    /** Decompressed guide size after which parsing stops. */
+    private const val MAX_GUIDE_BYTES = 1024L * 1024 * 1024
     private const val STREAM_LOG_ITEM_STEP = 10_000
 
     /**
@@ -109,7 +115,9 @@ object XmltvParser {
             ctx.ensureActive()
             val ev = parser.next()
             when (ev) {
-                XmlPullParser.TEXT -> if (depth == 1) parser.text?.let { sb.append(it) }
+                // A description is a paragraph, not a document: cap it so one hostile text node
+                // cannot grow without limit.
+                XmlPullParser.TEXT -> if (depth == 1 && sb.length < MAX_TEXT_CHARS) parser.text?.let { sb.append(it) }
                 XmlPullParser.START_TAG -> depth++
                 XmlPullParser.END_TAG -> depth-- // hitting 0 consumes this element's own END_TAG
                 XmlPullParser.END_DOCUMENT -> break
@@ -351,7 +359,25 @@ object XmltvParser {
         val n = pb.read(sig, 0, 2)
         if (n > 0) pb.unread(sig, 0, n)
         val gzipped = n == 2 && sig[0] == 0x1f.toByte() && sig[1] == 0x8b.toByte()
-        return if (gzipped) GZIPInputStream(pb) else pb
+        return BoundedInputStream(if (gzipped) GZIPInputStream(pb) else pb, MAX_GUIDE_BYTES)
+    }
+
+    /** Stops after [limit] bytes: a gzip bomb or a runaway guide must not fill the disk or the CPU. */
+    private class BoundedInputStream(private val inner: InputStream, private val limit: Long) : InputStream() {
+        private var seen = 0L
+        override fun read(): Int {
+            if (seen >= limit) throw java.io.IOException("Guide larger than $limit bytes")
+            val b = inner.read()
+            if (b >= 0) seen++
+            return b
+        }
+        override fun read(b: ByteArray, off: Int, len: Int): Int {
+            if (seen >= limit) throw java.io.IOException("Guide larger than $limit bytes")
+            val n = inner.read(b, off, minOf(len.toLong(), limit - seen).toInt())
+            if (n > 0) seen += n
+            return n
+        }
+        override fun close() = inner.close()
     }
 
     private data class ParseMetrics(

@@ -1,6 +1,5 @@
 package tv.own.owntv.core.backup
 
-import android.util.Base64
 import org.json.JSONObject
 import java.security.SecureRandom
 import javax.crypto.Cipher
@@ -29,6 +28,10 @@ object BackupCrypto {
     const val SCHEME = "field-aes-gcm"
     const val KDF = "PBKDF2WithHmacSHA256"
     const val ITERATIONS = 210_000
+
+    /** Accepted range for the iteration count read from a backup header. */
+    const val MIN_ITERATIONS = 100_000
+    const val MAX_ITERATIONS = 2_000_000
     private const val SALT_BYTES = 16
     private const val IV_BYTES = 12
     private const val KEY_BITS = 256
@@ -36,8 +39,8 @@ object BackupCrypto {
 
     private val rng = SecureRandom()
 
-    private fun b64(bytes: ByteArray): String = Base64.encodeToString(bytes, Base64.NO_WRAP)
-    private fun unb64(s: String): ByteArray = Base64.decode(s, Base64.NO_WRAP)
+    private fun b64(bytes: ByteArray): String = java.util.Base64.getEncoder().encodeToString(bytes)
+    private fun unb64(s: String): ByteArray = java.util.Base64.getDecoder().decode(s)
 
     /** A fresh random salt for a new backup. */
     fun newSalt(): ByteArray = ByteArray(SALT_BYTES).also { rng.nextBytes(it) }
@@ -66,6 +69,9 @@ object BackupCrypto {
         crypto ?: return null
         val salt = runCatching { unb64(crypto.getString("salt")) }.getOrNull() ?: return null
         val iters = crypto.optInt("iterations", ITERATIONS)
+        // The count comes from the file, unsigned. Out of range means a damaged or hostile header,
+        // not a slower password: a huge count would only pin the CPU for minutes.
+        if (iters !in MIN_ITERATIONS..MAX_ITERATIONS) return null
         return deriveKey(passphrase.toCharArray(), salt, iters)
     }
 
