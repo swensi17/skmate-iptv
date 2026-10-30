@@ -2310,6 +2310,14 @@ fun OwnTVShell(
         val updateManager = koinInject<UpdateManager>()
         var showStartupToast by remember { mutableStateOf(false) }
         var showChangelog by remember { mutableStateOf(false) }
+        // The Telegram note: once, a moment after the first entry, and only on a quiet screen.
+        val appContext = androidx.compose.ui.platform.LocalContext.current.applicationContext
+        var showTelegram by remember { mutableStateOf(false) }
+        val quiet = selectedSection != MainSection.SETTINGS && playerMode == PlayerMode.NONE
+        LaunchedEffect(quiet) {
+            if (quiet && !showTelegram && !TelegramWelcomePrefs.shown(appContext)) { kotlinx.coroutines.delay(1_500); showTelegram = true }
+        }
+        if (showTelegram && quiet) TelegramWelcome(onDismiss = { showTelegram = false; TelegramWelcomePrefs.markShown(appContext) })
         val settingsRepo = koinInject<tv.own.owntv.core.settings.SettingsRepository>()
         val updateCheckOnStart by settingsRepo.updateCheckOnStart.collectAsStateWithLifecycle(initialValue = false)
         // Looks again every few hours while the TV is on, as the update settings say; an update found that way is

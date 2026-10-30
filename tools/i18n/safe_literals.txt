@@ -656,6 +656,10 @@
 1	log	app/src/main/java/tv/own/owntv/features/shell/ShellViewModel.kt	activeProfileChanged profile=$pid androidTvHomeEnabled=${settings.androidTvHomeEnabled.first()}
 1	technical	app/src/main/java/tv/own/owntv/features/shell/ShellViewModel.kt	manual_resync
 1	log	app/src/main/java/tv/own/owntv/features/shell/ShellViewModel.kt	resync enqueue sourceId=${source.id} from=playlist_menu
+1	regex	app/src/main/java/tv/own/owntv/features/shell/TelegramWelcome.kt	@$CHAT_HANDLE
+1	regex	app/src/main/java/tv/own/owntv/features/shell/TelegramWelcome.kt	t.me/$CHAT_HANDLE
+1	technical	app/src/main/java/tv/own/owntv/features/shell/TelegramWelcome.kt	telegram_shown
+1	technical	app/src/main/java/tv/own/owntv/features/shell/TelegramWelcome.kt	welcome
 1	technical	app/src/main/java/tv/own/owntv/features/shell/components/AvatarPickerDialog.kt	\0
 1	technical	app/src/main/java/tv/own/owntv/features/shell/components/ChannelListOverlay.kt	CH±
 2	technical	app/src/main/java/tv/own/owntv/features/shell/components/ChannelListOverlay.kt	·
