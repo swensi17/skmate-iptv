@@ -1,0 +1,12 @@
+{
+  "id": "uz.skmate.iptv",
+  "version": "0.0.1",
+  "vendor": "SkMate",
+  "type": "web",
+  "main": "index.html",
+  "title": "SkMate IPTV",
+  "icon": "icon.png",
+  "largeIcon": "icon-large.png",
+  "resolution": "1920x1080",
+  "disableBackHistoryAPI": true
+}

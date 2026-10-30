@@ -14,4 +14,8 @@ echo "== detekt"
 java -jar "$DETEKT" --input app/src/main/java,app/src/test --baseline config/lint/detekt-baseline.xml --build-upon-default-config
 echo "== сборка и тесты"
 ./gradlew :app:testStandardDebugUnitTest :engine:core:testDebugUnitTest --console=plain -q
+if [ -d web ]; then
+  echo "== web (типы, тесты, сборка)"
+  (cd web && npm run typecheck && npm test && npm run build >/dev/null)
+fi
 echo "всё зелено, можно пушить"
