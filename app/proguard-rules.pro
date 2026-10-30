@@ -8,6 +8,10 @@
 # --- libmpv JNI: native code resolves MPVLib and its event callbacks by name ---
 -keep class dev.jdtech.mpv.** { *; }
 
+# --- libVLC JNI: JNI_OnLoad looks up org.videolan classes, fields and methods by name and fails the
+#     whole library (and the app with it) when R8 removed or renamed even one of them ---
+-keep class org.videolan.** { *; }
+
 # --- WorkManager: workers are re-instantiated by FQCN string (KoinWorkerFactory matches
 #     workerClassName against ::class.java.name, and WorkManager persists the name in its DB
 #     across app updates) ---

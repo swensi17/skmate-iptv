@@ -24,7 +24,7 @@
     <string name="update_window_any">Any time</string>
     <string name="update_window_night">At night</string>
     <string name="about_social_chat">SkMate IPTV chat: news and help</string>
-    <string name="about_social_qr_body">Scan with your phone's camera to open it.</string>
+    <string name="about_social_qr_body">Scan with your phone\'s camera to open it.</string>
     <string name="about_social_telegram">Author</string>
     <string name="about_social_code">Source code</string>
     <string name="about_social_x">Project news</string>
