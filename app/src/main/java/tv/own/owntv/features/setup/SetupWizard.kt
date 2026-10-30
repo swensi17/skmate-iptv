@@ -115,11 +115,11 @@ fun Onboarding(firstRun: Boolean, onDone: (Long?) -> Unit, onCancel: () -> Unit,
                 val forward = targetState.ordinal >= initialState.ordinal
                 val dir = if (forward) 1 else -1
                 (
-                    androidx.compose.animation.slideInHorizontally(androidx.compose.animation.core.tween(StepSlideMs)) { w -> dir * w / 8 } +
-                        androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(StepSlideMs))
+                    androidx.compose.animation.slideInHorizontally(androidx.compose.animation.core.tween(tv.own.owntv.ui.theme.MotionPrefs.dur(StepSlideMs))) { w -> dir * w / 8 } +
+                        androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(tv.own.owntv.ui.theme.MotionPrefs.dur(StepSlideMs)))
                     ) togetherWith (
-                    androidx.compose.animation.slideOutHorizontally(androidx.compose.animation.core.tween(StepSlideMs)) { w -> -dir * w / 8 } +
-                        androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(StepSlideMs / 2))
+                    androidx.compose.animation.slideOutHorizontally(androidx.compose.animation.core.tween(tv.own.owntv.ui.theme.MotionPrefs.dur(StepSlideMs))) { w -> -dir * w / 8 } +
+                        androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(tv.own.owntv.ui.theme.MotionPrefs.dur(StepSlideMs / 2)))
                     )
             },
             label = "setupStep",

@@ -172,12 +172,12 @@ internal fun WizardFrame(
                 var wasInRow by remember { mutableStateOf(false) }
                 LaunchedEffect(focusedIndex, rowFocused) {
                     val target = focusedIndex.toFloat()
-                    if (rowFocused && wasInRow) highlight.animateTo(target, tween(HighlightMs, easing = FastOutSlowInEasing))
+                    if (rowFocused && wasInRow) highlight.animateTo(target, tween(tv.own.owntv.ui.theme.MotionPrefs.dur(HighlightMs), easing = FastOutSlowInEasing))
                     else highlight.snapTo(target)
                     wasInRow = rowFocused
                 }
                 val highlightX = (each + gap) * highlight.value
-                val highlightAlpha by animateFloatAsState(if (rowFocused) 1f else 0f, tween(HighlightMs), label = "wizardHighlightAlpha")
+                val highlightAlpha by animateFloatAsState(if (rowFocused) 1f else 0f, tween(tv.own.owntv.ui.theme.MotionPrefs.dur(HighlightMs)), label = "wizardHighlightAlpha")
                 Row(Modifier.padding(top = 28.mpx), horizontalArrangement = Arrangement.spacedBy(gap), verticalAlignment = Alignment.CenterVertically) {
                 if (buttonsTrailing != null && !matchTitleWidth) Spacer(Modifier.width(trailingWidth))
                 Box(Modifier.onFocusChanged { rowFocused = it.hasFocus }) {
@@ -269,15 +269,15 @@ private fun StepNumbers(current: WizardStep, modifier: Modifier) {
     // Every change animates: the blue runs along the line into the next circle and the step's name
     // slides open beside it while the previous one folds away, so the bar moves right step by step.
     Row(
-        modifier.animateContentSize(tween(StepAnimMs)),
+        modifier.animateContentSize(tween(tv.own.owntv.ui.theme.MotionPrefs.dur(StepAnimMs))),
         horizontalArrangement = Arrangement.spacedBy(10.mpx),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         WizardStep.entries.forEachIndexed { i, s ->
             val reached = s.ordinal <= current.ordinal
-            val fill by animateColorAsState(if (reached) SkMateBlue else Color.Transparent, tween(StepAnimMs), label = "stepFill")
-            val ring by animateColorAsState(if (reached) SkMateBlue else StepIdle, tween(StepAnimMs), label = "stepRing")
-            val digit by animateColorAsState(if (reached) Color.White else StageColors.Muted, tween(StepAnimMs), label = "stepDigit")
+            val fill by animateColorAsState(if (reached) SkMateBlue else Color.Transparent, tween(tv.own.owntv.ui.theme.MotionPrefs.dur(StepAnimMs)), label = "stepFill")
+            val ring by animateColorAsState(if (reached) SkMateBlue else StepIdle, tween(tv.own.owntv.ui.theme.MotionPrefs.dur(StepAnimMs)), label = "stepRing")
+            val digit by animateColorAsState(if (reached) Color.White else StageColors.Muted, tween(tv.own.owntv.ui.theme.MotionPrefs.dur(StepAnimMs)), label = "stepDigit")
             if (i > 0) Box(Modifier.size(width = 22.mpx, height = 2.mpx).background(ring))
             Box(
                 Modifier.size(34.mpx).background(fill, CircleShape).border(2.mpx, ring, CircleShape),
@@ -287,8 +287,8 @@ private fun StepNumbers(current: WizardStep, modifier: Modifier) {
             }
             AnimatedVisibility(
                 visible = s == current,
-                enter = fadeIn(tween(StepAnimMs)) + expandHorizontally(tween(StepAnimMs)),
-                exit = fadeOut(tween(StepAnimMs)) + shrinkHorizontally(tween(StepAnimMs)),
+                enter = fadeIn(tween(tv.own.owntv.ui.theme.MotionPrefs.dur(StepAnimMs))) + expandHorizontally(tween(tv.own.owntv.ui.theme.MotionPrefs.dur(StepAnimMs))),
+                exit = fadeOut(tween(tv.own.owntv.ui.theme.MotionPrefs.dur(StepAnimMs))) + shrinkHorizontally(tween(tv.own.owntv.ui.theme.MotionPrefs.dur(StepAnimMs))),
             ) {
                 Text(stringResource(s.labelRes), style = stageText(16, 700), color = StageColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }

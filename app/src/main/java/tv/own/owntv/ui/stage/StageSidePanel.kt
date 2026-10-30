@@ -80,7 +80,7 @@ fun StageSidePanel(
             while (parent != null && parent !is DialogWindowProvider) parent = parent.parent
             (parent as? DialogWindowProvider)?.window?.setWindowAnimations(0)
         }
-        val scrim by animateFloatAsState(if (shown.targetState) 1f else 0f, tween(PanelMs), label = "panelScrim")
+        val scrim by animateFloatAsState(if (shown.targetState) 1f else 0f, tween(tv.own.owntv.ui.theme.MotionPrefs.dur(PanelMs)), label = "panelScrim")
         Box(
             Modifier
                 .fillMaxSize()
@@ -97,8 +97,8 @@ fun StageSidePanel(
         ) {
             AnimatedVisibility(
                 visibleState = shown,
-                enter = slideInHorizontally(tween(PanelMs)) { it } + fadeIn(tween(PanelMs)),
-                exit = slideOutHorizontally(tween(PanelMs)) { it } + fadeOut(tween(PanelMs)),
+                enter = slideInHorizontally(tween(tv.own.owntv.ui.theme.MotionPrefs.dur(PanelMs))) { it } + fadeIn(tween(tv.own.owntv.ui.theme.MotionPrefs.dur(PanelMs))),
+                exit = slideOutHorizontally(tween(tv.own.owntv.ui.theme.MotionPrefs.dur(PanelMs))) { it } + fadeOut(tween(tv.own.owntv.ui.theme.MotionPrefs.dur(PanelMs))),
             ) {
                 Column(
                     Modifier

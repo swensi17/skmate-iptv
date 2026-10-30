@@ -249,6 +249,7 @@ open class MainActivity : ComponentActivity() {
             // Animations Off also stills the launch screen. Android shows it before the app runs, so the
             // choice can only be handed over for the next launch, and only from Android 13 on.
             LaunchedEffect(animationLevel) {
+                tv.own.owntv.ui.theme.MotionPrefs.animationsOn = animationLevel != tv.own.owntv.core.theme.AnimationLevel.OFF
                 if (android.os.Build.VERSION.SDK_INT >= 33) {
                     val still = animationLevel == tv.own.owntv.core.theme.AnimationLevel.OFF
                     splashScreen.setSplashScreenTheme(

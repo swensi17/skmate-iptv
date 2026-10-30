@@ -714,10 +714,10 @@ fun PlayerHud(
         }
         androidx.compose.animation.AnimatedVisibility(
             visible = controlsVisible && tvLive && error == null,
-            enter = androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(TvHudFadeMs)) +
-                androidx.compose.animation.slideInVertically(androidx.compose.animation.core.tween(TvHudFadeMs)) { it / 6 },
-            exit = androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(TvHudFadeMs)) +
-                androidx.compose.animation.slideOutVertically(androidx.compose.animation.core.tween(TvHudFadeMs)) { it / 6 },
+            enter = androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(tv.own.owntv.ui.theme.MotionPrefs.dur(TvHudFadeMs))) +
+                androidx.compose.animation.slideInVertically(androidx.compose.animation.core.tween(tv.own.owntv.ui.theme.MotionPrefs.dur(TvHudFadeMs))) { it / 6 },
+            exit = androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(tv.own.owntv.ui.theme.MotionPrefs.dur(TvHudFadeMs))) +
+                androidx.compose.animation.slideOutVertically(androidx.compose.animation.core.tween(tv.own.owntv.ui.theme.MotionPrefs.dur(TvHudFadeMs))) { it / 6 },
             modifier = Modifier.fillMaxSize(),
         ) {
           Box(Modifier.fillMaxSize()) {

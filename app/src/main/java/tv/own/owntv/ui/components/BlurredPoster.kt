@@ -52,7 +52,7 @@ fun BlurredPoster(url: String, modifier: Modifier = Modifier) {
         }
         if (bmp != null) shown = bmp.asImageBitmap()
     }
-    Crossfade(targetState = shown, modifier = modifier, animationSpec = tween(200)) { img ->
+    Crossfade(targetState = shown, modifier = modifier, animationSpec = tween(tv.own.owntv.ui.theme.MotionPrefs.dur(200))) { img ->
         if (img != null) {
             Image(img, null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop, filterQuality = FilterQuality.Low)
         }
