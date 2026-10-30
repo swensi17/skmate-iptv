@@ -59,7 +59,9 @@ internal object CompanionHttpProtocol {
      */
     fun readBody(input: BufferedInputStream, headers: Map<String, String>, limit: Int): String? {
         val declared = headers["content-length"]?.toLongOrNull() ?: 0L
-        if (declared > limit) return null
+        // A negative length is not a request, it is a probe: ByteArrayOutputStream(-1) used to throw
+        // and take the whole process down with it.
+        if (declared < 0 || declared > limit) return null
         if (declared == 0L) return ""
         val buffer = ByteArrayOutputStream(declared.coerceAtMost(INITIAL_BODY_BUFFER.toLong()).toInt())
         val chunk = ByteArray(BODY_CHUNK)

@@ -22,9 +22,13 @@
 2	empty	core/src/main/java/tv/own/owntv/core/CoreBuildInfo.kt	\0
 1	log	core/src/main/java/tv/own/owntv/core/CorePerf.kt	OwnTVPerf
 3	technical	core/src/main/java/tv/own/owntv/core/backup/BackupContainer.kt	..
+1	technical	core/src/main/java/tv/own/owntv/core/backup/BackupContainer.kt	Backup entry too large
+1	technical	core/src/main/java/tv/own/owntv/core/backup/BackupContainer.kt	Backup file too large
+1	technical	core/src/main/java/tv/own/owntv/core/backup/BackupContainer.kt	Backup too large
 2	technical	core/src/main/java/tv/own/owntv/core/backup/BackupContainer.kt	Corrupt backup header
 2	technical	core/src/main/java/tv/own/owntv/core/backup/BackupContainer.kt	Not an OwnTV backup file
 1	technical	core/src/main/java/tv/own/owntv/core/backup/BackupContainer.kt	OWNTVBK1
+1	technical	core/src/main/java/tv/own/owntv/core/backup/BackupContainer.kt	Too many entries in backup
 1	technical	core/src/main/java/tv/own/owntv/core/backup/BackupContainer.kt	Truncated backup file
 1	technical	core/src/main/java/tv/own/owntv/core/backup/BackupContainer.kt	avatars/
 1	technical	core/src/main/java/tv/own/owntv/core/backup/BackupContainer.kt	backup.json
@@ -446,6 +450,8 @@
 1	log	core/src/main/java/tv/own/owntv/core/companion/CompanionHttpServer.kt	Companion connection refused — $MAX_IN_FLIGHT already in flight
 1	log	core/src/main/java/tv/own/owntv/core/companion/CompanionHttpServer.kt	Companion link locked after $attempts incorrect PIN attempts
 1	log	core/src/main/java/tv/own/owntv/core/companion/CompanionHttpServer.kt	Companion request dropped: ${e.javaClass.simpleName}
+1	technical	core/src/main/java/tv/own/owntv/core/companion/CompanionHttpServer.kt	Companion request from outside the local network refused
+1	technical	core/src/main/java/tv/own/owntv/core/companion/CompanionHttpServer.kt	Companion worker failed: ${e.javaClass.simpleName}
 1	log	core/src/main/java/tv/own/owntv/core/companion/CompanionHttpServer.kt	CompanionServer
 2	protocol	core/src/main/java/tv/own/owntv/core/companion/CompanionHttpServer.kt	Connection: close
 1	protocol	core/src/main/java/tv/own/owntv/core/companion/CompanionHttpServer.kt	Content-Disposition: attachment; filename="
@@ -459,10 +465,12 @@
 2	protocol	core/src/main/java/tv/own/owntv/core/companion/CompanionHttpServer.kt	OK
 6	uri	core/src/main/java/tv/own/owntv/core/companion/CompanionHttpServer.kt	POST
 1	protocol	core/src/main/java/tv/own/owntv/core/companion/CompanionHttpServer.kt	Payload Too Large
+1	technical	core/src/main/java/tv/own/owntv/core/companion/CompanionHttpServer.kt	Request line too long
 1	protocol	core/src/main/java/tv/own/owntv/core/companion/CompanionHttpServer.kt	Unauthorized
 1	regex	core/src/main/java/tv/own/owntv/core/companion/CompanionHttpServer.kt	^data:image/([a-zA-Z0-9.+-]+);base64,
 1	uri	core/src/main/java/tv/own/owntv/core/companion/CompanionHttpServer.kt	application/json; charset=utf-8
 2	protocol	core/src/main/java/tv/own/owntv/core/companion/CompanionHttpServer.kt	bmp
+1	technical	core/src/main/java/tv/own/owntv/core/companion/CompanionHttpServer.kt	content-length
 1	protocol	core/src/main/java/tv/own/owntv/core/companion/CompanionHttpServer.kt	content-type
 1	mime	core/src/main/java/tv/own/owntv/core/companion/CompanionHttpServer.kt	font/ttf
 1	json	core/src/main/java/tv/own/owntv/core/companion/CompanionHttpServer.kt	id
@@ -474,6 +482,7 @@
 1	uri	core/src/main/java/tv/own/owntv/core/companion/CompanionHttpServer.kt	secret
 1	protocol	core/src/main/java/tv/own/owntv/core/companion/CompanionHttpServer.kt	text/html; charset=utf-8
 1	protocol	core/src/main/java/tv/own/owntv/core/companion/CompanionHttpServer.kt	text/plain; charset=utf-8
+1	technical	core/src/main/java/tv/own/owntv/core/companion/CompanionHttpServer.kt	transfer-encoding
 2	protocol	core/src/main/java/tv/own/owntv/core/companion/CompanionHttpServer.kt	webp
 7	uri	core/src/main/java/tv/own/owntv/core/companion/CompanionHttpServer.kt	x-companion-pin
 3	uri	core/src/main/java/tv/own/owntv/core/companion/CompanionHttpServer.kt	{}
@@ -2316,6 +2325,7 @@
 1	log	core/src/main/java/tv/own/owntv/core/network/HttpClient.kt	GET start url=$safeUrl ua=${ua.take(48)} attempt=$attempt/$attempts
 1	log	core/src/main/java/tv/own/owntv/core/network/HttpClient.kt	HTTP ${response.code} for ${redactUrl(url)}
 2	log	core/src/main/java/tv/own/owntv/core/network/HttpClient.kt	HttpClient
+1	technical	core/src/main/java/tv/own/owntv/core/network/HttpClient.kt	Response larger than $MAX_TEXT_BYTES bytes
 1	protocol	core/src/main/java/tv/own/owntv/core/network/HttpClient.kt	Transfer-Encoding
 1	log	core/src/main/java/tv/own/owntv/core/network/HttpClient.kt	User-Agent
 1	log	core/src/main/java/tv/own/owntv/core/network/HttpClient.kt	VLC/3.0.20 LibVLC/3.0.20
@@ -2426,6 +2436,7 @@
 1	technical	core/src/main/java/tv/own/owntv/core/parser/XmltvDetails.kt	seconds
 1	technical	core/src/main/java/tv/own/owntv/core/parser/XmltvDetails.kt	xmltv_ns
 1	protocol	core/src/main/java/tv/own/owntv/core/parser/XmltvParser.kt	\0
+2	technical	core/src/main/java/tv/own/owntv/core/parser/XmltvParser.kt	Guide larger than $limit bytes
 1	protocol	core/src/main/java/tv/own/owntv/core/parser/XmltvParser.kt	Skipping malformed <channel> element
 1	protocol	core/src/main/java/tv/own/owntv/core/parser/XmltvParser.kt	Skipping malformed <programme> element
 1	protocol	core/src/main/java/tv/own/owntv/core/parser/XmltvParser.kt	XmltvParser

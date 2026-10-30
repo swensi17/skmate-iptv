@@ -52,7 +52,12 @@ class CompanionHttpServer(
     @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
     private val ioDispatcher = Dispatchers.IO.limitedParallelism(MAX_PARALLELISM)
 
-    private val scope = CoroutineScope(SupervisorJob() + ioDispatcher)
+    // Anything that escapes handleClient must stay inside the server: an uncaught exception on this
+    // scope would otherwise end the app process on the strength of one bad request from the LAN.
+    private val scope = CoroutineScope(
+        SupervisorJob() + ioDispatcher +
+            kotlinx.coroutines.CoroutineExceptionHandler { _, e -> Log.w(TAG, "Companion worker failed: ${e.javaClass.simpleName}") },
+    )
     private val running = AtomicBoolean(false)
 
     /** In-flight connections. Beyond the cap a socket is closed at once rather than queued. */
@@ -183,9 +188,12 @@ class CompanionHttpServer(
                 scope.launch {
                     try {
                         handleClient(client)
-                    } catch (e: IOException) {
-                        // A cut-off upload or a read timeout. The socket closes unanswered, so the phone
-                        // page reports it could not reach the TV and offers to send again.
+                    } catch (e: kotlinx.coroutines.CancellationException) {
+                        throw e
+                    } catch (e: Exception) {
+                        // A cut-off upload, a read timeout or a malformed request. The socket closes
+                        // unanswered, so the phone page reports it could not reach the TV and offers to
+                        // send again. Never let a request reach the process' uncaught handler.
                         Log.w(TAG, "Companion request dropped: ${e.javaClass.simpleName}")
                     } finally {
                         inFlight.release()
@@ -201,6 +209,13 @@ class CompanionHttpServer(
 
     private suspend fun handleClient(client: Socket) {
         client.use { socket ->
+            // The link is for a phone on the same network. A client from outside the local ranges
+            // (a port forwarded on the router, a VPN peer) never gets as far as the PIN gate.
+            val peer = socket.inetAddress
+            if (peer != null && !(peer.isSiteLocalAddress || peer.isLoopbackAddress || peer.isLinkLocalAddress)) {
+                Log.w(TAG, "Companion request from outside the local network refused")
+                return
+            }
             // Backup/image uploads can be several MB over Wi-Fi; give them more headroom than a tiny form post.
             socket.soTimeout = if (mode == CompanionMode.BACKUP_RESTORE || mode == CompanionMode.IMAGE_UPLOAD || mode == CompanionMode.LOCAL_SYNC) 30_000 else 10_000
             val input = BufferedInputStream(socket.getInputStream())
@@ -220,12 +235,25 @@ class CompanionHttpServer(
             val queryPin = CompanionHttpProtocol.parseQuery(query)["pin"].orEmpty()
 
             val headers = LinkedHashMap<String, String>()
+            var headerBytes = 0
             while (true) {
                 val line = readLine(input) ?: break
                 if (line.isEmpty()) break
+                headerBytes += line.length
+                if (headers.size >= MAX_HEADERS || headerBytes > MAX_HEADER_BYTES) {
+                    return sendText(socket, 431, localized(R.string.companion_error_bad_request))
+                }
                 val colon = line.indexOf(':')
                 if (colon <= 0) continue
-                headers[line.substring(0, colon).trim().lowercase()] = line.substring(colon + 1).trim()
+                val key = line.substring(0, colon).trim().lowercase()
+                // Two Content-Length headers are a smuggling attempt, not a request worth guessing at.
+                if (key == "content-length" && headers.containsKey(key)) {
+                    return sendText(socket, 400, localized(R.string.companion_error_bad_request))
+                }
+                headers[key] = line.substring(colon + 1).trim()
+            }
+            if (headers.containsKey("transfer-encoding")) {
+                return sendText(socket, 501, localized(R.string.companion_error_bad_request))
             }
 
             // Font asset for the web form (no PIN needed — it is only a font).
@@ -436,8 +464,12 @@ class CompanionHttpServer(
      */
     private suspend fun pinRejected(): Boolean {
         val attempts = failedPins.incrementAndGet()
-        kotlinx.coroutines.delay(FAILED_PIN_DELAY_MS)
-        if (attempts < MAX_PIN_ATTEMPTS) return false
+        // Count before the pause: with the pause first, every guess already in flight when the cap
+        // was hit still got its answer.
+        if (attempts < MAX_PIN_ATTEMPTS) {
+            kotlinx.coroutines.delay(FAILED_PIN_DELAY_MS)
+            return false
+        }
         Log.w(TAG, "Companion link locked after $attempts incorrect PIN attempts")
         onLocked()
         stop()
@@ -534,6 +566,8 @@ class CompanionHttpServer(
                 break
             }
             if (next == '\n'.code) break
+            // A request line that never ends is a memory attack, not a request.
+            if (buffer.size() >= MAX_LINE_BYTES) throw IOException("Request line too long")
             if (next != '\r'.code) buffer.write(next)
         }
         return buffer.toString(StandardCharsets.UTF_8.name())
@@ -559,6 +593,13 @@ class CompanionHttpServer(
         /** Kept as compatibility aliases; protocol-only tests use [CompanionHttpProtocol] directly. */
         internal const val UPLOAD_BODY_LIMIT = CompanionHttpProtocol.UPLOAD_BODY_LIMIT
         internal const val FORM_BODY_LIMIT = CompanionHttpProtocol.FORM_BODY_LIMIT
+
+        /** One request line or header line; anything longer is dropped unread. */
+        internal const val MAX_LINE_BYTES = 8 * 1024
+
+        /** Headers per request, and their total size, before the request is refused. */
+        internal const val MAX_HEADERS = 64
+        internal const val MAX_HEADER_BYTES = 64 * 1024
 
         /** Consecutive wrong PINs before the link closes itself. */
         internal const val MAX_PIN_ATTEMPTS = 10
