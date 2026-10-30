@@ -23,7 +23,7 @@ val LocalAnimationLevel = staticCompositionLocalOf { AnimationLevel.FULL }
 
 /** True unless the user has turned animations fully Off — for spots that gate a transition entirely. */
 val animationsOn: Boolean
-    @Composable @ReadOnlyComposable get() = LocalAnimationLevel.current != AnimationLevel.OFF
+    @Composable @ReadOnlyComposable get() = LocalAnimationLevel.current != AnimationLevel.OFF && MotionPrefs.active
 
 /**
  * A tween whose duration follows the user's Animations setting (Off → an instant 0 ms snap).
