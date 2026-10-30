@@ -288,6 +288,8 @@
     <ID>FunctionNaming:EpgSourceRow.kt$@Composable internal fun EpgRow( source: EpgSource, autoRefresh: EpgRefresh, counts: suspend () -&gt; Triple&lt;Int, Int, Int&gt;, syncState: EpgSyncState, deleting: Boolean, rowFocus: FocusRequester?, actionsFocus: FocusRequester, keepPanel: Boolean, priority: String?, orderActions: List&lt;StageAction&gt;, onFocused: () -&gt; Unit, onResync: () -&gt; Unit, onCancelSync: () -&gt; Unit, onEdit: () -&gt; Unit, onDelete: () -&gt; Unit, )</ID>
     <ID>FunctionNaming:EpgSourcesScreen.kt$@Composable fun EpgSourcesScreen(onBack: () -&gt; Unit, modifier: Modifier = Modifier, startOnAdd: Boolean = false)</ID>
     <ID>FunctionNaming:EpgSyncPrompt.kt$@Composable fun EpgSyncDialog( state: EpgSyncUi, onSync: () -&gt; Unit, onDismiss: () -&gt; Unit, // When non-null, the "Syncing" step offers "Run in background": enter the app now while the guide // keeps downloading (the sync runs in the activity-scoped ViewModel, so it survives). Null hides it. onBackground: (() -&gt; Unit)? = null, )</ID>
+    <ID>FunctionNaming:ErrorIllustration.kt$@Composable fun ErrorButton(text: String, onClick: () -&gt; Unit, modifier: Modifier = Modifier)</ID>
+    <ID>FunctionNaming:ErrorIllustration.kt$@Composable fun ErrorIllustration(kind: ErrorArt, modifier: Modifier = Modifier, size: Dp = 200.dp)</ID>
     <ID>FunctionNaming:ExitDialog.kt$@Composable fun ExitDialog( onConfirm: () -&gt; Unit, onDismiss: () -&gt; Unit, )</ID>
     <ID>FunctionNaming:FontSettingsScreen.kt$@Composable fun FontSettingsScreen( current: FontCustomization, onSet: (FontCustomization) -&gt; Unit, familyLabel: @Composable (AppFontFamily) -&gt; String, onBack: () -&gt; Unit, modifier: Modifier = Modifier, )</ID>
     <ID>FunctionNaming:FrameRateController.kt$@Composable fun AutoFrameRateEffect( fps: Float?, enabled: Boolean, film: PlaybackEngine? = null, videoSize: Pair&lt;Int, Int&gt;? = null, matchResolution: Boolean = false, holdSecs: Int = 0, )</ID>
@@ -1401,6 +1403,69 @@
     <ID>MagicNumber:EpgViewModel.kt$EpgViewModel$60</ID>
     <ID>MagicNumber:EpgViewModel.kt$EpgViewModel.&lt;no name provided&gt;$0.75f</ID>
     <ID>MagicNumber:EpgViewModel.kt$EpgViewModel.&lt;no name provided&gt;$64</ID>
+    <ID>MagicNumber:ErrorIllustration.kt$0.3f</ID>
+    <ID>MagicNumber:ErrorIllustration.kt$0.6f</ID>
+    <ID>MagicNumber:ErrorIllustration.kt$0.95f</ID>
+    <ID>MagicNumber:ErrorIllustration.kt$0xFF0B0F14</ID>
+    <ID>MagicNumber:ErrorIllustration.kt$0xFF2A3341</ID>
+    <ID>MagicNumber:ErrorIllustration.kt$0xFF4FC3F7</ID>
+    <ID>MagicNumber:ErrorIllustration.kt$0xFFE8EDF3</ID>
+    <ID>MagicNumber:ErrorIllustration.kt$0xFFFFB454</ID>
+    <ID>MagicNumber:ErrorIllustration.kt$10</ID>
+    <ID>MagicNumber:ErrorIllustration.kt$100f</ID>
+    <ID>MagicNumber:ErrorIllustration.kt$12</ID>
+    <ID>MagicNumber:ErrorIllustration.kt$120f</ID>
+    <ID>MagicNumber:ErrorIllustration.kt$12f</ID>
+    <ID>MagicNumber:ErrorIllustration.kt$13</ID>
+    <ID>MagicNumber:ErrorIllustration.kt$130f</ID>
+    <ID>MagicNumber:ErrorIllustration.kt$140f</ID>
+    <ID>MagicNumber:ErrorIllustration.kt$150f</ID>
+    <ID>MagicNumber:ErrorIllustration.kt$16</ID>
+    <ID>MagicNumber:ErrorIllustration.kt$17</ID>
+    <ID>MagicNumber:ErrorIllustration.kt$18</ID>
+    <ID>MagicNumber:ErrorIllustration.kt$19</ID>
+    <ID>MagicNumber:ErrorIllustration.kt$20</ID>
+    <ID>MagicNumber:ErrorIllustration.kt$205f</ID>
+    <ID>MagicNumber:ErrorIllustration.kt$21f</ID>
+    <ID>MagicNumber:ErrorIllustration.kt$22</ID>
+    <ID>MagicNumber:ErrorIllustration.kt$23</ID>
+    <ID>MagicNumber:ErrorIllustration.kt$24</ID>
+    <ID>MagicNumber:ErrorIllustration.kt$26</ID>
+    <ID>MagicNumber:ErrorIllustration.kt$290f</ID>
+    <ID>MagicNumber:ErrorIllustration.kt$3</ID>
+    <ID>MagicNumber:ErrorIllustration.kt$3.4f</ID>
+    <ID>MagicNumber:ErrorIllustration.kt$3.5f</ID>
+    <ID>MagicNumber:ErrorIllustration.kt$30</ID>
+    <ID>MagicNumber:ErrorIllustration.kt$30f</ID>
+    <ID>MagicNumber:ErrorIllustration.kt$32</ID>
+    <ID>MagicNumber:ErrorIllustration.kt$34</ID>
+    <ID>MagicNumber:ErrorIllustration.kt$36</ID>
+    <ID>MagicNumber:ErrorIllustration.kt$39</ID>
+    <ID>MagicNumber:ErrorIllustration.kt$42</ID>
+    <ID>MagicNumber:ErrorIllustration.kt$44</ID>
+    <ID>MagicNumber:ErrorIllustration.kt$46</ID>
+    <ID>MagicNumber:ErrorIllustration.kt$4f</ID>
+    <ID>MagicNumber:ErrorIllustration.kt$5.5f</ID>
+    <ID>MagicNumber:ErrorIllustration.kt$50</ID>
+    <ID>MagicNumber:ErrorIllustration.kt$55</ID>
+    <ID>MagicNumber:ErrorIllustration.kt$56</ID>
+    <ID>MagicNumber:ErrorIllustration.kt$58</ID>
+    <ID>MagicNumber:ErrorIllustration.kt$5f</ID>
+    <ID>MagicNumber:ErrorIllustration.kt$6</ID>
+    <ID>MagicNumber:ErrorIllustration.kt$62</ID>
+    <ID>MagicNumber:ErrorIllustration.kt$64</ID>
+    <ID>MagicNumber:ErrorIllustration.kt$66</ID>
+    <ID>MagicNumber:ErrorIllustration.kt$700</ID>
+    <ID>MagicNumber:ErrorIllustration.kt$74</ID>
+    <ID>MagicNumber:ErrorIllustration.kt$76</ID>
+    <ID>MagicNumber:ErrorIllustration.kt$78</ID>
+    <ID>MagicNumber:ErrorIllustration.kt$8</ID>
+    <ID>MagicNumber:ErrorIllustration.kt$80</ID>
+    <ID>MagicNumber:ErrorIllustration.kt$82</ID>
+    <ID>MagicNumber:ErrorIllustration.kt$84</ID>
+    <ID>MagicNumber:ErrorIllustration.kt$86</ID>
+    <ID>MagicNumber:ErrorIllustration.kt$88</ID>
+    <ID>MagicNumber:ErrorIllustration.kt$92</ID>
     <ID>MagicNumber:FontSettingsScreen.kt$4</ID>
     <ID>MagicNumber:FrameRateController.kt$1_000L</ID>
     <ID>MagicNumber:FrameRateController.kt$FrameRateController$1000f</ID>
@@ -2099,6 +2164,8 @@
     <ID>MagicNumber:PlayerHud.kt$0.7f</ID>
     <ID>MagicNumber:PlayerHud.kt$0.8f</ID>
     <ID>MagicNumber:PlayerHud.kt$0x66000000</ID>
+    <ID>MagicNumber:PlayerHud.kt$0xFF0B0F14</ID>
+    <ID>MagicNumber:PlayerHud.kt$150</ID>
     <ID>MagicNumber:PlayerHud.kt$16</ID>
     <ID>MagicNumber:PlayerHud.kt$1800</ID>
     <ID>MagicNumber:PlayerHud.kt$22</ID>
@@ -3029,6 +3096,7 @@
     <ID>MagicNumber:WizardFrame.kt$700</ID>
     <ID>MagicNumber:WizardFrame.kt$800</ID>
     <ID>MatchingDeclarationName:EpgSyncPrompt.kt$EpgSyncUi</ID>
+    <ID>MatchingDeclarationName:ErrorIllustration.kt$ErrorArt</ID>
     <ID>MatchingDeclarationName:GenreColor.kt$ChannelGenre</ID>
     <ID>MatchingDeclarationName:GuideCore.kt$GuideGridDefaults</ID>
     <ID>MatchingDeclarationName:InAppToast.kt$InAppToastState</ID>
@@ -4532,15 +4600,16 @@
     <ID>MaxLineLength:PlayerHud.kt$Box</ID>
     <ID>MaxLineLength:PlayerHud.kt$CenterControls(player, nav, isPlaying, isLive, onRewindLive, onForwardLive, timeshiftOffset, playFocus, modifier = Modifier.align(Alignment.Center))</ID>
     <ID>MaxLineLength:PlayerHud.kt$ChannelOsdCard(title = tuned.name, subtitle = tuned.number?.let { stringResource(R.string.player_channel_number, it) }, logoUrl = tuned.logoUrl, guide = zapGuide)</ID>
+    <ID>MaxLineLength:PlayerHud.kt$Column</ID>
     <ID>MaxLineLength:PlayerHud.kt$HudDialog.SPEED -&gt; SpeedDialog(current = speed, onSelect = { player.setSpeed(it); dialog = HudDialog.NONE }, onDismiss = { dialog = HudDialog.NONE })</ID>
     <ID>MaxLineLength:PlayerHud.kt$HudDialog.ZOOM -&gt; ZoomDialog(current = zoomMode, onSelect = { player.setZoomModeByUser(it); dialog = HudDialog.NONE }, onDismiss = { dialog = HudDialog.NONE })</ID>
     <ID>MaxLineLength:PlayerHud.kt$Modifier.align(Alignment.BottomStart).fillMaxWidth().padding(start = 44.dp, end = 44.dp, bottom = 36.dp)</ID>
+    <ID>MaxLineLength:PlayerHud.kt$PlaybackFailure.DecoderBusy</ID>
     <ID>MaxLineLength:PlayerHud.kt$QualityDialog(heights, pick, onSelect = { player.selectVideoQuality(it); dialog = HudDialog.NONE }, onDismiss = { dialog = HudDialog.NONE })</ID>
     <ID>MaxLineLength:PlayerHud.kt$Text(it.displayText(), style = tv.own.owntv.ui.theme.stageText(22, 700), color = Color.White.copy(alpha = 0.55f), textAlign = TextAlign.Center)</ID>
     <ID>MaxLineLength:PlayerHud.kt$Text(it.displayText(), style = tv.own.owntv.ui.theme.stageText(25, 400), color = Color.White.copy(alpha = 0.7f), textAlign = TextAlign.Center)</ID>
-    <ID>MaxLineLength:PlayerHud.kt$Text(it.displayText(), style = tv.own.owntv.ui.theme.stageText(25, 400), color = Color.White.copy(alpha = 0.92f), textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth(0.8f))</ID>
-    <ID>MaxLineLength:PlayerHud.kt$Text(stringResource(R.string.player_playback_error), style = tv.own.owntv.ui.theme.stageText(40, 600), color = Color.White)</ID>
-    <ID>MaxLineLength:PlayerHud.kt$Text(stringResource(R.string.player_raw_error, it), style = tv.own.owntv.ui.theme.stageText(22, 400), color = Color.White.copy(alpha = 0.6f), textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth(0.8f))</ID>
+    <ID>MaxLineLength:PlayerHud.kt$Text(it.displayText(), style = tv.own.owntv.ui.theme.stageText(25, 400), color = Color.White.copy(alpha = 0.92f), textAlign = TextAlign.Center)</ID>
+    <ID>MaxLineLength:PlayerHud.kt$Text(stringResource(R.string.player_raw_error, it), style = tv.own.owntv.ui.theme.stageText(22, 400), color = Color.White.copy(alpha = 0.6f), textAlign = TextAlign.Center)</ID>
     <ID>MaxLineLength:PlayerHud.kt$TvBoxAction(stringResource(R.string.player_tool_aspect), OwnTVIcon.ASPECT, { dialog = HudDialog.ZOOM })</ID>
     <ID>MaxLineLength:PlayerHud.kt$TvBoxAction(stringResource(R.string.player_tool_audio), OwnTVIcon.AUDIO, { dialog = HudDialog.AUDIO }).takeIf { audioCount &gt; 1 }</ID>
     <ID>MaxLineLength:PlayerHud.kt$TvBoxAction(stringResource(R.string.player_tool_subtitles), OwnTVIcon.SUBTITLE, { dialog = HudDialog.SUBS }).takeIf { subCount &gt; 0 }</ID>
@@ -4550,7 +4619,6 @@
     <ID>MaxLineLength:PlayerHud.kt$e.key.horizontalDirection(layoutDirection) == HorizontalDirection.END</ID>
     <ID>MaxLineLength:PlayerHud.kt$e.key.horizontalDirection(layoutDirection) == HorizontalDirection.START</ID>
     <ID>MaxLineLength:PlayerHud.kt$enter</ID>
-    <ID>MaxLineLength:PlayerHud.kt$error != null</ID>
     <ID>MaxLineLength:PlayerHud.kt$exit</ID>
     <ID>MaxLineLength:PlayerHud.kt$if (tvLive) OwnTVSpinner(sizeDp = 48, color = Color.White.copy(alpha = 0.9f)) else OwnTVSpinner(sizeDp = 56)</ID>
     <ID>MaxLineLength:PlayerHud.kt$onMultiview = onMultiview</ID>
@@ -4561,7 +4629,7 @@
     <ID>MaxLineLength:PlayerHud.kt$onToggleRememberAudioDelay = if (player.audioDelayAvailable()) ({ player.toggleRememberAudioDelay() }) else null</ID>
     <ID>MaxLineLength:PlayerHud.kt$stringResource(if (favorite) R.string.content_favorited else R.string.player_tool_favorite)</ID>
     <ID>MaxLineLength:PlayerHud.kt$toSeek -&gt; runCatching { seekFocus.requestFocus() }.onFailure { runCatching { playFocus.requestFocus() } }</ID>
-    <ID>MaxLineLength:PlayerHud.kt$tv.own.owntv.ui.stage.StageButton(stringResource(R.string.common_retry), onClick = { player.retry() }, modifier = Modifier.focusRequester(retryFocus), icon = OwnTVIcon.PLAY, tinted = true)</ID>
+    <ID>MaxLineLength:PlayerHud.kt$tv.own.owntv.ui.stage.ErrorButton(stringResource(R.string.common_retry), onClick = { player.retry() }, modifier = Modifier.focusRequester(retryFocus))</ID>
     <ID>MaxLineLength:PlayerHud.kt$tvLive &amp;&amp; error == null &amp;&amp; controlsVisible &amp;&amp; !tvActions &amp;&amp; e.key == Key.DirectionDown -&gt; { tvActions = true; wakeTick++; true }</ID>
     <ID>MaxLineLength:PlayerHud.kt$tvLive &amp;&amp; error == null &amp;&amp; controlsVisible &amp;&amp; !tvActions &amp;&amp; e.key == Key.DirectionUp -&gt; { controlsVisible = false; true }</ID>
     <ID>MaxLineLength:PlayerHud.kt$tvLive &amp;&amp; error == null &amp;&amp; controlsVisible &amp;&amp; !tvActions &amp;&amp; onScrubLive != null &amp;&amp; (e.key == Key.DirectionLeft || e.key == Key.DirectionRight)</ID>
