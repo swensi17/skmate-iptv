@@ -2288,6 +2288,7 @@
     <ID>MagicNumber:RemoteBackupRestoreScreen.kt$500</ID>
     <ID>MagicNumber:RemoteSetupScreen.kt$0.02f</ID>
     <ID>MagicNumber:RemoteSetupScreen.kt$0xFFD3DCD8</ID>
+    <ID>MagicNumber:RemoteSetupScreen.kt$0xFFE5484D</ID>
     <ID>MagicNumber:RemoteSetupScreen.kt$120</ID>
     <ID>MagicNumber:RemoteSetupScreen.kt$16</ID>
     <ID>MagicNumber:RemoteSetupScreen.kt$17</ID>
@@ -2297,6 +2298,7 @@
     <ID>MagicNumber:RemoteSetupScreen.kt$30</ID>
     <ID>MagicNumber:RemoteSetupScreen.kt$32</ID>
     <ID>MagicNumber:RemoteSetupScreen.kt$500</ID>
+    <ID>MagicNumber:RemoteSetupScreen.kt$600</ID>
     <ID>MagicNumber:RemoteSetupScreen.kt$700</ID>
     <ID>MagicNumber:RemoteSetupScreen.kt$800</ID>
     <ID>MagicNumber:ResumeDialog.kt$1000</ID>
@@ -4791,6 +4793,7 @@
     <ID>MaxLineLength:RemoteSetupScreen.kt$Text(stringResource(R.string.setup_from_phone), style = stageText(32, 800, (-0.02f).em), color = StageColors.Text, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:RemoteSetupScreen.kt$Text(url, style = stageText(21, 800), color = StageColors.Text, modifier = Modifier.padding(top = 4.mpx))</ID>
     <ID>MaxLineLength:RemoteSetupScreen.kt$androidx.compose.runtime.LaunchedEffect(Unit) { kotlinx.coroutines.delay(120); runCatching { newPin.requestFocus() } }</ID>
+    <ID>MaxLineLength:RemoteSetupScreen.kt$val</ID>
     <ID>MaxLineLength:RemoteShortcutBindingsTest.kt$RemoteShortcutBindingsTest$RemoteShortcutBinding(KeyEvent.KEYCODE_INFO, RemoteShortcutPress.LONG, RemoteShortcutAction.TOGGLE_PLAYBACK_INFO)</ID>
     <ID>MaxLineLength:RemoteShortcutBindingsTest.kt$RemoteShortcutBindingsTest$RemoteShortcutBinding(KeyEvent.KEYCODE_PROG_RED, RemoteShortcutPress.SHORT, RemoteShortcutAction.OPEN_GUIDE)</ID>
     <ID>MaxLineLength:RemoteShortcutBindingsTest.kt$RemoteShortcutBindingsTest$assertFalse(RemoteShortcutBinding(KeyEvent.KEYCODE_CHANNEL_UP, RemoteShortcutPress.SHORT, RemoteShortcutAction.PAGE_TOWARD_FIRST) in result)</ID>

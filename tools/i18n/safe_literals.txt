@@ -624,6 +624,9 @@
 1	technical	app/src/main/java/tv/own/owntv/features/setup/AddSourceScreen.kt	▶
 1	technical	app/src/main/java/tv/own/owntv/features/setup/AddSourceScreen.kt	◀ ▶
 2	empty	app/src/main/java/tv/own/owntv/features/setup/RemoteSetupScreen.kt	\0
+1	regex	app/src/main/java/tv/own/owntv/features/setup/RemoteSetupScreen.kt	$it.*
+1	technical	app/src/main/java/tv/own/owntv/features/setup/RemoteSetupScreen.kt	DEPRECATION
+1	technical	app/src/main/java/tv/own/owntv/features/setup/RemoteSetupScreen.kt	unknown ssid
 1	technical	app/src/main/java/tv/own/owntv/features/setup/RemoteSetupScreen.kt	…
 12	empty	app/src/main/java/tv/own/owntv/features/setup/SetupViewModel.kt	\0
 1	preference-key	app/src/main/java/tv/own/owntv/features/setup/SetupViewModel.kt	pending_profile_id

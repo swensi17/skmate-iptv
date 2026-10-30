@@ -188,6 +188,7 @@ fun Onboarding(firstRun: Boolean, onDone: (Long?) -> Unit, onCancel: () -> Unit,
                 // A remote submission hands off to the pre-filled form (the user presses Start Import).
                 onPayloadReceived = { step = Step.ADD_SOURCE },
                 onBack = { vm.stopRemoteListener(); step = Step.ADD_CONTENT },
+                windowed = true,
             )
             Step.ADD_SOURCE -> AddSourceScreen(
                 onStartXtream = { name, server, user, pass, ua, ref, epg, refresh, live, movies, series, _, preferHls ->

@@ -10,6 +10,7 @@
     <!-- Core does all of the networking: playlist/EPG sync, metadata, subtitles, downloads. -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <!-- ExoPlayer's network wake mode (background playback) holds a wake lock and a Wi-Fi lock while
          playing. WorkManager happens to merge WAKE_LOCK in too; core uses it, so core declares it. -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
