@@ -39,6 +39,47 @@
 1	core/src/main/java/tv/own/owntv/core/companion/CompanionHttpServer.kt	username
 2	core/src/main/java/tv/own/owntv/core/companion/CompanionMode.kt	\0
 2	core/src/main/java/tv/own/owntv/core/companion/CompanionPayload.kt	\0
+1	core/src/main/java/tv/own/owntv/core/content/SearchReader.kt	$prefix*
+1	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	qwertyuiop[]asdfghjkl;'zxcvbnm,./`
+3	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	z
+2	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	zh
+2	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	а
+2	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	б
+4	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	в
+2	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	г
+2	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	д
+4	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	е
+3	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	ж
+2	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	з
+2	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	и
+1	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	ий
+2	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	й
+1	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	йцукенгшщзхъфывапролджэячсмитьбю.ё
+3	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	к
+1	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	кс
+2	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	л
+2	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	м
+2	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	н
+1	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	нг
+2	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	о
+2	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	п
+2	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	р
+2	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	с
+2	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	т
+2	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	у
+2	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	ф
+3	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	х
+4	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	ц
+2	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	ч
+2	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	ш
+2	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	щ
+1	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	ы
+2	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	ю
+2	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	я
+1	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	ё
+1	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	ўқғҳ
+1	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	қ
+1	core/src/main/java/tv/own/owntv/core/content/SmartSearch.kt	ҳ
 1	core/src/main/java/tv/own/owntv/core/customize/CustomizationStore.kt	${CustomizeKeys.CUSTOM_PREFIX}${UUID.randomUUID()}
 1	core/src/main/java/tv/own/owntv/core/customize/CustomizationStore.kt	custom:
 2	core/src/main/java/tv/own/owntv/core/customize/CustomizationStore.kt	customCats
@@ -69,6 +110,10 @@
 1	core/src/main/java/tv/own/owntv/core/database/OwnTVDatabase.kt	CREATE INDEX IF NOT EXISTS `index_custom_category_members_profileId` ON `custom_category_members` (`profileId`)
 1	core/src/main/java/tv/own/owntv/core/database/OwnTVDatabase.kt	CREATE TABLE IF NOT EXISTS `custom_category_members` (
 1	core/src/main/java/tv/own/owntv/core/database/OwnTVDatabase.kt	CREATE UNIQUE INDEX IF NOT EXISTS `index_custom_category_members_profileId_mediaType_contextKey_itemId` ON `custom_category_members` (`profileId`, `mediaType`, `contextKey`, `itemId`)
+1	core/src/main/java/tv/own/owntv/core/database/OwnTVDatabase.kt	CREATE VIRTUAL TABLE IF NOT EXISTS `channels_fts` USING FTS4(`name` TEXT NOT NULL, tokenize=unicode61 `remove_diacritics=1`, content=`channels`)
+1	core/src/main/java/tv/own/owntv/core/database/OwnTVDatabase.kt	CREATE VIRTUAL TABLE IF NOT EXISTS `episodes_fts` USING FTS4(`name` TEXT NOT NULL, tokenize=unicode61 `remove_diacritics=1`, content=`episodes`)
+1	core/src/main/java/tv/own/owntv/core/database/OwnTVDatabase.kt	CREATE VIRTUAL TABLE IF NOT EXISTS `movies_fts` USING FTS4(`name` TEXT NOT NULL, tokenize=unicode61 `remove_diacritics=1`, content=`movies`)
+1	core/src/main/java/tv/own/owntv/core/database/OwnTVDatabase.kt	CREATE VIRTUAL TABLE IF NOT EXISTS `series_fts` USING FTS4(`name` TEXT NOT NULL, tokenize=unicode61 `remove_diacritics=1`, content=`series`)
 1	core/src/main/java/tv/own/owntv/core/database/OwnTVDatabase.kt	`contextKey` TEXT NOT NULL,
 1	core/src/main/java/tv/own/owntv/core/database/OwnTVDatabase.kt	`itemId` INTEGER NOT NULL,
 1	core/src/main/java/tv/own/owntv/core/database/OwnTVDatabase.kt	`position` INTEGER NOT NULL,

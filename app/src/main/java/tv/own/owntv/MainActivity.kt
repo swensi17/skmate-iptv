@@ -564,8 +564,7 @@ private suspend fun produceBlurredBackdrop(
                 var src = decoded
                 if (abs(curAspect - aspect) > 0.02f) {
                     val cw: Int; val ch: Int
-                    if (curAspect > aspect) { ch = decoded.height; cw = (ch * aspect).toInt() }
-                    else { cw = decoded.width; ch = (cw / aspect).toInt() }
+                    if (curAspect > aspect) { ch = decoded.height; cw = (ch * aspect).toInt() } else { cw = decoded.width; ch = (cw / aspect).toInt() }
                     val cx = ((decoded.width - cw) / 2).coerceAtLeast(0)
                     val cy = ((decoded.height - ch) / 2).coerceAtLeast(0)
                     val cropped = Bitmap.createBitmap(decoded, cx, cy, cw.coerceAtLeast(2), ch.coerceAtLeast(2))

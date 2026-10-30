@@ -472,12 +472,13 @@ fun StageTool(
  * with a 4 px accent underline glowing at 70%. Focused = FILLED.
  */
 @Composable
-fun StageTab(label: String, count: String, selected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
+fun StageTab(label: String, count: String, selected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier, centered: Boolean = false) {
     val a = stageAccent
     StageSurface(onClick = onClick, radius = 12.mpx, modifier = modifier) { focused ->
         Row(
             Modifier
-                .padding(horizontal = 12.mpx)
+                .then(if (centered) Modifier.fillMaxWidth() else Modifier)
+                .padding(horizontal = if (centered) 4.mpx else 12.mpx)
                 .padding(top = 6.mpx)
                 .then(
                     if (selected) {
@@ -494,12 +495,12 @@ fun StageTab(label: String, count: String, selected: Boolean, onClick: () -> Uni
                     } else Modifier,
                 )
                 .padding(bottom = 12.mpx),
-            horizontalArrangement = Arrangement.spacedBy(10.mpx),
+            horizontalArrangement = if (centered) Arrangement.spacedBy(8.mpx, Alignment.CenterHorizontally) else Arrangement.spacedBy(10.mpx),
             verticalAlignment = Alignment.Bottom,
         ) {
             val on = if (focused) tv.own.owntv.ui.theme.stageAccent.onAccent else null
-            Text(label, style = stageText(22, 700), color = on ?: if (selected) StageColors.Text else StageColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.alignByBaseline())
-            Text(count, style = stageText(16, 600), color = on ?: StageColors.Dim, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.alignByBaseline())
+            Text(label, style = stageText(if (centered) 20 else 22, 700), color = on ?: if (selected) StageColors.Text else StageColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.alignByBaseline())
+            Text(count, style = stageText(if (centered) 15 else 16, 600), color = on ?: StageColors.Dim, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.alignByBaseline())
         }
     }
 }

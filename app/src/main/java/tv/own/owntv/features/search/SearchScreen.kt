@@ -8,6 +8,8 @@ import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -53,6 +55,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.em
@@ -101,7 +104,6 @@ import tv.own.owntv.ui.stage.StageTag
 import tv.own.owntv.ui.stage.StageTool
 import tv.own.owntv.ui.stage.drawBoxShadow
 import tv.own.owntv.ui.stage.drawInnerRing
-import tv.own.owntv.ui.stage.stageGlass
 import tv.own.owntv.ui.theme.StageColors
 import tv.own.owntv.ui.theme.gradientWash
 import tv.own.owntv.ui.theme.mpx
@@ -169,9 +171,11 @@ fun SearchScreen(
 ) {
     val query by vm.query.collectAsStateWithLifecycle()
     val results by vm.results.collectAsStateWithLifecycle()
+    val busy by vm.busy.collectAsStateWithLifecycle()
     val curated by vm.curatedResults.collectAsStateWithLifecycle()
     val intent by vm.intent.collectAsStateWithLifecycle()
     val recent by vm.recentSearches.collectAsStateWithLifecycle()
+    val recentLogos by vm.recentLogos.collectAsStateWithLifecycle()
     val kinds by vm.kinds.collectAsStateWithLifecycle()
     val marks by vm.playlistMarks.collectAsStateWithLifecycle()
     val categoryNames by vm.categoryNames.collectAsStateWithLifecycle()
@@ -280,27 +284,42 @@ fun SearchScreen(
         val listW = fx(846)
         val panelX = fx(944)
         val panelW = fx(912)
+        // The field sits in the middle of the screen, where the eye lands first; the results keep
+        // the two columns under it (list left, preview right).
+        val centredX = (screenW - listW) / 2
+        // Over results the field and the lists share one left edge, beside the preview; empty, it is centred.
+        val fieldX by androidx.compose.animation.core.animateDpAsState(
+            targetValue = if (showingResults) listX else centredX,
+            animationSpec = androidx.compose.animation.core.tween(tv.own.owntv.ui.theme.MotionPrefs.dur(FIELD_RISE_MS), easing = androidx.compose.animation.core.FastOutSlowInEasing),
+            label = "fieldX",
+        )
 
-        // Title band: "Search" + "“sky” · 12 results".
-        val titleModifier = Modifier.padding(start = fx(84), top = 52.mpx).width(fx(826))
+        // Title band: "Search" + "“sky” · 12 results" (or "Searching…" while the lookup runs).
         if (showingResults) {
             val total = shown.channels.size + shown.movies.size + shown.series.size + shown.programmes.size
             VodHeader(
                 section = stringResource(R.string.search_title),
                 category = if (searching) stringResource(R.string.search_query_quoted, query.trim()) else intent?.displayLabel().orEmpty(),
-                count = pluralStringResource(R.plurals.search_result_count, total, total),
+                count = if (busy) stringResource(R.string.search_in_progress) else pluralStringResource(R.plurals.search_result_count, total, total),
                 showChevron = false,
-                modifier = titleModifier,
+                modifier = Modifier.padding(start = fx(84), top = 52.mpx).width(fx(826)),
             )
         } else {
-            Text(stringResource(R.string.search_title), style = stageText(46, 800, (-1).mpxSp), color = StageColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = titleModifier)
+            // Nothing typed yet: what the field finds, one phrase at a time, rolling upwards over it.
+            SearchCaption(Modifier.padding(start = fieldX, top = LauncherCaptionTop).width(listW))
         }
+        // The field waits in the middle of the screen and rises to the top once something is typed.
+        val fieldTop by androidx.compose.animation.core.animateDpAsState(
+            targetValue = if (showingResults) ResultsFieldTop else LauncherFieldTop,
+            animationSpec = androidx.compose.animation.core.tween(tv.own.owntv.ui.theme.MotionPrefs.dur(FIELD_RISE_MS), easing = androidx.compose.animation.core.FastOutSlowInEasing),
+            label = "fieldTop",
+        )
         StageSearchField(
             query = query,
             onQueryChange = vm::setQuery,
             placeholder = stringResource(R.string.search_field_hint),
             modifier = Modifier
-                .padding(start = listX, top = 118.mpx)
+                .padding(start = fieldX, top = fieldTop)
                 .width(listW)
                 .focusRequester(fieldFocus)
                 // ▼ lands on a filter button that is on, not whichever one is nearest below.
@@ -308,33 +327,36 @@ fun SearchScreen(
         )
 
         if (!showingResults) {
-            Launcher(
+            RecentSearches(
                 firstFocus = jumpFocus,
-                recent = recent,
-                onIntent = vm::setIntent,
+                recent = recent.take(SearchViewModel.RECENT_SHOWN),
+                logos = recentLogos,
                 onRecent = vm::setQuery,
                 onClearRecent = vm::clearRecentSearches,
-                modifier = Modifier.padding(start = listX, top = 192.mpx).width(listW),
+                modifier = Modifier.padding(start = fieldX, top = LauncherFieldTop + 72.mpx).width(listW),
             )
-            LauncherCard(Modifier.padding(start = panelX, top = 200.mpx).width(panelW))
+        } else if (shown.isEmpty && busy) {
+            SearchingNote(Modifier.padding(start = fieldX, top = 270.mpx).width(listW))
         } else if (shown.isEmpty) {
             NothingFound(
                 title = if (searching) stringResource(R.string.search_nothing_found, query.trim())
                 else stringResource(R.string.search_nothing_in_list, intent?.displayLabel().orEmpty()),
-                modifier = Modifier.padding(start = fx(84), top = if (searching) 300.mpx else 230.mpx).width(fx(820)),
+                modifier = Modifier.padding(start = fieldX, top = if (searching) 300.mpx else 230.mpx).width(listW),
             )
         }
 
         if (searching) {
             // Filter buttons: OK switches one on or off, several can be on, none on shows everything.
-            Row(Modifier.padding(start = fx(84) - 12.mpx, top = 192.mpx), horizontalArrangement = Arrangement.spacedBy(16.mpx)) {
+            Row(Modifier.padding(start = fieldX, top = 192.mpx).width(listW), horizontalArrangement = Arrangement.spacedBy(8.mpx)) {
                 SearchKind.entries.forEach { k ->
                     StageTab(
                         label = k.label(),
                         count = localizedInteger(results.count(k)),
                         selected = k in kinds,
                         onClick = { vm.toggleKind(k) },
+                        centered = true,
                         modifier = Modifier
+                            .weight(1f)
                             .focusRequester(filterFocus.getValue(k))
                             .onFocusChanged { if (it.isFocused) filterFocused = k else if (filterFocused == k) filterFocused = null },
                     )
@@ -453,7 +475,9 @@ fun SearchScreen(
                     channelName = ProviderTags.parse(activeCh.name).name,
                     nowNext = nowNext,
                     previewEngine = liveVm.previewEngine,
-                    showVideo = previewOn,
+                    // The picture is asked for only while a channel row has the cursor; before that nothing is
+                    // loading, so a spinner would never stop.
+                    showVideo = previewOn && activeChannel != null,
                     singleSessionBlocked = singleSessionBlocked,
                     scheduleFocus = scheduleFocus,
                     // Search only shows: a programme picked here goes to the channel, where its menu lives.
@@ -687,74 +711,134 @@ private fun PosterPanel(info: VodTitleInfo, series: Boolean, modifier: Modifier 
     }
 }
 
-/** The empty page: JUMP TO (Continue watching · Unwatched · Channels), RECENT SEARCHES as rows, then Clear. */
+/** Where the field waits before anything is typed, and where it rises to over the results. */
+private val LauncherCaptionTop = 322.mpx
+private val LauncherFieldTop = 404.mpx
+private val ResultsFieldTop = 118.mpx
+private const val FIELD_RISE_MS = 360
+
+/** How long each caption stays before the next one rolls up, and how long the roll takes. */
+private const val CAPTION_HOLD_MS = 2_400L
+private const val CAPTION_ROLL_MS = 420
+
+/** "Search channels", "Search TV programs", …: one phrase at a time, each rolling up out of the last. */
 @Composable
-private fun Launcher(
-    firstFocus: FocusRequester,
-    recent: List<String>,
-    onIntent: (SearchIntent) -> Unit,
-    onRecent: (String) -> Unit,
-    onClearRecent: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val locale = androidx.compose.ui.platform.LocalConfiguration.current.locales[0]
-    Column(modifier.focusGroup()) {
-        GroupHeading(stringResource(R.string.search_jump_to).uppercase(locale), Modifier.padding(top = 8.mpx, bottom = 10.mpx))
-        Row(horizontalArrangement = Arrangement.spacedBy(10.mpx)) {
-            SearchIntent.entries.forEach { i ->
-                val icon = when (i) {
-                    SearchIntent.CONTINUE -> OwnTVIcon.PLAY
-                    SearchIntent.UNWATCHED -> OwnTVIcon.SPARKLE
-                    SearchIntent.CHANNELS -> OwnTVIcon.LIVE_TV
-                }
-                StageTool(
-                    text = i.displayLabel(), icon = icon, onClick = { onIntent(i) },
-                    modifier = if (i == SearchIntent.entries.first()) Modifier.focusRequester(firstFocus) else Modifier,
-                )
-            }
+private fun SearchCaption(modifier: Modifier = Modifier) {
+    val captions = listOf(
+        stringResource(R.string.search_caption_channels),
+        stringResource(R.string.search_caption_programs),
+        stringResource(R.string.search_caption_guide),
+        stringResource(R.string.search_caption_movies),
+        stringResource(R.string.search_caption_series),
+        stringResource(R.string.search_caption_layout),
+    )
+    var index by remember { mutableStateOf(0) }
+    val smooth = tv.own.owntv.ui.theme.MotionPrefs.smooth
+    LaunchedEffect(smooth, captions.size) {
+        while (true) {
+            delay(CAPTION_HOLD_MS)
+            index = (index + 1) % captions.size
         }
-        if (recent.isNotEmpty()) {
-            GroupHeading(stringResource(R.string.search_recent).uppercase(locale), Modifier.padding(top = 46.mpx, bottom = 4.mpx))
-            Column(verticalArrangement = Arrangement.spacedBy(6.mpx)) {
-                recent.forEach { term -> RecentRow(term) { onRecent(term) } }
-            }
-            StageTool(
-                text = stringResource(R.string.search_clear_recent), icon = OwnTVIcon.TRASH, onClick = onClearRecent,
-                modifier = Modifier.padding(top = 8.mpx),
+    }
+    val roll = tv.own.owntv.ui.theme.MotionPrefs.dur(CAPTION_ROLL_MS)
+    Box(modifier.height(64.mpx), contentAlignment = Alignment.Center) {
+        androidx.compose.animation.AnimatedContent(
+            targetState = index,
+            transitionSpec = {
+                val enter = androidx.compose.animation.slideInVertically(androidx.compose.animation.core.tween(roll, easing = androidx.compose.animation.core.FastOutSlowInEasing)) { it / 2 } +
+                    androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(roll))
+                val exit = androidx.compose.animation.slideOutVertically(androidx.compose.animation.core.tween(roll, easing = androidx.compose.animation.core.FastOutSlowInEasing)) { -it / 2 } +
+                    androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(roll * 2 / 3))
+                enter togetherWith exit
+            },
+            label = "caption",
+        ) { i ->
+            Text(
+                captions[i], style = stageText(40, 800, (-1).mpxSp), color = StageColors.Text,
+                textAlign = TextAlign.Center, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.fillMaxWidth(),
             )
         }
     }
 }
 
-/** `.fcat`: a 52-high flat row, the history glyph and the term in 18.5/600. Focused = FILLED. */
+/** The terms searched before, each with the picture of what it found, and a way to forget them. */
 @Composable
-private fun RecentRow(term: String, onClick: () -> Unit) {
-    val a = stageAccent
-    StageSurface(onClick = onClick, radius = 15.mpx, modifier = Modifier.fillMaxWidth().height(52.mpx)) { focused ->
+private fun RecentSearches(
+    firstFocus: FocusRequester,
+    recent: List<String>,
+    logos: Map<String, String?>,
+    onRecent: (String) -> Unit,
+    onClearRecent: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    if (recent.isEmpty()) return
+    val locale = androidx.compose.ui.platform.LocalConfiguration.current.locales[0]
+    Column(modifier.focusGroup()) {
+        GroupHeading(stringResource(R.string.search_recent).uppercase(locale), Modifier.padding(top = 8.mpx, bottom = 6.mpx))
+        Column(verticalArrangement = Arrangement.spacedBy(6.mpx)) {
+            recent.forEachIndexed { i, term ->
+                RecentRow(term, logos[term], Modifier.then(if (i == 0) Modifier.focusRequester(firstFocus) else Modifier)) { onRecent(term) }
+            }
+        }
+        StageTool(
+            text = stringResource(R.string.search_clear_recent), icon = OwnTVIcon.TRASH, onClick = onClearRecent,
+            modifier = Modifier.padding(top = 10.mpx),
+        )
+    }
+}
+
+/** A 56-high flat row: the logo of what the term found (or the history glyph) and the term. */
+@Composable
+private fun RecentRow(term: String, logoUrl: String?, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    StageSurface(onClick = onClick, radius = tv.own.owntv.ui.theme.StageRadii.Row, modifier = modifier.fillMaxWidth().height(56.mpx)) { focused ->
         Row(
-            Modifier.padding(horizontal = 14.mpx),
-            horizontalArrangement = Arrangement.spacedBy(12.mpx),
+            Modifier.padding(horizontal = 12.mpx),
+            horizontalArrangement = Arrangement.spacedBy(14.mpx),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            OwnTVIcon(OwnTVIcon.HISTORY, if (focused) tv.own.owntv.ui.theme.stageAccent.onAccent else StageColors.Muted, Modifier.size(20.mpx))
-            Text(term, style = stageText(18.5f, 600), color = if (focused) tv.own.owntv.ui.theme.stageAccent.onAccent else stageTone(Color(0xFFCDD7D3), StageColors.ItemText), maxLines = 1, overflow = TextOverflow.Ellipsis)
+            if (logoUrl != null) {
+                LivePlate(logoUrl, 58.mpx, 40.mpx)
+            } else {
+                Box(Modifier.size(58.mpx, 40.mpx), contentAlignment = Alignment.Center) {
+                    OwnTVIcon(OwnTVIcon.HISTORY, if (focused) tv.own.owntv.ui.theme.stageAccent.onAccent else StageColors.Muted, Modifier.size(20.mpx))
+                }
+            }
+            Text(term, style = stageText(19, 600), color = if (focused) tv.own.owntv.ui.theme.stageAccent.onAccent else stageTone(Color(0xFFCDD7D3), StageColors.ItemText), maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
     }
 }
 
-/** The empty page's glass card: what Search does, and where a result takes you. */
+/** The lookup is running: a line that says so and a thin bar sweeping under it. */
 @Composable
-private fun LauncherCard(modifier: Modifier = Modifier) {
-    Column(modifier.stageGlass(30.mpx).padding(horizontal = 38.mpx, vertical = 34.mpx)) {
-        Row(horizontalArrangement = Arrangement.spacedBy(10.mpx), verticalAlignment = Alignment.CenterVertically) {
-            OwnTVIcon(OwnTVIcon.SEARCH, stageAccent.accent, Modifier.size(20.mpx))
-            Text(stringResource(R.string.search_title), style = stageText(19, 700), color = stageAccent.accent, maxLines = 1, overflow = TextOverflow.Ellipsis)
+private fun SearchingNote(modifier: Modifier = Modifier) {
+    Column(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(stringResource(R.string.search_in_progress), style = stageText(22, 600), color = StageColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        val smooth = tv.own.owntv.ui.theme.MotionPrefs.smooth
+        val sweep = if (smooth) {
+            val transition = androidx.compose.animation.core.rememberInfiniteTransition(label = "searching")
+            transition.animateFloat(
+                initialValue = 0f, targetValue = 1f,
+                animationSpec = androidx.compose.animation.core.infiniteRepeatable(
+                    androidx.compose.animation.core.tween(1100, easing = androidx.compose.animation.core.LinearEasing),
+                ),
+                label = "sweep",
+            ).value
+        } else {
+            0.35f
         }
-        Text(
-            stringResource(R.string.search_card_title), style = stageText(30, 800), color = StageColors.Text,
-            modifier = Modifier.padding(top = 14.mpx, bottom = 10.mpx),
-        )
-        Text(stringResource(R.string.search_card_body), style = stageText(19, 400).copy(lineHeight = (19 * 1.55f).mpxSp), color = StageColors.Muted)
+        val track = StageColors.Dim
+        val bar = StageColors.Muted
+        androidx.compose.foundation.Canvas(Modifier.padding(top = 18.mpx).width(320.mpx).height(4.mpx)) {
+            drawRoundRect(track, cornerRadius = androidx.compose.ui.geometry.CornerRadius(2f, 2f))
+            val w = size.width * 0.3f
+            val x = (size.width + w) * sweep - w
+            drawRoundRect(
+                bar,
+                topLeft = androidx.compose.ui.geometry.Offset(x.coerceIn(0f, size.width), 0f),
+                size = androidx.compose.ui.geometry.Size((x + w).coerceIn(0f, size.width) - x.coerceIn(0f, size.width), size.height),
+                cornerRadius = androidx.compose.ui.geometry.CornerRadius(2f, 2f),
+            )
+        }
     }
 }
 

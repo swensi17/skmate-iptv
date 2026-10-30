@@ -62,7 +62,7 @@ internal fun TrackDialog(
     onSelect: (TrackOption) -> Unit,
     onOff: (() -> Unit)?,
     onDismiss: () -> Unit,
-    audioDelayMs: Int? = null,                 // non-null on the Audio dialog (VOD) → show the A/V-sync nudge
+    audioDelayMs: Int? = null, // non-null on the Audio dialog (VOD) → show the A/V-sync nudge
     onAdjustAudioDelay: ((Int) -> Unit)? = null,
     // Whether this item already has a remembered A/V-sync offset, and the action that remembers or
     // forgets it. Both accompany [onAdjustAudioDelay].
