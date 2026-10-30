@@ -606,10 +606,10 @@
     <string name="live_fix_guide_running">Подбираем программу…</string>
     <string name="live_fix_guide_none">Новых совпадений нет: телегид уже подобран или ещё не загружен</string>
     <plurals name="live_fix_guide_done">
-        <item quantity="one">Подобрали программу для %d канала</item>
-        <item quantity="few">Подобрали программу для %d каналов</item>
-        <item quantity="many">Подобрали программу для %d каналов</item>
-        <item quantity="other">Подобрали программу для %d канала</item>
+        <item quantity="one">Подобрали программу для %1$d канала</item>
+        <item quantity="few">Подобрали программу для %1$d каналов</item>
+        <item quantity="many">Подобрали программу для %1$d каналов</item>
+        <item quantity="other">Подобрали программу для %1$d канала</item>
     </plurals>
     <string name="live_pick_now">Сейчас идёт: <xliff:g id="what">%1$s</xliff:g></string>
     <string name="live_pick_sport">спорт</string>
