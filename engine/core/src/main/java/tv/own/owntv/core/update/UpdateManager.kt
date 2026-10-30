@@ -5,10 +5,15 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.PackageInfo
 import android.content.pm.PackageInstaller
+import android.content.pm.PackageManager
+import android.content.pm.Signature
+import android.os.Build
 import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.core.content.IntentCompat
+import androidx.core.content.pm.PackageInfoCompat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -22,6 +27,7 @@ import org.json.JSONObject
 import tv.own.owntv.core.CoreBuildInfo
 import java.io.File
 import java.io.IOException
+import java.security.MessageDigest
 
 /**
  * In-app updates straight from GitHub Releases: checks the repo's latest release, compares its tag
@@ -36,7 +42,13 @@ class UpdateManager(
     private val client: OkHttpClient,
     private val settings: tv.own.owntv.core.settings.SettingsRepository,
 ) {
-    data class UpdateInfo(val version: String, val notes: String, val apkUrl: String)
+    data class UpdateInfo(
+        val version: String,
+        val notes: String,
+        val apkUrl: String,
+        val apkName: String = "",
+        val checksumsUrl: String? = null,
+    )
 
     sealed interface Failure {
         data class CheckHttp(val code: Int) : Failure
@@ -66,6 +78,9 @@ class UpdateManager(
         data class Downloading(val percent: Int) : State
         data class Failed(val failure: Failure, val retryInfo: UpdateInfo? = null) : State
     }
+
+    /** Never follows a redirect from https to http: an update must not travel in the clear. */
+    private val safeClient: OkHttpClient by lazy { client.newBuilder().followSslRedirects(false).build() }
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
@@ -104,7 +119,7 @@ class UpdateManager(
                     .header("Accept", "application/vnd.github+json")
                     .header("User-Agent", tv.own.owntv.core.brand.BrandName.SHORT)
                     .build()
-                client.newCall(request).execute().use { resp ->
+                safeClient.newCall(request).execute().use { resp ->
                     if (!resp.isSuccessful) throw CheckHttpException(resp.code)
                     val body = resp.body.string()
                     if (body.isBlank()) throw InvalidReleaseResponseException()
@@ -116,19 +131,23 @@ class UpdateManager(
                     // Releases carry one APK per ABI flavor (arm = generic, x86_64 suffixed). Never
                     // silently install an APK for the wrong ABI.
                     val wantX86 = android.os.Build.SUPPORTED_ABIS.firstOrNull() == "x86_64"
-                    val apkUrl = (0 until assets.length())
-                        .asSequence()
-                        .mapNotNull { assets.optJSONObject(it) }
+                    val repo = CoreBuildInfo.releaseRepo
+                    val list = (0 until assets.length()).mapNotNull { assets.optJSONObject(it) }
+                    val apk = list
                         .mapNotNull { asset ->
                             val name = asset.optString("name")
                             val url = asset.optString("browser_download_url")
-                            if (!name.endsWith(".apk") || url.isBlank()) return@mapNotNull null
+                            if (!name.endsWith(".apk") || !UpdateUrls.isTrustedAsset(url, repo)) return@mapNotNull null
                             val isX86 = name.contains("x86_64", ignoreCase = true)
-                            if (isX86 == wantX86) url else null
+                            if (isX86 == wantX86) name to url else null
                         }
                         .firstOrNull()
                         ?: throw NoCompatibleApkException()
-                    val info = UpdateInfo(version, notes, apkUrl)
+                    val checksums = list
+                        .firstOrNull { it.optString("name") == UpdateUrls.CHECKSUMS_NAME }
+                        ?.optString("browser_download_url")
+                        ?.takeIf { UpdateUrls.isTrustedAsset(it, repo) }
+                    val info = UpdateInfo(version, notes, apk.second, apk.first, checksums)
                     settings.recordUpdateCheck(System.currentTimeMillis())
                     if (isNewer(version, currentVersion)) _state.value = State.Available(info)
                     else _state.value = State.UpToDate
@@ -149,9 +168,14 @@ class UpdateManager(
                 val dir = File(context.filesDir, "updates").apply { mkdirs() }
                 val out = File(dir, "update.apk")
                 out.delete() // never build on top of a previous half-download
+                if (!UpdateUrls.isTrustedAsset(info.apkUrl, CoreBuildInfo.releaseRepo)) {
+                    throw DamagedDownloadException("untrusted download address")
+                }
+                val expectedSha = info.checksumsUrl?.let { fetchExpectedSha256(it, info.apkName) }
+                val digest = MessageDigest.getInstance("SHA-256")
                 val request = Request.Builder().url(info.apkUrl).header("User-Agent", tv.own.owntv.core.brand.BrandName.SHORT).build()
                 try {
-                    client.newCall(request).execute().use { resp ->
+                    safeClient.newCall(request).execute().use { resp ->
                         if (!resp.isSuccessful) throw DownloadHttpException(resp.code)
                         val body = resp.body
                         val total = body.contentLength()
@@ -167,6 +191,7 @@ class UpdateManager(
                                     val n = input.read(buf)
                                     if (n < 0) break
                                     output.write(buf, 0, n)
+                                    digest.update(buf, 0, n)
                                     copied += n
                                     if (total > 0) _state.value = State.Downloading((copied * 100 / total).toInt())
                                 }
@@ -176,6 +201,9 @@ class UpdateManager(
                         if (total > 0 && copied != total) {
                             throw DamagedDownloadException("truncated: got $copied of $total bytes")
                         }
+                    }
+                    if (expectedSha != null && !UpdateUrls.hex(digest.digest()).equals(expectedSha, ignoreCase = true)) {
+                        throw DamagedDownloadException("checksum mismatch")
                     }
                     verifyApk(out)
                     install(out)
@@ -198,12 +226,45 @@ class UpdateManager(
      * the user a bare "App not installed" — the failure this whole guard exists to explain.
      */
     private fun verifyApk(apk: File) {
-        val info = context.packageManager.getPackageArchiveInfo(apk.absolutePath, 0)
+        val flags = if (Build.VERSION.SDK_INT >= 28) PackageManager.GET_SIGNING_CERTIFICATES else PackageManager.GET_SIGNATURES
+        val info = context.packageManager.getPackageArchiveInfo(apk.absolutePath, flags)
             ?: throw DamagedDownloadException("unparseable APK (${apk.length()} bytes)")
         if (info.packageName != context.packageName) {
             throw DamagedDownloadException("wrong package ${info.packageName}")
         }
+        // The system installer refuses a package signed by a different key, but only after the user has
+        // been through the confirmation. Checking the signer here turns that into a clear refusal and
+        // keeps a swapped file from ever reaching the install session.
+        val own = signerHashes(context.packageManager.getPackageInfo(context.packageName, flags))
+        val incoming = signerHashes(info)
+        if (own.isNotEmpty() && incoming.isNotEmpty() && own != incoming) {
+            throw DamagedDownloadException("signed by a different key")
+        }
+        val installedCode = PackageInfoCompat.getLongVersionCode(context.packageManager.getPackageInfo(context.packageName, 0))
+        if (PackageInfoCompat.getLongVersionCode(info) < installedCode) {
+            throw DamagedDownloadException("older than the installed version")
+        }
     }
+
+    private fun signerHashes(info: PackageInfo): Set<String> {
+        val signatures: Array<Signature>? = if (Build.VERSION.SDK_INT >= 28) {
+            info.signingInfo?.apkContentsSigners
+        } else {
+            @Suppress("DEPRECATION")
+            info.signatures
+        }
+        return signatures.orEmpty().map { UpdateUrls.hex(MessageDigest.getInstance("SHA-256").digest(it.toByteArray())) }.toSet()
+    }
+
+    /** SHA-256 of [name] from the release's SHA256SUMS.txt; null when the file lists nothing for it. */
+    private fun fetchExpectedSha256(url: String, name: String): String? = runCatching {
+        val request = Request.Builder().url(url).header("User-Agent", tv.own.owntv.core.brand.BrandName.SHORT).build()
+        safeClient.newCall(request).execute().use { resp ->
+            if (!resp.isSuccessful) return@use null
+            val text = resp.body.source().use { it.readUtf8(minOf(64 * 1024L, resp.body.contentLength().takeIf { n -> n > 0 } ?: (64 * 1024L))) }
+            UpdateUrls.sha256For(text, name)
+        }
+    }.getOrNull()
 
     /**
      * Installs through [PackageInstaller] rather than an `ACTION_VIEW` intent on a FileProvider URI.
