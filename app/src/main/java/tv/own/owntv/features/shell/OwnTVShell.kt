@@ -1717,6 +1717,8 @@ fun OwnTVShell(
           )
       }
       if (multiview == null && (playerMode == PlayerMode.FULLSCREEN || playerMode == PlayerMode.MINI)) {
+      // One player, one look: its chrome is dark whatever theme the rest of the app wears. Only the engine under it changes.
+      androidx.compose.runtime.CompositionLocalProvider(tv.own.owntv.ui.theme.LocalStagePalette provides tv.own.owntv.ui.theme.StagePalette.Dark) {
         val isFull = playerMode == PlayerMode.FULLSCREEN
         val pipActivity = tv.own.owntv.MainActivity.from(androidx.compose.ui.platform.LocalContext.current)
         val pipActive = pipActivity?.inPip == true
@@ -2185,6 +2187,7 @@ fun OwnTVShell(
                 )
             }
         }
+      } // the player is one screen, always dark
       }
 
     // Programme reminders: when one comes up, ask to switch, switch, or only say so (the

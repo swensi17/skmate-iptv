@@ -9,6 +9,7 @@
     <ID>ComplexCondition:LiveScreen.kt$!tv.own.owntv.features.shell.TvBoxNav &amp;&amp; sheetHadFocus &amp;&amp; categoriesOpen &amp;&amp; contextCategory == null &amp;&amp; categoryMoveState == null</ID>
     <ID>ComplexCondition:LiveScreen.kt$e.type == androidx.compose.ui.input.key.KeyEventType.KeyDown &amp;&amp; e.key == androidx.compose.ui.input.key.Key.DirectionLeft &amp;&amp; !searchEditing &amp;&amp; lockedKey == null</ID>
     <ID>ComplexCondition:LiveScreen.kt$renaming != null || matchingEpg != null || offsettingEpg != null || catchupChannel != null || schedulingChannel != null || enteringMoveMode || moveItem != null || creatingCategory</ID>
+    <ID>ComplexCondition:LiveScreen.kt$searchHasFocus &amp;&amp; !searchEditing &amp;&amp; searchQuery.isBlank() &amp;&amp; lockedKey == null</ID>
     <ID>ComplexCondition:LiveViewModel.kt$LiveViewModel$cust.hiddenItems.isEmpty() &amp;&amp; cust.itemNames.isEmpty() &amp;&amp; hiddenCats.isEmpty() &amp;&amp; movedFrom.isEmpty()</ID>
     <ID>ComplexCondition:MainActivity.kt$MainActivity$tv.own.owntv.features.shell.TvBoxNav &amp;&amp; event.keyCode == android.view.KeyEvent.KEYCODE_BACK &amp;&amp; event.action == android.view.KeyEvent.ACTION_DOWN &amp;&amp; (event.isLongPress || event.repeatCount &gt;= LONG_BACK_REPEATS)</ID>
     <ID>ComplexCondition:MorePages.kt$index == back || (back == null &amp;&amp; lastOpenedExtra == null &amp;&amp; index == 0)</ID>
@@ -2935,9 +2936,9 @@
     <ID>MagicNumber:TvImeMetrics.kt$TvImeWatcher$350L</ID>
     <ID>MagicNumber:TvImeMetrics.kt$TvImeWatcher$64</ID>
     <ID>MagicNumber:TvNotices.kt$18</ID>
-    <ID>MagicNumber:TvNotices.kt$22</ID>
+    <ID>MagicNumber:TvNotices.kt$21</ID>
     <ID>MagicNumber:TvNotices.kt$500</ID>
-    <ID>MagicNumber:TvNotices.kt$700</ID>
+    <ID>MagicNumber:TvNotices.kt$600</ID>
     <ID>MagicNumber:UpdateDialog.kt$14</ID>
     <ID>MagicNumber:UpdateDialog.kt$17</ID>
     <ID>MagicNumber:UpdateDialog.kt$18</ID>
@@ -4285,6 +4286,7 @@
     <ID>MaxLineLength:OwnTVShell.kt$/** The picture moves into the corner beside the channel panel, and back, at once: a sliding picture showed its old frame. */</ID>
     <ID>MaxLineLength:OwnTVShell.kt$// "End of programme" only at the live edge: rewound, the programme on air is not the one being watched.</ID>
     <ID>MaxLineLength:OwnTVShell.kt$// Every live channel, also in the beat between two of them when the engine has not yet said it is live:</ID>
+    <ID>MaxLineLength:OwnTVShell.kt$// One player, one look: its chrome is dark whatever theme the rest of the app wears. Only the engine under it changes.</ID>
     <ID>MaxLineLength:OwnTVShell.kt$// Settings (and More, which opens it) is a sheet over the right side: the clock and the playlist pill would sit on its title.</ID>
     <ID>MaxLineLength:OwnTVShell.kt$// Settings is reached through More now, so Back out of its root goes</ID>
     <ID>MaxLineLength:OwnTVShell.kt$// TV-box dark look: the whole screen is the side menu's grey, not black, so the panels and the page are one surface.</ID>
@@ -4301,6 +4303,7 @@
     <ID>MaxLineLength:OwnTVShell.kt$TvBoxNav &amp;&amp; selectedSection != MainSection.LIVE_TV -&gt; { restoreFocus = true; onSelectSection(MainSection.LIVE_TV) }</ID>
     <ID>MaxLineLength:OwnTVShell.kt$TvBoxNav -&gt; if (railFocused &amp;&amp; !menuTappedAway) tv.own.owntv.features.shell.components.RailState.OPEN else tv.own.owntv.features.shell.components.RailState.HIDDEN</ID>
     <ID>MaxLineLength:OwnTVShell.kt$androidx.compose.animation.core.tween(tv.own.owntv.ui.theme.MotionPrefs.ms(300), easing = androidx.compose.animation.core.FastOutSlowInEasing)</ID>
+    <ID>MaxLineLength:OwnTVShell.kt$androidx.compose.runtime</ID>
     <ID>MaxLineLength:OwnTVShell.kt$categoryKey = zapListKey ?: previewChannel?.categoryId?.let { tv.own.owntv.core.live.LiveKey.Folder(it) }</ID>
     <ID>MaxLineLength:OwnTVShell.kt$contentStart = if (TvBoxNav || navStyle == tv.own.owntv.core.settings.SettingsRepository.NavStyle.DOCKED) 64.mpx else 150.mpx</ID>
     <ID>MaxLineLength:OwnTVShell.kt$currentKey = grid.tiles.getOrNull(tile)?.channel?.categoryId?.let { tv.own.owntv.core.live.LiveKey.Folder(it) }</ID>
@@ -5958,7 +5961,9 @@
     <ID>MaxLineLength:TvBoxPlayerPanels.kt$val shift = androidx.compose.runtime.remember(key) { androidx.compose.animation.core.Animatable(if (smooth) 1f else 0f) }</ID>
     <ID>MaxLineLength:TvBoxPlayerPanels.kt$val spec = androidx.compose.animation.core.tween&lt;Float&gt;(DockAnimMs, easing = androidx.compose.animation.core.FastOutSlowInEasing)</ID>
     <ID>MaxLineLength:TvNotices.kt$.</ID>
-    <ID>MaxLineLength:TvNotices.kt$Text(n.title, style = stageText(22, 700), color = tv.own.owntv.ui.theme.StageColors.Text, maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)</ID>
+    <ID>MaxLineLength:TvNotices.kt$Box(Modifier.width(4.mpx).fillMaxHeight().clip(RoundedCornerShape(2.mpx)).background(tv.own.owntv.ui.theme.stageAccent.accent))</ID>
+    <ID>MaxLineLength:TvNotices.kt$Row</ID>
+    <ID>MaxLineLength:TvNotices.kt$Text(n.title, style = stageText(21, 600), color = tv.own.owntv.ui.theme.StageColors.Text, maxLines = 3, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:TvNotices.kt$n.text?.let { Text(it, style = stageText(18, 500), color = tv.own.owntv.ui.theme.StageColors.Muted, maxLines = 3, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) }</ID>
     <ID>MaxLineLength:UpdateDialog.kt$StageButton(stringResource(R.string.settings_close), onClick = onDismiss, height = 56.mpx, textSize = 19)</ID>
     <ID>MaxLineLength:UpdateDialog.kt$StageButton(stringResource(R.string.settings_close), onClick = onDismiss, height = 56.mpx, textSize = 19, tinted = true, modifier = Modifier.focusRequester(focus))</ID>

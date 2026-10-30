@@ -152,10 +152,10 @@
         <error line="330" column="5" source="standard:spacing-between-declarations-with-comments" />
         <error line="434" column="5" source="standard:spacing-between-declarations-with-comments" />
         <error line="520" column="5" source="standard:spacing-between-declarations-with-comments" />
-        <error line="1692" column="19" source="standard:property-naming" />
-        <error line="1695" column="19" source="standard:property-naming" />
-        <error line="1696" column="19" source="standard:property-naming" />
-        <error line="1699" column="19" source="standard:property-naming" />
+        <error line="1704" column="19" source="standard:property-naming" />
+        <error line="1707" column="19" source="standard:property-naming" />
+        <error line="1708" column="19" source="standard:property-naming" />
+        <error line="1711" column="19" source="standard:property-naming" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/live/LiveStage.kt">
         <error line="3" column="1" source="standard:import-ordering" />
@@ -586,10 +586,10 @@
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt">
         <error line="3" column="1" source="standard:import-ordering" />
-        <error line="2417" column="19" source="standard:property-naming" />
-        <error line="2429" column="1" source="standard:kdoc" />
-        <error line="2435" column="19" source="standard:property-naming" />
-        <error line="2436" column="19" source="standard:property-naming" />
+        <error line="2420" column="19" source="standard:property-naming" />
+        <error line="2432" column="1" source="standard:kdoc" />
+        <error line="2438" column="19" source="standard:property-naming" />
+        <error line="2439" column="19" source="standard:property-naming" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/shell/ShellViewModel.kt">
         <error line="3" column="1" source="standard:import-ordering" />
@@ -977,6 +977,9 @@
         <error line="3" column="1" source="standard:import-ordering" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/ui/components/TrailerPlayerScreen.kt">
+        <error line="3" column="1" source="standard:import-ordering" />
+    </file>
+    <file name="app/src/main/java/tv/own/owntv/ui/components/TvNotices.kt">
         <error line="3" column="1" source="standard:import-ordering" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/ui/format/TimeFormat.kt">
