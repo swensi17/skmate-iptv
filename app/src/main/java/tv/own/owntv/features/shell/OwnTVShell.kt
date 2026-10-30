@@ -1293,55 +1293,82 @@ fun OwnTVShell(
                             )
                         }
                     }
+                    // More and Settings are one sheet over the channels screen: it slides in from the right edge and
+                    // back out the same way (a plain move when animations are off). It stays composed while it
+                    // leaves, so there is something to slide, and cannot take focus meanwhile.
+                    val sheetOn = selectedSection == MainSection.MORE || selectedSection == MainSection.SETTINGS
+                    var sheetSection by remember { mutableStateOf(MainSection.MORE) }
+                    if (sheetOn) sheetSection = selectedSection
+                    val sheetProgress by androidx.compose.animation.core.animateFloatAsState(
+                        targetValue = if (sheetOn) 1f else 0f,
+                        animationSpec = androidx.compose.animation.core.tween(
+                            tv.own.owntv.ui.theme.MotionPrefs.dur(SheetSlideMs),
+                            easing = androidx.compose.animation.core.FastOutSlowInEasing,
+                        ),
+                        label = "settingsSheet",
+                    )
+                    if (sheetOn || sheetProgress > 0f) {
+                        Box(
+                            Modifier
+                                .fillMaxSize()
+                                .graphicsLayer {
+                                    translationX = (1f - sheetProgress) * size.width
+                                    alpha = sheetProgress.coerceIn(0f, 1f)
+                                }
+                                .then(if (sheetOn) Modifier else Modifier.focusProperties { canFocus = false }),
+                        ) {
+                            when (sheetSection) {
+                                MainSection.SETTINGS ->
+                                                    SettingsScreen(
+                                                        themeMode = themeMode,
+                                                        uiZoomPercent = uiZoomPercent,
+                                                        onSetZoom = onSetZoom,
+                                                        fontCustomization = fontCustomization,
+                                                        onSetFontCustomization = onSetFontCustomization,
+                                                        onOpenPlaylist = {},
+                                                        // Settings is reached through More now, so Back out of its root goes
+                                                        // back there rather than to the rail — one level out, not two.
+                                                        onBack = { restoreFocus = true; onSelectSection(MainSection.MORE) },
+                                                        openEpgAdd = openEpgAdd,
+                                                        onEpgAddConsumed = { openEpgAdd = false },
+                                                        start = settingsStart,
+                                                        onStartConsumed = { settingsStart = null },
+                                                        modifier = Modifier
+                                                            .fillMaxSize()
+                                                            .onFocusChanged { if (it.hasFocus) focusedLayer = ShellLayer.CONTENT }
+                                                            .focusGroup(),
+                                                    )
+                                else ->
+                                                    tv.own.owntv.features.more.MoreScreen(
+                                                        profileName = profileName.ifBlank { stringResource(R.string.common_own_tv_user) },
+                                                        playlistLabel = playlistLabel,
+                                                        avatarId = avatarId,
+                                                        avatarPath = avatarPath,
+                                                        onSwitchProfile = onSwitchProfile,
+                                                        onPickAvatar = { showAvatarPicker = true },
+                                                        onOpenSettings = { group, search ->
+                                                            settingsStart = tv.own.owntv.features.shell.components.SettingsStart(group, search)
+                                                            onSelectSection(MainSection.SETTINGS)
+                                                        },
+                                                        // The same paths Home uses, so the engine ladder, resume and Continue all apply.
+                                                        onPlayChannel = { id -> scope.launch { if (liveVm.ensurePlayingByIdAsync(id)) openFullscreen(MainSection.LIVE_TV) } },
+                                                        onPlayMovie = { id, pos -> scope.launch { if (movieVm.playByIdAsync(id, pos) && !movieVm.externalPlayerOn.value) openFullscreen(MainSection.MOVIES) } },
+                                                        onPlayEpisode = { seriesId, epId, pos -> scope.launch { if (seriesVm.playFromHomeAsync(seriesId, epId, pos) && !seriesVm.externalPlayerOn.value) openFullscreen(MainSection.SERIES) } },
+                                                        onOpenSeries = { id -> seriesVm.openSeriesById(id); restoreFocus = true; onSelectSection(MainSection.SERIES) },
+                                                        onChildFocused = { focusedLayer = ShellLayer.CONTENT },
+                                                        onEntryHook = { moreEntry = it },
+                                                        restoreFocus = restoreFocus,
+                                                        onRestored = { restoreFocus = false },
+                                                        onLeave = { onSelectSection(if (TvBoxNav) MainSection.LIVE_TV else MainSection.HOME) },
+                                                        modifier = Modifier
+                                                            .fillMaxSize()
+                                                            .onFocusChanged { if (it.hasFocus) focusedLayer = ShellLayer.CONTENT }
+                                                            .focusGroup(),
+                                                    )
+                            }
+                        }
+                    }
                     when {
-                        // More — the hub the rail's last item opens. Settings is a row in it.
-                        selectedSection == MainSection.MORE -> tv.own.owntv.features.more.MoreScreen(
-                            profileName = profileName.ifBlank { stringResource(R.string.common_own_tv_user) },
-                            playlistLabel = playlistLabel,
-                            avatarId = avatarId,
-                            avatarPath = avatarPath,
-                            onSwitchProfile = onSwitchProfile,
-                            onPickAvatar = { showAvatarPicker = true },
-                            onOpenSettings = { group, search ->
-                                settingsStart = tv.own.owntv.features.shell.components.SettingsStart(group, search)
-                                onSelectSection(MainSection.SETTINGS)
-                            },
-                            // The same paths Home uses, so the engine ladder, resume and Continue all apply.
-                            onPlayChannel = { id -> scope.launch { if (liveVm.ensurePlayingByIdAsync(id)) openFullscreen(MainSection.LIVE_TV) } },
-                            onPlayMovie = { id, pos -> scope.launch { if (movieVm.playByIdAsync(id, pos) && !movieVm.externalPlayerOn.value) openFullscreen(MainSection.MOVIES) } },
-                            onPlayEpisode = { seriesId, epId, pos -> scope.launch { if (seriesVm.playFromHomeAsync(seriesId, epId, pos) && !seriesVm.externalPlayerOn.value) openFullscreen(MainSection.SERIES) } },
-                            onOpenSeries = { id -> seriesVm.openSeriesById(id); restoreFocus = true; onSelectSection(MainSection.SERIES) },
-                            onChildFocused = { focusedLayer = ShellLayer.CONTENT },
-                            onEntryHook = { moreEntry = it },
-                            restoreFocus = restoreFocus,
-                            onRestored = { restoreFocus = false },
-                            onLeave = { onSelectSection(if (TvBoxNav) MainSection.LIVE_TV else MainSection.HOME) },
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .onFocusChanged { if (it.hasFocus) focusedLayer = ShellLayer.CONTENT }
-                                .focusGroup(),
-                        )
-
-                        selectedSection == MainSection.SETTINGS -> SettingsScreen(
-                            themeMode = themeMode,
-                            uiZoomPercent = uiZoomPercent,
-                            onSetZoom = onSetZoom,
-                            fontCustomization = fontCustomization,
-                            onSetFontCustomization = onSetFontCustomization,
-                            onOpenPlaylist = {},
-                            // Settings is reached through More now, so Back out of its root goes
-                            // back there rather than to the rail — one level out, not two.
-                            onBack = { restoreFocus = true; onSelectSection(MainSection.MORE) },
-                            openEpgAdd = openEpgAdd,
-                            onEpgAddConsumed = { openEpgAdd = false },
-                            start = settingsStart,
-                            onStartConsumed = { settingsStart = null },
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .onFocusChanged { if (it.hasFocus) focusedLayer = ShellLayer.CONTENT }
-                                .focusGroup(),
-                        )
-
                         selectedSection == MainSection.HOME -> HomeScreen(
                             vm = homeVm,
                             // Skip the fullscreen player when the global external-player toggle is on
@@ -2381,6 +2408,9 @@ internal const val TvBoxNav = true
 /** Two Back presses this close together on the channels leave the app. */
 @Suppress("ktlint:standard:property-naming")
 private const val ExitBackWindowMs = 2_000L
+
+/** How long the Settings sheet takes to slide in and out. */
+private const val SheetSlideMs = 300
 
 /** Resizing the picture frame by frame reallocates the video's buffers each step: weak TVs jump straight to the result. */
 private val FullGrowMs: Int get() = if (tv.own.owntv.ui.theme.MotionPrefs.smoothPlayer) tv.own.owntv.ui.theme.MotionPrefs.ms(320) else 0

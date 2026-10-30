@@ -297,11 +297,9 @@ fun SearchScreen(
         // Title band: "Search" + "“sky” · 12 results" (or "Searching…" while the lookup runs).
         if (showingResults) {
             val total = shown.channels.size + shown.movies.size + shown.series.size + shown.programmes.size
-            VodHeader(
-                section = stringResource(R.string.search_title),
-                category = if (searching) stringResource(R.string.search_query_quoted, query.trim()) else intent?.displayLabel().orEmpty(),
-                count = if (busy) stringResource(R.string.search_in_progress) else pluralStringResource(R.plurals.search_result_count, total, total),
-                showChevron = false,
+            SearchHeader(
+                count = total,
+                label = if (searching) null else intent?.displayLabel(),
                 modifier = Modifier.padding(start = fx(84), top = 52.mpx).width(fx(826)),
             )
         } else {
@@ -807,6 +805,28 @@ private fun RecentRow(term: String, logoUrl: String?, modifier: Modifier = Modif
         }
     }
 }
+
+/**
+ * "Search 55": the title and, on the same line at the same size, how many results there are, counting
+ * up to the number as they arrive. With animations off the number simply changes.
+ */
+@Composable
+private fun SearchHeader(count: Int, label: String?, modifier: Modifier = Modifier) {
+    val shown by androidx.compose.animation.core.animateIntAsState(
+        targetValue = count,
+        animationSpec = androidx.compose.animation.core.tween(tv.own.owntv.ui.theme.MotionPrefs.dur(COUNT_UP_MS), easing = androidx.compose.animation.core.FastOutSlowInEasing),
+        label = "resultCount",
+    )
+    Row(modifier, horizontalArrangement = Arrangement.spacedBy(20.mpx), verticalAlignment = Alignment.Bottom) {
+        Text(stringResource(R.string.search_title), style = stageText(46, 800, (-1).mpxSp), color = StageColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Text(
+            label ?: localizedInteger(shown), style = stageText(46, 800, (-1).mpxSp), color = stageAccent.accent,
+            maxLines = 1, overflow = TextOverflow.Ellipsis,
+        )
+    }
+}
+
+private const val COUNT_UP_MS = 600
 
 /** The lookup is running: a line that says so and a thin bar sweeping under it. */
 @Composable

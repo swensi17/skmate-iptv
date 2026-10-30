@@ -151,6 +151,7 @@
     <ID>CyclomaticComplexMethod:SportsSettingsScreen.kt$@Composable private fun LeaguePicker(vm: SportsSettingsViewModel, c: SportsConfig, rowsFocus: androidx.compose.ui.focus.FocusRequester, modifier: Modifier)</ID>
     <ID>CyclomaticComplexMethod:StageComponents.kt$@Composable fun StageSheetItem( text: String, onClick: () -&gt; Unit, modifier: Modifier = Modifier, icon: OwnTVIcon? = null, count: String? = null, selected: Boolean = false, onLongClick: (() -&gt; Unit)? = null, /** 2 lets a long name wrap instead of being cut; the row then grows past 56. */ maxLines: Int = 1, tags: (@Composable RowScope.(focused: Boolean) -&gt; Unit)? = null, trailing: (@Composable RowScope.(focused: Boolean) -&gt; Unit)? = null, )</ID>
     <ID>CyclomaticComplexMethod:StageComponents.kt$@Composable fun StageSurface( onClick: () -&gt; Unit, radius: Dp, modifier: Modifier = Modifier, focusStyle: StageFocus = StageFocus.FILLED, idle: Modifier = Modifier, enabled: Boolean = true, onLongClick: (() -&gt; Unit)? = null, contentAlignment: Alignment = Alignment.CenterStart, /** Drawn as focused without holding focus: a pill whose menu is open over it. */ highlighted: Boolean = false, /** The focus colours; the player's chrome passes its on-video accent. */ accent: StageAccent = stageAccent, /** TV-box focus as a pill (round ends); off for list rows that keep softly rounded corners. */ pill: Boolean = true, content: @Composable BoxScope.(focused: Boolean) -&gt; Unit, )</ID>
+    <ID>CyclomaticComplexMethod:StageComponents.kt$@Composable fun StageTab(label: String, count: String, selected: Boolean, onClick: () -&gt; Unit, modifier: Modifier = Modifier, centered: Boolean = false)</ID>
     <ID>CyclomaticComplexMethod:StageComponents.kt$@Composable fun StageTool( text: String?, onClick: () -&gt; Unit, modifier: Modifier = Modifier, icon: OwnTVIcon? = null, value: String? = null, trailingIcon: OwnTVIcon? = null, boxed: Boolean = false, /** The value in accent (the guide's category, "**Sky Cinema** ▾"). */ valueAccent: Boolean = false, /** `.danger`: a destructive action in red ("Clear watch history"). */ danger: Boolean = false, )</ID>
     <ID>CyclomaticComplexMethod:StageComponents.kt$private fun Modifier.stageFocusDecor(style: StageFocus, radius: Dp, a: StageAccent, palette: StagePalette)</ID>
     <ID>CyclomaticComplexMethod:StageControls.kt$@Composable fun StageSearchField( query: String, onQueryChange: (String) -&gt; Unit, placeholder: String, modifier: Modifier = Modifier, height: Dp = 48.mpx, radius: Dp = 15.mpx, horizontalPadding: Dp = 18.mpx, /** Open the keyboard as soon as the field appears (Settings search reached from a full page). */ autoEdit: Boolean = false, /** Set = OK calls this instead of editing here (a full page's search hands over to Settings search). */ onActivate: (() -&gt; Unit)? = null, /** Typing started (true) or ended (false) — so a host can leave ◀/▶ to the text cursor meanwhile. */ onEditingChange: (Boolean) -&gt; Unit = {}, )</ID>
@@ -511,6 +512,7 @@
     <ID>FunctionNaming:SearchScreen.kt$@Composable private fun RecentRow(term: String, logoUrl: String?, modifier: Modifier = Modifier, onClick: () -&gt; Unit)</ID>
     <ID>FunctionNaming:SearchScreen.kt$@Composable private fun RecentSearches( firstFocus: FocusRequester, recent: List&lt;String&gt;, logos: Map&lt;String, String?&gt;, onRecent: (String) -&gt; Unit, onClearRecent: () -&gt; Unit, modifier: Modifier = Modifier, )</ID>
     <ID>FunctionNaming:SearchScreen.kt$@Composable private fun SearchCaption(modifier: Modifier = Modifier)</ID>
+    <ID>FunctionNaming:SearchScreen.kt$@Composable private fun SearchHeader(count: Int, label: String?, modifier: Modifier = Modifier)</ID>
     <ID>FunctionNaming:SearchScreen.kt$@Composable private fun SearchRow( title: String, line: AnnotatedString, tags: List&lt;String&gt;, mark: PlaylistMark?, onClick: () -&gt; Unit, leading: @Composable () -&gt; Unit, modifier: Modifier = Modifier, )</ID>
     <ID>FunctionNaming:SearchScreen.kt$@Composable private fun SearchingNote(modifier: Modifier = Modifier)</ID>
     <ID>FunctionNaming:SearchScreen.kt$@Composable private fun SmallPoster(url: String?, placeholder: OwnTVIcon)</ID>
@@ -2241,6 +2243,7 @@
     <ID>MagicNumber:SearchScreen.kt$40</ID>
     <ID>MagicNumber:SearchScreen.kt$400</ID>
     <ID>MagicNumber:SearchScreen.kt$44</ID>
+    <ID>MagicNumber:SearchScreen.kt$46</ID>
     <ID>MagicNumber:SearchScreen.kt$5</ID>
     <ID>MagicNumber:SearchScreen.kt$600</ID>
     <ID>MagicNumber:SearchScreen.kt$64</ID>
@@ -4168,8 +4171,10 @@
     <ID>MaxLineLength:OwnTVShell.kt$// "End of programme" only at the live edge: rewound, the programme on air is not the one being watched.</ID>
     <ID>MaxLineLength:OwnTVShell.kt$// Every live channel, also in the beat between two of them when the engine has not yet said it is live:</ID>
     <ID>MaxLineLength:OwnTVShell.kt$// Settings (and More, which opens it) is a sheet over the right side: the clock and the playlist pill would sit on its title.</ID>
+    <ID>MaxLineLength:OwnTVShell.kt$// Settings is reached through More now, so Back out of its root goes</ID>
     <ID>MaxLineLength:OwnTVShell.kt$// TV-box dark look: the whole screen is the side menu's grey, not black, so the panels and the page are one surface.</ID>
     <ID>MaxLineLength:OwnTVShell.kt$// TV-box style the channels list is one screen that stays put: the settings sheet opens over it, and</ID>
+    <ID>MaxLineLength:OwnTVShell.kt$// The same paths Home uses, so the engine ladder, resume and Continue all apply.</ID>
     <ID>MaxLineLength:OwnTVShell.kt$// surface, not a copy built anew behind the sheet. Behind the sheet it is out of the remote's reach.</ID>
     <ID>MaxLineLength:OwnTVShell.kt$LaunchedEffect(goalToast) { if (goalToast != null) { kotlinx.coroutines.delay(GOAL_TOAST_MS); goalToast = null } }</ID>
     <ID>MaxLineLength:OwnTVShell.kt$LaunchedEffect(grow) { grow.animateTo(1f, androidx.compose.animation.core.tween(FullGrowMs, easing = androidx.compose.animation.core.FastOutSlowInEasing)) }</ID>
@@ -4203,7 +4208,9 @@
     <ID>MaxLineLength:OwnTVShell.kt$modifier = Modifier.align(Alignment.TopEnd).onFocusChanged { clusterFocused = it.hasFocus }.focusGroup()</ID>
     <ID>MaxLineLength:OwnTVShell.kt$modifier = Modifier.fillMaxSize().graphicsLayer { alpha = if (collapsingFull) 0f else ((grow.value - 0.7f) / 0.3f).coerceIn(0f, 1f) }</ID>
     <ID>MaxLineLength:OwnTVShell.kt$navStyle == tv.own.owntv.core.settings.SettingsRepository.NavStyle.DOCKED -&gt; tv.own.owntv.features.shell.components.RailState.PINNED</ID>
+    <ID>MaxLineLength:OwnTVShell.kt$onBack = { restoreFocus = true; onSelectSection(MainSection.MORE) }</ID>
     <ID>MaxLineLength:OwnTVShell.kt$onCycleSize = { scope.launch { settingsRepo.setMiniPlayerSizePct(tv.own.owntv.core.player.MiniPlayerSize.next(miniSizePct)) } }</ID>
+    <ID>MaxLineLength:OwnTVShell.kt$onLeave = { onSelectSection(if (TvBoxNav) MainSection.LIVE_TV else MainSection.HOME) }</ID>
     <ID>MaxLineLength:OwnTVShell.kt$onListView = { liveVm.setLiveView(tv.own.owntv.core.settings.SettingsRepository.LiveView.LIST) }</ID>
     <ID>MaxLineLength:OwnTVShell.kt$onOpenGuide = if (TvBoxNav &amp;&amp; (isTunedLive || (isLiveStream &amp;&amp; !catchupActive))) { { showGuideOverlay = true } } else null</ID>
     <ID>MaxLineLength:OwnTVShell.kt$onOpenGuide = { liveVm.setLiveView(tv.own.owntv.core.settings.SettingsRepository.LiveView.GUIDE) }</ID>
@@ -4221,7 +4228,9 @@
     <ID>MaxLineLength:OwnTVShell.kt$pillsFocusable = focusedLayer == ShellLayer.SIDEBAR || clusterFocused || selectedSection == MainSection.HOME</ID>
     <ID>MaxLineLength:OwnTVShell.kt$private</ID>
     <ID>MaxLineLength:OwnTVShell.kt$private val FullShrinkMs: Int get() = if (tv.own.owntv.ui.theme.MotionPrefs.smoothPlayer) tv.own.owntv.ui.theme.MotionPrefs.ms(260) else 0</ID>
+    <ID>MaxLineLength:OwnTVShell.kt$profileName = profileName.ifBlank { stringResource(R.string.common_own_tv_user) }</ID>
     <ID>MaxLineLength:OwnTVShell.kt$selectedSection == MainSection.LIVE_TV &amp;&amp; liveView == tv.own.owntv.core.settings.SettingsRepository.LiveView.GUIDE</ID>
+    <ID>MaxLineLength:OwnTVShell.kt$settingsStart = tv.own.owntv.features.shell.components.SettingsStart(group, search)</ID>
     <ID>MaxLineLength:OwnTVShell.kt$shellBindings.firstOrNull { it.press == tv.own.owntv.core.settings.RemoteShortcutPress.LONG }</ID>
     <ID>MaxLineLength:OwnTVShell.kt$shellBindings.firstOrNull { it.press == tv.own.owntv.core.settings.RemoteShortcutPress.SHORT }</ID>
     <ID>MaxLineLength:OwnTVShell.kt$sleepProgrammeEndMs = if (isTunedLive &amp;&amp; !timeshifted) { { liveVm.nowNext.value?.now?.stopMs } } else null</ID>
@@ -4682,13 +4691,13 @@
     <ID>MaxLineLength:SearchScreen.kt$StageSurface</ID>
     <ID>MaxLineLength:SearchScreen.kt$Text(line, style = stageText(16, 400), color = if (focused) StageColors.FxLine else StageColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:SearchScreen.kt$Text(stringResource(R.string.search_in_progress), style = stageText(22, 600), color = StageColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
+    <ID>MaxLineLength:SearchScreen.kt$Text(stringResource(R.string.search_title), style = stageText(46, 800, (-1).mpxSp), color = StageColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:SearchScreen.kt$Text(term, style = stageText(19, 600), color = if (focused) tv.own.owntv.ui.theme.stageAccent.onAccent else stageTone(Color(0xFFCDD7D3), StageColors.ItemText), maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:SearchScreen.kt$Text(title, style = stageText(21, 700), color = if (focused) StageColors.FxText else StageColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:SearchScreen.kt$Text(title, style = stageText(30, 800), color = StageColors.Text, maxLines = 2, overflow = TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:SearchScreen.kt$add(stringResource(R.string.common_ok) to stringResource(if (onFilter in kinds) R.string.content_key_unselect else R.string.content_key_select))</ID>
+    <ID>MaxLineLength:SearchScreen.kt$animationSpec = androidx.compose.animation.core.tween(tv.own.owntv.ui.theme.MotionPrefs.dur(COUNT_UP_MS), easing = androidx.compose.animation.core.FastOutSlowInEasing)</ID>
     <ID>MaxLineLength:SearchScreen.kt$animationSpec = androidx.compose.animation.core.tween(tv.own.owntv.ui.theme.MotionPrefs.dur(FIELD_RISE_MS), easing = androidx.compose.animation.core.FastOutSlowInEasing)</ID>
-    <ID>MaxLineLength:SearchScreen.kt$category = if (searching) stringResource(R.string.search_query_quoted, query.trim()) else intent?.displayLabel().orEmpty()</ID>
-    <ID>MaxLineLength:SearchScreen.kt$count = if (busy) stringResource(R.string.search_in_progress) else pluralStringResource(R.plurals.search_result_count, total, total)</ID>
     <ID>MaxLineLength:SearchScreen.kt$fun heading(label: String, n: Int, key: String)</ID>
     <ID>MaxLineLength:SearchScreen.kt$if</ID>
     <ID>MaxLineLength:SearchScreen.kt$it</ID>
@@ -6150,6 +6159,7 @@
     <ID>TopLevelPropertyNaming:MultiviewScreen.kt$/** How long OK must be held for "open the tile menu" rather than "give it the sound". */ private const val LongPressMs = 500L</ID>
     <ID>TopLevelPropertyNaming:OwnTVAvatar.kt$/** How much the person is enlarged so their own circle reaches past the avatar's edge. */ private const val PersonScale = 1.85f</ID>
     <ID>TopLevelPropertyNaming:OwnTVShell.kt$/** * The side menu as TV boxes show it: hidden, nothing at the screen edge, until ◀ from the content's * left edge focuses it; it opens over the content and goes again when focus leaves it. Overrides the * Navigation style setting (Docked / Floating) while on. */ @Suppress("ktlint:standard:property-naming") internal const val TvBoxNav = true</ID>
+    <ID>TopLevelPropertyNaming:OwnTVShell.kt$/** How long the Settings sheet takes to slide in and out. */ private const val SheetSlideMs = 300</ID>
     <ID>TopLevelPropertyNaming:OwnTVShell.kt$/** How often, and how far apart, the shell tries to put focus in a screen that is still composing. */ private const val ContentFocusTries = 60</ID>
     <ID>TopLevelPropertyNaming:OwnTVShell.kt$/** Two Back presses this close together on the channels leave the app. */ @Suppress("ktlint:standard:property-naming") private const val ExitBackWindowMs = 2_000L</ID>
     <ID>TopLevelPropertyNaming:OwnTVShell.kt$private const val ContentFocusStepMs = 50L</ID>

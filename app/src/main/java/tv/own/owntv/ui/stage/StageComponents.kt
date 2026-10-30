@@ -478,10 +478,24 @@ fun StageTab(label: String, count: String, selected: Boolean, onClick: () -> Uni
         Row(
             Modifier
                 .then(if (centered) Modifier.fillMaxWidth() else Modifier)
-                .padding(horizontal = if (centered) 4.mpx else 12.mpx)
-                .padding(top = 6.mpx)
                 .then(
-                    if (selected) {
+                    // A filter button: a thin rounded-square outline says it can be pressed; the chosen one is accent.
+                    if (centered) {
+                        Modifier.border(
+                            1.5.mpx,
+                            when {
+                                focused -> Color.Transparent
+                                selected -> a.accent
+                                else -> StageColors.Dim.copy(alpha = 0.45f)
+                            },
+                            RoundedCornerShape(12.mpx),
+                        )
+                    } else Modifier,
+                )
+                .padding(horizontal = if (centered) 4.mpx else 12.mpx)
+                .padding(top = if (centered) 12.mpx else 6.mpx)
+                .then(
+                    if (selected && !centered) {
                         Modifier.drawBehind {
                             val h = 4.mpx.toPx()
                             val bar = Rect(0f, size.height - h, size.width, size.height)
