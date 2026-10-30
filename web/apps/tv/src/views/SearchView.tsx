@@ -2,9 +2,12 @@ import { useEffect, useMemo, useState } from "preact/hooks";
 import { searchBy, type Channel } from "@skmate/core";
 import { focusFirst } from "@skmate/ui";
 import { t } from "../i18n";
+import { channelKey } from "../state/favorites";
 import { ChannelRow } from "./ChannelRow";
 
-export function SearchView({ channels, onOpen }: { channels: Channel[]; onOpen: (c: Channel) => void }) {
+interface Props { channels: Channel[]; favorites: ReadonlySet<string>; onOpen: (c: Channel) => void; onFav: (c: Channel) => void }
+
+export function SearchView({ channels, favorites, onOpen, onFav }: Props) {
   const [query, setQuery] = useState("");
   const hits = useMemo(() => searchBy(channels, query, (c) => c.name).map((r) => r.item), [channels, query]);
   useEffect(() => { focusFirst(document, "search-input"); }, []);
@@ -22,7 +25,7 @@ export function SearchView({ channels, onOpen }: { channels: Channel[]; onOpen: 
         {query.trim() === "" ? t("searchHint") : hits.length === 0 ? t("searchEmpty") : t("searchResults", { n: hits.length })}
       </div>
       <div class="scroll">
-        {hits.map((c, i) => <ChannelRow key={c.id} channel={c} index={i} onOpen={onOpen} />)}
+        {hits.map((c, i) => <ChannelRow key={c.id} channel={c} index={i} favorite={favorites.has(channelKey(c))} onOpen={onOpen} onFav={onFav} />)}
       </div>
     </div>
   );

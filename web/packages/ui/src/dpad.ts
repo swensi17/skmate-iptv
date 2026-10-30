@@ -33,7 +33,8 @@ export function installDpad(onBack: () => boolean): () => void {
     const dir = DIRS[e.key] ?? DIR_CODES[e.keyCode];
     if (!dir) return;
     if (typing && (dir === "left" || dir === "right")) return; // the caret moves inside a field
-    const all = boxes(document);
+    // An open dialog (`[data-modal]`) owns the remote: focus cannot leave it.
+    const all = boxes(document.querySelector("[data-modal]") ?? document);
     const cur = active?.dataset.focus ?? null;
     const target = nextFocus(all.map(({ id, x, y, w, h }) => ({ id, x, y, w, h })), cur, dir);
     if (target !== null) {

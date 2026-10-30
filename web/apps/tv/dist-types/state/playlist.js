@@ -1,4 +1,3 @@
-import { parseM3U } from "@skmate/core";
 // Public test streams, only for development; a real playlist replaces them in the next stage.
 const DEMO = `#EXTM3U
 #EXTINF:-1 group-title="Новости",Новости 24
@@ -22,6 +21,6 @@ https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8
 #EXTINF:-1 group-title="Музыка",MTV
 https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8
 `;
-export function demoChannels() {
-    return parseM3U(DEMO);
+export function demoText() {
+    return DEMO;
 }

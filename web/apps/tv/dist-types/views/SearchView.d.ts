@@ -1,5 +1,9 @@
 import { type Channel } from "@skmate/core";
-export declare function SearchView({ channels, onOpen }: {
+interface Props {
     channels: Channel[];
+    favorites: ReadonlySet<string>;
     onOpen: (c: Channel) => void;
-}): import("preact").JSX.Element;
+    onFav: (c: Channel) => void;
+}
+export declare function SearchView({ channels, favorites, onOpen, onFav }: Props): import("preact").JSX.Element;
+export {};
