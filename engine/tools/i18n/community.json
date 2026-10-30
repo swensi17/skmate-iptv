@@ -1,0 +1,6 @@
+{
+  "projectUrl": "https://github.com/swensi17/skmate-iptv",
+  "languageRequestUrl": "https://github.com/swensi17/skmate-iptv/issues/new?template=feature_request.yml&title=%5BLanguage%5D%20Add%20",
+  "localTestOnly": false,
+  "translationReadinessThresholdPercent": 75
+}

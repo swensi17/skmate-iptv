@@ -87,14 +87,13 @@ M3U и Xtream Codes, телегид (EPG), архив, профили — упр
 
 ## Сборка из исходников
 
-Нужны JDK 21 и Android SDK (platform 37). Ядро ([skmate-iptv-core](https://github.com/swensi17/skmate-iptv-core)) берётся из GitHub Packages:
+Нужны JDK 21 и Android SDK (platform 37). Всё собирается из этого репозитория, токены и сторонние пакеты не нужны:
 
 ```bash
-export GITHUB_ACTOR=<ваш логин> GITHUB_TOKEN=<токен с read:packages>
 ./gradlew :app:assembleStandardDebug
 ```
 
-Для работы с исходниками ядра рядом: `-Powntv.corePath=../skmate-iptv-core`.
+В репозитории: `app/` (приложение), `engine/` (ядро: разбор плейлистов, база, плееры), `libmpv/` (исходники и скрипты сборки libmpv), `libs/` (готовый libmpv).
 Архитектура: [ARCHITECTURE.md](ARCHITECTURE.md) · участие: [CONTRIBUTING.md](CONTRIBUTING.md) · изменения: [CHANGELOG.md](CHANGELOG.md).
 
 ## Технологии

@@ -1,4 +1,4 @@
-# OwnTV release keep rules (R8). Each rule guards a runtime lookup that R8 can't see
+# SkMate IPTV release keep rules (R8). Each rule guards a runtime lookup that R8 can't see
 # statically — trim only with a full on-device regression (sync, both engines, backup).
 
 # --- Crash reports: keep readable stack traces (mapping.txt still needed for names) ---

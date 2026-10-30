@@ -22,11 +22,8 @@ on:
 
 permissions:
   contents: write   # create the release
-  packages: read    # core, player-core and libmpv from GitHub Packages
 
 env:
-  GITHUB_ACTOR: ${{ github.actor }}
-  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   TAG: ${{ inputs.tag || github.ref_name }}
 
 concurrency:

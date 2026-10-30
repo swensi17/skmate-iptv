@@ -16,12 +16,8 @@ on:
 
 permissions:
   contents: read
-  packages: read   # core, player-core and libmpv from swensi17/skmate-iptv-core's GitHub Packages
 
-# Gradle reads these to resolve GitHub Packages; GitHub asks for a token even for public packages.
 env:
-  GITHUB_ACTOR: ${{ github.actor }}
-  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   KTLINT_VERSION: "1.8.0"
   KTLINT_SHA256: "a3fd620207d5c40da6ca789b95e7f823c54e854b7fade7f613e91096a3706d75"
   DETEKT_VERSION: "1.23.8"

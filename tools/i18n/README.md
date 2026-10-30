@@ -1,9 +1,6 @@
 # SkMate IPTV TV app — i18n checks
 
-**The strings themselves are not in this repository.** Every `strings*.xml`, the language catalogue
-that owns them, the Weblate integration and the translator guide live in the core library repo:
-<https://github.com/swensi17/skmate-iptv-core> (`tools/i18n/README.md` there). Add, change or translate a
-string there, then bump `owntvCore` in `gradle/libs.versions.toml`.
+**The strings themselves live in `engine/`.** Every `strings*.xml`, the language catalogue that owns them, the Weblate integration and the translator guide are in `engine/tools/i18n` (see its README). Add, change or translate a string there.
 
 What still runs here, on the TV app's own Kotlin:
 
