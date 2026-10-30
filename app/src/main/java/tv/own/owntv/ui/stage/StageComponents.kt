@@ -346,15 +346,22 @@ fun StageButton(
 ) {
     val a = stageAccent
     val r = StageRadii.Button
+    // TV-box: every button is the same square grey slab, whatever it does; "tinted" (blue) is not a look it has.
+    val tvBox = tv.own.owntv.features.shell.TvBoxNav
+    val tint = tinted && !tvBox
     StageSurface(
         onClick = onClick,
         radius = r,
         modifier = modifier.height(height).then(if (round) Modifier.width(height) else Modifier),
         focusStyle = StageFocus.PRIMARY,
-        idle = if (tinted) Modifier.background(a.accent.copy(alpha = 0.2f), RoundedCornerShape(r)) else Modifier.stageGlass(r),
+        idle = when {
+            tvBox -> Modifier.background(StageColors.ControlFill, FocusBarShape)
+            tint -> Modifier.background(a.accent.copy(alpha = 0.2f), RoundedCornerShape(r))
+            else -> Modifier.stageGlass(r)
+        },
         contentAlignment = Alignment.Center,
     ) { focused ->
-        val color = if (focused) tv.own.owntv.ui.theme.stageAccent.onAccent else if (tinted) a.accent else StageColors.Text
+        val color = if (tvBox) StageColors.Text else if (focused) tv.own.owntv.ui.theme.stageAccent.onAccent else if (tint) a.accent else StageColors.Text
         Row(
             Modifier.then(if (round) Modifier else Modifier.padding(horizontal = 30.mpx)),
             horizontalArrangement = Arrangement.spacedBy(12.mpx),
@@ -364,8 +371,8 @@ fun StageButton(
             if (text != null) Text(text, style = stageText(textSize, 700), color = color, maxLines = 1, overflow = TextOverflow.Ellipsis)
             if (trailing != null) {
                 // On a tinted button the trailing part is the label's accent at 70% ("· 12 min left").
-                val idle = if (tinted) a.accent.copy(alpha = 0.7f) else StageColors.Muted
-                Text(trailing, style = stageText(textSize, 600), color = if (focused) tv.own.owntv.ui.theme.stageAccent.onAccent else idle, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                val idle = if (tint) a.accent.copy(alpha = 0.7f) else StageColors.Muted
+                Text(trailing, style = stageText(textSize, 600), color = if (tvBox) StageColors.Muted else if (focused) tv.own.owntv.ui.theme.stageAccent.onAccent else idle, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
             if (trailingIcon != null) StageIcon(trailingIcon, color, textSize.mpx)
         }

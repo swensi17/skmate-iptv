@@ -153,6 +153,7 @@
     <ID>CyclomaticComplexMethod:SportsParts.kt$@Composable @ReadOnlyComposable internal fun sportLabel(sport: Sport): String</ID>
     <ID>CyclomaticComplexMethod:SportsSettingsScreen.kt$@Composable fun SportsSettingsScreen(onBack: () -&gt; Unit, modifier: Modifier = Modifier, vm: SportsSettingsViewModel = koinViewModel())</ID>
     <ID>CyclomaticComplexMethod:SportsSettingsScreen.kt$@Composable private fun LeaguePicker(vm: SportsSettingsViewModel, c: SportsConfig, rowsFocus: androidx.compose.ui.focus.FocusRequester, modifier: Modifier)</ID>
+    <ID>CyclomaticComplexMethod:StageComponents.kt$@Composable fun StageButton( text: String?, onClick: () -&gt; Unit, modifier: Modifier = Modifier, icon: OwnTVIcon? = null, iconFilled: Boolean = false, trailing: String? = null, round: Boolean = false, height: Dp = 64.mpx, textSize: Int = 22, tinted: Boolean = false, /** A glyph after the label: the ▾ of "● Record ▾". */ trailingIcon: OwnTVIcon? = null, )</ID>
     <ID>CyclomaticComplexMethod:StageComponents.kt$@Composable fun StageSheetItem( text: String, onClick: () -&gt; Unit, modifier: Modifier = Modifier, icon: OwnTVIcon? = null, count: String? = null, selected: Boolean = false, onLongClick: (() -&gt; Unit)? = null, /** 2 lets a long name wrap instead of being cut; the row then grows past 56. */ maxLines: Int = 1, tags: (@Composable RowScope.(focused: Boolean) -&gt; Unit)? = null, trailing: (@Composable RowScope.(focused: Boolean) -&gt; Unit)? = null, )</ID>
     <ID>CyclomaticComplexMethod:StageComponents.kt$@Composable fun StageSurface( onClick: () -&gt; Unit, radius: Dp, modifier: Modifier = Modifier, focusStyle: StageFocus = StageFocus.FILLED, idle: Modifier = Modifier, enabled: Boolean = true, onLongClick: (() -&gt; Unit)? = null, contentAlignment: Alignment = Alignment.CenterStart, /** Drawn as focused without holding focus: a pill whose menu is open over it. */ highlighted: Boolean = false, /** The focus colours; the player's chrome passes its on-video accent. */ accent: StageAccent = stageAccent, /** TV-box focus as a pill (round ends); off for list rows that keep softly rounded corners. */ pill: Boolean = true, content: @Composable BoxScope.(focused: Boolean) -&gt; Unit, )</ID>
     <ID>CyclomaticComplexMethod:StageComponents.kt$@Composable fun StageTab(label: String, count: String, selected: Boolean, onClick: () -&gt; Unit, modifier: Modifier = Modifier, centered: Boolean = false)</ID>
@@ -3097,6 +3098,7 @@
     <ID>MagicNumber:WizardFrame.kt$0.03f</ID>
     <ID>MagicNumber:WizardFrame.kt$0xFF4A5059</ID>
     <ID>MagicNumber:WizardFrame.kt$0xFFD9D3CB</ID>
+    <ID>MagicNumber:WizardFrame.kt$0xFFDADCDF</ID>
     <ID>MagicNumber:WizardFrame.kt$16</ID>
     <ID>MagicNumber:WizardFrame.kt$20</ID>
     <ID>MagicNumber:WizardFrame.kt$23</ID>
@@ -5746,7 +5748,7 @@
     <ID>MaxLineLength:StageComponents.kt$Text(title, style = stageText(19, 700), color = StageColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:StageComponents.kt$Text(title, style = stageText(23, 800), color = StageColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:StageComponents.kt$Text(title, style = stageText(titleSize, 700), color = stageTone(Color(0xFFE6EEEA), StageColors.Text), maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
-    <ID>MaxLineLength:StageComponents.kt$Text(trailing, style = stageText(textSize, 600), color = if (focused) tv.own.owntv.ui.theme.stageAccent.onAccent else idle, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
+    <ID>MaxLineLength:StageComponents.kt$Text(trailing, style = stageText(textSize, 600), color = if (tvBox) StageColors.Muted else if (focused) tv.own.owntv.ui.theme.stageAccent.onAccent else idle, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:StageComponents.kt$color = if (focused) tv.own.owntv.ui.theme.stageAccent.onAccent else if (on) a.accent else StageColors.Muted</ID>
     <ID>MaxLineLength:StageComponents.kt$drawRect(Color(0x12000000), topLeft = androidx.compose.ui.geometry.Offset(16.mpx.toPx(), drawContext.size.height - h), size = androidx.compose.ui.geometry.Size(drawContext.size.width - 32.mpx.toPx(), h))</ID>
     <ID>MaxLineLength:StageComponents.kt$drawRect(line, topLeft = androidx.compose.ui.geometry.Offset(14.mpx.toPx(), drawContext.size.height - h), size = androidx.compose.ui.geometry.Size(drawContext.size.width - 28.mpx.toPx(), h))</ID>
@@ -5755,7 +5757,6 @@
     <ID>MaxLineLength:StageComponents.kt$get</ID>
     <ID>MaxLineLength:StageComponents.kt$horizontalArrangement = if (centered) Arrangement.spacedBy(8.mpx, Alignment.CenterHorizontally) else Arrangement.spacedBy(10.mpx)</ID>
     <ID>MaxLineLength:StageComponents.kt$idle = if (boxed) Modifier.background(StageColors.ControlFill, if (tvBox) FocusBarShape else RoundedCornerShape(r)) else Modifier</ID>
-    <ID>MaxLineLength:StageComponents.kt$idle = if (tinted) Modifier.background(a.accent.copy(alpha = 0.2f), RoundedCornerShape(r)) else Modifier.stageGlass(r)</ID>
     <ID>MaxLineLength:StageComponents.kt$if</ID>
     <ID>MaxLineLength:StageComponents.kt$if (count != null) Text(count, style = stageText(16, 600), color = on ?: StageColors.Dim, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:StageComponents.kt$if (e.type == androidx.compose.ui.input.pointer.PointerEventType.Press) runCatching { self.requestFocus() }</ID>
@@ -5771,7 +5772,7 @@
     <ID>MaxLineLength:StageComponents.kt$style = if (line != null) stageText(18, 700) else stageText(if (compact) 15.5f else 17f, if (focused) 700 else 600)</ID>
     <ID>MaxLineLength:StageComponents.kt$tv.own.owntv.ui.theme.LocalStageAccentOverride provides tv.own.owntv.ui.theme.StageAccent(accent.accent, light.text, light.text)</ID>
     <ID>MaxLineLength:StageComponents.kt$val color = if (focused) tv.own.owntv.ui.theme.stageAccent.onAccent else if (danger) StageColors.Danger else StageColors.Muted</ID>
-    <ID>MaxLineLength:StageComponents.kt$val color = if (focused) tv.own.owntv.ui.theme.stageAccent.onAccent else if (tinted) a.accent else StageColors.Text</ID>
+    <ID>MaxLineLength:StageComponents.kt$val color = if (tvBox) StageColors.Text else if (focused) tv.own.owntv.ui.theme.stageAccent.onAccent else if (tint) a.accent else StageColors.Text</ID>
     <ID>MaxLineLength:StageComponents.kt$val shape = if (tv.own.owntv.features.shell.TvBoxNav) focusCornerPx(size.height, r, PillMaxHeight.toPx()) else r</ID>
     <ID>MaxLineLength:StageComponents.kt$val spec = androidx.compose.animation.core.tween&lt;Float&gt;(SwitchMs, easing = androidx.compose.animation.core.FastOutSlowInEasing)</ID>
     <ID>MaxLineLength:StageComponents.kt$val whiteShape = if (pill) focusShape(radius) else androidx.compose.foundation.shape.RoundedCornerShape(WhiteFocusRadius)</ID>
@@ -6195,7 +6196,6 @@
     <ID>MaxLineLength:WizardFrame.kt$private</ID>
     <ID>MaxLineLength:WizardFrame.kt$val buttons = (listOfNotNull(back) + extraLeft).map { it to false } + listOfNotNull(next).map { it to true }</ID>
     <ID>MaxLineLength:WizardFrame.kt$val digit by animateColorAsState(if (reached) Color.White else StageColors.Muted, tween(tv.own.owntv.ui.theme.MotionPrefs.dur(StepAnimMs)), label = "stepDigit")</ID>
-    <ID>MaxLineLength:WizardFrame.kt$val fill = if (primary) a.accent.copy(alpha = if (action.enabled) 1f else 0.3f) else StageColors.Ink.copy(alpha = 0.06f)</ID>
     <ID>MaxLineLength:WizardFrame.kt$val fill by animateColorAsState(if (reached) SkMateBlue else Color.Transparent, tween(tv.own.owntv.ui.theme.MotionPrefs.dur(StepAnimMs)), label = "stepFill")</ID>
     <ID>MaxLineLength:WizardFrame.kt$val highlightAlpha by animateFloatAsState(if (rowFocused) 1f else 0f, tween(tv.own.owntv.ui.theme.MotionPrefs.dur(HighlightMs)), label = "wizardHighlightAlpha")</ID>
     <ID>MaxLineLength:WizardFrame.kt$val ring by animateColorAsState(if (reached) SkMateBlue else StepIdle, tween(tv.own.owntv.ui.theme.MotionPrefs.dur(StepAnimMs)), label = "stepRing")</ID>
@@ -6381,6 +6381,7 @@
     <ID>UnusedPrivateProperty:StageComponents.kt$val whiteShape = if (pill) focusShape(radius) else androidx.compose.foundation.shape.RoundedCornerShape(WhiteFocusRadius)</ID>
     <ID>UnusedPrivateProperty:VideoPlayerSettingsScreen.kt$val anyDialogOpen = dialog != Dialog.NONE || lowWarning != null</ID>
     <ID>UnusedPrivateProperty:WeatherConditionIcon.kt$val stk = Stroke(width = 4f * s, cap = StrokeCap.Round, join = StrokeJoin.Round)</ID>
+    <ID>UnusedPrivateProperty:WizardFrame.kt$val a = stageAccent</ID>
     <ID>VariableNaming:TvBoxChannelPanel.kt$val Faint = c.faint</ID>
     <ID>VariableNaming:TvBoxChannelPanel.kt$val Soft = c.soft</ID>
   </CurrentIssues>
