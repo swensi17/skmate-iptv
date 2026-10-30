@@ -621,4 +621,11 @@
     <string name="live_pick_empty">Пока пусто. Попробуйте «Починить телегид»</string>
     <string name="live_mirror_switched">Канал не открылся. Включили копию: <xliff:g id="name">%1$s</xliff:g></string>
     <string name="live_weak_network">Слабая сеть: увеличили запас буфера на <xliff:g id="secs">%1$d</xliff:g> с, чтобы картинка не прерывалась</string>
+    <string name="live_cleanup">Скрыть повторы</string>
+    <string name="live_cleanup_hint">Одна и та же ссылка в списке дважды</string>
+    <string name="live_cleanup_title">Скрыть повторов: <xliff:g id="count">%1$d</xliff:g></string>
+    <string name="live_cleanup_body">Эти каналы открываются по той же ссылке, что и другие в списке. Первый останется, остальные скроются. Вернуть их можно в настройках списка каналов.</string>
+    <string name="live_cleanup_confirm">Скрыть</string>
+    <string name="live_cleanup_none">Повторов в списке нет</string>
+    <string name="live_cleanup_done">Скрыто повторов: <xliff:g id="count">%1$d</xliff:g></string>
 </resources>

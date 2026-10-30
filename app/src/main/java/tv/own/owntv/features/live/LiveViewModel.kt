@@ -159,6 +159,35 @@ class LiveViewModel(
 
     fun closePick() { _pick.value = null }
 
+    // --- Playlist clean-up: the same stream link listed more than once ------------------------------
+
+    private val _duplicates = MutableStateFlow<List<ChannelEntity>?>(null)
+
+    /** The repeats found by [checkDuplicates], waiting for the user's yes; null while no question is open. */
+    val duplicates: StateFlow<List<ChannelEntity>?> = _duplicates.asStateFlow()
+
+    fun checkDuplicates() {
+        viewModelScope.launch {
+            val sources = activeProfileSources(settings, sourceDao).first { it.profileId >= 0 }
+            val hidden = customize.observe(sources.profileId, MediaType.LIVE).first().hiddenItems
+            _duplicates.value = channelDao.duplicatesByUrl(sources.liveSourceIds.ifEmpty { listOf(-1L) })
+                .filter { CustomizeKeys.channel(it) !in hidden }
+        }
+    }
+
+    fun dismissDuplicates() { _duplicates.value = null }
+
+    fun hideDuplicates() {
+        val list = _duplicates.value.orEmpty()
+        _duplicates.value = null
+        if (list.isEmpty()) return
+        viewModelScope.launch {
+            val pid = currentProfileId() ?: return@launch
+            customize.setItemsHidden(pid, MediaType.LIVE, list.associate { CustomizeKeys.channel(it) to it.name }, true)
+            tv.own.owntv.ui.components.TvNotices.show(appContext.getString(tv.own.owntv.R.string.live_cleanup_done, list.size))
+        }
+    }
+
     // --- Mirrors: when a channel will not play, hop to another copy of it ---------------------------
 
     /** The copies already tried for the channel the user last chose; cleared by any choice of their own. */

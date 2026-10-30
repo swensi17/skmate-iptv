@@ -70,7 +70,7 @@ internal fun LiveMoreTool(boxed: Boolean, modifier: Modifier = Modifier, onClick
 
 /** The list's extra actions: today only "Fix the guide", each with a line saying what it does. */
 @Composable
-internal fun LiveMoreMenu(x: Float, top: Dp, fixing: Boolean, onFixGuide: () -> Unit, onPick: (SmartPick) -> Unit, onDismiss: () -> Unit) {
+internal fun LiveMoreMenu(x: Float, top: Dp, fixing: Boolean, onFixGuide: () -> Unit, onPick: (SmartPick) -> Unit, onCleanup: () -> Unit, onDismiss: () -> Unit) {
     val focus = remember { FocusRequester() }
     LaunchedEffect(Unit) { runCatching { focus.requestFocus() } }
     GuideMenuHost(x = x, top = top, width = 760.mpx, onDismiss = onDismiss) {
@@ -81,6 +81,12 @@ internal fun LiveMoreMenu(x: Float, top: Dp, fixing: Boolean, onFixGuide: () -> 
             value = stringResource(if (fixing) R.string.live_fix_guide_running else R.string.live_fix_guide_hint),
             onClick = { if (!fixing) onFixGuide(); onDismiss() },
             modifier = Modifier.focusRequester(focus),
+        )
+        StageMenuItem(
+            text = stringResource(R.string.live_cleanup),
+            icon = OwnTVIcon.LAYERS,
+            value = stringResource(R.string.live_cleanup_hint),
+            onClick = { onCleanup(); onDismiss() },
         )
         SmartPick.entries.forEach { pick ->
             StageMenuItem(

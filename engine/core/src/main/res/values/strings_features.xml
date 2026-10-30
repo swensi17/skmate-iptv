@@ -1017,4 +1017,11 @@
     <string name="live_pick_empty">Nothing yet. Try “Fix the guide”</string>
     <string name="live_mirror_switched">The channel would not open. Switched to its copy: <xliff:g id="name">%1$s</xliff:g></string>
     <string name="live_weak_network">Weak network: added <xliff:g id="secs">%1$d</xliff:g> s of buffer so the picture does not break up</string>
+    <string name="live_cleanup">Hide repeats</string>
+    <string name="live_cleanup_hint">The same link listed twice</string>
+    <string name="live_cleanup_title">Hide repeats: <xliff:g id="count">%1$d</xliff:g></string>
+    <string name="live_cleanup_body">These channels open from the same link as others in the list. The first stays, the rest are hidden. You can bring them back in the channel list settings.</string>
+    <string name="live_cleanup_confirm">Hide</string>
+    <string name="live_cleanup_none">No repeats in the list</string>
+    <string name="live_cleanup_done">Repeats hidden: <xliff:g id="count">%1$d</xliff:g></string>
 </resources>
