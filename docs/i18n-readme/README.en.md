@@ -36,7 +36,7 @@ M3U and Xtream Codes, TV guide (EPG), catch-up, profiles — built for the remot
 - Catch-up and live rewind where the provider supports them.
 
 **Player**
-- One **libVLC** engine: HLS, MPEG-TS, H.264/HEVC, interlaced 576i, MP2/AC-3 audio.
+- Live TV plays through **libVLC**: HLS, MPEG-TS, H.264/HEVC, interlaced 576i, MP2/AC-3 audio. There is no engine picker in the interface: there is one engine.
 - Channels open in about a second; a dropped stream reconnects quietly instead of restarting the player.
 - Zap with ▲▼ and CH±, channel list and categories over the picture (playback never stops).
 - Live preview in the list and a smooth expand to full screen.
@@ -45,7 +45,7 @@ M3U and Xtream Codes, TV guide (EPG), catch-up, profiles — built for the remot
 - Made for the remote: everything works with the arrows and OK, focus is always visible.
 - Dark and light themes, accent colour, interface scale, adjustable animations.
 - Profiles, category PIN lock, backups and sync between TVs.
-- Interface languages: Russian, English, Chinese and 20+ more.
+- Interface translations: 26 string sets (Russian, English, Chinese and about 20 more languages, some as regional variants).
 
 **Updates**
 - The app finds a new version on GitHub Releases, verifies its signature and installs it.
@@ -54,10 +54,10 @@ M3U and Xtream Codes, TV guide (EPG), catch-up, profiles — built for the remot
 ## Rare features: what sets SkMate apart from other IPTV players
 
 ### Several players in one app
-Three engines inside: **ExoPlayer (Media3)**, **mpv** and **libVLC**. The player for live TV and for movies and series is chosen separately and can be **overridden per playlist**: one provider plays best on ExoPlayer, another on mpv. Modes: ExoPlayer first, mpv first, ExoPlayer only, mpv only. The player UI stays **the same**: only the engine underneath changes.
+Live TV plays through a single engine, **libVLC**. There is no engine picker in the settings: there used to be several, but in 0.1.0 one was kept and the settings of the others were removed. The player interface is the same on every screen.
 
 ### It does not leave you on a dead channel
-- **Fallback ladder**: another format (`.ts` ⇄ `.m3u8`), a retry after a pause, tolerant demuxing, the other engine, and only then an error.
+- **Fallback ladder**: another format (`.ts` ⇄ `.m3u8`), a retry after a pause, tolerant demuxing, and only then an error.
 - **Channel mirrors**: a channel that still will not open switches to its copy from another playlist ("Channel HD" → "Channel SD"), closest in quality, and says so.
 - **A silent server no longer freezes the app**: a stream that gives no byte in 10 seconds is an error, not a black screen forever.
 - **Plain error screens** with a picture, a headline and a Retry button instead of technical text.
@@ -77,7 +77,7 @@ Several XMLTV sources, automatic matching by channel name even without `tvg-id`,
 Sort by provider order, A–Z, Z–A, number, recent; groups, custom categories, favourites, history, hide and rename.
 
 ### Player and control
-**Picture-in-picture** in the system window, a labelled toolbar, **multiview**, **recording**, **timeshift**, sleep timer, remembered audio and subtitle choices, OpenSubtitles, a stream-info overlay with a one-press report, direct channel numbers.
+**Picture-in-picture** in the system window, a labelled toolbar, multiview, recording and timeshift (in the code, but not tested on a real TV), sleep timer, remembered audio and subtitle choices, OpenSubtitles, a stream-info overlay with a one-press report, direct channel numbers.
 
 ### Made for the TV
 **Add a playlist from your phone by QR**, **PIN profiles** and a kids mode, an **encrypted backup** and transfer between TVs over Wi-Fi, Android TV home-screen integration, dark and light themes, **25+ languages**, fully remote-controlled.
@@ -89,9 +89,9 @@ Sort by provider order, A–Z, Z–A, number, recent; groups, custom categories,
 - **Native builds** for `arm64-v8a` and `armeabi-v7a` (older 32-bit boxes too).
 
 ### Open
-GPL-3.0 source, a signed APK built in GitHub Actions and scanned on VirusTotal. No ads, no account, no data collection.
+GPL-3.0 source, a signed APK built in GitHub Actions. VirusTotal: done for v0.1.0 (link below), not yet for v2.0.0, see "Security". No ads, no account, no data collection.
 
-Full comparison with TiviMate, IPTV Smarters and Kodi and honest caveats: [COMPARISON.md](../COMPARISON.md).
+What is verified and how: [COMPARISON.md](../COMPARISON.md).
 
 ## FAQ
 
