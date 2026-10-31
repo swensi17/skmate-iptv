@@ -39,6 +39,8 @@ export interface Settings {
   showProgram: boolean;
   /** Categories the viewer likes (from the first-run questions): they go to the top of the list. */
   interests: string[];
+  /** Install a new version by itself when nothing is playing; off = ask at every start. */
+  autoUpdate: boolean;
 }
 
 const KEY = "skmate.settings.v1";
@@ -46,7 +48,7 @@ export const DEFAULTS: Settings = {
   theme: "system", motion: "auto", language: "auto", engine: "auto", aspect: "fit", buffer: 30,
   openTimeout: 12, osdSeconds: 5, showEngine: true, autoRestart: true, preview: true,
   epgAuto: true, epgEvery: 12, epgSources: [], proxy: "",
-  rowSize: 84, uiScale: 100, showLogos: true, showNumbers: true, showProgram: true, interests: [],
+  rowSize: 84, uiScale: 100, showLogos: true, showNumbers: true, showProgram: true, interests: [], autoUpdate: false,
 };
 
 export function load(): Settings {

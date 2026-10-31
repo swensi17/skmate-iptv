@@ -33,12 +33,30 @@ export function quality(name: string): number {
  * The copies of [channel] among [all], best first: not tried yet, a different stream, the same key; the closest to
  * the quality it had first (a SD copy beats nothing, but HD comes first), then the better one.
  */
+const INDEXES = new WeakMap<readonly Channel[], Map<string, Channel[]>>();
+
+/** The channels of a list by their mirror key, built once per list: a lookup must not read all 150 000 names again. */
+function indexOf(all: readonly Channel[]): Map<string, Channel[]> {
+  let idx = INDEXES.get(all);
+  if (!idx) {
+    idx = new Map();
+    for (const c of all) {
+      const k = mirrorKey(c.name);
+      if (k === "") continue;
+      const bucket = idx.get(k);
+      if (bucket) bucket.push(c); else idx.set(k, [c]);
+    }
+    INDEXES.set(all, idx);
+  }
+  return idx;
+}
+
 export function pickMirrors(channel: Channel, all: readonly Channel[], tried: ReadonlySet<string> = new Set()): Channel[] {
   const key = mirrorKey(channel.name);
   if (key === "") return [];
   const q = quality(channel.name);
-  return all
-    .filter((c) => c.id !== channel.id && !tried.has(c.id) && c.url !== channel.url && mirrorKey(c.name) === key)
+  return (indexOf(all).get(key) ?? [])
+    .filter((c) => c.id !== channel.id && !tried.has(c.id) && c.url !== channel.url)
     .sort((a, b) => Math.abs(quality(a.name) - q) - Math.abs(quality(b.name) - q) || quality(b.name) - quality(a.name) || Number(a.id) - Number(b.id))
     .slice(0, MAX_HOPS);
 }
