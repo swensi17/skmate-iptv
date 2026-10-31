@@ -195,3 +195,15 @@ img.logo { background: #fff; padding: 4px; }
 .srcrow { display: flex; align-items: center; gap: 16px; padding: 8px 28px; }
 .srow-title.small { font-size: 22px; font-weight: 700; display: block; }
 .block-t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Thin lines between the rows and between the columns, as in the phone version. */
+.vrow::after { content: ""; position: absolute; left: 20px; right: 20px; bottom: 0; height: 1px; background: var(--line); pointer-events: none; }
+.live .groups { padding-right: 16px; border-right: 1px solid var(--line); }
+.live .list { padding-right: 16px; border-right: 1px solid var(--line); }
+.greeting { margin: 6px 0 0 2px; font-size: 22px; color: var(--muted); }
+.live-top h2 { margin: 0; line-height: 1.1; }
+.live-top { height: 110px; }
+.chip-name { max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.welcome { width: 900px; }
+.welcome .field { width: 100%; }
+.rail { padding-top: 0; }

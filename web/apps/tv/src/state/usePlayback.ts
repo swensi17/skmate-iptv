@@ -20,11 +20,20 @@ export interface PlaybackOptions {
   autoRestart: boolean;
 }
 
-export function usePlayback(video: { current: HTMLVideoElement | null }, channel: Channel, o: PlaybackOptions) {
+export function usePlayback(
+  video: { current: HTMLVideoElement | null },
+  channel: Channel,
+  o: PlaybackOptions,
+  /** Copies of this channel to try, in order, when it does not open (see `pickMirrors`). */
+  mirrors: readonly Channel[] = [],
+) {
   const [state, setState] = useState<PlayState>("loading");
   const [engine, setEngine] = useState<string | null>(null);
   const [paused, setPaused] = useState(false);
   const [attempt, setAttempt] = useState(0);
+  // 0 = the channel itself, n = the n-th copy.
+  const [hop, setHop] = useState(0);
+  const source0 = hop > 0 ? mirrors[hop - 1] ?? channel : channel;
   const restarts = useRef(0);
 
   useEffect(() => {
@@ -55,12 +64,17 @@ export function usePlayback(video: { current: HTMLVideoElement | null }, channel
     el.addEventListener("waiting", onWaiting);
     el.addEventListener("playing", onPlaying);
 
-    const source = channel.headers ? { url: channel.url, headers: channel.headers } : { url: channel.url };
+    const source = source0.headers ? { url: source0.url, headers: source0.headers } : { url: source0.url };
     const start = setTimeout(() => {
       armStall();
       ladder.play(el, source).then(
         (e) => { if (alive) { setEngine(e.id); setState("playing"); clearTimeout(stall); } },
-        () => { if (alive) { setState("failed"); clearTimeout(stall); } },
+        () => {
+          if (!alive) return;
+          clearTimeout(stall);
+          if (hop < mirrors.length) setHop(hop + 1); // the next copy of the same channel, not an error screen yet
+          else setState("failed");
+        },
       );
     }, ZAP_SETTLE_MS);
 
@@ -72,17 +86,17 @@ export function usePlayback(video: { current: HTMLVideoElement | null }, channel
       el.removeEventListener("playing", onPlaying);
       ladder.stop();
     };
-  }, [channel.url, attempt, o.engine, o.bufferSeconds, o.openTimeoutMs, o.autoRestart]);
+  }, [source0.url, attempt, o.engine, o.bufferSeconds, o.openTimeoutMs, o.autoRestart]);
 
   // A new channel starts with a fresh allowance of restarts.
-  useEffect(() => { restarts.current = 0; }, [channel.url]);
+  useEffect(() => { restarts.current = 0; setHop(0); }, [channel.url]);
 
-  const retry = useCallback(() => { restarts.current = 0; setAttempt((n) => n + 1); }, []);
+  const retry = useCallback(() => { restarts.current = 0; setHop(0); setAttempt((n) => n + 1); }, []);
   const togglePause = useCallback(() => {
     const el = video.current;
     if (!el) return;
     if (el.paused) { void el.play().catch(() => undefined); setPaused(false); } else { el.pause(); setPaused(true); }
   }, []);
 
-  return { state, engine, paused, retry, togglePause };
+  return { state, engine, paused, retry, togglePause, via: hop > 0 ? source0 : null };
 }

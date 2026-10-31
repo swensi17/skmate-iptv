@@ -1,7 +1,7 @@
 import { applyMotion, type MotionSetting } from "@skmate/ui";
 
 export type ThemeSetting = "system" | "dark" | "light";
-export type EngineSetting = "auto" | "native" | "hls";
+export type EngineSetting = "auto" | "native" | "hls" | "mpegts";
 export type AspectSetting = "fit" | "fill" | "cover";
 export type BufferSetting = 10 | 30 | 60;
 export type LanguageSetting = "auto" | "ru" | "en";

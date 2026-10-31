@@ -1,5 +1,7 @@
 export interface PlaylistEntry { id: string; name: string; url: string }
 
+import { scoped } from "./scope";
+
 const KEY = "skmate.playlists.v1";
 
 /** A readable name from a link: the host, or the last path segment when it says more. */
@@ -47,7 +49,7 @@ export interface PlaylistStore { list: PlaylistEntry[]; activeId: string | null 
 
 export function loadStore(): PlaylistStore {
   try {
-    const raw = JSON.parse(localStorage.getItem(KEY) ?? "null") as Partial<PlaylistStore> | null;
+    const raw = JSON.parse(localStorage.getItem(scoped(KEY)) ?? "null") as Partial<PlaylistStore> | null;
     const list = Array.isArray(raw?.list) ? raw.list.filter((p) => p && typeof p.url === "string") : [];
     return { list, activeId: nextActive(list, raw?.activeId ?? null) };
   } catch {
@@ -56,7 +58,7 @@ export function loadStore(): PlaylistStore {
 }
 
 export function saveStore(s: PlaylistStore): void {
-  try { localStorage.setItem(KEY, JSON.stringify(s)); } catch { /* the list just does not persist */ }
+  try { localStorage.setItem(scoped(KEY), JSON.stringify(s)); } catch { /* the list just does not persist */ }
 }
 
 /** A link passed as `?playlist=…` in the address: how a launcher or a developer opens the app on a given playlist. */

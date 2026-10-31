@@ -7,17 +7,20 @@ import type { Status } from "../state/usePlaylists";
 import type { GuideData, SourceOutcome } from "@skmate/epg";
 import type { PlaylistEntry } from "../state/playlists";
 import type { GuideStatus } from "../state/useGuide";
+import type { ProfileBook } from "../state/scope";
 import { EpgPanel } from "./EpgPanel";
+import { ProfilesPanel } from "./ProfilesPanel";
 import { PlayerSettingRows } from "./PlayerRows";
 import { PlaylistsPanel } from "./PlaylistsPanel";
 import { SettingRow } from "./SettingRow";
 
-export type Page = "player" | "look" | "playlists" | "epg" | "more";
+export type Page = "player" | "look" | "playlists" | "epg" | "profiles" | "more";
 const PAGES: Array<[Page, IconName, Key]> = [
   ["player", "play_circle", "sheetPlayer"],
   ["look", "palette", "sheetLook"],
   ["playlists", "playlist", "sheetPlaylists"],
   ["epg", "epg", "sheetEpg"],
+  ["profiles", "person", "sheetProfiles"],
   ["more", "info", "sheetMore"],
 ];
 
@@ -37,6 +40,10 @@ interface Props {
   channelCount: number;
   active: PlaylistEntry | null;
   headerGuides: string[];
+  book: ProfileBook;
+  onSwitchProfile: (id: string) => void;
+  onAddProfile: (name: string) => void;
+  onAskDeleteProfile: (id: string) => void;
 }
 
 /** Settings as a sheet from the right edge: a menu of sections, each opening its rows in the same sheet. */
@@ -81,6 +88,9 @@ export function SettingsSheet(p: Props) {
               <EpgPanel settings={s} onChange={onChange} data={p.guide.data} status={p.guide.status} outcomes={p.guide.outcomes}
                 channelCount={p.channelCount} active={p.active} headerGuides={p.headerGuides} onRefresh={p.guide.onRefresh} onClear={p.guide.onClear} />
             ) : null}
+            {page === "profiles" ? (
+              <ProfilesPanel book={p.book} onSwitch={p.onSwitchProfile} onAdd={p.onAddProfile} onAskDelete={p.onAskDeleteProfile} />
+            ) : null}
             {page === "more" ? (
               <>
                 <SettingRow id="s-lang" title="setLanguage" hint="setLanguageHint" value={s.language} onPick={set("language")}
@@ -100,4 +110,4 @@ export function SettingsSheet(p: Props) {
   );
 }
 
-const FIRST: Record<Page, string> = { player: "s-engine", look: "s-theme", playlists: "pl-url", epg: "s-epgauto", more: "s-lang" };
+const FIRST: Record<Page, string> = { player: "s-engine", look: "s-theme", playlists: "pl-url", epg: "s-epgauto", profiles: "pf-name", more: "s-lang" };

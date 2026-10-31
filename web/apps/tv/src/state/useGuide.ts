@@ -3,12 +3,13 @@ import type { Channel } from "@skmate/core";
 import { GuideData, guidesForPlaylist, syncGuides, type EpgSource, type SourceOutcome } from "@skmate/epg";
 import { t } from "../i18n";
 import { guideOpener } from "./guideTransport";
+import { scoped } from "./scope";
 import type { PlaylistEntry } from "./playlists";
 import type { Settings } from "./settings";
 
 export type GuideStatus = { kind: "idle" } | { kind: "syncing"; text: string };
 
-const cacheKey = (playlistId: string) => `skmate.epg.${playlistId}`;
+const cacheKey = (playlistId: string) => scoped(`skmate.epg.${playlistId}`);
 const MINUTE = 60_000;
 
 function loadCache(id: string | null): GuideData {

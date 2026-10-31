@@ -1,4 +1,5 @@
 import type { Channel } from "@skmate/core";
+import { scoped } from "./scope";
 
 const KEY = "skmate.favorites.v1";
 
@@ -13,7 +14,7 @@ export function toggle(favs: ReadonlySet<string>, key: string): Set<string> {
 
 export function loadFavorites(): Set<string> {
   try {
-    const raw = JSON.parse(localStorage.getItem(KEY) ?? "[]") as unknown;
+    const raw = JSON.parse(localStorage.getItem(scoped(KEY)) ?? "[]") as unknown;
     return new Set(Array.isArray(raw) ? raw.filter((x): x is string => typeof x === "string") : []);
   } catch {
     return new Set();
@@ -21,5 +22,5 @@ export function loadFavorites(): Set<string> {
 }
 
 export function saveFavorites(favs: ReadonlySet<string>): void {
-  try { localStorage.setItem(KEY, JSON.stringify(Array.from(favs))); } catch { /* not persisted */ }
+  try { localStorage.setItem(scoped(KEY), JSON.stringify(Array.from(favs))); } catch { /* not persisted */ }
 }
