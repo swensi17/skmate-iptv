@@ -56,6 +56,12 @@ class UpdateManager(
 
         /** The system installer refused the package; [message] is its own wording when it gave one. */
         data class InstallRejected(val message: String?) : Failure
+
+        /**
+         * The downloaded package is signed with another key than the installed app, or is not newer. The
+         * system would refuse it as a conflict; this says so before the installer is ever opened.
+         */
+        data object Conflict : Failure
     }
 
     sealed interface State {
@@ -63,7 +69,11 @@ class UpdateManager(
         data object Checking : State
         data object UpToDate : State
         data class Available(val info: UpdateInfo) : State
-        data class Downloading(val percent: Int) : State
+        /** Downloading in the background: the app keeps working, and the card may be put away meanwhile. */
+        data class Downloading(val percent: Int, val info: UpdateInfo? = null) : State
+
+        /** Downloaded and checked; the system installer opens when the viewer presses Install. */
+        data class Ready(val info: UpdateInfo) : State
         data class Failed(val failure: Failure, val retryInfo: UpdateInfo? = null) : State
     }
 
@@ -79,6 +89,7 @@ class UpdateManager(
     private class EmptyDownloadException : IOException()
     private class NotEnoughSpaceException(val requiredBytes: Long) : IOException()
     private class DamagedDownloadException(reason: String) : IOException(reason)
+    private class ConflictException(reason: String) : IOException(reason)
 
     private fun failureFor(error: Throwable, checking: Boolean): Failure = when (error) {
         is CheckHttpException -> Failure.CheckHttp(error.code)
@@ -88,6 +99,7 @@ class UpdateManager(
         is EmptyDownloadException -> Failure.EmptyDownload
         is NotEnoughSpaceException -> Failure.NotEnoughSpace(error.requiredBytes)
         is DamagedDownloadException -> Failure.DamagedDownload
+        is ConflictException -> Failure.Conflict
         else -> if (checking) Failure.CheckNetwork else Failure.DownloadNetwork
     }
 
@@ -95,7 +107,8 @@ class UpdateManager(
 
     /** Queries GitHub's latest release; moves to Available / UpToDate / a semantic failure. */
     fun check() {
-        if (_state.value is State.Checking || _state.value is State.Downloading) return
+        // A download in progress or one waiting to be installed is not thrown away by a new look.
+        if (_state.value is State.Checking || _state.value is State.Downloading || _state.value is State.Ready) return
         _state.value = State.Checking
         scope.launch {
             runCatching {
@@ -136,8 +149,15 @@ class UpdateManager(
                         ?: throw NoCompatibleApkException()
                     val info = UpdateInfo(version, notes, apkUrl)
                     settings.recordUpdateCheck(System.currentTimeMillis())
-                    if (isNewer(version, currentVersion)) _state.value = State.Available(info)
-                    else _state.value = State.UpToDate
+                    if (isNewer(version, currentVersion)) {
+                        // Already downloaded on an earlier run (the viewer pressed Later): no second download.
+                        val kept = apkFor(version)
+                        _state.value = if (kept.isFile && runCatching { verifyApk(kept) }.isSuccess) State.Ready(info) else State.Available(info)
+                        dropOtherDownloads(keep = kept)
+                    } else {
+                        dropOtherDownloads(keep = null) // the update went in: its file is not needed any more
+                        _state.value = State.UpToDate
+                    }
                 }
             }.onFailure { error ->
                 Log.w(TAG, "update check failed: ${error.message}", error)
@@ -146,15 +166,24 @@ class UpdateManager(
         }
     }
 
-    /** Downloads the release APK with progress, then opens the system installer. */
-    fun downloadAndInstall() {
+    /** Downloads the release APK, then opens the system installer at once (automatic updates). */
+    fun downloadAndInstall() = download(installWhenDone = true)
+
+    /**
+     * Downloads the release APK in the background with progress. The app goes on working meanwhile; when the
+     * file is in and checked the state becomes [State.Ready] and the system installer opens on [installReady]
+     * (or right away with [installWhenDone]). The file is kept under the version's name, so pressing Later and
+     * coming back does not download it again.
+     */
+    fun download(installWhenDone: Boolean = false) {
         val info = (_state.value as? State.Available)?.info ?: return
-        _state.value = State.Downloading(0)
+        _state.value = State.Downloading(0, info)
         scope.launch {
             runCatching {
                 val dir = File(context.filesDir, "updates").apply { mkdirs() }
-                val out = File(dir, "update.apk")
-                out.delete() // never build on top of a previous half-download
+                val out = apkFor(info.version)
+                val part = File(dir, out.name + ".part")
+                part.delete() // never build on top of a previous half-download
                 val request = Request.Builder().url(info.apkUrl).header("User-Agent", tv.own.owntv.core.brand.BrandName.SHORT).build()
                 try {
                     client.newCall(request).execute().use { resp ->
@@ -166,15 +195,17 @@ class UpdateManager(
                         // write — which reaches the installer as "App not installed" — into a real message.
                         if (total > 0 && dir.usableSpace < total * 2) throw NotEnoughSpaceException(total * 2)
                         var copied = 0L
+                        var shown = -1
                         body.byteStream().use { input ->
-                            out.outputStream().use { output ->
+                            part.outputStream().use { output ->
                                 val buf = ByteArray(64 * 1024)
                                 while (true) {
                                     val n = input.read(buf)
                                     if (n < 0) break
                                     output.write(buf, 0, n)
                                     copied += n
-                                    if (total > 0) _state.value = State.Downloading((copied * 100 / total).toInt())
+                                    val percent = if (total > 0) (copied * 100 / total).toInt() else 0
+                                    if (percent != shown) { shown = percent; _state.value = State.Downloading(percent, info) }
                                 }
                             }
                         }
@@ -183,19 +214,47 @@ class UpdateManager(
                             throw DamagedDownloadException("truncated: got $copied of $total bytes")
                         }
                     }
-                    verifyApk(out)
-                    install(out)
+                    verifyApk(part)
+                    out.delete()
+                    if (!part.renameTo(out)) throw DamagedDownloadException("could not keep the download")
                 } catch (e: Throwable) {
-                    out.delete() // a bad file must not linger and be retried as-is
+                    part.delete() // a bad file must not linger and be retried as-is
                     throw e
                 }
-                _state.value = State.Available(info) // dialog stays sane if the user cancels install
+                _state.value = State.Ready(info)
+                if (installWhenDone) installReady()
             }.onFailure { error ->
                 Log.w(TAG, "update download failed: ${error.message}", error)
+                _state.value = State.Failed(failureFor(error, checking = false), retryInfo = info)
+            }
+        }
+    }
+
+    /** Opens the system installer for the downloaded update. The app is replaced in place: data and settings stay. */
+    fun installReady() {
+        val info = (_state.value as? State.Ready)?.info ?: return
+        scope.launch {
+            runCatching {
+                val apk = apkFor(info.version)
+                if (!apk.isFile) throw DamagedDownloadException("the downloaded update is gone")
+                verifyApk(apk)
+                install(apk)
+            }.onFailure { error ->
+                Log.w(TAG, "update install failed: ${error.message}", error)
                 val failure = if (error is InstallException) Failure.Install else failureFor(error, checking = false)
                 _state.value = State.Failed(failure, retryInfo = info)
             }
         }
+    }
+
+    private fun apkFor(version: String): File {
+        val safe = version.filter { it.isLetterOrDigit() || it == '.' || it == '-' }
+        return File(File(context.filesDir, "updates"), "update-$safe.apk")
+    }
+
+    /** Old downloads go: an update already installed, or one a newer release replaced. */
+    private fun dropOtherDownloads(keep: File?) {
+        File(context.filesDir, "updates").listFiles()?.forEach { if (it != keep) it.delete() }
     }
 
     /**
@@ -209,6 +268,32 @@ class UpdateManager(
         if (info.packageName != context.packageName) {
             throw DamagedDownloadException("wrong package ${info.packageName}")
         }
+        // The two refusals Android calls a conflict, caught here with a clear message instead.
+        val installed = context.packageManager.getPackageInfo(context.packageName, 0)
+        if (androidx.core.content.pm.PackageInfoCompat.getLongVersionCode(info) <= androidx.core.content.pm.PackageInfoCompat.getLongVersionCode(installed)) {
+            throw ConflictException("not newer than the installed build")
+        }
+        if (!sameSigner(apk)) throw ConflictException("signed with another key")
+    }
+
+    /** Whether [apk] is signed by the same key as the installed app (an update from another build would be refused). */
+    @Suppress("DEPRECATION")
+    private fun sameSigner(apk: File): Boolean {
+        val pm = context.packageManager
+        val flags = if (android.os.Build.VERSION.SDK_INT >= 28) android.content.pm.PackageManager.GET_SIGNING_CERTIFICATES else android.content.pm.PackageManager.GET_SIGNATURES
+        val archive = pm.getPackageArchiveInfo(apk.absolutePath, flags) ?: return false
+        val mine = pm.getPackageInfo(context.packageName, flags)
+        fun certs(i: android.content.pm.PackageInfo): Set<String> =
+            if (android.os.Build.VERSION.SDK_INT >= 28) {
+                i.signingInfo?.let { si -> (if (si.hasMultipleSigners()) si.apkContentsSigners else si.signingCertificateHistory) }
+                    ?.map { it.toCharsString() }?.toSet().orEmpty()
+            } else {
+                i.signatures?.map { it.toCharsString() }?.toSet().orEmpty()
+            }
+        val theirs = certs(archive)
+        val ours = certs(mine)
+        // A key rotation keeps the old certificate in the history: any shared certificate is the same signer.
+        return theirs.isNotEmpty() && ours.isNotEmpty() && theirs.any { it in ours }
     }
 
     /**
@@ -236,7 +321,8 @@ class UpdateManager(
             val flags = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
             session.commit(PendingIntent.getBroadcast(context, 0, intent, flags).intentSender)
         }
-        apk.delete() // the session owns its own copy now
+        // The file stays until the new version has started (the next check removes it), so a declined
+        // system prompt can be answered again with Install, without a second download.
     }
 
     /** Registered once, for the app's lifetime: the confirmation round trip outlives any one call. */
@@ -281,7 +367,8 @@ class UpdateManager(
         val failed = _state.value as? State.Failed ?: return
         val info = failed.retryInfo
         if (info != null && failed.failure !is Failure.CheckHttp && failed.failure !is Failure.NoCompatibleApk &&
-            failed.failure !is Failure.InvalidReleaseResponse && failed.failure !is Failure.CheckNetwork
+            failed.failure !is Failure.InvalidReleaseResponse && failed.failure !is Failure.CheckNetwork &&
+            failed.failure !is Failure.Conflict
         ) {
             _state.value = State.Available(info)
             downloadAndInstall()
@@ -290,8 +377,9 @@ class UpdateManager(
         }
     }
 
+    /** Back to quiet; a download in progress or a file waiting to be installed is kept. */
     fun reset() {
-        if (_state.value !is State.Downloading) _state.value = State.Idle
+        if (_state.value !is State.Downloading && _state.value !is State.Ready) _state.value = State.Idle
     }
 
     /** Numeric segment-wise compare: "1.10.0" > "1.9.3"; non-numeric junk compares as 0. */

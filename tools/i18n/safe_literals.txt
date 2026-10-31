@@ -161,6 +161,7 @@
 1	log	app/src/main/java/tv/own/owntv/features/live/LiveViewModel.kt	catch-up external '${ch.name}' prog='${programme.title}'
 1	log	app/src/main/java/tv/own/owntv/features/live/LiveViewModel.kt	ensurePlaying history profile=$pid channelId=${channel.id}
 1	log	app/src/main/java/tv/own/owntv/features/live/LiveViewModel.kt	ensurePlaying history record failed channelId=${channel.id} profile=$pid
+1	log	app/src/main/java/tv/own/owntv/features/live/LiveViewModel.kt	external player closed at once, playing channelId=${channel.id} in the app
 1	log	app/src/main/java/tv/own/owntv/features/live/LiveViewModel.kt	stalker resolve failed channelId=${channel.id}
 1	log	app/src/main/java/tv/own/owntv/features/live/LiveViewModel.kt	tuneByNumber($number) failed
 1	log	app/src/main/java/tv/own/owntv/features/live/LiveViewModel.kt	zap: tune wait ${delayMs}ms — ${zapWaitReason(lastZapPressMs, now, singleConnection)}
@@ -658,7 +659,8 @@
 1	log	app/src/main/java/tv/own/owntv/features/shell/ShellViewModel.kt	resync enqueue sourceId=${source.id} from=playlist_menu
 1	regex	app/src/main/java/tv/own/owntv/features/shell/TelegramWelcome.kt	@$CHAT_HANDLE
 1	regex	app/src/main/java/tv/own/owntv/features/shell/TelegramWelcome.kt	t.me/$CHAT_HANDLE
-1	technical	app/src/main/java/tv/own/owntv/features/shell/TelegramWelcome.kt	telegram_shown
+1	preference-key	app/src/main/java/tv/own/owntv/features/shell/TelegramWelcome.kt	telegram_never
+1	preference-key	app/src/main/java/tv/own/owntv/features/shell/TelegramWelcome.kt	telegram_shown_at
 1	technical	app/src/main/java/tv/own/owntv/features/shell/TelegramWelcome.kt	welcome
 1	technical	app/src/main/java/tv/own/owntv/features/shell/components/AvatarPickerDialog.kt	\0
 1	technical	app/src/main/java/tv/own/owntv/features/shell/components/ChannelListOverlay.kt	CH±

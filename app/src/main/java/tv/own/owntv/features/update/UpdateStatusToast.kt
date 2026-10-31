@@ -34,27 +34,29 @@ import tv.own.owntv.core.update.UpdateManager
 import tv.own.owntv.ui.components.OwnTVSpinner
 
 /**
- * Small semi-transparent status card (top-right corner) for the automatic startup update check:
- * "Checking…" → "You're up to date" (auto-hides after ~2s) — or, when an update exists, it downloads it
- * at once with progress and hands off to the system installer.
- * Only the Available state takes D-pad focus; the transient states never interrupt browsing.
+ * The update card in the top-right corner. At start (and every few hours) it looks for a new version:
+ * "Checking…" → "You're up to date" (hides itself) — or, when there is one, a small window: Update, What's new,
+ * Later. Update downloads in the background while the viewer goes on watching (the card can be put away with
+ * Later; it comes back by itself when the file is in), then Install hands the file to the system installer.
+ * With automatic updates on, it downloads and installs by itself when the install window allows.
+ * Only the Available and Ready states take D-pad focus; the transient states never interrupt browsing.
  */
 @Composable
 fun UpdateStatusToast(onDone: () -> Unit, onViewChangelog: () -> Unit, modifier: Modifier = Modifier) {
     val manager: UpdateManager = koinInject()
     val state by manager.state.collectAsStateWithLifecycle()
     val focus = remember { FocusRequester() }
+    val auto = tv.own.owntv.ui.theme.UpdatePrefs.auto
 
-    // Transient outcomes hide themselves; an available update keeps the card up.
+    // Transient outcomes hide themselves; an available or downloaded update keeps the card up.
     LaunchedEffect(state) {
         when (state) {
             UpdateManager.State.UpToDate -> { delay(2_000); manager.reset(); onDone() }
-            is UpdateManager.State.Failed -> { delay(2_500); manager.reset(); onDone() }
-            // SkMate updates itself: a newer release found at start is downloaded straight away and
-            // handed to the system installer (Android 12+ installs silently; 8–11 asks once to confirm).
-            // Installs by itself when automatic updates are on and the install window allows it; otherwise the card
-            // says a new version is ready and Settings › About installs it.
-            is UpdateManager.State.Available -> if (tv.own.owntv.ui.theme.UpdatePrefs.auto && tv.own.owntv.ui.theme.UpdatePrefs.mayInstallNow()) manager.downloadAndInstall()
+            is UpdateManager.State.Failed -> { delay(6_000); manager.reset(); onDone() }
+            is UpdateManager.State.Available -> if (auto) manager.download() else { delay(120); runCatching { focus.requestFocus() } }
+            is UpdateManager.State.Ready ->
+                if (auto && tv.own.owntv.ui.theme.UpdatePrefs.mayInstallNow()) manager.installReady()
+                else { delay(120); runCatching { focus.requestFocus() } }
             UpdateManager.State.Idle -> onDone()
             else -> Unit
         }
@@ -64,8 +66,13 @@ fun UpdateStatusToast(onDone: () -> Unit, onViewChangelog: () -> Unit, modifier:
         modifier = modifier
             // The same card as every notice in this corner (see TvNoticeStack).
             .tvNoticeCard()
+            .widthIn(max = 560.mpx)
             .focusGroup(),
     ) {
+        val buttons: @Composable (@Composable () -> Unit) -> Unit = { content ->
+            Spacer(Modifier.height(12.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) { content() }
+        }
         when (val s = state) {
             UpdateManager.State.Idle, UpdateManager.State.Checking -> Row(verticalAlignment = Alignment.CenterVertically) {
                 OwnTVSpinner(sizeDp = 18)
@@ -85,21 +92,36 @@ fun UpdateStatusToast(onDone: () -> Unit, onViewChangelog: () -> Unit, modifier:
                 Text(stringResource(R.string.update_available), style = stageText(21, 800), color = StageColors.Text)
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    stringResource(R.string.update_ready, s.info.version, manager.currentVersion),
+                    stringResource(R.string.update_available_version, s.info.version, manager.currentVersion),
                     style = stageText(17, 500), color = StageColors.Muted,
                 )
-                Spacer(Modifier.height(12.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    // "What's New" opens the full changelog dialog (same view the manual check uses);
-                    // both update paths show the changelog before downloading.
-                    tv.own.owntv.ui.stage.StageButton(stringResource(R.string.update_whats_new), onClick = onViewChangelog, height = 52.mpx, textSize = 18, tinted = true, modifier = Modifier.focusRequester(focus))
+                buttons {
+                    tv.own.owntv.ui.stage.StageButton(stringResource(R.string.update_now), onClick = { manager.download() }, height = 52.mpx, textSize = 18, tinted = true, modifier = Modifier.focusRequester(focus))
+                    // "What's New" opens the full changelog dialog (the same view the manual check uses).
+                    tv.own.owntv.ui.stage.StageButton(stringResource(R.string.update_whats_new), onClick = onViewChangelog, height = 52.mpx, textSize = 18)
                     tv.own.owntv.ui.stage.StageButton(stringResource(R.string.update_later), onClick = onDone, height = 52.mpx, textSize = 18)
                 }
             }
-            is UpdateManager.State.Downloading -> Row(verticalAlignment = Alignment.CenterVertically) {
-                OwnTVSpinner(sizeDp = 18)
-                Spacer(Modifier.width(14.mpx))
-                Text(stringResource(R.string.update_downloading, s.percent), style = stageText(17, 500), color = StageColors.Muted)
+            is UpdateManager.State.Downloading -> {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    OwnTVSpinner(sizeDp = 18)
+                    Spacer(Modifier.width(14.mpx))
+                    Text(stringResource(R.string.update_downloading, s.percent), style = stageText(17, 600), color = StageColors.Text)
+                }
+                Spacer(Modifier.height(4.dp))
+                Text(stringResource(R.string.update_background), style = stageText(16, 500), color = StageColors.Muted)
+                // Later puts the card away; the download goes on and the card returns when the file is in.
+                if (!auto) buttons { tv.own.owntv.ui.stage.StageButton(stringResource(R.string.update_later), onClick = onDone, height = 52.mpx, textSize = 18) }
+            }
+            is UpdateManager.State.Ready -> {
+                BackHandler { onDone() }
+                Text(stringResource(R.string.update_downloaded), style = stageText(21, 800), color = StageColors.Text)
+                Spacer(Modifier.height(4.dp))
+                Text(stringResource(R.string.update_ready, s.info.version, manager.currentVersion), style = stageText(17, 500), color = StageColors.Muted)
+                buttons {
+                    tv.own.owntv.ui.stage.StageButton(stringResource(R.string.update_install), onClick = { manager.installReady() }, height = 52.mpx, textSize = 18, tinted = true, modifier = Modifier.focusRequester(focus))
+                    tv.own.owntv.ui.stage.StageButton(stringResource(R.string.update_later), onClick = onDone, height = 52.mpx, textSize = 18)
+                }
             }
         }
     }

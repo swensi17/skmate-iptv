@@ -310,6 +310,14 @@
     <string name="update_install_rejected">The system installer refused the update: <xliff:g id="reason">%1$s</xliff:g></string>
     <!-- Translators: Status text when an update has been downloaded and is ready to install. "available" is the new version, "current" is the installed version. -->
     <string name="update_ready">SkMate IPTV v<xliff:g id="available">%1$s</xliff:g> is ready (you have v<xliff:g id="current">%2$s</xliff:g>).</string>
+    <!-- Translators: Button on the update card that opens the system installer for an update already downloaded. -->
+    <string name="update_install">Install</string>
+    <!-- Translators: Heading of the update card once the new version has downloaded. -->
+    <string name="update_downloaded">Update downloaded</string>
+    <!-- Translators: Line on the update card while the update downloads in the background. -->
+    <string name="update_background">It downloads in the background: keep watching, we\'ll tell you when it is ready.</string>
+    <!-- Translators: Error when the downloaded update is signed by another key or is not newer, so Android would refuse it. -->
+    <string name="update_conflict">This update does not fit the installed app (another signature or an older build). Install it from the release page instead.</string>
 
     <!-- Translators: Dialog title for the database recovery screen. "SkMate IPTV" is a brand name. -->
     <string name="recovery_title">SkMate IPTV could not open its database</string>
@@ -1028,4 +1036,6 @@
     <string name="welcome_telegram_title">Our Telegram chat</string>
     <string name="welcome_telegram_body">App news, help and talk with other viewers. Ask a question, report a bug or suggest an idea. Find us on Telegram:</string>
     <string name="welcome_telegram_ok">Got it, thanks</string>
+    <!-- Translators: Second button of the Telegram note: it will not be shown again. -->
+    <string name="welcome_telegram_never">Don\'t remind me</string>
 </resources>

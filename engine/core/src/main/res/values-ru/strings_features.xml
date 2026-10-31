@@ -149,6 +149,10 @@
     <string name="update_damaged_download">Обновление скачалось не полностью. Проверьте подключение и повторите попытку.</string>
     <string name="update_install_rejected">Системный установщик отклонил обновление: <xliff:g id="reason">%1$s</xliff:g></string>
     <string name="update_ready">SkMate IPTV v<xliff:g id="available">%1$s</xliff:g> готова к установке (у вас v<xliff:g id="current">%2$s</xliff:g>).</string>
+    <string name="update_install">Установить</string>
+    <string name="update_downloaded">Обновление скачано</string>
+    <string name="update_background">Скачивается в фоне: смотрите дальше, мы скажем, когда будет готово.</string>
+    <string name="update_conflict">Это обновление не подходит к установленному приложению (другая подпись или более старая сборка). Установите его со страницы выпуска.</string>
     <string name="recovery_title">SkMate IPTV не удалось открыть базу данных</string>
     <string name="recovery_data_safe_full">Ваши профили, плейлисты, избранное и история НЕ удалены — произошёл сбой обновления базы данных, а данные всё ещё находятся на этом устройстве.\n\nПожалуйста, сообщите об этом, чтобы проблему можно было устранить, и приложите сообщение ниже.</string>
     <string name="recovery_retry">Попробовать ещё раз</string>
@@ -632,4 +636,5 @@
     <string name="welcome_telegram_title">Наш чат в Telegram</string>
     <string name="welcome_telegram_body">Новости приложения, помощь и общение с другими зрителями. Задайте вопрос, расскажите об ошибке или предложите идею. Найдите нас в Telegram:</string>
     <string name="welcome_telegram_ok">Понял, спасибо</string>
+    <string name="welcome_telegram_never">Больше не напоминать</string>
 </resources>

@@ -64,6 +64,9 @@ class ShellViewModel(
     /** The startup update check runs once per launch, not once per shell composition. */
     var startupUpdateCheckDone = false
 
+    /** The Telegram note was already offered in this run of the app. */
+    var telegramAsked = false
+
     init {
         // One-time: move any existing playlist EPG into the new standalone EPG sources (v2.2.0).
         viewModelScope.launch { runCatching { epgMigration.run() } }

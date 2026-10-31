@@ -13,7 +13,7 @@ object UpdatePrefs {
     enum class Every(val hours: Int) { START(0), HOURS_6(6), DAY(24) }
     enum class Window { ANY, NIGHT }
 
-    var auto by mutableStateOf(true)
+    var auto by mutableStateOf(false)
         private set
     var every by mutableStateOf(Every.HOURS_6)
         private set
@@ -24,7 +24,8 @@ object UpdatePrefs {
 
     fun init(context: Context) {
         val p = context.getSharedPreferences(FILE, Context.MODE_PRIVATE).also { prefs = it }
-        auto = p.getBoolean(KEY_AUTO, true)
+        // Off unless the viewer turned it on: a new version asks first (Update → download in the background → Install).
+        auto = p.getBoolean(KEY_AUTO, false)
         every = Every.entries.getOrElse(p.getInt(KEY_EVERY, Every.HOURS_6.ordinal)) { Every.HOURS_6 }
         window = Window.entries.getOrElse(p.getInt(KEY_WINDOW, Window.ANY.ordinal)) { Window.ANY }
     }
