@@ -19,6 +19,10 @@ M3U и Xtream Codes, телегид (EPG), архив, профили — упр
   <img alt="libVLC" src="https://img.shields.io/badge/engine-libVLC-ff8800?logo=vlcmediaplayer&logoColor=white">
 </p>
 
+<p align="center">
+  <a href="https://swensi17.github.io/skmate-iptv/"><b>▶ Демо веб-версии для LG webOS и Samsung Tizen</b></a> — открывается в браузере, управление стрелками, OK = Enter, «Назад» = Esc
+</p>
+
 <p align="center"><b>Русский</b> · <a href="docs/i18n-readme/README.en.md">English</a> · <a href="docs/i18n-readme/README.zh.md">中文</a></p>
 
 <p align="center"><img src="docs/screenshots/live-dark.jpg" alt="SkMate IPTV — прямой эфир" width="900"></p>
