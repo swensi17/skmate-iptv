@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from "preact/hooks";
-import { SearchIndex, type Channel } from "@skmate/core";
+import type { Channel } from "@skmate/core";
 import { focusFirst, VirtualList } from "@skmate/ui";
 import { t } from "../i18n";
 import { channelKey } from "../state/favorites";
 import { kindOf, SPORT_LABEL, sportSummary, type SportKind } from "../sport";
 import { useContext } from "preact/hooks";
 import { UiContext } from "../state/UiContext";
+import { ChannelSearch } from "../state/channelSearch";
+import { GuideContext } from "../state/GuideContext";
 import { ChannelRow } from "./ChannelRow";
 
 const HEIGHT = 780;
@@ -26,8 +28,9 @@ export function SportView({ channels, favorites, onOpen, onFav }: Props) {
   const [query, setQuery] = useState("");
   const [settled, setSettled] = useState("");
   const byKind = useMemo(() => (kind === "all" ? list : list.filter((c) => kindOf(c) === kind)), [list, kind]);
-  const index = useMemo(() => new SearchIndex(byKind, (c) => c.name), [byKind]);
-  const shown = useMemo(() => (settled.trim() === "" ? byKind : index.search(settled).map((r) => r.item)), [byKind, index, settled]);
+  const guide = useContext(GuideContext);
+  const index = useMemo(() => new ChannelSearch(byKind, guide.data, guide.now), [byKind, guide.data, Math.floor(guide.now / 60_000)]);
+  const shown = useMemo(() => (settled.trim() === "" ? byKind : index.search(settled)), [byKind, index, settled]);
   useEffect(() => { focusFirst(document, "sport-all"); }, []);
   useEffect(() => { const id = setTimeout(() => setSettled(query), TYPING_PAUSE_MS); return () => clearTimeout(id); }, [query]);
 
