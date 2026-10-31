@@ -45,7 +45,7 @@ const CH_DOWN = [428, 34];
 
 /**
  * Full-screen playback. Keys: OK pauses and resumes; Up or Down first show the action bar, then step through the
- * channels; Right (or Left) opens the side menu; the channel keys always step; Back closes what is open, then leaves.
+ * channels; Right opens the recently watched, Left the channels (each from its own edge); the channel keys always step; Back closes what is open, then leaves.
  */
 export function PlayerView({ channels, catalog, index, favorites, recents, onPick, closing, onStep, onFav, onExit, settings, onChangeSettings }: Props) {
   const channel = channels[index] as Channel;
@@ -63,6 +63,7 @@ export function PlayerView({ channels, catalog, index, favorites, recents, onPic
   const [bar, setBar] = useState(false);
   const [panel, setPanel] = useState(false);
   const [tab, setTab] = useState<PanelTab>("channels");
+  const [side, setSide] = useState<"left" | "right">("right");
   const hideTimer = useRef<ReturnType<typeof setTimeout>>();
 
   const wake = (withBar = false) => {
@@ -75,7 +76,7 @@ export function PlayerView({ channels, catalog, index, favorites, recents, onPic
   useEffect(() => { setBar(false); wake(); return () => clearTimeout(hideTimer.current); }, [channel.id]);
   useEffect(() => { if (paused) { clearTimeout(hideTimer.current); setInfo(true); } else wake(); }, [paused]);
 
-  const openPanel = (to: PanelTab) => { setTab(to); setPanel(true); setBar(false); };
+  const openPanel = (to: PanelTab, from: "left" | "right" = "right") => { setTab(to); setSide(from); setPanel(true); setBar(false); };
 
   // Capture phase: the player decides first, so Back closes the menu before it leaves the player.
   useEffect(() => {
@@ -102,7 +103,8 @@ export function PlayerView({ channels, catalog, index, favorites, recents, onPic
         return;
       }
       if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
-        if (!bar) { swallow(e); openPanel("channels"); return; }
+        // Right: what was watched lately. Left: the channels.
+        if (!bar) { swallow(e); if (e.key === "ArrowRight") openPanel("recent", "right"); else openPanel("channels", "left"); return; }
         wake(true); // on the bar the arrows walk its buttons
         return;
       }
@@ -168,7 +170,7 @@ export function PlayerView({ channels, catalog, index, favorites, recents, onPic
       <Presence show={panel}>
         {(out) => (
           <PlayerPanel
-            tab={tab} onTab={setTab} closing={out} onClose={() => setPanel(false)}
+            side={side} tab={tab} onTab={setTab} closing={out} onClose={() => setPanel(false)}
             channels={channels} catalog={catalog} index={index} recents={recents} favorites={favorites}
             onPick={(c, list) => { onPick(c, list); setPanel(false); }} onFav={onFav}
             settings={settings} onChangeSettings={onChangeSettings}

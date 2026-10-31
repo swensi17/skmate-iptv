@@ -15,6 +15,8 @@ const TABS: Array<[PanelTab, "panelGroups" | "panelChannels" | "panelRecent" | "
 ];
 
 interface Props {
+  /** The edge it came from: Left brings it from the left, Right from the right. */
+  side: "left" | "right";
   tab: PanelTab;
   onTab: (t: PanelTab) => void;
   closing: boolean;
@@ -50,7 +52,7 @@ export function PlayerPanel(p: Props) {
   ], [p.catalog.length, favs.length, groups]);
 
   return (
-    <Drawer side="right" width={980} label={t("playerMenu")} onClose={p.onClose} closing={p.closing}>
+    <Drawer side={p.side} width={980} label={t("playerMenu")} onClose={p.onClose} closing={p.closing}>
       <SheetHead title={t("playerMenu")} />
       <div class="tabs2">
         {TABS.map(([id, label]) => (
