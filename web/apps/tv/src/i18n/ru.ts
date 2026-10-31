@@ -233,5 +233,6 @@ export const ru = {
   leftMin: "осталось {m} мин",
   leftHour: "осталось {h} ч {m} мин",
   until: "до {time}",
+  done: "Готово",
   demoPlaylist: "Демо-плейлист",
 } as const;
