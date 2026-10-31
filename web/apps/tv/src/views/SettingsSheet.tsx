@@ -91,7 +91,7 @@ export function SettingsSheet(p: Props) {
     <Drawer side="right" width={980} label={t("sheetTitle")} onClose={p.onClose} closing={!p.show}>
       {page === null ? (
         <>
-          <SheetHead id="sheet-close" title={t("sheetTitle")} onBack={p.onClose} />
+          <SheetHead title={t("sheetTitle")} />
           <div class="drawer-scroll">
             {MENU.map(([section, pages]) => (
               <div key={section}>
@@ -112,7 +112,7 @@ export function SettingsSheet(p: Props) {
         </>
       ) : (
         <>
-          <SheetHead id="sheet-back" title={t(META[page].title)} onBack={() => p.onPage(null)} right={page === "about" ? __APP_VERSION__ : undefined} />
+          <SheetHead title={t(META[page].title)} right={page === "about" ? __APP_VERSION__ : undefined} />
           <div class="drawer-body drawer-scroll">
             {page === "player" ? <PlayerSettingRows settings={s} onChange={onChange} /> : null}
             {page === "look" ? (

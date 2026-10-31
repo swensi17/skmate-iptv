@@ -235,5 +235,6 @@ export const en: Record<keyof typeof ru, string> = {
   leftMin: "{m} min left",
   leftHour: "{h} h {m} min left",
   until: "until {time}",
+  done: "Done",
   demoPlaylist: "Demo playlist",
 };
