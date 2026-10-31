@@ -5,6 +5,7 @@ import { t, type Key } from "../i18n";
 import { channelKey } from "../state/favorites";
 import type { Settings } from "../state/settings";
 import { capitalize } from "../text";
+import { GroupIcon } from "./GroupIcon";
 import { ChannelRow } from "./ChannelRow";
 import { PlayerSettingRows } from "./PlayerRows";
 import { SheetHead } from "./SheetHead";
@@ -86,6 +87,7 @@ export function PlayerPanel(p: Props) {
           idOf={(g) => `pg:${g.key}`}
           renderRow={(g) => (
             <button class="row" data-focus={`pg:${g.key}`} onClick={() => { setGroup(g.key); p.onTab("channels"); }} aria-pressed={group === g.key}>
+              <GroupIcon id={g.key} />
               <span class="grow">{g.label}</span><span class="sub">{g.count}</span>
             </button>
           )}
