@@ -10,7 +10,8 @@
     "build": "npm -w @skmate/tv run build",
     "test": "vitest run",
     "typecheck": "tsc -b packages/core packages/epg packages/player packages/ui apps/tv",
-    "check": "npm run typecheck && npm test"
+    "check": "npm run typecheck && npm test",
+    "package": "node scripts/package-tv.mjs"
   },
   "devDependencies": {
     "@preact/preset-vite": "^2.9.0",
