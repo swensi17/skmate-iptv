@@ -15,6 +15,7 @@ import { PlaylistsPanel } from "./PlaylistsPanel";
 import { ProfilesPanel } from "./ProfilesPanel";
 import { SettingRow } from "./SettingRow";
 import { SheetHead } from "./SheetHead";
+import type { UpdateState } from "../state/useUpdates";
 import { platformLabel, SystemPanel } from "./SystemPanel";
 
 export type Page = "player" | "look" | "playlists" | "epg" | "profiles" | "system" | "backup" | "about";
@@ -65,6 +66,7 @@ interface Props {
   onAskDeleteProfile: (id: string) => void;
   onQr: (name: string, address: string) => void;
   onRedoWizard: () => void;
+  update: { state: UpdateState; check: () => void; install: () => void };
 }
 
 /** Settings as a sheet from the right edge: a menu of sections, each opening its rows in the same sheet. */
@@ -144,7 +146,7 @@ export function SettingsSheet(p: Props) {
             {page === "profiles" ? (
               <ProfilesPanel book={p.book} onSwitch={p.onSwitchProfile} onAdd={p.onAddProfile} onAskDelete={p.onAskDeleteProfile} />
             ) : null}
-            {page === "system" ? <SystemPanel settings={s} onChange={onChange} onQr={p.onQr} onReset={p.onAskReset} onRedo={p.onRedoWizard} /> : null}
+            {page === "system" ? <SystemPanel settings={s} onChange={onChange} onQr={p.onQr} onReset={p.onAskReset} onRedo={p.onRedoWizard} update={p.update} /> : null}
             {page === "backup" ? <BackupPanel /> : null}
             {page === "about" ? <AboutPanel onQr={p.onQr} /> : null}
           </div>

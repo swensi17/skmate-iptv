@@ -8,9 +8,11 @@ import { GuideContext } from "./state/GuideContext";
 import { loadHistory, pushRecent, recentChannels, saveHistory } from "./state/history";
 import { UiContext } from "./state/UiContext";
 import { useGuide } from "./state/useGuide";
+import { useUpdates } from "./state/useUpdates";
 import { addProfile, firstBook, loadBook, purgeProfile, removeProfile, saveBook, switchProfile, type ProfileBook } from "./state/scope";
 import { usePlaylists } from "./state/usePlaylists";
 import { Confirm } from "./views/Confirm";
+import { UpdateDialog } from "./views/UpdateDialog";
 import { QrDialog } from "./views/QrDialog";
 import { PlaylistPicker } from "./views/PlaylistPicker";
 import { Wizard, type WizardResult } from "./views/Wizard";
@@ -47,6 +49,8 @@ export function App() {
   const [railOpen, setRailOpen] = useState(false);
   const [redo, setRedo] = useState(false);
   const [sheet, setSheet] = useState(false);
+  // Updates wait for the picture to end: nothing interrupts a channel.
+  const update = useUpdates(settings.autoUpdate, playing !== null);
   const [sheetPage, setSheetPage] = useState<Page | null>(null);
   const pl = usePlaylists();
   const guide = useGuide(pl.channels, pl.active, pl.headerGuides, settings);
@@ -189,7 +193,7 @@ export function App() {
             channelCount={pl.channels.length} active={pl.active} headerGuides={pl.headerGuides}
             book={book ?? firstBook("", true)} onSwitchProfile={switchTo} onAddProfile={addOne} onAskDeleteProfile={setDeletingProfile}
             onQr={(name, address) => setQr({ name, address })}
-            onRedoWizard={() => { setSheet(false); setRedo(true); }}
+            update={update} onRedoWizard={() => { setSheet(false); setRedo(true); }}
           />
         )}
       </Presence>
@@ -199,6 +203,9 @@ export function App() {
             onManage={() => { setPicking(false); setSheetPage("playlists"); setSheet(true); }} />
         )}
       </Presence>
+      {update.dialog ? (
+        <UpdateDialog release={update.dialog} installing={update.state.kind === "installing"} onInstall={update.install} onLater={update.later} />
+      ) : null}
       {qr ? <QrDialog name={qr.name} address={qr.address} onClose={() => setQr(null)} /> : null}
       {doomedProfile ? (
         <Confirm

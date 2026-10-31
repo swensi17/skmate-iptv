@@ -4,6 +4,7 @@ import legacy from "@vitejs/plugin-legacy";
 import type { Plugin } from "vite";
 import { Readable } from "node:stream";
 import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 
 const pkg = JSON.parse(readFileSync(new URL("./package.json", import.meta.url), "utf8")) as { version: string };
 
@@ -43,11 +44,27 @@ function devProxy(): Plugin {
   };
 }
 
+const BUILD = Date.now();
+
+/** Next to the app, `version.json` says which build is deployed: a running app compares it with its own to find an update. */
+function versionFile(): Plugin {
+  return {
+    name: "skmate-version-file",
+    apply: "build",
+    generateBundle() {
+      this.emitFile({ type: "asset", fileName: "version.json", source: JSON.stringify({ version: pkg.version, build: BUILD }) });
+    },
+  };
+}
+
 // The oldest target is webOS 4 (Chromium 53) and Tizen 4 (Chromium 56): a legacy bundle goes next to the modern one.
 export default defineConfig({
   base: "./",
-  define: { __APP_VERSION__: JSON.stringify(pkg.version) },
-  plugins: [devProxy(), preact(), legacy({ targets: ["chrome >= 53", "safari >= 10"] })],
+  // One Preact for the whole bundle. The workspaces hold different copies (10.x beside the app, another one at the
+  // root); two copies in one bundle break hooks ("Cannot read properties of undefined (reading '__H')").
+  resolve: { dedupe: ["preact"], alias: { preact: fileURLToPath(new URL("./node_modules/preact", import.meta.url)) } },
+  define: { __APP_VERSION__: JSON.stringify(pkg.version), __APP_BUILD__: String(BUILD) },
+  plugins: [devProxy(), versionFile(), preact(), legacy({ targets: ["chrome >= 53", "safari >= 10"] })],
   build: { target: "es2017", sourcemap: false },
   server: { port: 5173, host: true },
 });
