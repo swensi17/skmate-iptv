@@ -17,9 +17,9 @@ h2 { margin: 0 0 24px; font-size: 40px; font-weight: 700; }
 .player { position: absolute; inset: 0; background: #000; color: #f1f2f3; }
 .video { width: 100%; height: 100%; object-fit: contain; background: #000; }
 .player-shade { position: absolute; left: 0; right: 0; bottom: 0; height: 420px; background: linear-gradient(rgba(0,0,0,0), rgba(0,0,0,.78)); opacity: 0; transition: opacity 220ms linear; pointer-events: none; }
-.player.info .player-shade, .player.bar .player-shade { opacity: 1; }
+.player.info .player-shade, .player.with-bar .player-shade { opacity: 1; }
 .pinfo, .pline { opacity: 0; transition: opacity 220ms linear; pointer-events: none; }
-.player.info .pinfo, .player.info .pline, .player.bar .pinfo, .player.bar .pline { opacity: 1; }
+.player.info .pinfo, .player.info .pline, .player.with-bar .pinfo, .player.with-bar .pline { opacity: 1; }
 .pinfo { position: absolute; left: 64px; right: 64px; bottom: 76px; display: flex; gap: 28px; align-items: flex-end; }
 .pinfo-logo { width: 120px; height: 120px; flex: none; border-radius: var(--radius); background: #fff; display: flex; align-items: center; justify-content: center; overflow: hidden; }
 .pinfo-logo .logo { width: 100%; height: 100%; border-radius: 0; font-size: 40px; padding: 8px; }
