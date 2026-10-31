@@ -9,6 +9,7 @@ import { GuideContext } from "../state/GuideContext";
 import { clock } from "../time";
 import { ChannelRow } from "./ChannelRow";
 import { PlayerSettingRows } from "./PlayerRows";
+import { SheetHead } from "./SheetHead";
 
 
 interface Props {
@@ -142,7 +143,7 @@ export function PlayerView({ channels, catalog, index, favorites, recents, onPic
       <Presence show={drawer === "settings"}>
         {(out) => (
           <Drawer side="left" width={980} label={t("playerSettingsTitle")} onClose={() => setDrawer(null)} closing={out}>
-            <div class="drawer-title">{t("playerSettingsTitle")}</div>
+            <SheetHead id="ps-back" title={t("playerSettingsTitle")} onBack={() => setDrawer(null)} />
             <div class="drawer-body drawer-scroll"><PlayerSettingRows settings={settings} onChange={onChangeSettings} /></div>
           </Drawer>
         )}
@@ -151,6 +152,7 @@ export function PlayerView({ channels, catalog, index, favorites, recents, onPic
       <Presence show={drawer === "channels"}>
         {(out) => (
           <Drawer side="right" width={860} label={t("drawerChannels")} onClose={() => setDrawer(null)} closing={out}>
+            <SheetHead id="dc-back" title={t("drawerChannels")} onBack={() => setDrawer(null)} />
             <div class="tabs2">
               <button class="tab2" data-focus="dc-tab-recent" aria-selected={tab === "recent"} onClick={() => setTab("recent")}>{t("tabRecent")}</button>
               <button class="tab2" data-focus="dc-tab-channels" aria-selected={tab === "channels"} onClick={() => setTab("channels")}>{t("tabChannels")}</button>

@@ -1,6 +1,7 @@
 import { Drawer, focusFirst, Icon } from "@skmate/ui";
 import { useEffect } from "preact/hooks";
 import { t } from "../i18n";
+import { SheetHead } from "./SheetHead";
 import type { PlaylistStore } from "../state/playlists";
 
 /** Quick switch between the playlists from the channel screen, without a trip to Settings. */
@@ -8,7 +9,7 @@ export function PlaylistPicker(p: { store: PlaylistStore; onSelect: (id: string)
   useEffect(() => { focusFirst(document, `pk-${p.store.activeId ?? p.store.list[0]?.id ?? "manage"}`); }, []);
   return (
     <Drawer side="left" width={760} label={t("playlistPickerTitle")} onClose={p.onClose} closing={p.closing}>
-      <div class="drawer-title">{t("playlistPickerTitle")}</div>
+      <SheetHead id="pk-back" title={t("playlistPickerTitle")} onBack={p.onClose} />
       <div class="drawer-body">
         {p.store.list.map((pl) => (
           <button class="row" key={pl.id} data-focus={`pk-${pl.id}`} aria-pressed={p.store.activeId === pl.id}
