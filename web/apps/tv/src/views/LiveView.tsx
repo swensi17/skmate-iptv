@@ -9,6 +9,7 @@ import { capitalize } from "../text";
 import { ChannelSearch } from "../state/channelSearch";
 import { interestRank } from "../state/interests";
 import { GuideContext } from "../state/GuideContext";
+import { GroupIcon } from "./GroupIcon";
 import { ChannelRow } from "./ChannelRow";
 import { UiContext } from "../state/UiContext";
 import { PreviewPane } from "./PreviewPane";
@@ -159,6 +160,7 @@ export function LiveView(p: Props) {
                 idOf={(g) => `g:${g.key}`}
                 renderRow={(g) => (
                   <button class="row" data-focus={`g:${g.key}`} onClick={() => { setGroup(g.key); setCatsOpen(false); }} aria-pressed={group === g.key}>
+                    <GroupIcon id={g.key} />
                     <span class="grow">{g.label}</span>
                     <span class="sub">{g.count}</span>
                   </button>
