@@ -7,8 +7,8 @@ import { GuideContext } from "../state/GuideContext";
 import type { Settings } from "../state/settings";
 import { usePlayback } from "../state/usePlayback";
 import { clock } from "../time";
-import { ChannelLogo } from "./ChannelLogo";
 import { leftLabel } from "./Left";
+import { ChannelLogo } from "./ChannelLogo";
 import { PlayerPanel, type Go, type PanelTab } from "./PlayerPanel";
 
 interface Props {
@@ -63,6 +63,8 @@ export function PlayerView({ channels, catalog, index, favorites, recents, onPic
   // Two layers: the info strip (what is on) and the action bar (what can be done). The panel is the side menu.
   const [info, setInfo] = useState(true);
   const [bar, setBar] = useState(false);
+  // A list that opens inside the bar itself, in place of its buttons.
+  const [strip, setStrip] = useState<null | "favorites" | "recent">(null);
   const [panel, setPanel] = useState(false);
   const [tab, setTab] = useState<PanelTab>("channels");
   const [side, setSide] = useState<"left" | "right">("right");
@@ -73,14 +75,16 @@ export function PlayerView({ channels, catalog, index, favorites, recents, onPic
     setInfo(true);
     if (withBar) setBar(true);
     clearTimeout(hideTimer.current);
-    hideTimer.current = setTimeout(() => { setInfo(false); setBar(false); }, settings.osdSeconds * 1000);
+    hideTimer.current = setTimeout(() => { setInfo(false); setBar(false); setStrip(null); }, settings.osdSeconds * 1000);
   };
   // The strip shows on every new channel, then goes by itself; a paused picture keeps it.
-  useEffect(() => { setBar(false); wake(); return () => clearTimeout(hideTimer.current); }, [channel.id]);
+  useEffect(() => { setBar(false); setStrip(null); wake(); return () => clearTimeout(hideTimer.current); }, [channel.id]);
   useEffect(() => { if (paused) { clearTimeout(hideTimer.current); setInfo(true); } else wake(); }, [paused]);
 
   // An open panel keeps the info strip on screen and it does not go away by itself.
   const openPanel = (to: PanelTab, from: "left" | "right" = "right") => { setTab(to); setSide(from); setPanel(true); setInfo(true); setBar(false); clearTimeout(hideTimer.current); };
+  const stripList = strip === "favorites" ? catalog.filter((c) => favorites.has(channelKey(c))) : strip === "recent" ? recents : [];
+  const openStrip = (to: "favorites" | "recent") => { setStrip(to); clearTimeout(hideTimer.current); setTimeout(() => focusFirst(document, "ps-first"), 30); };
   // OK arms the bar: the Down that follows it opens the bar instead of stepping to the next channel.
   const ok = useRef(false);
 
@@ -91,6 +95,7 @@ export function PlayerView({ channels, catalog, index, favorites, recents, onPic
       if (isBack(e)) {
         swallow(e);
         if (panel) setPanel(false);
+        else if (strip) { const was = strip; setStrip(null); setTimeout(() => focusFirst(document, was === "favorites" ? "pl-favs" : "pl-recent"), 30); }
         else if (bar) setBar(false);
         else if (info && state !== "failed" && !paused) { clearTimeout(hideTimer.current); setInfo(false); }
         else onExit();
@@ -149,7 +154,7 @@ export function PlayerView({ channels, catalog, index, favorites, recents, onPic
       document.removeEventListener("keydown", onKey, true);
       document.removeEventListener("mousemove", onMove, true);
     };
-  }, [info, bar, panel, tab, side, state, paused, channel.id]);
+  }, [info, bar, strip, panel, tab, side, state, paused, channel.id]);
 
   useEffect(() => { if (state === "failed") focusFirst(document, "pl-retry"); }, [state]);
 
@@ -204,16 +209,27 @@ export function PlayerView({ channels, catalog, index, favorites, recents, onPic
       </Presence>
 
       {bar && state !== "failed" ? (
+        strip ? (
+          <div class="player-bar player-strip" role="list" aria-label={t(strip === "favorites" ? "favorites" : "panelRecent")}>
+            {stripList.length === 0 ? <div class="strip-empty">{t(strip === "favorites" ? "favoritesEmpty" : "recentEmpty")}</div> : stripList.map((c, i) => (
+              <button class="strip-card" key={c.id} data-focus={i === 0 ? "ps-first" : `ps-${c.id}`} onClick={() => { onPick(c, stripList); setStrip(null); setBar(false); }}>
+                <span class="strip-logo"><ChannelLogo channel={c} /></span>
+                <span class="strip-name">{c.name}</span>
+              </button>
+            ))}
+          </div>
+        ) : (
         <div class="player-bar">
           <Tile id="pl-prev" icon="skip_previous" label="playerPrev" onClick={() => onStep(-1)} />
           <Tile id="pl-play" icon={paused ? "play" : "pause"} label={paused ? "playerPlay" : "playerPause"} onClick={togglePause} />
           <Tile id="pl-next" icon="skip_next" label="playerNext" onClick={() => onStep(1)} />
           <Tile id="pl-fav" icon={favorite ? "favorite" : "star"} label="playerFavorite" onClick={() => onFav(channel)} />
-          <Tile id="pl-favs" icon="list" label="favorites" onClick={() => openPanel("favorites", "right")} />
-          <Tile id="pl-recent" icon="history" label="panelRecent" onClick={() => openPanel("recent", "right")} />
+          <Tile id="pl-favs" icon="list" label="favorites" onClick={() => openStrip("favorites")} />
+          <Tile id="pl-recent" icon="history" label="panelRecent" onClick={() => openStrip("recent")} />
           <Tile id="pl-set" icon="settings" label="playerSettings" onClick={() => openPanel("settings", "right")} />
           <Tile id="pl-list" icon="home" label="playerMenu" onClick={() => openPanel("channels", "left")} />
         </div>
+        )
       ) : null}
     </div>
   );
