@@ -30,8 +30,8 @@ function Info({ id, title, value }: { id: string; title: string; value: string }
   );
 }
 
-export function SystemPanel({ settings, onChange, onQr, onReset }: {
-  settings: Settings; onChange: (s: Settings) => void; onQr: (name: string, address: string) => void; onReset: () => void;
+export function SystemPanel({ settings, onChange, onQr, onReset, onRedo }: {
+  settings: Settings; onChange: (s: Settings) => void; onQr: (name: string, address: string) => void; onReset: () => void; onRedo: () => void;
 }) {
   const [cleared, setCleared] = useState<number | null>(null);
   const mem = (navigator as unknown as { deviceMemory?: number }).deviceMemory;
@@ -52,6 +52,9 @@ export function SystemPanel({ settings, onChange, onQr, onReset }: {
       </button>
       <button class="srow" data-focus="s-report" onClick={() => onQr(t("sysReport"), REPORT)}>
         <span class="srow-text"><span class="srow-title">{t("sysReport")}</span><span class="srow-hint">{t("sysReportHint")}</span></span>
+      </button>
+      <button class="srow" data-focus="s-redo" onClick={onRedo}>
+        <span class="srow-text"><span class="srow-title">{t("wzRedo")}</span><span class="srow-hint">{t("wzRedoHint")}</span></span>
       </button>
       <button class="srow" data-focus="s-reset" onClick={onReset}>
         <span class="srow-text"><span class="srow-title">{t("setReset")}</span><span class="srow-hint">{t("setResetHint")}</span></span>

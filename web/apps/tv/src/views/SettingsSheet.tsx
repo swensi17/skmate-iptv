@@ -64,6 +64,7 @@ interface Props {
   onAddProfile: (name: string) => void;
   onAskDeleteProfile: (id: string) => void;
   onQr: (name: string, address: string) => void;
+  onRedoWizard: () => void;
 }
 
 /** Settings as a sheet from the right edge: a menu of sections, each opening its rows in the same sheet. */
@@ -143,7 +144,7 @@ export function SettingsSheet(p: Props) {
             {page === "profiles" ? (
               <ProfilesPanel book={p.book} onSwitch={p.onSwitchProfile} onAdd={p.onAddProfile} onAskDelete={p.onAskDeleteProfile} />
             ) : null}
-            {page === "system" ? <SystemPanel settings={s} onChange={onChange} onQr={p.onQr} onReset={p.onAskReset} /> : null}
+            {page === "system" ? <SystemPanel settings={s} onChange={onChange} onQr={p.onQr} onReset={p.onAskReset} onRedo={p.onRedoWizard} /> : null}
             {page === "backup" ? <BackupPanel /> : null}
             {page === "about" ? <AboutPanel onQr={p.onQr} /> : null}
           </div>
