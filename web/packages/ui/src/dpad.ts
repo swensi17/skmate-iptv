@@ -35,7 +35,9 @@ export function installDpad(onBack: () => boolean): () => void {
     if (typing && (dir === "left" || dir === "right")) return; // the caret moves inside a field
     // An open dialog (`[data-modal]`) owns the remote: focus cannot leave it.
     const modals = document.querySelectorAll("[data-modal]");
-    const all = boxes(modals.length > 0 ? (modals[modals.length - 1] as Element) : document);
+    let all = boxes(modals.length > 0 ? (modals[modals.length - 1] as Element) : document);
+    // A collapsed side menu (`[data-collapsed]`) is out of sight: only a press of Left may bring the focus to it.
+    if (dir !== "left") all = all.filter((b) => !b.el.closest("[data-collapsed]") || active?.closest("[data-collapsed]"));
     const cur = active?.dataset.focus ?? null;
     const target = nextFocus(all.map(({ id, x, y, w, h }) => ({ id, x, y, w, h })), cur, dir);
     if (target !== null) {
@@ -55,8 +57,12 @@ export function installDpad(onBack: () => boolean): () => void {
   };
 }
 
-/** Puts focus on the first (or the named) focusable element of a freshly shown screen. */
+/**
+ * Puts focus on the first (or the named) focusable element of a freshly shown screen. The name is compared as
+ * text, not put into a selector: a group called `HD "Orig"` must not break the lookup.
+ */
 export function focusFirst(root: ParentNode = document, id?: string): void {
-  const el = id ? root.querySelector<HTMLElement>(`[data-focus="${id}"]`) : root.querySelector<HTMLElement>("[data-focus]");
+  const all = Array.from(root.querySelectorAll<HTMLElement>("[data-focus]"));
+  const el = id === undefined ? all[0] : all.find((e) => e.dataset.focus === id);
   el?.focus();
 }

@@ -44,6 +44,7 @@ export function App() {
   const [qr, setQr] = useState<{ name: string; address: string } | null>(null);
   const [history, setHistory] = useState<string[]>(loadHistory);
   const [leaving, setLeaving] = useState(false);
+  const [railOpen, setRailOpen] = useState(false);
   const [sheet, setSheet] = useState(false);
   const [sheetPage, setSheetPage] = useState<Page | null>(null);
   const pl = usePlaylists();
@@ -53,6 +54,18 @@ export function App() {
 
   useEffect(() => { applyAll(settings, throttled); save(settings); }, [settings, throttled]);
   useEffect(() => watchFrames(() => setThrottled(true)), []);
+  // The pointer near the left edge brings the menu out, as Left does for the remote; away from it, it goes again.
+  useEffect(() => {
+    const onMove = (e: MouseEvent) => {
+      if (e.movementX === 0 && e.movementY === 0) return;
+      const nav = document.querySelector(".rail");
+      const inside = nav?.contains(document.activeElement);
+      if (e.clientX < 24) setRailOpen(true);
+      else if (e.clientX > 160 && !inside) setRailOpen(false);
+    };
+    document.addEventListener("mousemove", onMove, { passive: true });
+    return () => document.removeEventListener("mousemove", onMove);
+  }, []);
   useEffect(() => { saveFavorites(favorites); }, [favorites]);
 
   // Back: dialog → closes, player → list, any section but the first → the first, in the first → leave the app to the TV.
@@ -122,7 +135,11 @@ export function App() {
   return (
     <UiContext.Provider value={ui}>
     <GuideContext.Provider value={guideValue}>
-      <nav class="rail">
+      <nav
+        class={`rail${railOpen ? " open" : ""}`} data-collapsed={railOpen ? undefined : ""}
+        onFocusIn={() => setRailOpen(true)}
+        onFocusOut={(e) => { if (!(e.currentTarget as HTMLElement).contains(e.relatedTarget as Node | null)) setRailOpen(false); }}
+      >
         <div class="rail-mid">
           {NAV.map(([id, icon, label]) => (
             <button class="rail-item" key={id} data-focus={`nav-${id}`} data-label={t(label)} aria-label={t(label)} aria-current={section === id && !sheet} onClick={() => goTo(id)}>
