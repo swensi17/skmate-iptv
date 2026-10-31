@@ -32,7 +32,7 @@ export function ChannelRow(props: {
         {on ? (
           <>
             <span class="prog">{on.title}<span class="left"> · {leftLabel(on.stop, now)}</span></span>
-            <span class="bar row-bar"><span class="bar-fill" style={{ width: `${Math.round(progress * 100)}%` }} /></span>
+            <span class="bar"><span class="bar-fill" style={{ width: `${Math.round(progress * 100)}%` }} /></span>
           </>
         ) : null}
       </span>
