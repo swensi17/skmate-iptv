@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import type { Channel } from "@skmate/core";
-import { defaultEngines, PlayerLadder } from "@skmate/player";
+import { defaultEngines, PlayerLadder, type EnginePreference } from "@skmate/player";
 
 export type PlayState = "loading" | "playing" | "failed";
 
@@ -13,7 +13,14 @@ export const STALL_RESTART_MS = 15_000;
  * Plays [channel] on [video]: the engines in turn, a settle delay for zapping, one automatic restart
  * when the picture freezes. Everything about *how* it plays; the screen only shows the state.
  */
-export function usePlayback(video: { current: HTMLVideoElement | null }, channel: Channel) {
+export interface PlaybackOptions {
+  engine: EnginePreference;
+  bufferSeconds: number;
+  openTimeoutMs: number;
+  autoRestart: boolean;
+}
+
+export function usePlayback(video: { current: HTMLVideoElement | null }, channel: Channel, o: PlaybackOptions) {
   const [state, setState] = useState<PlayState>("loading");
   const [engine, setEngine] = useState<string | null>(null);
   const [paused, setPaused] = useState(false);
@@ -24,7 +31,11 @@ export function usePlayback(video: { current: HTMLVideoElement | null }, channel
     const el = video.current;
     if (!el) return;
     // Why an engine gave up goes to the console: the one line that tells a codec problem from a dead stream.
-    const ladder = new PlayerLadder(defaultEngines(), { onFail: (f) => console.warn(`[player] ${f.message}`) });
+    const ladder = new PlayerLadder(
+      defaultEngines({ preference: o.engine, bufferSeconds: o.bufferSeconds }),
+      { onFail: (f) => console.warn(`[player] ${f.message}`) },
+      { openTimeoutMs: o.openTimeoutMs },
+    );
     let alive = true;
     setState("loading");
     setEngine(null);
@@ -34,7 +45,7 @@ export function usePlayback(video: { current: HTMLVideoElement | null }, channel
     const armStall = () => {
       clearTimeout(stall);
       stall = setTimeout(() => {
-        if (!alive || restarts.current >= 1) return;
+        if (!alive || !o.autoRestart || restarts.current >= 1) return;
         restarts.current++;
         setAttempt((n) => n + 1);
       }, STALL_RESTART_MS);
@@ -61,7 +72,7 @@ export function usePlayback(video: { current: HTMLVideoElement | null }, channel
       el.removeEventListener("playing", onPlaying);
       ladder.stop();
     };
-  }, [channel.url, attempt]);
+  }, [channel.url, attempt, o.engine, o.bufferSeconds, o.openTimeoutMs, o.autoRestart]);
 
   // A new channel starts with a fresh allowance of restarts.
   useEffect(() => { restarts.current = 0; }, [channel.url]);

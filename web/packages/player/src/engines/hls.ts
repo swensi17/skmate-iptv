@@ -20,8 +20,12 @@ class NeedsRebuild extends PlayFailure {}
  * Fatal errors are healed the way hls.js documents (media recovery, one network retry, a rebuilt decoder)
  * before the engine gives up and lets the ladder move on.
  */
+export interface HlsOptions { bufferSeconds?: number | undefined }
+
 export class HlsJsEngine implements PlayerEngine {
   readonly id = "hlsjs";
+
+  constructor(private readonly options: HlsOptions = {}) {}
   private hls: Hls | null = null;
   private stopped = false;
 
@@ -50,6 +54,7 @@ export class HlsJsEngine implements PlayerEngine {
     return new Promise<void>((resolve, reject) => {
       const hls = new HlsLib({
         debug: debugOn(),
+        ...(this.options.bufferSeconds ? { maxBufferLength: this.options.bufferSeconds, maxMaxBufferLength: this.options.bufferSeconds * 2 } : {}),
         enableWorker: true,
         lowLatencyMode: false,
         xhrSetup: (xhr) => {
