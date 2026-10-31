@@ -1,9 +1,11 @@
-import { useEffect, useState } from "preact/hooks";
+import { useEffect, useMemo, useState } from "preact/hooks";
 import type { Channel } from "@skmate/core";
 import { Icon, installDpad, watchFrames, type IconName } from "@skmate/ui";
 import { applyLanguage, t, type Key } from "./i18n";
 import { channelKey, loadFavorites, saveFavorites, toggle } from "./state/favorites";
 import { applyAll, DEFAULTS, load, save, type Settings } from "./state/settings";
+import { GuideContext } from "./state/GuideContext";
+import { useGuide } from "./state/useGuide";
 import { usePlaylists } from "./state/usePlaylists";
 import { Confirm } from "./views/Confirm";
 import { GuideView } from "./views/GuideView";
@@ -33,6 +35,8 @@ export function App() {
   const [sheet, setSheet] = useState(false);
   const [sheetPage, setSheetPage] = useState<Page | null>(null);
   const pl = usePlaylists();
+  const guide = useGuide(pl.channels, pl.active, pl.headerGuides, settings);
+  const guideValue = useMemo(() => ({ data: guide.data, now: guide.now }), [guide.data, guide.now]);
   applyLanguage(settings.language); // before anything is drawn: the whole screen speaks one language
 
   useEffect(() => { applyAll(settings, throttled); save(settings); }, [settings, throttled]);
@@ -56,17 +60,19 @@ export function App() {
   if (playing) {
     const current = playing.list[playing.index] as Channel;
     return (
+      <GuideContext.Provider value={guideValue}>
       <PlayerView
         channels={playing.list} index={playing.index} favorites={favorites} onJump={(index) => setPlaying((cur) => (cur ? { list: cur.list, index } : cur))}
         onStep={(d) => setPlaying((cur) => (cur ? { list: cur.list, index: (cur.index + d + cur.list.length) % cur.list.length } : cur))}
         onFav={toggleFavorite} onExit={() => setPlaying(null)}
         settings={settings} onChangeSettings={setSettings}
       />
+      </GuideContext.Provider>
     );
   }
 
   return (
-    <>
+    <GuideContext.Provider value={guideValue}>
       <nav class="rail">
         <div class="rail-mid">
           {NAV.map(([id, icon, label]) => (
@@ -87,7 +93,7 @@ export function App() {
             onAddPlaylist={() => { setSheetPage("playlists"); setSheet(true); }} onDemo={pl.addDemo}
           />
         ) : null}
-        {section === "guide" ? <GuideView /> : null}
+        {section === "guide" ? <GuideView channels={pl.channels} favorites={favorites} status={guide.status} onRefresh={() => void guide.sync()} onOpen={open} /> : null}
         {section === "sport" ? <SportView channels={pl.channels} favorites={favorites} onOpen={open} onFav={toggleFavorite} /> : null}
         {section === "search" ? <SearchView channels={pl.channels} favorites={favorites} onOpen={open} onFav={toggleFavorite} /> : null}
       </main>
@@ -97,6 +103,8 @@ export function App() {
           settings={settings} onChange={setSettings} store={pl.store} status={pl.status}
           onAddPlaylist={pl.add} onSelectPlaylist={pl.select} onAskDeletePlaylist={setDeleting}
           onAskReset={() => setResetting(true)}
+          guide={{ data: guide.data, status: guide.status, outcomes: guide.outcomes, onRefresh: () => void guide.sync(), onClear: guide.clear }}
+          channelCount={pl.channels.length} active={pl.active} headerGuides={pl.headerGuides}
         />
       ) : null}
       {resetting ? (
@@ -113,6 +121,6 @@ export function App() {
           onConfirm={() => { pl.remove(doomed.id); setDeleting(null); }}
         />
       ) : null}
-    </>
+    </GuideContext.Provider>
   );
 }

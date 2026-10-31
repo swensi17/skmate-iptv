@@ -1,2 +1,2 @@
 { "extends": "../../tsconfig.base.json", "compilerOptions": { "outDir": "dist-types", "rootDir": "src", "noEmit": false },
-  "include": ["src"], "references": [{ "path": "../../packages/core" }, { "path": "../../packages/player" }, { "path": "../../packages/ui" }] }
+  "include": ["src"], "references": [{ "path": "../../packages/core" }, { "path": "../../packages/epg" }, { "path": "../../packages/player" }, { "path": "../../packages/ui" }] }

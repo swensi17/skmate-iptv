@@ -152,3 +152,46 @@ img.logo { background: #fff; padding: 4px; }
 .drawer .playlist, .drawer .add { max-width: none; }
 .drawer .field { height: 64px; }
 
+
+/* Channel row with the programme on now and its progress. */
+.grow.two { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.grow.two .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.prog { font-size: 20px; font-weight: 500; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.row:focus .prog { color: var(--focus-text); opacity: .7; }
+.bar { display: block; height: 4px; border-radius: 2px; background: rgba(127,127,127,.28); overflow: hidden; }
+.bar-fill { display: block; height: 100%; background: var(--text); opacity: .8; }
+.row:focus .bar-fill { background: var(--focus-text); }
+.bar.big { height: 6px; margin: 8px 0 14px; }
+.preview-prog { margin-top: 8px; }
+.pp-title { font-size: 30px; font-weight: 700; }
+.pp-time { font-size: 22px; color: var(--muted); margin-top: 2px; }
+.pp-desc { font-size: 22px; line-height: 1.35; color: var(--muted); display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+.pp-next { margin-top: 14px; font-size: 22px; color: var(--muted); }
+.pp-next b { color: var(--text); font-weight: 700; margin-right: 8px; }
+.player-now { margin-top: 8px; font-size: 28px; font-weight: 600; text-shadow: 0 2px 12px rgba(0,0,0,.6); }
+.player-now span { margin-left: 12px; font-size: 22px; font-weight: 500; color: #c6cacf; }
+
+/* Guide: names on the left, three hours of programmes across. */
+.guide { display: flex; flex-direction: column; }
+.guide-head { display: flex; align-items: center; justify-content: space-between; height: 96px; }
+.guide-head h2 { margin: 0; }
+.guide-scale { position: relative; height: 40px; flex: none; color: var(--muted); font-size: 20px; font-weight: 600; }
+.mark { position: absolute; top: 6px; transform: translateX(-50%); }
+.guide-body { position: relative; }
+.grow-row { position: relative; height: 84px; }
+.gname { position: absolute; left: 0; top: 4px; height: 76px; display: flex; align-items: center; gap: 16px; padding: 0 16px; border: 0; border-radius: var(--radius); background: none; color: var(--text); font: 600 24px var(--font); text-align: left; outline: none; cursor: pointer; transition: background-color 120ms linear, color 120ms linear; }
+.gname .logo { width: 56px; height: 48px; flex: none; }
+.gname:focus { background: var(--focus-fill); color: var(--focus-text); }
+.gline { position: absolute; top: 4px; height: 76px; }
+.block { position: absolute; top: 0; height: 76px; padding: 0 14px; display: flex; align-items: center; border: 0; border-radius: var(--radius); background: var(--control); color: var(--text); font: 600 21px var(--font); text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; outline: none; cursor: pointer; transition: background-color 120ms linear, color 120ms linear; }
+.block.live { box-shadow: inset 0 0 0 2px var(--dim); }
+.block:focus { background: var(--focus-fill); color: var(--focus-text); box-shadow: none; }
+.nowline { position: absolute; top: 0; width: 2px; background: var(--danger); pointer-events: none; z-index: 2; }
+.guide-detail { margin-top: 18px; padding: 0 12px; min-height: 130px; }
+.gd-title { font-size: 32px; font-weight: 700; }
+.gd-sub { font-size: 22px; color: var(--muted); margin: 4px 0 8px; }
+.gd-desc { font-size: 22px; line-height: 1.35; color: var(--muted); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; max-width: 1500px; }
+.guide-empty { height: 640px; }
+.srcrow { display: flex; align-items: center; gap: 16px; padding: 8px 28px; }
+.srow-title.small { font-size: 22px; font-weight: 700; display: block; }
+.block-t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

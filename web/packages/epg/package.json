@@ -1,0 +1,2 @@
+{ "name": "@skmate/epg", "version": "0.0.1", "private": true, "type": "module", "main": "src/index.ts", "types": "src/index.ts",
+  "dependencies": { "fflate": "^0.8.2", "@skmate/core": "*" } }

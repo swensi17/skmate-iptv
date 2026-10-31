@@ -86,3 +86,15 @@ export function groupsOf(channels: readonly Channel[]): Array<{ name: string; ch
   }
   return Array.from(map, ([name, list]) => ({ name, channels: list }));
 }
+
+/** Guide addresses named in the playlist's first line: `#EXTM3U url-tvg="a,b" x-tvg-url="c"`. */
+export function guidesInHeader(text: string): string[] {
+  const first = text.replace(/^\uFEFF/, "").split(/\r?\n/, 1)[0] ?? "";
+  if (!first.startsWith("#EXTM3U")) return [];
+  const a = attrs(first);
+  return [a["url-tvg"], a["x-tvg-url"], a["tvg-url"]]
+    .filter((v): v is string => !!v)
+    .reduce<string[]>((all, v) => all.concat(v.split(",")), [])
+    .map((u) => u.trim())
+    .filter((u) => /^https?:\/\//i.test(u));
+}

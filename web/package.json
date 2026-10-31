@@ -9,7 +9,7 @@
     "dev": "npm -w @skmate/tv run dev",
     "build": "npm -w @skmate/tv run build",
     "test": "vitest run",
-    "typecheck": "tsc -b packages/core packages/player packages/ui apps/tv",
+    "typecheck": "tsc -b packages/core packages/epg packages/player packages/ui apps/tv",
     "check": "npm run typecheck && npm test"
   },
   "devDependencies": {

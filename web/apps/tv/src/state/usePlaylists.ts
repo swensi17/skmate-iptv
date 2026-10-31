@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "preact/hooks";
-import { parseM3U, type Channel } from "@skmate/core";
+import { guidesInHeader, parseM3U, type Channel } from "@skmate/core";
 import { t, type Key } from "../i18n";
 import { cacheDrop, cacheGet, cachePut, fetchPlaylist, PlaylistError } from "./fetchPlaylist";
 import { demoText } from "./playlist";
@@ -26,6 +26,7 @@ export function usePlaylists() {
   });
   const [channels, setChannels] = useState<Channel[]>([]);
   const [status, setStatus] = useState<Status>({ kind: "idle" });
+  const [headerGuides, setHeaderGuides] = useState<string[]>([]);
 
   const active = store.list.find((p) => p.id === store.activeId) ?? null;
 
@@ -36,7 +37,7 @@ export function usePlaylists() {
     if (!active) { setChannels([]); setStatus({ kind: "idle" }); return; }
     let live = true;
     const cached = cacheGet(active.id);
-    if (cached) setChannels(parseM3U(cached));
+    if (cached) { setChannels(parseM3U(cached)); setHeaderGuides(guidesInHeader(cached)); }
     if (active.url === DEMO_URL) { setChannels(parseM3U(demoText())); setStatus({ kind: "idle" }); return; }
     setStatus(cached ? { kind: "idle" } : { kind: "loading" });
     fetchPlaylist(active.url).then(
@@ -44,6 +45,7 @@ export function usePlaylists() {
         if (!live) return;
         cachePut(active.id, text);
         setChannels(parseM3U(text));
+        setHeaderGuides(guidesInHeader(text));
         setStatus({ kind: "idle" });
       },
       (e: unknown) => {
@@ -83,5 +85,5 @@ export function usePlaylists() {
     });
   }, []);
 
-  return { store, active, channels, status, add, addDemo, select, remove };
+  return { store, active, channels, status, headerGuides, add, addDemo, select, remove };
 }
