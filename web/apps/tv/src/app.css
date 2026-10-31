@@ -61,3 +61,36 @@ h2 { margin: 0 0 24px; font-size: 40px; font-weight: 700; }
 .empty-actions { display: flex; gap: 16px; }
 .star { color: var(--ok); font-size: 26px; }
 .spinner { animation-duration: 900ms !important; } /* a still spinner reads as a hang, so it keeps turning even with motion off */
+
+/* Settings: tabs on top, the rows centred below, each row one full line (as on the phone). */
+.settings { display: flex; flex-direction: column; align-items: center; }
+.tabs { display: flex; gap: 12px; margin-bottom: 36px; }
+.tab { height: 64px; padding: 0 36px; border: 0; border-radius: var(--radius); background: var(--control); color: var(--muted); font: 700 24px var(--font); outline: none; cursor: pointer; transition: background-color 120ms linear, color 120ms linear; }
+.tab[aria-selected="true"] { color: var(--text); box-shadow: inset 0 0 0 2px var(--dim); }
+.tab:focus { background: var(--focus-fill); color: var(--focus-text); box-shadow: none; }
+.settings-body { width: 1240px; display: flex; flex-direction: column; gap: 8px; }
+.settings-body .setting { margin: 0; }
+.settings-body .playlist, .settings-body .add { max-width: none; }
+
+.srow { display: flex; align-items: center; gap: 20px; width: 100%; min-height: 96px; padding: 12px 28px; border: 0; border-radius: var(--radius); background: none; color: var(--text); font-family: var(--font); text-align: left; outline: none; cursor: pointer; transition: background-color 120ms linear, color 120ms linear; }
+.srow-text { flex: 1; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.srow-title { font-size: 28px; font-weight: 700; }
+.srow-hint { font-size: 20px; font-weight: 500; color: var(--muted); }
+.srow:focus { background: var(--focus-fill); color: var(--focus-text); }
+.srow:focus .srow-hint { color: var(--focus-text); opacity: .7; }
+.srow-arrow { width: 24px; font-size: 40px; line-height: 1; text-align: center; color: transparent; }
+.srow:focus .srow-arrow { color: var(--focus-text); }
+.chips { display: flex; gap: 8px; padding: 6px; border-radius: var(--radius); background: var(--control); }
+.chip { height: 52px; padding: 0 24px; display: flex; align-items: center; border-radius: var(--radius); font-size: 22px; font-weight: 600; color: var(--muted); white-space: nowrap; }
+.chip[aria-pressed="true"] { background: var(--page); color: var(--text); }
+.srow:focus .chips { background: rgba(0, 0, 0, .12); }
+.srow:focus .chip { color: var(--focus-text); opacity: .75; }
+.srow:focus .chip[aria-pressed="true"] { background: var(--focus-text); color: var(--focus-fill); opacity: 1; }
+
+.dialog.wide { width: 1240px; }
+.dialog-rows { margin: 8px 0 24px; display: flex; flex-direction: column; gap: 8px; }
+.dialog.wide .srow:focus .chips { background: rgba(0, 0, 0, .12); }
+
+/* The player panel runs the whole width, like the Android one. */
+.player-bar { padding: 160px 80px 56px; justify-content: space-evenly; gap: 0; }
+.player-bar .tile { flex: 1; max-width: 240px; }
