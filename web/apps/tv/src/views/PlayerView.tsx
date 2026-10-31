@@ -1,10 +1,12 @@
-import { useEffect, useRef, useState } from "preact/hooks";
+import { useContext, useEffect, useRef, useState } from "preact/hooks";
 import type { Channel } from "@skmate/core";
 import { Drawer, focusFirst, Icon, isBack, VirtualList, type IconName } from "@skmate/ui";
 import { t, type Key } from "../i18n";
 import type { Settings } from "../state/settings";
 import { usePlayback } from "../state/usePlayback";
 import { channelKey } from "../state/favorites";
+import { GuideContext } from "../state/GuideContext";
+import { clock } from "../time";
 import { ChannelRow } from "./ChannelRow";
 import { PlayerSettingRows } from "./PlayerRows";
 
@@ -38,6 +40,8 @@ export function PlayerView({ channels, index, favorites, onJump, onStep, onFav, 
     engine: settings.engine, bufferSeconds: settings.buffer, openTimeoutMs: settings.openTimeout * 1000, autoRestart: settings.autoRestart,
   });
   // Left opens the settings, Right the channel list: sheets from the edges, as on the phone.
+  const guide = useContext(GuideContext);
+  const onNow = guide.data.nowNext(channel.id, guide.now);
   const [drawer, setDrawer] = useState<"settings" | "channels" | null>(null);
   const panel = drawer !== null;
   const favorite = favorites.has(channelKey(channel));
@@ -102,6 +106,7 @@ export function PlayerView({ channels, index, favorites, onJump, onStep, onFav, 
         <div class="player-num">{index + 1}</div>
         <div>
           <div class="player-title">{channel.name}</div>
+          {onNow.now ? <div class="player-now">{onNow.now.title} <span>{clock(onNow.now.start)} – {clock(onNow.now.stop)}</span></div> : null}
           <div class="player-sub">
             {channel.group}
             {engine && settings.showEngine ? ` · ${t("playerEngine", { name: engine })}` : ""}

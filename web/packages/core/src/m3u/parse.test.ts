@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { groupsOf, parseM3U } from "./parse";
+import { groupsOf, guidesInHeader, parseM3U } from "./parse";
 
 const SAMPLE = `﻿#EXTM3U\r
 #EXTINF:-1 tvg-id="perviy" tvg-logo="http://x/1.png" group-title="Новости",Первый канал, HD
@@ -31,5 +31,17 @@ describe("parseM3U", () => {
   });
   it("groups in playlist order", () => {
     expect(groupsOf(ch).map((g) => g.name)).toEqual(["Новости", "Кино", ""]);
+  });
+});
+
+describe("guidesInHeader", () => {
+  it("reads every guide the header names", () => {
+    expect(guidesInHeader('#EXTM3U url-tvg="http://a/x.xml, http://b/y.xml.gz" x-tvg-url="http://c/z.xml"\n#EXTINF:-1,A')).toEqual([
+      "http://a/x.xml", "http://b/y.xml.gz", "http://c/z.xml",
+    ]);
+  });
+  it("is empty without a header guide", () => {
+    expect(guidesInHeader("#EXTM3U\n#EXTINF:-1,A")).toEqual([]);
+    expect(guidesInHeader("\uFEFF#EXTM3U url-tvg=\"ftp://x\"")).toEqual([]);
   });
 });

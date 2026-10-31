@@ -4,15 +4,20 @@ import { t, type Key } from "../i18n";
 import type { PlaylistStore } from "../state/playlists";
 import type { Settings } from "../state/settings";
 import type { Status } from "../state/usePlaylists";
+import type { GuideData, SourceOutcome } from "@skmate/epg";
+import type { PlaylistEntry } from "../state/playlists";
+import type { GuideStatus } from "../state/useGuide";
+import { EpgPanel } from "./EpgPanel";
 import { PlayerSettingRows } from "./PlayerRows";
 import { PlaylistsPanel } from "./PlaylistsPanel";
 import { SettingRow } from "./SettingRow";
 
-export type Page = "player" | "look" | "playlists" | "more";
+export type Page = "player" | "look" | "playlists" | "epg" | "more";
 const PAGES: Array<[Page, IconName, Key]> = [
   ["player", "play_circle", "sheetPlayer"],
   ["look", "palette", "sheetLook"],
   ["playlists", "playlist", "sheetPlaylists"],
+  ["epg", "epg", "sheetEpg"],
   ["more", "info", "sheetMore"],
 ];
 
@@ -28,6 +33,10 @@ interface Props {
   onSelectPlaylist: (id: string) => void;
   onAskDeletePlaylist: (id: string) => void;
   onAskReset: () => void;
+  guide: { data: GuideData; status: GuideStatus; outcomes: SourceOutcome[]; onRefresh: () => void; onClear: () => void };
+  channelCount: number;
+  active: PlaylistEntry | null;
+  headerGuides: string[];
 }
 
 /** Settings as a sheet from the right edge: a menu of sections, each opening its rows in the same sheet. */
@@ -37,7 +46,7 @@ export function SettingsSheet(p: Props) {
   useEffect(() => { focusFirst(document, page ? FIRST[page] : "sheet-player"); }, [page]);
 
   return (
-    <Drawer side="right" width={980} label={t("sheetTitle")} onClose={p.onClose}>
+    <Drawer side="left" width={980} label={t("sheetTitle")} onClose={p.onClose}>
       {page === null ? (
         <>
           <div class="drawer-title">{t("sheetTitle")}</div>
@@ -68,6 +77,10 @@ export function SettingsSheet(p: Props) {
             {page === "playlists" ? (
               <PlaylistsPanel store={p.store} status={p.status} onAdd={p.onAddPlaylist} onSelect={p.onSelectPlaylist} onAskDelete={p.onAskDeletePlaylist} />
             ) : null}
+            {page === "epg" ? (
+              <EpgPanel settings={s} onChange={onChange} data={p.guide.data} status={p.guide.status} outcomes={p.guide.outcomes}
+                channelCount={p.channelCount} active={p.active} headerGuides={p.headerGuides} onRefresh={p.guide.onRefresh} onClear={p.guide.onClear} />
+            ) : null}
             {page === "more" ? (
               <>
                 <SettingRow id="s-lang" title="setLanguage" hint="setLanguageHint" value={s.language} onPick={set("language")}
@@ -87,4 +100,4 @@ export function SettingsSheet(p: Props) {
   );
 }
 
-const FIRST: Record<Page, string> = { player: "s-engine", look: "s-theme", playlists: "pl-url", more: "s-lang" };
+const FIRST: Record<Page, string> = { player: "s-engine", look: "s-theme", playlists: "pl-url", epg: "s-epgauto", more: "s-lang" };

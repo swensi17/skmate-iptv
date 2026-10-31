@@ -22,12 +22,21 @@ export interface Settings {
   autoRestart: boolean;
   /** A live window beside the channel list. */
   preview: boolean;
+  /** The guide that comes by itself (playlist, provider, shared), as on Android. */
+  epgAuto: boolean;
+  /** Hours between downloads of the guide. */
+  epgEvery: 6 | 12 | 24;
+  /** Guides the user added. */
+  epgSources: Array<{ id: string; name: string; url: string }>;
+  /** A proxy for guides the TV cannot reach directly; empty = none. */
+  proxy: string;
 }
 
 const KEY = "skmate.settings.v1";
 export const DEFAULTS: Settings = {
   theme: "system", motion: "auto", language: "auto", engine: "auto", aspect: "fit", buffer: 30,
   openTimeout: 12, osdSeconds: 5, showEngine: true, autoRestart: true, preview: true,
+  epgAuto: true, epgEvery: 12, epgSources: [], proxy: "",
 };
 
 export function load(): Settings {
