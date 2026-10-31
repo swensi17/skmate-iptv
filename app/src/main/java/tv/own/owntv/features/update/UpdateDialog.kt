@@ -64,7 +64,7 @@ fun UpdateDialog(onDismiss: () -> Unit, checkOnOpen: Boolean = false) {
         if (checkOnOpen) manager.check()
     }
     LaunchedEffect(state) {
-        if (state is UpdateManager.State.Available || state is UpdateManager.State.UpToDate || state is UpdateManager.State.Failed) {
+        if (state is UpdateManager.State.Available || state is UpdateManager.State.Ready || state is UpdateManager.State.UpToDate || state is UpdateManager.State.Failed) {
             runCatching { focus.requestFocus() }
         }
     }
@@ -92,6 +92,10 @@ fun UpdateDialog(onDismiss: () -> Unit, checkOnOpen: Boolean = false) {
                 is UpdateManager.State.Available -> {
                     StageButton(stringResource(R.string.update_later), onClick = onDismiss, height = 56.mpx, textSize = 19)
                     StageButton(stringResource(R.string.update_now), onClick = { manager.downloadAndInstall() }, icon = OwnTVIcon.DOWNLOADS, height = 56.mpx, textSize = 19, tinted = true, modifier = Modifier.focusRequester(focus))
+                }
+                is UpdateManager.State.Ready -> {
+                    StageButton(stringResource(R.string.update_later), onClick = onDismiss, height = 56.mpx, textSize = 19)
+                    StageButton(stringResource(R.string.update_install), onClick = { manager.installReady() }, icon = OwnTVIcon.DOWNLOADS, height = 56.mpx, textSize = 19, tinted = true, modifier = Modifier.focusRequester(focus))
                 }
                 is UpdateManager.State.Failed -> {
                     StageButton(stringResource(R.string.settings_close), onClick = onDismiss, height = 56.mpx, textSize = 19)
@@ -134,6 +138,7 @@ fun UpdateDialog(onDismiss: () -> Unit, checkOnOpen: Boolean = false) {
                 }
                 Text(stringResource(R.string.update_installer), style = body, color = StageColors.Muted, modifier = Modifier.padding(top = 10.mpx))
             }
+            is UpdateManager.State.Ready -> Text(stringResource(R.string.update_ready, s.info.version, manager.currentVersion), style = stageText(19, 600), color = StageColors.Text)
             is UpdateManager.State.Failed -> Text(updateFailureText(s.failure), style = body, color = StageColors.Muted)
         }
     }

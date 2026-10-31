@@ -53,7 +53,13 @@ class ExternalPlayerLauncher(private val context: Context) {
         // matched no activity at all and reported "no external player installed", even though the same
         // players happily took a movie's video/mp4. Falling back to `video/*`, and finally to the URI
         // with no type at all, gets live streams to the same players without touching the movie path.
+        val network = uri.scheme?.lowercase() in NETWORK_SCHEMES
+        // A browser is no player: handed a live stream it opens a page, or a download, and on many TVs it
+        // falls over. Network streams go only to apps that are not browsers.
+        val browsers = if (network) browserPackages() else emptySet()
         for (mime in mimeCandidates(url)) {
+            // Untyped, a web address matches every browser and almost never a player.
+            if (network && mime == null) continue
             val intent = Intent(Intent.ACTION_VIEW)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION)
             if (mime != null) intent.setDataAndType(uri, mime) else intent.data = uri
@@ -62,13 +68,26 @@ class ExternalPlayerLauncher(private val context: Context) {
             (if (title != null && subtitle != null) "$title · $subtitle" else title)?.let { intent.putExtra("title", it) }
             if (startPositionMs > 0) intent.putExtra("position", startPositionMs.coerceAtMost(Int.MAX_VALUE.toLong()).toInt())
 
-            if (context.packageManager.queryIntentActivities(intent, 0).isEmpty()) continue
+            val handlers = context.packageManager.queryIntentActivities(intent, 0)
+                .map { it.activityInfo.packageName }
+                .filter { it != context.packageName }
+                .distinct()
+            val players = handlers.filterNot { it in browsers }
+            if (players.isEmpty()) continue
+            // Only one real player among them: open it straight, so the "Open with" list cannot offer a browser.
+            if (players.size == 1 && players.size != handlers.size) intent.setPackage(players.single())
             // The intent itself, never Intent.createChooser: only the system's own "Open with" window
             // offers Just once / Always, so a user can make one player the default.
             return startActivity(intent)
         }
         toast(localizedContext().getString(tv.own.owntv.core.R.string.player_external_not_found))
         return false
+    }
+
+    /** Apps that open ordinary web pages: browsers, which are never offered a stream. */
+    private fun browserPackages(): Set<String> {
+        val page = Intent(Intent.ACTION_VIEW, "https://example.com/".toUri()).addCategory(Intent.CATEGORY_BROWSABLE)
+        return context.packageManager.queryIntentActivities(page, 0).map { it.activityInfo.packageName }.toSet()
     }
 
     // Whether any installed app can handle a video URL.

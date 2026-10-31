@@ -1223,6 +1223,16 @@ fun OwnTVShell(
                 // Live TV's view (List / Guide), and how a guide — the TV Guide or Live TV's Guide view —
                 // starts a channel or an archive programme: through LiveViewModel, the one live path.
                 val liveView by liveVm.liveView.collectAsStateWithLifecycle()
+                // An external player that could not take the channel (none installed, or it closed at once):
+                // the channel plays in the built-in player instead of leaving a dead screen.
+                LaunchedEffect(liveVm) {
+                    liveVm.internalFallback.collect {
+                        zapSource = MainSection.LIVE_TV
+                        homeVm.stopPreview()
+                        if (playerMode != PlayerMode.MINI) playerMode = PlayerMode.FULLSCREEN
+                    }
+                }
+                androidx.lifecycle.compose.LifecycleEventEffect(androidx.lifecycle.Lifecycle.Event.ON_RESUME) { liveVm.onAppResumed() }
                 val guidePlayChannel: (ChannelEntity, List<ChannelEntity>) -> Unit = { ch, _ ->
                     restoreFocus = false
                     liveVm.watchFromGuide(ch)
@@ -2309,15 +2319,37 @@ fun OwnTVShell(
 
         val updateManager = koinInject<UpdateManager>()
         var showStartupToast by remember { mutableStateOf(false) }
+        // A download the viewer put away with Later comes back as "Install" by itself once the file is in.
+        LaunchedEffect(Unit) {
+            var wasDownloading = false
+            updateManager.state.collect { s ->
+                if (s is UpdateManager.State.Ready && wasDownloading) showStartupToast = true
+                wasDownloading = s is UpdateManager.State.Downloading
+            }
+        }
         var showChangelog by remember { mutableStateOf(false) }
-        // The Telegram note: once, a moment after the first entry, and only on a quiet screen.
+        // The Telegram note: at the first entry, then now and then (see TelegramWelcomePrefs), only on a quiet
+        // screen and never over an update the viewer is being asked about.
         val appContext = androidx.compose.ui.platform.LocalContext.current.applicationContext
         var showTelegram by remember { mutableStateOf(false) }
         val quiet = selectedSection != MainSection.SETTINGS && playerMode == PlayerMode.NONE
+        val updateState by updateManager.state.collectAsStateWithLifecycle()
+        // While the update card is up (asking, downloading or ready to install) the Telegram note waits.
+        val updateAsking = updateState is UpdateManager.State.Available || updateState is UpdateManager.State.Ready ||
+            updateState is UpdateManager.State.Downloading
         LaunchedEffect(quiet) {
-            if (quiet && !showTelegram && !TelegramWelcomePrefs.shown(appContext)) { kotlinx.coroutines.delay(1_500); showTelegram = true }
+            if (quiet && !showTelegram && !shellVm.telegramAsked && TelegramWelcomePrefs.due(appContext)) {
+                kotlinx.coroutines.delay(1_500)
+                shellVm.telegramAsked = true
+                showTelegram = true
+            }
         }
-        if (showTelegram && quiet) TelegramWelcome(onDismiss = { showTelegram = false; TelegramWelcomePrefs.markShown(appContext) })
+        if (showTelegram && quiet && !updateAsking) {
+            TelegramWelcome(
+                onDismiss = { showTelegram = false; TelegramWelcomePrefs.markShown(appContext) },
+                onNever = { showTelegram = false; TelegramWelcomePrefs.never(appContext) },
+            )
+        }
         val settingsRepo = koinInject<tv.own.owntv.core.settings.SettingsRepository>()
         val updateCheckOnStart by settingsRepo.updateCheckOnStart.collectAsStateWithLifecycle(initialValue = false)
         // Looks again every few hours while the TV is on, as the update settings say; an update found that way is

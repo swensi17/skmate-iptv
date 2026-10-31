@@ -22,6 +22,7 @@ internal fun updateFailureText(failure: UpdateManager.Failure): String = when (f
         Formatter.formatShortFileSize(LocalContext.current, failure.requiredBytes),
     )
     UpdateManager.Failure.DamagedDownload -> stringResource(R.string.update_damaged_download)
+    UpdateManager.Failure.Conflict -> stringResource(R.string.update_conflict)
     // The installer's own wording names the real cause when it gives one; fall back when it doesn't.
     is UpdateManager.Failure.InstallRejected -> failure.message
         ?.let { stringResource(R.string.update_install_rejected, it) }

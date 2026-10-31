@@ -24,6 +24,7 @@
     <ID>ComplexCondition:OwnTVShell.kt$directTuneEnabled &amp;&amp; isTunedLive &amp;&amp; isLiveStream &amp;&amp; !timeshifted &amp;&amp; previewChannel != null</ID>
     <ID>ComplexCondition:OwnTVShell.kt$isTunedLive &amp;&amp; (!timeshifted || onLocalCopy) &amp;&amp; previewChannel?.drmConfig == null</ID>
     <ID>ComplexCondition:OwnTVShell.kt$multiviewEnabled &amp;&amp; multiview == null &amp;&amp; multiviewSelection.isNotEmpty() &amp;&amp; playerMode == PlayerMode.FULLSCREEN &amp;&amp; zapSource == MainSection.LIVE_TV &amp;&amp; previewChannel != null</ID>
+    <ID>ComplexCondition:OwnTVShell.kt$quiet &amp;&amp; !showTelegram &amp;&amp; !shellVm.telegramAsked &amp;&amp; TelegramWelcomePrefs.due(appContext)</ID>
     <ID>ComplexCondition:OwnTVShell.kt$selectedSection != MainSection.LIVE_TV &amp;&amp; selectedSection != MainSection.EPG &amp;&amp; !settingsOverLive &amp;&amp; playerMode == PlayerMode.NONE</ID>
     <ID>ComplexCondition:OwnTVShell.kt$showHistoryList &amp;&amp; isLiveChannel &amp;&amp; historyChannels.isNotEmpty() &amp;&amp; TvBoxNav</ID>
     <ID>ComplexCondition:PanelWidthSettingsScreen.kt$section == PanelSection.LIVE &amp;&amp; enabled &amp;&amp; livePreviewEnabled &amp;&amp; (if (stage) stageDraft.preview == 0 else draft.preview == 0)</ID>
@@ -45,6 +46,7 @@
     <ID>ComplexCondition:SyncStatusPill.kt$!anyActive &amp;&amp; currentCompleted == null &amp;&amp; currentTrendingCompleted == null &amp;&amp; !sportsFailed</ID>
     <ID>ComplexCondition:TvBoxLiveHud.kt$e.type == KeyEventType.KeyUp &amp;&amp; (e.key == Key.DirectionCenter || e.key == Key.Enter || e.key == Key.NumPadEnter)</ID>
     <ID>ComplexCondition:TvBoxLiveHud.kt$i == 0 &amp;&amp; onLeftEdge != null &amp;&amp; e.type == KeyEventType.KeyDown &amp;&amp; e.key == Key.DirectionLeft</ID>
+    <ID>ComplexCondition:UpdateDialog.kt$state is UpdateManager.State.Available || state is UpdateManager.State.Ready || state is UpdateManager.State.UpToDate || state is UpdateManager.State.Failed</ID>
     <ID>CyclomaticComplexMethod:AccentPopup.kt$private fun boxKeys( e: androidx.compose.ui.input.key.KeyEvent, editing: Boolean, setEditing: (Boolean) -&gt; Unit, onY: ((Int) -&gt; Unit)? = null, onX: (Int) -&gt; Unit, ): Boolean</ID>
     <ID>CyclomaticComplexMethod:AddSourceScreen.kt$@Composable fun AddSourceScreen( onStartXtream: ( name: String, server: String, user: String, pass: String, userAgent: String, referer: String, epgUrl: String, autoRefresh: PlaylistRefresh, live: SyncScopeChoice, movies: SyncScopeChoice, series: SyncScopeChoice, isDefault: Boolean, preferHls: Boolean, ) -&gt; Unit, onStartM3u: (name: String, url: String, userAgent: String, referer: String, epgUrl: String, autoRefresh: PlaylistRefresh, isDefault: Boolean) -&gt; Unit, // The last submission from the Remote companion screen, retained as a StateFlow so it survives the // Remote → Manual hand-off (this screen mounts after the remote browser posted). When present, the matching // type is selected and the fields pre-filled; the user then presses Start Import. Consumed once via // [onRemotePayloadConsumed] so it can't re-fill a later, unrelated Manual add. remotePayload: kotlinx.coroutines.flow.StateFlow&lt;CompanionPayload?&gt;? = null, onRemotePayloadConsumed: () -&gt; Unit = {}, onBack: () -&gt; Unit, modifier: Modifier = Modifier, initial: SourceEntity? = null, initialAutoRefresh: PlaylistRefresh = PlaylistRefresh.OFF, initialIsDefault: Boolean = false, showDefaultToggle: Boolean = true, // Stalker portal. Null = the Stalker option is hidden (e.g. the setup wizard). onStartStalker: (( name: String, portalUrl: String, mac: String, serialNumber: String, deviceId: String, deviceId2: String, signature: String, userAgent: String, referer: String, autoRefresh: PlaylistRefresh, isDefault: Boolean, live: SyncScopeChoice, movies: SyncScopeChoice, series: SyncScopeChoice, ) -&gt; Unit)? = null, )</ID>
     <ID>CyclomaticComplexMethod:AudioNowPlayingBar.kt$@Composable fun AudioNowPlayingBar( player: PlaybackEngine, isLive: Boolean, canPrev: Boolean, canNext: Boolean, onPrev: () -&gt; Unit, onNext: () -&gt; Unit, onExpand: () -&gt; Unit, onClose: () -&gt; Unit, focusable: Boolean, /** Focus target for "enter the audio session" from the sidebar's Now Playing item. Lands on stage 1. */ entryFocusRequester: FocusRequester? = null, /** The favourite state of whatever is playing — the same channel/movie/series the fullscreen HUD toggles. */ favorite: Boolean = false, onToggleFavorite: (() -&gt; Unit)? = null, modifier: Modifier = Modifier, )</ID>
@@ -173,6 +175,8 @@
     <ID>CyclomaticComplexMethod:TvBoxLiveHud.kt$@Composable internal fun TvBoxActionRow(actions: List&lt;TvBoxAction&gt;, firstFocus: FocusRequester, modifier: Modifier = Modifier, onLeftEdge: (() -&gt; Unit)? = null)</ID>
     <ID>CyclomaticComplexMethod:TvImeMetrics.kt$TvImeWatcher$private fun recompute(trigger: String)</ID>
     <ID>CyclomaticComplexMethod:UpdateDialog.kt$@Composable fun UpdateDialog(onDismiss: () -&gt; Unit, checkOnOpen: Boolean = false)</ID>
+    <ID>CyclomaticComplexMethod:UpdateFailureText.kt$@Composable internal fun updateFailureText(failure: UpdateManager.Failure): String</ID>
+    <ID>CyclomaticComplexMethod:UpdateStatusToast.kt$@Composable fun UpdateStatusToast(onDone: () -&gt; Unit, onViewChangelog: () -&gt; Unit, modifier: Modifier = Modifier)</ID>
     <ID>CyclomaticComplexMethod:VideoPlayerSettingsScreen.kt$@Composable fun SubtitleStylePage(onBack: () -&gt; Unit, modifier: Modifier = Modifier)</ID>
     <ID>CyclomaticComplexMethod:VideoPlayerSettingsScreen.kt$@Composable internal fun VideoPlayerGroupRows( group: VideoGroup, /** The page's scroll, held still while a popup opens and closes over it. */ scrollState: androidx.compose.foundation.ScrollState, /** Open the Mini player popup straight away — the settings search lists that setting by name. */ openMiniPlayer: Boolean = false, /** Arriving from a Quick pin or a search result: the row to put the cursor on. */ focusRowKey: String? = null, /** False when other rows come first on the page (App), so the first heading keeps its 18 px gap. */ firstHeading: Boolean = true, /** Show only this part of the group, with no heading: the page is that part's own. */ onlyPart: Int? = null, )</ID>
     <ID>CyclomaticComplexMethod:VideoPlayerSettingsScreen.kt$@Composable internal fun videoQuickBinding(key: String, vm: SettingsViewModel): VideoQuickBinding?</ID>
@@ -740,7 +744,7 @@
     <ID>FunctionNaming:SubtitleSearchScreen.kt$@Composable private fun OpenSubtitlesAttribution()</ID>
     <ID>FunctionNaming:SubtitleSearchScreen.kt$@Composable private fun ResultsList( results: List&lt;SubtitleSearchViewModel.Result&gt;, applyingFileId: Long?, onSelect: (SubtitleSearchViewModel.Result) -&gt; Unit, onEdit: () -&gt; Unit, onShowAll: (() -&gt; Unit)?, onClose: () -&gt; Unit, )</ID>
     <ID>FunctionNaming:SyncStatusPill.kt$@Composable fun SyncStatusPill(modifier: Modifier = Modifier)</ID>
-    <ID>FunctionNaming:TelegramWelcome.kt$@Composable internal fun TelegramWelcome(onDismiss: () -&gt; Unit)</ID>
+    <ID>FunctionNaming:TelegramWelcome.kt$@Composable internal fun TelegramWelcome(onDismiss: () -&gt; Unit, onNever: () -&gt; Unit)</ID>
     <ID>FunctionNaming:TextInputDialog.kt$@Composable fun TextInputDialog( title: String, initial: String = "", onConfirm: (String) -&gt; Unit, onDismiss: () -&gt; Unit, label: String? = null, confirmLabel: String? = null, hint: String? = null, onDelete: (() -&gt; Unit)? = null, allowBlank: Boolean = true, )</ID>
     <ID>FunctionNaming:Theme.kt$@Composable fun OwnTVTheme( themeMode: ThemeMode, accent: AccentColor, systemInDarkTheme: Boolean, customAccent: String = "", focusHighlight: String = "", focusBorderWidthDp: Int = 2, animationLevel: AnimationLevel = AnimationLevel.FULL, mainFontFamily: AppFontFamily = AppFontFamily.PLUS_JAKARTA_SANS, popupFontFamily: AppFontFamily = AppFontFamily.PLUS_JAKARTA_SANS, popupFontSizePercent: Int = PopupFontScale.DEFAULT, popupSizePercent: Int = PopupSizeScale.DEFAULT, content: @Composable () -&gt; Unit, )</ID>
     <ID>FunctionNaming:TimeWheel.kt$@Composable internal fun TimeWheel( value: String, onUp: () -&gt; Unit, onDown: () -&gt; Unit, modifier: Modifier = Modifier, )</ID>
@@ -916,6 +920,7 @@
     <ID>LongMethod:TvBoxChannelPanel.kt$@Composable fun TvBoxChannelPanel( channels: List&lt;ChannelEntity&gt;, currentId: Long?, title: String, nowProgrammes: Map&lt;Long, XtEpgEntry&gt;, scheduleFor: suspend (ChannelEntity) -&gt; EpgNowNext?, playingGuide: EpgNowNext?, onSelect: (ChannelEntity) -&gt; Unit, onDismiss: () -&gt; Unit, modifier: Modifier = Modifier, watchedAt: Map&lt;Long, Long&gt;? = null, onOpenCategories: (() -&gt; Unit)? = null, /** Focus resting on a channel: show it in the picture above the guide (the channel list, not history). */ onPreview: ((ChannelEntity) -&gt; Unit)? = null, /** Room on the left for the categories column; the panel moves right by it. */ inset: Dp = 0.mpx, /** False while the categories beside it have focus: the panel shows, but takes no keys or focus. */ active: Boolean = true, /** The picture is opening a channel: a spinner in the middle of the picture's window. */ loading: Boolean = false, /** How far the picture has moved into its corner (0 = full screen, 1 = docked): the window follows it. */ dockProgress: () -&gt; Float = { 1f }, )</ID>
     <ID>LongMethod:Type.kt$fun ownTVTypography(fontFamily: FontFamily = FontFamily.SansSerif): Typography</ID>
     <ID>LongMethod:UpdateDialog.kt$@Composable fun UpdateDialog(onDismiss: () -&gt; Unit, checkOnOpen: Boolean = false)</ID>
+    <ID>LongMethod:UpdateStatusToast.kt$@Composable fun UpdateStatusToast(onDone: () -&gt; Unit, onViewChangelog: () -&gt; Unit, modifier: Modifier = Modifier)</ID>
     <ID>LongMethod:VideoPlayerSettingsScreen.kt$@Composable fun SubtitleStylePage(onBack: () -&gt; Unit, modifier: Modifier = Modifier)</ID>
     <ID>LongMethod:VideoPlayerSettingsScreen.kt$@Composable internal fun PickerDialog( title: String, options: List&lt;Pair&lt;String, String&gt;&gt;, selected: String, onSelect: (String) -&gt; Unit, onDismiss: () -&gt; Unit, searchable: Boolean = false, trailingLabels: Map&lt;String, String&gt; = emptyMap(), leadingIcons: Map&lt;String, OwnTVIcon&gt; = emptyMap(), subtitle: String? = null, descriptions: Map&lt;String, String&gt; = emptyMap(), /** Drawn under an option — the layout chooser's little bar preview. */ optionPreview: (@Composable (String) -&gt; Unit)? = null, )</ID>
     <ID>LongMethod:VideoPlayerSettingsScreen.kt$@Composable internal fun VideoPlayerGroupRows( group: VideoGroup, /** The page's scroll, held still while a popup opens and closes over it. */ scrollState: androidx.compose.foundation.ScrollState, /** Open the Mini player popup straight away — the settings search lists that setting by name. */ openMiniPlayer: Boolean = false, /** Arriving from a Quick pin or a search result: the row to put the cursor on. */ focusRowKey: String? = null, /** False when other rows come first on the page (App), so the first heading keeps its 18 px gap. */ firstHeading: Boolean = true, /** Show only this part of the group, with no heading: the page is that part's own. */ onlyPart: Int? = null, )</ID>
@@ -2899,6 +2904,8 @@
     <ID>MagicNumber:TelegramWelcome.kt$600</ID>
     <ID>MagicNumber:TelegramWelcome.kt$80</ID>
     <ID>MagicNumber:TelegramWelcome.kt$800</ID>
+    <ID>MagicNumber:TelegramWelcome.kt$TelegramWelcomePrefs$24</ID>
+    <ID>MagicNumber:TelegramWelcome.kt$TelegramWelcomePrefs$3_600_000L</ID>
     <ID>MagicNumber:TextInputDialog.kt$80</ID>
     <ID>MagicNumber:Theme.kt$4</ID>
     <ID>MagicNumber:Theme.kt$6</ID>
@@ -2986,11 +2993,14 @@
     <ID>MagicNumber:UpdateDialog.kt$800</ID>
     <ID>MagicNumber:UpdatePrefs.kt$UpdatePrefs.Every.DAY$24</ID>
     <ID>MagicNumber:UpdatePrefs.kt$UpdatePrefs.Every.HOURS_6$6</ID>
+    <ID>MagicNumber:UpdateStatusToast.kt$120</ID>
+    <ID>MagicNumber:UpdateStatusToast.kt$16</ID>
     <ID>MagicNumber:UpdateStatusToast.kt$17</ID>
     <ID>MagicNumber:UpdateStatusToast.kt$21</ID>
     <ID>MagicNumber:UpdateStatusToast.kt$2_000</ID>
-    <ID>MagicNumber:UpdateStatusToast.kt$2_500</ID>
     <ID>MagicNumber:UpdateStatusToast.kt$500</ID>
+    <ID>MagicNumber:UpdateStatusToast.kt$600</ID>
+    <ID>MagicNumber:UpdateStatusToast.kt$6_000</ID>
     <ID>MagicNumber:UpdateStatusToast.kt$800</ID>
     <ID>MagicNumber:VideoPlayerSettingsScreen.kt$0.8f</ID>
     <ID>MagicNumber:VideoPlayerSettingsScreen.kt$0xFF2E4A6B</ID>
@@ -3956,7 +3966,6 @@
     <ID>MaxLineLength:LiveViewModel.kt$LiveViewModel$LiveKey.Favorites -&gt; channelDao.snapshotFavoritesManual(c.profileId, ContentOrderEntity.FAV_CONTEXT, sources, ZAP_LIST_LIMIT)</ID>
     <ID>MaxLineLength:LiveViewModel.kt$LiveViewModel$LiveKey.Favorites -&gt; channelDao.snapshotFavoritesManual(pid, contextKey, ctx.value.sourceIds.ifEmpty { listOf(-1L) }, 5000)</ID>
     <ID>MaxLineLength:LiveViewModel.kt$LiveViewModel$Log.i(ENGINE_TAG, "catch-up '${ch.name}' prog='${programme.title}' -&gt; ${tv.own.owntv.core.network.HttpClient.redactUrl(url)}")</ID>
-    <ID>MaxLineLength:LiveViewModel.kt$LiveViewModel$appContext.getString(tv.own.owntv.R.string.live_weak_network, level * tv.own.owntv.player.NETWORK_SECS_PER_LEVEL)</ID>
     <ID>MaxLineLength:LiveViewModel.kt$LiveViewModel$cats.filter { CustomizeKeys.category(it) in cust.hiddenCategories }.forEach { activeHiddenCats += it.id }</ID>
     <ID>MaxLineLength:LiveViewModel.kt$LiveViewModel$combine</ID>
     <ID>MaxLineLength:LiveViewModel.kt$LiveViewModel$combine(_previewChannel, live.localTimeshift) { ch, copy -&gt; ch?.catchup == true || (ch != null &amp;&amp; copy != null) }</ID>
@@ -4357,6 +4366,7 @@
     <ID>MaxLineLength:OwnTVShell.kt$TvBoxNav -&gt; if (railFocused &amp;&amp; !menuTappedAway) tv.own.owntv.features.shell.components.RailState.OPEN else tv.own.owntv.features.shell.components.RailState.HIDDEN</ID>
     <ID>MaxLineLength:OwnTVShell.kt$androidx.compose.animation.core.tween(tv.own.owntv.ui.theme.MotionPrefs.ms(300), easing = androidx.compose.animation.core.FastOutSlowInEasing)</ID>
     <ID>MaxLineLength:OwnTVShell.kt$androidx.compose.runtime</ID>
+    <ID>MaxLineLength:OwnTVShell.kt$androidx.lifecycle.compose.LifecycleEventEffect(androidx.lifecycle.Lifecycle.Event.ON_RESUME) { liveVm.onAppResumed() }</ID>
     <ID>MaxLineLength:OwnTVShell.kt$categoryKey = zapListKey ?: previewChannel?.categoryId?.let { tv.own.owntv.core.live.LiveKey.Folder(it) }</ID>
     <ID>MaxLineLength:OwnTVShell.kt$contentStart = if (TvBoxNav || navStyle == tv.own.owntv.core.settings.SettingsRepository.NavStyle.DOCKED) 64.mpx else 150.mpx</ID>
     <ID>MaxLineLength:OwnTVShell.kt$currentKey = grid.tiles.getOrNull(tile)?.channel?.categoryId?.let { tv.own.owntv.core.live.LiveKey.Folder(it) }</ID>
@@ -4371,11 +4381,9 @@
     <ID>MaxLineLength:OwnTVShell.kt$if (movieVm.playByIdAsync(target.movieId, target.positionMs) &amp;&amp; !movieVm.externalPlayerOn.value) openFullscreen(MainSection.MOVIES)</ID>
     <ID>MaxLineLength:OwnTVShell.kt$if (openedSeries == null &amp;&amp; searchReturn == MainSection.SERIES &amp;&amp; selectedSection == MainSection.SERIES) returnToSearch()</ID>
     <ID>MaxLineLength:OwnTVShell.kt$if (playerMode != PlayerMode.MINI &amp;&amp; !liveVm.externalPlayerOn.value) playerMode = PlayerMode.FULLSCREEN</ID>
-    <ID>MaxLineLength:OwnTVShell.kt$if (quiet &amp;&amp; !showTelegram &amp;&amp; !TelegramWelcomePrefs.shown(appContext)) { kotlinx.coroutines.delay(1_500); showTelegram = true }</ID>
     <ID>MaxLineLength:OwnTVShell.kt$if (section == selectedSection) { runCatching { playerFocus.requestFocus() } } else { exitPlayer(); onSelectSection(section) }</ID>
     <ID>MaxLineLength:OwnTVShell.kt$if (selectedSection != MainSection.LIVE_TV &amp;&amp; selectedSection != MainSection.EPG &amp;&amp; !settingsOverLive &amp;&amp; playerMode == PlayerMode.NONE) liveVm.stopPreview()</ID>
     <ID>MaxLineLength:OwnTVShell.kt$if (seriesVm.playFromHomeAsync(target.seriesId, target.episodeId, target.positionMs) &amp;&amp; !seriesVm.externalPlayerOn.value) openFullscreen(MainSection.SERIES)</ID>
-    <ID>MaxLineLength:OwnTVShell.kt$if (showTelegram &amp;&amp; quiet) TelegramWelcome(onDismiss = { showTelegram = false; TelegramWelcomePrefs.markShown(appContext) })</ID>
     <ID>MaxLineLength:OwnTVShell.kt$inert</ID>
     <ID>MaxLineLength:OwnTVShell.kt$java.text.NumberFormat.getPercentInstance(androidx.compose.ui.platform.LocalConfiguration.current.locales[0]).format(it)</ID>
     <ID>MaxLineLength:OwnTVShell.kt$jumpBackOptions = if (isTunedLive &amp;&amp; previewChannel?.catchup == true) liveVm::currentJumpOptions else null</ID>
@@ -5953,7 +5961,7 @@
     <ID>MaxLineLength:SyncStatusPill.kt$private</ID>
     <ID>MaxLineLength:TelegramWelcome.kt$Column</ID>
     <ID>MaxLineLength:TelegramWelcome.kt$Image(painter = painterResource(R.drawable.social_telegram), contentDescription = null, modifier = Modifier.size(96.mpx))</ID>
-    <ID>MaxLineLength:TelegramWelcome.kt$TelegramWelcomePrefs$fun shown(context: Context): Boolean</ID>
+    <ID>MaxLineLength:TelegramWelcome.kt$TelegramWelcomePrefs$context.getSharedPreferences(FILE, Context.MODE_PRIVATE).edit().putLong(KEY_AT, System.currentTimeMillis()).apply()</ID>
     <ID>MaxLineLength:TelegramWelcome.kt$Text("t.me/$CHAT_HANDLE", style = stageText(24, 600), color = StageColors.Text, textAlign = TextAlign.Center)</ID>
     <ID>MaxLineLength:TelegramWelcome.kt$Text(stringResource(R.string.welcome_telegram_body), style = stageText(20, 500), color = StageColors.Muted, textAlign = TextAlign.Center)</ID>
     <ID>MaxLineLength:TelegramWelcome.kt$Text(stringResource(R.string.welcome_telegram_title), style = stageText(32, 800), color = StageColors.Text, textAlign = TextAlign.Center)</ID>
@@ -6039,6 +6047,7 @@
     <ID>MaxLineLength:TvNotices.kt$n.text?.let { Text(it, style = stageText(18, 500), color = tv.own.owntv.ui.theme.StageColors.Muted, maxLines = 3, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) }</ID>
     <ID>MaxLineLength:UpdateDialog.kt$StageButton(stringResource(R.string.settings_close), onClick = onDismiss, height = 56.mpx, textSize = 19)</ID>
     <ID>MaxLineLength:UpdateDialog.kt$StageButton(stringResource(R.string.settings_close), onClick = onDismiss, height = 56.mpx, textSize = 19, tinted = true, modifier = Modifier.focusRequester(focus))</ID>
+    <ID>MaxLineLength:UpdateDialog.kt$StageButton(stringResource(R.string.update_install), onClick = { manager.installReady() }, icon = OwnTVIcon.DOWNLOADS, height = 56.mpx, textSize = 19, tinted = true, modifier = Modifier.focusRequester(focus))</ID>
     <ID>MaxLineLength:UpdateDialog.kt$StageButton(stringResource(R.string.update_later), onClick = onDismiss, height = 56.mpx, textSize = 19)</ID>
     <ID>MaxLineLength:UpdateDialog.kt$StageButton(stringResource(R.string.update_now), onClick = { manager.downloadAndInstall() }, icon = OwnTVIcon.DOWNLOADS, height = 56.mpx, textSize = 19, tinted = true, modifier = Modifier.focusRequester(focus))</ID>
     <ID>MaxLineLength:UpdateDialog.kt$StageButton(stringResource(R.string.update_try_again), onClick = { manager.retry() }, height = 56.mpx, textSize = 19, tinted = true, modifier = Modifier.focusRequester(focus))</ID>
@@ -6047,15 +6056,20 @@
     <ID>MaxLineLength:UpdateDialog.kt$UpdateManager.State.Idle</ID>
     <ID>MaxLineLength:UpdateDialog.kt$UpdateManager.State.UpToDate -&gt; Text(stringResource(R.string.update_latest, manager.currentVersion), style = body, color = StageColors.Muted)</ID>
     <ID>MaxLineLength:UpdateDialog.kt$if</ID>
+    <ID>MaxLineLength:UpdateDialog.kt$is UpdateManager.State.Ready -&gt; Text(stringResource(R.string.update_ready, s.info.version, manager.currentVersion), style = stageText(19, 600), color = StageColors.Text)</ID>
     <ID>MaxLineLength:UpdateDialog.kt$val busy = state is UpdateManager.State.Idle || state is UpdateManager.State.Checking || state is UpdateManager.State.Downloading</ID>
     <ID>MaxLineLength:UpdateFailureText.kt$is UpdateManager.Failure.DownloadHttp -&gt; stringResource(R.string.update_failed_download_http, failure.code.toString())</ID>
     <ID>MaxLineLength:UpdatePrefs.kt$UpdatePrefs$fun nextEvery()</ID>
     <ID>MaxLineLength:UpdatePrefs.kt$UpdatePrefs$fun nextWindow()</ID>
-    <ID>MaxLineLength:UpdateStatusToast.kt$Text(stringResource(R.string.update_downloading, s.percent), style = stageText(17, 500), color = StageColors.Muted)</ID>
+    <ID>MaxLineLength:UpdateStatusToast.kt$Text(stringResource(R.string.update_downloading, s.percent), style = stageText(17, 600), color = StageColors.Text)</ID>
+    <ID>MaxLineLength:UpdateStatusToast.kt$Text(stringResource(R.string.update_ready, s.info.version, manager.currentVersion), style = stageText(17, 500), color = StageColors.Muted)</ID>
     <ID>MaxLineLength:UpdateStatusToast.kt$UpdateManager.State.Idle</ID>
-    <ID>MaxLineLength:UpdateStatusToast.kt$is UpdateManager.State.Available -&gt; if (tv.own.owntv.ui.theme.UpdatePrefs.auto &amp;&amp; tv.own.owntv.ui.theme.UpdatePrefs.mayInstallNow()) manager.downloadAndInstall()</ID>
+    <ID>MaxLineLength:UpdateStatusToast.kt$if (!auto) buttons { tv.own.owntv.ui.stage.StageButton(stringResource(R.string.update_later), onClick = onDone, height = 52.mpx, textSize = 18) }</ID>
+    <ID>MaxLineLength:UpdateStatusToast.kt$is UpdateManager.State.Available -&gt; if (auto) manager.download() else { delay(120); runCatching { focus.requestFocus() } }</ID>
+    <ID>MaxLineLength:UpdateStatusToast.kt$tv.own.owntv.ui.stage.StageButton(stringResource(R.string.update_install), onClick = { manager.installReady() }, height = 52.mpx, textSize = 18, tinted = true, modifier = Modifier.focusRequester(focus))</ID>
     <ID>MaxLineLength:UpdateStatusToast.kt$tv.own.owntv.ui.stage.StageButton(stringResource(R.string.update_later), onClick = onDone, height = 52.mpx, textSize = 18)</ID>
-    <ID>MaxLineLength:UpdateStatusToast.kt$tv.own.owntv.ui.stage.StageButton(stringResource(R.string.update_whats_new), onClick = onViewChangelog, height = 52.mpx, textSize = 18, tinted = true, modifier = Modifier.focusRequester(focus))</ID>
+    <ID>MaxLineLength:UpdateStatusToast.kt$tv.own.owntv.ui.stage.StageButton(stringResource(R.string.update_now), onClick = { manager.download() }, height = 52.mpx, textSize = 18, tinted = true, modifier = Modifier.focusRequester(focus))</ID>
+    <ID>MaxLineLength:UpdateStatusToast.kt$tv.own.owntv.ui.stage.StageButton(stringResource(R.string.update_whats_new), onClick = onViewChangelog, height = 52.mpx, textSize = 18)</ID>
     <ID>MaxLineLength:VideoPlayerSettingsScreen.kt$"vp_timeshift"</ID>
     <ID>MaxLineLength:VideoPlayerSettingsScreen.kt$"vp_vod_engine"</ID>
     <ID>MaxLineLength:VideoPlayerSettingsScreen.kt$"vp_volume"</ID>

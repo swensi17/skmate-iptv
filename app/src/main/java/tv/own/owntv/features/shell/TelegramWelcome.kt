@@ -27,25 +27,39 @@ import tv.own.owntv.ui.theme.mpx
 import tv.own.owntv.ui.theme.stageAccent
 import tv.own.owntv.ui.theme.stageText
 
-/** Remembers on this television that the Telegram note has been shown, so it comes once, on the first entry. */
+/**
+ * When the Telegram note comes: at the first entry, then again now and then — every [EVERY_DAYS] days at the
+ * next start — until the viewer says "Don't remind me". Kept on this television only.
+ */
 internal object TelegramWelcomePrefs {
     private const val FILE = "welcome"
-    private const val KEY = "telegram_shown"
+    private const val KEY_AT = "telegram_shown_at"
+    private const val KEY_NEVER = "telegram_never"
+    private const val EVERY_DAYS = 5L
 
-    fun shown(context: Context): Boolean = context.getSharedPreferences(FILE, Context.MODE_PRIVATE).getBoolean(KEY, false)
+    fun due(context: Context, now: Long = System.currentTimeMillis()): Boolean {
+        val p = context.getSharedPreferences(FILE, Context.MODE_PRIVATE)
+        if (p.getBoolean(KEY_NEVER, false)) return false
+        val at = p.getLong(KEY_AT, 0L)
+        return at == 0L || now - at >= EVERY_DAYS * 24 * 3_600_000L
+    }
 
     fun markShown(context: Context) {
-        context.getSharedPreferences(FILE, Context.MODE_PRIVATE).edit().putBoolean(KEY, true).apply()
+        context.getSharedPreferences(FILE, Context.MODE_PRIVATE).edit().putLong(KEY_AT, System.currentTimeMillis()).apply()
+    }
+
+    fun never(context: Context) {
+        context.getSharedPreferences(FILE, Context.MODE_PRIVATE).edit().putBoolean(KEY_NEVER, true).apply()
     }
 }
 
 /**
- * The first-entry note about our Telegram chat: the Telegram mark in the middle, what the chat is for, the
- * chat's name to type into Telegram and its link. One button closes it, and it never comes back on its own;
- * the same address stays in More › About.
+ * The note about our Telegram chat: the Telegram mark in the middle, what the chat is for, the chat's name to
+ * type into Telegram and its link. "Got it" closes it until next time; "Don't remind me" for good. The same
+ * address stays in More › About.
  */
 @Composable
-internal fun TelegramWelcome(onDismiss: () -> Unit) {
+internal fun TelegramWelcome(onDismiss: () -> Unit, onNever: () -> Unit) {
     val ok = remember { androidx.compose.ui.focus.FocusRequester() }
     androidx.compose.runtime.LaunchedEffect(Unit) { kotlinx.coroutines.delay(80); runCatching { ok.requestFocus() } }
     StagePopup(onDismiss = onDismiss, title = null, width = 760.mpx, scroll = false) {
@@ -65,6 +79,12 @@ internal fun TelegramWelcome(onDismiss: () -> Unit) {
                     stringResource(R.string.welcome_telegram_ok),
                     onClick = onDismiss,
                     modifier = Modifier.widthIn(min = 320.mpx).focusRequester(ok),
+                )
+                Spacer(Modifier.height(10.mpx))
+                StageButton(
+                    stringResource(R.string.welcome_telegram_never),
+                    onClick = onNever,
+                    modifier = Modifier.widthIn(min = 320.mpx),
                 )
             }
         }

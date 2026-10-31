@@ -214,9 +214,14 @@ class LiveViewModel(
             var shown = 0
             previewEngine.networkLevel.collect { level ->
                 if (level > shown) {
-                    tv.own.owntv.ui.components.TvNotices.show(
-                        appContext.getString(tv.own.owntv.R.string.live_weak_network, level * tv.own.owntv.player.NETWORK_SECS_PER_LEVEL),
-                    )
+                    // In the language the viewer picked in the app, which a language changed in the setup
+                    // wizard has not yet given the application context.
+                    val text = withContext(Dispatchers.IO) {
+                        val tag = tv.own.owntv.core.i18n.LocaleStore.from(appContext).readBlocking()
+                        tv.own.owntv.core.i18n.AppLocale.wrap(appContext, tag)
+                            .getString(tv.own.owntv.R.string.live_weak_network, level * tv.own.owntv.player.NETWORK_SECS_PER_LEVEL)
+                    }
+                    tv.own.owntv.ui.components.TvNotices.show(text)
                 }
                 shown = level
             }
@@ -1611,13 +1616,43 @@ class LiveViewModel(
             } else {
                 channel.streamUrl
             }
-            externalPlayerLauncher.launch(
+            val launched = externalPlayerLauncher.launch(
                 url = url,
                 title = channel.name,
                 userAgent = source?.userAgent,
                 httpHeaders = SourceOverrides.headersWithReferer(channel.httpHeaders, source),
             )
-            recordLiveHistory(channel, immediate = true)
+            if (launched) {
+                externalHandoff = channel to android.os.SystemClock.elapsedRealtime()
+                recordLiveHistory(channel, immediate = true)
+            } else {
+                // No player took it: play it here instead of leaving the viewer with nothing.
+                startInApp(channel)
+                _internalFallback.tryEmit(Unit)
+            }
+        }
+    }
+
+    /** The channel last handed to an external player, and when. */
+    private var externalHandoff: Pair<ChannelEntity, Long>? = null
+
+    private val _internalFallback = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+
+    /** The built-in player should take over: no external player could open the channel, or it closed at once. */
+    val internalFallback: SharedFlow<Unit> = _internalFallback.asSharedFlow()
+
+    /**
+     * Back in the app after a hand-off. An external player that is gone within a few seconds failed (it could
+     * not open the stream, or it crashed): the channel then plays in the built-in player, never on nothing.
+     */
+    fun onAppResumed() {
+        val (channel, at) = externalHandoff ?: return
+        externalHandoff = null
+        if (android.os.SystemClock.elapsedRealtime() - at > EXTERNAL_FAILED_WITHIN_MS) return
+        Log.i(TAG, "external player closed at once, playing channelId=${channel.id} in the app")
+        viewModelScope.launch {
+            startInApp(channel)
+            _internalFallback.emit(Unit)
         }
     }
 
@@ -1665,6 +1700,11 @@ class LiveViewModel(
         // A protected channel stays in-app whatever this setting says: no standard intent extra
         // carries a licence URL, so the external player would open it and fail immediately.
         if (externalPlayerOn.value && channel.drmConfig == null) { playExternal(channel); return }
+        startInApp(channel)
+    }
+
+    /** Tunes [channel] in the app's own engines. */
+    private suspend fun startInApp(channel: ChannelEntity) {
         _previewChannel.value = channel
         clearTimeshift() // normal live = not timeshifted
         _catchupActive.value = false // tuning live ends any archive playback the HUD was showing
@@ -2251,6 +2291,9 @@ class LiveViewModel(
         liveCountFlow(key, c.profileId, c.sourceIds, hiddenCats, channelDao, customCategoryDao)
 
     private companion object {
+        /** An external player gone sooner than this did not play the channel. */
+        const val EXTERNAL_FAILED_WITHIN_MS = 8_000L
+
         const val ENGINE_TAG = "LiveEngine"
 
         /** Rows read when looking for another copy of a channel by its first word. */

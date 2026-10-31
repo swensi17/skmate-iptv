@@ -2700,6 +2700,7 @@
 1	protocol	core/src/main/java/tv/own/owntv/core/player/ExternalPlayerLauncher.kt	headers
 1	protocol	core/src/main/java/tv/own/owntv/core/player/ExternalPlayerLauncher.kt	http
 1	protocol	core/src/main/java/tv/own/owntv/core/player/ExternalPlayerLauncher.kt	https
+1	url	core/src/main/java/tv/own/owntv/core/player/ExternalPlayerLauncher.kt	https://example.com/
 1	url	core/src/main/java/tv/own/owntv/core/player/ExternalPlayerLauncher.kt	https://example.com/video.mp4
 1	protocol	core/src/main/java/tv/own/owntv/core/player/ExternalPlayerLauncher.kt	m2t
 1	protocol	core/src/main/java/tv/own/owntv/core/player/ExternalPlayerLauncher.kt	m3u
@@ -5436,26 +5437,34 @@
 1	technical	core/src/main/java/tv/own/owntv/core/ui/stage/StageGlyph.kt	M9 18l6-6-6-6
 1	technical	core/src/main/java/tv/own/owntv/core/ui/stage/StageGlyph.kt	M9.5 2.5H14.5A2.5 2.5 0 0 1 17 5V19A2.5 2.5 0 0 1 14.5 21.5H9.5A2.5 2.5 0 0 1 7 19V5A2.5 2.5 0 0 1 9.5 2.5zM11 18.5h2
 1	technical	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	.apk
+1	file-path	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	.part
 1	technical	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	Accept
+1	compiler	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	DEPRECATION
 1	log	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	UpdateManager
 2	technical	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	User-Agent
 1	mime	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	application/vnd.github+json
 1	json	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	assets
 1	json	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	body
 1	json	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	browser_download_url
+1	log	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	could not keep the download
 1	url	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	https://api.github.com/repos/${CoreBuildInfo.releaseRepo}/releases/latest
 1	log	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	install cancelled by user
 1	log	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	install refused status=$status message=$message
 1	json	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	name
+1	log	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	not newer than the installed build
 1	file-path	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	owntv-update
+1	log	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	signed with another key
 1	json	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	tag_name
+1	log	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	the downloaded update is gone
 1	log	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	truncated: got $copied of $total bytes
 1	uri	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	tv.own.owntv.UPDATE_INSTALL_STATUS
 1	log	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	unparseable APK (${apk.length()} bytes)
 1	log	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	update check failed: ${error.message}
 1	log	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	update download failed: ${error.message}
+1	log	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	update install failed: ${error.message}
 1	log	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	update installed
-1	file-path	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	updates
+1	file-path	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	update-$safe.apk
+3	file-path	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	updates
 1	technical	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	v
 1	log	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	wrong package ${info.packageName}
 2	technical	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	x86_64
