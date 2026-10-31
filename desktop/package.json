@@ -1,0 +1,48 @@
+{
+  "name": "skmate-iptv-desktop",
+  "version": "2.1.0",
+  "private": true,
+  "description": "SkMate IPTV для Windows: веб-версия плеера в своём окне, с установщиком и автообновлением",
+  "author": "SkMate",
+  "license": "GPL-3.0-only",
+  "homepage": "https://github.com/swensi17/skmate-iptv",
+  "main": "main.cjs",
+  "scripts": {
+    "web": "node scripts/copy-web.cjs",
+    "start": "npm run web && electron .",
+    "dist": "npm run web && electron-builder --win --x64 --publish never"
+  },
+  "dependencies": {
+    "electron-updater": "6.3.9"
+  },
+  "devDependencies": {
+    "electron": "33.2.1",
+    "electron-builder": "25.1.8"
+  },
+  "build": {
+    "appId": "uz.skmate.iptv.desktop",
+    "productName": "SkMate IPTV",
+    "copyright": "SkMate, GPL-3.0",
+    "directories": { "output": "dist", "buildResources": "build" },
+    "files": ["main.cjs", "app/**"],
+    "win": {
+      "target": [{ "target": "nsis", "arch": ["x64"] }],
+      "icon": "build/icon.ico",
+      "artifactName": "SkMate-IPTV-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "SkMate IPTV",
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "installerLanguages": ["ru_RU", "en_US"],
+      "language": "1049",
+      "deleteAppDataOnUninstall": false
+    },
+    "publish": [{ "provider": "github", "owner": "swensi17", "repo": "skmate-iptv" }]
+  }
+}
