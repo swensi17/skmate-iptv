@@ -1,16 +1,32 @@
 import { useEffect, useMemo, useState } from "preact/hooks";
-import { searchBy, type Channel } from "@skmate/core";
-import { focusFirst } from "@skmate/ui";
+import { SearchIndex, type Channel } from "@skmate/core";
+import { focusFirst, VirtualList } from "@skmate/ui";
 import { t } from "../i18n";
 import { channelKey } from "../state/favorites";
 import { ChannelRow } from "./ChannelRow";
 
-interface Props { channels: Channel[]; favorites: ReadonlySet<string>; onOpen: (c: Channel) => void; onFav: (c: Channel) => void }
+interface Props {
+  channels: Channel[];
+  favorites: ReadonlySet<string>;
+  onOpen: (c: Channel, list: readonly Channel[]) => void;
+  onFav: (c: Channel) => void;
+}
+
+/** A TV is slow: the search waits for a short pause in typing instead of running on every key. */
+const TYPING_PAUSE_MS = 180;
+const ROW = 84;
+const HEIGHT = 820;
 
 export function SearchView({ channels, favorites, onOpen, onFav }: Props) {
   const [query, setQuery] = useState("");
-  const hits = useMemo(() => searchBy(channels, query, (c) => c.name).map((r) => r.item), [channels, query]);
+  const [settled, setSettled] = useState("");
+  const index = useMemo(() => new SearchIndex(channels, (c) => c.name), [channels]);
+  const hits = useMemo(() => index.search(settled).map((r) => r.item), [index, settled]);
   useEffect(() => { focusFirst(document, "search-input"); }, []);
+  useEffect(() => {
+    const id = setTimeout(() => setSettled(query), TYPING_PAUSE_MS);
+    return () => clearTimeout(id);
+  }, [query]);
 
   return (
     <div class="screen search">
@@ -22,11 +38,14 @@ export function SearchView({ channels, favorites, onOpen, onFav }: Props) {
         onInput={(e) => setQuery((e.currentTarget as HTMLInputElement).value)}
       />
       <div class="list-head">
-        {query.trim() === "" ? t("searchHint") : hits.length === 0 ? t("searchEmpty") : t("searchResults", { n: hits.length })}
+        {settled.trim() === "" ? t("searchHint") : hits.length === 0 ? t("searchEmpty") : t("searchResults", { n: hits.length })}
       </div>
-      <div class="scroll">
-        {hits.map((c, i) => <ChannelRow key={c.id} channel={c} index={i} favorite={favorites.has(channelKey(c))} onOpen={onOpen} onFav={onFav} />)}
-      </div>
+      <VirtualList
+        key={settled}
+        items={hits} rowHeight={ROW} height={HEIGHT} pageSize={9}
+        idOf={(c) => `ch-${c.id}`}
+        renderRow={(c, i) => <ChannelRow channel={c} index={i} favorite={favorites.has(channelKey(c))} onOpen={(ch) => onOpen(ch, hits)} onFav={onFav} />}
+      />
     </div>
   );
 }

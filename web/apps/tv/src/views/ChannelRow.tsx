@@ -1,4 +1,5 @@
 import type { Channel } from "@skmate/core";
+import { capitalize } from "../text";
 
 /** Yellow on webOS (405) and on Tizen (12 once registered); `y` on a keyboard. */
 const isYellow = (e: KeyboardEvent) => e.keyCode === 405 || e.keyCode === 12 || e.key === "y";
@@ -15,7 +16,7 @@ export function ChannelRow(props: { channel: Channel; index: number; favorite: b
       {channel.logo ? <img class="logo" src={channel.logo} alt="" /> : <span class="logo" />}
       <span class="grow">{channel.name}</span>
       {props.favorite ? <span class="star">★</span> : null}
-      {channel.group ? <span class="sub">{channel.group}</span> : null}
+      {channel.group ? <span class="sub">{capitalize(channel.group)}</span> : null}
     </button>
   );
 }

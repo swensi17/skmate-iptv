@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  QueryVariants, MAX_VARIANTS, Rank, damerauLevenshtein, hasCyrillic, normalize, score, searchBy, swapped, toCyrillic, toLatin,
+  QueryVariants, MAX_VARIANTS, Rank, SearchIndex, damerauLevenshtein, hasCyrillic, normalize, score, searchBy, swapped, toCyrillic, toLatin,
 } from "./index";
 
 // The cases mirror SmartSearchTest.kt of the Android app: both must agree.
@@ -91,5 +91,17 @@ describe("searchBy", () => {
   const items = ["Nordisc", "Discovery", "Animal Discovery", "Sports"].map((name) => ({ name }));
   it("puts better matches first and keeps ties in order", () => {
     expect(searchBy(items, "disc", (i) => i.name).map((r) => r.item.name)).toEqual(["Discovery", "Animal Discovery", "Nordisc"]);
+  });
+});
+
+describe("SearchIndex", () => {
+  it("gives the same answer as a one-off search, repeatedly", () => {
+    const items = ["Nordisc", "Discovery", "Animal Discovery", "Sports"].map((name) => ({ name }));
+    const index = new SearchIndex(items, (i) => i.name);
+    const expected = searchBy(items, "disc", (i) => i.name).map((r) => r.item.name);
+    expect(index.search("disc").map((r) => r.item.name)).toEqual(expected);
+    expect(index.search("disc").map((r) => r.item.name)).toEqual(expected);
+    expect(index.search("disc", 1)).toHaveLength(1);
+    expect(index.search("   ")).toEqual([]);
   });
 });

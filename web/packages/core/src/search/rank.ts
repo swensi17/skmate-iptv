@@ -60,9 +60,8 @@ function allWordsFuzzy(nameWords: string[], v: string): boolean {
 }
 
 /** How well a name answers the typed text: the smaller the better, null when it does not at all. */
-export function score(normalizedName: string, variants: readonly string[]): number | null {
+export function score(normalizedName: string, variants: readonly string[], nameWords: string[] = words(normalizedName)): number | null {
   let best: number | null = null;
-  const nameWords = words(normalizedName);
   for (const v of variants) {
     let s: number | null;
     if (normalizedName === v) s = Rank.EXACT;
