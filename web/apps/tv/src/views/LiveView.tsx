@@ -1,11 +1,13 @@
 import { useContext, useEffect, useMemo, useRef, useState } from "preact/hooks";
-import { groupsOf, SearchIndex, type Channel } from "@skmate/core";
+import { groupsOf, type Channel } from "@skmate/core";
 import { focusFirst, Icon, isBack, Presence, VirtualList } from "@skmate/ui";
 import { t } from "../i18n";
 import { channelKey } from "../state/favorites";
 import type { Settings } from "../state/settings";
 import type { Status } from "../state/usePlaylists";
 import { capitalize } from "../text";
+import { ChannelSearch } from "../state/channelSearch";
+import { GuideContext } from "../state/GuideContext";
 import { ChannelRow } from "./ChannelRow";
 import { UiContext } from "../state/UiContext";
 import { PreviewPane } from "./PreviewPane";
@@ -56,8 +58,9 @@ export function LiveView(p: Props) {
 
   const archive = useMemo(() => p.channels.filter((c) => (c.catchupDays ?? 0) > 0), [p.channels]);
   const base = group === FAV ? favs : group === RECENT ? p.recents : group === ARCHIVE ? archive : group === ALL ? p.channels : groups.find((g) => g.name === group)?.channels ?? [];
-  const index = useMemo(() => new SearchIndex(base, (c) => c.name), [base]);
-  const found = useMemo(() => (settled.trim() === "" ? base : index.search(settled).map((r) => r.item)), [base, index, settled]);
+  const guide = useContext(GuideContext);
+  const index = useMemo(() => new ChannelSearch(base, guide.data, guide.now), [base, guide.data, Math.floor(guide.now / 60_000)]);
+  const found = useMemo(() => (settled.trim() === "" ? base : index.search(settled)), [base, index, settled]);
   const shown = useMemo(() => {
     if (sort === "provider" || settled.trim() !== "") return found;
     const copy = [...found].sort((a, b) => a.name.localeCompare(b.name, "ru"));
