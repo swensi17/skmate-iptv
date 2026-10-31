@@ -4,9 +4,10 @@ import { focusFirst, VirtualList } from "@skmate/ui";
 import { t } from "../i18n";
 import { channelKey } from "../state/favorites";
 import { kindOf, SPORT_LABEL, sportSummary, type SportKind } from "../sport";
+import { useContext } from "preact/hooks";
+import { UiContext } from "../state/UiContext";
 import { ChannelRow } from "./ChannelRow";
 
-const ROW = 84;
 const HEIGHT = 780;
 const TYPING_PAUSE_MS = 180;
 
@@ -19,6 +20,7 @@ interface Props {
 
 /** Sport from the channel names: filters by kind of sport on top, a search of its own, the list below. */
 export function SportView({ channels, favorites, onOpen, onFav }: Props) {
+  const ROW = useContext(UiContext).rowH;
   const { list, kinds } = useMemo(() => sportSummary(channels), [channels]);
   const [kind, setKind] = useState<SportKind | "all">("all");
   const [query, setQuery] = useState("");

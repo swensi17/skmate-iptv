@@ -30,6 +30,13 @@ export interface Settings {
   epgSources: Array<{ id: string; name: string; url: string }>;
   /** A proxy for guides the TV cannot reach directly; empty = none. */
   proxy: string;
+  /** Height of a row in the channel lists, px. */
+  rowSize: 72 | 84 | 96;
+  /** Percent of the full-size interface. */
+  uiScale: 80 | 90 | 100;
+  showLogos: boolean;
+  showNumbers: boolean;
+  showProgram: boolean;
 }
 
 const KEY = "skmate.settings.v1";
@@ -37,6 +44,7 @@ export const DEFAULTS: Settings = {
   theme: "system", motion: "auto", language: "auto", engine: "auto", aspect: "fit", buffer: 30,
   openTimeout: 12, osdSeconds: 5, showEngine: true, autoRestart: true, preview: true,
   epgAuto: true, epgEvery: 12, epgSources: [], proxy: "",
+  rowSize: 84, uiScale: 100, showLogos: true, showNumbers: true, showProgram: true,
 };
 
 export function load(): Settings {
@@ -63,6 +71,8 @@ export function applyTheme(theme: ThemeSetting, root: HTMLElement = document.doc
 }
 
 export function applyAll(s: Settings, throttled: boolean): void {
+  document.documentElement.style.setProperty("--row-h", `${s.rowSize}px`);
+  document.documentElement.style.setProperty("--ui-zoom", String(s.uiScale / 100));
   applyTheme(s.theme);
   applyMotion(s.motion, throttled);
 }

@@ -1,6 +1,8 @@
 import { useContext } from "preact/hooks";
 import type { Channel } from "@skmate/core";
+import { t } from "../i18n";
 import { GuideContext } from "../state/GuideContext";
+import { UiContext } from "../state/UiContext";
 import { capitalize } from "../text";
 import { ChannelLogo } from "./ChannelLogo";
 
@@ -13,7 +15,8 @@ export function ChannelRow(props: {
 }) {
   const { channel } = props;
   const { data, now } = useContext(GuideContext);
-  const { now: on, progress } = data.nowNext(channel.id, now);
+  const ui = useContext(UiContext);
+  const { now: on, progress } = ui.program ? data.nowNext(channel.id, now) : { now: null, progress: 0 };
   return (
     <button
       class="row" data-focus={`ch-${channel.id}`}
@@ -21,8 +24,8 @@ export function ChannelRow(props: {
       onFocus={() => props.onFocus?.(channel)}
       onKeyDown={(e) => { if (isYellow(e as unknown as KeyboardEvent)) props.onFav(channel); }}
     >
-      <span class="sub" style={{ width: 56, textAlign: "right" }}>{props.index + 1}</span>
-      <ChannelLogo channel={channel} />
+      {ui.numbers ? <span class="sub" style={{ width: 56, textAlign: "right" }}>{props.index + 1}</span> : null}
+      {ui.logos ? <ChannelLogo channel={channel} /> : null}
       <span class="grow two">
         <span class="nm">{channel.name}</span>
         {on ? (
@@ -33,6 +36,7 @@ export function ChannelRow(props: {
         ) : null}
       </span>
       {props.favorite ? <span class="star">★</span> : null}
+      {channel.catchupDays ? <span class="tag">{t("archiveDays", { n: channel.catchupDays })}</span> : null}
       {on ? null : channel.group ? <span class="sub">{capitalize(channel.group)}</span> : null}
     </button>
   );

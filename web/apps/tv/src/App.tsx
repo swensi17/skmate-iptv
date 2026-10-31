@@ -1,14 +1,17 @@
 import { useEffect, useMemo, useState } from "preact/hooks";
 import type { Channel } from "@skmate/core";
-import { Icon, installDpad, watchFrames, type IconName } from "@skmate/ui";
+import { Icon, installDpad, Presence, watchFrames, type IconName } from "@skmate/ui";
 import { applyLanguage, t, type Key } from "./i18n";
 import { channelKey, loadFavorites, saveFavorites, toggle } from "./state/favorites";
 import { applyAll, DEFAULTS, load, save, type Settings } from "./state/settings";
 import { GuideContext } from "./state/GuideContext";
+import { loadHistory, pushRecent, recentChannels, saveHistory } from "./state/history";
+import { UiContext } from "./state/UiContext";
 import { useGuide } from "./state/useGuide";
 import { addProfile, firstBook, loadBook, purgeProfile, removeProfile, saveBook, switchProfile, type ProfileBook } from "./state/scope";
 import { usePlaylists } from "./state/usePlaylists";
 import { Confirm } from "./views/Confirm";
+import { QrDialog } from "./views/QrDialog";
 import { PlaylistPicker } from "./views/PlaylistPicker";
 import { Welcome } from "./views/Welcome";
 import { GuideView } from "./views/GuideView";
@@ -38,6 +41,9 @@ export function App() {
   const [book, setBook] = useState<ProfileBook | null>(loadBook);
   const [deletingProfile, setDeletingProfile] = useState<string | null>(null);
   const [picking, setPicking] = useState(false);
+  const [qr, setQr] = useState<{ name: string; address: string } | null>(null);
+  const [history, setHistory] = useState<string[]>(loadHistory);
+  const [leaving, setLeaving] = useState(false);
   const [sheet, setSheet] = useState(false);
   const [sheetPage, setSheetPage] = useState<Page | null>(null);
   const pl = usePlaylists();
@@ -53,15 +59,30 @@ export function App() {
   useEffect(() => installDpad(() => {
     if (deleting) { setDeleting(null); return true; }
     if (resetting) { setResetting(false); return true; }
+    if (qr) { setQr(null); return true; }
     if (deletingProfile) { setDeletingProfile(null); return true; }
     if (picking) { setPicking(false); return true; }
     if (sheet) { if (sheetPage) setSheetPage(null); else setSheet(false); return true; }
-    if (playing) { setPlaying(null); return true; }
+    if (playing) { exitPlayer(); return true; }
     if (section !== "live") { setSection("live"); return true; }
     return false;
-  }), [deleting, resetting, deletingProfile, picking, sheet, sheetPage, playing, section]);
+  }), [deleting, resetting, qr, deletingProfile, picking, sheet, sheetPage, playing, section]);
 
   const open = (c: Channel, list: readonly Channel[]) => setPlaying({ list, index: Math.max(0, list.findIndex((x) => x.id === c.id)) });
+  const exitPlayer = () => {
+    setLeaving(true);
+    setTimeout(() => { setPlaying(null); setLeaving(false); }, 200); // the player fades out before it is gone
+  };
+  const recents = useMemo(() => recentChannels(pl.channels, history), [pl.channels, history]);
+  const watching = playing ? playing.list[playing.index] : null;
+  // A channel counts as watched once it has been on for a moment: zapping past it does not fill the history.
+  useEffect(() => {
+    if (!watching) return;
+    const id = setTimeout(() => setHistory((h) => { const next = pushRecent(h, channelKey(watching)); saveHistory(next); return next; }), 2500);
+    return () => clearTimeout(id);
+  }, [watching?.id]);
+  const ui = useMemo(() => ({ rowH: settings.rowSize, logos: settings.showLogos, numbers: settings.showNumbers, program: settings.showProgram }),
+    [settings.rowSize, settings.showLogos, settings.showNumbers, settings.showProgram]);
   const startBook = (name: string, guest: boolean) => { const b = firstBook(name, guest); saveBook(b); setBook(b); };
   const switchTo = (id: string) => {
     if (!book) return;
@@ -84,18 +105,22 @@ export function App() {
   if (playing) {
     const current = playing.list[playing.index] as Channel;
     return (
+      <UiContext.Provider value={ui}>
       <GuideContext.Provider value={guideValue}>
       <PlayerView
-        channels={playing.list} catalog={pl.channels} index={playing.index} favorites={favorites} onJump={(index) => setPlaying((cur) => (cur ? { list: cur.list, index } : cur))}
+        channels={playing.list} catalog={pl.channels} index={playing.index} favorites={favorites} recents={recents} closing={leaving}
+        onPick={(c, list) => setPlaying({ list, index: Math.max(0, list.findIndex((x) => x.id === c.id)) })}
         onStep={(d) => setPlaying((cur) => (cur ? { list: cur.list, index: (cur.index + d + cur.list.length) % cur.list.length } : cur))}
-        onFav={toggleFavorite} onExit={() => setPlaying(null)}
+        onFav={toggleFavorite} onExit={exitPlayer}
         settings={settings} onChangeSettings={setSettings}
       />
       </GuideContext.Provider>
+      </UiContext.Provider>
     );
   }
 
   return (
+    <UiContext.Provider value={ui}>
     <GuideContext.Provider value={guideValue}>
       <nav class="rail">
         <div class="rail-mid">
@@ -116,27 +141,34 @@ export function App() {
             onOpen={open} onFav={toggleFavorite}
             onAddPlaylist={() => { setSheetPage("playlists"); setSheet(true); }} onDemo={pl.addDemo}
             greeting={greeting} playlistName={pl.active?.name ?? null} onPickPlaylist={() => setPicking(true)}
+            recents={recents} paused={false}
           />
         ) : null}
         {section === "guide" ? <GuideView channels={pl.channels} favorites={favorites} status={guide.status} onRefresh={() => void guide.sync()} onOpen={open} /> : null}
         {section === "sport" ? <SportView channels={pl.channels} favorites={favorites} onOpen={open} onFav={toggleFavorite} /> : null}
         {section === "search" ? <SearchView channels={pl.channels} favorites={favorites} onOpen={open} onFav={toggleFavorite} /> : null}
       </main>
-      {sheet ? (
-        <SettingsSheet
-          page={sheetPage} onPage={setSheetPage} onClose={() => setSheet(false)}
-          settings={settings} onChange={setSettings} store={pl.store} status={pl.status}
-          onAddPlaylist={pl.add} onSelectPlaylist={pl.select} onAskDeletePlaylist={setDeleting}
-          onAskReset={() => setResetting(true)}
-          guide={{ data: guide.data, status: guide.status, outcomes: guide.outcomes, onRefresh: () => void guide.sync(), onClear: guide.clear }}
-          channelCount={pl.channels.length} active={pl.active} headerGuides={pl.headerGuides}
-          book={book ?? firstBook("", true)} onSwitchProfile={switchTo} onAddProfile={addOne} onAskDeleteProfile={setDeletingProfile}
-        />
-      ) : null}
-      {picking ? (
-        <PlaylistPicker store={pl.store} onSelect={pl.select} onClose={() => setPicking(false)}
-          onManage={() => { setPicking(false); setSheetPage("playlists"); setSheet(true); }} />
-      ) : null}
+      <Presence show={sheet}>
+        {(out) => (
+          <SettingsSheet
+            show={!out} page={sheetPage} onPage={setSheetPage} onClose={() => setSheet(false)}
+            settings={settings} onChange={setSettings} store={pl.store} status={pl.status}
+            onAddPlaylist={pl.add} onSelectPlaylist={pl.select} onAskDeletePlaylist={setDeleting}
+            onAskReset={() => setResetting(true)}
+            guide={{ data: guide.data, status: guide.status, outcomes: guide.outcomes, onRefresh: () => void guide.sync(), onClear: guide.clear }}
+            channelCount={pl.channels.length} active={pl.active} headerGuides={pl.headerGuides}
+            book={book ?? firstBook("", true)} onSwitchProfile={switchTo} onAddProfile={addOne} onAskDeleteProfile={setDeletingProfile}
+            onQr={(name, address) => setQr({ name, address })}
+          />
+        )}
+      </Presence>
+      <Presence show={picking}>
+        {(out) => (
+          <PlaylistPicker store={pl.store} onSelect={pl.select} onClose={() => setPicking(false)} closing={out}
+            onManage={() => { setPicking(false); setSheetPage("playlists"); setSheet(true); }} />
+        )}
+      </Presence>
+      {qr ? <QrDialog name={qr.name} address={qr.address} onClose={() => setQr(null)} /> : null}
       {doomedProfile ? (
         <Confirm
           title={t("profileDeleteTitle")} body={doomedProfile.name} confirm={t("playlistDelete")}
@@ -163,5 +195,6 @@ export function App() {
         />
       ) : null}
     </GuideContext.Provider>
+    </UiContext.Provider>
   );
 }

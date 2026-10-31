@@ -3,6 +3,8 @@ import { SearchIndex, type Channel } from "@skmate/core";
 import { focusFirst, VirtualList } from "@skmate/ui";
 import { t } from "../i18n";
 import { channelKey } from "../state/favorites";
+import { useContext } from "preact/hooks";
+import { UiContext } from "../state/UiContext";
 import { ChannelRow } from "./ChannelRow";
 
 interface Props {
@@ -14,10 +16,10 @@ interface Props {
 
 /** A TV is slow: the search waits for a short pause in typing instead of running on every key. */
 const TYPING_PAUSE_MS = 180;
-const ROW = 84;
 const HEIGHT = 820;
 
 export function SearchView({ channels, favorites, onOpen, onFav }: Props) {
+  const ROW = useContext(UiContext).rowH;
   const [query, setQuery] = useState("");
   const [settled, setSettled] = useState("");
   const index = useMemo(() => new SearchIndex(channels, (c) => c.name), [channels]);
