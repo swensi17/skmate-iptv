@@ -25,7 +25,7 @@ export function ChannelRow(props: {
       onFocus={() => props.onFocus?.(channel)}
       onKeyDown={(e) => { if (isYellow(e as unknown as KeyboardEvent)) props.onFav(channel); }}
     >
-      {ui.numbers ? <span class="sub" style={{ width: 56, textAlign: "right" }}>{props.index + 1}</span> : null}
+      {ui.numbers ? <span class="num">{props.index + 1}</span> : null}
       {ui.logos ? <ChannelLogo channel={channel} /> : null}
       <span class="grow two">
         <span class="nm">{channel.name}</span>
