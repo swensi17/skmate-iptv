@@ -19,7 +19,12 @@ h2 { margin: 0 0 24px; font-size: 40px; font-weight: 700; }
 .player-shade { position: absolute; left: 0; right: 0; bottom: 0; height: 420px; background: linear-gradient(rgba(0,0,0,0), rgba(0,0,0,.78)); opacity: 0; transition: opacity 220ms linear; pointer-events: none; }
 .player.info .player-shade, .player.with-bar .player-shade { opacity: 1; }
 .pinfo, .pline { opacity: 0; transition: opacity 220ms linear; pointer-events: none; }
-.player.info .pinfo, .player.info .pline, .player.with-bar .pinfo, .player.with-bar .pline { opacity: 1; }
+.player.info .pinfo, .player.info .pline, .player.with-bar .pline { opacity: 1; }
+/* With the bar open the channel strip gives way: the progress line rises and the buttons sit under it. */
+.player.with-bar .pinfo { opacity: 0; }
+.pline { transition: opacity 220ms linear, bottom 260ms ease; }
+.player.with-bar .pline { bottom: 210px; }
+.player.with-bar .player-shade { height: 560px; }
 .pinfo { position: absolute; left: 64px; right: 64px; bottom: 76px; display: flex; gap: 28px; align-items: flex-end; }
 .pinfo-logo { width: 120px; height: 120px; flex: none; border-radius: var(--radius); background: #fff; display: flex; align-items: center; justify-content: center; overflow: hidden; }
 .pinfo-logo .logo { width: 100%; height: 100%; border-radius: 0; font-size: 40px; padding: 8px; }
@@ -94,7 +99,8 @@ h2 { margin: 0 0 24px; font-size: 40px; font-weight: 700; }
 .dialog.wide .srow:focus .chips { background: rgba(0, 0, 0, .12); }
 
 /* The player panel runs the whole width, like the Android one. */
-.player-bar { padding: 160px 80px 56px; justify-content: space-evenly; gap: 0; }
+.player-bar { bottom: 0; padding: 0 80px 40px; justify-content: space-evenly; gap: 0; animation: bar-in 260ms ease both; }
+@keyframes bar-in { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: none; } }
 .player-bar .tile { flex: 1; max-width: 240px; }
 
 /* Rail: the places in the middle, Settings apart at the bottom; the name appears beside the icon in focus. */
@@ -352,7 +358,7 @@ img.logo { object-fit: contain; background: #fff; padding: 4px; border-radius: v
 .drawer-scrim { z-index: 10; }
 
 /* A list inside the bar: channel cards in one row, the focused one lit like a tile. */
-.player-bar.player-strip { justify-content: flex-start; gap: 28px; padding: 160px 80px 56px; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; }
+.player-bar.player-strip { justify-content: flex-start; gap: 28px; padding: 24px 80px 30px; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; }
 .player-strip::-webkit-scrollbar { display: none; }
 .strip-card { flex: none; width: 210px; display: flex; flex-direction: column; align-items: center; gap: 12px; background: none; border: 0; color: #c6cacf; font-family: inherit; outline: none; cursor: pointer; }
 .strip-logo { width: 150px; height: 150px; border-radius: 22px; overflow: hidden; background: #fff; display: flex; align-items: center; justify-content: center; transition: transform 120ms linear, box-shadow 120ms linear; }
