@@ -12,6 +12,8 @@ name: Release
 #   SkMate-IPTV-web-vX.Y.Z.zip      the web version for any web server
 #   SkMate-IPTV-tizen-vX.Y.Z.wgt    Samsung Tizen widget (unsigned: sign with your Samsung certificate)
 #   uz.skmate.iptv_X.Y.Z_all.ipk    LG webOS package (installs in Developer Mode)
+#   SkMate-IPTV-Setup-X.Y.Z.exe     Windows installer (desktop/, job "desktop"), with latest.yml and the
+#                                   .blockmap the installed app reads to update itself
 #   SHA256SUMS.txt                  sha256 of every file above
 #   mapping-vX.Y.Z.txt              R8 mapping, to read crash stack traces
 on:
@@ -169,3 +171,47 @@ jobs:
           else
             gh release create "$TAG" "${FILES[@]}" --title "SkMate IPTV $TAG" --notes-file dist/RELEASE_NOTES.md --verify-tag
           fi
+
+  # Windows: the web version in its own window (desktop/, Electron), packed into an installer and attached to the
+  # release made above. latest.yml next to it is what installed copies read to update themselves.
+  desktop:
+    needs: release
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            web/package-lock.json
+            desktop/package-lock.json
+
+      - name: Build the web version
+        working-directory: web
+        shell: bash
+        run: |
+          npm pkg set version="${TAG#v}" --workspace @skmate/tv
+          npm ci
+          npm run build
+
+      - name: Build the Windows installer
+        working-directory: desktop
+        shell: bash
+        run: |
+          npm ci
+          npm pkg set version="${TAG#v}"
+          npm run dist
+
+      - name: Attach it to the release
+        working-directory: desktop
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          NAME="${TAG#v}"
+          gh release upload "$TAG" "dist/SkMate-IPTV-Setup-$NAME.exe" "dist/SkMate-IPTV-Setup-$NAME.exe.blockmap" dist/latest.yml --clobber

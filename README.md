@@ -20,7 +20,8 @@ M3U и Xtream Codes, телегид (EPG), архив, профили — упр
 </p>
 
 <p align="center">
-  <a href="https://swensi17.github.io/skmate-iptv/"><b>▶ Демо веб-версии для LG webOS и Samsung Tizen</b></a> — открывается в браузере, управление стрелками, OK = Enter, «Назад» = Esc
+  <a href="https://swensi17.github.io/skmate-iptv/"><b>▶ Демо веб-версии для LG webOS и Samsung Tizen</b></a> — открывается в браузере, управление стрелками, OK = Enter, «Назад» = Esc<br>
+  <a href="https://github.com/swensi17/skmate-iptv/releases/latest"><b>⬇ SkMate IPTV для Windows</b></a> — установщик <code>SkMate-IPTV-Setup-X.Y.Z.exe</code> в последнем релизе, обновляется сам
 </p>
 
 <p align="center"><b>Русский</b> · <a href="docs/i18n-readme/README.en.md">English</a> · <a href="docs/i18n-readme/README.zh.md">中文</a></p>
