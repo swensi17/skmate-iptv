@@ -368,9 +368,8 @@ img.logo { object-fit: contain; background: #fff; padding: 4px; border-radius: v
 .strip-card:focus .strip-name { color: #fff; }
 .strip-empty { color: #c6cacf; font-size: 28px; padding: 40px 0; }
 
-/* The programme's progress is the line under the row itself: from the number to the end of the row, over the separator. */
+/* The programme's progress stays in the text column, under the programme title. */
 .row { position: relative; }
-.row .row-bar { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; border-radius: 0; }
 
 /* Bigger numbers and logos in the channel rows: the logo takes the height of the row. */
 .row .num { flex: none; width: 64px; text-align: right; font-size: 30px; font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; }
