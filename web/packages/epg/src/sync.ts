@@ -29,6 +29,7 @@ export interface SyncOptions {
 
 const tick = () => new Promise<void>((resolve) => setTimeout(resolve, 0));
 const MATCH_CHUNK = 120;
+const FEED_SLICE = 48 * 1024;
 
 /**
  * Fills the guide for [channels] from [sources] in order, as the Android app does: a source links the channels
@@ -93,19 +94,25 @@ export async function syncGuides(o: SyncOptions): Promise<{ data: GuideData; out
         onProgramme: (id, p) => (wanted === null ? pending.push([id, p]) : accept(id, p)),
       });
       await readGuide(res, async (text) => {
-        scanner.feed(text);
-        // All of a guide's channels precede its programmes: the first programme means the names are all in.
-        if (wanted === null && scanner.sawProgramme) await link();
+        // A big piece is fed in slices, so no single parse holds the screen for long.
+        for (let i = 0; i < text.length; i += FEED_SLICE) {
+          scanner.feed(text.slice(i, i + FEED_SLICE));
+          // All of a guide's channels precede its programmes: the first programme means the names are all in.
+          if (wanted === null && scanner.sawProgramme) await link();
+          if (i + FEED_SLICE < text.length) await tick();
+        }
       });
       outcome.guideChannels = guideChannels.length;
 
-      taken.forEach((list, id) => {
+      let done = 0;
+      for (const [id, list] of Array.from(taken.entries())) {
+        if (++done % 150 === 0) await tick();
         list.sort((a, b) => a.start - b.start);
         const merged = (data.programmes.get(id) ?? []).concat(list);
         const seen = new Set<string>();
         data.programmes.set(id, merged.filter((p) => { const k = `${p.start}|${p.title}`; return seen.has(k) ? false : (seen.add(k), true); }).sort((a, b) => a.start - b.start));
         outcome.programmes += list.length;
-      });
+      }
       outcome.ok = true;
     } catch (e) {
       outcome.error = e instanceof Error ? e.message : String(e);

@@ -116,7 +116,7 @@ export function PlayerView({ channels, catalog, index, favorites, recents, onPic
         } else if (tab === "menu") {
           if (back) { swallow(e); setTab("groups"); return; }
           if (edge) { swallow(e); return; }
-        } else if (tab === "recent" && back) { swallow(e); if (side === "left") setTab("menu"); else setPanel(false); return; }
+        } else if ((tab === "recent" || tab === "favorites") && back) { swallow(e); if (side === "left") setTab("menu"); else setPanel(false); return; }
         return; // the panel's own lists take the rest
       }
       if (up || down) {
@@ -209,8 +209,10 @@ export function PlayerView({ channels, catalog, index, favorites, recents, onPic
           <Tile id="pl-play" icon={paused ? "play" : "pause"} label={paused ? "playerPlay" : "playerPause"} onClick={togglePause} />
           <Tile id="pl-next" icon="skip_next" label="playerNext" onClick={() => onStep(1)} />
           <Tile id="pl-fav" icon={favorite ? "favorite" : "star"} label="playerFavorite" onClick={() => onFav(channel)} />
+          <Tile id="pl-favs" icon="list" label="favorites" onClick={() => openPanel("favorites", "right")} />
+          <Tile id="pl-recent" icon="history" label="panelRecent" onClick={() => openPanel("recent", "right")} />
           <Tile id="pl-set" icon="settings" label="playerSettings" onClick={() => openPanel("settings", "right")} />
-          <Tile id="pl-list" icon="list" label="playerMenu" onClick={() => openPanel("channels", "left")} />
+          <Tile id="pl-list" icon="home" label="playerMenu" onClick={() => openPanel("channels", "left")} />
         </div>
       ) : null}
     </div>

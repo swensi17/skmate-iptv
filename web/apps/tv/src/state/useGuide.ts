@@ -59,7 +59,12 @@ export function useGuide(channels: Channel[], active: PlaylistEntry | null, head
       });
       setOutcomes(result.outcomes);
       // A refresh that found nothing must not wipe a guide that worked: keep the old one then.
-      if (result.data.linked > 0) { setData(result.data); saveCache(active.id, result.data); }
+      if (result.data.linked > 0) {
+        setData(result.data);
+        // Serialising and writing megabytes is synchronous: it waits until the new rows have been drawn.
+        const id = active.id;
+        setTimeout(() => saveCache(id, result.data), 1500);
+      }
     } finally {
       running.current = false;
       setStatus({ kind: "idle" });
