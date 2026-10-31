@@ -33,20 +33,22 @@ export async function fetchPlaylist(url: string, fetchFn: typeof fetch = fetch, 
   }
 }
 
+import { scoped } from "./scope";
+
 const CACHE = "skmate.cache.";
 const MAX_CACHE_CHARS = 2_000_000;
 
 /** The last good copy, so the TV opens the list at once and without the network. Big playlists are not cached. */
 export function cacheGet(id: string): string | null {
-  try { return localStorage.getItem(CACHE + id); } catch { return null; }
+  try { return localStorage.getItem(scoped(CACHE + id)); } catch { return null; }
 }
 
 export function cachePut(id: string, text: string): void {
   try {
-    if (text.length <= MAX_CACHE_CHARS) localStorage.setItem(CACHE + id, text);
+    if (text.length <= MAX_CACHE_CHARS) localStorage.setItem(scoped(CACHE + id), text);
   } catch { /* storage full: next time the playlist is fetched again */ }
 }
 
 export function cacheDrop(id: string): void {
-  try { localStorage.removeItem(CACHE + id); } catch { /* nothing to drop */ }
+  try { localStorage.removeItem(scoped(CACHE + id)); } catch { /* nothing to drop */ }
 }

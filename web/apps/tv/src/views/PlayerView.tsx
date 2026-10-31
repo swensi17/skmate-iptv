@@ -1,5 +1,5 @@
-import { useContext, useEffect, useRef, useState } from "preact/hooks";
-import type { Channel } from "@skmate/core";
+import { useContext, useEffect, useMemo, useRef, useState } from "preact/hooks";
+import { pickMirrors, type Channel } from "@skmate/core";
 import { Drawer, focusFirst, Icon, isBack, VirtualList, type IconName } from "@skmate/ui";
 import { t, type Key } from "../i18n";
 import type { Settings } from "../state/settings";
@@ -13,6 +13,8 @@ import { PlayerSettingRows } from "./PlayerRows";
 
 interface Props {
   channels: readonly Channel[];
+  /** The whole playlist: copies of a channel are looked up here, not only in the list being browsed. */
+  catalog: readonly Channel[];
   index: number;
   favorites: ReadonlySet<string>;
   onJump: (index: number) => void;
@@ -33,12 +35,13 @@ function Tile(p: { id: string; icon: IconName; label: Key; onClick: () => void }
   );
 }
 
-export function PlayerView({ channels, index, favorites, onJump, onStep, onFav, onExit, settings, onChangeSettings }: Props) {
+export function PlayerView({ channels, catalog, index, favorites, onJump, onStep, onFav, onExit, settings, onChangeSettings }: Props) {
   const channel = channels[index] as Channel;
   const video = useRef<HTMLVideoElement>(null);
-  const { state, engine, paused, retry, togglePause } = usePlayback(video, channel, {
+  const mirrors = useMemo(() => pickMirrors(channel, catalog), [channel.id, catalog]);
+  const { state, engine, paused, retry, togglePause, via } = usePlayback(video, channel, {
     engine: settings.engine, bufferSeconds: settings.buffer, openTimeoutMs: settings.openTimeout * 1000, autoRestart: settings.autoRestart,
-  });
+  }, mirrors);
   // Left opens the settings, Right the channel list: sheets from the edges, as on the phone.
   const guide = useContext(GuideContext);
   const onNow = guide.data.nowNext(channel.id, guide.now);
@@ -106,6 +109,7 @@ export function PlayerView({ channels, index, favorites, onJump, onStep, onFav, 
         <div class="player-num">{index + 1}</div>
         <div>
           <div class="player-title">{channel.name}</div>
+          {via ? <div class="player-now">{t("playerMirror", { name: via.name })}</div> : null}
           {onNow.now ? <div class="player-now">{onNow.now.title} <span>{clock(onNow.now.start)} – {clock(onNow.now.stop)}</span></div> : null}
           <div class="player-sub">
             {channel.group}

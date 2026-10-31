@@ -11,6 +11,7 @@
   --accent: #4aa8ff;
   --ok: #7be3a4;
   --danger: #ff8a7a;
+  --line: rgba(255, 255, 255, 0.12);
   --radius: 4px; /* FocusBarShape: one rounded rectangle for every focus */
   --font: "Plus Jakarta Sans", "Segoe UI", Roboto, Arial, sans-serif;
   --enter-ms: 260ms;
@@ -28,6 +29,7 @@
   --accent: #0a6fe0;
   --ok: #00a862;
   --danger: #ff2b3a;
+  --line: rgba(0, 0, 0, 0.14);
   color-scheme: light;
 }
 /* Motion off (user choice or a slow device): every transition becomes instant. */

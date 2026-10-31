@@ -11,7 +11,7 @@ export function PlayerSettingRows({ settings: s, onChange }: Props) {
   return (
     <>
       <SettingRow id="s-engine" title="setEngine" hint="setEngineHint" value={s.engine} onPick={set("engine")}
-        options={[{ value: "auto", label: t("engAuto") }, { value: "native", label: t("engNative") }, { value: "hls", label: t("engHls") }]} />
+        options={[{ value: "auto", label: t("engAuto") }, { value: "native", label: t("engNative") }, { value: "hls", label: t("engHls") }, { value: "mpegts", label: t("engMpegts") }]} />
       <SettingRow id="s-aspect" title="setAspect" hint="setAspectHint" value={s.aspect} onPick={set("aspect")}
         options={[{ value: "fit", label: t("aspFit") }, { value: "fill", label: t("aspFill") }, { value: "cover", label: t("aspCover") }]} />
       <SettingRow id="s-buffer" title="setBuffer" hint="setBufferHint" value={s.buffer} onPick={set("buffer")}

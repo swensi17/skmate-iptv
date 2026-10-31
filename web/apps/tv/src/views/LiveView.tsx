@@ -30,6 +30,9 @@ interface Props {
   onFav: (c: Channel) => void;
   onAddPlaylist: () => void;
   onDemo: () => void;
+  greeting: string;
+  playlistName: string | null;
+  onPickPlaylist: () => void;
 }
 
 export function LiveView(p: Props) {
@@ -90,8 +93,14 @@ export function LiveView(p: Props) {
   return (
     <div class="screen live">
       <div class="live-top">
-        <h2>{t("navLive")}</h2>
+        <div>
+          <h2>{t("navLive")}</h2>
+          <div class="greeting">{p.greeting}</div>
+        </div>
         <div class="toolbar">
+          <button class="btn tool" data-focus="live-playlist" onClick={p.onPickPlaylist}>
+            <Icon name="playlist" size={28} /> <span class="chip-name">{p.playlistName ?? t("noPlaylist")}</span>
+          </button>
           <input class="field small" data-focus="live-search" value={query} placeholder={t("filterSearch")}
             onInput={(e) => setQuery((e.currentTarget as HTMLInputElement).value)} />
           <button class="btn tool" data-focus="live-sort" onClick={() => setSort(NEXT_SORT[sort])}>
