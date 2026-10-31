@@ -11,7 +11,6 @@ h2 { margin: 0 0 24px; font-size: 40px; font-weight: 700; }
 .search { display: flex; flex-direction: column; }
 .field { height: 72px; width: 100%; border: 0; border-radius: var(--radius); background: var(--control); color: var(--text); font: 600 30px var(--font); padding: 0 28px; outline: none; }
 .field:focus { box-shadow: inset 0 0 0 3px var(--focus-fill); }
-.settings .setting { margin-bottom: 44px; }
 .setting-title { font-size: 28px; font-weight: 700; margin-bottom: 16px; }
 .setting-hint { margin-top: 12px; color: var(--muted); font-size: 22px; }
 
@@ -62,16 +61,7 @@ h2 { margin: 0 0 24px; font-size: 40px; font-weight: 700; }
 .star { color: var(--ok); font-size: 26px; }
 .spinner { animation-duration: 900ms !important; } /* a still spinner reads as a hang, so it keeps turning even with motion off */
 
-/* Settings: tabs on top, the rows centred below, each row one full line (as on the phone). */
-.settings { display: flex; flex-direction: column; align-items: center; }
-.tabs { display: flex; gap: 12px; margin-bottom: 36px; }
-.tab { height: 64px; padding: 0 36px; border: 0; border-radius: var(--radius); background: var(--control); color: var(--muted); font: 700 24px var(--font); outline: none; cursor: pointer; transition: background-color 120ms linear, color 120ms linear; }
-.tab[aria-selected="true"] { color: var(--text); box-shadow: inset 0 0 0 2px var(--dim); }
-.tab:focus { background: var(--focus-fill); color: var(--focus-text); box-shadow: none; }
-.settings-body { width: 1240px; display: flex; flex-direction: column; gap: 8px; }
-.settings-body .setting { margin: 0; }
-.settings-body .playlist, .settings-body .add { max-width: none; }
-
+/* A setting is one full line: the name on the left, the choices on the right. */
 .srow { display: flex; align-items: center; gap: 20px; width: 100%; min-height: 96px; padding: 12px 28px; border: 0; border-radius: var(--radius); background: none; color: var(--text); font-family: var(--font); text-align: left; outline: none; cursor: pointer; transition: background-color 120ms linear, color 120ms linear; }
 .srow-text { flex: 1; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .srow-title { font-size: 28px; font-weight: 700; }
@@ -94,3 +84,71 @@ h2 { margin: 0 0 24px; font-size: 40px; font-weight: 700; }
 /* The player panel runs the whole width, like the Android one. */
 .player-bar { padding: 160px 80px 56px; justify-content: space-evenly; gap: 0; }
 .player-bar .tile { flex: 1; max-width: 240px; }
+
+/* Rail: the places in the middle, Settings apart at the bottom; the name appears beside the icon in focus. */
+.rail { justify-content: center; padding-top: 0; }
+.rail-mid { display: flex; flex-direction: column; gap: 12px; }
+.rail-item { position: relative; }
+.rail .rail-bottom { position: absolute; bottom: 40px; left: 18px; }
+.rail-item:focus::after { content: attr(data-label); position: absolute; left: 100px; top: 50%; transform: translateY(-50%); padding: 10px 18px; border-radius: var(--radius); background: var(--panel); color: var(--text); font: 600 22px var(--font); white-space: nowrap; box-shadow: 0 6px 24px rgba(0,0,0,.35); z-index: 5; pointer-events: none; }
+
+/* Live: title and toolbar on top; groups, list, preview below. */
+.live { display: flex; flex-direction: column; }
+.live-top { display: flex; align-items: center; justify-content: space-between; height: 96px; }
+.live-top h2 { margin: 0; }
+.toolbar { display: flex; gap: 12px; align-items: center; }
+.field.small { height: 64px; width: 460px; font-size: 24px; }
+.btn.tool { min-width: 0; display: inline-flex; align-items: center; gap: 12px; padding: 0 24px; }
+.btn.tool:focus { background: var(--focus-fill); color: var(--focus-text); }
+.live-main { display: flex; gap: 32px; min-height: 0; }
+.live .groups { width: 400px; flex: none; }
+.live .list { width: 660px; flex: none; }
+.preview-hint { margin-top: 4px; font-size: 20px; color: var(--dim); }
+.preview-info .logo { width: 64px; height: 56px; flex: none; }
+.preview { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 20px; }
+.preview-video { position: relative; width: 100%; aspect-ratio: 16 / 9; border-radius: var(--radius); overflow: hidden; background: var(--control); }
+.pv { width: 100%; height: 100%; background: #000; }
+.preview-empty { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--dim); }
+.preview-info { display: flex; gap: 20px; align-items: center; }
+.preview-title { font-size: 34px; font-weight: 700; }
+.preview-sub { font-size: 22px; color: var(--muted); }
+.spinner.small { width: 48px; height: 48px; margin: -24px 0 0 -24px; border-width: 4px; }
+
+/* Channel badge when the playlist has no logo. */
+.badge { display: flex; align-items: center; justify-content: center; background: hsl(var(--h) 38% 30%); color: hsl(var(--h) 60% 90%); font-weight: 800; font-size: 24px; letter-spacing: .5px; }
+:root[data-theme="light"] .badge { background: hsl(var(--h) 55% 86%); color: hsl(var(--h) 55% 24%); }
+.row:focus .badge { background: rgba(0,0,0,.14); color: var(--focus-text); }
+.row .logo { width: 64px; height: 56px; }
+img.logo { background: #fff; padding: 4px; }
+
+/* Sport. */
+.sport h2 { margin: 0 0 12px; }
+.sport .toolbar { margin-bottom: 16px; }
+.filters { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+.filter { height: 56px; padding: 0 24px; border: 0; border-radius: var(--radius); background: var(--control); color: var(--muted); font: 700 22px var(--font); outline: none; cursor: pointer; display: inline-flex; align-items: center; gap: 12px; transition: background-color 120ms linear, color 120ms linear; }
+.filter .count { font-weight: 500; opacity: .75; }
+.filter[aria-pressed="true"] { color: var(--text); box-shadow: inset 0 0 0 2px var(--dim); }
+.filter:focus { background: var(--focus-fill); color: var(--focus-text); box-shadow: none; }
+
+/* Sheets from the edge (settings; in the player: settings on the left, channels on the right). */
+.drawer-scrim { justify-content: flex-start; align-items: stretch; }
+.drawer { height: 100%; background: var(--panel); color: var(--text); padding: 40px 32px; overflow: hidden; box-shadow: 0 0 60px rgba(0,0,0,.5); }
+.drawer-right { margin-left: auto; animation: from-right var(--enter-ms) cubic-bezier(.2, 0, 0, 1) both; }
+.drawer-left { margin-right: auto; animation: from-left var(--enter-ms) cubic-bezier(.2, 0, 0, 1) both; }
+@keyframes from-right { from { transform: translateX(100%); } to { transform: none; } }
+@keyframes from-left { from { transform: translateX(-100%); } to { transform: none; } }
+.drawer-title { font-size: 40px; font-weight: 700; margin: 0 0 28px 12px; }
+.drawer-head { display: flex; align-items: center; gap: 16px; margin-bottom: 28px; }
+.drawer-head .drawer-title { margin: 0; }
+.drawer-back { width: 64px; height: 64px; border: 0; border-radius: var(--radius); background: none; color: var(--text); display: flex; align-items: center; justify-content: center; outline: none; cursor: pointer; }
+.drawer-back:focus { background: var(--focus-fill); color: var(--focus-text); }
+.drawer-body { display: flex; flex-direction: column; gap: 6px; overflow: hidden; }
+.menu-row { display: flex; align-items: center; gap: 24px; width: 100%; height: 84px; padding: 0 20px; border: 0; border-radius: var(--radius); background: none; color: var(--text); font: 700 28px var(--font); text-align: left; outline: none; cursor: pointer; transition: background-color 120ms linear, color 120ms linear; }
+.menu-row:focus { background: var(--focus-fill); color: var(--focus-text); }
+.menu-row .grow { flex: 1; }
+.drawer .srow { min-height: 88px; padding: 10px 20px; }
+.drawer .srow-title { font-size: 26px; }
+.drawer .chip { height: 48px; padding: 0 18px; font-size: 20px; }
+.drawer .playlist, .drawer .add { max-width: none; }
+.drawer .field { height: 64px; }
+

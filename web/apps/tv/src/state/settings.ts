@@ -20,12 +20,14 @@ export interface Settings {
   osdSeconds: 3 | 5 | 8;
   showEngine: boolean;
   autoRestart: boolean;
+  /** A live window beside the channel list. */
+  preview: boolean;
 }
 
 const KEY = "skmate.settings.v1";
 export const DEFAULTS: Settings = {
   theme: "system", motion: "auto", language: "auto", engine: "auto", aspect: "fit", buffer: 30,
-  openTimeout: 12, osdSeconds: 5, showEngine: true, autoRestart: true,
+  openTimeout: 12, osdSeconds: 5, showEngine: true, autoRestart: true, preview: true,
 };
 
 export function load(): Settings {
