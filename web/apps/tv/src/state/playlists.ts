@@ -58,3 +58,10 @@ export function loadStore(): PlaylistStore {
 export function saveStore(s: PlaylistStore): void {
   try { localStorage.setItem(KEY, JSON.stringify(s)); } catch { /* the list just does not persist */ }
 }
+
+/** A link passed as `?playlist=…` in the address: how a launcher or a developer opens the app on a given playlist. */
+export function playlistFromSearch(search: string): string | null {
+  const m = /[?&]playlist=([^&]+)/.exec(search);
+  if (!m) return null;
+  try { return normalizeUrl(decodeURIComponent(m[1] as string)); } catch { return null; }
+}

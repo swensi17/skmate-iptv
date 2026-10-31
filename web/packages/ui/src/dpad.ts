@@ -44,8 +44,14 @@ export function installDpad(onBack: () => boolean): () => void {
       e.preventDefault();
     }
   };
+  // A right click is Back for a mouse, as the Back key is for a remote.
+  const onContext = (e: MouseEvent) => { e.preventDefault(); onBack(); };
   document.addEventListener("keydown", handler);
-  return () => document.removeEventListener("keydown", handler);
+  document.addEventListener("contextmenu", onContext);
+  return () => {
+    document.removeEventListener("keydown", handler);
+    document.removeEventListener("contextmenu", onContext);
+  };
 }
 
 /** Puts focus on the first (or the named) focusable element of a freshly shown screen. */

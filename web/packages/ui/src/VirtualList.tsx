@@ -60,6 +60,12 @@ export function VirtualList<T>(p: VirtualListProps<T>) {
     setWanted(to);
   };
 
+  // A wheel (or a touchpad) slides the list under the pointer; focus stays where it was until the pointer moves.
+  const onWheel = (e: WheelEvent) => {
+    e.preventDefault();
+    setTop((t) => Math.max(0, Math.min(t + e.deltaY, Math.max(0, p.items.length * p.rowHeight - p.height))));
+  };
+
   const rows: ComponentChildren[] = [];
   for (let i = win.first; i <= win.last; i++) {
     const item = p.items[i] as T;
@@ -71,7 +77,7 @@ export function VirtualList<T>(p: VirtualListProps<T>) {
   }
 
   return (
-    <div class="vlist" ref={box} style={{ height: `${p.height}px` }} onFocusIn={onFocusIn} onKeyDown={onKeyDown}>
+    <div class="vlist" ref={box} style={{ height: `${p.height}px` }} onFocusIn={onFocusIn} onKeyDown={onKeyDown} onWheel={onWheel}>
       <div class="vinner">{rows}</div>
     </div>
   );

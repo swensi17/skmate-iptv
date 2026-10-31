@@ -3,7 +3,7 @@ import { parseM3U, type Channel } from "@skmate/core";
 import { t, type Key } from "../i18n";
 import { cacheDrop, cacheGet, cachePut, fetchPlaylist, PlaylistError } from "./fetchPlaylist";
 import { demoText } from "./playlist";
-import { addPlaylist, loadStore, nextActive, normalizeUrl, removePlaylist, saveStore, type PlaylistStore } from "./playlists";
+import { addPlaylist, loadStore, nextActive, normalizeUrl, playlistFromSearch, removePlaylist, saveStore, type PlaylistStore } from "./playlists";
 
 export type Status = { kind: "idle" } | { kind: "loading" } | { kind: "error"; message: string };
 
@@ -15,7 +15,15 @@ const DEMO_URL = "demo://playlist";
 
 /** The playlists, the one in use and its channels: everything the screens need, nothing about how they look. */
 export function usePlaylists() {
-  const [store, setStore] = useState<PlaylistStore>(loadStore);
+  const [store, setStore] = useState<PlaylistStore>(() => {
+    const stored = loadStore();
+    const fromAddress = typeof location === "undefined" ? null : playlistFromSearch(location.search);
+    if (!fromAddress) return stored;
+    // The link leaves the address bar at once: it often carries a personal key.
+    try { history.replaceState(null, "", location.pathname); } catch { /* the address just stays as it is */ }
+    const list = addPlaylist(stored.list, fromAddress);
+    return { list, activeId: list.find((p) => p.url === fromAddress)?.id ?? stored.activeId };
+  });
   const [channels, setChannels] = useState<Channel[]>([]);
   const [status, setStatus] = useState<Status>({ kind: "idle" });
 

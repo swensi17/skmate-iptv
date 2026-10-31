@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addPlaylist, nameFromUrl, nextActive, normalizeUrl, removePlaylist } from "./playlists";
+import { addPlaylist, nameFromUrl, nextActive, normalizeUrl, playlistFromSearch, removePlaylist } from "./playlists";
 import { channelKey, toggle } from "./favorites";
 import { fetchPlaylist, looksLikeM3U, PlaylistError } from "./fetchPlaylist";
 
@@ -58,5 +58,14 @@ describe("fetchPlaylist", () => {
   it("recognises m3u by its head", () => {
     expect(looksLikeM3U("﻿#EXTM3U")).toBe(true);
     expect(looksLikeM3U("<!doctype html>")).toBe(false);
+  });
+});
+
+describe("playlistFromSearch", () => {
+  it("reads an encoded link and refuses what is not http(s)", () => {
+    expect(playlistFromSearch("?playlist=http%3A%2F%2Fa.b%2Fc.m3u8")).toBe("http://a.b/c.m3u8");
+    expect(playlistFromSearch("?x=1&playlist=https://a.b/c")).toBe("https://a.b/c");
+    expect(playlistFromSearch("?playlist=javascript:alert(1)")).toBeNull();
+    expect(playlistFromSearch("?r=1")).toBeNull();
   });
 });

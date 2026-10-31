@@ -36,5 +36,7 @@
   transition-duration: 0ms !important;
   animation-duration: 0ms !important;
 }
-html, body { margin: 0; width: 1920px; height: 1080px; overflow: hidden; background: var(--page); color: var(--text); font-family: var(--font); }
+html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: var(--page); color: var(--text); font-family: var(--font); }
+/* The design is 1920×1080; `fitStage` scales this box to whatever window or TV it runs in. */
+#app { position: absolute; left: 50%; top: 50%; width: 1920px; height: 1080px; transform: translate(-50%, -50%) scale(var(--stage-scale, 1)); transform-origin: center center; overflow: hidden; }
 * { box-sizing: border-box; }
