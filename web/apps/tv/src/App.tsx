@@ -20,7 +20,7 @@ const NAV: Array<[Section, IconName, Key]> = [
 
 export function App() {
   const [section, setSection] = useState<Section>("live");
-  const [playing, setPlaying] = useState<Channel | null>(null);
+  const [playing, setPlaying] = useState<{ list: readonly Channel[]; index: number } | null>(null);
   const [settings, setSettings] = useState<Settings>(load);
   const [throttled, setThrottled] = useState(false);
   const [favorites, setFavorites] = useState<Set<string>>(loadFavorites);
@@ -39,10 +39,20 @@ export function App() {
     return false;
   }), [deleting, playing, section]);
 
+  const open = (c: Channel, list: readonly Channel[]) => setPlaying({ list, index: Math.max(0, list.findIndex((x) => x.id === c.id)) });
   const toggleFavorite = (c: Channel) => setFavorites((f) => toggle(f, channelKey(c)));
   const doomed = deleting ? pl.store.list.find((p) => p.id === deleting) : undefined;
 
-  if (playing) return <PlayerView channel={playing} />;
+  if (playing) {
+    const current = playing.list[playing.index] as Channel;
+    return (
+      <PlayerView
+        channels={playing.list} index={playing.index} favorite={favorites.has(channelKey(current))}
+        onStep={(d) => setPlaying((cur) => (cur ? { list: cur.list, index: (cur.index + d + cur.list.length) % cur.list.length } : cur))}
+        onFav={toggleFavorite} onExit={() => setPlaying(null)}
+      />
+    );
+  }
 
   return (
     <>
@@ -57,11 +67,11 @@ export function App() {
         {section === "live" ? (
           <LiveView
             channels={pl.channels} favorites={favorites} status={pl.status}
-            onOpen={setPlaying} onFav={toggleFavorite}
+            onOpen={open} onFav={toggleFavorite}
             onAddPlaylist={() => setSection("settings")} onDemo={pl.addDemo}
           />
         ) : null}
-        {section === "search" ? <SearchView channels={pl.channels} favorites={favorites} onOpen={setPlaying} onFav={toggleFavorite} /> : null}
+        {section === "search" ? <SearchView channels={pl.channels} favorites={favorites} onOpen={open} onFav={toggleFavorite} /> : null}
         {section === "settings" ? (
           <SettingsView
             settings={settings} onChange={setSettings} store={pl.store} status={pl.status}

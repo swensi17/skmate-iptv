@@ -16,3 +16,8 @@
 .seg-item { height: 56px; padding: 0 28px; border: 0; border-radius: var(--radius); background: none; color: var(--muted); font: 600 22px var(--font); outline: none; cursor: pointer; }
 .seg-item[aria-pressed="true"] { background: var(--page); color: var(--text); }
 .seg-item[aria-pressed="true"]:focus { background: var(--focus-fill); color: var(--focus-text); }
+
+/* Virtual list: only the drawn rows exist, each slides to its place under a fixed window. */
+.vlist { position: relative; overflow: hidden; }
+.vinner { position: relative; height: 100%; }
+.vrow { position: absolute; left: 0; top: 0; right: 0; transition: transform 140ms cubic-bezier(.2, 0, 0, 1); will-change: transform; }
