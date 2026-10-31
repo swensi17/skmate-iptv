@@ -20,7 +20,6 @@ const DWELL_MS = 600;
 const TYPING_PAUSE_MS = 180;
 
 type Sort = "provider" | "az" | "za";
-const NEXT_SORT: Record<Sort, Sort> = { provider: "az", az: "za", za: "provider" };
 
 interface GroupItem { key: string; label: string; count: number }
 
@@ -135,9 +134,13 @@ export function LiveView(p: Props) {
           </button>
           <input class="field small" data-focus="live-search" value={query} placeholder={t("filterSearch")}
             onInput={(e) => setQuery((e.currentTarget as HTMLInputElement).value)} />
-          <button class="btn tool" data-focus="live-sort" onClick={() => setSort(NEXT_SORT[sort])}>
-            <Icon name="sort" size={28} /> {t(sort === "provider" ? "sortProvider" : sort === "az" ? "sortAz" : "sortZa")}
-          </button>
+          <div class="seg sorts" role="radiogroup" aria-label={t("sortProvider")}>
+            {(["provider", "az", "za"] as const).map((v) => (
+              <button class="seg-item" key={v} data-focus={`live-sort-${v}`} aria-pressed={sort === v} onClick={() => setSort(v)}>
+                {t(v === "provider" ? "sortProvider" : v === "az" ? "sortAz" : "sortZa")}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
       <div class="live-main">

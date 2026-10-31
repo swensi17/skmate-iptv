@@ -106,7 +106,7 @@ export const ru = {
   sportMotor: "Автоспорт",
   sportOther: "Другое",
   sportEmpty: "В плейлисте нет спортивных каналов",
-  sortProvider: "Как в плейлисте",
+  sortProvider: "Как есть",
   sortAz: "А–Я",
   sortZa: "Я–А",
   setPreview: "Предпросмотр",
@@ -230,5 +230,8 @@ export const ru = {
   aboutDisclaimer: "В приложении нет своих каналов и контента: вы добавляете собственные источники.",
   qrScan: "Отсканируйте телефоном",
   more: "Ещё",
+  leftMin: "осталось {m} мин",
+  leftHour: "осталось {h} ч {m} мин",
+  until: "до {time}",
   demoPlaylist: "Демо-плейлист",
 } as const;

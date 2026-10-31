@@ -66,6 +66,7 @@ export async function syncGuides(o: SyncOptions): Promise<{ data: GuideData; out
         const index = new GuideIndex(guideChannels.reduce<Array<{ id: string; name?: string }>>(
           (all, c) => all.concat(c.names.length > 0 ? c.names.map((name) => ({ id: c.id, name })) : [{ id: c.id }]), []));
         const found = new Set<string>();
+        const iconOf = new Map(guideChannels.filter((c) => c.icon).map((c) => [c.id, c.icon as string]));
         const todo = Array.from(unlinked.values());
         for (let i = 0; i < todo.length; i += MATCH_CHUNK) {
           for (const ch of todo.slice(i, i + MATCH_CHUNK)) {
@@ -75,6 +76,8 @@ export async function syncGuides(o: SyncOptions): Promise<{ data: GuideData; out
               data.links.set(ch.id, byName);
               unlinked.delete(ch.id);
               found.add(byName);
+              const icon = iconOf.get(byName);
+              if (icon && !data.logos.has(byName)) data.logos.set(byName, icon);
               outcome.linked++;
             }
           }
