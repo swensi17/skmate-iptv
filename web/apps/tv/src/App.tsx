@@ -137,6 +137,7 @@ export function App() {
         onPick={(c, list) => setPlaying({ list, index: Math.max(0, list.findIndex((x) => x.id === c.id)) })}
         onStep={(d) => setPlaying((cur) => (cur ? { list: cur.list, index: (cur.index + d + cur.list.length) % cur.list.length } : cur))}
         onFav={toggleFavorite} onExit={exitPlayer}
+        onGo={(to) => { setSection(to); exitPlayer(); }}
         settings={settings} onChangeSettings={setSettings}
       />
       </GuideContext.Provider>
