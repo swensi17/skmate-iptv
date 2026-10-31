@@ -367,3 +367,7 @@ img.logo { object-fit: contain; background: #fff; padding: 4px; border-radius: v
 .strip-card:focus .strip-logo { transform: scale(1.1); box-shadow: 0 0 0 6px #f1f2f3; }
 .strip-card:focus .strip-name { color: #fff; }
 .strip-empty { color: #c6cacf; font-size: 28px; padding: 40px 0; }
+
+/* The programme's progress is the line under the row itself: from the number to the end of the row, over the separator. */
+.row { position: relative; }
+.row .row-bar { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; border-radius: 0; }
