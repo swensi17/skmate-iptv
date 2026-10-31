@@ -20,13 +20,13 @@ export function ChannelRow(props: {
   const { now: on, progress } = ui.program ? data.nowNext(channel.id, now) : { now: null, progress: 0 };
   return (
     <button
-      class={ui.logos ? "row has-logo" : "row"} data-focus={`ch-${channel.id}`}
+      class="row" data-focus={`ch-${channel.id}`}
       onClick={() => props.onOpen(channel)}
       onFocus={() => props.onFocus?.(channel)}
       onKeyDown={(e) => { if (isYellow(e as unknown as KeyboardEvent)) props.onFav(channel); }}
     >
-      {ui.logos ? <ChannelLogo channel={channel} /> : null}
       {ui.numbers ? <span class="num">{props.index + 1}</span> : null}
+      {ui.logos ? <ChannelLogo channel={channel} /> : null}
       <span class="grow two">
         <span class="nm">{channel.name}</span>
         {on ? (
