@@ -69,3 +69,20 @@ describe("playlistFromSearch", () => {
     expect(playlistFromSearch("?r=1")).toBeNull();
   });
 });
+
+describe("Xtream Codes", () => {
+  it("turns a login into the provider's M3U link, keeping only the address and the port", async () => {
+    const { xtreamUrl } = await import("./playlists");
+    expect(xtreamUrl("tv.example.com:8080", "ivan", "s3cr t")).toBe("http://tv.example.com:8080/get.php?username=ivan&password=s3cr%20t&type=m3u_plus&output=m3u8");
+    expect(xtreamUrl("https://tv.example.com/player_api.php", " ivan ", "p")).toBe("https://tv.example.com/get.php?username=ivan&password=p&type=m3u_plus&output=m3u8");
+    expect(xtreamUrl("", "a", "b")).toBeNull();
+    expect(xtreamUrl("ftp://x", "a", "b")).toBeNull();
+    expect(xtreamUrl("http://x", "", "b")).toBeNull();
+  });
+  it("finds the guide of the same account", async () => {
+    const { xtreamGuide } = await import("./playlists");
+    expect(xtreamGuide("http://h:8080/get.php?username=a&password=b&type=m3u_plus")).toBe("http://h:8080/xmltv.php?username=a&password=b");
+    expect(xtreamGuide("http://h/list.m3u")).toBeNull();
+    expect(xtreamGuide("not a url")).toBeNull();
+  });
+});

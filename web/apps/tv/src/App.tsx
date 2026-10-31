@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "preact/hooks";
 import type { Channel } from "@skmate/core";
 import { Icon, installDpad, Presence, watchFrames, type IconName } from "@skmate/ui";
 import { applyLanguage, t, type Key } from "./i18n";
+import skLogo from "./assets/skmate-sk.png";
 import { channelKey, loadFavorites, saveFavorites, toggle } from "./state/favorites";
 import { applyAll, DEFAULTS, load, save, type Settings } from "./state/settings";
 import { GuideContext } from "./state/GuideContext";
@@ -157,6 +158,7 @@ export function App() {
         onFocusIn={() => setRailOpen(true)}
         onFocusOut={(e) => { if (!(e.currentTarget as HTMLElement).contains(e.relatedTarget as Node | null)) setRailOpen(false); }}
       >
+        <img class="rail-logo" src={skLogo} alt="SkMate" />
         <div class="rail-mid">
           {NAV.map(([id, icon, label]) => (
             <button class="rail-item" key={id} data-focus={`nav-${id}`} data-label={t(label)} aria-label={t(label)} aria-current={section === id && !sheet} onClick={() => goTo(id)}>

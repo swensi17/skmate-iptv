@@ -1,8 +1,8 @@
 import { useEffect, useState } from "preact/hooks";
 import { focusFirst, isBack } from "@skmate/ui";
 import { applyLanguage, t, type Key } from "../i18n";
-import { bufferFor, INTERESTS } from "../state/interests";
-import { normalizeUrl } from "../state/playlists";
+import logo from "../assets/skmate-logo.png";
+import { SourceForm } from "./SourceForm";
 import type { Settings } from "../state/settings";
 import { Illustration, type Pic } from "./Illustration";
 import { SettingRow } from "./SettingRow";
@@ -14,7 +14,7 @@ export interface WizardResult {
   playlist: { kind: "url"; url: string } | { kind: "demo" } | { kind: "none" };
 }
 
-type Step = "welcome" | "display" | "profile" | "interests" | "playlist" | "ready";
+type Step = "welcome" | "display" | "profile" | "playlist" | "ready";
 
 interface Props {
   settings: Settings;
@@ -27,20 +27,17 @@ interface Props {
 }
 
 /**
- * The first run, as in the phone version: a welcome, the look, who is watching, what they like, which connection
- * they have, the playlist, and a "ready". The answers are applied: the categories they like rise to the top and a
- * weak connection gets a larger buffer.
+ * The first run, as in the phone version: a welcome, the look, who is watching, the playlist (M3U link or Xtream
+ * Codes login), and a "ready". No questionnaire: the app starts with sensible defaults and everything is in Settings.
  */
 export function Wizard({ settings, hasProfile, onPreview, onFinish, onCancel }: Props) {
-  const steps: Step[] = ["welcome", "display", ...(hasProfile ? [] : ["profile" as const]), "interests", "playlist", "ready"];
+  const steps: Step[] = ["welcome", "display", ...(hasProfile ? [] : ["profile" as const]), "playlist", "ready"];
   const [at, setAt] = useState(0);
   const step = steps[at] as Step;
   const [s, setS] = useState<Settings>(settings);
   const [name, setName] = useState("");
   const [guest, setGuest] = useState(false);
-  const [net, setNet] = useState<"weak" | "normal" | "fast">("normal");
   const [url, setUrl] = useState("");
-  const [bad, setBad] = useState(false);
   const [choice, setChoice] = useState<"url" | "demo" | "none">("none");
 
   const change = (next: Settings | ((cur: Settings) => Settings)) => {
@@ -54,7 +51,7 @@ export function Wizard({ settings, hasProfile, onPreview, onFinish, onCancel }: 
   const go = (d: number) => setAt((n) => Math.max(0, Math.min(steps.length - 1, n + d)));
 
   useEffect(() => {
-    focusFirst(document, step === "welcome" ? "wz-lang" : step === "display" ? "wz-theme" : step === "profile" ? "wz-name" : step === "interests" ? "wz-i-news" : step === "playlist" ? "wz-url" : "wz-finish");
+    focusFirst(document, step === "welcome" ? "wz-lang" : step === "display" ? "wz-theme" : step === "profile" ? "wz-name" : step === "playlist" ? "wz-kind-m3u" : "wz-finish");
   }, [step]);
 
   // Back goes a step back; on the first step it does nothing (the setup is not skipped by accident).
@@ -73,33 +70,25 @@ export function Wizard({ settings, hasProfile, onPreview, onFinish, onCancel }: 
     onFinish({
       name: guest || hasProfile ? null : name.trim(),
       guest: guest && !hasProfile,
-      settings: { language: s.language, theme: s.theme, uiScale: s.uiScale, interests: s.interests, buffer: bufferFor(net) },
-      playlist: choice === "url" ? { kind: "url", url: normalizeUrl(url) ?? "" } : choice === "demo" ? { kind: "demo" } : { kind: "none" },
+      settings: { language: s.language, theme: s.theme, uiScale: s.uiScale },
+      playlist: choice === "url" ? { kind: "url", url } : choice === "demo" ? { kind: "demo" } : { kind: "none" },
     });
   };
 
-  const addUrl = () => {
-    if (!normalizeUrl(url)) { setBad(true); return; }
-    setBad(false);
-    setChoice("url");
-    go(1);
-  };
-
-  const pic: Pic = step === "welcome" || step === "display" ? "tv" : step === "profile" ? "face" : step === "interests" ? "tags" : step === "playlist" ? "link" : "done";
+  const pic: Pic = step === "welcome" || step === "display" ? "tv" : step === "profile" ? "face" : step === "playlist" ? "link" : "done";
   const title: Record<Step, string> = {
-    welcome: t("wzWelcomeTitle"), display: t("wzDisplayTitle"), profile: t("wzProfileTitle"), interests: t("wzInterestsTitle"),
+    welcome: t("wzWelcomeTitle"), display: t("wzDisplayTitle"), profile: t("wzProfileTitle"),
     playlist: t("wzPlaylistTitle"), ready: t("wzReadyTitle", { name: guest || hasProfile || name.trim() === "" ? "" : name.trim() }).replace(", !", "!").replace(" !", "!"),
   };
   const sub: Record<Step, string> = {
-    welcome: t("wzWelcomeSub"), display: t("wzDisplaySub"), profile: t("wzProfileSub"), interests: t("wzInterestsSub"),
+    welcome: t("wzWelcomeSub"), display: t("wzDisplaySub"), profile: t("wzProfileSub"),
     playlist: t("wzPlaylistSub"), ready: t("wzReadySub"),
   };
-  const toggle = (id: string) => change((cur) => ({ ...cur, interests: cur.interests.includes(id) ? cur.interests.filter((x) => x !== id) : [...cur.interests, id] }));
 
   return (
     <div class="wizard" data-modal>
       <div class="wz-top">
-        <div class="wz-word">SKMATE</div>
+        <img class="wz-logo" src={logo} alt="skmate" />
         <div class="wz-steps" aria-label={t("wzStepOf", { n: at + 1, total: steps.length })}>
           {steps.map((_, i) => <span key={i} class={`wz-dot${i === at ? " on" : i < at ? " done" : ""}`}>{i + 1}</span>)}
         </div>
@@ -131,27 +120,9 @@ export function Wizard({ settings, hasProfile, onPreview, onFinish, onCancel }: 
               onKeyDown={(e) => { if (e.key === "Enter" && name.trim() !== "") go(1); }} />
           ) : null}
 
-          {step === "interests" ? (
-            <>
-              <div class="chips-wrap">
-                {INTERESTS.map((i) => (
-                  <button class="filter" key={i.id} data-focus={`wz-i-${i.id}`} aria-pressed={s.interests.includes(i.id)} onClick={() => toggle(i.id)}>{t(i.label as Key)}</button>
-                ))}
-              </div>
-              <SettingRow id="wz-net" title="wzNetTitle" hint="wzNetSub" value={net} onPick={setNet}
-                options={[{ value: "weak", label: t("wzNetWeak") }, { value: "normal", label: t("wzNetNormal") }, { value: "fast", label: t("wzNetFast") }]} />
-            </>
-          ) : null}
-
           {step === "playlist" ? (
             <>
-              <div class="add" style={{ maxWidth: "none" }}>
-                <input class="field" data-focus="wz-url" value={url} placeholder={t("playlistUrlPlaceholder")}
-                  onInput={(e) => { setUrl((e.currentTarget as HTMLInputElement).value); setBad(false); }}
-                  onKeyDown={(e) => { if (e.key === "Enter") addUrl(); }} />
-                <button class="btn" data-focus="wz-add" onClick={addUrl}>{t("playlistAdd")}</button>
-              </div>
-              {bad ? <div class="status error">{t("playlistBadUrl")}</div> : null}
+              <SourceForm idPrefix="wz" addLabel={t("wzNext")} onSubmit={(link) => { setUrl(link); setChoice("url"); go(1); return null; }} />
               <div class="about-note">{t("aboutDisclaimer")}</div>
             </>
           ) : null}
@@ -160,7 +131,7 @@ export function Wizard({ settings, hasProfile, onPreview, onFinish, onCancel }: 
         <div class="wz-actions">
           {at > 0 ? <button class="btn" data-focus="wz-back" onClick={() => go(-1)}>{t("wzBack")}</button> : null}
           {step === "welcome" ? <button class="btn primary" data-focus="wz-start" onClick={() => go(1)}>{t("wzStart")}</button> : null}
-          {step === "display" || step === "interests" ? <button class="btn primary" data-focus="wz-next" onClick={() => go(1)}>{t("wzNext")}</button> : null}
+          {step === "display" ? <button class="btn primary" data-focus="wz-next" onClick={() => go(1)}>{t("wzNext")}</button> : null}
           {step === "profile" ? (
             <>
               <button class="btn" data-focus="wz-guest" onClick={() => { setGuest(true); go(1); }}>{t("welcomeGuest")}</button>

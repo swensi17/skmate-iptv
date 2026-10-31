@@ -3,7 +3,7 @@ import { guidesInHeader, parseM3U, type Channel } from "@skmate/core";
 import { t, type Key } from "../i18n";
 import { cacheDrop, cacheGet, cachePut, fetchPlaylist, PlaylistError } from "./fetchPlaylist";
 import { demoText } from "./playlist";
-import { addPlaylist, loadStore, nextActive, normalizeUrl, playlistFromSearch, removePlaylist, saveStore, type PlaylistStore } from "./playlists";
+import { addPlaylist, xtreamGuide, loadStore, nextActive, normalizeUrl, playlistFromSearch, removePlaylist, saveStore, type PlaylistStore } from "./playlists";
 
 export type Status = { kind: "idle" } | { kind: "loading" } | { kind: "error"; message: string };
 
@@ -37,7 +37,12 @@ export function usePlaylists() {
     if (!active) { setChannels([]); setStatus({ kind: "idle" }); return; }
     let live = true;
     const cached = cacheGet(active.id);
-    if (cached) { setChannels(parseM3U(cached)); setHeaderGuides(guidesInHeader(cached)); }
+    if (cached) {
+      setChannels(parseM3U(cached));
+      const own = xtreamGuide(active.url);
+      const named = guidesInHeader(cached);
+      setHeaderGuides(own && !named.includes(own) ? [...named, own] : named);
+    }
     if (active.url === DEMO_URL) { setChannels(parseM3U(demoText())); setStatus({ kind: "idle" }); return; }
     setStatus(cached ? { kind: "idle" } : { kind: "loading" });
     fetchPlaylist(active.url).then(
@@ -45,7 +50,10 @@ export function usePlaylists() {
         if (!live) return;
         cachePut(active.id, text);
         setChannels(parseM3U(text));
-        setHeaderGuides(guidesInHeader(text));
+        // An Xtream login brings its own guide for the same account, even when the list does not name it.
+        const own = xtreamGuide(active.url);
+        const named = guidesInHeader(text);
+        setHeaderGuides(own && !named.includes(own) ? [...named, own] : named);
         setStatus({ kind: "idle" });
       },
       (e: unknown) => {
