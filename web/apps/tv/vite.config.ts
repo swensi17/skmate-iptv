@@ -25,7 +25,15 @@ function devProxy(): Plugin {
           res.setHeader("Access-Control-Allow-Origin", "*");
           const type = up.headers.get("content-type");
           if (type) res.setHeader("Content-Type", type);
-          if (up.body) Readable.fromWeb(up.body as never).pipe(res); else res.end();
+          if (up.body) {
+            // A server that cuts the connection mid-download must end this one request, never the dev server.
+            const body = Readable.fromWeb(up.body as never);
+            body.on("error", () => res.destroy());
+            res.on("close", () => body.destroy());
+            body.pipe(res);
+          } else {
+            res.end();
+          }
         } catch (e) {
           res.statusCode = 502;
           res.end(String(e));

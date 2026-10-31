@@ -1,17 +1,15 @@
 import { useContext, useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { pickMirrors, type Channel } from "@skmate/core";
-import { Drawer, focusFirst, Icon, isBack, Presence, VirtualList, type IconName } from "@skmate/ui";
+import { focusFirst, Icon, isBack, Presence, type IconName } from "@skmate/ui";
 import { t, type Key } from "../i18n";
-import type { Settings } from "../state/settings";
-import { usePlayback } from "../state/usePlayback";
 import { channelKey } from "../state/favorites";
 import { GuideContext } from "../state/GuideContext";
+import type { Settings } from "../state/settings";
+import { usePlayback } from "../state/usePlayback";
 import { clock } from "../time";
+import { ChannelLogo } from "./ChannelLogo";
 import { leftLabel } from "./Left";
-import { ChannelRow } from "./ChannelRow";
-import { PlayerSettingRows } from "./PlayerRows";
-import { SheetHead } from "./SheetHead";
-
+import { PlayerPanel, type PanelTab } from "./PlayerPanel";
 
 interface Props {
   channels: readonly Channel[];
@@ -21,7 +19,7 @@ interface Props {
   favorites: ReadonlySet<string>;
   /** Recently watched channels, the latest first. */
   recents: readonly Channel[];
-  /** A channel picked in a side list: it plays, and [list] is what Up and Down step through. */
+  /** A channel picked in a side list: it plays, and [list] is what the channel keys step through. */
   onPick: (c: Channel, list: readonly Channel[]) => void;
   /** The player is leaving: it fades out. */
   closing: boolean;
@@ -42,6 +40,13 @@ function Tile(p: { id: string; icon: IconName; label: Key; onClick: () => void }
   );
 }
 
+const CH_UP = [427, 33];
+const CH_DOWN = [428, 34];
+
+/**
+ * Full-screen playback. Keys: OK pauses and resumes; Up or Down first show the action bar, then step through the
+ * channels; Right (or Left) opens the side menu; the channel keys always step; Back closes what is open, then leaves.
+ */
 export function PlayerView({ channels, catalog, index, favorites, recents, onPick, closing, onStep, onFav, onExit, settings, onChangeSettings }: Props) {
   const channel = channels[index] as Channel;
   const video = useRef<HTMLVideoElement>(null);
@@ -49,52 +54,65 @@ export function PlayerView({ channels, catalog, index, favorites, recents, onPic
   const { state, engine, paused, retry, togglePause, via } = usePlayback(video, channel, {
     engine: settings.engine, bufferSeconds: settings.buffer, openTimeoutMs: settings.openTimeout * 1000, autoRestart: settings.autoRestart,
   }, mirrors);
-  // Left opens the settings, Right the channel list: sheets from the edges, as on the phone.
   const guide = useContext(GuideContext);
-  const onNow = guide.data.nowNext(channel.id, guide.now);
-  const [drawer, setDrawer] = useState<"settings" | "channels" | null>(null);
-  const panel = drawer !== null;
-  const [tab, setTab] = useState<"recent" | "channels">("recent");
+  const { now: onNow, next, progress } = guide.data.nowNext(channel.id, guide.now);
   const favorite = favorites.has(channelKey(channel));
-  const [osd, setOsd] = useState(true);
+
+  // Two layers: the info strip (what is on) and the action bar (what can be done). The panel is the side menu.
+  const [info, setInfo] = useState(true);
+  const [bar, setBar] = useState(false);
+  const [panel, setPanel] = useState(false);
+  const [tab, setTab] = useState<PanelTab>("channels");
   const hideTimer = useRef<ReturnType<typeof setTimeout>>();
 
-  const wake = () => {
-    setOsd(true);
+  const wake = (withBar = false) => {
+    setInfo(true);
+    if (withBar) setBar(true);
     clearTimeout(hideTimer.current);
-    hideTimer.current = setTimeout(() => setOsd(false), settings.osdSeconds * 1000);
+    hideTimer.current = setTimeout(() => { setInfo(false); setBar(false); }, settings.osdSeconds * 1000);
   };
-  useEffect(() => { wake(); return () => clearTimeout(hideTimer.current); }, [index]);
+  // The strip shows on every new channel, then goes by itself; a paused picture keeps it.
+  useEffect(() => { setBar(false); wake(); return () => clearTimeout(hideTimer.current); }, [channel.id]);
+  useEffect(() => { if (paused) { clearTimeout(hideTimer.current); setInfo(true); } else wake(); }, [paused]);
 
-  const step = onStep;
+  const openPanel = (to: PanelTab) => { setTab(to); setPanel(true); setBar(false); };
 
-  // Capture phase: the player decides first, so Back hides the panel before it leaves the player.
+  // Capture phase: the player decides first, so Back closes the menu before it leaves the player.
   useEffect(() => {
+    const swallow = (e: KeyboardEvent) => { e.stopPropagation(); e.preventDefault(); };
     const onKey = (e: KeyboardEvent) => {
       if (isBack(e)) {
-        e.stopPropagation();
-        e.preventDefault();
-        if (panel) { setDrawer(null); return; }
-        if (osd && state !== "failed") { clearTimeout(hideTimer.current); setOsd(false); } else onExit();
+        swallow(e);
+        if (panel) setPanel(false);
+        else if (bar) setBar(false);
+        else if (info && state !== "failed" && !paused) { clearTimeout(hideTimer.current); setInfo(false); }
+        else onExit();
         return;
       }
-      if (panel) return; // the sheet owns the remote while it is open
-      if (!osd && (e.key === "ArrowLeft" || e.key === "ArrowRight")) {
-        e.stopPropagation();
-        e.preventDefault();
-        if (e.key === "ArrowRight") setTab("recent");
-        setDrawer(e.key === "ArrowLeft" ? "settings" : "channels");
+      if (panel) return; // the menu owns the remote while it is open
+      if (state === "failed") return; // the error screen has its own buttons
+      const up = e.key === "ArrowUp";
+      const down = e.key === "ArrowDown";
+      if (CH_UP.includes(e.keyCode)) { swallow(e); onStep(1); return; }
+      if (CH_DOWN.includes(e.keyCode)) { swallow(e); onStep(-1); return; }
+      if (up || down) {
+        swallow(e);
+        // The first press only shows the bar; the next ones step through the channels.
+        if (!bar) { wake(true); setTimeout(() => focusFirst(document, "pl-play"), 30); } else { onStep(up ? 1 : -1); wake(true); }
         return;
       }
-      if (e.key === "ArrowUp" || e.keyCode === 427) { e.stopPropagation(); e.preventDefault(); step(1); return; }
-      if (e.key === "ArrowDown" || e.keyCode === 428) { e.stopPropagation(); e.preventDefault(); step(-1); return; }
-      if (!osd) {
-        // Any other key only wakes the panel; it does not also act on what is under it.
-        e.stopPropagation();
-        e.preventDefault();
-        wake();
+      if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+        if (!bar) { swallow(e); openPanel("channels"); return; }
+        wake(true); // on the bar the arrows walk its buttons
         return;
       }
+      if (e.key === "Enter" || e.keyCode === 13 || e.keyCode === 415 || e.keyCode === 19) {
+        // OK on the picture pauses it; on a button of the bar it presses that button.
+        if (!bar) { swallow(e); togglePause(); }
+        else wake(true);
+        return;
+      }
+      swallow(e);
       wake();
     };
     const onMove = (e: MouseEvent) => { if (e.movementX !== 0 || e.movementY !== 0) wake(); };
@@ -104,35 +122,36 @@ export function PlayerView({ channels, catalog, index, favorites, recents, onPic
       document.removeEventListener("keydown", onKey, true);
       document.removeEventListener("mousemove", onMove, true);
     };
-  }, [osd, state, panel]);
+  }, [info, bar, panel, state, paused, channel.id]);
 
-  useEffect(() => { if (osd && state !== "failed" && !panel) focusFirst(document, "pl-play"); }, [osd && state !== "failed" && !panel]);
-  useEffect(() => { if (drawer === "settings") focusFirst(document, "s-engine"); }, [drawer]);
   useEffect(() => { if (state === "failed") focusFirst(document, "pl-retry"); }, [state]);
 
+  const looks = settings.aspect === "fit" ? "contain" : settings.aspect === "fill" ? "fill" : "cover";
   return (
-    <div class={`player${osd ? " osd" : ""}${closing ? " closing" : ""}`}>
-      <video ref={video} class="video" style={{ objectFit: settings.aspect === "fit" ? "contain" : settings.aspect === "fill" ? "fill" : "cover" }} autoplay playsInline />
-
-      <div class="player-top">
-        <div class="player-num">{index + 1}</div>
-        <div>
-          <div class="player-title">{channel.name}</div>
-          {via ? <div class="player-now">{t("playerMirror", { name: via.name })}</div> : null}
-          {onNow.now ? (
-            <>
-              <div class="player-now">{onNow.now.title} <span>{clock(onNow.now.start)} – {clock(onNow.now.stop)} · {leftLabel(onNow.now.stop, guide.now)}</span></div>
-              <div class="bar player-bar-progress"><span class="bar-fill" style={{ width: `${Math.round(onNow.progress * 100)}%` }} /></div>
-            </>
-          ) : null}
-          <div class="player-sub">
-            {channel.group}
-            {engine && settings.showEngine ? ` · ${t("playerEngine", { name: engine })}` : ""}
-          </div>
-        </div>
-      </div>
+    <div class={`player${info ? " info" : ""}${bar ? " bar" : ""}${closing ? " closing" : ""}`}>
+      <video ref={video} class="video" style={{ objectFit: looks }} autoplay playsInline />
+      <div class="player-shade" />
 
       <div class={`spinner${state === "loading" ? " on" : ""}`} aria-label={t("playerLoading")} />
+      {paused ? <div class="paused" aria-label={t("playerPaused")}><Icon name="pause" size={96} /></div> : null}
+
+      {/* What is on, as in the phone version: the logo, the programme, its time and what is left, the channel, what is next. */}
+      <div class="pinfo">
+        <div class="pinfo-logo"><ChannelLogo channel={channel} /></div>
+        <div class="pinfo-text">
+          <div class="pinfo-title">{onNow ? onNow.title : channel.name}</div>
+          <div class="pinfo-line">
+            {onNow ? <span>{clock(onNow.start)} – {clock(onNow.stop)}</span> : null}
+            {onNow ? <span class="pinfo-bar"><span style={{ width: `${Math.round(progress * 100)}%` }} /></span> : null}
+            {onNow ? <span>{leftLabel(onNow.stop, guide.now)}</span> : null}
+            <b>{index + 1}</b><b>{channel.name}</b>
+          </div>
+          {next ? <div class="pinfo-next">{clock(next.start)} – {clock(next.stop)}  {next.title}</div> : null}
+          {via ? <div class="pinfo-next">{t("playerMirror", { name: via.name })}</div> : null}
+          {engine && settings.showEngine ? <div class="pinfo-next">{t("playerEngine", { name: engine })}</div> : null}
+        </div>
+      </div>
+      <div class="pline"><span style={{ width: `${Math.round(progress * 100)}%` }} /><i style={{ left: `${Math.round(progress * 100)}%` }} /></div>
 
       {state === "failed" ? (
         <div class="player-error" data-modal>
@@ -146,47 +165,25 @@ export function PlayerView({ channels, catalog, index, favorites, recents, onPic
         </div>
       ) : null}
 
-      <Presence show={drawer === "settings"}>
+      <Presence show={panel}>
         {(out) => (
-          <Drawer side="left" width={980} label={t("playerSettingsTitle")} onClose={() => setDrawer(null)} closing={out}>
-            <SheetHead title={t("playerSettingsTitle")} />
-            <div class="drawer-body drawer-scroll"><PlayerSettingRows settings={settings} onChange={onChangeSettings} /></div>
-          </Drawer>
+          <PlayerPanel
+            tab={tab} onTab={setTab} closing={out} onClose={() => setPanel(false)}
+            channels={channels} catalog={catalog} index={index} recents={recents} favorites={favorites}
+            onPick={(c, list) => { onPick(c, list); setPanel(false); }} onFav={onFav}
+            settings={settings} onChangeSettings={onChangeSettings}
+          />
         )}
       </Presence>
 
-      <Presence show={drawer === "channels"}>
-        {(out) => (
-          <Drawer side="right" width={860} label={t("drawerChannels")} onClose={() => setDrawer(null)} closing={out}>
-            <SheetHead title={t("drawerChannels")} />
-            <div class="tabs2">
-              <button class="tab2" data-focus="dc-tab-recent" aria-selected={tab === "recent"} onClick={() => setTab("recent")}>{t("tabRecent")}</button>
-              <button class="tab2" data-focus="dc-tab-channels" aria-selected={tab === "channels"} onClick={() => setTab("channels")}>{t("tabChannels")}</button>
-            </div>
-            {tab === "recent" && recents.length === 0 ? <div class="list-head">{t("recentEmpty")}</div> : (
-              <VirtualList
-                key={tab}
-                items={tab === "recent" ? recents : channels} rowHeight={84} height={860} pageSize={10}
-                initialIndex={tab === "recent" ? 0 : index} autofocus
-                idOf={(c) => `dc-${tab}-${c.id}`}
-                renderRow={(c, i) => (
-                  <ChannelRow channel={c} index={i} favorite={favorites.has(channelKey(c))}
-                    onOpen={() => { onPick(c, tab === "recent" ? recents : channels); setDrawer(null); }} onFav={onFav} />
-                )}
-              />
-            )}
-          </Drawer>
-        )}
-      </Presence>
-
-      {osd && state !== "failed" && !panel ? (
+      {bar && state !== "failed" && !panel ? (
         <div class="player-bar">
-          <Tile id="pl-prev" icon="skip_previous" label="playerPrev" onClick={() => step(-1)} />
+          <Tile id="pl-prev" icon="skip_previous" label="playerPrev" onClick={() => onStep(-1)} />
           <Tile id="pl-play" icon={paused ? "play" : "pause"} label={paused ? "playerPlay" : "playerPause"} onClick={togglePause} />
-          <Tile id="pl-next" icon="skip_next" label="playerNext" onClick={() => step(1)} />
+          <Tile id="pl-next" icon="skip_next" label="playerNext" onClick={() => onStep(1)} />
           <Tile id="pl-fav" icon={favorite ? "favorite" : "star"} label="playerFavorite" onClick={() => onFav(channel)} />
-          <Tile id="pl-set" icon="settings" label="playerSettings" onClick={() => setDrawer("settings")} />
-          <Tile id="pl-list" icon="list" label="playerList" onClick={() => setDrawer("channels")} />
+          <Tile id="pl-set" icon="settings" label="playerSettings" onClick={() => openPanel("settings")} />
+          <Tile id="pl-list" icon="list" label="playerMenu" onClick={() => openPanel("channels")} />
         </div>
       ) : null}
     </div>

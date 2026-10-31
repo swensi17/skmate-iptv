@@ -7,6 +7,7 @@ import type { Settings } from "../state/settings";
 import type { Status } from "../state/usePlaylists";
 import { capitalize } from "../text";
 import { ChannelSearch } from "../state/channelSearch";
+import { interestRank } from "../state/interests";
 import { GuideContext } from "../state/GuideContext";
 import { ChannelRow } from "./ChannelRow";
 import { UiContext } from "../state/UiContext";
@@ -72,8 +73,9 @@ export function LiveView(p: Props) {
     ...(favs.length > 0 ? [{ key: FAV, label: t("favorites"), count: favs.length }] : []),
     ...(p.recents.length > 0 ? [{ key: RECENT, label: t("groupRecent"), count: p.recents.length }] : []),
     ...(archive.length > 0 ? [{ key: ARCHIVE, label: t("groupArchive"), count: archive.length }] : []),
-    ...groups.map((g) => ({ key: g.name, label: capitalize(g.name), count: g.channels.length })),
-  ], [p.channels, favs.length, p.recents.length, archive.length, groups]);
+    ...groups.map((g) => ({ key: g.name, label: capitalize(g.name), count: g.channels.length }))
+      .map((g, i) => ({ g, i })).sort((a, b) => interestRank(a.g.label, p.settings.interests) - interestRank(b.g.label, p.settings.interests) || a.i - b.i).map((x) => x.g),
+  ], [p.channels, favs.length, p.recents.length, archive.length, groups, p.settings.interests]);
 
   useEffect(() => { focusFirst(document, shown[0] ? `ch-${shown[0].id}` : "empty-add"); }, [group, p.channels.length === 0]);
   useEffect(() => { if (group === FAV && favs.length === 0) setGroup(ALL); }, [favs.length]);

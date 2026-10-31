@@ -13,7 +13,7 @@ import { usePlaylists } from "./state/usePlaylists";
 import { Confirm } from "./views/Confirm";
 import { QrDialog } from "./views/QrDialog";
 import { PlaylistPicker } from "./views/PlaylistPicker";
-import { Welcome } from "./views/Welcome";
+import { Wizard, type WizardResult } from "./views/Wizard";
 import { GuideView } from "./views/GuideView";
 import { LiveView } from "./views/LiveView";
 import { PlayerView } from "./views/PlayerView";
@@ -45,6 +45,7 @@ export function App() {
   const [history, setHistory] = useState<string[]>(loadHistory);
   const [leaving, setLeaving] = useState(false);
   const [railOpen, setRailOpen] = useState(false);
+  const [redo, setRedo] = useState(false);
   const [sheet, setSheet] = useState(false);
   const [sheetPage, setSheetPage] = useState<Page | null>(null);
   const pl = usePlaylists();
@@ -96,6 +97,17 @@ export function App() {
   }, [watching?.id]);
   const ui = useMemo(() => ({ rowH: settings.rowSize, logos: settings.showLogos, numbers: settings.showNumbers, program: settings.showProgram }),
     [settings.rowSize, settings.showLogos, settings.showNumbers, settings.showProgram]);
+  const finishWizard = (r: WizardResult) => {
+    setSettings((cur) => ({ ...cur, ...r.settings }));
+    if (!book) {
+      const b = firstBook(r.guest ? t("guestName") : (r.name ?? ""), r.guest);
+      saveBook(b);
+      setBook(b);
+    }
+    if (r.playlist.kind === "url") pl.add(r.playlist.url);
+    else if (r.playlist.kind === "demo") pl.addDemo();
+    setRedo(false);
+  };
   const startBook = (name: string, guest: boolean) => { const b = firstBook(name, guest); saveBook(b); setBook(b); };
   const switchTo = (id: string) => {
     if (!book) return;
@@ -176,6 +188,7 @@ export function App() {
             channelCount={pl.channels.length} active={pl.active} headerGuides={pl.headerGuides}
             book={book ?? firstBook("", true)} onSwitchProfile={switchTo} onAddProfile={addOne} onAskDeleteProfile={setDeletingProfile}
             onQr={(name, address) => setQr({ name, address })}
+            onRedoWizard={() => { setSheet(false); setRedo(true); }}
           />
         )}
       </Presence>
@@ -196,7 +209,9 @@ export function App() {
           }}
         />
       ) : null}
-      {book === null ? <Welcome onName={(n) => startBook(n, false)} onGuest={() => startBook(t("guestName"), true)} /> : null}
+      {book === null || redo ? (
+        <Wizard settings={settings} hasProfile={book !== null} onPreview={setSettings} onFinish={finishWizard} onCancel={redo ? () => setRedo(false) : undefined} />
+      ) : null}
       {resetting ? (
         <Confirm
           title={t("setResetTitle")} body={t("setResetHint")} confirm={t("setResetDo")}
