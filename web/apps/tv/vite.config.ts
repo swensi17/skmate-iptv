@@ -4,7 +4,6 @@ import legacy from "@vitejs/plugin-legacy";
 import type { Plugin } from "vite";
 import { Readable } from "node:stream";
 import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
 
 const pkg = JSON.parse(readFileSync(new URL("./package.json", import.meta.url), "utf8")) as { version: string };
 
@@ -62,7 +61,7 @@ export default defineConfig({
   base: "./",
   // One Preact for the whole bundle. The workspaces hold different copies (10.x beside the app, another one at the
   // root); two copies in one bundle break hooks ("Cannot read properties of undefined (reading '__H')").
-  resolve: { dedupe: ["preact"], alias: { preact: fileURLToPath(new URL("./node_modules/preact", import.meta.url)) } },
+  resolve: { dedupe: ["preact"] },
   define: { __APP_VERSION__: JSON.stringify(pkg.version), __APP_BUILD__: String(BUILD) },
   plugins: [devProxy(), versionFile(), preact(), legacy({ targets: ["chrome >= 53", "safari >= 10"] })],
   build: { target: "es2017", sourcemap: false },
