@@ -64,7 +64,7 @@ export function PlayerView({ channels, catalog, index, favorites, recents, onPic
   const [info, setInfo] = useState(true);
   const [bar, setBar] = useState(false);
   const [panel, setPanel] = useState(false);
-  const [tab, setTab] = useState<PanelTab>("browse");
+  const [tab, setTab] = useState<PanelTab>("channels");
   const [side, setSide] = useState<"left" | "right">("right");
   const hideTimer = useRef<ReturnType<typeof setTimeout>>();
 
@@ -79,8 +79,10 @@ export function PlayerView({ channels, catalog, index, favorites, recents, onPic
   useEffect(() => { setBar(false); wake(); return () => clearTimeout(hideTimer.current); }, [channel.id]);
   useEffect(() => { if (paused) { clearTimeout(hideTimer.current); setInfo(true); } else wake(); }, [paused]);
 
-  // The panel keeps the bar on screen under it, and neither goes away by itself while the panel is open.
-  const openPanel = (to: PanelTab, from: "left" | "right" = "right") => { setTab(to); setSide(from); setPanel(true); setInfo(true); setBar(true); clearTimeout(hideTimer.current); };
+  // An open panel keeps the info strip on screen and it does not go away by itself.
+  const openPanel = (to: PanelTab, from: "left" | "right" = "right") => { setTab(to); setSide(from); setPanel(true); setInfo(true); setBar(false); clearTimeout(hideTimer.current); };
+  // OK arms the bar: the Down that follows it opens the bar instead of stepping to the next channel.
+  const ok = useRef(false);
 
   // Capture phase: the player decides first, so Back closes the menu before it leaves the player.
   useEffect(() => {
@@ -99,21 +101,41 @@ export function PlayerView({ channels, catalog, index, favorites, recents, onPic
       const down = e.key === "ArrowDown";
       if (CH_UP.includes(e.keyCode)) { swallow(e); onStep(1); return; }
       if (CH_DOWN.includes(e.keyCode)) { swallow(e); onStep(-1); return; }
+      const left = e.key === "ArrowLeft";
+      const right = e.key === "ArrowRight";
+      if (panel) {
+        // Left walks deeper into the menu (channels, categories, home), Right walks back and then closes it.
+        const edge = side === "left" ? left : right; // the key that leads away from the picture
+        const back = side === "left" ? right : left;
+        if (tab === "channels" && side === "left") {
+          if (edge) { swallow(e); setTab("groups"); return; }
+          if (back) { swallow(e); setPanel(false); return; }
+        } else if (tab === "groups") {
+          if (edge) { swallow(e); setTab("menu"); return; }
+          if (back) { swallow(e); setTab("channels"); return; }
+        } else if (tab === "menu") {
+          if (back) { swallow(e); setTab("groups"); return; }
+          if (edge) { swallow(e); return; }
+        } else if (tab === "recent" && back) { swallow(e); if (side === "left") setTab("menu"); else setPanel(false); return; }
+        return; // the panel's own lists take the rest
+      }
       if (up || down) {
         swallow(e);
-        // The first press only shows the bar; the next ones step through the channels.
-        if (!bar) { wake(true); setTimeout(() => focusFirst(document, "pl-play"), 30); } else { onStep(up ? 1 : -1); wake(true); }
+        if (bar) { if (up) { setBar(false); wake(); } return; } // on the bar Up leaves it
+        if (down && (ok.current || paused)) { ok.current = false; wake(true); setTimeout(() => focusFirst(document, "pl-play"), 30); return; }
+        onStep(up ? 1 : -1); // straight up and down steps through the channels
+        wake();
         return;
       }
-      if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
-        // Left or Right brings the menu (categories and channels) with the bar, from the side that was pressed.
-        if (!bar) { swallow(e); openPanel("browse", e.key === "ArrowRight" ? "right" : "left"); return; }
-        wake(true); // on the bar the arrows walk its buttons
+      if (left || right) {
+        // On the bar the arrows walk its buttons; on the picture Left brings the channels, Right what was watched lately.
+        if (!bar) { swallow(e); openPanel(left ? "channels" : "recent", left ? "left" : "right"); return; }
+        wake(true);
         return;
       }
       if (e.key === "Enter" || e.keyCode === 13 || e.keyCode === 415 || e.keyCode === 19) {
         // OK on the picture pauses it; on a button of the bar it presses that button.
-        if (!bar) { swallow(e); togglePause(); }
+        if (!bar) { swallow(e); ok.current = true; setTimeout(() => { ok.current = false; }, settings.osdSeconds * 1000); togglePause(); wake(); }
         else wake(true);
         return;
       }
@@ -127,7 +149,7 @@ export function PlayerView({ channels, catalog, index, favorites, recents, onPic
       document.removeEventListener("keydown", onKey, true);
       document.removeEventListener("mousemove", onMove, true);
     };
-  }, [info, bar, panel, state, paused, channel.id]);
+  }, [info, bar, panel, tab, side, state, paused, channel.id]);
 
   useEffect(() => { if (state === "failed") focusFirst(document, "pl-retry"); }, [state]);
 
@@ -173,7 +195,7 @@ export function PlayerView({ channels, catalog, index, favorites, recents, onPic
       <Presence show={panel}>
         {(out) => (
           <PlayerPanel
-            side={side} tab={tab} closing={out} onClose={() => setPanel(false)}
+            side={side} tab={tab} onTab={setTab} closing={out} onClose={() => setPanel(false)}
             channels={channels} catalog={catalog} index={index} recents={recents} favorites={favorites}
             onPick={(c, list) => { onPick(c, list); setPanel(false); }} onFav={onFav}
             settings={settings} onChangeSettings={onChangeSettings} onGo={onGo}
@@ -187,8 +209,8 @@ export function PlayerView({ channels, catalog, index, favorites, recents, onPic
           <Tile id="pl-play" icon={paused ? "play" : "pause"} label={paused ? "playerPlay" : "playerPause"} onClick={togglePause} />
           <Tile id="pl-next" icon="skip_next" label="playerNext" onClick={() => onStep(1)} />
           <Tile id="pl-fav" icon={favorite ? "favorite" : "star"} label="playerFavorite" onClick={() => onFav(channel)} />
-          <Tile id="pl-set" icon="settings" label="playerSettings" onClick={() => openPanel("settings")} />
-          <Tile id="pl-list" icon="list" label="playerMenu" onClick={() => openPanel("browse")} />
+          <Tile id="pl-set" icon="settings" label="playerSettings" onClick={() => openPanel("settings", "right")} />
+          <Tile id="pl-list" icon="list" label="playerMenu" onClick={() => openPanel("channels", "left")} />
         </div>
       ) : null}
     </div>
