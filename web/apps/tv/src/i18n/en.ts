@@ -184,6 +184,7 @@ export const en: Record<keyof typeof ru, string> = {
   tabRecent: "Recent",
   tabChannels: "Channels",
   recentEmpty: "You have not watched anything yet",
+  favoritesEmpty: "No favorites yet",
   groupRecent: "Recently watched",
   groupArchive: "Archive",
   archiveHint: "Channels whose provider keeps an archive. Watching the archive is not connected yet.",

@@ -10,11 +10,11 @@ import { PlayerSettingRows } from "./PlayerRows";
 import { SheetHead } from "./SheetHead";
 
 /** "menu" is the main menu; the others are the pages it opens, in the same sheet. */
-export type PanelTab = "menu" | "groups" | "channels" | "recent" | "settings";
+export type PanelTab = "menu" | "groups" | "channels" | "recent" | "favorites" | "settings";
 export type Go = "live" | "guide" | "sport" | "search";
 
 const TITLE: Record<Exclude<PanelTab, "menu">, Key> = {
-  groups: "panelGroups", channels: "panelChannels", recent: "panelRecent", settings: "panelSettings",
+  groups: "panelGroups", channels: "panelChannels", recent: "panelRecent", favorites: "favorites", settings: "panelSettings",
 };
 
 interface Props {
@@ -100,6 +100,17 @@ export function PlayerPanel(p: Props) {
             <ChannelRow channel={c} index={i} favorite={p.favorites.has(channelKey(c))} onOpen={() => p.onPick(c, list)} onFav={p.onFav} />
           )}
         />
+      ) : null}
+      {p.tab === "favorites" ? (
+        favs.length === 0 ? <div class="list-head">{t("favoritesEmpty")}</div> : (
+          <VirtualList
+            key="favorites" items={favs} rowHeight={ROW} height={780} pageSize={9} autofocus
+            idOf={(c) => `pf-${c.id}`}
+            renderRow={(c, i) => (
+              <ChannelRow channel={c} index={i} favorite onOpen={() => p.onPick(c, favs)} onFav={p.onFav} />
+            )}
+          />
+        )
       ) : null}
       {p.tab === "recent" ? (
         p.recents.length === 0 ? <div class="list-head">{t("recentEmpty")}</div> : (

@@ -182,6 +182,7 @@ export const ru = {
   tabRecent: "Недавние",
   tabChannels: "Каналы",
   recentEmpty: "Вы пока ничего не смотрели",
+  favoritesEmpty: "В избранном пока пусто",
   groupRecent: "Недавно просмотренные",
   groupArchive: "Архив",
   archiveHint: "Каналы, у которых провайдер хранит архив. Просмотр архива пока не подключён.",
