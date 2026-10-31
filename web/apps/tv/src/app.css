@@ -373,8 +373,6 @@ img.logo { object-fit: contain; background: #fff; padding: 4px; border-radius: v
 .row .row-bar { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; border-radius: 0; }
 
 /* Bigger numbers and logos in the channel rows: the logo takes the height of the row. */
-.row .num { flex: none; width: 64px; text-align: center; font-size: 30px; font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; }
+.row .num { flex: none; width: 64px; text-align: right; font-size: 30px; font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; }
 .row:focus .num { color: var(--focus-text); }
 .row .logo { width: var(--row-h, 84px); height: calc(var(--row-h, 84px) - 14px); border-radius: 10px; font-size: 30px; }
-/* The logo stands at the left edge, where the progress line begins. */
-.row.has-logo { padding-left: 8px; }
