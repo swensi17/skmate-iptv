@@ -1,60 +1,48 @@
-# SkMate IPTV и другие IPTV-плееры для Android TV
+# Что проверено в SkMate IPTV и как
 
-Сравнение составлено по публично известным возможностям приложений и по тому, что проверено в SkMate IPTV на эмуляторе Android TV (версия `main`, готовится 2.0). Версии у конкурентов меняются: проверяйте актуальные описания. Знак «⚠️» значит «частично или зависит от версии», «❌» значит «такой функции нет».
+Раньше здесь была таблица «SkMate против TiviMate, IPTV Smarters и Kodi» с крестиками у конкурентов. Её составил автор приложения, источников у крестиков не было, а часть пунктов оказалась неверной (например, выбор движка плеера, которого в версии 2.0 нет). Таблицу убрали. Ниже только то, что можно проверить в этом репозитории, и честная граница того, что не проверено.
 
 *English summary: [below](#english-summary).*
 
-## Таблица
+## Что проверено
 
-| № | Возможность | SkMate IPTV | TiviMate | IPTV Smarters | Kodi |
-|:-:|---|:-:|:-:|:-:|:-:|
-| 1 | Бесплатно, без подписки | **✅** | ❌ Premium платный | ⚠️ | ✅ |
-| 2 | Открытый исходный код (GPL-3.0) | **✅** | ❌ | ❌ | ✅ |
-| 3 | Без рекламы и аккаунта | **✅** | ✅ | ⚠️ | ✅ |
-| 4 | Несколько движков плеера: ExoPlayer, mpv, libVLC | **✅** | ⚠️ | ⚠️ | ❌ |
-| 5 | Выбор плеера отдельно для каждого плейлиста | **✅** | ❌ | ❌ | ❌ |
-| 6 | Автопереход на другой движок при сбое потока | **✅** | ❌ | ❌ | ❌ |
-| 7 | Лестница отката: другой формат `.ts` ⇄ `.m3u8`, повтор, терпимый разбор | **✅** | ❌ | ❌ | ❌ |
-| 8 | Зеркала каналов: сбой → копия из другого плейлиста | **✅** | ❌ | ❌ | ❌ |
-| 9 | Таймаут молчащего потока (не чёрный экран навсегда) | **✅** | ❌ | ❌ | ❌ |
-| 10 | Понятные экраны ошибок с картинкой и «Повторить» | **✅** | ⚠️ | ⚠️ | ❌ |
-| 11 | Буфер сам растёт при слабой сети | **✅** | ❌ | ❌ | ❌ |
-| 12 | Учёт лимита соединений провайдера | **✅** | ❌ | ❌ | ❌ |
-| 13 | Xtream Codes | **✅** | ✅ | ✅ | ⚠️ |
-| 14 | Stalker / Ministra | **✅** | ❌ | ⚠️ | ❌ |
-| 15 | Несколько плейлистов одновременно | **✅** | ⚠️ Premium | ✅ | ⚠️ |
-| 16 | Телегид XMLTV из нескольких источников | **✅** | ⚠️ Premium | ⚠️ | ⚠️ |
-| 17 | Автопривязка программы по названию (без `tvg-id`) | **✅** | ⚠️ вручную | ❌ | ⚠️ |
-| 18 | «Починить телегид» в одно нажатие | **✅** | ❌ | ❌ | ❌ |
-| 19 | «Скрыть повторы» (каналы с одной ссылкой) | **✅** | ❌ | ❌ | ❌ |
-| 20 | Напоминания о передачах поверх любого экрана | **✅** | ✅ | ❌ | ⚠️ |
-| 21 | Умный поиск: раскладка, транслит, опечатки | **✅** | ⚠️ | ⚠️ | ⚠️ |
-| 22 | Поиск по передачам телепрограммы | **✅** | ⚠️ | ❌ | ⚠️ |
-| 23 | Подборки «Сейчас идёт»: спорт, кино, новости, детям | **✅** | ❌ | ❌ | ❌ |
-| 24 | Спорт-доска: страны, виды спорта, русские каналы | **✅** | ❌ | ❌ | ❌ |
-| 25 | Картинка в картинке в окне системы | **✅** | ⚠️ | ⚠️ | ⚠️ |
-| 26 | Шифрованная резервная копия | **✅** | ⚠️ | ❌ | ❌ |
-| 27 | Добавление плейлиста с телефона по QR | **✅** | ⚠️ | ❌ | ❌ |
-| 28 | Перенос настроек между телевизорами по Wi-Fi | **✅** | ❌ | ❌ | ❌ |
-| 29 | Информация о потоке и отправка отчёта в одно нажатие | **✅** | ❌ | ❌ | ⚠️ |
-| 30 | Интеграция с главным экраном Android TV | **✅** | ❌ | ❌ | ❌ |
+«Тест» значит автоматический тест, который запускается в CI. «Эмулятор» значит, что функцию вручную проверили на эмуляторе Android TV.
 
-✅ есть · ⚠️ частично или зависит от версии · ❌ нет такой функции. Сравнение по публичным описаниям на октябрь 2026, версии конкурентов меняются; найдёте неточность, откройте issue. Названия принадлежат их владельцам и приведены только для сравнения функций.
+| Возможность | Чем подтверждена |
+|---|---|
+| Умный поиск: раскладка, транслит, опечатки | тест [`SmartSearchTest`](../engine/core/src/test/java/tv/own/owntv/core/content/SmartSearchTest.kt), эмулятор |
+| Зеркала каналов: сбой → копия из другого плейлиста | тест [`ChannelMirrorsTest`](../engine/core/src/test/java/tv/own/owntv/core/live/ChannelMirrorsTest.kt), эмулятор |
+| Лестница отката при сбое (повтор, другой формат `.ts` ⇄ `.m3u8`) | тест [`LiveLadderTest`](../engine/player-core/src/test/java/tv/own/owntv/player/LiveLadderTest.kt) |
+| Буфер растёт при слабой сети | тест [`StallMeterTest`](../engine/player-core/src/test/java/tv/own/owntv/player/StallMeterTest.kt) |
+| Автопривязка программы по названию (без `tvg-id`) | тест [`EpgMatcherTest`](../engine/core/src/test/java/tv/own/owntv/core/epg/EpgMatcherTest.kt) |
+| Гиды по умолчанию: из плейлиста, по провайдеру, общие | тест [`GuideDefaultsTest`](../engine/core/src/test/java/tv/own/owntv/core/epg/GuideDefaultsTest.kt) |
+| «Скрыть повторы» | тест [`FeedDedupeTest`](../engine/core/src/test/java/tv/own/owntv/core/epg/FeedDedupeTest.kt), эмулятор |
+| Сортировка каналов, подборки «Сейчас идёт» | тесты [`LiveSortTest`](../engine/core/src/test/java/tv/own/owntv/core/live/LiveSortTest.kt), [`SmartPicksTest`](../engine/core/src/test/java/tv/own/owntv/core/content/SmartPicksTest.kt), эмулятор |
+| Адреса архива (catch-up) | тест [`CatchupUrlTest`](../engine/core/src/test/java/tv/own/owntv/core/epg/CatchupUrlTest.kt) |
+| Шифрованная резервная копия | инструментальные тесты [`BackupRoundTripTest`](../engine/core/src/androidTest/java/tv/own/owntv/core/backup/BackupRoundTripTest.kt), [`BackupContainerTest`](../engine/core/src/androidTest/java/tv/own/owntv/core/backup/BackupContainerTest.kt) |
+| Картинка в картинке, напоминания поверх экрана | эмулятор |
+| Открытый код GPL-3.0, подписанные сборки | [`LICENSE`](../LICENSE), [`release.yml`](../.github/workflows/release.yml), контрольные суммы в релизе |
 
-## Что делает SkMate другим
+## Что не проверено
 
-1. **Не бросает вас на мёртвом канале.** Канал не открылся — приложение само включает его копию из другого плейлиста («Первый HD» → «Первый SD») и говорит об этом. Поток, который 10 секунд молчит, считается ошибкой, а не чёрным экраном навсегда.
-2. **Ищет как человек думает.** «ntktrfyfk» найдёт «телеканал», «kino» найдёт «кино», опечатка в названии не помеха, а передачи ищутся вместе с каналами.
-3. **Знает, что идёт прямо сейчас.** «Сейчас идёт: спорт / кино / новости / детям» по телепрограмме, а спорт-доска группирует каналы по странам и видам спорта (русские Матч, Окко, Боец, Старт и другие).
-4. **Чистит за вас.** «Починить телегид» подбирает программу каналам без неё, «Скрыть повторы» убирает каналы с одной и той же ссылкой, с подтверждением.
-5. **Подстраивается под сеть.** Если картинка зависает три раза за две минуты, буфер сам растёт, а через десять спокойных минут возвращается.
-6. **Понятные ошибки.** Вместо «open timeout» — картинка, заголовок («Канал не отвечает», «Нет интернета», «Не удаётся показать видео») и кнопка «Повторить».
-7. **Открытый код.** Можно проверить, что делает приложение, и собрать его самому. Подписанный APK с проверкой на VirusTotal лежит в релизах.
+- Плавность и скорость открытия каналов на настоящих телевизорах и слабых приставках. Измерений нет.
+- Мультивид, запись, таймшифт и воспроизведение архива: реализованы в коде, но на устройстве не проверялись.
+- Проверка на вирусы (VirusTotal) для v2.0.0 не выполнена, есть только для v0.1.0. Подробности и контрольные суммы в [README](../README.md#безопасность).
 
-## Что мы пока не утверждаем
+## Про движки плеера
 
-Мы не заявляем, что SkMate плавнее или стабильнее TiviMate на слабых приставках: замеры на реальных телевизорах ещё не сделаны. Архив и мультивид проверены частично. Если вы нашли расхождение с реальностью, откройте issue.
+Прямой эфир играет через один движок, libVLC. Выбора движка в интерфейсе нет. В ранних версиях были ExoPlayer и mpv, в 0.1.0 остался один движок, а их настройки убрали (см. комментарий в [`VideoPlayerSettingsScreen.kt`](../app/src/main/java/tv/own/owntv/features/settings/VideoPlayerSettingsScreen.kt)). Прежние описания «три движка» и «выбор плеера для каждого плейлиста» устарели и удалены.
+
+## О других приложениях
+
+Сравнивать TiviMate и IPTV Smarters по пунктам мы не берёмся: официальные описания неполны, а в поиске в основном рекламные страницы, которым нельзя верить. Смотрите их официальные страницы и магазины приложений.
+
+О Kodi есть проверяемые источники: Kodi это свободное ПО под GPL ([kodi.tv/about](https://kodi.tv/about/)); дополнение IPTV Simple Client читает M3U и XMLTV, поддерживает несколько пар «плейлист и гид» начиная с Kodi 20, гид в `.gz` и `.xz`, а архив зависит от провайдера ([kodi.wiki](https://kodi.wiki/view/Add-on:IPTV_Simple_Client), [исходный код](https://github.com/kodi-pvr/pvr.iptvsimple)). Kodi универсальный медиацентр, SkMate это Android-приложение именно под IPTV и пульт.
+
+## О проекте
+
+Репозиторий создан 30 октября 2026. Звёзд и форков пока нет, независимых обзоров тоже. Нашли расхождение с реальностью или своё мнение о приложении, откройте [issue](https://github.com/swensi17/skmate-iptv/issues).
 
 ## English summary
 
-SkMate IPTV is a free, open-source (GPL-3.0) IPTV player for Android TV, Google TV and Fire TV with M3U, Xtream Codes and Stalker sources, XMLTV guide, catch-up, profiles with PIN and backup. What sets it apart from TiviMate, IPTV Smarters and Kodi: automatic fail-over to a mirror of a channel that does not open, a layout- and typo-tolerant search that also finds programmes, "on now" lists (sport, movies, news, kids), a sports board grouped by country and sport, one-click guide repair and duplicate hiding, an adaptive buffer on weak networks, and plain error screens. Not yet claimed: better smoothness than TiviMate on low-end boxes (no on-device measurements yet).
+SkMate IPTV is a free, open-source (GPL-3.0) IPTV player for Android TV. This page used to hold a table with crosses against TiviMate, IPTV Smarters and Kodi, written by the author without sources, and parts of it were wrong. It was removed. What remains is what can be checked in this repository: each feature with the test that covers it. Not verified: smoothness on real TVs, multiview, recording, timeshift and catch-up playback, and VirusTotal for v2.0.0 (only v0.1.0 was scanned). Live TV uses a single engine (libVLC); older descriptions of three selectable engines were outdated. The project is new: no stars, no independent reviews.

@@ -1,0 +1,59 @@
+name: VirusTotal
+
+# Sends the APKs of a release to VirusTotal and writes the verdict into the run summary.
+# Needs the repository secret VT_API_KEY (a free VirusTotal key). Without it the job says so and does nothing,
+# so a missing key is visible, never mistaken for a clean result.
+on:
+  release:
+    types: [ published ]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to scan, e.g. v2.0.0"
+        required: true
+
+permissions:
+  contents: read
+
+env:
+  TAG: ${{ inputs.tag || github.event.release.tag_name }}
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download the release APKs
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          mkdir apks && cd apks
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern '*-arm.apk' --pattern '*-x86_64.apk'
+          sha256sum *.apk | tee ../sums.txt
+
+      - name: Scan
+        env:
+          VT_API_KEY: ${{ secrets.VT_API_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "${VT_API_KEY:-}" ]; then
+            echo "### VirusTotal: not run" >> "$GITHUB_STEP_SUMMARY"
+            echo "The repository secret VT_API_KEY is not set, so $TAG was **not** scanned." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          echo "### VirusTotal: $TAG" >> "$GITHUB_STEP_SUMMARY"
+          for apk in apks/*.apk; do
+            sha=$(sha256sum "$apk" | cut -d' ' -f1)
+            # Files over 32 MB are sent to a one-time upload address.
+            url=$(curl -fsS --header "x-apikey: $VT_API_KEY" https://www.virustotal.com/api/v3/files/upload_url | jq -r .data)
+            analysis=$(curl -fsS --header "x-apikey: $VT_API_KEY" --form "file=@$apk" "$url" | jq -r .data.id)
+            status=queued
+            for _ in $(seq 1 60); do
+              status=$(curl -fsS --header "x-apikey: $VT_API_KEY" "https://www.virustotal.com/api/v3/analyses/$analysis" | jq -r .data.attributes.status)
+              [ "$status" = completed ] && break
+              sleep 15
+            done
+            stats=$(curl -fsS --header "x-apikey: $VT_API_KEY" "https://www.virustotal.com/api/v3/files/$sha" | jq -c .data.attributes.last_analysis_stats)
+            echo "- \`$(basename "$apk")\`: $stats, [report](https://www.virustotal.com/gui/file/$sha)" >> "$GITHUB_STEP_SUMMARY"
+            echo "$(basename "$apk") $status $stats"
+          done
