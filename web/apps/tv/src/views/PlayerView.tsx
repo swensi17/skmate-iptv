@@ -9,7 +9,7 @@ import { usePlayback } from "../state/usePlayback";
 import { clock } from "../time";
 import { ChannelLogo } from "./ChannelLogo";
 import { leftLabel } from "./Left";
-import { PlayerPanel, type PanelTab } from "./PlayerPanel";
+import { PlayerPanel, type Go, type PanelTab } from "./PlayerPanel";
 
 interface Props {
   channels: readonly Channel[];
@@ -29,6 +29,8 @@ interface Props {
   onExit: () => void;
   settings: Settings;
   onChangeSettings: (s: Settings) => void;
+  /** Leave the player for another place of the app (the main menu's Home, Guide, Sport, Search). */
+  onGo: (to: Go) => void;
 }
 
 function Tile(p: { id: string; icon: IconName; label: Key; onClick: () => void }) {
@@ -47,7 +49,7 @@ const CH_DOWN = [428, 34];
  * Full-screen playback. Keys: OK pauses and resumes; Up or Down first show the action bar, then step through the
  * channels; Right opens the recently watched, Left the channels (each from its own edge); the channel keys always step; Back closes what is open, then leaves.
  */
-export function PlayerView({ channels, catalog, index, favorites, recents, onPick, closing, onStep, onFav, onExit, settings, onChangeSettings }: Props) {
+export function PlayerView({ channels, catalog, index, favorites, recents, onPick, closing, onStep, onFav, onExit, settings, onChangeSettings, onGo }: Props) {
   const channel = channels[index] as Channel;
   const video = useRef<HTMLVideoElement>(null);
   const mirrors = useMemo(() => pickMirrors(channel, catalog), [channel.id, catalog]);
@@ -62,7 +64,7 @@ export function PlayerView({ channels, catalog, index, favorites, recents, onPic
   const [info, setInfo] = useState(true);
   const [bar, setBar] = useState(false);
   const [panel, setPanel] = useState(false);
-  const [tab, setTab] = useState<PanelTab>("channels");
+  const [tab, setTab] = useState<PanelTab>("menu");
   const [side, setSide] = useState<"left" | "right">("right");
   const hideTimer = useRef<ReturnType<typeof setTimeout>>();
 
@@ -84,7 +86,7 @@ export function PlayerView({ channels, catalog, index, favorites, recents, onPic
     const onKey = (e: KeyboardEvent) => {
       if (isBack(e)) {
         swallow(e);
-        if (panel) setPanel(false);
+        if (panel) { if (tab !== "menu") setTab("menu"); else setPanel(false); }
         else if (bar) setBar(false);
         else if (info && state !== "failed" && !paused) { clearTimeout(hideTimer.current); setInfo(false); }
         else onExit();
@@ -103,8 +105,8 @@ export function PlayerView({ channels, catalog, index, favorites, recents, onPic
         return;
       }
       if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
-        // Right: what was watched lately. Left: the channels.
-        if (!bar) { swallow(e); if (e.key === "ArrowRight") openPanel("recent", "right"); else openPanel("channels", "left"); return; }
+        // Left or Right brings the main menu, from the side that was pressed.
+        if (!bar) { swallow(e); openPanel("menu", e.key === "ArrowRight" ? "right" : "left"); return; }
         wake(true); // on the bar the arrows walk its buttons
         return;
       }
@@ -124,7 +126,7 @@ export function PlayerView({ channels, catalog, index, favorites, recents, onPic
       document.removeEventListener("keydown", onKey, true);
       document.removeEventListener("mousemove", onMove, true);
     };
-  }, [info, bar, panel, state, paused, channel.id]);
+  }, [info, bar, panel, tab, state, paused, channel.id]);
 
   useEffect(() => { if (state === "failed") focusFirst(document, "pl-retry"); }, [state]);
 
@@ -173,7 +175,7 @@ export function PlayerView({ channels, catalog, index, favorites, recents, onPic
             side={side} tab={tab} onTab={setTab} closing={out} onClose={() => setPanel(false)}
             channels={channels} catalog={catalog} index={index} recents={recents} favorites={favorites}
             onPick={(c, list) => { onPick(c, list); setPanel(false); }} onFav={onFav}
-            settings={settings} onChangeSettings={onChangeSettings}
+            settings={settings} onChangeSettings={onChangeSettings} onGo={onGo}
           />
         )}
       </Presence>
@@ -185,7 +187,7 @@ export function PlayerView({ channels, catalog, index, favorites, recents, onPic
           <Tile id="pl-next" icon="skip_next" label="playerNext" onClick={() => onStep(1)} />
           <Tile id="pl-fav" icon={favorite ? "favorite" : "star"} label="playerFavorite" onClick={() => onFav(channel)} />
           <Tile id="pl-set" icon="settings" label="playerSettings" onClick={() => openPanel("settings")} />
-          <Tile id="pl-list" icon="list" label="playerMenu" onClick={() => openPanel("channels")} />
+          <Tile id="pl-list" icon="list" label="playerMenu" onClick={() => openPanel("menu")} />
         </div>
       ) : null}
     </div>

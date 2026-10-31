@@ -295,5 +295,6 @@ export const ru = {
   intKids: "Детям",
   intScience: "Познавательные",
   intFun: "Развлекательные",
+  menuHome: "Домой",
   demoPlaylist: "Демо-плейлист",
 } as const;

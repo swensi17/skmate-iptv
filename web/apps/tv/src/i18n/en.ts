@@ -297,5 +297,6 @@ export const en: Record<keyof typeof ru, string> = {
   intKids: "Kids",
   intScience: "Documentary",
   intFun: "Entertainment",
+  menuHome: "Home",
   demoPlaylist: "Demo playlist",
 };

@@ -1,7 +1,7 @@
-import { useMemo, useState } from "preact/hooks";
+import { useEffect, useMemo, useState } from "preact/hooks";
 import { groupsOf, type Channel } from "@skmate/core";
-import { Drawer, VirtualList } from "@skmate/ui";
-import { t } from "../i18n";
+import { Drawer, focusFirst, Icon, VirtualList, type IconName } from "@skmate/ui";
+import { t, type Key } from "../i18n";
 import { channelKey } from "../state/favorites";
 import type { Settings } from "../state/settings";
 import { capitalize } from "../text";
@@ -9,10 +9,13 @@ import { ChannelRow } from "./ChannelRow";
 import { PlayerSettingRows } from "./PlayerRows";
 import { SheetHead } from "./SheetHead";
 
-export type PanelTab = "groups" | "channels" | "recent" | "settings";
-const TABS: Array<[PanelTab, "panelGroups" | "panelChannels" | "panelRecent" | "panelSettings"]> = [
-  ["groups", "panelGroups"], ["channels", "panelChannels"], ["recent", "panelRecent"], ["settings", "panelSettings"],
-];
+/** "menu" is the main menu; the others are the pages it opens, in the same sheet. */
+export type PanelTab = "menu" | "groups" | "channels" | "recent" | "settings";
+export type Go = "live" | "guide" | "sport" | "search";
+
+const TITLE: Record<Exclude<PanelTab, "menu">, Key> = {
+  groups: "panelGroups", channels: "panelChannels", recent: "panelRecent", settings: "panelSettings",
+};
 
 interface Props {
   /** The edge it came from: Left brings it from the left, Right from the right. */
@@ -31,14 +34,30 @@ interface Props {
   onFav: (c: Channel) => void;
   settings: Settings;
   onChangeSettings: (s: Settings) => void;
+  /** Leave the player for a place of the app. */
+  onGo: (to: Go) => void;
 }
 
 const ROW = 84;
+
+/** The main menu of the player: home first, then what can be opened right here, then the other places of the app. */
+const MENU: Array<[string, IconName, Key, Go | { tab: PanelTab }]> = [
+  ["home", "home", "menuHome", "live"],
+  ["groups", "list", "panelGroups", { tab: "groups" }],
+  ["channels", "live_tv", "panelChannels", { tab: "channels" }],
+  ["recent", "history", "panelRecent", { tab: "recent" }],
+  ["guide", "epg", "navGuide", "guide"],
+  ["sport", "sports", "navSport", "sport"],
+  ["search", "search", "navSearch", "search"],
+  ["settings", "settings", "panelSettings", { tab: "settings" }],
+];
 
 /** The player's side menu: categories, channels, recently watched, and the player's settings, in one sheet from the right. */
 export function PlayerPanel(p: Props) {
   // A category picked in the first tab narrows the channels tab; until then it shows what is being watched.
   const [group, setGroup] = useState<string | null>(null);
+  // The lists focus their own current row; the menu and the settings page start at their first row.
+  useEffect(() => { if (p.tab === "menu") focusFirst(document, "pm-home"); else if (p.tab === "settings") focusFirst(document, "s-engine"); }, [p.tab]);
   const groups = useMemo(() => groupsOf(p.catalog), [p.catalog]);
   const favs = useMemo(() => p.catalog.filter((c) => p.favorites.has(channelKey(c))), [p.catalog, p.favorites]);
   const list: readonly Channel[] = group === null ? p.channels
@@ -53,12 +72,16 @@ export function PlayerPanel(p: Props) {
 
   return (
     <Drawer side={p.side} width={980} label={t("playerMenu")} onClose={p.onClose} closing={p.closing}>
-      <SheetHead title={t("playerMenu")} />
-      <div class="tabs2">
-        {TABS.map(([id, label]) => (
-          <button class="tab2" key={id} data-focus={`pp-tab-${id}`} aria-selected={p.tab === id} onClick={() => p.onTab(id)}>{t(label)}</button>
-        ))}
-      </div>
+      <SheetHead title={p.tab === "menu" ? t("playerMenu") : t(TITLE[p.tab])} />
+      {p.tab === "menu" ? (
+        <div class="drawer-scroll">
+          {MENU.map(([id, icon, label, act]) => (
+            <button class="menu-row" key={id} data-focus={`pm-${id}`} onClick={() => (typeof act === "string" ? p.onGo(act) : p.onTab(act.tab))}>
+              <Icon name={icon} size={40} /><span class="grow">{t(label)}</span><Icon name="chevron" size={28} />
+            </button>
+          ))}
+        </div>
+      ) : null}
       {p.tab === "groups" ? (
         <VirtualList
           key="groups" items={rows} rowHeight={ROW} height={780} pageSize={8} autofocus
