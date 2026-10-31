@@ -1,6 +1,6 @@
 import { useContext, useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { pickMirrors, type Channel } from "@skmate/core";
-import { Drawer, focusFirst, Icon, isBack, VirtualList, type IconName } from "@skmate/ui";
+import { Drawer, focusFirst, Icon, isBack, Presence, VirtualList, type IconName } from "@skmate/ui";
 import { t, type Key } from "../i18n";
 import type { Settings } from "../state/settings";
 import { usePlayback } from "../state/usePlayback";
@@ -17,7 +17,12 @@ interface Props {
   catalog: readonly Channel[];
   index: number;
   favorites: ReadonlySet<string>;
-  onJump: (index: number) => void;
+  /** Recently watched channels, the latest first. */
+  recents: readonly Channel[];
+  /** A channel picked in a side list: it plays, and [list] is what Up and Down step through. */
+  onPick: (c: Channel, list: readonly Channel[]) => void;
+  /** The player is leaving: it fades out. */
+  closing: boolean;
   /** A step through the list, +1 or -1: applied to the latest position, so a held key never works from a stale one. */
   onStep: (delta: number) => void;
   onFav: (c: Channel) => void;
@@ -35,7 +40,7 @@ function Tile(p: { id: string; icon: IconName; label: Key; onClick: () => void }
   );
 }
 
-export function PlayerView({ channels, catalog, index, favorites, onJump, onStep, onFav, onExit, settings, onChangeSettings }: Props) {
+export function PlayerView({ channels, catalog, index, favorites, recents, onPick, closing, onStep, onFav, onExit, settings, onChangeSettings }: Props) {
   const channel = channels[index] as Channel;
   const video = useRef<HTMLVideoElement>(null);
   const mirrors = useMemo(() => pickMirrors(channel, catalog), [channel.id, catalog]);
@@ -47,6 +52,7 @@ export function PlayerView({ channels, catalog, index, favorites, onJump, onStep
   const onNow = guide.data.nowNext(channel.id, guide.now);
   const [drawer, setDrawer] = useState<"settings" | "channels" | null>(null);
   const panel = drawer !== null;
+  const [tab, setTab] = useState<"recent" | "channels">("recent");
   const favorite = favorites.has(channelKey(channel));
   const [osd, setOsd] = useState(true);
   const hideTimer = useRef<ReturnType<typeof setTimeout>>();
@@ -74,6 +80,7 @@ export function PlayerView({ channels, catalog, index, favorites, onJump, onStep
       if (!osd && (e.key === "ArrowLeft" || e.key === "ArrowRight")) {
         e.stopPropagation();
         e.preventDefault();
+        if (e.key === "ArrowRight") setTab("recent");
         setDrawer(e.key === "ArrowLeft" ? "settings" : "channels");
         return;
       }
@@ -102,7 +109,7 @@ export function PlayerView({ channels, catalog, index, favorites, onJump, onStep
   useEffect(() => { if (state === "failed") focusFirst(document, "pl-retry"); }, [state]);
 
   return (
-    <div class={`player${osd ? " osd" : ""}`}>
+    <div class={`player${osd ? " osd" : ""}${closing ? " closing" : ""}`}>
       <video ref={video} class="video" style={{ objectFit: settings.aspect === "fit" ? "contain" : settings.aspect === "fill" ? "fill" : "cover" }} autoplay playsInline />
 
       <div class="player-top">
@@ -118,7 +125,7 @@ export function PlayerView({ channels, catalog, index, favorites, onJump, onStep
         </div>
       </div>
 
-      {state === "loading" ? <div class="spinner" aria-label={t("playerLoading")} /> : null}
+      <div class={`spinner${state === "loading" ? " on" : ""}`} aria-label={t("playerLoading")} />
 
       {state === "failed" ? (
         <div class="player-error" data-modal>
@@ -132,26 +139,37 @@ export function PlayerView({ channels, catalog, index, favorites, onJump, onStep
         </div>
       ) : null}
 
-      {drawer === "settings" ? (
-        <Drawer side="left" width={980} label={t("playerSettingsTitle")} onClose={() => setDrawer(null)}>
-          <div class="drawer-title">{t("playerSettingsTitle")}</div>
-          <div class="drawer-body"><PlayerSettingRows settings={settings} onChange={onChangeSettings} /></div>
-        </Drawer>
-      ) : null}
+      <Presence show={drawer === "settings"}>
+        {(out) => (
+          <Drawer side="left" width={980} label={t("playerSettingsTitle")} onClose={() => setDrawer(null)} closing={out}>
+            <div class="drawer-title">{t("playerSettingsTitle")}</div>
+            <div class="drawer-body drawer-scroll"><PlayerSettingRows settings={settings} onChange={onChangeSettings} /></div>
+          </Drawer>
+        )}
+      </Presence>
 
-      {drawer === "channels" ? (
-        <Drawer side="right" width={860} label={t("drawerChannels")} onClose={() => setDrawer(null)}>
-          <div class="drawer-title">{t("drawerChannels")}</div>
-          <VirtualList
-            items={channels} rowHeight={84} height={900} pageSize={10} initialIndex={index} autofocus
-            idOf={(c) => `dc-${c.id}`}
-            renderRow={(c, i) => (
-              <ChannelRow channel={c} index={i} favorite={favorites.has(channelKey(c))}
-                onOpen={() => { onJump(i); setDrawer(null); }} onFav={onFav} />
+      <Presence show={drawer === "channels"}>
+        {(out) => (
+          <Drawer side="right" width={860} label={t("drawerChannels")} onClose={() => setDrawer(null)} closing={out}>
+            <div class="tabs2">
+              <button class="tab2" data-focus="dc-tab-recent" aria-selected={tab === "recent"} onClick={() => setTab("recent")}>{t("tabRecent")}</button>
+              <button class="tab2" data-focus="dc-tab-channels" aria-selected={tab === "channels"} onClick={() => setTab("channels")}>{t("tabChannels")}</button>
+            </div>
+            {tab === "recent" && recents.length === 0 ? <div class="list-head">{t("recentEmpty")}</div> : (
+              <VirtualList
+                key={tab}
+                items={tab === "recent" ? recents : channels} rowHeight={84} height={860} pageSize={10}
+                initialIndex={tab === "recent" ? 0 : index} autofocus
+                idOf={(c) => `dc-${tab}-${c.id}`}
+                renderRow={(c, i) => (
+                  <ChannelRow channel={c} index={i} favorite={favorites.has(channelKey(c))}
+                    onOpen={() => { onPick(c, tab === "recent" ? recents : channels); setDrawer(null); }} onFav={onFav} />
+                )}
+              />
             )}
-          />
-        </Drawer>
-      ) : null}
+          </Drawer>
+        )}
+      </Presence>
 
       {osd && state !== "failed" && !panel ? (
         <div class="player-bar">

@@ -7,6 +7,8 @@ export interface Channel {
   logo?: string;
   tvgId?: string;
   tvgName?: string;
+  /** Days of archive the provider keeps for this channel (`tvg-rec`, `catchup-days`); absent when none. */
+  catchupDays?: number;
   /** Lines like `#EXTVLCOPT:http-user-agent=…` that precede the URL. */
   headers?: Record<string, string>;
 }
@@ -67,6 +69,8 @@ export function parseM3U(text: string): Channel[] {
       if (a["tvg-logo"]) channel.logo = a["tvg-logo"];
       if (a["tvg-id"]) channel.tvgId = a["tvg-id"];
       if (a["tvg-name"]) channel.tvgName = a["tvg-name"];
+      const days = Number(a["tvg-rec"] ?? a["catchup-days"] ?? a["timeshift"] ?? 0);
+      if (Number.isFinite(days) && days > 0) channel.catchupDays = days;
       if (Object.keys(headers).length > 0) channel.headers = headers;
       channels.push(channel);
       info = null;

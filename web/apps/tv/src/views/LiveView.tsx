@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "preact/hooks";
+import { useContext, useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { groupsOf, SearchIndex, type Channel } from "@skmate/core";
 import { focusFirst, Icon, VirtualList } from "@skmate/ui";
 import { t } from "../i18n";
@@ -7,11 +7,13 @@ import type { Settings } from "../state/settings";
 import type { Status } from "../state/usePlaylists";
 import { capitalize } from "../text";
 import { ChannelRow } from "./ChannelRow";
+import { UiContext } from "../state/UiContext";
 import { PreviewPane } from "./PreviewPane";
 
 const FAV = "\u0000fav";
 const ALL = "\u0000all";
-const ROW = 84;
+const RECENT = "\u0000recent";
+const ARCHIVE = "\u0000archive";
 const LIST_HEIGHT = 840;
 const DWELL_MS = 600;
 const TYPING_PAUSE_MS = 180;
@@ -33,9 +35,13 @@ interface Props {
   greeting: string;
   playlistName: string | null;
   onPickPlaylist: () => void;
+  recents: Channel[];
+  /** A stream is playing full screen: the preview must not compete with it. */
+  paused: boolean;
 }
 
 export function LiveView(p: Props) {
+  const ROW = useContext(UiContext).rowH;
   const groups = useMemo(() => groupsOf(p.channels), [p.channels]);
   const favs = useMemo(() => p.channels.filter((c) => p.favorites.has(channelKey(c))), [p.channels, p.favorites]);
   const [group, setGroup] = useState<string>(ALL);
@@ -46,7 +52,8 @@ export function LiveView(p: Props) {
   const [dwelled, setDwelled] = useState<Channel | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout>>();
 
-  const base = group === FAV ? favs : group === ALL ? p.channels : groups.find((g) => g.name === group)?.channels ?? [];
+  const archive = useMemo(() => p.channels.filter((c) => (c.catchupDays ?? 0) > 0), [p.channels]);
+  const base = group === FAV ? favs : group === RECENT ? p.recents : group === ARCHIVE ? archive : group === ALL ? p.channels : groups.find((g) => g.name === group)?.channels ?? [];
   const index = useMemo(() => new SearchIndex(base, (c) => c.name), [base]);
   const found = useMemo(() => (settled.trim() === "" ? base : index.search(settled).map((r) => r.item)), [base, index, settled]);
   const shown = useMemo(() => {
@@ -58,8 +65,10 @@ export function LiveView(p: Props) {
   const groupItems = useMemo<GroupItem[]>(() => [
     { key: ALL, label: t("allChannels"), count: p.channels.length },
     ...(favs.length > 0 ? [{ key: FAV, label: t("favorites"), count: favs.length }] : []),
+    ...(p.recents.length > 0 ? [{ key: RECENT, label: t("groupRecent"), count: p.recents.length }] : []),
+    ...(archive.length > 0 ? [{ key: ARCHIVE, label: t("groupArchive"), count: archive.length }] : []),
     ...groups.map((g) => ({ key: g.name, label: capitalize(g.name), count: g.channels.length })),
-  ], [p.channels, favs.length, groups]);
+  ], [p.channels, favs.length, p.recents.length, archive.length, groups]);
 
   useEffect(() => { focusFirst(document, shown[0] ? `ch-${shown[0].id}` : "empty-add"); }, [group, p.channels.length === 0]);
   useEffect(() => { if (group === FAV && favs.length === 0) setGroup(ALL); }, [favs.length]);
@@ -122,9 +131,9 @@ export function LiveView(p: Props) {
           />
         </aside>
         <section class="list">
-          <div class="list-head">{t("channelsCount", { n: shown.length })}</div>
+          <div class="list-head">{t("channelsCount", { n: shown.length })}{group === ARCHIVE ? ` · ${t("archiveHint")}` : ""}</div>
           <VirtualList
-            key={`${group}|${settled}|${sort}`}
+            key={`${group}|${settled}|${sort}|${ROW}`}
             items={shown} rowHeight={ROW} height={LIST_HEIGHT - 56} pageSize={9}
             idOf={(c) => `ch-${c.id}`}
             renderRow={(c, i) => (
@@ -133,7 +142,7 @@ export function LiveView(p: Props) {
             )}
           />
         </section>
-        <PreviewPane channel={dwelled} focused={focused} settings={p.settings} />
+        <PreviewPane channel={p.paused ? null : dwelled} focused={focused} settings={p.settings} />
       </div>
     </div>
   );

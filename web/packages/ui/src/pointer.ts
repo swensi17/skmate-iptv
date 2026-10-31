@@ -9,7 +9,8 @@ export function installPointer(): () => void {
     if (e.movementX === 0 && e.movementY === 0) return;
     const target = (e.target as HTMLElement | null)?.closest<HTMLElement>("[data-focus]");
     if (!target || target === document.activeElement) return;
-    const modal = document.querySelector("[data-modal]");
+    const modals = document.querySelectorAll("[data-modal]");
+    const modal = modals.length > 0 ? modals[modals.length - 1] : null;
     if (modal && !modal.contains(target)) return; // a dialog keeps the pointer inside it, as it keeps the remote
     target.focus({ preventScroll: true });
   };

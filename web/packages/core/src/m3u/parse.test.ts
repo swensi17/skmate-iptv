@@ -45,3 +45,10 @@ describe("guidesInHeader", () => {
     expect(guidesInHeader("\uFEFF#EXTM3U url-tvg=\"ftp://x\"")).toEqual([]);
   });
 });
+
+describe("catch-up days", () => {
+  it("reads the archive depth a provider declares", () => {
+    const ch = parseM3U('#EXTM3U\n#EXTINF:0 tvg-rec="3",A\nhttp://a\n#EXTINF:0 tvg-rec="0",B\nhttp://b\n#EXTINF:-1 catchup-days="7",C\nhttp://c\n#EXTINF:-1,D\nhttp://d');
+    expect(ch.map((c) => c.catchupDays)).toEqual([3, undefined, 7, undefined]);
+  });
+});

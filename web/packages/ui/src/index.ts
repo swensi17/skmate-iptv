@@ -6,5 +6,8 @@ export * from "./motion";
 export * from "./virtual";
 export { VirtualList, type VirtualListProps } from "./VirtualList";
 export { Drawer } from "./Drawer";
+export { Presence, EXIT_MS } from "./Presence";
+export { Qr } from "./Qr";
+export { SocialIcon, type SocialMark } from "./social";
 export { Icon } from "./Icon";
 export { ICONS, type IconName } from "./icons";
