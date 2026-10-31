@@ -14,6 +14,7 @@ import { PlayerSettingRows } from "./PlayerRows";
 import { PlaylistsPanel } from "./PlaylistsPanel";
 import { ProfilesPanel } from "./ProfilesPanel";
 import { SettingRow } from "./SettingRow";
+import { SheetHead } from "./SheetHead";
 import { platformLabel, SystemPanel } from "./SystemPanel";
 
 export type Page = "player" | "look" | "playlists" | "epg" | "profiles" | "system" | "backup" | "about";
@@ -90,7 +91,7 @@ export function SettingsSheet(p: Props) {
     <Drawer side="right" width={980} label={t("sheetTitle")} onClose={p.onClose} closing={!p.show}>
       {page === null ? (
         <>
-          <div class="drawer-title">{t("sheetTitle")}</div>
+          <SheetHead id="sheet-close" title={t("sheetTitle")} onBack={p.onClose} />
           <div class="drawer-scroll">
             {MENU.map(([section, pages]) => (
               <div key={section}>
@@ -111,11 +112,7 @@ export function SettingsSheet(p: Props) {
         </>
       ) : (
         <>
-          <div class="drawer-head">
-            <button class="drawer-back" data-focus="sheet-back" aria-label={t("backBtn")} onClick={() => p.onPage(null)}><Icon name="back" size={36} /></button>
-            <div class="drawer-title">{t(META[page].title)}</div>
-            {page === "about" ? <div class="drawer-ver">{__APP_VERSION__}</div> : null}
-          </div>
+          <SheetHead id="sheet-back" title={t(META[page].title)} onBack={() => p.onPage(null)} right={page === "about" ? __APP_VERSION__ : undefined} />
           <div class="drawer-body drawer-scroll">
             {page === "player" ? <PlayerSettingRows settings={s} onChange={onChange} /> : null}
             {page === "look" ? (
