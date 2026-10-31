@@ -29,6 +29,33 @@ export function normalizeUrl(input: string): string | null {
   }
 }
 
+/**
+ * An Xtream Codes login as the provider's own M3U link (`get.php`, `m3u_plus` with groups, logos and guide ids,
+ * HLS streams the TV plays natively). Null when the server is not an http(s) address or a field is empty.
+ * The server may be given with its port and with any page of the panel: only the address and the port are kept.
+ */
+export function xtreamUrl(server: string, username: string, password: string): string | null {
+  const base = normalizeUrl(server);
+  if (!base || username.trim() === "" || password.trim() === "") return null;
+  const u = new URL(base);
+  const q = `username=${encodeURIComponent(username.trim())}&password=${encodeURIComponent(password.trim())}`;
+  return `${u.protocol}//${u.host}/get.php?${q}&type=m3u_plus&output=m3u8`;
+}
+
+/** The guide an Xtream server serves for the same login (`xmltv.php`), or null when [url] is no Xtream link. */
+export function xtreamGuide(url: string): string | null {
+  try {
+    const u = new URL(url);
+    if (!/\/get\.php$/i.test(u.pathname)) return null;
+    const user = u.searchParams.get("username");
+    const pass = u.searchParams.get("password");
+    if (!user || !pass) return null;
+    return `${u.protocol}//${u.host}/xmltv.php?username=${encodeURIComponent(user)}&password=${encodeURIComponent(pass)}`;
+  } catch {
+    return null;
+  }
+}
+
 /** Adds a playlist; the same link twice is one playlist. */
 export function addPlaylist(list: readonly PlaylistEntry[], url: string, name?: string): PlaylistEntry[] {
   if (list.some((p) => p.url === url)) return [...list];

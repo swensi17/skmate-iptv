@@ -375,3 +375,16 @@ img.logo { object-fit: contain; background: #fff; padding: 4px; border-radius: v
 .row .num { flex: none; width: 64px; text-align: right; font-size: 30px; font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; }
 .row:focus .num { color: var(--focus-text); }
 .row .logo { width: var(--row-h, 84px); height: calc(var(--row-h, 84px) - 14px); border-radius: 10px; font-size: 30px; }
+
+/* The brand mark, as in the Android app: the "skmate" word on the setup screens, "sk" at the top of the rail. */
+.wz-logo { height: 52px; width: auto; display: block; }
+.rail-logo { position: absolute; top: 36px; left: 50%; width: 52px; height: auto; transform: translateX(-50%); pointer-events: none; }
+
+/* Where a playlist comes from: M3U link or an Xtream Codes login. */
+.source-form { width: 100%; max-width: 1100px; display: flex; flex-direction: column; align-items: stretch; gap: 14px; }
+.source-form .seg { align-self: flex-start; }
+.source-form .seg-item { height: 56px; padding: 0 26px; font-size: 24px; }
+.source-form .seg-item:focus { background: var(--focus-fill); color: var(--focus-text); }
+.source-form .add { margin: 0; max-width: none; }
+.xt-fields { display: flex; flex-direction: column; gap: 14px; }
+.xt-fields > .field { width: 100%; height: 64px; font-size: 26px; }
