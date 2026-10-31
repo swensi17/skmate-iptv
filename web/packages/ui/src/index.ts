@@ -1,4 +1,6 @@
 export * from "./spatial";
+export * from "./stage";
+export * from "./pointer";
 export * from "./dpad";
 export * from "./motion";
 export * from "./virtual";

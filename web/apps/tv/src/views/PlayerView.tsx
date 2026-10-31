@@ -61,8 +61,13 @@ export function PlayerView({ channels, index, favorite, onStep, onFav, onExit }:
       }
       wake();
     };
+    const onMove = (e: MouseEvent) => { if (e.movementX !== 0 || e.movementY !== 0) wake(); };
     document.addEventListener("keydown", onKey, true);
-    return () => document.removeEventListener("keydown", onKey, true);
+    document.addEventListener("mousemove", onMove, true);
+    return () => {
+      document.removeEventListener("keydown", onKey, true);
+      document.removeEventListener("mousemove", onMove, true);
+    };
   }, [osd, state]);
 
   useEffect(() => { if (osd && state !== "failed") focusFirst(document, "pl-play"); }, [osd && state !== "failed"]);
