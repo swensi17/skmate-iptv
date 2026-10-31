@@ -215,7 +215,7 @@ img.logo { background: #fff; padding: 4px; }
 .block-t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* Thin lines between the rows and between the columns, as in the phone version. */
-.vrow::after { content: ""; position: absolute; left: 20px; right: 20px; bottom: 0; height: 1px; background: var(--line); pointer-events: none; }
+.vrow::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: var(--line); pointer-events: none; }
 .live .groups { padding-right: 16px; border-right: 1px solid var(--line); }
 .live .list { padding-right: 16px; border-right: 1px solid var(--line); }
 .greeting { margin: 6px 0 0 2px; font-size: 22px; color: var(--muted); }
