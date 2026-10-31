@@ -284,3 +284,15 @@ img.logo { background: #fff; padding: 4px; }
 .live .preview { flex: none; width: 620px; }
 @keyframes cats-in { from { width: 0; margin-right: 0; opacity: 0; } to { width: 400px; margin-right: 32px; opacity: 1; } }
 @keyframes cats-out { from { width: 400px; margin-right: 32px; opacity: 1; } to { width: 0; margin-right: 0; opacity: 0; } }
+
+/* Remaining time and progress, the toolbar's sort, logos from the guide. */
+.prog .left { color: var(--dim); }
+.row:focus .prog .left { color: var(--focus-text); opacity: .7; }
+.player-bar-progress { width: 560px; margin-top: 10px; background: rgba(255,255,255,.22); }
+.player-bar-progress .bar-fill { background: #f1f2f3; opacity: 1; }
+.field.small { width: 360px; }
+.sorts { padding: 6px; }
+.sorts .seg-item { height: 52px; padding: 0 20px; font-size: 22px; }
+.sorts .seg-item:focus { background: var(--focus-fill); color: var(--focus-text); }
+.toolbar { gap: 14px; }
+img.logo { object-fit: contain; background: #fff; padding: 4px; border-radius: var(--radius); }

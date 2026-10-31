@@ -5,6 +5,7 @@ import { GuideContext } from "../state/GuideContext";
 import { UiContext } from "../state/UiContext";
 import { capitalize } from "../text";
 import { ChannelLogo } from "./ChannelLogo";
+import { leftLabel } from "./Left";
 
 /** Yellow on webOS (405) and on Tizen (12 once registered); `y` on a keyboard. */
 const isYellow = (e: KeyboardEvent) => e.keyCode === 405 || e.keyCode === 12 || e.key === "y";
@@ -30,7 +31,7 @@ export function ChannelRow(props: {
         <span class="nm">{channel.name}</span>
         {on ? (
           <>
-            <span class="prog">{on.title}</span>
+            <span class="prog">{on.title}<span class="left"> · {leftLabel(on.stop, now)}</span></span>
             <span class="bar"><span class="bar-fill" style={{ width: `${Math.round(progress * 100)}%` }} /></span>
           </>
         ) : null}

@@ -69,6 +69,13 @@ describe("XMLTV", () => {
     expect(progs).toEqual([["a", 'Новости "дня"', "О важном"]]);
   });
 
+  it("reads a channel's logo", () => {
+    let icon: string | undefined;
+    new XmltvScanner({ onChannel: (c) => { icon = c.icon; }, onProgramme: () => undefined })
+      .feed('<channel id="a"><display-name>A</display-name><icon src="http://x/a.png?x=1&amp;y=2" /></channel>');
+    expect(icon).toBe("http://x/a.png?x=1&y=2");
+  });
+
   it("gives the same result however the text is cut into chunks", () => {
     const got: string[] = [];
     const s = new XmltvScanner({ onChannel: (c) => got.push(`c:${c.id}`), onProgramme: (id, p) => got.push(`p:${id}:${p.title}`) });
@@ -132,6 +139,14 @@ describe("syncGuides", () => {
     expect(data.links.has("3")).toBe(false);
     expect(data.nowNext("1", now).now?.title).toBe("Новости");
     expect(data.programmes.has("other")).toBe(false);
+  });
+
+  it("brings the guide's logos for the channels it linked", async () => {
+    const withIcons = body.replace("<display-name>Первый канал</display-name>", '<display-name>Первый канал</display-name><icon src="http://img/1.png"/>');
+    const { data } = await syncGuides({ sources: [source], channels, now, open: async () => new Response(withIcons) });
+    expect(data.logoOf("1")).toBe("http://img/1.png");
+    expect(data.logoOf("3")).toBeUndefined();
+    expect(GuideData.restore(data.serialize(now)).logoOf("1")).toBe("http://img/1.png");
   });
 
   it("reports a failing source and goes on to the next", async () => {

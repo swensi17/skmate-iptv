@@ -1,5 +1,5 @@
 export interface Programme { start: number; stop: number; title: string; desc?: string | undefined }
-export interface GuideChannel { id: string; names: string[] }
+export interface GuideChannel { id: string; names: string[]; /** The channel's logo address, when the guide gives one. */ icon?: string }
 
 export interface XmltvHandlers {
   onChannel(channel: GuideChannel): void;
@@ -82,7 +82,8 @@ export class XmltvScanner {
     const re = /<display-name(?:\s[^>]*)?>([\s\S]*?)<\/display-name>/g;
     let m: RegExpExecArray | null;
     while ((m = re.exec(el)) !== null) names.push(decodeEntities(m[1] as string));
-    this.handlers.onChannel({ id, names });
+    const icon = /<icon\s[^>]*src="([^"]+)"/.exec(el);
+    this.handlers.onChannel({ id, names, ...(icon ? { icon: decodeEntities(icon[1] as string) } : {}) });
   }
 
   private programme(el: string): void {

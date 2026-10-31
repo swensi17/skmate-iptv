@@ -7,6 +7,7 @@ import { usePlayback } from "../state/usePlayback";
 import { GuideContext } from "../state/GuideContext";
 import { capitalize } from "../text";
 import { clock } from "../time";
+import { leftLabel } from "./Left";
 import { ChannelLogo } from "./ChannelLogo";
 
 /** A muted live window for the channel under the cursor, so a channel can be judged before it is opened. */
@@ -31,7 +32,7 @@ export function PreviewPane({ channel, focused, settings }: { channel: Channel |
         {nn?.now ? (
           <div class="preview-prog">
             <div class="pp-title">{nn.now.title}</div>
-            <div class="pp-time">{clock(nn.now.start)} – {clock(nn.now.stop)}</div>
+            <div class="pp-time">{clock(nn.now.start)} – {clock(nn.now.stop)} · {leftLabel(nn.now.stop, now)}</div>
             <div class="bar big"><span class="bar-fill" style={{ width: `${Math.round(nn.progress * 100)}%` }} /></div>
             {nn.now.desc ? <div class="pp-desc">{nn.now.desc}</div> : null}
             {nn.next ? <div class="pp-next"><b>{clock(nn.next.start)}</b> {nn.next.title}</div> : null}

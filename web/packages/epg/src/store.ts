@@ -17,11 +17,19 @@ export class GuideData {
     readonly links: Map<string, string> = new Map(),
     readonly programmes: Map<string, Programme[]> = new Map(),
     public updatedAt = 0,
+    /** Logo address by guide channel id: the logos a playlist without `tvg-logo` lacks. */
+    readonly logos: Map<string, string> = new Map(),
   ) {}
 
   of(channelId: string): Programme[] {
     const epg = this.links.get(channelId);
     return epg === undefined ? [] : this.programmes.get(epg) ?? [];
+  }
+
+  /** The logo the guide gives the channel linked to [channelId], if any. */
+  logoOf(channelId: string): string | undefined {
+    const epg = this.links.get(channelId);
+    return epg === undefined ? undefined : this.logos.get(epg);
   }
 
   nowNext(channelId: string, at: number): NowNext {
@@ -55,7 +63,9 @@ export class GuideData {
           withDesc && p.desc && p.start < at + DESC_AHEAD_MS && p.stop > at - KEEP_PAST_MS ? [p.start, p.stop, p.title, p.desc.slice(0, DESC_MAX)] : [p.start, p.stop, p.title]);
         if (rows.length > 0) programmes[id] = rows;
       });
-      return JSON.stringify({ v: 1, at: this.updatedAt, links: Array.from(this.links), programmes });
+      const logos: Record<string, string> = {};
+      this.links.forEach((epg) => { const l = this.logos.get(epg); if (l) logos[epg] = l; });
+      return JSON.stringify({ v: 2, at: this.updatedAt, links: Array.from(this.links), programmes, logos });
     };
     // Over budget: first the descriptions go, then the far end of the day.
     for (const [withDesc, hours] of [[true, 12], [false, 12], [false, 6], [false, 3]] as const) {
@@ -68,13 +78,14 @@ export class GuideData {
   static restore(json: string | null): GuideData {
     if (!json) return new GuideData();
     try {
-      const o = JSON.parse(json) as { v?: number; at?: number; links?: Array<[string, string]>; programmes?: Record<string, Array<[number, number, string, string?]>> };
-      if (o.v !== 1) return new GuideData();
+      const o = JSON.parse(json) as { v?: number; at?: number; links?: Array<[string, string]>; programmes?: Record<string, Array<[number, number, string, string?]>>; logos?: Record<string, string> };
+      // v1 had no logos: it counts as empty, so the next start downloads the guide again and brings them.
+      if (o.v !== 2) return new GuideData();
       const programmes = new Map<string, Programme[]>();
       for (const [id, list] of Object.entries(o.programmes ?? {})) {
         programmes.set(id, list.map(([start, stop, title, desc]) => ({ start, stop, title, desc })));
       }
-      return new GuideData(new Map(o.links ?? []), programmes, o.at ?? 0);
+      return new GuideData(new Map(o.links ?? []), programmes, o.at ?? 0, new Map(Object.entries(o.logos ?? {})));
     } catch {
       return new GuideData(); // a damaged cache is just an empty one
     }

@@ -7,6 +7,7 @@ import { usePlayback } from "../state/usePlayback";
 import { channelKey } from "../state/favorites";
 import { GuideContext } from "../state/GuideContext";
 import { clock } from "../time";
+import { leftLabel } from "./Left";
 import { ChannelRow } from "./ChannelRow";
 import { PlayerSettingRows } from "./PlayerRows";
 import { SheetHead } from "./SheetHead";
@@ -118,7 +119,12 @@ export function PlayerView({ channels, catalog, index, favorites, recents, onPic
         <div>
           <div class="player-title">{channel.name}</div>
           {via ? <div class="player-now">{t("playerMirror", { name: via.name })}</div> : null}
-          {onNow.now ? <div class="player-now">{onNow.now.title} <span>{clock(onNow.now.start)} – {clock(onNow.now.stop)}</span></div> : null}
+          {onNow.now ? (
+            <>
+              <div class="player-now">{onNow.now.title} <span>{clock(onNow.now.start)} – {clock(onNow.now.stop)} · {leftLabel(onNow.now.stop, guide.now)}</span></div>
+              <div class="bar player-bar-progress"><span class="bar-fill" style={{ width: `${Math.round(onNow.progress * 100)}%` }} /></div>
+            </>
+          ) : null}
           <div class="player-sub">
             {channel.group}
             {engine && settings.showEngine ? ` · ${t("playerEngine", { name: engine })}` : ""}

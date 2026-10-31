@@ -108,7 +108,7 @@ export const en: Record<keyof typeof ru, string> = {
   sportMotor: "Motorsport",
   sportOther: "Other",
   sportEmpty: "There are no sports channels in the playlist",
-  sortProvider: "Playlist order",
+  sortProvider: "As is",
   sortAz: "A–Z",
   sortZa: "Z–A",
   setPreview: "Preview",
@@ -232,5 +232,8 @@ export const en: Record<keyof typeof ru, string> = {
   aboutDisclaimer: "The app has no channels or content of its own: you add your own sources.",
   qrScan: "Scan with a phone",
   more: "More",
+  leftMin: "{m} min left",
+  leftHour: "{h} h {m} min left",
+  until: "until {time}",
   demoPlaylist: "Demo playlist",
 };
