@@ -340,3 +340,13 @@ img.logo { object-fit: contain; background: #fff; padding: 4px; border-radius: v
 .btn.primary { background: var(--focus-fill); color: var(--focus-text); }
 .btn.primary:focus { box-shadow: 0 0 0 4px var(--accent); }
 .wz-hints { padding-bottom: 36px; font-size: 20px; color: var(--dim); }
+
+/* Player menu: categories in a narrow column, channels beside them, the bar still visible below. */
+.pp-cols { display: flex; gap: 0; height: calc(100% - 100px); }
+.pp-cats { width: 390px; flex: none; padding-right: 14px; border-right: 1px solid var(--line); display: flex; flex-direction: column; }
+.pp-cats .menu-row { height: 76px; flex: none; }
+.pp-chs { flex: 1; min-width: 0; padding-left: 14px; }
+.drawer-scrim.open-ended { pointer-events: none; background: rgba(0, 0, 0, .35); }
+.drawer-scrim.open-ended .drawer { pointer-events: auto; }
+.player-bar { z-index: 12; }
+.drawer-scrim { z-index: 10; }
