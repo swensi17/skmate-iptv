@@ -1,6 +1,6 @@
 import { useContext, useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { groupsOf, SearchIndex, type Channel } from "@skmate/core";
-import { focusFirst, Icon, VirtualList } from "@skmate/ui";
+import { focusFirst, Icon, isBack, Presence, VirtualList } from "@skmate/ui";
 import { t } from "../i18n";
 import { channelKey } from "../state/favorites";
 import type { Settings } from "../state/settings";
@@ -10,10 +10,11 @@ import { ChannelRow } from "./ChannelRow";
 import { UiContext } from "../state/UiContext";
 import { PreviewPane } from "./PreviewPane";
 
-const FAV = "\u0000fav";
-const ALL = "\u0000all";
-const RECENT = "\u0000recent";
-const ARCHIVE = "\u0000archive";
+// Keys of the built-in groups; a leading "~" keeps them apart from any group a provider names.
+const FAV = "~fav";
+const ALL = "~all";
+const RECENT = "~recent";
+const ARCHIVE = "~archive";
 const LIST_HEIGHT = 840;
 const DWELL_MS = 600;
 const TYPING_PAUSE_MS = 180;
@@ -48,6 +49,8 @@ export function LiveView(p: Props) {
   const [sort, setSort] = useState<Sort>("provider");
   const [query, setQuery] = useState("");
   const [settled, setSettled] = useState("");
+  // The categories are out of the way while you browse the channels: Left brings them in, Right sends them off.
+  const [catsOpen, setCatsOpen] = useState(false);
   const [focused, setFocused] = useState<Channel | null>(null);
   const [dwelled, setDwelled] = useState<Channel | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout>>();
@@ -74,6 +77,26 @@ export function LiveView(p: Props) {
   useEffect(() => { if (group === FAV && favs.length === 0) setGroup(ALL); }, [favs.length]);
   useEffect(() => { const id = setTimeout(() => setSettled(query), TYPING_PAUSE_MS); return () => clearTimeout(id); }, [query]);
   useEffect(() => () => clearTimeout(timer.current), []);
+  useEffect(() => {
+    if (!catsOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (!isBack(e)) return;
+      e.stopPropagation();
+      e.preventDefault();
+      setCatsOpen(false);
+      focusFirst(document, shown[0] ? `ch-${shown[0].id}` : undefined);
+    };
+    document.addEventListener("keydown", onKey, true); // before the app's own Back
+    return () => document.removeEventListener("keydown", onKey, true);
+  }, [catsOpen, shown]);
+  const openCats = () => {
+    setCatsOpen(true);
+    setTimeout(() => focusFirst(document, `g:${group}`), 60); // once the column has come in
+  };
+  const closeCats = () => {
+    setCatsOpen(false);
+    focusFirst(document, shown[0] ? `ch-${shown[0].id}` : undefined);
+  };
 
   // The preview follows the cursor only after it has rested on a channel: listing fast must not open a stream per row.
   const onFocusChannel = (c: Channel) => {
@@ -118,19 +141,27 @@ export function LiveView(p: Props) {
         </div>
       </div>
       <div class="live-main">
-        <aside class="groups">
-          <VirtualList
-            items={groupItems} rowHeight={ROW} height={LIST_HEIGHT}
-            idOf={(g) => `g:${g.key}`}
-            renderRow={(g) => (
-              <button class="row" data-focus={`g:${g.key}`} onClick={() => setGroup(g.key)} aria-pressed={group === g.key}>
-                <span class="grow">{g.label}</span>
-                <span class="sub">{g.count}</span>
-              </button>
-            )}
-          />
-        </aside>
-        <section class="list">
+        <Presence show={catsOpen} ms={240}>
+          {(out) => (
+            <aside class={`groups${out ? " out" : ""}`} onKeyDown={(e) => {
+              if (e.key === "ArrowRight" || e.keyCode === 39) { e.stopPropagation(); e.preventDefault(); closeCats(); }
+            }}>
+              <VirtualList
+                items={groupItems} rowHeight={ROW} height={LIST_HEIGHT}
+                idOf={(g) => `g:${g.key}`}
+                renderRow={(g) => (
+                  <button class="row" data-focus={`g:${g.key}`} onClick={() => { setGroup(g.key); setCatsOpen(false); }} aria-pressed={group === g.key}>
+                    <span class="grow">{g.label}</span>
+                    <span class="sub">{g.count}</span>
+                  </button>
+                )}
+              />
+            </aside>
+          )}
+        </Presence>
+        <section class="list" onKeyDown={(e) => {
+          if ((e.key === "ArrowLeft" || e.keyCode === 37) && !catsOpen && !(e.target instanceof HTMLInputElement)) { e.stopPropagation(); e.preventDefault(); openCats(); }
+        }}>
           <div class="list-head">{t("channelsCount", { n: shown.length })}{group === ARCHIVE ? ` · ${t("archiveHint")}` : ""}</div>
           <VirtualList
             key={`${group}|${settled}|${sort}|${ROW}`}
