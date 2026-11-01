@@ -31,6 +31,8 @@ export const bn: Record<keyof typeof en, string> = {
   xtPass: "পাসওয়ার্ড",
   xtBad: "সার্ভারের ঠিকানা, ইউজারনেম ও পাসওয়ার্ড দিন",
   playlistAdd: "যোগ করুন",
+  srcFile: "ফাইল থেকে",
+  srcFileBad: "এই ফাইলে কোনো চ্যানেল নেই",
   playlistDelete: "মুছুন",
   playlistLoading: "প্লেলিস্ট লোড হচ্ছে…",
   playlistErrNetwork: "লোড হয়নি: লিংক ও নেটওয়ার্ক দেখুন",

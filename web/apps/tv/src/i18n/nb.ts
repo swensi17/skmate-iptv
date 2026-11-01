@@ -31,6 +31,8 @@ export const nb: Record<keyof typeof en, string> = {
   xtPass: "Passord",
   xtBad: "Skriv inn serveradresse, brukernavn og passord",
   playlistAdd: "Legg til",
+  srcFile: "Fra fil",
+  srcFileBad: "Ingen kanaler i filen",
   playlistDelete: "Slett",
   playlistLoading: "Laster inn spillelisten…",
   playlistErrNetwork: "Kunne ikke laste inn: sjekk lenken og nettverket",

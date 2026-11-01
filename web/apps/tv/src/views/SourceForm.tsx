@@ -1,4 +1,5 @@
-import { useState } from "preact/hooks";
+import { useRef, useState } from "preact/hooks";
+import { detectPlatform } from "../platform";
 import { t } from "../i18n";
 import { normalizeUrl, xtreamUrl } from "../state/playlists";
 
@@ -8,7 +9,25 @@ type Kind = "m3u" | "xtream";
  * Where a playlist comes from, as in the Android app: an M3U / M3U8 link, or an Xtream Codes login (server, login,
  * password) that becomes the provider's own M3U link. [onSubmit] gets the link and says what was wrong, if anything.
  */
-export function SourceForm(p: { idPrefix: string; onSubmit: (url: string) => string | null; addLabel?: string }) {
+export function SourceForm(p: {
+  idPrefix: string;
+  onSubmit: (url: string) => string | null;
+  addLabel?: string;
+  /** A playlist from a file of this device: the error text, or null when it was taken. */
+  onFile?: (name: string, text: string) => Promise<string | null>;
+}) {
+  // A file dialog exists in a browser and in the Windows app; the TVs' own browsers have none.
+  const canPickFile = !!p.onFile && detectPlatform() === "browser";
+  const picker = useRef<HTMLInputElement>(null);
+  const pickFile = (input: HTMLInputElement) => {
+    const file = input.files?.[0];
+    input.value = ""; // the same file chosen again is read again
+    if (!file || !p.onFile) return;
+    const reader = new FileReader();
+    reader.onload = () => { void p.onFile?.(file.name, String(reader.result ?? "")).then(setError); };
+    reader.onerror = () => setError(t("srcFileBad"));
+    reader.readAsText(file);
+  };
   const [kind, setKind] = useState<Kind>("m3u");
   const [url, setUrl] = useState("");
   const [server, setServer] = useState("");
@@ -45,6 +64,13 @@ export function SourceForm(p: { idPrefix: string; onSubmit: (url: string) => str
         <div class="add">
           {field("url", url, setUrl, t("playlistUrlPlaceholder"))}
           <button class="btn" data-focus={`${p.idPrefix}-add`} onClick={submit}>{p.addLabel ?? t("playlistAdd")}</button>
+          {canPickFile ? (
+            <>
+              <button class="btn" data-focus={`${p.idPrefix}-file`} onClick={() => picker.current?.click()}>{t("srcFile")}</button>
+              <input ref={picker} type="file" accept=".m3u,.m3u8,.txt,audio/x-mpegurl,application/vnd.apple.mpegurl" style={{ display: "none" }}
+                onChange={(e) => pickFile(e.currentTarget as HTMLInputElement)} />
+            </>
+          ) : null}
         </div>
       ) : (
         <div class="xt-fields">

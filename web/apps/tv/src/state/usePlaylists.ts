@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "preact/hooks";
 import { guidesInHeader, parseM3U, type Channel } from "@skmate/core";
 import { t, type Key } from "../i18n";
 import { cacheDrop, cacheGet, cachePut, fetchPlaylist, PlaylistError } from "./fetchPlaylist";
+import { fileDrop, fileGet, filePut, isLocal, localUrl, readPlaylistFile } from "./localFiles";
 import { demoText } from "./playlist";
 import { addPlaylist, xtreamGuide, loadStore, nextActive, normalizeUrl, playlistFromSearch, removePlaylist, saveStore, type PlaylistStore } from "./playlists";
 
@@ -44,6 +45,17 @@ export function usePlaylists() {
       setHeaderGuides(own && !named.includes(own) ? [...named, own] : named);
     }
     if (active.url === DEMO_URL) { setChannels(parseM3U(demoText())); setStatus({ kind: "idle" }); return; }
+    // A playlist from a file is read from this device: there is nothing to fetch.
+    if (isLocal(active.url)) {
+      fileGet(active.url).then((text) => {
+        if (!live) return;
+        if (text === null) { setStatus({ kind: "error", message: t("srcFileBad") }); return; }
+        setChannels(parseM3U(text));
+        setHeaderGuides(guidesInHeader(text));
+        setStatus({ kind: "idle" });
+      });
+      return () => { live = false; };
+    }
     setStatus(cached ? { kind: "idle" } : { kind: "loading" });
     fetchPlaylist(active.url).then(
       (text) => {
@@ -76,6 +88,19 @@ export function usePlaylists() {
     return null;
   }, []);
 
+  /** A playlist from a file of this device (Windows, a browser): an error text, or null when it was added. */
+  const addFile = useCallback(async (fileName: string, text: string): Promise<string | null> => {
+    const { name, ok } = readPlaylistFile(fileName, text);
+    if (!ok) return t("srcFileBad");
+    const url = localUrl();
+    try { await filePut(url, text); } catch { return t("srcFileBad"); }
+    setStore((s) => {
+      const list = addPlaylist(s.list, url, name);
+      return { list, activeId: list.find((p) => p.url === url)?.id ?? s.activeId };
+    });
+    return null;
+  }, []);
+
   const addDemo = useCallback(() => {
     setStore((s) => {
       const list = addPlaylist(s.list, DEMO_URL, t("demoPlaylist"));
@@ -88,10 +113,12 @@ export function usePlaylists() {
   const remove = useCallback((id: string) => {
     cacheDrop(id);
     setStore((s) => {
+      const gone = s.list.find((p) => p.id === id);
+      if (gone && isLocal(gone.url)) void fileDrop(gone.url); // the only copy goes with the playlist
       const list = removePlaylist(s.list, id);
       return { list, activeId: nextActive(list, s.activeId === id ? null : s.activeId) };
     });
   }, []);
 
-  return { store, active, channels, status, headerGuides, add, addDemo, select, remove };
+  return { store, active, channels, status, headerGuides, add, addFile, addDemo, select, remove };
 }

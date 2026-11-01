@@ -53,6 +53,7 @@ interface Props {
   store: PlaylistStore;
   status: Status;
   onAddPlaylist: (input: string) => string | null;
+  onAddPlaylistFile: (name: string, text: string) => Promise<string | null>;
   onSelectPlaylist: (id: string) => void;
   onAskDeletePlaylist: (id: string) => void;
   onAskReset: () => void;
@@ -141,7 +142,7 @@ export function SettingsSheet(p: Props) {
               </>
             ) : null}
             {page === "playlists" ? (
-              <PlaylistsPanel store={p.store} status={p.status} onAdd={p.onAddPlaylist} onSelect={p.onSelectPlaylist} onAskDelete={p.onAskDeletePlaylist} />
+              <PlaylistsPanel store={p.store} status={p.status} onAdd={p.onAddPlaylist} onAddFile={p.onAddPlaylistFile} onSelect={p.onSelectPlaylist} onAskDelete={p.onAskDeletePlaylist} />
             ) : null}
             {page === "epg" ? (
               <EpgPanel settings={s} onChange={onChange} data={p.guide.data} status={p.guide.status} outcomes={p.guide.outcomes}

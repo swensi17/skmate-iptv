@@ -7,6 +7,7 @@ interface Props {
   store: PlaylistStore;
   status: Status;
   onAdd: (input: string) => string | null;
+  onAddFile: (name: string, text: string) => Promise<string | null>;
   onSelect: (id: string) => void;
   onAskDelete: (id: string) => void;
 }
@@ -25,7 +26,7 @@ export function PlaylistsPanel(p: Props) {
           <button class="btn" data-focus={`pl-del-${pl.id}`} onClick={() => p.onAskDelete(pl.id)}>{t("playlistDelete")}</button>
         </div>
       ))}
-      <SourceForm idPrefix="pl" onSubmit={p.onAdd} />
+      <SourceForm idPrefix="pl" onSubmit={p.onAdd} onFile={p.onAddFile} />
       {p.status.kind === "loading" ? <div class="status">{t("playlistLoading")}</div> : null}
       {p.status.kind === "error" ? <div class="status error">{p.status.message}</div> : null}
     </div>

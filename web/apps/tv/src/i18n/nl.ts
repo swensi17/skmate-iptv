@@ -31,6 +31,8 @@ export const nl: Record<keyof typeof en, string> = {
   xtPass: "Wachtwoord",
   xtBad: "Vul serveradres, gebruikersnaam en wachtwoord in",
   playlistAdd: "Toevoegen",
+  srcFile: "Uit bestand",
+  srcFileBad: "Geen zenders in dit bestand",
   playlistDelete: "Verwijderen",
   playlistLoading: "Afspeellijst laden…",
   playlistErrNetwork: "Laden mislukt: controleer de link en het netwerk",

@@ -31,6 +31,8 @@ export const zhCN: Record<keyof typeof en, string> = {
   xtPass: "密码",
   xtBad: "请输入服务器地址、用户名和密码",
   playlistAdd: "添加",
+  srcFile: "从文件",
+  srcFileBad: "此文件中没有频道",
   playlistDelete: "删除",
   playlistLoading: "正在加载播放列表…",
   playlistErrNetwork: "无法加载：请检查链接和网络",

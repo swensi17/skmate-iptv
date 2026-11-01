@@ -31,6 +31,8 @@ export const zhTW: Record<keyof typeof en, string> = {
   xtPass: "密碼",
   xtBad: "請輸入伺服器位址、使用者名稱和密碼",
   playlistAdd: "新增",
+  srcFile: "從檔案",
+  srcFileBad: "此檔案中沒有頻道",
   playlistDelete: "刪除",
   playlistLoading: "正在載入播放清單…",
   playlistErrNetwork: "無法載入：請檢查連結和網路",

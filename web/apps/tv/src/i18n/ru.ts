@@ -29,6 +29,8 @@ export const ru = {
   xtPass: "Пароль",
   xtBad: "Укажите адрес сервера, логин и пароль",
   playlistAdd: "Добавить",
+  srcFile: "Файл с устройства",
+  srcFileBad: "В файле нет каналов",
   playlistDelete: "Удалить",
   playlistLoading: "Загружаем плейлист…",
   playlistErrNetwork: "Не удалось загрузить: проверьте ссылку и сеть",

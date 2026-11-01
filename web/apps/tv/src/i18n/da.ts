@@ -31,6 +31,8 @@ export const da: Record<keyof typeof en, string> = {
   xtPass: "Adgangskode",
   xtBad: "Angiv serveradresse, brugernavn og adgangskode",
   playlistAdd: "Tilføj",
+  srcFile: "Fra fil",
+  srcFileBad: "Ingen kanaler i filen",
   playlistDelete: "Slet",
   playlistLoading: "Indlæser afspilningslisten…",
   playlistErrNetwork: "Kunne ikke indlæse: tjek linket og netværket",

@@ -31,6 +31,8 @@ export const eu: Record<keyof typeof en, string> = {
   xtPass: "Pasahitza",
   xtBad: "Idatzi zerbitzariaren helbidea, erabiltzaile-izena eta pasahitza",
   playlistAdd: "Gehitu",
+  srcFile: "Fitxategitik",
+  srcFileBad: "Ez dago katerik fitxategi honetan",
   playlistDelete: "Ezabatu",
   playlistLoading: "Zerrenda kargatzen…",
   playlistErrNetwork: "Ezin izan da kargatu: egiaztatu esteka eta sarea",

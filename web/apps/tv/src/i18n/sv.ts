@@ -31,6 +31,8 @@ export const sv: Record<keyof typeof en, string> = {
   xtPass: "Lösenord",
   xtBad: "Ange serveradress, användarnamn och lösenord",
   playlistAdd: "Lägg till",
+  srcFile: "Från fil",
+  srcFileBad: "Inga kanaler i filen",
   playlistDelete: "Ta bort",
   playlistLoading: "Läser in spellistan…",
   playlistErrNetwork: "Kunde inte läsa in: kontrollera länken och nätverket",

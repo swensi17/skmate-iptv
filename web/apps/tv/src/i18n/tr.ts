@@ -31,6 +31,8 @@ export const tr: Record<keyof typeof en, string> = {
   xtPass: "Parola",
   xtBad: "Sunucu adresini, kullanıcı adını ve parolayı girin",
   playlistAdd: "Ekle",
+  srcFile: "Dosyadan",
+  srcFileBad: "Bu dosyada kanal yok",
   playlistDelete: "Sil",
   playlistLoading: "Liste yükleniyor…",
   playlistErrNetwork: "Yüklenemedi: bağlantıyı ve ağı kontrol edin",

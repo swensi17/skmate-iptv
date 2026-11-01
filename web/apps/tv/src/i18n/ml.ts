@@ -31,6 +31,8 @@ export const ml: Record<keyof typeof en, string> = {
   xtPass: "പാസ്‌വേഡ്",
   xtBad: "സെർവർ വിലാസം, ഉപയോക്തൃനാമം, പാസ്‌വേഡ് നൽകുക",
   playlistAdd: "ചേർക്കുക",
+  srcFile: "ഫയലിൽ നിന്ന്",
+  srcFileBad: "ഈ ഫയലിൽ ചാനലുകളില്ല",
   playlistDelete: "ഇല്ലാതാക്കുക",
   playlistLoading: "പ്ലേലിസ്റ്റ് ലോഡ് ചെയ്യുന്നു…",
   playlistErrNetwork: "ലോഡ് ആയില്ല: ലിങ്കും നെറ്റ്‌വർക്കും പരിശോധിക്കുക",
