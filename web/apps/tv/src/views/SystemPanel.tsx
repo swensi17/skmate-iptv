@@ -1,4 +1,5 @@
 import { useState } from "preact/hooks";
+import { LANGUAGES } from "../i18n/languages";
 import { t } from "../i18n";
 import { clearCaches } from "../state/backup";
 import { detectPlatform } from "../platform";
@@ -52,7 +53,7 @@ export function SystemPanel({ settings, onChange, onQr, onReset, onRedo, update 
   return (
     <>
       <SettingRow<Settings["language"]> id="s-lang" title="setLanguage" hint="setLanguageHint" value={settings.language} onPick={(v) => onChange({ ...settings, language: v })}
-        options={[{ value: "auto", label: t("langAuto") }, { value: "ru", label: t("langRu") }, { value: "en", label: t("langEn") }]} />
+        options={[{ value: "auto" as const, label: t("langAuto") }, ...LANGUAGES.map((l) => ({ value: l.code, label: l.name }))]} compact />
       <SettingRow<boolean> id="s-autoupdate" title="setAutoUpdate" hint="setAutoUpdateHint" value={settings.autoUpdate} onPick={(v) => onChange({ ...settings, autoUpdate: v })}
         options={[{ value: false, label: t("off") }, { value: true, label: t("on") }]} />
       <button class="srow" data-focus="s-update" onClick={() => (update.state.kind === "found" || update.state.kind === "failed" ? update.install() : update.check())}>

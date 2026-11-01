@@ -5,8 +5,12 @@ import "./app.css";
 import { App } from "./App";
 import { fitStage, installPointer } from "@skmate/ui";
 import { detectPlatform, registerRemoteKeys } from "./platform";
+import { loadLanguage } from "./i18n";
+import { load } from "./state/settings";
 
 registerRemoteKeys(detectPlatform());
 fitStage();
 installPointer();
-render(<App />, document.getElementById("app") as HTMLElement);
+// The chosen language is fetched before the first frame, so the screen never flashes in another one.
+const start = () => render(<App />, document.getElementById("app") as HTMLElement);
+void loadLanguage(load().language).then(start, start);

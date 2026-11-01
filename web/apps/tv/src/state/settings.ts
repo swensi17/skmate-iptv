@@ -4,7 +4,7 @@ export type ThemeSetting = "system" | "dark" | "light";
 export type EngineSetting = "auto" | "native" | "hls" | "mpegts";
 export type AspectSetting = "fit" | "fill" | "cover";
 export type BufferSetting = 10 | 30 | 60;
-export type LanguageSetting = "auto" | "ru" | "en";
+export type LanguageSetting = "auto" | import("../i18n/languages").LanguageCode;
 
 export interface Settings {
   theme: ThemeSetting;

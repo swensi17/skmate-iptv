@@ -1,6 +1,7 @@
 import { useEffect, useState } from "preact/hooks";
 import { focusFirst, isBack } from "@skmate/ui";
 import { applyLanguage, t, type Key } from "../i18n";
+import { LANGUAGES } from "../i18n/languages";
 import logo from "../assets/skmate-logo.png";
 import { SourceForm } from "./SourceForm";
 import type { Settings } from "../state/settings";
@@ -102,7 +103,7 @@ export function Wizard({ settings, hasProfile, onPreview, onFinish, onCancel }: 
         <div class="wz-content">
           {step === "welcome" ? (
             <SettingRow<Settings["language"]> id="wz-lang" title="setLanguage" value={s.language} onPick={(language) => change({ ...s, language })}
-              options={[{ value: "auto", label: t("langAuto") }, { value: "ru", label: t("langRu") }, { value: "en", label: t("langEn") }]} />
+              options={[{ value: "auto" as const, label: t("langAuto") }, ...LANGUAGES.map((l) => ({ value: l.code, label: l.name }))]} compact />
           ) : null}
 
           {step === "display" ? (

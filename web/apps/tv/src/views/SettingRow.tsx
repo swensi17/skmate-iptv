@@ -9,6 +9,8 @@ interface Props<T> {
   hint?: Key;
   value: T;
   options: ReadonlyArray<Choice<T>>;
+  /** A long list (the languages): only the chosen value is shown, Left and Right step through the rest. */
+  compact?: boolean;
   onPick: (value: T) => void;
 }
 
@@ -45,7 +47,7 @@ export function SettingRow<T>(p: Props<T>) {
       </span>
       <span class="srow-arrow" aria-hidden="true">‹</span>
       <span class="chips">
-        {p.options.map((o) => (
+        {(p.compact ? p.options.filter((o) => o.value === p.value) : p.options).map((o) => (
           <span
             class="chip" key={String(o.value)} aria-pressed={o.value === p.value}
             onClick={(e) => { e.stopPropagation(); p.onPick(o.value); }}

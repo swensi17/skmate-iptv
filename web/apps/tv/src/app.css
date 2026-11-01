@@ -411,3 +411,8 @@ img.logo { object-fit: contain; background: #fff; padding: 4px; border-radius: v
 .source-form .add { margin: 0; max-width: none; }
 .xt-fields { display: flex; flex-direction: column; gap: 14px; }
 .xt-fields > .field { width: 100%; height: 64px; font-size: 26px; }
+
+/* Arabic: each line takes its direction from its first letter, so an Arabic phrase reads right to left with its
+   punctuation in place while a Latin channel name inside it stays left to right. The screen layout itself is not
+   mirrored as on Android (docs/PARITY.md). */
+html[data-rtl] #app * { unicode-bidi: plaintext; }

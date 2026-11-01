@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "preact/hooks";
 import { archiveUrl, canRemind, hashPin, validPin, verifyPin, visibleTo, type Channel, type Reminder } from "@skmate/core";
 import type { Programme } from "@skmate/epg";
 import { Icon, installDpad, Presence, watchFrames, type IconName } from "@skmate/ui";
-import { applyLanguage, t, type Key } from "./i18n";
+import { applyLanguage, loadLanguage, t, type Key } from "./i18n";
 import skLogo from "./assets/skmate-sk.png";
 import { channelKey, loadFavorites, saveFavorites, toggle } from "./state/favorites";
 import { applyAll, DEFAULTS, load, save, type Settings } from "./state/settings";
@@ -84,6 +84,9 @@ export function App() {
   const guide = useGuide(pl.channels, pl.active, pl.headerGuides, settings);
   const guideValue = useMemo(() => ({ data: guide.data, now: guide.now }), [guide.data, guide.now]);
   applyLanguage(settings.language); // before anything is drawn: the whole screen speaks one language
+  // Another language chosen: its table is fetched, then the screen is drawn again in it.
+  const [, setLangReady] = useState(0);
+  useEffect(() => { void loadLanguage(settings.language).then(() => setLangReady((n) => n + 1)); }, [settings.language]);
 
   useEffect(() => { applyAll(settings, throttled); save(settings); }, [settings, throttled]);
   useEffect(() => watchFrames(() => setThrottled(true)), []);
