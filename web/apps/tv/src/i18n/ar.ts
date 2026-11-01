@@ -31,6 +31,8 @@ export const ar: Record<keyof typeof en, string> = {
   xtPass: "كلمة المرور",
   xtBad: "أدخل عنوان الخادم واسم المستخدم وكلمة المرور",
   playlistAdd: "إضافة",
+  srcFile: "من ملف",
+  srcFileBad: "لا توجد قنوات في هذا الملف",
   playlistDelete: "حذف",
   playlistLoading: "جارٍ تحميل القائمة…",
   playlistErrNetwork: "تعذّر التحميل: تحقّق من الرابط والشبكة",

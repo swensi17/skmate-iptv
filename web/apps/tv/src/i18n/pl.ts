@@ -31,6 +31,8 @@ export const pl: Record<keyof typeof en, string> = {
   xtPass: "Hasło",
   xtBad: "Podaj adres serwera, nazwę użytkownika i hasło",
   playlistAdd: "Dodaj",
+  srcFile: "Z pliku",
+  srcFileBad: "Brak kanałów w tym pliku",
   playlistDelete: "Usuń",
   playlistLoading: "Wczytywanie playlisty…",
   playlistErrNetwork: "Nie udało się wczytać: sprawdź link i sieć",

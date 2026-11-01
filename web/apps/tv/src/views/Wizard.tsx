@@ -4,6 +4,7 @@ import { applyLanguage, t, type Key } from "../i18n";
 import { LANGUAGES } from "../i18n/languages";
 import logo from "../assets/skmate-logo.png";
 import { SourceForm } from "./SourceForm";
+import { readPlaylistFile } from "../state/localFiles";
 import type { Settings } from "../state/settings";
 import { Illustration, type Pic } from "./Illustration";
 import { SettingRow } from "./SettingRow";
@@ -12,7 +13,7 @@ export interface WizardResult {
   name: string | null; // null: a guest, or the profile already exists
   guest: boolean;
   settings: Partial<Settings>;
-  playlist: { kind: "url"; url: string } | { kind: "demo" } | { kind: "none" };
+  playlist: { kind: "url"; url: string } | { kind: "file"; name: string; text: string } | { kind: "demo" } | { kind: "none" };
 }
 
 type Step = "welcome" | "display" | "profile" | "playlist" | "ready";
@@ -39,7 +40,9 @@ export function Wizard({ settings, hasProfile, onPreview, onFinish, onCancel }: 
   const [name, setName] = useState("");
   const [guest, setGuest] = useState(false);
   const [url, setUrl] = useState("");
-  const [choice, setChoice] = useState<"url" | "demo" | "none">("none");
+  const [choice, setChoice] = useState<"url" | "file" | "demo" | "none">("none");
+  // A file chosen on this step: read now, kept until the setup ends (checked to hold channels first).
+  const [file, setFile] = useState<{ name: string; text: string } | null>(null);
 
   const change = (next: Settings | ((cur: Settings) => Settings)) => {
     setS((cur) => {
@@ -72,7 +75,7 @@ export function Wizard({ settings, hasProfile, onPreview, onFinish, onCancel }: 
       name: guest || hasProfile ? null : name.trim(),
       guest: guest && !hasProfile,
       settings: { language: s.language, theme: s.theme, uiScale: s.uiScale },
-      playlist: choice === "url" ? { kind: "url", url } : choice === "demo" ? { kind: "demo" } : { kind: "none" },
+      playlist: choice === "url" ? { kind: "url", url } : choice === "file" && file ? { kind: "file", ...file } : choice === "demo" ? { kind: "demo" } : { kind: "none" },
     });
   };
 
@@ -123,7 +126,11 @@ export function Wizard({ settings, hasProfile, onPreview, onFinish, onCancel }: 
 
           {step === "playlist" ? (
             <>
-              <SourceForm idPrefix="wz" addLabel={t("wzNext")} onSubmit={(link) => { setUrl(link); setChoice("url"); go(1); return null; }} />
+              <SourceForm idPrefix="wz" addLabel={t("wzNext")} onSubmit={(link) => { setUrl(link); setChoice("url"); go(1); return null; }}
+                onFile={async (name, text) => {
+                  if (!readPlaylistFile(name, text).ok) return t("srcFileBad");
+                  setFile({ name, text }); setChoice("file"); go(1); return null;
+                }} />
               <div class="about-note">{t("aboutDisclaimer")}</div>
             </>
           ) : null}

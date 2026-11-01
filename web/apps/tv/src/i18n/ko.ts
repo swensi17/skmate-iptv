@@ -31,6 +31,8 @@ export const ko: Record<keyof typeof en, string> = {
   xtPass: "비밀번호",
   xtBad: "서버 주소, 사용자 이름, 비밀번호를 입력하세요",
   playlistAdd: "추가",
+  srcFile: "파일에서",
+  srcFileBad: "이 파일에 채널이 없습니다",
   playlistDelete: "삭제",
   playlistLoading: "플레이리스트 불러오는 중…",
   playlistErrNetwork: "불러오지 못했습니다: 링크와 네트워크를 확인하세요",

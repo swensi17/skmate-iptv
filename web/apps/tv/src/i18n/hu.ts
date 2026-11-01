@@ -31,6 +31,8 @@ export const hu: Record<keyof typeof en, string> = {
   xtPass: "Jelszó",
   xtBad: "Add meg a kiszolgáló címét, a felhasználónevet és a jelszót",
   playlistAdd: "Hozzáadás",
+  srcFile: "Fájlból",
+  srcFileBad: "Nincs csatorna a fájlban",
   playlistDelete: "Törlés",
   playlistLoading: "Lista betöltése…",
   playlistErrNetwork: "Nem tölthető be: ellenőrizd a hivatkozást és a hálózatot",

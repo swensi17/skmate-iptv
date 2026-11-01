@@ -31,6 +31,8 @@ export const ja: Record<keyof typeof en, string> = {
   xtPass: "パスワード",
   xtBad: "サーバーのアドレス、ユーザー名、パスワードを入力してください",
   playlistAdd: "追加",
+  srcFile: "ファイルから",
+  srcFileBad: "このファイルにチャンネルがありません",
   playlistDelete: "削除",
   playlistLoading: "プレイリストを読み込み中…",
   playlistErrNetwork: "読み込めません: リンクとネットワークを確認してください",

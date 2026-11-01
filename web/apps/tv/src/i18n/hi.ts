@@ -31,6 +31,8 @@ export const hi: Record<keyof typeof en, string> = {
   xtPass: "पासवर्ड",
   xtBad: "सर्वर का पता, यूज़रनेम और पासवर्ड डालें",
   playlistAdd: "जोड़ें",
+  srcFile: "फ़ाइल से",
+  srcFileBad: "इस फ़ाइल में कोई चैनल नहीं",
   playlistDelete: "हटाएँ",
   playlistLoading: "प्लेलिस्ट लोड हो रही है…",
   playlistErrNetwork: "लोड नहीं हुई: लिंक और नेटवर्क जाँचें",
