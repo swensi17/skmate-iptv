@@ -10,7 +10,8 @@
   "scripts": {
     "web": "node scripts/copy-web.cjs",
     "start": "npm run web && electron .",
-    "dist": "npm run web && electron-builder --win --x64 --publish never"
+    "dist": "npm run web && electron-builder --win --x64 --publish never",
+    "test": "node --test"
   },
   "dependencies": {
     "electron-updater": "6.3.9"
@@ -24,7 +25,7 @@
     "productName": "SkMate IPTV",
     "copyright": "SkMate, GPL-3.0",
     "directories": { "output": "dist", "buildResources": "resources" },
-    "files": ["main.cjs", "preload.cjs", "resources/icon.ico", "app/**"],
+    "files": ["main.cjs", "preload.cjs", "recorder.cjs", "resources/icon.ico", "app/**"],
     "win": {
       "target": [{ "target": "nsis", "arch": ["x64"] }],
       "icon": "resources/icon.ico",

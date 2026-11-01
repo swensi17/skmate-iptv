@@ -1,9 +1,11 @@
 // SkMate IPTV for Windows: the web version of the player (../web, the same build as on LG and Samsung) in its own
 // window, with an installer and updates from this repository's GitHub releases.
 const { app, BrowserWindow, dialog, ipcMain, Menu, session, shell } = require("electron");
-const { readFileSync, writeFileSync } = require("node:fs");
+const { existsSync, readFileSync, writeFileSync } = require("node:fs");
+const { execFileSync, spawn } = require("node:child_process");
 const { join } = require("node:path");
 const { autoUpdater } = require("electron-updater");
+const { record } = require("./recorder.cjs");
 
 const SMOKE = process.env.SKMATE_SMOKE === "1"; // a check run: load the page, report, quit
 const UPDATE_EVERY_MS = 6 * 60 * 60 * 1000;
@@ -179,7 +181,65 @@ function setUpUpdates() {
   setInterval(check, UPDATE_EVERY_MS);
 }
 
+/**
+ * VLC and mpv on this computer, as the Android app's external player: where they are installed by default, or on PATH.
+ * SKMATE_PLAYERS (JSON {"vlc": "/path"}) replaces the search, for a check run on a machine without them.
+ */
+function findPlayers() {
+  if (process.env.SKMATE_PLAYERS) { try { return JSON.parse(process.env.SKMATE_PLAYERS); } catch { return {}; } }
+  const onPath = (name) => {
+    try {
+      const out = execFileSync(process.platform === "win32" ? "where" : "which", [name], { encoding: "utf8", windowsHide: true });
+      return out.split(/\r?\n/)[0].trim() || null;
+    } catch { return null; }
+  };
+  const first = (paths) => paths.find((p) => p && existsSync(p)) ?? null;
+  const pf = [process.env.ProgramFiles, process.env["ProgramFiles(x86)"]].filter(Boolean);
+  const found = {
+    vlc: first([...pf.map((d) => join(d, "VideoLAN", "VLC", "vlc.exe")), "/Applications/VLC.app/Contents/MacOS/VLC"]) ?? onPath("vlc"),
+    mpv: first(pf.map((d) => join(d, "mpv", "mpv.exe"))) ?? onPath("mpv"),
+  };
+  return Object.fromEntries(Object.entries(found).filter(([, p]) => p));
+}
+
+/** Opens [url] in [player]; true once it has started. The provider's User-Agent and Referer go along, as on Android. */
+function openInPlayer(player, url, title, headers = {}) {
+  const path = findPlayers()[player];
+  if (!path) return Promise.resolve(false);
+  const ua = headers["User-Agent"];
+  const ref = headers.Referer;
+  const args = player === "vlc"
+    ? [url, `--meta-title=${title}`, ...(ua ? [`--http-user-agent=${ua}`] : []), ...(ref ? [`--http-referrer=${ref}`] : [])]
+    : [url, `--force-media-title=${title}`, ...(ua ? [`--user-agent=${ua}`] : []), ...(ref ? [`--referrer=${ref}`] : [])];
+  return new Promise((resolve) => {
+    const child = spawn(path, args, { detached: true, stdio: "ignore", windowsHide: false });
+    child.once("spawn", () => { child.unref(); resolve(true); });
+    child.once("error", () => resolve(false));
+  });
+}
+
+/** Where recordings go: Videos/SkMate IPTV. */
+const recordingsFolder = () => join(app.getPath("videos"), "SkMate IPTV");
+const recordings = new Map();
+
 function start() {
+  ipcMain.handle("players:list", () => Object.keys(findPlayers()));
+  ipcMain.handle("players:open", (_e, { player, url, title, headers }) => openInPlayer(player, url, title, headers));
+  ipcMain.handle("rec:start", (_e, { id, url, title, headers, stopAtMs }) => {
+    if (recordings.has(id)) return true;
+    const job = record({
+      url, title, headers, stopAtMs, folder: recordingsFolder(),
+      onUpdate: (u) => {
+        if (u.state !== "recording") recordings.delete(id);
+        if (win && !win.isDestroyed()) win.webContents.send("rec:update", { id, ...u });
+      },
+    });
+    recordings.set(id, job);
+    return true;
+  });
+  ipcMain.handle("rec:stop", async (_e, id) => { await recordings.get(id)?.stop(); return true; });
+  ipcMain.handle("rec:folder", () => { shell.openPath(recordingsFolder()); return true; });
+  ipcMain.handle("rec:reveal", (_e, path) => { if (path) shell.showItemInFolder(path); return true; });
   ipcMain.on("full-screen:toggle", () => { if (win) win.setFullScreen(!win.isFullScreen()); });
   ipcMain.handle("full-screen:get", () => Boolean(win && win.isFullScreen()));
   openToProviders();

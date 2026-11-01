@@ -4,7 +4,7 @@ import type { Programme } from "@skmate/epg";
 import { focusFirst, Icon, isBack, Presence, type IconName } from "@skmate/ui";
 import { t, type Key } from "../i18n";
 import { channelKey } from "../state/favorites";
-import { useFullScreen } from "../state/desktop";
+import { desktop, startRecording, stopRecording, useFullScreen, useRecording } from "../state/desktop";
 import { GuideContext } from "../state/GuideContext";
 import type { Settings } from "../state/settings";
 import { usePlayback } from "../state/usePlayback";
@@ -70,9 +70,9 @@ function elapsed(ms: number): string {
   return h > 0 ? `${h}:${String(m).padStart(2, "0")}:${sec}` : `${m}:${sec}`;
 }
 
-function Tile(p: { id: string; icon: IconName; label: Key; onClick: () => void }) {
+function Tile(p: { id: string; icon: IconName; label: Key; onClick: () => void; active?: boolean }) {
   return (
-    <button class="tile" data-focus={p.id} onClick={p.onClick}>
+    <button class={`tile${p.active ? " active" : ""}`} data-focus={p.id} onClick={p.onClick}>
       <span class="tile-icon"><Icon name={p.icon} size={44} /></span>
       <span class="tile-label">{t(p.label)}</span>
     </button>
@@ -193,6 +193,18 @@ export function PlayerView({ channels, catalog, index, favorites, recents, onPic
   };
   const startOver = !archive && live.now ? startOverUrl(channel, live.now.start, live.now.stop) : null;
   const favorite = favorites.has(channelKey(channel));
+  // A small window over other apps, where the browser has one (Chrome, Edge, the Windows app); a TV has not.
+  const canPip = typeof document !== "undefined" && (document as unknown as { pictureInPictureEnabled?: boolean }).pictureInPictureEnabled === true;
+  const pip = () => { video.current?.requestPictureInPicture().catch(() => undefined); };
+  // Recording the channel live to a file, as Android's "Record": only the Windows app can write one. It ends with
+  // the programme on air, or when pressed again, and goes on if the player is closed.
+  const recId = channelKey(channel);
+  const recording = useRecording(recId);
+  const canRecord = !archive && desktop() !== null;
+  const toggleRecord = () => {
+    if (recording) stopRecording(recId);
+    else startRecording(recId, channel.url, live.now ? `${channel.name} ${live.now.title}` : channel.name, channel.headers ?? {}, live.now?.stop ?? null);
+  };
 
   // Two layers: the info strip (what is on) and the action bar (what can be done). The panel is the side menu.
   const [info, setInfo] = useState(true);
@@ -302,6 +314,7 @@ export function PlayerView({ channels, catalog, index, favorites, recents, onPic
       <div class="player-shade" />
 
       <div class={`spinner${state === "loading" ? " on" : ""}`} aria-label={t("playerLoading")} />
+      {recording ? <div class="rec-badge" role="status"><span />{t("recBadge")}</div> : null}
       {paused ? <div class="paused" aria-label={t("playerPaused")}><Icon name="pause" size={96} /></div> : null}
 
       {/* What is on, as in the phone version: the logo, the programme, its time and what is left, the channel, what is next. */}
@@ -369,6 +382,8 @@ export function PlayerView({ channels, catalog, index, favorites, recents, onPic
           <Tile id="pl-fav" icon={favorite ? "favorite" : "star"} label="playerFavorite" onClick={() => onFav(channel)} />
           <Tile id="pl-favs" icon="list" label="favorites" onClick={() => openStrip("favorites")} />
           <Tile id="pl-recent" icon="history" label="panelRecent" onClick={() => openStrip("recent")} />
+          {canRecord ? <Tile id="pl-rec" icon={recording ? "stop" : "record"} label={recording ? "recStop" : "recRecord"} onClick={toggleRecord} active={recording} /> : null}
+          {canPip ? <Tile id="pl-mini" icon="pip" label="playerMini" onClick={pip} /> : null}
           <Tile id="pl-set" icon="settings" label="playerSettings" onClick={() => openPanel("settings", "right")} />
           <Tile id="pl-list" icon="home" label="playerMenu" onClick={() => openPanel("channels", "left")} />
           {full ? <Tile id="pl-full" icon={full.on ? "fullscreen_exit" : "fullscreen"} label={full.on ? "fullScreenExit" : "fullScreen"} onClick={full.toggle} /> : null}

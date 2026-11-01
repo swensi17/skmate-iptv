@@ -47,6 +47,13 @@ h2 { margin: 0 0 24px; font-size: 40px; font-weight: 700; }
 .tile-label { font-size: 22px; font-weight: 600; color: #c6cacf; }
 .tile:focus .tile-icon { background: #f1f2f3; color: #121212; }
 .tile:focus .tile-label { color: #fff; }
+/* A button that is on (recording): red, as the Android app tints it. */
+.tile.active .tile-icon { color: #ef4444; }
+.tile.active:focus .tile-icon { background: #ef4444; color: #fff; }
+/* REC in the corner while the channel is being recorded, over the picture and every layer. */
+.rec-badge { position: absolute; top: 40px; right: 48px; z-index: 25; display: flex; align-items: center; gap: 10px; padding: 8px 16px; border-radius: 8px; background: rgba(0,0,0,.6); color: #fff; font-size: 22px; font-weight: 700; letter-spacing: 1px; }
+.rec-badge span { width: 14px; height: 14px; border-radius: 50%; background: #ef4444; animation: rec-blink 1s steps(1) infinite; }
+@keyframes rec-blink { 50% { opacity: .3; } }
 .spinner { position: absolute; left: 50%; top: 50%; width: 84px; height: 84px; margin: -42px 0 0 -42px; border-radius: 50%; border: 6px solid rgba(255,255,255,.18); border-top-color: #f1f2f3; animation: spin 900ms linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .player-error { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; background: #1e2125; }
