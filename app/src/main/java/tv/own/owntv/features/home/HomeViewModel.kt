@@ -349,6 +349,13 @@ class HomeViewModel(
         resolveHeroMetadata(index)
     }
 
+    /**
+     * Free the hero preview's connection. Call it BEFORE tuning anything from Home, not after: many IPTV
+     * accounts allow one stream at a time, and a tune started while the preview still holds that stream is
+     * refused by the panel. The player then fell through its engines to mpv, drew the old VOD controls and
+     * gave up, again and again — what a channel opened from Home did while the same channel from Live TV
+     * (whose preview pane hands its own stream to the player) played.
+     */
     fun stopPreview() {
         heroPreviewEngine.stop()
     }

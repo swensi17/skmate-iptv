@@ -540,6 +540,8 @@ fun OwnTVShell(
     fun openFullscreen(source: MainSection = selectedSection) {
         restoreFocus = false
         zapSource = source
+        // Every caller has already stopped it before tuning (see stopPreview's note in HomeViewModel); this
+        // one is for the paths that open the player without a new tune.
         homeVm.stopPreview()
         // Only Live TV promotes a channel to the ExoPlayer engine. Movies/Series/Search/EPG/Downloads all
         // play on mpv — clear any stale live-on-ExoPlayer flag so the shell renders mpv, not the old channel.
@@ -554,6 +556,30 @@ fun OwnTVShell(
         player.exitAudioOnly(); runCatching { liveVm.previewEngine.exitAudioOnly() }
         if (playerMode != PlayerMode.MINI) playerMode = PlayerMode.FULLSCREEN
     }
+
+    // Picks made outside the Live TV list (Home, Search, Sports). Home's preview lets go of its stream
+    // before the tune starts, not after: on a one-stream account the tune is refused otherwise.
+    fun playChannelById(id: Long, zap: List<ChannelEntity> = emptyList()) {
+        homeVm.stopPreview()
+        scope.launch { if (liveVm.ensurePlayingByIdAsync(id, zap)) openFullscreen(MainSection.LIVE_TV) }
+    }
+
+    fun playMovieById(id: Long, positionMs: Long) {
+        homeVm.stopPreview()
+        scope.launch {
+            val played = movieVm.playByIdAsync(id, positionMs)
+            if (played && !movieVm.externalPlayerOn.value) openFullscreen(MainSection.MOVIES)
+        }
+    }
+
+    fun playEpisodeById(seriesId: Long, episodeId: Long, positionMs: Long) {
+        homeVm.stopPreview()
+        scope.launch {
+            val played = seriesVm.playFromHomeAsync(seriesId, episodeId, positionMs)
+            if (played && !seriesVm.externalPlayerOn.value) openFullscreen(MainSection.SERIES)
+        }
+    }
+
     // Restore video output on both engines (no-op unless we were in Audio Mode). mpv `vid=auto` /
     // ExoPlayer surface is re-attached by the surface remount right after.
     val resumeVideo = {
@@ -767,6 +793,7 @@ fun OwnTVShell(
     val continueLastWatched = {
         continueTarget?.let { target ->
             scope.launch {
+                homeVm.stopPreview()
                 when (target.kind) {
                     tv.own.owntv.features.home.ContinueKind.LIVE ->
                         if (liveVm.ensurePlayingByIdAsync(target.channelId)) openFullscreen(MainSection.LIVE_TV)
@@ -1365,9 +1392,9 @@ fun OwnTVShell(
                                                             onSelectSection(MainSection.SETTINGS)
                                                         },
                                                         // The same paths Home uses, so the engine ladder, resume and Continue all apply.
-                                                        onPlayChannel = { id -> scope.launch { if (liveVm.ensurePlayingByIdAsync(id)) openFullscreen(MainSection.LIVE_TV) } },
-                                                        onPlayMovie = { id, pos -> scope.launch { if (movieVm.playByIdAsync(id, pos) && !movieVm.externalPlayerOn.value) openFullscreen(MainSection.MOVIES) } },
-                                                        onPlayEpisode = { seriesId, epId, pos -> scope.launch { if (seriesVm.playFromHomeAsync(seriesId, epId, pos) && !seriesVm.externalPlayerOn.value) openFullscreen(MainSection.SERIES) } },
+                                                        onPlayChannel = { id -> playChannelById(id) },
+                                                        onPlayMovie = { id, pos -> playMovieById(id, pos) },
+                                                        onPlayEpisode = ::playEpisodeById,
                                                         onOpenSeries = { id -> seriesVm.openSeriesById(id); restoreFocus = true; onSelectSection(MainSection.SERIES) },
                                                         onChildFocused = { focusedLayer = ShellLayer.CONTENT },
                                                         onEntryHook = { moreEntry = it },
@@ -1387,9 +1414,9 @@ fun OwnTVShell(
                             vm = homeVm,
                             // Skip the fullscreen player when the global external-player toggle is on
                             // (mounting it spins up mpv even though playback went to the external app).
-                            onPlayMovie = { id, pos -> scope.launch { if (movieVm.playByIdAsync(id, pos) && !movieVm.externalPlayerOn.value) openFullscreen(MainSection.MOVIES) } },
-                            onPlayEpisode = { seriesId, epId, pos -> scope.launch { if (seriesVm.playFromHomeAsync(seriesId, epId, pos) && !seriesVm.externalPlayerOn.value) openFullscreen(MainSection.SERIES) } },
-                            onPlayChannel = { id, zap -> scope.launch { if (liveVm.ensurePlayingByIdAsync(id, zap)) openFullscreen(MainSection.LIVE_TV) } },
+                            onPlayMovie = { id, pos -> playMovieById(id, pos) },
+                            onPlayEpisode = { seriesId, epId, pos -> playEpisodeById(seriesId, epId, pos) },
+                            onPlayChannel = { id, zap -> playChannelById(id, zap) },
                             onActivateTrending = { selected, onUnavailable ->
                                 scope.launch {
                                     when (val current = homeVm.revalidateTrendingItem(selected)) {
@@ -1457,7 +1484,7 @@ fun OwnTVShell(
                             // A channel or a programme plays at once, full screen; Back returns to this same search.
                             onGoToChannel = { ch ->
                                 restoreFocus = false
-                                scope.launch { if (liveVm.ensurePlayingByIdAsync(ch.id)) openFullscreen(MainSection.LIVE_TV) }
+                                playChannelById(ch.id)
                             },
                             onGoToMovie = { movie ->
                                 restoreFocus = false
@@ -1525,7 +1552,7 @@ fun OwnTVShell(
                         )
 
                         selectedSection == MainSection.SPORTS -> tv.own.owntv.features.sports.SportsScreen(
-                            onPlayChannel = { ch, zap -> scope.launch { if (liveVm.ensurePlayingByIdAsync(ch.id, zap)) openFullscreen(MainSection.LIVE_TV) } },
+                            onPlayChannel = { ch, zap -> playChannelById(ch.id, zap) },
                             onAddPlaylist = { onSelectSection(MainSection.SETTINGS) },
                             onChildFocused = { focusedLayer = ShellLayer.CONTENT },
                             onEntryHook = { sportsEntry = it },
@@ -1849,7 +1876,9 @@ fun OwnTVShell(
             if (isFull) {
                 // Engine state still distinguishes the live edge from catch-up/archive playback for
                 // controls such as direct number tuning. It must not gate the physical CH keys below.
-                val isLiveStream = liveOnExo || player.isLiveContent
+                // A Live TV channel is live before the engine says so: mpv's flag is set late and not watched.
+                val tunedLiveChannel = zapSource == MainSection.LIVE_TV && !catchupActive
+                val isLiveStream = liveOnExo || player.isLiveContent || tunedLiveChannel
                 // Dedicated CH+/CH- belong to a Live TV/catch-up player for its whole lifetime. Do not
                 // derive this callback from the active engine or current list readiness: both legitimately
                 // go through short false/empty windows during startup and ExoPlayer/mpv handoffs. Browse
@@ -1971,6 +2000,7 @@ fun OwnTVShell(
                         // TV-box look: the channel info at the bottom, and the guide over the picture.
                         // Every live channel, also in the beat between two of them when the engine has not yet said it is live:
                         // the old full control bar must never show there.
+                        liveChannel = isTunedLive,
                         tvBoxInfo = if (TvBoxNav && !catchupActive) { chips, offset ->
                             val epg by liveVm.nowNext.collectAsStateWithLifecycle()
                             val clock by produceState(System.currentTimeMillis()) { while (true) { kotlinx.coroutines.delay(1_000); value = System.currentTimeMillis() } }
@@ -2215,6 +2245,7 @@ fun OwnTVShell(
     val watchReminder: (tv.own.owntv.core.database.entity.ReminderEntity) -> Unit = { r ->
         scope.launch {
             reminderManager.dismiss(r.id)
+            homeVm.stopPreview()
             if (liveVm.ensurePlayingByIdAsync(r.channelId)) openFullscreen(MainSection.LIVE_TV)
         }
     }

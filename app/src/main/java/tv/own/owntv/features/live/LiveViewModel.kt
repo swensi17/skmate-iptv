@@ -1699,7 +1699,7 @@ class LiveViewModel(
         // History is still recorded, so the channel shows up in History/Recently watched either way.
         // A protected channel stays in-app whatever this setting says: no standard intent extra
         // carries a licence URL, so the external player would open it and fail immediately.
-        if (externalPlayerOn.value && channel.drmConfig == null) { playExternal(channel); return }
+        if (playsExternally(channel)) { playExternal(channel); return }
         startInApp(channel)
     }
 
@@ -1747,7 +1747,13 @@ class LiveViewModel(
     }
 
     /** Open a channel from a caller-owned rail (for example Home favorites), preserving that rail as the
-     *  playback browse/zap context instead of replacing it with provider-category metadata. */
+     *  playback browse/zap context instead of replacing it with provider-category metadata.
+     *
+     *  True when the built-in player is to show it. False when the channel is gone, and when Live TV is
+     *  set to play externally: the channel went to another app then, and a full-screen player opened over
+     *  it had no stream of its own — mpv's old controls on a dead picture, while the other app opened and
+     *  failed and the fallback started it here, over and over. If that app cannot take it,
+     *  [internalFallback] still brings the built-in player up. */
     suspend fun ensurePlayingByIdAsync(channelId: Long, zapChannels: List<ChannelEntity> = emptyList()): Boolean {
         val channel = channelDao.getById(channelId) ?: return false
         if (zapChannels.isEmpty()) {
@@ -1757,8 +1763,12 @@ class LiveViewModel(
             zapList.armFromBrowse(zapChannels, title = null, key = null, categoryId = null)
         }
         ensurePlaying(channel)
-        return true
+        return !playsExternally(channel)
     }
+
+    /** [playChannel]'s rule: Live TV set to an external player, except a protected channel, which no
+     *  external player can open. */
+    private fun playsExternally(channel: ChannelEntity): Boolean = externalPlayerOn.value && channel.drmConfig == null
 
     private var historyJob: Job? = null
 

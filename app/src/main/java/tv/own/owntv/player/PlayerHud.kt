@@ -234,6 +234,10 @@ fun PlayerHud(
     // player to the TV-box steps: info, then ▼ again for [onOpenGuide] and the other tiles.
     tvBoxInfo: (@Composable (chips: List<String>, offsetSec: Int?) -> Unit)? = null,
     onOpenGuide: (() -> Unit)? = null,
+    /** A Live TV channel (not a catch-up programme). The engine's own isLiveContent is a plain field that
+     *  Compose cannot watch: on mpv, the fallback engine, it was still "film" when this HUD was first drawn,
+     *  so a live channel got the old seek bar and speed controls. The shell knows better; trust it. */
+    liveChannel: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     // Nothing that ticks is read in this root scope: with the controls hidden it used to recompose
@@ -260,7 +264,7 @@ fun PlayerHud(
     val subCount by player.subCount.collectAsStateWithLifecycle()
     val zoomMode by player.zoomMode.collectAsStateWithLifecycle()
     val speed by player.speed.collectAsStateWithLifecycle()
-    val isLive = player.isLiveContent
+    val isLive = player.isLiveContent || liveChannel
     val switchedToExo = stringResource(R.string.player_switch_exo)
     val switchedToMpv = stringResource(R.string.player_switch_mpv)
     val tuneNotFound = stringResource(R.string.player_channel_not_found)
