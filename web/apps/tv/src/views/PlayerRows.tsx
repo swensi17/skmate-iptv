@@ -1,6 +1,9 @@
+import { useEffect, useState } from "preact/hooks";
+import { isBack } from "@skmate/ui";
 import { t } from "../i18n";
 import { usePlayers } from "../state/desktop";
 import type { Settings } from "../state/settings";
+import { Confirm } from "./Confirm";
 import { onOff, SettingRow } from "./SettingRow";
 
 interface Props { settings: Settings; onChange: (s: Settings) => void }
@@ -10,6 +13,15 @@ export function PlayerSettingRows({ settings: s, onChange }: Props) {
   const set = <K extends keyof Settings>(k: K) => (v: Settings[K]) => onChange({ ...s, [k]: v });
   // Only players found on this computer are offered; with none (a TV, a browser) the row is not there.
   const players = usePlayers();
+  // More than two tiles want more connections than most providers give: asked once, as on Android.
+  const [asking, setAsking] = useState<number | null>(null);
+  useEffect(() => {
+    if (asking === null) return;
+    const onKey = (e: KeyboardEvent) => { if (isBack(e)) { e.stopPropagation(); e.preventDefault(); setAsking(null); } };
+    document.addEventListener("keydown", onKey, true);
+    return () => document.removeEventListener("keydown", onKey, true);
+  }, [asking]);
+  const pickTiles = (n: number) => { if (n > 2 && !s.multiviewWarned) setAsking(n); else onChange({ ...s, multiviewTiles: n }); };
   const secs = (list: number[]) => list.map((n) => ({ value: n, label: t("seconds", { n }) }));
   return (
     <>
@@ -27,6 +39,16 @@ export function PlayerSettingRows({ settings: s, onChange }: Props) {
       {players.length > 0 ? (
         <SettingRow id="s-external" title="setExternal" hint="setExternalHint" value={s.externalPlayer} onPick={set("externalPlayer")}
           options={[{ value: "off", label: t("off") }, ...players.map((p) => ({ value: p as "vlc" | "mpv", label: p === "vlc" ? "VLC" : "mpv" }))]} />
+      ) : null}
+      <SettingRow id="s-multiview" title="setMultiview" hint="setMultiviewHint" value={s.multiview} onPick={set("multiview")} options={onOff()} />
+      {s.multiview ? (
+        <SettingRow<number> id="s-mvtiles" title="setMultiviewTiles" value={s.multiviewTiles} onPick={pickTiles}
+          options={[1, 2, 3, 4].map((n) => ({ value: n, label: t("mvMaxValue", { n }) }))} />
+      ) : null}
+      {asking !== null ? (
+        <Confirm title={t("mvWarnTitle")} body={t("mvWarnBody")} confirm={t("mvUseAnyway")} cancel={t("mvKeepTwo")}
+          onCancel={() => { setAsking(null); onChange({ ...s, multiviewTiles: 2, multiviewWarned: s.multiviewWarned }); }}
+          onConfirm={() => { onChange({ ...s, multiviewTiles: asking, multiviewWarned: true }); setAsking(null); }} />
       ) : null}
       <SettingRow id="s-preview" title="setPreview" hint="setPreviewHint" value={s.preview} onPick={set("preview")} options={onOff()} />
     </>

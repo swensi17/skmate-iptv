@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { defaultEngines } from "./index";
-import { looksLikeHls } from "./engines/hls";
+import { capLevelFor, looksLikeHls } from "./engines/hls";
 
 describe("defaultEngines", () => {
   it("tries the TV's own decoder first, then hls.js", () => {
@@ -25,5 +25,20 @@ describe("looksLikeHls", () => {
     expect(looksLikeHls("http://h/live/1.ts")).toBe(false);
     expect(looksLikeHls("http://h/movie.mp4")).toBe(false);
     expect(looksLikeHls("not a url")).toBe(false);
+  });
+});
+
+describe("capLevelFor", () => {
+  it("takes the best level that fits, else the lowest", () => {
+    expect(capLevelFor([360, 540, 720, 1080], 720)).toBe(2);
+    expect(capLevelFor([1080, 720, 360], 720)).toBe(1);
+    expect(capLevelFor([1080, 2160], 720)).toBe(0);
+    expect(capLevelFor([2160, 1080], 720)).toBe(1);
+    expect(capLevelFor([0, 0], 720)).toBe(0);
+    expect(capLevelFor([], 720)).toBe(0);
+  });
+  it("puts hls.js first when a height is capped", () => {
+    expect(defaultEngines({ maxHeight: 720 }).map((e) => e.id)).toEqual(["hlsjs", "native", "mpegts"]);
+    expect(defaultEngines({ maxHeight: 720, preference: "native" }).map((e) => e.id)).toEqual(["native"]);
   });
 });

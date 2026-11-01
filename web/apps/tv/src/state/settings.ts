@@ -47,6 +47,11 @@ export interface Settings {
   reminderLead: 0 | 1 | 5;
   /** The Windows app: channels open in VLC or mpv on this computer instead (Android's external player). */
   externalPlayer: "off" | "vlc" | "mpv";
+  /** Several live channels on one screen (off by default, as on Android), and the most tiles it may use (1–4). */
+  multiview: boolean;
+  multiviewTiles: number;
+  /** The warning about more than two tiles was accepted once. */
+  multiviewWarned: boolean;
 }
 
 const KEY = "skmate.settings.v1";
@@ -55,7 +60,7 @@ export const DEFAULTS: Settings = {
   openTimeout: 12, osdSeconds: 5, showEngine: true, autoRestart: true, preview: true,
   epgAuto: true, epgEvery: 12, epgSources: [], proxy: "",
   rowSize: 84, uiScale: 100, showLogos: true, showNumbers: true, showProgram: true, interests: [], autoUpdate: false,
-  reminderMode: "ask", reminderLead: 5, externalPlayer: "off",
+  reminderMode: "ask", reminderLead: 5, externalPlayer: "off", multiview: false, multiviewTiles: 2, multiviewWarned: false,
 };
 
 export function load(): Settings {

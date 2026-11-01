@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "preact/hooks";
-import { archiveUrl, canRemind, nextEpisode, type Episode, type Movie, type Show, hashPin, validPin, verifyPin, visibleTo, type Channel, type Reminder } from "@skmate/core";
+import { archiveUrl, canRemind, clampTiles, nextEpisode, openGrid, type Grid, type Episode, type Movie, type Show, hashPin, validPin, verifyPin, visibleTo, type Channel, type Reminder } from "@skmate/core";
 import type { Programme } from "@skmate/epg";
 import { Icon, installDpad, Presence, watchFrames, type IconName } from "@skmate/ui";
 import { applyLanguage, loadLanguage, t, type Key } from "./i18n";
@@ -28,6 +28,8 @@ import { PlayerView } from "./views/PlayerView";
 import { SearchView } from "./views/SearchView";
 import { SettingsSheet, type Page } from "./views/SettingsSheet";
 import { SportView } from "./views/SportView";
+import { MultiviewScreen } from "./views/MultiviewScreen";
+import { maxConnections } from "./state/connections";
 import { VodDetails, episodeLabel } from "./views/VodDetails";
 import { VodPlayer } from "./views/VodPlayer";
 import { VodView } from "./views/VodView";
@@ -57,6 +59,14 @@ export function App() {
     key: string; title: string; subtitle?: string; url: string; headers?: Record<string, string>; startMs: number;
     meta: Omit<Progress, "positionMs" | "durationMs" | "at">; next?: { label: string; play: () => void } | null;
   } | null>(null);
+  // The multiview: several live channels on one screen; the provider's connection limit comes with it.
+  const [multiview, setMultiview] = useState<{ grid: Grid; limit: number } | null>(null);
+  const openMultiview = (c: Channel) => {
+    const max = clampTiles(settings.multiviewTiles);
+    setPlaying(null);
+    setMultiview({ grid: openGrid(c, max), limit: 0 });
+    void maxConnections(pl.active?.url ?? "").then((limit) => setMultiview((cur) => (cur ? { ...cur, limit } : cur)));
+  };
   const [details, setDetails] = useState<{ item: Movie | Show; kind: "movie" | "series" } | null>(null);
   const [settings, setSettings] = useState<Settings>(load);
   const [throttled, setThrottled] = useState(false);
@@ -128,12 +138,13 @@ export function App() {
     if (qr) { setQr(null); return true; }
     if (deletingProfile) { setDeletingProfile(null); return true; }
     if (picking) { setPicking(false); return true; }
+    if (multiview) return true; // the multiview takes Back itself
     if (details) { setDetails(null); return true; }
     if (sheet) { if (sheetPage) setSheetPage(null); else setSheet(false); return true; }
     if (playing) { exitPlayer(); return true; }
     if (section !== "live") { setSection("live"); return true; }
     return false;
-  }), [unlocked, prompt, upcoming, pinAsk, deleting, resetting, qr, deletingProfile, picking, details, sheet, sheetPage, playing, section]);
+  }), [unlocked, prompt, upcoming, pinAsk, deleting, resetting, qr, deletingProfile, picking, details, multiview, sheet, sheetPage, playing, section]);
 
   const openHere = (c: Channel, list: readonly Channel[]) => setPlaying({ list, index: Math.max(0, list.findIndex((x) => x.id === c.id)) });
   // A note at the top that goes by itself: a recording saved, an external player that did not start.
@@ -298,6 +309,19 @@ export function App() {
     );
   }
 
+  if (multiview) {
+    return (
+      <UiContext.Provider value={ui}>
+        <MultiviewScreen
+          initial={multiview.grid} catalog={channels} favorites={favorites} settings={settings}
+          maxTiles={clampTiles(settings.multiviewTiles)} maxConnections={multiview.limit}
+          onFullscreen={(c) => { setMultiview(null); open(c, channels); }}
+          onExit={() => setMultiview(null)}
+        />
+      </UiContext.Provider>
+    );
+  }
+
   if (vodPlay) {
     return (
       <UiContext.Provider value={ui}>
@@ -321,6 +345,7 @@ export function App() {
         onPick={(c, list) => setPlaying({ list, index: Math.max(0, list.findIndex((x) => x.id === c.id)) })}
         onStep={(d) => setPlaying((cur) => (cur ? { list: cur.list, index: (cur.index + d + cur.list.length) % cur.list.length } : cur))}
         onFav={toggleFavorite} onExit={exitPlayer}
+        onMultiview={openMultiview}
         archive={playing.archive ?? null} onLive={() => setPlaying((cur) => (cur ? { list: cur.list, index: cur.index } : cur))}
         onArchive={(programme, url) => setPlaying((cur) => (cur ? { list: cur.list, index: cur.index, archive: { programme, url } } : cur))}
         onGo={(to) => { setSection(to); exitPlayer(); }}
