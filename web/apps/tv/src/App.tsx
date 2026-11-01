@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "preact/hooks";
-import { archiveUrl, canRemind, hashPin, validPin, verifyPin, visibleTo, type Channel, type Reminder } from "@skmate/core";
+import { archiveUrl, canRemind, nextEpisode, type Episode, type Movie, type Show, hashPin, validPin, verifyPin, visibleTo, type Channel, type Reminder } from "@skmate/core";
 import type { Programme } from "@skmate/epg";
 import { Icon, installDpad, Presence, watchFrames, type IconName } from "@skmate/ui";
 import { applyLanguage, loadLanguage, t, type Key } from "./i18n";
@@ -28,11 +28,18 @@ import { PlayerView } from "./views/PlayerView";
 import { SearchView } from "./views/SearchView";
 import { SettingsSheet, type Page } from "./views/SettingsSheet";
 import { SportView } from "./views/SportView";
+import { VodDetails, episodeLabel } from "./views/VodDetails";
+import { VodPlayer } from "./views/VodPlayer";
+import { VodView } from "./views/VodView";
+import { vodSourceOf } from "./state/library";
+import { continueWatching, loadProgress, progressKey, saveProgress, type Progress } from "./state/progress";
 
-type Section = "live" | "guide" | "sport" | "search";
+type Section = "live" | "movies" | "series" | "guide" | "sport" | "search";
 /** The middle of the rail: the places you go; Settings sits apart at the bottom and opens as a sheet. */
 const NAV: Array<[Section, IconName, Key]> = [
   ["live", "live_tv", "navLive"],
+  ["movies", "movies", "navMovies"],
+  ["series", "series", "navSeries"],
   ["guide", "epg", "navGuide"],
   ["sport", "sports", "navSport"],
   ["search", "search", "navSearch"],
@@ -45,6 +52,12 @@ export function App() {
   const [section, setSection] = useState<Section>("live");
   // `archive`: a past programme played from the provider's recording instead of the live stream.
   const [playing, setPlaying] = useState<{ list: readonly Channel[]; index: number; archive?: { programme: Programme; url: string } } | null>(null);
+  // A film or an episode full screen, and the card it was opened from.
+  const [vodPlay, setVodPlay] = useState<{
+    key: string; title: string; subtitle?: string; url: string; headers?: Record<string, string>; startMs: number;
+    meta: Omit<Progress, "positionMs" | "durationMs" | "at">; next?: { label: string; play: () => void } | null;
+  } | null>(null);
+  const [details, setDetails] = useState<{ item: Movie | Show; kind: "movie" | "series" } | null>(null);
   const [settings, setSettings] = useState<Settings>(load);
   const [throttled, setThrottled] = useState(false);
   const [favorites, setFavorites] = useState<Set<string>>(loadFavorites);
@@ -115,11 +128,12 @@ export function App() {
     if (qr) { setQr(null); return true; }
     if (deletingProfile) { setDeletingProfile(null); return true; }
     if (picking) { setPicking(false); return true; }
+    if (details) { setDetails(null); return true; }
     if (sheet) { if (sheetPage) setSheetPage(null); else setSheet(false); return true; }
     if (playing) { exitPlayer(); return true; }
     if (section !== "live") { setSection("live"); return true; }
     return false;
-  }), [unlocked, prompt, upcoming, pinAsk, deleting, resetting, qr, deletingProfile, picking, sheet, sheetPage, playing, section]);
+  }), [unlocked, prompt, upcoming, pinAsk, deleting, resetting, qr, deletingProfile, picking, details, sheet, sheetPage, playing, section]);
 
   const openHere = (c: Channel, list: readonly Channel[]) => setPlaying({ list, index: Math.max(0, list.findIndex((x) => x.id === c.id)) });
   // A note at the top that goes by itself: a recording saved, an external player that did not start.
@@ -156,7 +170,29 @@ export function App() {
   };
   const me = book?.profiles.find((x) => x.id === book.activeId);
   // A kids profile sees no adult category anywhere: one filter here, every screen gets the same list.
-  const channels = useMemo(() => visibleTo(pl.channels, !!me?.kids) as Channel[], [pl.channels, me?.kids]);
+  // Films and series are not channels: they leave Live TV for their own sections, as on Android.
+  const channels = useMemo(() => visibleTo(pl.channels.filter((c) => !c.media), !!me?.kids) as Channel[], [pl.channels, me?.kids]);
+  const vod = useMemo(() => (pl.active ? vodSourceOf(pl.active.url, pl.channels, !!me?.kids) : null), [pl.active?.url, pl.channels, me?.kids]);
+  const playlistId = pl.active?.id ?? "";
+  const [progressTick, setProgressTick] = useState(0);
+  const progressOf = (kind: "movie" | "series") => (id: string): Progress | undefined => loadProgress()[progressKey(playlistId, kind, id)];
+  const continueRow = useMemo(() => continueWatching(playlistId), [playlistId, progressTick]);
+  const playMovie = (m: Movie, startMs: number) => {
+    setDetails(null);
+    setVodPlay({
+      key: progressKey(playlistId, "movie", m.id), title: m.name, url: m.url, headers: m.headers, startMs,
+      meta: { kind: "movie", itemId: m.id, name: m.name, poster: m.poster, item: m },
+    });
+  };
+  const playEpisode = (show: Show, episodes: Episode[], e: Episode, startMs: number) => {
+    setDetails(null);
+    const n = nextEpisode(episodes, e.id);
+    setVodPlay({
+      key: progressKey(playlistId, "series", e.id), title: show.name, subtitle: `${episodeLabel(e)}${e.title ? `  ${e.title}` : ""}`, url: e.url,
+      headers: e.headers, startMs, meta: { kind: "series", itemId: show.id, name: show.name, poster: show.poster, item: show, episodeId: e.id, episodeLabel: episodeLabel(e) },
+      next: n ? { label: `${episodeLabel(n)}${n.title ? `  ${n.title}` : ""}`, play: () => playEpisode(show, episodes, n, 0) } : null,
+    });
+  };
   const recents = useMemo(() => recentChannels(channels, history), [channels, history]);
   // Reminders, as on Android: the guide's "Remind me" sets one; when its moment comes the app asks to switch,
   // switches, or only says so (Settings, Guide). Watch or Close both end it.
@@ -262,6 +298,19 @@ export function App() {
     );
   }
 
+  if (vodPlay) {
+    return (
+      <UiContext.Provider value={ui}>
+        <VodPlayer
+          key={vodPlay.url} title={vodPlay.title} subtitle={vodPlay.subtitle} url={vodPlay.url} headers={vodPlay.headers} startMs={vodPlay.startMs}
+          settings={settings} next={vodPlay.next}
+          onProgress={(positionMs, durationMs) => saveProgress(vodPlay.key, { ...vodPlay.meta, positionMs, durationMs, at: Date.now() })}
+          onExit={() => { setVodPlay(null); setProgressTick((n) => n + 1); }}
+        />
+      </UiContext.Provider>
+    );
+  }
+
   if (playing) {
     const current = playing.list[playing.index] as Channel;
     return (
@@ -323,6 +372,16 @@ export function App() {
         ) : null}
         {section === "guide" ? <GuideView channels={channels} favorites={favorites} status={guide.status} onRefresh={() => void guide.sync()} onOpen={open} onArchive={openArchive} onUpcoming={openUpcoming} reminded={reminded} /> : null}
         {section === "sport" ? <SportView channels={channels} favorites={favorites} onOpen={open} onFav={toggleFavorite} /> : null}
+        {section === "movies" || section === "series" ? (
+          <VodView kind={section === "movies" ? "movie" : "series"} source={vod}
+            continueRow={continueRow.filter((r) => r.kind === (section === "movies" ? "movie" : "series"))}
+            onOpen={(item) => setDetails({ item, kind: section === "movies" ? "movie" : "series" })}
+            onContinue={(r) => setDetails({ item: r.item, kind: r.kind })} />
+        ) : null}
+        {details && vod ? (
+          <VodDetails item={details.item} kind={details.kind} source={vod} progressOf={progressOf(details.kind)}
+            onPlayMovie={playMovie} onPlayEpisode={playEpisode} onClose={() => setDetails(null)} />
+        ) : null}
         {section === "search" ? <SearchView channels={channels} favorites={favorites} onOpen={open} onArchive={openArchive} onUpcoming={openUpcoming} reminded={reminded} onFav={toggleFavorite} /> : null}
       </main>
       <Presence show={sheet}>

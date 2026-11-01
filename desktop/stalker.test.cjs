@@ -96,6 +96,18 @@ function fakePortal({ mac = "00:1A:79:AA:BB:CC", noAllChannels = false } = {}) {
       case "itv/create_link": seen.links++; return json({ cmd: `ffmpeg http://cdn.example/live/${q.get("cmd").match(/ch\/(\d+)/)[1]}.m3u8?token=L${seen.links}` });
       case "tv_archive/create_link": return json({ cmd: `auto http://cdn.example/archive/${encodeURIComponent(q.get("cmd"))}` });
       case "itv/get_epg_info": return json({ data: { 7: [{ name: "Новости", start_timestamp: "1700000000", stop_timestamp: "1700001800" }] } });
+      case "vod/get_categories": return json([{ id: "*", title: "Все" }, { id: "10", title: "Боевики" }]);
+      case "vod/get_ordered_list":
+        return json({ total_items: 2, max_page_items: 1, data: q.get("p") === "1"
+          ? [{ id: "m1", name: "Фильм", cmd: "/media/m1.mpg", screenshot_uri: "http://p/m1.jpg", year: "2019-05-01", rating_imdb: "7.1", description: "сюжет", category_id: "10" }]
+          : [{ id: "m2", o_name: "Film Two", cmd: "http://cdn.example/vod/m2.mp4?t=1", screenshot_uri: "0", year: "1850", rating_imdb: "0" }] });
+      case "series/get_ordered_list":
+        if (q.get("movie_id")) return json({ total_items: 2, max_page_items: 10, data: [
+          { id: "280:1", name: "Сезон 1", cmd: "/media/s280_1.mpg", series: [2, 1, 1] },
+          { id: "281", name: "Specials", cmd: "/media/s281.mpg", series: [1] },
+        ] });
+        return json({ total_items: 1, max_page_items: 10, data: [{ id: "280", name: "Сериал", cmd: "", category_id: "*" }] });
+      case "vod/create_link": return json({ cmd: `ffmpeg http://cdn.example/vod/${encodeURIComponent(q.get("cmd"))}?ep=${q.get("series") ?? "-"}` });
       case "epg/get_simple_data_table":
         return json({ total_items: 1, max_page_items: 10, data: [{ id: "555", start_timestamp: "1700000000", stop_timestamp: "1700001800" }] });
       default: return json(false);
@@ -156,6 +168,41 @@ test("the local server: M3U, XMLTV, a redirect to a fresh link, 401 for a refuse
     const wrong = sourceKey("stalker:http://portal.example:8080/c/#mac=11:22:33:44:55:66");
     assert.equal((await fetch(`${base}/s/${wrong}/playlist.m3u`)).status, 401);
     assert.equal((await fetch(`${base}/s/${sourceKey("nonsense")}/playlist.m3u`)).status, 400);
+  } finally {
+    server.close();
+  }
+});
+
+test("season numbers as on Android: the id's suffix, Specials, a number ending the name, else none", () => {
+  assert.equal(s.seasonNumberOf("280:2", "Season 5"), 2);
+  assert.equal(s.seasonNumberOf("280:0", "Specials"), 0);
+  assert.equal(s.seasonNumberOf("9911", "Specials"), 0);
+  assert.equal(s.seasonNumberOf("9911", "Special"), 0);
+  assert.equal(s.seasonNumberOf("9912", "Season 3"), 3);
+  assert.equal(s.seasonNumberOf("9913", "Season 00"), 0);
+  assert.equal(s.seasonNumberOf("9914", "Extras"), null);
+});
+
+test("portal films and series: categories, pages, posters and years checked, episodes per season, links", async () => {
+  const fake = fakePortal();
+  const { server, base, sourceKey } = await s.startServer({ fetchImpl: fake.fetchImpl });
+  try {
+    const key = sourceKey("stalker:http://portal.example:8080/c/#mac=00:1A:79:AA:BB:CC");
+    const get = async (path) => (await fetch(`${base}/s/${key}/${path}`)).json();
+    assert.deepEqual(await get("vod/categories?type=vod"), [{ id: "10", name: "Боевики" }]);
+    const films = await get("vod/list?type=vod&category=*");
+    assert.equal(films.length, 2);
+    assert.deepEqual({ ...films[0], url: undefined }, { id: "m1", name: "Фильм", category: "10", poster: "http://p/m1.jpg", year: 2019, rating: 7.1, plot: "сюжет", url: undefined });
+    assert.deepEqual(Object.keys(films[1]).sort(), ["category", "id", "name", "url"]);
+    assert.equal(films[1].name, "Film Two");
+    const linked = await fetch(films[0].url, { redirect: "manual" });
+    assert.equal(linked.headers.get("location"), `http://cdn.example/vod/${encodeURIComponent("/media/m1.mpg")}?ep=-`);
+    const direct = await fetch(films[1].url, { redirect: "manual" });
+    assert.equal(direct.headers.get("location"), "http://cdn.example/vod/m2.mp4?t=1"); // a film that already is a stream
+    const eps = await get("vod/episodes?show=280");
+    assert.deepEqual(eps.map((e) => [e.id, e.season, e.episode]), [["280:1:1", 1, 1], ["280:1:2", 1, 2], ["281:1", 0, 1]]);
+    const ep = await fetch(eps[1].url, { redirect: "manual" });
+    assert.equal(ep.headers.get("location"), `http://cdn.example/vod/${encodeURIComponent("/media/s280_1.mpg")}?ep=2`);
   } finally {
     server.close();
   }
