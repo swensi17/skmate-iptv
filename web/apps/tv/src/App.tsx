@@ -153,6 +153,7 @@ export function App() {
         onStep={(d) => setPlaying((cur) => (cur ? { list: cur.list, index: (cur.index + d + cur.list.length) % cur.list.length } : cur))}
         onFav={toggleFavorite} onExit={exitPlayer}
         archive={playing.archive ?? null} onLive={() => setPlaying((cur) => (cur ? { list: cur.list, index: cur.index } : cur))}
+        onArchive={(programme, url) => setPlaying((cur) => (cur ? { list: cur.list, index: cur.index, archive: { programme, url } } : cur))}
         onGo={(to) => { setSection(to); exitPlayer(); }}
         settings={settings} onChangeSettings={setSettings}
       />

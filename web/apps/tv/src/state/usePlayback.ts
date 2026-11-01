@@ -18,6 +18,8 @@ export interface PlaybackOptions {
   bufferSeconds: number;
   openTimeoutMs: number;
   autoRestart: boolean;
+  /** Timeshift: open the live stream this many seconds behind its edge (on hls.js); 0 or absent for live. */
+  liveBehindSeconds?: number;
 }
 
 export function usePlayback(
@@ -41,7 +43,7 @@ export function usePlayback(
     if (!el) return;
     // Why an engine gave up goes to the console: the one line that tells a codec problem from a dead stream.
     const ladder = new PlayerLadder(
-      defaultEngines({ preference: o.engine, bufferSeconds: o.bufferSeconds }),
+      defaultEngines({ preference: o.engine, bufferSeconds: o.bufferSeconds, liveBehindSeconds: o.liveBehindSeconds }),
       { onFail: (f) => console.warn(`[player] ${f.message}`) },
       { openTimeoutMs: o.openTimeoutMs },
     );
@@ -86,7 +88,7 @@ export function usePlayback(
       el.removeEventListener("playing", onPlaying);
       ladder.stop();
     };
-  }, [source0.url, attempt, o.engine, o.bufferSeconds, o.openTimeoutMs, o.autoRestart]);
+  }, [source0.url, attempt, o.engine, o.bufferSeconds, o.openTimeoutMs, o.autoRestart, o.liveBehindSeconds]);
 
   // A new channel starts with a fresh allowance of restarts.
   useEffect(() => { restarts.current = 0; setHop(0); }, [channel.url]);

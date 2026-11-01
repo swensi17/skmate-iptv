@@ -20,7 +20,14 @@ class NeedsRebuild extends PlayFailure {}
  * Fatal errors are healed the way hls.js documents (media recovery, one network retry, a rebuilt decoder)
  * before the engine gives up and lets the ladder move on.
  */
-export interface HlsOptions { bufferSeconds?: number | undefined }
+export interface HlsOptions {
+  bufferSeconds?: number | undefined;
+  /** Timeshift: start this many seconds behind the live edge and keep the played picture to wind back in. */
+  liveBehindSeconds?: number | undefined;
+}
+
+/** How much played live picture hls.js keeps to wind back in while timeshifting (the browser may keep less). */
+const TIMESHIFT_BACK_BUFFER_S = 900;
 
 export class HlsJsEngine implements PlayerEngine {
   readonly id = "hlsjs";
@@ -55,6 +62,7 @@ export class HlsJsEngine implements PlayerEngine {
       const hls = new HlsLib({
         debug: debugOn(),
         ...(this.options.bufferSeconds ? { maxBufferLength: this.options.bufferSeconds, maxMaxBufferLength: this.options.bufferSeconds * 2 } : {}),
+        ...(this.options.liveBehindSeconds ? { liveSyncDuration: this.options.liveBehindSeconds, backBufferLength: TIMESHIFT_BACK_BUFFER_S } : {}),
         enableWorker: true,
         lowLatencyMode: false,
         xhrSetup: (xhr) => {

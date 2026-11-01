@@ -277,6 +277,8 @@ export const ru = {
   playerLive: "В эфир",
   playerBack30: "−30 с",
   playerFwd30: "+30 с",
+  playerStartOver: "С начала",
+  playerBehind: "−{t} от эфира",
   guideArchiveHint: "Передача в записи: OK, чтобы смотреть с начала",
   inMin: "через {m} мин",
   inHour: "через {h} ч {m} мин",
