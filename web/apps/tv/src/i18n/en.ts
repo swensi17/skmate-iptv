@@ -5,6 +5,8 @@ export const en: Record<keyof typeof ru, string> = {
   navLive: "Your channels",
   navSearch: "Search",
   navSettings: "Settings",
+  fullScreen: "Full screen",
+  fullScreenExit: "Windowed",
   allChannels: "All channels",
   channelsCount: "{n} channels",
   searchPlaceholder: "Channel name",

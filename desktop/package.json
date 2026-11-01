@@ -24,7 +24,7 @@
     "productName": "SkMate IPTV",
     "copyright": "SkMate, GPL-3.0",
     "directories": { "output": "dist", "buildResources": "build" },
-    "files": ["main.cjs", "app/**"],
+    "files": ["main.cjs", "preload.cjs", "app/**"],
     "win": {
       "target": [{ "target": "nsis", "arch": ["x64"] }],
       "icon": "build/icon.ico",

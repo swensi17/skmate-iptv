@@ -10,6 +10,7 @@ import { loadHistory, pushRecent, recentChannels, saveHistory } from "./state/hi
 import { UiContext } from "./state/UiContext";
 import { useGuide } from "./state/useGuide";
 import { useUpdates } from "./state/useUpdates";
+import { useFullScreen } from "./state/desktop";
 import { addProfile, firstBook, loadBook, purgeProfile, removeProfile, saveBook, switchProfile, type ProfileBook } from "./state/scope";
 import { usePlaylists } from "./state/usePlaylists";
 import { Confirm } from "./views/Confirm";
@@ -50,6 +51,7 @@ export function App() {
   const [railOpen, setRailOpen] = useState(false);
   const [redo, setRedo] = useState(false);
   const [sheet, setSheet] = useState(false);
+  const full = useFullScreen();
   // Updates wait for the picture to end: nothing interrupts a channel.
   const update = useUpdates(settings.autoUpdate, playing !== null);
   const [sheetPage, setSheetPage] = useState<Page | null>(null);
@@ -168,6 +170,11 @@ export function App() {
           <button class="rail-item" data-focus="nav-settings" data-label={t("navSettings")} aria-label={t("navSettings")} aria-current={sheet} onClick={() => { setSheetPage(null); setSheet(true); }}>
             <Icon name="settings" />
           </button>
+          {full ? (
+            <button class="rail-item" data-focus="nav-full" data-label={t(full.on ? "fullScreenExit" : "fullScreen")} aria-label={t(full.on ? "fullScreenExit" : "fullScreen")} onClick={full.toggle}>
+              <Icon name={full.on ? "fullscreen_exit" : "fullscreen"} />
+            </button>
+          ) : null}
         </div>
       </nav>
       <main class="content">
