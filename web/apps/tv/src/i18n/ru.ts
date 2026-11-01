@@ -3,6 +3,8 @@ export const ru = {
   navLive: "Ваши каналы",
   navSearch: "Поиск",
   navSettings: "Настройки",
+  fullScreen: "На весь экран",
+  fullScreenExit: "Обычное окно",
   allChannels: "Все каналы",
   channelsCount: "{n} каналов",
   searchPlaceholder: "Название канала",

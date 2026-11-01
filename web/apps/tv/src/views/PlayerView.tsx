@@ -3,6 +3,7 @@ import { pickMirrors, type Channel } from "@skmate/core";
 import { focusFirst, Icon, isBack, Presence, type IconName } from "@skmate/ui";
 import { t, type Key } from "../i18n";
 import { channelKey } from "../state/favorites";
+import { useFullScreen } from "../state/desktop";
 import { GuideContext } from "../state/GuideContext";
 import type { Settings } from "../state/settings";
 import { usePlayback } from "../state/usePlayback";
@@ -52,6 +53,7 @@ const CH_DOWN = [428, 34];
 export function PlayerView({ channels, catalog, index, favorites, recents, onPick, closing, onStep, onFav, onExit, settings, onChangeSettings, onGo }: Props) {
   const channel = channels[index] as Channel;
   const video = useRef<HTMLVideoElement>(null);
+  const full = useFullScreen();
   const mirrors = useMemo(() => pickMirrors(channel, catalog), [channel.id, catalog]);
   const { state, engine, paused, retry, togglePause, via } = usePlayback(video, channel, {
     engine: settings.engine, bufferSeconds: settings.buffer, openTimeoutMs: settings.openTimeout * 1000, autoRestart: settings.autoRestart,
@@ -228,6 +230,7 @@ export function PlayerView({ channels, catalog, index, favorites, recents, onPic
           <Tile id="pl-recent" icon="history" label="panelRecent" onClick={() => openStrip("recent")} />
           <Tile id="pl-set" icon="settings" label="playerSettings" onClick={() => openPanel("settings", "right")} />
           <Tile id="pl-list" icon="home" label="playerMenu" onClick={() => openPanel("channels", "left")} />
+          {full ? <Tile id="pl-full" icon={full.on ? "fullscreen_exit" : "fullscreen"} label={full.on ? "fullScreenExit" : "fullScreen"} onClick={full.toggle} /> : null}
         </div>
         )
       ) : null}

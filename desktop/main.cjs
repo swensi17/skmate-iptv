@@ -1,6 +1,6 @@
 // SkMate IPTV for Windows: the web version of the player (../web, the same build as on LG and Samsung) in its own
 // window, with an installer and updates from this repository's GitHub releases.
-const { app, BrowserWindow, dialog, Menu, session, shell } = require("electron");
+const { app, BrowserWindow, dialog, ipcMain, Menu, session, shell } = require("electron");
 const { readFileSync, writeFileSync } = require("node:fs");
 const { join } = require("node:path");
 const { autoUpdater } = require("electron-updater");
@@ -46,10 +46,13 @@ function openToProviders() {
   });
 }
 
-/** Full screen or a window, as the person left it; the first start is full screen, like a TV. */
-const statePath = () => join(app.getPath("userData"), "window.json");
+/**
+ * Full screen or a window, as the person left it. The first start is a maximized window with the usual Windows
+ * buttons; full screen is the button in the app, F11 or Alt+Enter.
+ */
+const statePath = () => join(app.getPath("userData"), "window-state.json");
 function loadFullScreen() {
-  try { return JSON.parse(readFileSync(statePath(), "utf8")).fullScreen !== false; } catch { return true; }
+  try { return JSON.parse(readFileSync(statePath(), "utf8")).fullScreen === true; } catch { return false; }
 }
 function saveFullScreen(fullScreen) {
   try { writeFileSync(statePath(), JSON.stringify({ fullScreen })); } catch { /* the next start is full screen again */ }
@@ -78,15 +81,19 @@ function createWindow() {
     title: "SkMate IPTV",
     icon: join(__dirname, "build", "icon.ico"),
     autoHideMenuBar: true,
-    webPreferences: { contextIsolation: true, sandbox: true, nodeIntegration: false, backgroundThrottling: false },
+    webPreferences: {
+      contextIsolation: true, sandbox: true, nodeIntegration: false, backgroundThrottling: false,
+      preload: join(__dirname, "preload.cjs"),
+    },
   });
   Menu.setApplicationMenu(null);
   win.loadFile(join(__dirname, "app", "index.html"));
   win.webContents.setVisualZoomLevelLimits(1, 1).catch(() => undefined); // no pinch or Ctrl+wheel zoom on top of fitZoom
   win.webContents.on("did-finish-load", fitZoom);
   win.on("resize", fitZoom);
-  win.on("enter-full-screen", () => { fitZoom(); saveFullScreen(true); });
-  win.on("leave-full-screen", () => { fitZoom(); saveFullScreen(false); });
+  const fullScreenChanged = (on) => { fitZoom(); saveFullScreen(on); win.webContents.send("full-screen", on); };
+  win.on("enter-full-screen", () => fullScreenChanged(true));
+  win.on("leave-full-screen", () => fullScreenChanged(false));
 
   // Links the app shows (Telegram, GitHub) open in the system browser, never inside the player window.
   win.webContents.setWindowOpenHandler(({ url }) => {
@@ -123,7 +130,8 @@ function createWindow() {
       const text = await win.webContents.executeJavaScript("document.body.innerText.slice(0, 120)");
       console.log(`[smoke] loaded: ${JSON.stringify(text)}`);
       const fit = await win.webContents.executeJavaScript(
-        `innerWidth + "×" + innerHeight + ", stage scale " + document.documentElement.style.getPropertyValue("--stage-scale")`,
+        `innerWidth + "×" + innerHeight + ", stage scale " + document.documentElement.style.getPropertyValue("--stage-scale")
+          + ", full-screen button " + (window.skmateDesktop ? "on" : "missing")`,
       );
       console.log(`[smoke] window ${win.getContentSize().join("×")}, zoom ${win.webContents.getZoomFactor().toFixed(3)}, page ${fit}`);
       // SKMATE_SMOKE_SHOT: a picture of the window, to look at how sharp the page is drawn.
@@ -172,6 +180,8 @@ function setUpUpdates() {
 }
 
 function start() {
+  ipcMain.on("full-screen:toggle", () => { if (win) win.setFullScreen(!win.isFullScreen()); });
+  ipcMain.handle("full-screen:get", () => Boolean(win && win.isFullScreen()));
   openToProviders();
   createWindow();
   setUpUpdates();
