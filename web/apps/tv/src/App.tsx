@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "preact/hooks";
-import { archiveUrl, hashPin, validPin, verifyPin, visibleTo, type Channel } from "@skmate/core";
+import { archiveUrl, canRemind, hashPin, validPin, verifyPin, visibleTo, type Channel, type Reminder } from "@skmate/core";
 import type { Programme } from "@skmate/epg";
 import { Icon, installDpad, Presence, watchFrames, type IconName } from "@skmate/ui";
 import { applyLanguage, t, type Key } from "./i18n";
@@ -11,6 +11,8 @@ import { loadHistory, pushRecent, recentChannels, saveHistory } from "./state/hi
 import { UiContext } from "./state/UiContext";
 import { useGuide } from "./state/useGuide";
 import { useUpdates } from "./state/useUpdates";
+import { useReminders } from "./state/useReminders";
+import { ProgrammeDialog, ReminderNote, ReminderPrompt } from "./views/Reminders";
 import { useFullScreen } from "./state/desktop";
 import { addProfile, firstBook, loadBook, purgeProfile, removeProfile, saveBook, setKids, setPinHash, switchProfile, type ProfileBook } from "./state/scope";
 import { usePlaylists } from "./state/usePlaylists";
@@ -61,6 +63,9 @@ export function App() {
     return !active?.pinHash || just;
   });
   const [picking, setPicking] = useState(false);
+  // A programme still to come, picked in the guide or the search: watch its channel or set a reminder.
+  const [upcoming, setUpcoming] = useState<{ channel: Channel; programme: Programme; list: readonly Channel[] } | null>(null);
+  const [note, setNote] = useState<Reminder | null>(null);
   const [qr, setQr] = useState<{ name: string; address: string } | null>(null);
   const [history, setHistory] = useState<string[]>(loadHistory);
   const [leaving, setLeaving] = useState(false);
@@ -72,6 +77,10 @@ export function App() {
   const update = useUpdates(settings.autoUpdate, playing !== null);
   const [sheetPage, setSheetPage] = useState<Page | null>(null);
   const pl = usePlaylists();
+  const rem = useReminders();
+  // The reminder whose moment has come first; asked about only in the "ask" mode, and never over the lock screen.
+  const firstDue = rem.due[0] ?? null;
+  const prompt = unlocked && settings.reminderMode === "ask" ? firstDue : null;
   const guide = useGuide(pl.channels, pl.active, pl.headerGuides, settings);
   const guideValue = useMemo(() => ({ data: guide.data, now: guide.now }), [guide.data, guide.now]);
   applyLanguage(settings.language); // before anything is drawn: the whole screen speaks one language
@@ -95,6 +104,8 @@ export function App() {
   // Back: dialog → closes, player → list, any section but the first → the first, in the first → leave the app to the TV.
   useEffect(() => installDpad(() => {
     if (!unlocked) return true; // the lock screen stays until a PIN or another profile is chosen
+    if (prompt) { rem.remove(prompt); return true; }
+    if (upcoming) { setUpcoming(null); return true; }
     if (pinAsk) { setPinAsk(null); return true; }
     if (deleting) { setDeleting(null); return true; }
     if (resetting) { setResetting(false); return true; }
@@ -105,7 +116,7 @@ export function App() {
     if (playing) { exitPlayer(); return true; }
     if (section !== "live") { setSection("live"); return true; }
     return false;
-  }), [unlocked, pinAsk, deleting, resetting, qr, deletingProfile, picking, sheet, sheetPage, playing, section]);
+  }), [unlocked, prompt, upcoming, pinAsk, deleting, resetting, qr, deletingProfile, picking, sheet, sheetPage, playing, section]);
 
   const open = (c: Channel, list: readonly Channel[]) => setPlaying({ list, index: Math.max(0, list.findIndex((x) => x.id === c.id)) });
   /** A past programme: its recording when the channel keeps one, else the channel live. */
@@ -122,6 +133,22 @@ export function App() {
   // A kids profile sees no adult category anywhere: one filter here, every screen gets the same list.
   const channels = useMemo(() => visibleTo(pl.channels, !!me?.kids) as Channel[], [pl.channels, me?.kids]);
   const recents = useMemo(() => recentChannels(channels, history), [channels, history]);
+  // Reminders, as on Android: the guide's "Remind me" sets one; when its moment comes the app asks to switch,
+  // switches, or only says so (Settings, Guide). Watch or Close both end it.
+  const reminded = (c: Channel, p: Programme) => rem.has(channelKey(c), p.start);
+  const openUpcoming = (c: Channel, p: Programme, list: readonly Channel[]) => setUpcoming({ channel: c, programme: p, list });
+  const watchReminder = (r: Reminder) => {
+    rem.remove(r);
+    const c = channels.find((x) => channelKey(x) === r.channel);
+    if (c) setPlaying({ list: channels, index: channels.indexOf(c) });
+  };
+  useEffect(() => {
+    if (!firstDue || !unlocked) return;
+    if (settings.reminderMode === "switch") watchReminder(firstDue);
+    else if (settings.reminderMode === "notify") { rem.remove(firstDue); setNote(firstDue); }
+  }, [firstDue?.channel, firstDue?.start, settings.reminderMode, unlocked]);
+  useEffect(() => { if (!note) return; const id = setTimeout(() => setNote(null), 8000); return () => clearTimeout(id); }, [note]);
+
   const watching = playing ? playing.list[playing.index] : null;
   // A channel counts as watched once it has been on for a moment: zapping past it does not fill the history.
   useEffect(() => {
@@ -223,7 +250,10 @@ export function App() {
         onArchive={(programme, url) => setPlaying((cur) => (cur ? { list: cur.list, index: cur.index, archive: { programme, url } } : cur))}
         onGo={(to) => { setSection(to); exitPlayer(); }}
         settings={settings} onChangeSettings={setSettings}
+        suspended={prompt !== null}
       />
+      {prompt ? <ReminderPrompt reminder={prompt} now={Date.now()} onWatch={() => watchReminder(prompt)} onClose={() => rem.remove(prompt)} /> : null}
+      {note ? <ReminderNote reminder={note} now={Date.now()} /> : null}
       </GuideContext.Provider>
       </UiContext.Provider>
     );
@@ -264,9 +294,9 @@ export function App() {
             recents={recents} paused={false}
           />
         ) : null}
-        {section === "guide" ? <GuideView channels={channels} favorites={favorites} status={guide.status} onRefresh={() => void guide.sync()} onOpen={open} onArchive={openArchive} /> : null}
+        {section === "guide" ? <GuideView channels={channels} favorites={favorites} status={guide.status} onRefresh={() => void guide.sync()} onOpen={open} onArchive={openArchive} onUpcoming={openUpcoming} reminded={reminded} /> : null}
         {section === "sport" ? <SportView channels={channels} favorites={favorites} onOpen={open} onFav={toggleFavorite} /> : null}
-        {section === "search" ? <SearchView channels={channels} favorites={favorites} onOpen={open} onArchive={openArchive} onFav={toggleFavorite} /> : null}
+        {section === "search" ? <SearchView channels={channels} favorites={favorites} onOpen={open} onArchive={openArchive} onUpcoming={openUpcoming} reminded={reminded} onFav={toggleFavorite} /> : null}
       </main>
       <Presence show={sheet}>
         {(out) => (
@@ -304,6 +334,21 @@ export function App() {
           }}
         />
       ) : null}
+      {upcoming ? (
+        <ProgrammeDialog
+          channel={upcoming.channel} programme={upcoming.programme} reminded={reminded(upcoming.channel, upcoming.programme)}
+          onWatch={() => { open(upcoming.channel, upcoming.list); setUpcoming(null); }}
+          onRemind={() => {
+            const { channel: c, programme: p } = upcoming;
+            if (canRemind(p.start, Date.now())) rem.add({ channel: channelKey(c), channelName: c.name, title: p.title, start: p.start, stop: p.stop, lead: settings.reminderLead });
+            setUpcoming(null);
+          }}
+          onCancelRemind={() => { rem.remove({ channel: channelKey(upcoming.channel), start: upcoming.programme.start }); setUpcoming(null); }}
+          onClose={() => setUpcoming(null)}
+        />
+      ) : null}
+      {prompt ? <ReminderPrompt reminder={prompt} now={Date.now()} onWatch={() => watchReminder(prompt)} onClose={() => rem.remove(prompt)} /> : null}
+      {note ? <ReminderNote reminder={note} now={Date.now()} /> : null}
       {/* A fresh dialog for every question: the digits of "New PIN" must not carry over into "Repeat the PIN". */}
       {pinAsk ? <PinDialog key={pinAsk.title} title={pinAsk.title} hint={pinAsk.hint} check={pinAsk.check} onDone={pinAsk.onDone} onCancel={() => setPinAsk(null)} /> : null}
       {book === null || redo ? (

@@ -39,6 +39,8 @@ interface Props {
   onLive: () => void;
   /** Play [programme] from the provider's archive at [url]: "From the start" of the programme on air. */
   onArchive: (programme: Programme, url: string) => void;
+  /** A dialog of the app is over the picture (a reminder): the remote is its, not the player's. */
+  suspended?: boolean;
 }
 
 /** What the player can wind through now: the seekable range, else what is buffered; null before any picture. */
@@ -88,7 +90,7 @@ const CH_DOWN = [428, 34];
  * from the archive) Left and Right wind it 30 s instead, and the bar has "Live". "From the start" plays the programme
  * on air from the archive of a channel that keeps one.
  */
-export function PlayerView({ channels, catalog, index, favorites, recents, onPick, closing, onStep, onFav, onExit, settings, onChangeSettings, onGo, archive, onLive, onArchive }: Props) {
+export function PlayerView({ channels, catalog, index, favorites, recents, onPick, closing, onStep, onFav, onExit, settings, onChangeSettings, onGo, archive, onLive, onArchive, suspended = false }: Props) {
   const channel = channels[index] as Channel;
   const video = useRef<HTMLVideoElement>(null);
   const full = useFullScreen();
@@ -224,6 +226,7 @@ export function PlayerView({ channels, catalog, index, favorites, recents, onPic
   useEffect(() => {
     const swallow = (e: KeyboardEvent) => { e.stopPropagation(); e.preventDefault(); };
     const onKey = (e: KeyboardEvent) => {
+      if (suspended) return;
       if (isBack(e)) {
         swallow(e);
         if (panel) setPanel(false);
@@ -288,7 +291,7 @@ export function PlayerView({ channels, catalog, index, favorites, recents, onPic
       document.removeEventListener("keydown", onKey, true);
       document.removeEventListener("mousemove", onMove, true);
     };
-  }, [info, bar, strip, panel, tab, side, state, paused, channel.id, archive?.url, shifted, liveBehind]);
+  }, [info, bar, strip, panel, tab, side, state, paused, channel.id, archive?.url, shifted, liveBehind, suspended]);
 
   useEffect(() => { if (state === "failed") focusFirst(document, "pl-retry"); }, [state]);
 

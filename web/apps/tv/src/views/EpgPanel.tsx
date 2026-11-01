@@ -49,6 +49,11 @@ export function EpgPanel(p: Props) {
       <SettingRow id="s-epgevery" title="setEpgEvery" hint="setEpgEveryHint" value={s.epgEvery} onPick={(v) => p.onChange({ ...s, epgEvery: v })}
         options={[6, 12, 24].map((n) => ({ value: n as Settings["epgEvery"], label: t("hours", { n }) }))} />
 
+      <SettingRow id="s-remmode" title="setReminders" hint="setRemindersHint" value={s.reminderMode} onPick={(v) => p.onChange({ ...s, reminderMode: v })}
+        options={[{ value: "ask" as const, label: t("setReminderAsk") }, { value: "switch" as const, label: t("setReminderSwitch") }, { value: "notify" as const, label: t("setReminderNotify") }]} />
+      <SettingRow id="s-remlead" title="setReminderLead" hint="setReminderLeadHint" value={s.reminderLead} onPick={(v) => p.onChange({ ...s, reminderLead: v })}
+        options={[{ value: 0 as const, label: t("setReminderAtStart") }, { value: 1 as const, label: t("minBefore", { n: 1 }) }, { value: 5 as const, label: t("minBefore", { n: 5 }) }]} />
+
       <div class="setting-title" style={{ margin: "20px 12px 8px" }}>{t("epgSources")}</div>
       {autoGuides.map((g) => (
         <div class="srcrow" key={g.url}>

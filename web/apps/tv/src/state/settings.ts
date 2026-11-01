@@ -41,6 +41,10 @@ export interface Settings {
   interests: string[];
   /** Install a new version by itself when nothing is playing; off = ask at every start. */
   autoUpdate: boolean;
+  /** When a reminded programme comes: ask to switch, switch, or only say so (as on Android). */
+  reminderMode: "ask" | "switch" | "notify";
+  /** Minutes before the start a reminder comes: 0, 1 or 5. */
+  reminderLead: 0 | 1 | 5;
 }
 
 const KEY = "skmate.settings.v1";
@@ -49,6 +53,7 @@ export const DEFAULTS: Settings = {
   openTimeout: 12, osdSeconds: 5, showEngine: true, autoRestart: true, preview: true,
   epgAuto: true, epgEvery: 12, epgSources: [], proxy: "",
   rowSize: 84, uiScale: 100, showLogos: true, showNumbers: true, showProgram: true, interests: [], autoUpdate: false,
+  reminderMode: "ask", reminderLead: 5,
 };
 
 export function load(): Settings {
