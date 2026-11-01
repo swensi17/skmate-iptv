@@ -13,10 +13,35 @@ M3U and Xtream Codes, TV guide (EPG), catch-up, profiles — built for the remot
 <p align="center">
   <a href="https://github.com/swensi17/skmate-iptv/releases/latest"><img alt="Release" src="https://img.shields.io/github/v/release/swensi17/skmate-iptv?label=release&color=1e88e5"></a>
   <a href="https://github.com/swensi17/skmate-iptv/releases"><img alt="Downloads" src="https://img.shields.io/github/downloads/swensi17/skmate-iptv/total?color=43a047"></a>
+  <a href="https://github.com/swensi17/skmate-iptv/stargazers"><img alt="Stars" src="https://img.shields.io/github/stars/swensi17/skmate-iptv?style=flat&color=f5c518&logo=github"></a>
+  <a href="https://github.com/swensi17/skmate-iptv/network/members"><img alt="Forks" src="https://img.shields.io/github/forks/swensi17/skmate-iptv?style=flat&logo=github"></a>
   <a href="../../LICENSE"><img alt="License GPL-3.0" src="https://img.shields.io/badge/license-GPL--3.0-blue"></a>
-  <img alt="Android TV" src="https://img.shields.io/badge/Android%20TV-8.0%2B-3ddc84?logo=androidtv&logoColor=white">
+  <a href="https://github.com/swensi17/skmate-iptv/actions/workflows/build.yml"><img alt="Build" src="https://img.shields.io/github/actions/workflow/status/swensi17/skmate-iptv/build.yml?branch=main&label=build"></a>
+  <a href="https://github.com/swensi17/skmate-iptv/actions/workflows/web.yml"><img alt="Web" src="https://img.shields.io/github/actions/workflow/status/swensi17/skmate-iptv/web.yml?branch=main&label=web"></a>
+  <a href="https://github.com/swensi17/skmate-iptv/commits/main"><img alt="Last commit" src="https://img.shields.io/github/last-commit/swensi17/skmate-iptv?color=8e44ad"></a>
+  <a href="https://github.com/swensi17/skmate-iptv/commits/main"><img alt="Commit activity" src="https://img.shields.io/github/commit-activity/m/swensi17/skmate-iptv?color=8e44ad"></a>
+  <a href="https://github.com/swensi17/skmate-iptv/issues"><img alt="Issues" src="https://img.shields.io/github/issues/swensi17/skmate-iptv?color=e67e22"></a>
+</p>
+
+<p align="center">
+  <img alt="Android TV" src="https://img.shields.io/badge/Android%20TV-8.0%2B-3ddc84?logo=android&logoColor=white">
+  <img alt="Google TV" src="https://img.shields.io/badge/Google%20TV-supported-4285f4?logo=googletv&logoColor=white">
+  <img alt="Fire TV" src="https://img.shields.io/badge/Fire%20TV-supported-ff9900?logo=android&logoColor=white">
+  <img alt="Windows" src="https://img.shields.io/badge/Windows-10%20%7C%2011-0078d4?logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0id2hpdGUiPjxwYXRoIGQ9Ik0wIDBoMTF2MTFIMHpNMTMgMGgxMXYxMUgxM3pNMCAxM2gxMXYxMUgwek0xMyAxM2gxMXYxMUgxM3oiLz48L3N2Zz4%3D&logoColor=white">
+  <img alt="LG webOS" src="https://img.shields.io/badge/LG-webOS%204%2B-a50034?logo=lg&logoColor=white">
+  <img alt="Samsung Tizen" src="https://img.shields.io/badge/Samsung-Tizen%204%2B-1428a0?logo=samsung&logoColor=white">
+  <a href="https://swensi17.github.io/skmate-iptv/"><img alt="Web demo" src="https://img.shields.io/badge/demo-online-00b894?logo=googlechrome&logoColor=white"></a>
+</p>
+
+<p align="center">
   <img alt="Kotlin" src="https://img.shields.io/badge/Kotlin-Compose%20for%20TV-7f52ff?logo=kotlin&logoColor=white">
   <img alt="libVLC" src="https://img.shields.io/badge/engine-libVLC-ff8800?logo=vlcmediaplayer&logoColor=white">
+  <img alt="mpv" src="https://img.shields.io/badge/engine-mpv-691f69?logo=mpv&logoColor=white">
+  <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-Preact-3178c6?logo=typescript&logoColor=white">
+  <img alt="Electron" src="https://img.shields.io/badge/Electron-Windows-47848f?logo=electron&logoColor=white">
+  <img alt="M3U" src="https://img.shields.io/badge/M3U%20%7C%20Xtream%20%7C%20Stalker-sources-555">
+  <img alt="EPG" src="https://img.shields.io/badge/EPG-XMLTV-555">
+  <img alt="No ads" src="https://img.shields.io/badge/ads-none-2ecc71">
 </p>
 
 <p align="center"><a href="../../README.md">Русский</a> · <b>English</b> · <a href="README.zh.md">中文</a></p>
