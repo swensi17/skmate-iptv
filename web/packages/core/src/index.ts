@@ -5,3 +5,4 @@ export * from "./catchup";
 export * from "./timeshift";
 export * from "./parental";
 export * from "./reminders";
+export * from "./vod";

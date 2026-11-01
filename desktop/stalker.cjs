@@ -125,6 +125,33 @@ function genresOf(js) {
   return rowsOf(js).map(scalars).filter((g) => g.id && g.title).map((g) => ({ id: g.id, title: g.title }));
 }
 
+/** A film or a show of a portal's list, Android's readVodItem: poster, year 1900–2100, rating above 0, its category. */
+function vodItemOf(f) {
+  const id = f.id?.trim();
+  if (!id) return null;
+  const poster = [f.screenshot_uri, f.poster, f.cover].find((v) => v && v.trim() && v.trim() !== "0");
+  const year = Number(/\d{4}/.exec(f.year ?? "")?.[0] ?? 0);
+  const rating = Number(f.rating_imdb ?? f.rating ?? 0);
+  const category = [f.category_id, f.category].find((v) => v && v !== "*") ?? "";
+  const added = /^\d+$/.test(f.added ?? "") ? Number(f.added) * (Number(f.added) < 1e10 ? 1000 : 1) : epgTimeMs(null, f.added);
+  const item = { id, name: f.name || f.o_name || id, category, cmd: f.cmd ?? "" };
+  if (poster) item.poster = poster.trim();
+  if (year >= 1900 && year <= 2100) item.year = year;
+  if (rating > 0) item.rating = rating;
+  if (f.description) item.plot = f.description;
+  if (added) item.addedAt = added;
+  return item;
+}
+
+/** A season's number: the id's suffix ("280:2"), 0 for Specials, a number ending its name; else null (Android's seasonNumberOf). */
+function seasonNumberOf(id, name) {
+  const suffix = String(id).includes(":") ? String(id).split(":").pop() : "";
+  if (/^\d+$/.test(suffix)) return Number(suffix);
+  if (name && /\bspecials?\b/i.test(name)) return 0;
+  const m = /(\d+)\s*$/.exec(String(name ?? "").trim());
+  return m ? Number(m[1]) : null;
+}
+
 /** `get_profile`'s rejection: an object with a message and no `id`. */
 function profileRefusal(profile) {
   if (profile.id && profile.id.trim()) return null;
@@ -294,12 +321,51 @@ function portal({ url, mac, userAgent, fetchImpl = fetch, now = Date.now, timeZo
       return listed.value;
     },
     /** A playable address for a channel's cmd: as it is when it already is one, else a fresh create_link. */
-    async link(cmd, type = "itv") {
+    async link(cmd, type = "itv", episode = null) {
       const direct = stripCmdPrefix(cmd);
-      if (type === "itv" && isDirectPlayUrl(direct)) return direct;
-      const js = scalars(await call(`type=${enc(type)}&action=create_link&cmd=${enc(cmd)}&forced_storage=0&disable_ad=0`));
+      // A channel or a film whose cmd already is the stream plays as it is; an episode always needs its own link.
+      if ((type === "itv" || (type === "vod" && episode === null)) && isDirectPlayUrl(direct)) return direct;
+      const series = episode === null ? "" : `&series=${enc(String(episode))}`;
+      const js = scalars(await call(`type=${enc(type)}&action=create_link&cmd=${enc(cmd)}${series}&forced_storage=0&disable_ad=0`));
       if (!js.cmd || !js.cmd.trim()) throw new AuthError("Portal create_link returned no cmd — token may have expired");
       return stripCmdPrefix(js.cmd);
+    },
+    /** Film ("vod") or show ("series") categories. */
+    async vodCategories(type) {
+      return rowsOf(await call(`type=${enc(type)}&action=get_categories`)).map(scalars)
+        .flatMap((c) => (c.id && c.id !== "*" && (c.title || c.name) ? [{ id: c.id, name: c.title || c.name }] : []));
+    },
+    /** One category's films or shows, page by page up to [maxPages]; "*" is the whole list where the portal allows it. */
+    async vodList(type, category, maxPages = 30) {
+      const out = [];
+      for (let p = 1; p <= maxPages; p++) {
+        const js = await call(`type=${enc(type)}&action=get_ordered_list&category=${enc(category)}&sortby=added&p=${p}`);
+        const page = rowsOf(js).map(scalars).map(vodItemOf).filter(Boolean);
+        out.push(...page);
+        const total = parseInt(js.total_items, 10) || 0;
+        const per = parseInt(js.max_page_items, 10) || page.length;
+        if (page.length === 0 || p * per >= total) break;
+      }
+      return out;
+    },
+    /** A show's episodes: its seasons, each with the episode numbers the portal lists and the season's cmd. */
+    async episodes(showId) {
+      const seasons = [];
+      for (let p = 1; p <= 20; p++) {
+        const js = await call(`type=series&action=get_ordered_list&movie_id=${enc(showId)}&p=${p}`);
+        const rows = rowsOf(js);
+        rows.forEach((r) => seasons.push(r));
+        const total = parseInt(js.total_items, 10) || 0;
+        const per = parseInt(js.max_page_items, 10) || rows.length;
+        if (rows.length === 0 || p * per >= total) break;
+      }
+      return seasons.flatMap((r, i) => {
+        const f = scalars(r);
+        if (!f.id || !f.cmd) return [];
+        const season = seasonNumberOf(f.id, f.name) ?? i + 1;
+        const numbers = [...new Set((Array.isArray(r.series) ? r.series : []).map(Number).filter((n) => n > 0))].sort((a, b) => a - b);
+        return numbers.map((n) => ({ id: `${f.id}:${n}`, season, episode: n, title: "", cmd: f.cmd }));
+      });
     },
     async guide(days = GUIDE_DAYS) { return guideOf(await call(`type=itv&action=get_epg_info&period=${days}`)); },
     /** The archive of a past programme: the portal's own programme id from its day table, as Android finds it. */
@@ -380,7 +446,7 @@ function startServer({ port = 0, fetchImpl = fetch, onStreamHost } = {}) {
   };
   const server = http.createServer(async (req, res) => {
     const u = new URL(req.url, "http://127.0.0.1");
-    const m = /^\/s\/([^/]+)\/(playlist\.m3u|guide\.xml|live\/[^/]+|archive\/[^/]+)$/.exec(u.pathname);
+    const m = /^\/s\/([^/]+)\/(playlist\.m3u|guide\.xml|live\/[^/]+|archive\/[^/]+|vod\/(?:categories|list|episodes|play))$/.exec(u.pathname);
     const send = (code, type, body, extra = {}) => {
       res.writeHead(code, { "Content-Type": type, "Access-Control-Allow-Origin": "*", "Cache-Control": "no-store", ...extra });
       res.end(body);
@@ -393,6 +459,22 @@ function startServer({ port = 0, fetchImpl = fetch, onStreamHost } = {}) {
       if (m[2] === "playlist.m3u") {
         const { channels, genres } = await a.channels();
         send(200, "audio/x-mpegurl; charset=utf-8", toM3U(channels, genres, base));
+      } else if (m[2].startsWith("vod/")) {
+        // Films and series as JSON for the page (the addresses in them play through vod/play), or the play redirect.
+        const q = (k) => u.searchParams.get(k) ?? "";
+        const type = q("type") === "series" ? "series" : "vod";
+        const play = (cmd, episode) => `${base}/vod/play?cmd=${encodeURIComponent(cmd)}${episode ? `&series=${episode}` : ""}`;
+        const json = (v) => send(200, "application/json; charset=utf-8", JSON.stringify(v));
+        if (m[2] === "vod/categories") json(await a.vodCategories(type));
+        else if (m[2] === "vod/list") {
+          const items = await a.vodList(type, q("category") || "*");
+          json(items.map(({ cmd, ...it }) => (type === "vod" ? { ...it, url: play(cmd) } : it)));
+        } else if (m[2] === "vod/episodes") json((await a.episodes(q("show"))).map(({ cmd, ...e }) => ({ ...e, url: play(cmd, e.episode) })));
+        else {
+          const target = await a.link(q("cmd"), "vod", q("series") ? Number(q("series")) : null);
+          try { onStreamHost?.(new URL(target).host); } catch { /* not a URL: the player will say so */ }
+          send(302, "text/plain", "", { Location: target });
+        }
       } else if (m[2] === "guide.xml") {
         const [{ channels }, programmes] = await Promise.all([a.channels(), a.guide()]);
         send(200, "application/xml; charset=utf-8", toXmltv(channels, programmes));
@@ -420,5 +502,5 @@ function startServer({ port = 0, fetchImpl = fetch, onStreamHost } = {}) {
 module.exports = {
   DEFAULT_MAG_USER_AGENT, AuthError, canonicalizeMac, portalRoot, apiCandidates, isValidPortalUrl, stripCmdPrefix,
   isDirectPlayUrl, hasArchive, archiveDays, sessionTtlMs, unwrap, channelsOf, genresOf, profileRefusal, epgTimeMs,
-  guideOf, toM3U, toXmltv, portal, parseSource, startServer,
+  guideOf, toM3U, toXmltv, portal, parseSource, startServer, vodItemOf, seasonNumberOf,
 };

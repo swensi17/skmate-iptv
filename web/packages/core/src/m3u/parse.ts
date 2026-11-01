@@ -17,6 +17,36 @@ export interface Channel {
   catchupCorrectionMin?: number;
   /** Lines like `#EXTVLCOPT:http-user-agent=…` that precede the URL. */
   headers?: Record<string, string>;
+  /** A film or an episode of a series rather than a channel (see [mediaOf]); absent for live TV. */
+  media?: "movie" | "series";
+}
+
+/** Containers of a film file. `.ts`, `.m3u8`, `.mpd`, `.flv` are never here: those are how live TV comes. */
+const PROGRESSIVE = new Set(["mp4", "m4v", "mkv", "avi", "mov", "wmv", "webm", "mpg", "mpeg"]);
+
+/** An http(s), file or bare-path address of a film file, by the extension of its last path segment (Android's ProgressiveVideoUrl). */
+export function isProgressiveVideoUrl(url: string): boolean {
+  const u = url.split("|")[0]?.trim() ?? ""; // `7.mp4|User-Agent=Foo`: the headers suffix is not the file
+  const scheme = /^([a-z][a-z0-9+.-]*):/i.exec(u)?.[1]?.toLowerCase();
+  if (scheme && scheme !== "http" && scheme !== "https" && scheme !== "file") return false;
+  const path = u.replace(/[?#].*$/, "");
+  const last = path.split("/").pop() ?? "";
+  const dot = last.lastIndexOf(".");
+  return dot > 0 && PROGRESSIVE.has(last.slice(dot + 1).toLowerCase());
+}
+
+/**
+ * Film, series or live, as the Android app's M3uParser decides: only `type` / `tvg-type` count, and any of them wins
+ * over the address (`tvg-type="live"` on an `.mp4` stays live); an entry with neither is a film when its address is
+ * a film file. A name like "Show S01E05" alone does not make a series: that takes the tag.
+ */
+export function mediaOf(type: string | undefined, tvgType: string | undefined, url: string): "movie" | "series" | undefined {
+  const t = type?.trim().toLowerCase() || undefined;
+  const tt = tvgType?.trim().toLowerCase() || undefined;
+  if (t === "series" || tt === "series") return "series";
+  if (t === "vod" || t === "movie" || tt === "vod" || tt === "movie") return "movie";
+  if (t === undefined && tt === undefined && isProgressiveVideoUrl(url)) return "movie";
+  return undefined;
 }
 
 const ATTR = /([\w-]+)="([^"]*)"/g;
@@ -96,6 +126,8 @@ export function parseM3U(text: string): Channel[] {
       const correction = correctionMinutes(a["catchup-correction"]) ?? headerCorrection;
       if (correction) channel.catchupCorrectionMin = correction;
       if (Object.keys(headers).length > 0) channel.headers = headers;
+      const media = mediaOf(a["type"], a["tvg-type"], line);
+      if (media) channel.media = media;
       channels.push(channel);
       info = null;
       headers = {};
