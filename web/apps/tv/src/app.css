@@ -293,6 +293,18 @@ img.logo { background: #fff; padding: 4px; }
 .dialog.qr { width: 560px; }
 .qr-code { display: flex; justify-content: center; margin: 8px 0 20px; }
 .qr-code svg { border-radius: var(--radius); }
+/* Another device on the Wi-Fi: the QR beside the address, the PIN and what to do (LinkDialog). */
+.dialog.qr.link { width: 1040px; }
+.link-body { display: flex; gap: 40px; align-items: center; min-height: 320px; margin-bottom: 16px; }
+.link-body .qr-code { margin: 0; flex: none; }
+.link-text { display: flex; flex-direction: column; gap: 14px; text-align: start; }
+.link-url { font-size: 30px; font-weight: 700; word-break: break-all; }
+.link-pin { font-size: 40px; font-weight: 800; letter-spacing: 2px; }
+.link-hint { font-size: 22px; color: var(--muted); line-height: 1.4; }
+.link-form { display: flex; flex-direction: column; gap: 14px; margin-bottom: 16px; }
+.link-form .row-actions { display: flex; gap: 16px; }
+.link-form .row-actions .btn { flex: 1; display: flex; flex-direction: column; align-items: flex-start; text-align: start; gap: 4px; height: auto; padding: 16px 20px; }
+.link-form .row-actions small { display: block; font-size: 18px; font-weight: 400; opacity: .75; }
 .drawer-scrim.closing { animation: fade-out var(--exit-ms, 220ms) linear both; }
 .drawer.out.drawer-right { animation: to-right var(--exit-ms, 220ms) cubic-bezier(.4, 0, 1, 1) both; }
 .drawer.out.drawer-left { animation: to-left var(--exit-ms, 220ms) cubic-bezier(.4, 0, 1, 1) both; }

@@ -7,6 +7,7 @@ const { join } = require("node:path");
 const { autoUpdater } = require("electron-updater");
 const { record } = require("./recorder.cjs");
 const stalker = require("./stalker.cjs");
+const companion = require("./companion.cjs");
 
 const SMOKE = process.env.SKMATE_SMOKE === "1"; // a check run: load the page, report, quit
 const UPDATE_EVERY_MS = 6 * 60 * 60 * 1000;
@@ -20,6 +21,9 @@ const stalkerHosts = new Set();
 // The local server of Stalker portals (stalker.cjs); its port is fixed so the addresses in a saved list stay good.
 const STALKER_PORT = 47817;
 let stalkerServer = null;
+// "From another device": the server a phone or another SkMate reaches over Wi-Fi (companion.cjs); one at a time.
+let companionServer = null;
+const toPage = (channel, value) => { if (win && !win.isDestroyed()) win.webContents.send(channel, value); };
 
 // One window: a second start brings the first one forward instead of opening another player.
 if (!SMOKE && !app.requestSingleInstanceLock()) {
@@ -230,6 +234,23 @@ const recordingsFolder = () => join(app.getPath("videos"), "SkMate IPTV");
 const recordings = new Map();
 
 function start() {
+  ipcMain.handle("companion:start", async (_e, { mode, strings, lang, backup }) => {
+    if (companionServer) await companionServer.close();
+    companionServer = await companion.startCompanion({
+      mode, strings, lang, backup,
+      onPayload: (p) => toPage("companion:event", { kind: "payload", payload: p }),
+      // Only a backup of this app is taken in; anything else is refused to the sender, not shown here.
+      onBackup: (text) => {
+        try { if (JSON.parse(text).app !== "skmate-web") return false; } catch { return false; }
+        toPage("companion:event", { kind: "backup", text });
+        return true;
+      },
+      onLocked: () => { companionServer = null; toPage("companion:event", { kind: "locked" }); },
+    });
+    return { urls: companionServer.urls, pin: companionServer.pin };
+  });
+  ipcMain.handle("companion:stop", async () => { const s = companionServer; companionServer = null; if (s) await s.close(); return true; });
+  ipcMain.handle("sync:request", (_e, { address, pin, method, body }) => companion.syncRequest(address, pin, method, body));
   // `stalker:<portal>#mac=<MAC>` (a portal as the page saves it) → the address of its M3U on the local server.
   // Started at once: a channel of a saved list may be opened before the list is fetched again.
   stalkerServer = stalker.startServer({ port: STALKER_PORT, onStreamHost: (h) => stalkerHosts.add(h) });

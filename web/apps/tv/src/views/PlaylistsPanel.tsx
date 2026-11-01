@@ -1,6 +1,9 @@
+import { useState } from "preact/hooks";
 import { t } from "../i18n";
-import type { PlaylistStore } from "../state/playlists";
+import { desktop, type CompanionPayload } from "../state/desktop";
+import { stalkerSource, xtreamUrl, type PlaylistStore } from "../state/playlists";
 import type { Status } from "../state/usePlaylists";
+import { LinkDialog } from "./LinkDialog";
 import { SourceForm } from "./SourceForm";
 
 interface Props {
@@ -13,6 +16,20 @@ interface Props {
 }
 
 export function PlaylistsPanel(p: Props) {
+  // A playlist from a phone, as on Android: the phone opens this computer's address and sends the form (Windows app).
+  const [remote, setRemote] = useState(false);
+  const [remoteError, setRemoteError] = useState<string | null>(null);
+  const take = async (x: CompanionPayload) => {
+    let err: string | null;
+    if (x.type === "m3u" && x.playlistContent.trim()) err = await p.onAddFile(x.playlistFileName || x.name || "playlist.m3u", x.playlistContent);
+    else if (x.type === "m3u") err = p.onAdd(x.server);
+    else {
+      const link = x.type === "xtream" ? xtreamUrl(x.server, x.user, x.pass) : stalkerSource(x.portalUrl, x.mac);
+      err = link ? p.onAdd(link) : t(x.type === "xtream" ? "xtBad" : "stkMacBad");
+    }
+    setRemoteError(err);
+    if (!err) setRemote(false);
+  };
 
   return (
     <div class="setting">
@@ -27,6 +44,17 @@ export function PlaylistsPanel(p: Props) {
         </div>
       ))}
       <SourceForm idPrefix="pl" onSubmit={p.onAdd} onFile={p.onAddFile} />
+      {desktop() ? (
+        <button class="srow" data-focus="pl-remote" onClick={() => { setRemoteError(null); setRemote(true); }}>
+          <span class="srow-text"><span class="srow-title">{t("fromPhone")}</span><span class="srow-hint">{t("fromPhoneWifi")}</span></span>
+        </button>
+      ) : null}
+      {remote ? (
+        <LinkDialog mode="add" title={t("fromPhone")} hints={[t("fromPhoneHint")]} onClose={() => setRemote(false)}
+          onEvent={(e) => { if (e.kind === "payload") void take(e.payload); }}>
+          {remoteError ? <div class="status error" style={{ textAlign: "center" }}>{remoteError}</div> : null}
+        </LinkDialog>
+      ) : null}
       {p.status.kind === "loading" ? <div class="status">{t("playlistLoading")}</div> : null}
       {p.status.kind === "error" ? <div class="status error">{p.status.message}</div> : null}
     </div>
