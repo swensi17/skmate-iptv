@@ -13,6 +13,7 @@ M3U и Xtream Codes, телегид (EPG), архив, профили — упр
 <p align="center">
   <a href="https://github.com/swensi17/skmate-iptv/releases/latest"><img alt="Release" src="https://img.shields.io/github/v/release/swensi17/skmate-iptv?label=release&color=1e88e5"></a>
   <a href="https://github.com/swensi17/skmate-iptv/releases"><img alt="Downloads" src="https://img.shields.io/github/downloads/swensi17/skmate-iptv/total?color=43a047"></a>
+  <a href="https://github.com/swensi17/skmate-iptv#%D0%B1%D0%B5%D0%B7%D0%BE%D0%BF%D0%B0%D1%81%D0%BD%D0%BE%D1%81%D1%82%D1%8C"><img alt="VirusTotal" src="https://img.shields.io/badge/VirusTotal-exe%20%2B%20apk%3A%200%20threats-2ecc71?logo=virustotal&logoColor=white"></a>
   <a href="LICENSE"><img alt="License GPL-3.0" src="https://img.shields.io/badge/license-GPL--3.0-blue"></a>
   <a href="https://github.com/swensi17/skmate-iptv/actions/workflows/build.yml"><img alt="Build" src="https://img.shields.io/github/actions/workflow/status/swensi17/skmate-iptv/build.yml?branch=main&label=build"></a>
   <a href="https://github.com/swensi17/skmate-iptv/actions/workflows/web.yml"><img alt="Web" src="https://img.shields.io/github/actions/workflow/status/swensi17/skmate-iptv/web.yml?branch=main&label=web"></a>
@@ -78,6 +79,44 @@ M3U и Xtream Codes, телегид (EPG), архив, профили — упр
 **Обновления**
 - Приложение само находит новую версию в GitHub Releases, проверяет подпись и устанавливает её.
 - Можно выключить, выбрать частоту проверки (при запуске / каждые 6 часов / раз в день) и время установки (в любое время / ночью).
+
+## Что есть на каждой платформе
+
+✅ есть и работает · ❌ нет. Отметки сверены с кодом: если функция только отображается, но не работает (например, метка архива в веб-версии), стоит ❌.
+
+| Функция | Android TV, Google TV, Fire TV | Windows | LG webOS, Samsung Tizen |
+|---|:---:|:---:|:---:|
+| Плейлист M3U / M3U8 по ссылке | ✅ | ✅ | ✅ |
+| Плейлист M3U из файла | ✅ | ❌ | ❌ |
+| Xtream Codes (сервер, логин, пароль) | ✅ | ✅ | ✅ |
+| Stalker / Ministra (MAC-адрес) | ✅ | ❌ | ❌ |
+| Несколько плейлистов сразу | ✅ | ✅ | ✅ |
+| Телегид XMLTV (`.xml`, `.xml.gz`) | ✅ | ✅ | ✅ |
+| Привязка телегида по названию канала, без `tvg-id` | ✅ | ✅ | ✅ |
+| Сетка передач по всем каналам | ✅ | ✅ | ✅ |
+| Воспроизведение архива (catch-up) | ✅ | ❌ | ❌ |
+| Перемотка прямого эфира (таймшифт) | ✅ | ❌ | ❌ |
+| Умный поиск: любая раскладка, транслит, опечатки | ✅ | ✅ | ✅ |
+| Поиск по передачам в телегиде | ✅ | ✅ | ✅ |
+| Спорт: что идёт сейчас по видам спорта | ✅ | ✅ | ✅ |
+| Избранное и недавно просмотренные | ✅ | ✅ | ✅ |
+| Зеркала: сбой канала → копия из другого плейлиста | ✅ | ✅ | ✅ |
+| Профили | ✅ | ✅ | ✅ |
+| PIN-код на категории | ✅ | ❌ | ❌ |
+| Резервная копия в файл | ✅ | ✅ | ✅ |
+| Перенос на другой телевизор по Wi-Fi | ✅ | ❌ | ❌ |
+| Плейлист с телефона по QR-коду | ✅ | ❌ | ❌ |
+| Картинка в картинке | ✅ | ❌ | ❌ |
+| Запись эфира | ✅ | ❌ | ❌ |
+| Напоминания о передачах | ✅ | ❌ | ❌ |
+| Внешний плеер (VLC, MX Player и другие) | ✅ | ❌ | ❌ |
+| Тёмная и светлая тема, масштаб интерфейса | ✅ | ✅ | ✅ |
+| Языки интерфейса | 26 | 2 (русский, английский) | 2 (русский, английский) |
+| Читает плейлисты с серверов без CORS | ✅ | ✅ | ❌ (браузер не даёт) |
+| Обновляется сама | ✅ | ✅ | ✅ на веб-адресе, ❌ из пакета `.ipk` / `.wgt` |
+| Без рекламы, без аккаунта, без сбора данных | ✅ | ✅ | ✅ |
+
+Запись, таймшифт и картинка в картинке на Android TV реализованы, но на всех телевизорах не проверялись (см. ниже).
 
 ## Что умеет SkMate и чем это подтверждено
 
@@ -198,19 +237,45 @@ M3U и Xtream Codes, телегид (EPG), архив, профили — упр
 
 ## Безопасность
 
-**v2.0.0.** Подписанные сборки собирает GitHub Actions ([`release.yml`](.github/workflows/release.yml)), подпись сверяется с ключом проекта. Контрольные суммы SHA-256 (те же лежат в релизе в `SHA256SUMS.txt`):
+### Проверка VirusTotal: v2.2.3
 
-- arm: `3491eff933a78af0285bfec195357a50b02f65305458c8dd33e7b7352a7b8fd0`
-- x86_64: `e5e62315962fcd0a7225280c5da9c5ead7f700498bfddc1f0bff2608cc2fc523`
+Файлы выпуска [v2.2.3](https://github.com/swensi17/skmate-iptv/releases/tag/v2.2.3) отправлены на [VirusTotal](https://www.virustotal.com) по ссылке на скачивание с GitHub: VirusTotal сам скачивает файл из релиза и проверяет его всеми антивирусами. Для установщика Windows и обеих APK ни один антивирус не нашёл угроз. Нажмите на отчёт, чтобы увидеть полный список антивирусов и дату проверки.
 
-**Проверка VirusTotal для v2.0.0 пока не выполнена.** Заранее готов workflow [`virustotal.yml`](.github/workflows/virustotal.yml): он отправляет APK релиза на проверку и пишет результат в отчёт запуска, но ему нужен ключ `VT_API_KEY` в секретах репозитория, и его ещё не запускали. Пока результата нет, никаких «0 угроз» для 2.0 мы не заявляем. Сверить файл можно и самому: скачайте APK, посчитайте `shasum -a 256` и сравните с суммой выше.
+| Файл | Результат | Отчёт |
+|---|---|---|
+| `SkMate-IPTV-Setup-2.2.3.exe` (Windows) | ✅ 0 из 68 | [открыть](https://www.virustotal.com/gui/file/e6ee399665b8f34d3bccb1faa19768ccd4e7383b434524bcecbbba801573a4cd) |
+| `SkMate-IPTV-v2.2.3-arm.apk` (Android TV) | ✅ 0 из 67 | [открыть](https://www.virustotal.com/gui/file/bf29972ea044d05a6b810e24d433ff06168e0a96c8e9996a45949381cdeef93f) |
+| `SkMate-IPTV-v2.2.3-x86_64.apk` | ✅ 0 из 67 | [открыть](https://www.virustotal.com/gui/file/f39d6c0602dc6ed97f34fe0e8b47b95d9d879ed229a7941c150434c8270de209) |
 
-**v0.1.0.** Ссылка на APK релиза проверена на [VirusTotal](https://www.virustotal.com/gui/url/05d504ce01ad088e31df5fe963ef495adecafe4fdb005be10bb8738947c0ec53): 0 из 93 сканеров ничего не нашли. Это относится только к v0.1.0.
+Пакеты для телевизоров (`.ipk`, `.wgt`, `.zip`) содержат тот же веб-код, что открыт в [демо](https://swensi17.github.io/skmate-iptv/). Их проверка на VirusTotal не завершена: сайт запросил капчу. Начатые отчёты: [`.wgt`](https://www.virustotal.com/gui/file/a86076ec6a174a18dd48115d53d17e3751d88fe58c9a7629f3291220a201d8fb), [`.zip`](https://www.virustotal.com/gui/file/08576d9ebe52c23895ee7753cb08a12e8befd8f8a8679b265ffc24b120cf03a1). Пока проверка не закончена, «0 угроз» для них мы не заявляем.
 
-Суммы v0.1.0:
+«0 из 68» значит: 68 антивирусов проверили файл, ни один не счёл его опасным. Остальные движки VirusTotal не умеют разбирать этот тип файла и в счёт не входят.
 
-- arm: `e1041da56c2d1f69f3f7f84d5cd3bd64778a03b5f7b3f708855016cd0d608dcd`
-- x86_64: `a9fd75fc7f98c11a6de5051ecad078a66036df0514ddb73a34813df017dbd181`
+### Почему Windows и браузер всё равно предупреждают
+
+- **Установщик Windows не подписан сертификатом разработчика** (он платный). Поэтому при первом запуске SmartScreen пишет «Windows защитила ваш компьютер»: это значит «издатель неизвестен», а не «найден вирус». Нажмите «Подробнее» → «Выполнить в любом случае».
+- **APK ставится не из Google Play**, поэтому Android один раз просит разрешить установку из этого источника. Все версии подписаны одним ключом проекта: приложение принимает обновление, только если подпись совпадает.
+
+### Как проверить файл самому
+
+1. Скачайте файл из [релиза](https://github.com/swensi17/skmate-iptv/releases/latest).
+2. Посчитайте сумму: `shasum -a 256 <файл>` (macOS, Linux) или `certutil -hashfile <файл> SHA256` (Windows).
+3. Сравните с `SHA256SUMS.txt` в релизе и с суммами ниже. Совпала: файл тот же, что собрал GitHub Actions.
+
+Суммы SHA-256 v2.2.3:
+
+```
+e6ee399665b8f34d3bccb1faa19768ccd4e7383b434524bcecbbba801573a4cd  SkMate-IPTV-Setup-2.2.3.exe
+bf29972ea044d05a6b810e24d433ff06168e0a96c8e9996a45949381cdeef93f  SkMate-IPTV-v2.2.3-arm.apk
+f39d6c0602dc6ed97f34fe0e8b47b95d9d879ed229a7941c150434c8270de209  SkMate-IPTV-v2.2.3-x86_64.apk
+14fed87c3410952f15642abe38356af51a9c832259546c8e798b5022a9c2ad8e  uz.skmate.iptv_2.2.3_all.ipk
+a86076ec6a174a18dd48115d53d17e3751d88fe58c9a7629f3291220a201d8fb  SkMate-IPTV-tizen-v2.2.3.wgt
+08576d9ebe52c23895ee7753cb08a12e8befd8f8a8679b265ffc24b120cf03a1  SkMate-IPTV-web-v2.2.3.zip
+```
+
+### Откуда берутся файлы
+
+Все файлы выпуска собирает GitHub Actions из открытого кода этого репозитория ([`release.yml`](.github/workflows/release.yml)), а не компьютер разработчика. Журнал каждой сборки открыт во вкладке [Actions](https://github.com/swensi17/skmate-iptv/actions/workflows/release.yml). Приложение не показывает рекламу, не требует аккаунта и не отправляет данные о просмотре: код можно прочитать целиком.
 
 ## О состоянии проекта
 
