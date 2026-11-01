@@ -23,7 +23,29 @@ interface DesktopBridge {
   revealRecording(path: string): Promise<boolean>;
   /** The address of a Stalker portal's M3U on this computer (desktop/stalker.cjs); null for a source it cannot read. */
   stalkerPlaylist(source: string): Promise<string | null>;
+  /** The server another device reaches over Wi-Fi (desktop/companion.cjs): its addresses and PIN. */
+  startCompanion(mode: "add" | "sync", strings: Record<string, string>, lang: string, backup?: string): Promise<{ urls: string[]; pin: string }>;
+  stopCompanion(): Promise<boolean>;
+  onCompanion(listener: (e: CompanionEvent) => void): () => void;
+  /** A backup sent to (POST) or taken from (GET) another SkMate on the Wi-Fi. */
+  syncRequest(address: string, pin: string, method: "GET" | "POST", body?: string): Promise<SyncResult>;
 }
+
+/** A playlist a phone sent (desktop/companion.cjs, the Android app's fields). */
+export interface CompanionPayload {
+  type: "m3u" | "xtream" | "stalker";
+  name: string;
+  server: string;
+  playlistContent: string;
+  playlistFileName: string;
+  user: string;
+  pass: string;
+  portalUrl: string;
+  mac: string;
+}
+
+export type CompanionEvent = { kind: "payload"; payload: CompanionPayload } | { kind: "backup"; text: string } | { kind: "locked" };
+export type SyncResult = { text: string; error?: undefined } | { text?: undefined; error: "unreachable" | "unauthorized" | "bad" };
 
 /** The Windows app's bridge; null on a TV and in a browser. */
 export const desktop = (): DesktopBridge | null => (window as unknown as { skmateDesktop?: DesktopBridge }).skmateDesktop ?? null;
