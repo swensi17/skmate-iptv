@@ -9,6 +9,12 @@ export interface Channel {
   tvgName?: string;
   /** Days of archive the provider keeps for this channel (`tvg-rec`, `catchup-days`); absent when none. */
   catchupDays?: number;
+  /** `catchup` / `catchup-type`: append, shift, default, flussonic, xc… (legacy `timeshift="N"` is shift). */
+  catchupType?: string;
+  /** `catchup-source`: the archive URL template (see catchup.ts). */
+  catchupSource?: string;
+  /** `catchup-correction` in minutes: the entry's own, else the `#EXTM3U` line's. */
+  catchupCorrectionMin?: number;
   /** Lines like `#EXTVLCOPT:http-user-agent=…` that precede the URL. */
   headers?: Record<string, string>;
 }
@@ -41,16 +47,26 @@ const HEADER_OPTS: Record<string, string> = {
   "http-referer": "Referer",
 };
 
+/** `catchup-correction` is in hours, maybe fractional or negative ("-1.5"); whole minutes, or undefined. */
+function correctionMinutes(hours: string | undefined): number | undefined {
+  if (hours === undefined || hours.trim() === "") return undefined;
+  const h = Number(hours.trim());
+  return Number.isFinite(h) ? Math.round(h * 60) : undefined;
+}
+
 /** Parses an M3U / M3U8 playlist; lines it does not understand are skipped, never fatal. */
 export function parseM3U(text: string): Channel[] {
   const channels: Channel[] = [];
   let info: string | null = null;
   let group = "";
   let headers: Record<string, string> = {};
+  let headerCorrection: number | undefined;
   for (const raw of text.replace(/^﻿/, "").split(/\r?\n/)) {
     const line = raw.trim();
     if (line === "") continue;
-    if (line.startsWith("#EXTINF:")) {
+    if (line.startsWith("#EXTM3U")) {
+      headerCorrection = correctionMinutes(attrs(line)["catchup-correction"]);
+    } else if (line.startsWith("#EXTINF:")) {
       info = line.slice(8);
       group = attrs(info)["group-title"] ?? "";
       headers = {};
@@ -69,8 +85,16 @@ export function parseM3U(text: string): Channel[] {
       if (a["tvg-logo"]) channel.logo = a["tvg-logo"];
       if (a["tvg-id"]) channel.tvgId = a["tvg-id"];
       if (a["tvg-name"]) channel.tvgName = a["tvg-name"];
-      const days = Number(a["tvg-rec"] ?? a["catchup-days"] ?? a["timeshift"] ?? 0);
+      // The Android app's rules (M3uParser): the newer attributes win over the legacy SIPTV `timeshift="N"`.
+      const type = a["catchup"] ?? a["catchup-type"];
+      const shiftDays = type === undefined ? Number(a["timeshift"] ?? 0) : 0;
+      const days = Number(a["catchup-days"] ?? (shiftDays > 0 ? shiftDays : a["tvg-rec"] ?? 0));
       if (Number.isFinite(days) && days > 0) channel.catchupDays = days;
+      const kind = type ?? (shiftDays > 0 ? "shift" : undefined);
+      if (kind) channel.catchupType = kind;
+      if (a["catchup-source"]) channel.catchupSource = a["catchup-source"];
+      const correction = correctionMinutes(a["catchup-correction"]) ?? headerCorrection;
+      if (correction) channel.catchupCorrectionMin = correction;
       if (Object.keys(headers).length > 0) channel.headers = headers;
       channels.push(channel);
       info = null;

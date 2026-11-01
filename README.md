@@ -94,7 +94,7 @@ M3U и Xtream Codes, телегид (EPG), архив, профили — упр
 | Телегид XMLTV (`.xml`, `.xml.gz`) | ✅ | ✅ | ✅ |
 | Привязка телегида по названию канала, без `tvg-id` | ✅ | ✅ | ✅ |
 | Сетка передач по всем каналам | ✅ | ✅ | ✅ |
-| Воспроизведение архива (catch-up) | ✅ | ❌ | ❌ |
+| Воспроизведение архива (catch-up) | ✅ | ✅ | ✅ |
 | Перемотка прямого эфира (таймшифт) | ✅ | ❌ | ❌ |
 | Умный поиск: любая раскладка, транслит, опечатки | ✅ | ✅ | ✅ |
 | Поиск по передачам в телегиде | ✅ | ✅ | ✅ |
@@ -118,9 +118,54 @@ M3U и Xtream Codes, телегид (EPG), архив, профили — упр
 
 Запись, таймшифт и картинка в картинке на Android TV реализованы, но на всех телевизорах не проверялись (см. ниже).
 
+Каждый ❌ мы убираем по этапам, чтобы всё работало одинаково на всех платформах. План и состояние: [docs/PARITY.md](docs/PARITY.md).
+
+## Сравнение с популярными плеерами
+
+В таблице только то, что сами приложения пишут в своих официальных источниках: на своих сайтах, в Google Play, App Store, на GitHub. «—» значит, что в официальном источнике об этом ничего нет. Это не обязательно означает, что функции нет. Источники собраны 1 ноября 2026 года и перечислены под таблицей. У SkMate каждая отметка проверяема в этом репозитории.
+
+| | SkMate IPTV | TiviMate | IPTV Smarters Pro | Kodi + IPTV Simple | Sparkle TV | VLC |
+|---|---|---|---|---|---|---|
+| Платформы | Android TV, Google TV, Fire TV, Windows, LG, Samsung, браузер | Android TV | Android, Fire TV, Windows, macOS, LG, Samsung, браузер, iOS (отдельное приложение) | Windows, Linux, Android, macOS, iOS, tvOS, webOS | Android TV, Google TV, Fire TV | Windows, Linux, macOS, Android, iOS, Apple TV |
+| Всё бесплатно | ✅ | ❌ премиум платный | ❌ часть функций в премиуме | ✅ | ❌ Plus от $1.49 в месяц | ✅ |
+| Открытый код | ✅ GPL-3.0 | — | — | ✅ GPL | — | ✅ GPL / LGPL |
+| Без рекламы | ✅ | — | — | — | — | ✅ |
+| M3U | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Xtream Codes | ✅ | ✅ | ✅ | ❌ только адреса архива | ✅ | — |
+| Stalker / MAC-портал | ✅ Android | ✅ | — | — | ✅ | — |
+| Телегид XMLTV | ✅ | ✅ | ✅ | ✅ | ✅ | — |
+| Телегид без `tvg-id` (по названию) | ✅ | — | — | ✅ | — | — |
+| Архив (catch-up) | ✅ | ✅ | ✅ | ✅ | ✅ в Plus | — |
+| Перемотка эфира (таймшифт) | ✅ Android | — | — | ✅ | ✅ в Plus | ✅ |
+| Запись эфира | ✅ Android | ✅ | — | — | ✅ в Plus | ✅ |
+| Мультивид | ✅ Android¹ | ✅ | — | — | ✅ в Plus | — |
+| Резервная копия канала из другого плейлиста при сбое | ✅ | — | — | — | — | — |
+| Умный поиск: раскладка, транслит, опечатки | ✅ | — | — | — | — | — |
+| Профили | ✅ | — | ✅ | ✅ | — | — |
+| Языки интерфейса | 26 (Android) | — | — | — | — | 48 (iOS) |
+
+¹ Реализовано, на всех телевизорах ещё не проверено.
+
+**Где мы пока не лучше:**
+- VLC переведён на 48 языков, у SkMate 26 (только Android).
+- Kodi работает на Linux, macOS, iOS и tvOS, у SkMate этих версий нет.
+- Таймшифт, запись, мультивид и Stalker у SkMate пока есть только на Android.
+
+Всё это в плане [docs/PARITY.md](docs/PARITY.md).
+
+<details><summary>Источники</summary>
+
+- TiviMate: [Google Play](https://play.google.com/store/apps/details?id=ar.tvplayer.tv), [tivimate.com](https://tivimate.com/)
+- IPTV Smarters Pro: [официальный сайт, копия на archive.org от 15.08.2026](https://web.archive.org/web/20260815103748/https://www.iptvsmarters.com/), [Smarters Player Lite в App Store](https://apps.apple.com/us/app/smarters-player-lite/id1628995509)
+- Kodi: [загрузки, копия на archive.org](https://web.archive.org/web/20261030060155/https://kodi.tv/download/), [исходный код Kodi](https://github.com/xbmc/xbmc), [IPTV Simple Client](https://github.com/kodi-pvr/pvr.iptvsimple)
+- Sparkle TV: [sparkleplayer.com](https://www.sparkleplayer.com/), [Google Play](https://play.google.com/store/apps/details?id=se.hedekonsult.sparkle)
+- VLC: [videolan.org](https://www.videolan.org/vlc/), [App Store](https://apps.apple.com/us/app/vlc-media-player/id650377962), [timeshift](https://wiki.videolan.org/Documentation:Modules/timeshift)
+
+</details>
+
 ## Что умеет SkMate и чем это подтверждено
 
-Мы не ставим оценок другим приложениям: надёжных открытых источников по TiviMate и IPTV Smarters нет (в поиске в основном рекламные страницы), а полагаться на них мы не хотим. Ниже только то, что можно проверить в этом репозитории. «Тест» значит автоматический тест, который запускается в CI; «эмулятор» значит, что функцию вручную проверили на эмуляторе Android TV.
+Как подтверждена каждая функция SkMate. «Тест» значит автоматический тест, который запускается в CI; «эмулятор» значит, что функцию вручную проверили на эмуляторе Android TV; «браузер» значит живую проверку веб-версии (она же Windows, LG и Samsung) с пультом на тестовом плейлисте.
 
 | Возможность | Чем подтверждена |
 |---|---|
@@ -132,7 +177,8 @@ M3U и Xtream Codes, телегид (EPG), архив, профили — упр
 | Гиды по умолчанию: из плейлиста, по провайдеру, общие | тест [`GuideDefaultsTest`](engine/core/src/test/java/tv/own/owntv/core/epg/GuideDefaultsTest.kt) |
 | «Скрыть повторы» (одна ссылка у нескольких каналов) | тест [`FeedDedupeTest`](engine/core/src/test/java/tv/own/owntv/core/epg/FeedDedupeTest.kt), эмулятор |
 | Сортировка каналов и подборки «Сейчас идёт» | тесты [`LiveSortTest`](engine/core/src/test/java/tv/own/owntv/core/live/LiveSortTest.kt), [`SmartPicksTest`](engine/core/src/test/java/tv/own/owntv/core/content/SmartPicksTest.kt), эмулятор |
-| Адреса архива (catch-up) разных провайдеров | тест [`CatchupUrlTest`](engine/core/src/test/java/tv/own/owntv/core/epg/CatchupUrlTest.kt); само воспроизведение архива на устройстве не проверялось |
+| Адреса архива (catch-up) разных провайдеров | тест [`CatchupUrlTest`](engine/core/src/test/java/tv/own/owntv/core/epg/CatchupUrlTest.kt) и те же случаи в веб-ядре [`catchup.test.ts`](web/packages/core/src/catchup.test.ts) |
+| Архив в веб-версии: телегид, поиск, перемотка ±30 с, «В эфир» | браузер, тестовый плейлист с `catchup="append"`; на Android TV у провайдера с архивом не проверялось |
 | Шифрованная резервная копия | инструментальные тесты [`BackupRoundTripTest`](engine/core/src/androidTest/java/tv/own/owntv/core/backup/BackupRoundTripTest.kt), [`BackupContainerTest`](engine/core/src/androidTest/java/tv/own/owntv/core/backup/BackupContainerTest.kt) |
 | Картинка в картинке | эмулятор |
 | Напоминания о передачах поверх любого экрана | эмулятор |

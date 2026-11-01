@@ -51,4 +51,20 @@ describe("catch-up days", () => {
     const ch = parseM3U('#EXTM3U\n#EXTINF:0 tvg-rec="3",A\nhttp://a\n#EXTINF:0 tvg-rec="0",B\nhttp://b\n#EXTINF:-1 catchup-days="7",C\nhttp://c\n#EXTINF:-1,D\nhttp://d');
     expect(ch.map((c) => c.catchupDays)).toEqual([3, undefined, 7, undefined]);
   });
+
+  it("reads the archive type, template and correction as the Android app does", () => {
+    const ch = parseM3U([
+      '#EXTM3U catchup-correction="-1"',
+      '#EXTINF:-1 catchup="append" catchup-days="5" catchup-source="?utc={utc}",A', "http://a",
+      '#EXTINF:-1 timeshift="2",B', "http://b",
+      '#EXTINF:-1 catchup="flussonic" timeshift="2" catchup-correction="1.5",C', "http://c",
+      "#EXTINF:-1,D", "http://d",
+    ].join("\n"));
+    expect(ch.map((c) => [c.catchupType, c.catchupSource, c.catchupDays, c.catchupCorrectionMin])).toEqual([
+      ["append", "?utc={utc}", 5, -60],
+      ["shift", undefined, 2, -60],
+      ["flussonic", undefined, undefined, 90],
+      [undefined, undefined, undefined, -60],
+    ]);
+  });
 });
