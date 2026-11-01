@@ -13,6 +13,7 @@ M3U and Xtream Codes, TV guide (EPG), catch-up, profiles — built for the remot
 <p align="center">
   <a href="https://github.com/swensi17/skmate-iptv/releases/latest"><img alt="Release" src="https://img.shields.io/github/v/release/swensi17/skmate-iptv?label=release&color=1e88e5"></a>
   <a href="https://github.com/swensi17/skmate-iptv/releases"><img alt="Downloads" src="https://img.shields.io/github/downloads/swensi17/skmate-iptv/total?color=43a047"></a>
+  <a href="https://github.com/swensi17/skmate-iptv/blob/main/docs/i18n-readme/README.en.md#security"><img alt="VirusTotal" src="https://img.shields.io/badge/VirusTotal-exe%20%2B%20apk%3A%200%20threats-2ecc71?logo=virustotal&logoColor=white"></a>
   <a href="../../LICENSE"><img alt="License GPL-3.0" src="https://img.shields.io/badge/license-GPL--3.0-blue"></a>
   <a href="https://github.com/swensi17/skmate-iptv/actions/workflows/build.yml"><img alt="Build" src="https://img.shields.io/github/actions/workflow/status/swensi17/skmate-iptv/build.yml?branch=main&label=build"></a>
   <a href="https://github.com/swensi17/skmate-iptv/actions/workflows/web.yml"><img alt="Web" src="https://img.shields.io/github/actions/workflow/status/swensi17/skmate-iptv/web.yml?branch=main&label=web"></a>
@@ -112,7 +113,7 @@ Sort by provider order, A–Z, Z–A, number, recent; groups, custom categories,
 - **Native builds** for `arm64-v8a` and `armeabi-v7a` (older 32-bit boxes too).
 
 ### Open
-GPL-3.0 source, a signed APK built in GitHub Actions. VirusTotal: done for v0.1.0 (link below), not yet for v2.0.0, see "Security". No ads, no account, no data collection.
+GPL-3.0 source, a signed APK built in GitHub Actions. VirusTotal: v2.2.3 installer and APKs 0 detections, see "Security". No ads, no account, no data collection.
 
 What is verified and how: [COMPARISON.md](../COMPARISON.md).
 
@@ -150,6 +151,16 @@ What is verified and how: [COMPARISON.md](../COMPARISON.md).
 Runs on Android TV / Google TV 8.0+, Fire TV and Android set-top boxes (arm64-v8a, armeabi-v7a).
 
 ## Security
+
+**v2.2.3 on VirusTotal** (each file fetched by VirusTotal straight from the GitHub release):
+
+| File | Result | Report |
+|---|---|---|
+| `SkMate-IPTV-Setup-2.2.3.exe` (Windows) | ✅ 0 of 68 | [open](https://www.virustotal.com/gui/file/e6ee399665b8f34d3bccb1faa19768ccd4e7383b434524bcecbbba801573a4cd) |
+| `SkMate-IPTV-v2.2.3-arm.apk` (Android TV) | ✅ 0 of 67 | [open](https://www.virustotal.com/gui/file/bf29972ea044d05a6b810e24d433ff06168e0a96c8e9996a45949381cdeef93f) |
+| `SkMate-IPTV-v2.2.3-x86_64.apk` | ✅ 0 of 67 | [open](https://www.virustotal.com/gui/file/f39d6c0602dc6ed97f34fe0e8b47b95d9d879ed229a7941c150434c8270de209) |
+
+The TV packages (`.ipk`, `.wgt`, `.zip`) are not fully checked yet (VirusTotal asked for a captcha), so no "0 threats" is claimed for them. The Windows installer has no paid code-signing certificate: SmartScreen says "unknown publisher" on first run (More info → Run anyway), which is not a virus warning.
 
 The v0.1.0 release APK link was checked on [VirusTotal](https://www.virustotal.com/gui/url/05d504ce01ad088e31df5fe963ef495adecafe4fdb005be10bb8738947c0ec53): **0 of 93** scanners flagged anything. The source code is open and builds run in GitHub Actions. SHA-256 checksums are in the release (`SHA256SUMS.txt`):
 
