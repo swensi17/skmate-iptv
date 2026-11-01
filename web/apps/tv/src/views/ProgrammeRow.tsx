@@ -1,6 +1,7 @@
 import { useContext } from "preact/hooks";
 import { hasArchive, type Channel } from "@skmate/core";
 import type { Programme } from "@skmate/epg";
+import { Icon } from "@skmate/ui";
 import { t } from "../i18n";
 import { GuideContext } from "../state/GuideContext";
 import { clock } from "../time";
@@ -8,7 +9,7 @@ import { ChannelLogo } from "./ChannelLogo";
 import { leftLabel, startsInLabel } from "./Left";
 
 /** A programme found in the guide: its title, the channel and time under it, "on now" or "in 25 min" at the end. */
-export function ProgrammeRow(p: { channel: Channel; programme: Programme; onOpen: (c: Channel, programme: Programme) => void }) {
+export function ProgrammeRow(p: { channel: Channel; programme: Programme; reminded?: boolean; onOpen: (c: Channel, programme: Programme) => void }) {
   const { now } = useContext(GuideContext);
   const live = p.programme.start <= now && now < p.programme.stop;
   // Over, and kept by the provider: it opens from its recording.
@@ -25,6 +26,7 @@ export function ProgrammeRow(p: { channel: Channel; programme: Programme; onOpen
         </span>
         {live ? <span class="bar"><span class="bar-fill" style={{ width: `${Math.round(progress * 100)}%` }} /></span> : null}
       </span>
+      {p.reminded ? <span class="tag"><span class="bell"><Icon name="bell" size={20} /></span></span> : null}
       <span class={`tag${live ? " live" : recorded ? " arch" : ""}`}>{live ? t("tagLive") : recorded ? t("tagArchive") : startsInLabel(p.programme.start, now)}</span>
     </button>
   );

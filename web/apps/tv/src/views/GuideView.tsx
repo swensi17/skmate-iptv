@@ -25,10 +25,14 @@ interface Props {
   onOpen: (c: Channel, list: readonly Channel[]) => void;
   /** A past programme on a channel that keeps a recording of it. */
   onArchive: (c: Channel, p: Programme, list: readonly Channel[]) => void;
+  /** A programme still to come: watch the channel or be reminded (see Reminders.tsx). */
+  onUpcoming: (c: Channel, p: Programme, list: readonly Channel[]) => void;
+  /** Whether a reminder is set for that programme (a bell on it). */
+  reminded: (c: Channel, p: Programme) => boolean;
 }
 
 /** The guide: channels down the side, three hours of programmes across, the one in focus described below. */
-export function GuideView({ channels, favorites, status, onRefresh, onOpen, onArchive }: Props) {
+export function GuideView({ channels, favorites, status, onRefresh, onOpen, onArchive, onUpcoming, reminded }: Props) {
   const { data, now } = useContext(GuideContext);
   const [from, setFrom] = useState(() => floorHalfHour(Date.now() - 30 * 60_000));
   const [sel, setSel] = useState<{ channel: Channel; programme: Programme } | null>(null);
@@ -84,13 +88,15 @@ export function GuideView({ channels, favorites, status, onRefresh, onOpen, onAr
                       const width = Math.min(TIMELINE_W, x(p.stop)) - left - 4;
                       const live = p.start <= now && now < p.stop;
                       const recorded = hasArchive(c, p.start, p.stop, now);
+                      const upcoming = p.start > now;
                       return (
                         <button
-                          class={`block${live ? " live" : ""}${recorded ? " arch" : ""}`} key={p.start} data-focus={`pg-${c.id}-${p.start}`}
+                          class={`block${live ? " live" : ""}${recorded ? " arch" : ""}${upcoming && reminded(c, p) ? " rem" : ""}`} key={p.start} data-focus={`pg-${c.id}-${p.start}`}
                           style={{ left: `${left}px`, width: `${Math.max(8, width)}px` }}
                           onFocus={() => setSel({ channel: c, programme: p })}
-                          onClick={() => (recorded ? onArchive(c, p, rows) : onOpen(c, rows))}
+                          onClick={() => (recorded ? onArchive(c, p, rows) : upcoming ? onUpcoming(c, p, rows) : onOpen(c, rows))}
                         >
+                          {upcoming && reminded(c, p) ? <span class="bell"><Icon name="bell" size={20} /></span> : null}
                           {width >= MIN_TEXT_W ? <span class="block-t">{p.title}</span> : null}
                         </button>
                       );

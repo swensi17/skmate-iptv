@@ -26,6 +26,9 @@ interface Props {
   onOpen: (c: Channel, list: readonly Channel[]) => void;
   /** A found programme that is over: its recording. */
   onArchive: (c: Channel, p: Programme, list: readonly Channel[]) => void;
+  /** A found programme still to come: watch the channel or be reminded. */
+  onUpcoming: (c: Channel, p: Programme, list: readonly Channel[]) => void;
+  reminded: (c: Channel, p: Programme) => boolean;
   onFav: (c: Channel) => void;
 }
 
@@ -37,7 +40,7 @@ const HEIGHT = 700;
  * Search as in the phone version: channels and the guide's programmes together, filters (all, channels, programmes,
  * sport, films), the recent queries, and a plain "nothing found" that says what is searched.
  */
-export function SearchView({ channels, favorites, onOpen, onArchive, onFav }: Props) {
+export function SearchView({ channels, favorites, onOpen, onArchive, onUpcoming, reminded, onFav }: Props) {
   const ROW = useContext(UiContext).rowH;
   const { data, now } = useContext(GuideContext);
   const [query, setQuery] = useState("");
@@ -74,7 +77,13 @@ export function SearchView({ channels, favorites, onOpen, onArchive, onFav }: Pr
   const remember = () => { const next = pushQuery(recent, q); setRecent(next); saveQueries(next); };
   const open = (c: Channel) => { remember(); onOpen(c, playable); };
   // A programme that has ended plays from its recording (only those the channel keeps are found at all).
-  const openProgramme = (c: Channel, p: Programme) => { remember(); if (p.stop <= Date.now()) onArchive(c, p, playable); else onOpen(c, playable); };
+  const openProgramme = (c: Channel, p: Programme) => {
+    remember();
+    const now = Date.now();
+    if (p.stop <= now) onArchive(c, p, playable);
+    else if (p.start > now) onUpcoming(c, p, playable);
+    else onOpen(c, playable);
+  };
 
   return (
     <div class="screen search">
@@ -125,7 +134,7 @@ export function SearchView({ channels, favorites, onOpen, onArchive, onFav }: Pr
             idOf={(h, i) => (h.k === "c" ? `ch-${h.channel.id}` : `pr-${h.channel.id}-${h.programme.start}-${i}`)}
             renderRow={(h, i) => h.k === "c"
               ? <ChannelRow channel={h.channel} index={i} favorite={favorites.has(channelKey(h.channel))} onOpen={open} onFav={onFav} />
-              : <ProgrammeRow channel={h.channel} programme={h.programme} onOpen={openProgramme} />}
+              : <ProgrammeRow channel={h.channel} programme={h.programme} reminded={reminded(h.channel, h.programme)} onOpen={openProgramme} />}
           />
         </>
       )}
