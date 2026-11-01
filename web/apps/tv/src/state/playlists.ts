@@ -6,6 +6,7 @@ const KEY = "skmate.playlists.v1";
 
 /** A readable name from a link: the host, or the last path segment when it says more. */
 export function nameFromUrl(url: string): string {
+  if (isStalker(url)) return `Stalker · ${nameFromUrl(url.slice("stalker:".length).split("#")[0] as string)}`;
   try {
     const u = new URL(url);
     const last = u.pathname.split("/").filter(Boolean).pop() ?? "";
@@ -41,6 +42,25 @@ export function xtreamUrl(server: string, username: string, password: string): s
   const q = `username=${encodeURIComponent(username.trim())}&password=${encodeURIComponent(password.trim())}`;
   return `${u.protocol}//${u.host}/get.php?${q}&type=m3u_plus&output=m3u8`;
 }
+
+/** `AA:BB:CC:DD:EE:FF` from any spelling, as Android takes it; null unless 12 letters or digits (some panels issue "MACs" past F). */
+export function canonicalMac(raw: string): string | null {
+  const body = raw.trim().replace(/[:\-. ]/g, "");
+  if (body.length !== 12 || !/^[0-9a-z]+$/i.test(body)) return null;
+  return (body.toUpperCase().match(/../g) as string[]).join(":");
+}
+
+/**
+ * A Stalker / Ministra portal and its MAC, saved as `stalker:<portal>#mac=<MAC>`. The Windows app turns it into a
+ * playlist (desktop/stalker.cjs). Null when the portal is not an http(s) address; [canonicalMac] checks the MAC.
+ */
+export function stalkerSource(portal: string, mac: string): string | null {
+  const url = normalizeUrl(portal);
+  const m = canonicalMac(mac);
+  return url && m ? `stalker:${url}#mac=${m}` : null;
+}
+
+export const isStalker = (url: string): boolean => url.startsWith("stalker:");
 
 /** The guide an Xtream server serves for the same login (`xmltv.php`), or null when [url] is no Xtream link. */
 export function xtreamGuide(url: string): string | null {

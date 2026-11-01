@@ -21,6 +21,8 @@ interface DesktopBridge {
   onRecording(listener: (u: RecordingUpdate) => void): () => void;
   openRecordings(): Promise<boolean>;
   revealRecording(path: string): Promise<boolean>;
+  /** The address of a Stalker portal's M3U on this computer (desktop/stalker.cjs); null for a source it cannot read. */
+  stalkerPlaylist(source: string): Promise<string | null>;
 }
 
 /** The Windows app's bridge; null on a TV and in a browser. */

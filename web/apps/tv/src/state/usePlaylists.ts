@@ -4,7 +4,8 @@ import { t, type Key } from "../i18n";
 import { cacheDrop, cacheGet, cachePut, fetchPlaylist, PlaylistError } from "./fetchPlaylist";
 import { fileDrop, fileGet, filePut, isLocal, localUrl, readPlaylistFile } from "./localFiles";
 import { demoText } from "./playlist";
-import { addPlaylist, xtreamGuide, loadStore, nextActive, normalizeUrl, playlistFromSearch, removePlaylist, saveStore, type PlaylistStore } from "./playlists";
+import { desktop } from "./desktop";
+import { addPlaylist, isStalker, xtreamGuide, loadStore, nextActive, normalizeUrl, playlistFromSearch, removePlaylist, saveStore, type PlaylistStore } from "./playlists";
 
 export type Status = { kind: "idle" } | { kind: "loading" } | { kind: "error"; message: string };
 
@@ -57,7 +58,10 @@ export function usePlaylists() {
       return () => { live = false; };
     }
     setStatus(cached ? { kind: "idle" } : { kind: "loading" });
-    fetchPlaylist(active.url).then(
+    // A Stalker portal is read by the Windows app, which hands back an ordinary M3U on this computer.
+    const stalker = isStalker(active.url);
+    const address = stalker ? (desktop()?.stalkerPlaylist(active.url) ?? Promise.resolve(null)) : Promise.resolve(active.url);
+    address.then((u) => (u ? fetchPlaylist(u) : Promise.reject(new PlaylistError("network")))).then(
       (text) => {
         if (!live) return;
         cachePut(active.id, text);
@@ -70,6 +74,8 @@ export function usePlaylists() {
       },
       (e: unknown) => {
         if (!live || cached) return; // a stale list beats an error screen
+        // A portal says 401 when it refuses the MAC (desktop/stalker.cjs), anything else when it cannot be reached.
+        if (stalker) { setStatus({ kind: "error", message: t(e instanceof PlaylistError && e.message === "http: 401" ? "stkMacRefused" : "stkPortalFailed") }); return; }
         setStatus({ kind: "error", message: t(ERRORS[e instanceof PlaylistError ? e.kind : "network"]) });
       },
     );
@@ -78,7 +84,7 @@ export function usePlaylists() {
 
   /** Returns an error text when the link is not usable, null when the playlist was added. */
   const add = useCallback((input: string): string | null => {
-    const url = normalizeUrl(input);
+    const url = isStalker(input) ? input : normalizeUrl(input);
     if (!url) return t("playlistBadUrl");
     setStore((s) => {
       const list = addPlaylist(s.list, url);
