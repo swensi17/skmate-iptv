@@ -7,14 +7,12 @@
 
 <h1 align="center">SkMate IPTV</h1>
 
-<p align="center"><b>A free, open-source IPTV player for Android TV, Google TV and Fire TV.</b><br>
+<p align="center"><b>A free, open-source IPTV player for Android TV, Google TV, Fire TV, Windows, LG webOS and Samsung Tizen.</b><br>
 M3U and Xtream Codes, TV guide (EPG), catch-up, profiles — built for the remote, no ads, no accounts.</p>
 
 <p align="center">
   <a href="https://github.com/swensi17/skmate-iptv/releases/latest"><img alt="Release" src="https://img.shields.io/github/v/release/swensi17/skmate-iptv?label=release&color=1e88e5"></a>
   <a href="https://github.com/swensi17/skmate-iptv/releases"><img alt="Downloads" src="https://img.shields.io/github/downloads/swensi17/skmate-iptv/total?color=43a047"></a>
-  <a href="https://github.com/swensi17/skmate-iptv/stargazers"><img alt="Stars" src="https://img.shields.io/github/stars/swensi17/skmate-iptv?style=flat&color=f5c518&logo=github"></a>
-  <a href="https://github.com/swensi17/skmate-iptv/network/members"><img alt="Forks" src="https://img.shields.io/github/forks/swensi17/skmate-iptv?style=flat&logo=github"></a>
   <a href="../../LICENSE"><img alt="License GPL-3.0" src="https://img.shields.io/badge/license-GPL--3.0-blue"></a>
   <a href="https://github.com/swensi17/skmate-iptv/actions/workflows/build.yml"><img alt="Build" src="https://img.shields.io/github/actions/workflow/status/swensi17/skmate-iptv/build.yml?branch=main&label=build"></a>
   <a href="https://github.com/swensi17/skmate-iptv/actions/workflows/web.yml"><img alt="Web" src="https://img.shields.io/github/actions/workflow/status/swensi17/skmate-iptv/web.yml?branch=main&label=web"></a>
