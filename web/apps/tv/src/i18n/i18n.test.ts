@@ -18,3 +18,35 @@ describe("i18n", () => {
     expect(t("navSearch")).toBe("Search");
   });
 });
+
+describe("languages", () => {
+  it("finds ours for a TV's language tag, as the Android app does", async () => {
+    const { resolveLanguage } = await import("./languages");
+    expect(resolveLanguage("de-DE")).toBe("de");
+    expect(resolveLanguage("pt-BR")).toBe("pt");
+    expect(resolveLanguage("pt-PT")).toBe("pt");
+    expect(resolveLanguage("zh-CN")).toBe("zh-CN");
+    expect(resolveLanguage("zh-Hans-SG")).toBe("zh-CN");
+    expect(resolveLanguage("zh-Hant-TW")).toBe("zh-TW");
+    expect(resolveLanguage("zh_HK")).toBe("zh-TW");
+    expect(resolveLanguage("nn-NO")).toBe("nb");
+    expect(resolveLanguage("uz-UZ")).toBe("en");
+    expect(resolveLanguage("")).toBe("en");
+  });
+  it("names every language and has a table for each", async () => {
+    const { LANGUAGES } = await import("./languages");
+    const { hasLanguage } = await import("./index");
+    for (const l of LANGUAGES) expect(hasLanguage(l.code), l.code).toBe(true);
+  });
+});
+
+describe("loading a language", () => {
+  it("fetches a language that is not in the app and shows it", async () => {
+    const { loadLanguage, t } = await import("./index");
+    const { de } = await import("./de");
+    await loadLanguage("de");
+    expect(t("navSearch")).toBe(de.navSearch);
+    await loadLanguage("en");
+    expect(t("navSearch")).toBe("Search");
+  });
+});
