@@ -1,5 +1,5 @@
 import { useContext, useEffect, useMemo, useRef, useState } from "preact/hooks";
-import { pickMirrors, timeshiftPhpAlternate, type Channel } from "@skmate/core";
+import { behindLive, lagBehind, LIVE_EDGE_S, pickMirrors, SEEK_STEP_S, startOverUrl, timeshiftPhpAlternate, windTo, type Channel, type LiveAnchor, type SeekWindow } from "@skmate/core";
 import type { Programme } from "@skmate/epg";
 import { focusFirst, Icon, isBack, Presence, type IconName } from "@skmate/ui";
 import { t, type Key } from "../i18n";
@@ -37,7 +37,27 @@ interface Props {
   archive: { programme: Programme; url: string } | null;
   /** Back from the recording to the channel live. */
   onLive: () => void;
+  /** Play [programme] from the provider's archive at [url]: "From the start" of the programme on air. */
+  onArchive: (programme: Programme, url: string) => void;
 }
+
+/** What the player can wind through now: the seekable range, else what is buffered; null before any picture. */
+function seekWindow(el: HTMLVideoElement): SeekWindow | null {
+  const r = el.seekable.length > 0 ? el.seekable : el.buffered;
+  if (r.length === 0) return null;
+  const start = r.start(0);
+  const end = r.end(r.length - 1);
+  return Number.isFinite(end) && end > start ? { start, end } : null;
+}
+
+/** The live window a stream reports (hls.js does, the TV's own decoder may not); null when none. */
+function liveWindow(el: HTMLVideoElement): SeekWindow | null {
+  if (el.seekable.length === 0) return null;
+  const start = el.seekable.start(0);
+  const end = el.seekable.end(el.seekable.length - 1);
+  return Number.isFinite(end) && end - start > LIVE_EDGE_S ? { start, end } : null;
+}
+
 
 /** 1:05:09 or 5:09: how far into a recording, and how long it is. */
 function elapsed(ms: number): string {
@@ -58,16 +78,17 @@ function Tile(p: { id: string; icon: IconName; label: Key; onClick: () => void }
 }
 
 const CH_UP = [427, 33];
-/** One press of Left or Right in a recording, as on the Android player. */
-const SEEK_MS = 30_000;
+const SEEK_MS = SEEK_STEP_S * 1000;
 const CH_DOWN = [428, 34];
 
 /**
  * Full-screen playback. Keys: OK pauses and resumes; Up or Down first show the action bar, then step through the
  * channels; Right opens the recently watched, Left the channels (each from its own edge); the channel keys always step; Back closes what is open, then leaves.
- * In a recording (a past programme from the archive) Left and Right wind it 30 s instead, and the bar has "Live".
+ * Timeshift, as on Android: OK pauses the live picture too, and once it runs behind the live edge (or in a recording
+ * from the archive) Left and Right wind it 30 s instead, and the bar has "Live". "From the start" plays the programme
+ * on air from the archive of a channel that keeps one.
  */
-export function PlayerView({ channels, catalog, index, favorites, recents, onPick, closing, onStep, onFav, onExit, settings, onChangeSettings, onGo, archive, onLive }: Props) {
+export function PlayerView({ channels, catalog, index, favorites, recents, onPick, closing, onStep, onFav, onExit, settings, onChangeSettings, onGo, archive, onLive, onArchive }: Props) {
   const channel = channels[index] as Channel;
   const video = useRef<HTMLVideoElement>(null);
   const full = useFullScreen();
@@ -78,9 +99,15 @@ export function PlayerView({ channels, catalog, index, favorites, recents, onPic
     const alt = timeshiftPhpAlternate(archive.url);
     return alt ? [{ ...channel, url: alt }] : [];
   }, [channel.id, catalog, archive?.url]);
+  // Timeshift: the live stream opened this far behind its edge, on hls.js (the TV's own decoder cannot); 0 = live.
+  const [liveBehind, setLiveBehind] = useState(0);
+  useEffect(() => { setLiveBehind(0); }, [channel.id, archive?.url]);
   const { state, engine, paused, retry, togglePause, via } = usePlayback(video, target, {
     engine: settings.engine, bufferSeconds: settings.buffer, openTimeoutMs: settings.openTimeout * 1000, autoRestart: settings.autoRestart,
+    liveBehindSeconds: liveBehind,
   }, mirrors);
+  // A stream hls.js could not open behind its edge plays live again rather than end on an error screen.
+  useEffect(() => { if (state === "failed" && liveBehind > 0) setLiveBehind(0); }, [state, liveBehind]);
   const guide = useContext(GuideContext);
   const live = guide.data.nowNext(channel.id, guide.now);
   // In a recording the strip tells the programme being watched and how far into it, not what is on now.
@@ -95,12 +122,74 @@ export function PlayerView({ channels, catalog, index, favorites, recents, onPic
   const onNow = archive ? archive.programme : live.now;
   const next = archive ? undefined : live.next;
   const progress = archive ? Math.min(1, position / length) : live.progress;
+  // Live: how far behind the edge the picture is. hls.js knows its live window, so the gap is read from it;
+  // any other engine is timed by the clock since the stream opened (plus what it was opened behind).
+  const anchor = useRef<LiveAnchor | null>(null);
+  const pausedAt = useRef<number | null>(null);
+  const [behind, setBehind] = useState(0);
+  // Whether this channel's stream is really live. The TV's decoder says so with an endless duration; hls.js gives
+  // a live stream a finite duration that grows. A file in a live list keeps one duration: it has no live edge.
+  const liveSeen = useRef<{ yes: boolean; duration: number }>({ yes: false, duration: 0 });
+  useEffect(() => { liveSeen.current = { yes: false, duration: 0 }; }, [channel.id, archive?.url]);
+  const isLive = (el: HTMLVideoElement): boolean => {
+    const seen = liveSeen.current;
+    if (!seen.yes && el.readyState > 0) {
+      if (!Number.isFinite(el.duration) || (seen.duration > 0 && el.duration > seen.duration + 0.5)) seen.yes = true;
+      else if (Number.isFinite(el.duration)) seen.duration = el.duration;
+    }
+    return seen.yes;
+  };
+  const measure = (el: HTMLVideoElement): number => {
+    if (!isLive(el)) return 0;
+    const w = liveWindow(el);
+    return w ? behindLive(w, el.currentTime) : (liveBehind > 0 ? liveBehind : 0) + lagBehind(anchor.current, Date.now() / 1000, el.currentTime);
+  };
+  useEffect(() => {
+    const el = video.current;
+    anchor.current = engine && el && !archive ? { wall: Date.now() / 1000, media: el.currentTime } : null;
+  }, [engine, archive?.url, channel.id]);
+  useEffect(() => {
+    setBehind(0);
+    if (archive) return;
+    const id = setInterval(() => { const el = video.current; if (el) setBehind(measure(el)); }, 1000);
+    return () => clearInterval(id);
+  }, [archive?.url, channel.id, liveBehind]);
+  const shifted = !archive && behind > 0;
+  /** hls.js can open a live `.m3u8` behind its edge; nothing else can, so only such a stream is timeshifted. */
+  const canShift = !archive && typeof MediaSource !== "undefined" && /\.m3u8(\?|$)/i.test(target.url);
   const seek = (by: number) => {
     const el = video.current;
     if (!el) return;
-    el.currentTime = Math.max(0, Math.min(el.currentTime + by / 1000, (Number.isFinite(el.duration) ? el.duration : length / 1000) - 1));
-    setPosition(el.currentTime * 1000);
+    if (archive) {
+      el.currentTime = Math.max(0, Math.min(el.currentTime + by / 1000, (Number.isFinite(el.duration) ? el.duration : length / 1000) - 1));
+      setPosition(el.currentTime * 1000);
+      return;
+    }
+    const w = liveWindow(el);
+    if (!w && by < 0 && canShift) { setLiveBehind(measure(el) + -by / 1000); return; } // no live window here: reopen behind
+    el.currentTime = windTo(w ?? seekWindow(el), el.currentTime, by / 1000).time;
+    setBehind(measure(el));
   };
+  // OK on the picture. A live pause on an engine without a live window resumes by reopening the stream as far
+  // behind as the pause lasted, so nothing of the programme is missed — the Android timeshift's behaviour.
+  const playPause = () => {
+    const el = video.current;
+    if (!archive && el && !paused) pausedAt.current = Date.now() / 1000;
+    if (!archive && el && paused && pausedAt.current !== null && !liveWindow(el) && canShift) {
+      const lag = measure(el) + (Date.now() / 1000 - pausedAt.current);
+      pausedAt.current = null;
+      if (lag > LIVE_EDGE_S) { setLiveBehind(Math.round(lag)); return; }
+    }
+    togglePause();
+  };
+  // Back to live: opened again at the edge on the usual engines (and the clock above starts over).
+  const toLive = () => {
+    if (archive) { onLive(); return; }
+    setBehind(0);
+    if (liveBehind > 0) setLiveBehind(0);
+    else retry();
+  };
+  const startOver = !archive && live.now ? startOverUrl(channel, live.now.start, live.now.stop) : null;
   const favorite = favorites.has(channelKey(channel));
 
   // Two layers: the info strip (what is on) and the action bar (what can be done). The panel is the side menu.
@@ -176,8 +265,8 @@ export function PlayerView({ channels, catalog, index, favorites, recents, onPic
         return;
       }
       if (left || right) {
-        // In a recording the arrows wind it back and forth, as on Android; the menus are on the bar.
-        if (!bar && archive) { swallow(e); seek(left ? -SEEK_MS : SEEK_MS); wake(); return; }
+        // Behind live or in a recording the arrows wind it back and forth, as on Android; the menus are on the bar.
+        if (!bar && (archive || shifted)) { swallow(e); seek(left ? -SEEK_MS : SEEK_MS); wake(); return; }
         // On the bar the arrows walk its buttons; on the picture Left brings the channels, Right what was watched lately.
         if (!bar) { swallow(e); openPanel(left ? "channels" : "recent", left ? "left" : "right"); return; }
         wake(true);
@@ -185,7 +274,7 @@ export function PlayerView({ channels, catalog, index, favorites, recents, onPic
       }
       if (e.key === "Enter" || e.keyCode === 13 || e.keyCode === 415 || e.keyCode === 19) {
         // OK on the picture pauses it; on a button of the bar it presses that button.
-        if (!bar) { swallow(e); ok.current = true; setTimeout(() => { ok.current = false; }, settings.osdSeconds * 1000); togglePause(); wake(); }
+        if (!bar) { swallow(e); ok.current = true; setTimeout(() => { ok.current = false; }, settings.osdSeconds * 1000); playPause(); wake(); }
         else wake(true);
         return;
       }
@@ -199,7 +288,7 @@ export function PlayerView({ channels, catalog, index, favorites, recents, onPic
       document.removeEventListener("keydown", onKey, true);
       document.removeEventListener("mousemove", onMove, true);
     };
-  }, [info, bar, strip, panel, tab, side, state, paused, channel.id, archive?.url]);
+  }, [info, bar, strip, panel, tab, side, state, paused, channel.id, archive?.url, shifted, liveBehind]);
 
   useEffect(() => { if (state === "failed") focusFirst(document, "pl-retry"); }, [state]);
 
@@ -222,6 +311,7 @@ export function PlayerView({ channels, catalog, index, favorites, recents, onPic
             {onNow ? <span>{clock(onNow.start)} – {clock(onNow.stop)}</span> : null}
             {onNow ? <span class="pinfo-bar"><span style={{ width: `${Math.round(progress * 100)}%` }} /></span> : null}
             {archive ? <span>{elapsed(position)} / {elapsed(length)}</span> : onNow ? <span>{leftLabel(onNow.stop, guide.now)}</span> : null}
+            {shifted ? <span class="pinfo-arch">{t("playerBehind", { t: elapsed(behind * 1000) })}</span> : null}
             <b>{index + 1}</b><b>{channel.name}</b>
           </div>
           {next ? <div class="pinfo-next">{clock(next.start)} – {clock(next.stop)}  {next.title}</div> : null}
@@ -266,14 +356,13 @@ export function PlayerView({ channels, catalog, index, favorites, recents, onPic
           </div>
         ) : (
         <div class="player-bar">
-          {archive ? <Tile id="pl-live" icon="live_tv" label="playerLive" onClick={onLive} /> : null}
-          {archive
-            ? <Tile id="pl-prev" icon="chevron_left" label="playerBack30" onClick={() => seek(-SEEK_MS)} />
-            : <Tile id="pl-prev" icon="skip_previous" label="playerPrev" onClick={() => onStep(-1)} />}
-          <Tile id="pl-play" icon={paused ? "play" : "pause"} label={paused ? "playerPlay" : "playerPause"} onClick={togglePause} />
-          {archive
-            ? <Tile id="pl-next" icon="chevron" label="playerFwd30" onClick={() => seek(SEEK_MS)} />
-            : <Tile id="pl-next" icon="skip_next" label="playerNext" onClick={() => onStep(1)} />}
+          {archive || shifted ? <Tile id="pl-live" icon="live_tv" label="playerLive" onClick={toLive} /> : null}
+          {archive ? null : <Tile id="pl-prev" icon="skip_previous" label="playerPrev" onClick={() => onStep(-1)} />}
+          <Tile id="pl-back" icon="chevron_left" label="playerBack30" onClick={() => seek(-SEEK_MS)} />
+          <Tile id="pl-play" icon={paused ? "play" : "pause"} label={paused ? "playerPlay" : "playerPause"} onClick={playPause} />
+          {archive || shifted ? <Tile id="pl-fwd" icon="chevron" label="playerFwd30" onClick={() => seek(SEEK_MS)} /> : null}
+          {archive ? null : <Tile id="pl-next" icon="skip_next" label="playerNext" onClick={() => onStep(1)} />}
+          {startOver && live.now ? <Tile id="pl-start" icon="history" label="playerStartOver" onClick={() => onArchive(live.now as Programme, startOver)} /> : null}
           <Tile id="pl-fav" icon={favorite ? "favorite" : "star"} label="playerFavorite" onClick={() => onFav(channel)} />
           <Tile id="pl-favs" icon="list" label="favorites" onClick={() => openStrip("favorites")} />
           <Tile id="pl-recent" icon="history" label="panelRecent" onClick={() => openStrip("recent")} />

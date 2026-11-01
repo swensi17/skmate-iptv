@@ -10,4 +10,8 @@ describe("defaultEngines", () => {
     expect(defaultEngines({ preference: "hls" }).map((e) => e.id)).toEqual(["hlsjs"]);
     expect(defaultEngines({ preference: "mpegts" }).map((e) => e.id)).toEqual(["mpegts"]);
   });
+  it("timeshifts on hls.js alone: the only engine that can open a live stream behind its edge", () => {
+    expect(defaultEngines({ liveBehindSeconds: 40 }).map((e) => e.id)).toEqual(["hlsjs"]);
+    expect(defaultEngines({ preference: "native", liveBehindSeconds: 40 }).map((e) => e.id)).toEqual(["hlsjs"]);
+  });
 });

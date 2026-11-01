@@ -279,6 +279,8 @@ export const en: Record<keyof typeof ru, string> = {
   playerLive: "Live",
   playerBack30: "−30 s",
   playerFwd30: "+30 s",
+  playerStartOver: "From start",
+  playerBehind: "−{t} behind live",
   guideArchiveHint: "Recorded: press OK to watch from the start",
   inMin: "in {m} min",
   inHour: "in {h} h {m} min",
