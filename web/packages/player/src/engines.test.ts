@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { defaultEngines } from "./index";
+import { looksLikeHls } from "./engines/hls";
 
 describe("defaultEngines", () => {
   it("tries the TV's own decoder first, then hls.js", () => {
@@ -13,5 +14,16 @@ describe("defaultEngines", () => {
   it("timeshifts on hls.js alone: the only engine that can open a live stream behind its edge", () => {
     expect(defaultEngines({ liveBehindSeconds: 40 }).map((e) => e.id)).toEqual(["hlsjs"]);
     expect(defaultEngines({ preference: "native", liveBehindSeconds: 40 }).map((e) => e.id)).toEqual(["hlsjs"]);
+  });
+});
+
+describe("looksLikeHls", () => {
+  it("takes .m3u8 and addresses that name no file type, not .ts or other files", () => {
+    expect(looksLikeHls("http://h/live/1.m3u8?token=x")).toBe(true);
+    expect(looksLikeHls("http://127.0.0.1:47817/s/abc/live/7?cmd=ffrt%20http%3A%2F%2Flocalhost%2Fch%2F7_")).toBe(true);
+    expect(looksLikeHls("http://h/play/123")).toBe(true);
+    expect(looksLikeHls("http://h/live/1.ts")).toBe(false);
+    expect(looksLikeHls("http://h/movie.mp4")).toBe(false);
+    expect(looksLikeHls("not a url")).toBe(false);
   });
 });

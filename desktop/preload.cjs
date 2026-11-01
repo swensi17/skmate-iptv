@@ -1,4 +1,4 @@
-// What the page may ask of the Windows app: full screen, an external player, recording. The page stays sandboxed,
+// What the page may ask of the Windows app: full screen, an external player, recording, Stalker portals. The page stays sandboxed,
 // with no Node: each call is one named request the main process answers.
 const { contextBridge, ipcRenderer } = require("electron");
 
@@ -21,4 +21,5 @@ contextBridge.exposeInMainWorld("skmateDesktop", {
   },
   openRecordings: () => ipcRenderer.invoke("rec:folder"),
   revealRecording: (path) => ipcRenderer.invoke("rec:reveal", path),
+  stalkerPlaylist: (source) => ipcRenderer.invoke("stalker:playlist", source),
 });

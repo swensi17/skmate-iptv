@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addPlaylist, nameFromUrl, nextActive, normalizeUrl, playlistFromSearch, removePlaylist } from "./playlists";
+import { addPlaylist, canonicalMac, isStalker, nameFromUrl, nextActive, normalizeUrl, playlistFromSearch, removePlaylist, stalkerSource } from "./playlists";
 import { channelKey, toggle } from "./favorites";
 import { fetchPlaylist, looksLikeM3U, PlaylistError } from "./fetchPlaylist";
 
@@ -13,6 +13,25 @@ describe("playlist links", () => {
   it("names a playlist by host and file", () => {
     expect(nameFromUrl("https://iptv.example.com/kino.m3u")).toBe("iptv.example.com / kino");
     expect(nameFromUrl("https://iptv.example.com/get.php")).toBe("iptv.example.com");
+  });
+});
+
+describe("Stalker portals", () => {
+  // The MAC cases of the Android app's StalkerClientTest.
+  it("takes a MAC in any spelling, letters past F too, and refuses a wrong length", () => {
+    expect(canonicalMac("001a79aabbcc")).toBe("00:1A:79:AA:BB:CC");
+    expect(canonicalMac("00-1A-79-AA-BB-CC")).toBe("00:1A:79:AA:BB:CC");
+    expect(canonicalMac(" 00.1a.79.aa.bb.cc ")).toBe("00:1A:79:AA:BB:CC");
+    expect(canonicalMac("00:1a:79:aa:bb:pq")).toBe("00:1A:79:AA:BB:PQ");
+    for (const bad of ["001a79aabbc", "001a79aabbccdd", "001&79aabbcc", ""]) expect(canonicalMac(bad)).toBeNull();
+  });
+  it("saves a portal with its MAC and names it by the host", () => {
+    const src = stalkerSource("portal.example:8080/c/", "001a79aabbcc");
+    expect(src).toBe("stalker:http://portal.example:8080/c/#mac=00:1A:79:AA:BB:CC");
+    expect(isStalker(src as string)).toBe(true);
+    expect(nameFromUrl(src as string)).toBe("Stalker · portal.example");
+    expect(stalkerSource("ftp://x/c/", "001a79aabbcc")).toBeNull();
+    expect(stalkerSource("http://x/c/", "123")).toBeNull();
   });
 });
 

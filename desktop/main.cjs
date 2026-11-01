@@ -6,6 +6,7 @@ const { execFileSync, spawn } = require("node:child_process");
 const { join } = require("node:path");
 const { autoUpdater } = require("electron-updater");
 const { record } = require("./recorder.cjs");
+const stalker = require("./stalker.cjs");
 
 const SMOKE = process.env.SKMATE_SMOKE === "1"; // a check run: load the page, report, quit
 const UPDATE_EVERY_MS = 6 * 60 * 60 * 1000;
@@ -14,6 +15,11 @@ const STAGE_W = 1920; // the page is drawn for a 1920×1080 TV screen
 const STAGE_H = 1080;
 
 let win = null;
+// Hosts that Stalker links point to: their streams get the MAG User-Agent too, as on Android.
+const stalkerHosts = new Set();
+// The local server of Stalker portals (stalker.cjs); its port is fixed so the addresses in a saved list stay good.
+const STALKER_PORT = 47817;
+let stalkerServer = null;
 
 // One window: a second start brings the first one forward instead of opening another player.
 if (!SMOKE && !app.requestSingleInstanceLock()) {
@@ -38,6 +44,7 @@ function openToProviders() {
   session.defaultSession.webRequest.onBeforeSendHeaders(filter, (details, done) => {
     const headers = { ...details.requestHeaders };
     if (headers.Origin === "null" || headers.Origin === "file://") delete headers.Origin;
+    try { if (stalkerHosts.has(new URL(details.url).host)) headers["User-Agent"] = stalker.DEFAULT_MAG_USER_AGENT; } catch { /* not a URL */ }
     done({ requestHeaders: headers });
   });
   session.defaultSession.webRequest.onHeadersReceived(filter, (details, done) => {
@@ -223,6 +230,15 @@ const recordingsFolder = () => join(app.getPath("videos"), "SkMate IPTV");
 const recordings = new Map();
 
 function start() {
+  // `stalker:<portal>#mac=<MAC>` (a portal as the page saves it) → the address of its M3U on the local server.
+  // Started at once: a channel of a saved list may be opened before the list is fetched again.
+  stalkerServer = stalker.startServer({ port: STALKER_PORT, onStreamHost: (h) => stalkerHosts.add(h) });
+  stalkerServer.catch((e) => console.warn("stalker server failed:", e && e.message));
+  ipcMain.handle("stalker:playlist", async (_e, source) => {
+    if (!stalker.parseSource(source)) return null;
+    const { base, sourceKey } = await stalkerServer;
+    return `${base}/s/${sourceKey(source)}/playlist.m3u`;
+  });
   ipcMain.handle("players:list", () => Object.keys(findPlayers()));
   ipcMain.handle("players:open", (_e, { player, url, title, headers }) => openInPlayer(player, url, title, headers));
   ipcMain.handle("rec:start", (_e, { id, url, title, headers, stopAtMs }) => {

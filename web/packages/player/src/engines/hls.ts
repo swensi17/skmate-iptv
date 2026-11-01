@@ -29,6 +29,18 @@ export interface HlsOptions {
 /** How much played live picture hls.js keeps to wind back in while timeshifting (the browser may keep less). */
 const TIMESHIFT_BACK_BUFFER_S = 900;
 
+/**
+ * An `.m3u8` address, or one that names no file type at all (a Stalker channel of the Windows app, a provider's
+ * `/play/123`): what it holds is only known once opened, so hls.js has a go before mpegts.js. Pure, so it is tested.
+ */
+export function looksLikeHls(url: string): boolean {
+  if (/\.m3u8(\?|$)/i.test(url)) return true;
+  let path: string;
+  try { path = new URL(url).pathname; } catch { return false; }
+  const last = path.split("/").pop() ?? "";
+  return !/\.[a-z0-9]{1,5}$/i.test(last);
+}
+
 export class HlsJsEngine implements PlayerEngine {
   readonly id = "hlsjs";
 
@@ -37,7 +49,7 @@ export class HlsJsEngine implements PlayerEngine {
   private stopped = false;
 
   supports(source: Source): boolean {
-    return typeof MediaSource !== "undefined" && /\.m3u8(\?|$)/i.test(source.url);
+    return typeof MediaSource !== "undefined" && looksLikeHls(source.url);
   }
 
   async start(video: HTMLVideoElement, source: Source): Promise<void> {
