@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addProfile, firstBook, removeProfile, switchProfile } from "./scope";
+import { addProfile, firstBook, removeProfile, setKids, setPinHash, switchProfile } from "./scope";
 
 describe("profiles", () => {
   it("starts with one profile, a guest or a named person", () => {
@@ -21,5 +21,19 @@ describe("profiles", () => {
     const b = addProfile(firstBook("А", false), "Мама");
     expect(switchProfile(b, "p1").activeId).toBe("p1");
     expect(switchProfile(b, "zzz").activeId).toBe("main");
+  });
+});
+
+describe("locks and kids", () => {
+  const book = addProfile(firstBook("Мама", false), "Сын");
+  it("locks a profile with a PIN hash and unlocks it, touching no other profile", () => {
+    const locked = setPinHash(book, "p1", "aa:bb");
+    expect(locked.profiles.map((p) => p.pinHash)).toEqual([undefined, "aa:bb"]);
+    expect(setPinHash(locked, "p1", null).profiles[1]).toEqual({ id: "p1", name: "Сын" });
+  });
+  it("makes a profile a kids profile and back", () => {
+    const kids = setKids(book, "p1", true);
+    expect(kids.profiles[1]?.kids).toBe(true);
+    expect(setKids(kids, "p1", false).profiles[1]).toEqual({ id: "p1", name: "Сын" });
   });
 });

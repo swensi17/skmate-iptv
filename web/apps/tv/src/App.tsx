@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "preact/hooks";
-import { archiveUrl, type Channel } from "@skmate/core";
+import { archiveUrl, hashPin, validPin, verifyPin, visibleTo, type Channel } from "@skmate/core";
 import type { Programme } from "@skmate/epg";
 import { Icon, installDpad, Presence, watchFrames, type IconName } from "@skmate/ui";
 import { applyLanguage, t, type Key } from "./i18n";
@@ -12,9 +12,10 @@ import { UiContext } from "./state/UiContext";
 import { useGuide } from "./state/useGuide";
 import { useUpdates } from "./state/useUpdates";
 import { useFullScreen } from "./state/desktop";
-import { addProfile, firstBook, loadBook, purgeProfile, removeProfile, saveBook, switchProfile, type ProfileBook } from "./state/scope";
+import { addProfile, firstBook, loadBook, purgeProfile, removeProfile, saveBook, setKids, setPinHash, switchProfile, type ProfileBook } from "./state/scope";
 import { usePlaylists } from "./state/usePlaylists";
 import { Confirm } from "./views/Confirm";
+import { PinDialog } from "./views/PinDialog";
 import { UpdateDialog } from "./views/UpdateDialog";
 import { QrDialog } from "./views/QrDialog";
 import { PlaylistPicker } from "./views/PlaylistPicker";
@@ -35,6 +36,9 @@ const NAV: Array<[Section, IconName, Key]> = [
   ["search", "search", "navSearch"],
 ];
 
+/** sessionStorage: the profile just opened with its PIN, so the restart that follows does not ask again. */
+const UNLOCKED_KEY = "skmate.unlocked";
+
 export function App() {
   const [section, setSection] = useState<Section>("live");
   // `archive`: a past programme played from the provider's recording instead of the live stream.
@@ -46,6 +50,16 @@ export function App() {
   const [resetting, setResetting] = useState(false);
   const [book, setBook] = useState<ProfileBook | null>(loadBook);
   const [deletingProfile, setDeletingProfile] = useState<string | null>(null);
+  // A PIN asked for something (switching to a locked profile, changing the lock); null when none is asked.
+  const [pinAsk, setPinAsk] = useState<{ title: string; hint?: string; check: (pin: string) => boolean; onDone: (pin: string) => void } | null>(null);
+  // A locked profile opens with its PIN, as on Android; a switch that was just unlocked is not asked twice.
+  const [unlocked, setUnlocked] = useState(() => {
+    const b = loadBook();
+    const active = b?.profiles.find((p) => p.id === b.activeId);
+    let just = false;
+    try { just = sessionStorage.getItem(UNLOCKED_KEY) === b?.activeId; sessionStorage.removeItem(UNLOCKED_KEY); } catch { /* asked again */ }
+    return !active?.pinHash || just;
+  });
   const [picking, setPicking] = useState(false);
   const [qr, setQr] = useState<{ name: string; address: string } | null>(null);
   const [history, setHistory] = useState<string[]>(loadHistory);
@@ -80,6 +94,8 @@ export function App() {
 
   // Back: dialog → closes, player → list, any section but the first → the first, in the first → leave the app to the TV.
   useEffect(() => installDpad(() => {
+    if (!unlocked) return true; // the lock screen stays until a PIN or another profile is chosen
+    if (pinAsk) { setPinAsk(null); return true; }
     if (deleting) { setDeleting(null); return true; }
     if (resetting) { setResetting(false); return true; }
     if (qr) { setQr(null); return true; }
@@ -89,7 +105,7 @@ export function App() {
     if (playing) { exitPlayer(); return true; }
     if (section !== "live") { setSection("live"); return true; }
     return false;
-  }), [deleting, resetting, qr, deletingProfile, picking, sheet, sheetPage, playing, section]);
+  }), [unlocked, pinAsk, deleting, resetting, qr, deletingProfile, picking, sheet, sheetPage, playing, section]);
 
   const open = (c: Channel, list: readonly Channel[]) => setPlaying({ list, index: Math.max(0, list.findIndex((x) => x.id === c.id)) });
   /** A past programme: its recording when the channel keeps one, else the channel live. */
@@ -102,7 +118,10 @@ export function App() {
     setLeaving(true);
     setTimeout(() => { setPlaying(null); setLeaving(false); }, 200); // the player fades out before it is gone
   };
-  const recents = useMemo(() => recentChannels(pl.channels, history), [pl.channels, history]);
+  const me = book?.profiles.find((x) => x.id === book.activeId);
+  // A kids profile sees no adult category anywhere: one filter here, every screen gets the same list.
+  const channels = useMemo(() => visibleTo(pl.channels, !!me?.kids) as Channel[], [pl.channels, me?.kids]);
+  const recents = useMemo(() => recentChannels(channels, history), [channels, history]);
   const watching = playing ? playing.list[playing.index] : null;
   // A channel counts as watched once it has been on for a moment: zapping past it does not fill the history.
   useEffect(() => {
@@ -124,14 +143,46 @@ export function App() {
     setRedo(false);
   };
   const startBook = (name: string, guest: boolean) => { const b = firstBook(name, guest); saveBook(b); setBook(b); };
-  const switchTo = (id: string) => {
+  const goToProfile = (id: string, opened: boolean) => {
     if (!book) return;
     saveBook(switchProfile(book, id));
+    if (opened) { try { sessionStorage.setItem(UNLOCKED_KEY, id); } catch { /* the PIN is asked once more */ } }
     location.reload(); // another profile = another set of playlists, favourites and guide: start clean
+  };
+  const switchTo = (id: string) => {
+    const target = book?.profiles.find((p) => p.id === id);
+    if (!target) return;
+    if (!target.pinHash) { goToProfile(id, false); return; }
+    setPinAsk({ title: t("pinEnterFor", { name: target.name }), check: (pin) => verifyPin(pin, target.pinHash), onDone: () => goToProfile(id, true) });
+  };
+  const updateBook = (b: ProfileBook) => { saveBook(b); setBook(b); };
+  /** The active profile's lock: a new PIN typed twice; removing it, or making it no longer a kids profile, takes the PIN. */
+  const askNewPin = () => {
+    if (!book) return;
+    setPinAsk({ title: t("pinNew"), check: validPin, onDone: (first) => setPinAsk({
+      title: t("pinRepeat"), check: (again) => again === first,
+      onDone: () => { updateBook(setPinHash(book, book.activeId, hashPin(first))); setPinAsk(null); },
+    }) });
+  };
+  const withOwnPin = (then: () => void) => {
+    const own = book?.profiles.find((p) => p.id === book.activeId);
+    if (!own?.pinHash) { then(); return; }
+    setPinAsk({ title: t("pinEnterFor", { name: own.name }), check: (pin) => verifyPin(pin, own.pinHash), onDone: () => { setPinAsk(null); then(); } });
+  };
+  const removePin = () => withOwnPin(() => { if (book) updateBook(setPinHash(book, book.activeId, null)); });
+  const toggleKids = () => {
+    const own = book?.profiles.find((p) => p.id === book.activeId);
+    if (!book || !own) return;
+    if (!own.kids) updateBook(setKids(book, book.activeId, true));
+    else withOwnPin(() => updateBook(setKids(book, book.activeId, false)));
+  };
+  const askDeleteProfile = (id: string) => {
+    const target = book?.profiles.find((p) => p.id === id);
+    if (!target?.pinHash) { setDeletingProfile(id); return; }
+    setPinAsk({ title: t("pinEnterFor", { name: target.name }), check: (pin) => verifyPin(pin, target.pinHash), onDone: () => { setPinAsk(null); setDeletingProfile(id); } });
   };
   const addOne = (name: string) => { if (!book) return; const b = addProfile(book, name); saveBook(b); setBook(b); };
   const doomedProfile = book && deletingProfile ? book.profiles.find((x) => x.id === deletingProfile) : undefined;
-  const me = book?.profiles.find((x) => x.id === book.activeId);
   const greeting = !me ? "" : me.guest ? t("greetingGuest") : t("greeting", { name: me.name });
   /** The rail: another place opens; the one already open sends the focus into its content (so the icon always does something). */
   const goTo = (id: Section) => {
@@ -142,13 +193,29 @@ export function App() {
   const toggleFavorite = (c: Channel) => setFavorites((f) => toggle(f, channelKey(c)));
   const doomed = deleting ? pl.store.list.find((p) => p.id === deleting) : undefined;
 
+  // The lock screen of a profile with a PIN: nothing of it shows before the PIN, another profile can be chosen.
+  if (book && !unlocked && me?.pinHash) {
+    const others = book.profiles.filter((x) => x.id !== me.id);
+    return (
+      <PinDialog
+        title={t("pinEnterFor", { name: me.guest ? t("guestName") : me.name })}
+        check={(pin) => verifyPin(pin, me.pinHash)} onDone={() => setUnlocked(true)}
+        extra={others.map((o) => (
+          <button class="btn" key={o.id} data-focus={`gate-${o.id}`} onClick={() => goToProfile(o.id, false)}>
+            {t("pinOtherProfile")}: {o.guest ? t("guestName") : o.name}
+          </button>
+        ))}
+      />
+    );
+  }
+
   if (playing) {
     const current = playing.list[playing.index] as Channel;
     return (
       <UiContext.Provider value={ui}>
       <GuideContext.Provider value={guideValue}>
       <PlayerView
-        channels={playing.list} catalog={pl.channels} index={playing.index} favorites={favorites} recents={recents} closing={leaving}
+        channels={playing.list} catalog={channels} index={playing.index} favorites={favorites} recents={recents} closing={leaving}
         onPick={(c, list) => setPlaying({ list, index: Math.max(0, list.findIndex((x) => x.id === c.id)) })}
         onStep={(d) => setPlaying((cur) => (cur ? { list: cur.list, index: (cur.index + d + cur.list.length) % cur.list.length } : cur))}
         onFav={toggleFavorite} onExit={exitPlayer}
@@ -190,16 +257,16 @@ export function App() {
       <main class="content">
         {section === "live" ? (
           <LiveView
-            channels={pl.channels} favorites={favorites} status={pl.status} settings={settings}
+            channels={channels} favorites={favorites} status={pl.status} settings={settings}
             onOpen={open} onFav={toggleFavorite}
             onAddPlaylist={() => { setSheetPage("playlists"); setSheet(true); }} onDemo={pl.addDemo}
             greeting={greeting} playlistName={pl.active?.name ?? null} onPickPlaylist={() => setPicking(true)}
             recents={recents} paused={false}
           />
         ) : null}
-        {section === "guide" ? <GuideView channels={pl.channels} favorites={favorites} status={guide.status} onRefresh={() => void guide.sync()} onOpen={open} onArchive={openArchive} /> : null}
-        {section === "sport" ? <SportView channels={pl.channels} favorites={favorites} onOpen={open} onFav={toggleFavorite} /> : null}
-        {section === "search" ? <SearchView channels={pl.channels} favorites={favorites} onOpen={open} onArchive={openArchive} onFav={toggleFavorite} /> : null}
+        {section === "guide" ? <GuideView channels={channels} favorites={favorites} status={guide.status} onRefresh={() => void guide.sync()} onOpen={open} onArchive={openArchive} /> : null}
+        {section === "sport" ? <SportView channels={channels} favorites={favorites} onOpen={open} onFav={toggleFavorite} /> : null}
+        {section === "search" ? <SearchView channels={channels} favorites={favorites} onOpen={open} onArchive={openArchive} onFav={toggleFavorite} /> : null}
       </main>
       <Presence show={sheet}>
         {(out) => (
@@ -210,7 +277,8 @@ export function App() {
             onAskReset={() => setResetting(true)}
             guide={{ data: guide.data, status: guide.status, outcomes: guide.outcomes, onRefresh: () => void guide.sync(), onClear: guide.clear }}
             channelCount={pl.channels.length} active={pl.active} headerGuides={pl.headerGuides}
-            book={book ?? firstBook("", true)} onSwitchProfile={switchTo} onAddProfile={addOne} onAskDeleteProfile={setDeletingProfile}
+            book={book ?? firstBook("", true)} onSwitchProfile={switchTo} onAddProfile={addOne} onAskDeleteProfile={askDeleteProfile}
+            onSetPin={askNewPin} onRemovePin={removePin} onToggleKids={toggleKids}
             onQr={(name, address) => setQr({ name, address })}
             update={update} onRedoWizard={() => { setSheet(false); setRedo(true); }}
           />
@@ -236,6 +304,8 @@ export function App() {
           }}
         />
       ) : null}
+      {/* A fresh dialog for every question: the digits of "New PIN" must not carry over into "Repeat the PIN". */}
+      {pinAsk ? <PinDialog key={pinAsk.title} title={pinAsk.title} hint={pinAsk.hint} check={pinAsk.check} onDone={pinAsk.onDone} onCancel={() => setPinAsk(null)} /> : null}
       {book === null || redo ? (
         <Wizard settings={settings} hasProfile={book !== null} onPreview={setSettings} onFinish={finishWizard} onCancel={redo ? () => setRedo(false) : undefined} />
       ) : null}
