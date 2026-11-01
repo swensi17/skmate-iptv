@@ -1,5 +1,6 @@
 import { useContext, useEffect, useMemo, useState } from "preact/hooks";
 import { SearchIndex, type Channel } from "@skmate/core";
+import type { Programme } from "@skmate/epg";
 import { focusFirst, Icon, VirtualList } from "@skmate/ui";
 import { t, type Key } from "../i18n";
 import { channelKey } from "../state/favorites";
@@ -23,6 +24,8 @@ interface Props {
   channels: Channel[];
   favorites: ReadonlySet<string>;
   onOpen: (c: Channel, list: readonly Channel[]) => void;
+  /** A found programme that is over: its recording. */
+  onArchive: (c: Channel, p: Programme, list: readonly Channel[]) => void;
   onFav: (c: Channel) => void;
 }
 
@@ -34,7 +37,7 @@ const HEIGHT = 700;
  * Search as in the phone version: channels and the guide's programmes together, filters (all, channels, programmes,
  * sport, films), the recent queries, and a plain "nothing found" that says what is searched.
  */
-export function SearchView({ channels, favorites, onOpen, onFav }: Props) {
+export function SearchView({ channels, favorites, onOpen, onArchive, onFav }: Props) {
   const ROW = useContext(UiContext).rowH;
   const { data, now } = useContext(GuideContext);
   const [query, setQuery] = useState("");
@@ -70,6 +73,8 @@ export function SearchView({ channels, favorites, onOpen, onFav }: Props) {
 
   const remember = () => { const next = pushQuery(recent, q); setRecent(next); saveQueries(next); };
   const open = (c: Channel) => { remember(); onOpen(c, playable); };
+  // A programme that has ended plays from its recording (only those the channel keeps are found at all).
+  const openProgramme = (c: Channel, p: Programme) => { remember(); if (p.stop <= Date.now()) onArchive(c, p, playable); else onOpen(c, playable); };
 
   return (
     <div class="screen search">
@@ -120,7 +125,7 @@ export function SearchView({ channels, favorites, onOpen, onFav }: Props) {
             idOf={(h, i) => (h.k === "c" ? `ch-${h.channel.id}` : `pr-${h.channel.id}-${h.programme.start}-${i}`)}
             renderRow={(h, i) => h.k === "c"
               ? <ChannelRow channel={h.channel} index={i} favorite={favorites.has(channelKey(h.channel))} onOpen={open} onFav={onFav} />
-              : <ProgrammeRow channel={h.channel} programme={h.programme} onOpen={open} />}
+              : <ProgrammeRow channel={h.channel} programme={h.programme} onOpen={openProgramme} />}
           />
         </>
       )}

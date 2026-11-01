@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "preact/hooks";
-import type { Channel } from "@skmate/core";
+import { archiveUrl, type Channel } from "@skmate/core";
+import type { Programme } from "@skmate/epg";
 import { Icon, installDpad, Presence, watchFrames, type IconName } from "@skmate/ui";
 import { applyLanguage, t, type Key } from "./i18n";
 import skLogo from "./assets/skmate-sk.png";
@@ -36,7 +37,8 @@ const NAV: Array<[Section, IconName, Key]> = [
 
 export function App() {
   const [section, setSection] = useState<Section>("live");
-  const [playing, setPlaying] = useState<{ list: readonly Channel[]; index: number } | null>(null);
+  // `archive`: a past programme played from the provider's recording instead of the live stream.
+  const [playing, setPlaying] = useState<{ list: readonly Channel[]; index: number; archive?: { programme: Programme; url: string } } | null>(null);
   const [settings, setSettings] = useState<Settings>(load);
   const [throttled, setThrottled] = useState(false);
   const [favorites, setFavorites] = useState<Set<string>>(loadFavorites);
@@ -90,6 +92,12 @@ export function App() {
   }), [deleting, resetting, qr, deletingProfile, picking, sheet, sheetPage, playing, section]);
 
   const open = (c: Channel, list: readonly Channel[]) => setPlaying({ list, index: Math.max(0, list.findIndex((x) => x.id === c.id)) });
+  /** A past programme: its recording when the channel keeps one, else the channel live. */
+  const openArchive = (c: Channel, p: Programme, list: readonly Channel[]) => {
+    const url = archiveUrl(c, p.start, p.stop);
+    if (url === null) { open(c, list); return; }
+    setPlaying({ list, index: Math.max(0, list.findIndex((x) => x.id === c.id)), archive: { programme: p, url } });
+  };
   const exitPlayer = () => {
     setLeaving(true);
     setTimeout(() => { setPlaying(null); setLeaving(false); }, 200); // the player fades out before it is gone
@@ -144,6 +152,7 @@ export function App() {
         onPick={(c, list) => setPlaying({ list, index: Math.max(0, list.findIndex((x) => x.id === c.id)) })}
         onStep={(d) => setPlaying((cur) => (cur ? { list: cur.list, index: (cur.index + d + cur.list.length) % cur.list.length } : cur))}
         onFav={toggleFavorite} onExit={exitPlayer}
+        archive={playing.archive ?? null} onLive={() => setPlaying((cur) => (cur ? { list: cur.list, index: cur.index } : cur))}
         onGo={(to) => { setSection(to); exitPlayer(); }}
         settings={settings} onChangeSettings={setSettings}
       />
@@ -187,9 +196,9 @@ export function App() {
             recents={recents} paused={false}
           />
         ) : null}
-        {section === "guide" ? <GuideView channels={pl.channels} favorites={favorites} status={guide.status} onRefresh={() => void guide.sync()} onOpen={open} /> : null}
+        {section === "guide" ? <GuideView channels={pl.channels} favorites={favorites} status={guide.status} onRefresh={() => void guide.sync()} onOpen={open} onArchive={openArchive} /> : null}
         {section === "sport" ? <SportView channels={pl.channels} favorites={favorites} onOpen={open} onFav={toggleFavorite} /> : null}
-        {section === "search" ? <SearchView channels={pl.channels} favorites={favorites} onOpen={open} onFav={toggleFavorite} /> : null}
+        {section === "search" ? <SearchView channels={pl.channels} favorites={favorites} onOpen={open} onArchive={openArchive} onFav={toggleFavorite} /> : null}
       </main>
       <Presence show={sheet}>
         {(out) => (

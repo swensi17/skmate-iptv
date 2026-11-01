@@ -41,3 +41,24 @@ describe("ProgrammeSearch", () => {
     expect(hits.map((h) => h.programme.start)).toEqual([...hits.map((h) => h.programme.start)].sort((a, b) => a - b));
   });
 });
+
+describe("ProgrammeSearch with an archive", () => {
+  // The same guide, but the channel keeps 3 days of recordings.
+  const arch: Channel = { ...ch("1", "Первый HD"), catchupDays: 3, catchupType: "append", catchupSource: "?utc={utc}" };
+  const s = new ProgrammeSearch(data, [arch, ch("3", "Матч")], now);
+  it("finds a programme that is over when the channel keeps its recording", () => {
+    expect(s.search("старая", now).map((h) => h.programme.title)).toEqual(["Старая передача"]);
+    expect(s.search("старая", now)[0]?.live).toBe(false);
+  });
+  it("puts what is on, then what is coming, before the recordings", () => {
+    const starts = new ProgrammeSearch(
+      new GuideData(new Map([["1", "a"]]), new Map([["a", [
+        { start: now - H, stop: now - 1, title: "Шоу" },
+        { start: now + H, stop: now + 2 * H, title: "Шоу" },
+        { start: now - 60_000, stop: now + H, title: "Шоу" },
+      ]]]), now),
+      [arch], now,
+    ).search("шоу", now).map((h) => h.programme.start);
+    expect(starts).toEqual([now - 60_000, now + H, now - H]);
+  });
+});

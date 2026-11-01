@@ -1,5 +1,6 @@
 import { useContext, useEffect, useMemo, useRef, useState } from "preact/hooks";
-import { pickMirrors, type Channel } from "@skmate/core";
+import { pickMirrors, timeshiftPhpAlternate, type Channel } from "@skmate/core";
+import type { Programme } from "@skmate/epg";
 import { focusFirst, Icon, isBack, Presence, type IconName } from "@skmate/ui";
 import { t, type Key } from "../i18n";
 import { channelKey } from "../state/favorites";
@@ -32,6 +33,19 @@ interface Props {
   onChangeSettings: (s: Settings) => void;
   /** Leave the player for another place of the app (the main menu's Home, Guide, Sport, Search). */
   onGo: (to: Go) => void;
+  /** A past programme played from the provider's recording; null for the live stream. */
+  archive: { programme: Programme; url: string } | null;
+  /** Back from the recording to the channel live. */
+  onLive: () => void;
+}
+
+/** 1:05:09 or 5:09: how far into a recording, and how long it is. */
+function elapsed(ms: number): string {
+  const s = Math.max(0, Math.floor(ms / 1000));
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sec = String(s % 60).padStart(2, "0");
+  return h > 0 ? `${h}:${String(m).padStart(2, "0")}:${sec}` : `${m}:${sec}`;
 }
 
 function Tile(p: { id: string; icon: IconName; label: Key; onClick: () => void }) {
@@ -44,22 +58,49 @@ function Tile(p: { id: string; icon: IconName; label: Key; onClick: () => void }
 }
 
 const CH_UP = [427, 33];
+/** One press of Left or Right in a recording, as on the Android player. */
+const SEEK_MS = 30_000;
 const CH_DOWN = [428, 34];
 
 /**
  * Full-screen playback. Keys: OK pauses and resumes; Up or Down first show the action bar, then step through the
  * channels; Right opens the recently watched, Left the channels (each from its own edge); the channel keys always step; Back closes what is open, then leaves.
+ * In a recording (a past programme from the archive) Left and Right wind it 30 s instead, and the bar has "Live".
  */
-export function PlayerView({ channels, catalog, index, favorites, recents, onPick, closing, onStep, onFav, onExit, settings, onChangeSettings, onGo }: Props) {
+export function PlayerView({ channels, catalog, index, favorites, recents, onPick, closing, onStep, onFav, onExit, settings, onChangeSettings, onGo, archive, onLive }: Props) {
   const channel = channels[index] as Channel;
   const video = useRef<HTMLVideoElement>(null);
   const full = useFullScreen();
-  const mirrors = useMemo(() => pickMirrors(channel, catalog), [channel.id, catalog]);
-  const { state, engine, paused, retry, togglePause, via } = usePlayback(video, channel, {
+  // A recording plays from its own address; its only fallback is the PHP form some Xtream panels need instead.
+  const target = useMemo(() => (archive ? { ...channel, url: archive.url } : channel), [channel, archive?.url]);
+  const mirrors = useMemo(() => {
+    if (!archive) return pickMirrors(channel, catalog);
+    const alt = timeshiftPhpAlternate(archive.url);
+    return alt ? [{ ...channel, url: alt }] : [];
+  }, [channel.id, catalog, archive?.url]);
+  const { state, engine, paused, retry, togglePause, via } = usePlayback(video, target, {
     engine: settings.engine, bufferSeconds: settings.buffer, openTimeoutMs: settings.openTimeout * 1000, autoRestart: settings.autoRestart,
   }, mirrors);
   const guide = useContext(GuideContext);
-  const { now: onNow, next, progress } = guide.data.nowNext(channel.id, guide.now);
+  const live = guide.data.nowNext(channel.id, guide.now);
+  // In a recording the strip tells the programme being watched and how far into it, not what is on now.
+  const [position, setPosition] = useState(0);
+  useEffect(() => {
+    if (!archive) return;
+    setPosition(0);
+    const id = setInterval(() => setPosition((video.current?.currentTime ?? 0) * 1000), 1000);
+    return () => clearInterval(id);
+  }, [archive?.url]);
+  const length = archive ? Math.max(1, archive.programme.stop - archive.programme.start) : 1;
+  const onNow = archive ? archive.programme : live.now;
+  const next = archive ? undefined : live.next;
+  const progress = archive ? Math.min(1, position / length) : live.progress;
+  const seek = (by: number) => {
+    const el = video.current;
+    if (!el) return;
+    el.currentTime = Math.max(0, Math.min(el.currentTime + by / 1000, (Number.isFinite(el.duration) ? el.duration : length / 1000) - 1));
+    setPosition(el.currentTime * 1000);
+  };
   const favorite = favorites.has(channelKey(channel));
 
   // Two layers: the info strip (what is on) and the action bar (what can be done). The panel is the side menu.
@@ -135,6 +176,8 @@ export function PlayerView({ channels, catalog, index, favorites, recents, onPic
         return;
       }
       if (left || right) {
+        // In a recording the arrows wind it back and forth, as on Android; the menus are on the bar.
+        if (!bar && archive) { swallow(e); seek(left ? -SEEK_MS : SEEK_MS); wake(); return; }
         // On the bar the arrows walk its buttons; on the picture Left brings the channels, Right what was watched lately.
         if (!bar) { swallow(e); openPanel(left ? "channels" : "recent", left ? "left" : "right"); return; }
         wake(true);
@@ -156,7 +199,7 @@ export function PlayerView({ channels, catalog, index, favorites, recents, onPic
       document.removeEventListener("keydown", onKey, true);
       document.removeEventListener("mousemove", onMove, true);
     };
-  }, [info, bar, strip, panel, tab, side, state, paused, channel.id]);
+  }, [info, bar, strip, panel, tab, side, state, paused, channel.id, archive?.url]);
 
   useEffect(() => { if (state === "failed") focusFirst(document, "pl-retry"); }, [state]);
 
@@ -175,13 +218,14 @@ export function PlayerView({ channels, catalog, index, favorites, recents, onPic
         <div class="pinfo-text">
           <div class="pinfo-title">{onNow ? onNow.title : channel.name}</div>
           <div class="pinfo-line">
+            {archive ? <span class="pinfo-arch">{t("playerArchive")}</span> : null}
             {onNow ? <span>{clock(onNow.start)} – {clock(onNow.stop)}</span> : null}
             {onNow ? <span class="pinfo-bar"><span style={{ width: `${Math.round(progress * 100)}%` }} /></span> : null}
-            {onNow ? <span>{leftLabel(onNow.stop, guide.now)}</span> : null}
+            {archive ? <span>{elapsed(position)} / {elapsed(length)}</span> : onNow ? <span>{leftLabel(onNow.stop, guide.now)}</span> : null}
             <b>{index + 1}</b><b>{channel.name}</b>
           </div>
           {next ? <div class="pinfo-next">{clock(next.start)} – {clock(next.stop)}  {next.title}</div> : null}
-          {via ? <div class="pinfo-next">{t("playerMirror", { name: via.name })}</div> : null}
+          {via && !archive ? <div class="pinfo-next">{t("playerMirror", { name: via.name })}</div> : null}
           {engine && settings.showEngine ? <div class="pinfo-next">{t("playerEngine", { name: engine })}</div> : null}
         </div>
       </div>
@@ -222,9 +266,14 @@ export function PlayerView({ channels, catalog, index, favorites, recents, onPic
           </div>
         ) : (
         <div class="player-bar">
-          <Tile id="pl-prev" icon="skip_previous" label="playerPrev" onClick={() => onStep(-1)} />
+          {archive ? <Tile id="pl-live" icon="live_tv" label="playerLive" onClick={onLive} /> : null}
+          {archive
+            ? <Tile id="pl-prev" icon="chevron_left" label="playerBack30" onClick={() => seek(-SEEK_MS)} />
+            : <Tile id="pl-prev" icon="skip_previous" label="playerPrev" onClick={() => onStep(-1)} />}
           <Tile id="pl-play" icon={paused ? "play" : "pause"} label={paused ? "playerPlay" : "playerPause"} onClick={togglePause} />
-          <Tile id="pl-next" icon="skip_next" label="playerNext" onClick={() => onStep(1)} />
+          {archive
+            ? <Tile id="pl-next" icon="chevron" label="playerFwd30" onClick={() => seek(SEEK_MS)} />
+            : <Tile id="pl-next" icon="skip_next" label="playerNext" onClick={() => onStep(1)} />}
           <Tile id="pl-fav" icon={favorite ? "favorite" : "star"} label="playerFavorite" onClick={() => onFav(channel)} />
           <Tile id="pl-favs" icon="list" label="favorites" onClick={() => openStrip("favorites")} />
           <Tile id="pl-recent" icon="history" label="panelRecent" onClick={() => openStrip("recent")} />

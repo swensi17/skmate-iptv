@@ -1,5 +1,5 @@
 import { useContext, useEffect, useMemo, useState } from "preact/hooks";
-import type { Channel } from "@skmate/core";
+import { hasArchive, type Channel } from "@skmate/core";
 import { focusFirst, Icon, VirtualList } from "@skmate/ui";
 import { t } from "../i18n";
 import { channelKey } from "../state/favorites";
@@ -23,10 +23,12 @@ interface Props {
   status: GuideStatus;
   onRefresh: () => void;
   onOpen: (c: Channel, list: readonly Channel[]) => void;
+  /** A past programme on a channel that keeps a recording of it. */
+  onArchive: (c: Channel, p: Programme, list: readonly Channel[]) => void;
 }
 
 /** The guide: channels down the side, three hours of programmes across, the one in focus described below. */
-export function GuideView({ channels, favorites, status, onRefresh, onOpen }: Props) {
+export function GuideView({ channels, favorites, status, onRefresh, onOpen, onArchive }: Props) {
   const { data, now } = useContext(GuideContext);
   const [from, setFrom] = useState(() => floorHalfHour(Date.now() - 30 * 60_000));
   const [sel, setSel] = useState<{ channel: Channel; programme: Programme } | null>(null);
@@ -81,12 +83,13 @@ export function GuideView({ channels, favorites, status, onRefresh, onOpen }: Pr
                       const left = Math.max(0, x(p.start));
                       const width = Math.min(TIMELINE_W, x(p.stop)) - left - 4;
                       const live = p.start <= now && now < p.stop;
+                      const recorded = hasArchive(c, p.start, p.stop, now);
                       return (
                         <button
-                          class={`block${live ? " live" : ""}`} key={p.start} data-focus={`pg-${c.id}-${p.start}`}
+                          class={`block${live ? " live" : ""}${recorded ? " arch" : ""}`} key={p.start} data-focus={`pg-${c.id}-${p.start}`}
                           style={{ left: `${left}px`, width: `${Math.max(8, width)}px` }}
                           onFocus={() => setSel({ channel: c, programme: p })}
-                          onClick={() => onOpen(c, rows)}
+                          onClick={() => (recorded ? onArchive(c, p, rows) : onOpen(c, rows))}
                         >
                           {width >= MIN_TEXT_W ? <span class="block-t">{p.title}</span> : null}
                         </button>
@@ -103,6 +106,7 @@ export function GuideView({ channels, favorites, status, onRefresh, onOpen }: Pr
               <>
                 <div class="gd-title">{sel.programme.title}</div>
                 <div class="gd-sub">{sel.channel.name} · {clock(sel.programme.start)} – {clock(sel.programme.stop)}</div>
+                {hasArchive(sel.channel, sel.programme.start, sel.programme.stop, now) ? <div class="gd-arch"><Icon name="history" size={24} />{t("guideArchiveHint")}</div> : null}
                 <div class="gd-desc">{sel.programme.desc ?? t("guideNoDesc")}</div>
               </>
             ) : null}
