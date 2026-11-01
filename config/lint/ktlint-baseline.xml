@@ -137,7 +137,7 @@
         <error line="3" column="1" source="standard:import-ordering" />
         <error line="217" column="17" source="standard:backing-property-naming" />
         <error line="218" column="17" source="standard:backing-property-naming" />
-        <error line="469" column="1" source="standard:no-blank-line-before-rbrace" />
+        <error line="476" column="1" source="standard:no-blank-line-before-rbrace" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/live/CatchupJumpDialog.kt">
         <error line="3" column="1" source="standard:import-ordering" />
@@ -184,14 +184,14 @@
         <error line="1317" column="5" source="standard:spacing-between-declarations-with-comments" />
         <error line="1728" column="5" source="standard:kdoc" />
         <error line="1733" column="5" source="standard:spacing-between-declarations-with-comments" />
-        <error line="1871" column="30" source="standard:no-multi-spaces" />
-        <error line="1872" column="41" source="standard:no-multi-spaces" />
-        <error line="2234" column="5" source="standard:kdoc" />
-        <error line="2235" column="5" source="standard:spacing-between-declarations-with-comments" />
-        <error line="2304" column="9" source="standard:spacing-between-declarations-with-comments" />
-        <error line="2308" column="9" source="standard:spacing-between-declarations-with-comments" />
-        <error line="2328" column="9" source="standard:kdoc" />
-        <error line="2352" column="1" source="standard:no-blank-line-before-rbrace" />
+        <error line="1881" column="30" source="standard:no-multi-spaces" />
+        <error line="1882" column="41" source="standard:no-multi-spaces" />
+        <error line="2244" column="5" source="standard:kdoc" />
+        <error line="2245" column="5" source="standard:spacing-between-declarations-with-comments" />
+        <error line="2314" column="9" source="standard:spacing-between-declarations-with-comments" />
+        <error line="2318" column="9" source="standard:spacing-between-declarations-with-comments" />
+        <error line="2338" column="9" source="standard:kdoc" />
+        <error line="2362" column="1" source="standard:no-blank-line-before-rbrace" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/live/LiveZapList.kt">
         <error line="3" column="1" source="standard:import-ordering" />
@@ -586,14 +586,14 @@
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt">
         <error line="3" column="1" source="standard:import-ordering" />
-        <error line="1479" column="187" source="standard:wrapping" />
-        <error line="1493" column="26" source="standard:wrapping" />
-        <error line="1537" column="107" source="standard:wrapping" />
-        <error line="1550" column="26" source="standard:wrapping" />
-        <error line="2466" column="19" source="standard:property-naming" />
-        <error line="2478" column="1" source="standard:kdoc" />
-        <error line="2484" column="19" source="standard:property-naming" />
-        <error line="2485" column="19" source="standard:property-naming" />
+        <error line="1506" column="187" source="standard:wrapping" />
+        <error line="1520" column="26" source="standard:wrapping" />
+        <error line="1564" column="107" source="standard:wrapping" />
+        <error line="1577" column="26" source="standard:wrapping" />
+        <error line="2497" column="19" source="standard:property-naming" />
+        <error line="2509" column="1" source="standard:kdoc" />
+        <error line="2515" column="19" source="standard:property-naming" />
+        <error line="2516" column="19" source="standard:property-naming" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/shell/ShellViewModel.kt">
         <error line="3" column="1" source="standard:import-ordering" />
@@ -787,18 +787,18 @@
     </file>
     <file name="app/src/main/java/tv/own/owntv/player/PlayerHud.kt">
         <error line="3" column="1" source="standard:import-ordering" />
-        <error line="339" column="69" source="standard:wrapping" />
-        <error line="341" column="6" source="standard:wrapping" />
-        <error line="342" column="65" source="standard:wrapping" />
-        <error line="344" column="6" source="standard:wrapping" />
-        <error line="382" column="9" source="standard:keyword-spacing" />
-        <error line="727" column="17" source="standard:wrapping" />
-        <error line="728" column="133" source="standard:wrapping" />
-        <error line="770" column="17" source="standard:wrapping" />
-        <error line="776" column="17" source="standard:wrapping" />
-        <error line="777" column="17" source="standard:wrapping" />
-        <error line="783" column="17" source="standard:wrapping" />
-        <error line="1093" column="19" source="standard:property-naming" />
+        <error line="343" column="69" source="standard:wrapping" />
+        <error line="345" column="6" source="standard:wrapping" />
+        <error line="346" column="65" source="standard:wrapping" />
+        <error line="348" column="6" source="standard:wrapping" />
+        <error line="386" column="9" source="standard:keyword-spacing" />
+        <error line="731" column="17" source="standard:wrapping" />
+        <error line="732" column="133" source="standard:wrapping" />
+        <error line="774" column="17" source="standard:wrapping" />
+        <error line="780" column="17" source="standard:wrapping" />
+        <error line="781" column="17" source="standard:wrapping" />
+        <error line="787" column="17" source="standard:wrapping" />
+        <error line="1097" column="19" source="standard:property-naming" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/player/PlayerHudChrome.kt">
         <error line="3" column="1" source="standard:import-ordering" />
