@@ -2,6 +2,7 @@ import { useState } from "preact/hooks";
 import { LANGUAGES } from "../i18n/languages";
 import { t } from "../i18n";
 import { clearCaches } from "../state/backup";
+import { desktop } from "../state/desktop";
 import { detectPlatform } from "../platform";
 import type { Settings } from "../state/settings";
 import type { UpdateState } from "../state/useUpdates";
@@ -73,6 +74,11 @@ export function SystemPanel({ settings, onChange, onQr, onReset, onRedo, update 
           <span class="srow-hint">{cleared === null ? t("sysClearHint") : t("sysCleared", { n: cleared })}</span>
         </span>
       </button>
+      {desktop() ? (
+        <button class="srow" data-focus="s-recordings" onClick={() => { desktop()?.openRecordings().catch(() => undefined); }}>
+          <span class="srow-text"><span class="srow-title">{t("recFolder")}</span><span class="srow-hint">{t("recFolderHint")}</span></span>
+        </button>
+      ) : null}
       <button class="srow" data-focus="s-report" onClick={() => onQr(t("sysReport"), REPORT)}>
         <span class="srow-text"><span class="srow-title">{t("sysReport")}</span><span class="srow-hint">{t("sysReportHint")}</span></span>
       </button>

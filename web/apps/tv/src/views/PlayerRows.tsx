@@ -1,4 +1,5 @@
 import { t } from "../i18n";
+import { usePlayers } from "../state/desktop";
 import type { Settings } from "../state/settings";
 import { onOff, SettingRow } from "./SettingRow";
 
@@ -7,6 +8,8 @@ interface Props { settings: Settings; onChange: (s: Settings) => void }
 /** Every player setting, in the order of the phone version; shared by the settings sheet and the panel inside the player. */
 export function PlayerSettingRows({ settings: s, onChange }: Props) {
   const set = <K extends keyof Settings>(k: K) => (v: Settings[K]) => onChange({ ...s, [k]: v });
+  // Only players found on this computer are offered; with none (a TV, a browser) the row is not there.
+  const players = usePlayers();
   const secs = (list: number[]) => list.map((n) => ({ value: n, label: t("seconds", { n }) }));
   return (
     <>
@@ -21,6 +24,10 @@ export function PlayerSettingRows({ settings: s, onChange }: Props) {
       <SettingRow id="s-osd" title="setOsd" hint="setOsdHint" value={s.osdSeconds} onPick={set("osdSeconds")} options={secs([3, 5, 8]) as never} />
       <SettingRow id="s-showengine" title="setShowEngine" hint="setShowEngineHint" value={s.showEngine} onPick={set("showEngine")} options={onOff()} />
       <SettingRow id="s-restart" title="setAutoRestart" hint="setAutoRestartHint" value={s.autoRestart} onPick={set("autoRestart")} options={onOff()} />
+      {players.length > 0 ? (
+        <SettingRow id="s-external" title="setExternal" hint="setExternalHint" value={s.externalPlayer} onPick={set("externalPlayer")}
+          options={[{ value: "off", label: t("off") }, ...players.map((p) => ({ value: p as "vlc" | "mpv", label: p === "vlc" ? "VLC" : "mpv" }))]} />
+      ) : null}
       <SettingRow id="s-preview" title="setPreview" hint="setPreviewHint" value={s.preview} onPick={set("preview")} options={onOff()} />
     </>
   );

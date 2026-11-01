@@ -13,7 +13,7 @@ import { useGuide } from "./state/useGuide";
 import { useUpdates } from "./state/useUpdates";
 import { useReminders } from "./state/useReminders";
 import { ProgrammeDialog, ReminderNote, ReminderPrompt } from "./views/Reminders";
-import { useFullScreen } from "./state/desktop";
+import { desktop, useFullScreen, useRecordingEnd } from "./state/desktop";
 import { addProfile, firstBook, loadBook, purgeProfile, removeProfile, saveBook, setKids, setPinHash, switchProfile, type ProfileBook } from "./state/scope";
 import { usePlaylists } from "./state/usePlaylists";
 import { Confirm } from "./views/Confirm";
@@ -121,7 +121,29 @@ export function App() {
     return false;
   }), [unlocked, prompt, upcoming, pinAsk, deleting, resetting, qr, deletingProfile, picking, sheet, sheetPage, playing, section]);
 
-  const open = (c: Channel, list: readonly Channel[]) => setPlaying({ list, index: Math.max(0, list.findIndex((x) => x.id === c.id)) });
+  const openHere = (c: Channel, list: readonly Channel[]) => setPlaying({ list, index: Math.max(0, list.findIndex((x) => x.id === c.id)) });
+  // A note at the top that goes by itself: a recording saved, an external player that did not start.
+  const [flash, setFlash] = useState<{ icon: IconName; text: string } | null>(null);
+  useEffect(() => { if (!flash) return; const id = setTimeout(() => setFlash(null), 5000); return () => clearTimeout(id); }, [flash]);
+  const recEnd = useRecordingEnd();
+  useEffect(() => {
+    const e = recEnd.end;
+    if (!e) return;
+    const name = e.path ? e.path.split(/[\\/]/).pop() ?? "" : "";
+    setFlash(e.state === "done" && e.bytes > 0 ? { icon: "folder", text: t("recSaved", { name }) } : { icon: "warning", text: t("recFailed") });
+    recEnd.clear();
+  }, [recEnd.end]);
+  // The Windows app with an external player chosen: the channel goes to VLC or mpv, as Android's external player;
+  // if that player does not start, the channel plays here after all.
+  const open = (c: Channel, list: readonly Channel[]) => {
+    const app = desktop();
+    if (!app || settings.externalPlayer === "off") { openHere(c, list); return; }
+    const player = settings.externalPlayer;
+    app.openInPlayer(player, c.url, c.name, c.headers ?? {}).then((ok) => {
+      if (ok) setHistory((h) => { const next = pushRecent(h, channelKey(c)); saveHistory(next); return next; });
+      else { setFlash({ icon: "warning", text: t("externalFailed", { player: player === "vlc" ? "VLC" : "mpv" }) }); openHere(c, list); }
+    }, () => openHere(c, list));
+  };
   /** A past programme: its recording when the channel keeps one, else the channel live. */
   const openArchive = (c: Channel, p: Programme, list: readonly Channel[]) => {
     const url = archiveUrl(c, p.start, p.stop);
@@ -258,6 +280,7 @@ export function App() {
       />
       {prompt ? <ReminderPrompt reminder={prompt} now={Date.now()} onWatch={() => watchReminder(prompt)} onClose={() => rem.remove(prompt)} /> : null}
       {note ? <ReminderNote reminder={note} now={Date.now()} /> : null}
+      {flash ? <div class="toast" role="status"><Icon name={flash.icon} size={28} /><span>{flash.text}</span></div> : null}
       </GuideContext.Provider>
       </UiContext.Provider>
     );
@@ -353,6 +376,7 @@ export function App() {
       ) : null}
       {prompt ? <ReminderPrompt reminder={prompt} now={Date.now()} onWatch={() => watchReminder(prompt)} onClose={() => rem.remove(prompt)} /> : null}
       {note ? <ReminderNote reminder={note} now={Date.now()} /> : null}
+      {flash ? <div class="toast" role="status"><Icon name={flash.icon} size={28} /><span>{flash.text}</span></div> : null}
       {/* A fresh dialog for every question: the digits of "New PIN" must not carry over into "Repeat the PIN". */}
       {pinAsk ? <PinDialog key={pinAsk.title} title={pinAsk.title} hint={pinAsk.hint} check={pinAsk.check} onDone={pinAsk.onDone} onCancel={() => setPinAsk(null)} /> : null}
       {book === null || redo ? (

@@ -45,6 +45,8 @@ export interface Settings {
   reminderMode: "ask" | "switch" | "notify";
   /** Minutes before the start a reminder comes: 0, 1 or 5. */
   reminderLead: 0 | 1 | 5;
+  /** The Windows app: channels open in VLC or mpv on this computer instead (Android's external player). */
+  externalPlayer: "off" | "vlc" | "mpv";
 }
 
 const KEY = "skmate.settings.v1";
@@ -53,7 +55,7 @@ export const DEFAULTS: Settings = {
   openTimeout: 12, osdSeconds: 5, showEngine: true, autoRestart: true, preview: true,
   epgAuto: true, epgEvery: 12, epgSources: [], proxy: "",
   rowSize: 84, uiScale: 100, showLogos: true, showNumbers: true, showProgram: true, interests: [], autoUpdate: false,
-  reminderMode: "ask", reminderLead: 5,
+  reminderMode: "ask", reminderLead: 5, externalPlayer: "off",
 };
 
 export function load(): Settings {
