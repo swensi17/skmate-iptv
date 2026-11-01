@@ -79,7 +79,7 @@ function createWindow() {
     show: false,
     backgroundColor: "#121212",
     title: "SkMate IPTV",
-    icon: join(__dirname, "build", "icon.ico"),
+    icon: join(__dirname, "resources", "icon.ico"), // not a "build" folder: cleaners and .gitignore treat those as throwaway
     autoHideMenuBar: true,
     webPreferences: {
       contextIsolation: true, sandbox: true, nodeIntegration: false, backgroundThrottling: false,

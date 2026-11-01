@@ -23,11 +23,11 @@
     "appId": "uz.skmate.iptv.desktop",
     "productName": "SkMate IPTV",
     "copyright": "SkMate, GPL-3.0",
-    "directories": { "output": "dist", "buildResources": "build" },
-    "files": ["main.cjs", "preload.cjs", "app/**"],
+    "directories": { "output": "dist", "buildResources": "resources" },
+    "files": ["main.cjs", "preload.cjs", "resources/icon.ico", "app/**"],
     "win": {
       "target": [{ "target": "nsis", "arch": ["x64"] }],
-      "icon": "build/icon.ico",
+      "icon": "resources/icon.ico",
       "artifactName": "SkMate-IPTV-Setup-${version}.${ext}"
     },
     "nsis": {
@@ -37,8 +37,8 @@
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "SkMate IPTV",
-      "installerIcon": "build/icon.ico",
-      "uninstallerIcon": "build/icon.ico",
+      "installerIcon": "resources/icon.ico",
+      "uninstallerIcon": "resources/icon.ico",
       "installerLanguages": ["ru_RU", "en_US"],
       "language": "1049",
       "deleteAppDataOnUninstall": false
