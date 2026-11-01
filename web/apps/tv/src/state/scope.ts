@@ -3,7 +3,15 @@
  * with the profile's id. The first profile ("main") keeps the plain keys, so what was stored before profiles
  * existed stays with it. Settings (theme, language, player) are the TV's, shared by everyone.
  */
-export interface Profile { id: string; name: string; guest?: boolean }
+export interface Profile {
+  id: string;
+  name: string;
+  guest?: boolean;
+  /** A kids profile does not see adult provider categories (see parental.ts in the core). */
+  kids?: boolean;
+  /** The profile's PIN as `salt:sha256(salt+pin)`, the Android app's form; absent when it is not locked. */
+  pinHash?: string;
+}
 export interface ProfileBook { profiles: Profile[]; activeId: string }
 
 const KEY = "skmate.profiles.v1";
@@ -64,4 +72,22 @@ export function purgeProfile(id: string): void {
       if (k && k.endsWith(suffix)) localStorage.removeItem(k);
     }
   } catch { /* nothing to purge */ }
+}
+
+/** [id] locked with [pinHash], or unlocked when it is null. */
+export function setPinHash(book: ProfileBook, id: string, pinHash: string | null): ProfileBook {
+  return { ...book, profiles: book.profiles.map((p) => {
+    if (p.id !== id) return p;
+    const { pinHash: _old, ...rest } = p;
+    return pinHash ? { ...rest, pinHash } : rest;
+  }) };
+}
+
+/** [id] made a kids profile or an ordinary one. */
+export function setKids(book: ProfileBook, id: string, kids: boolean): ProfileBook {
+  return { ...book, profiles: book.profiles.map((p) => {
+    if (p.id !== id) return p;
+    const { kids: _old, ...rest } = p;
+    return kids ? { ...rest, kids: true } : rest;
+  }) };
 }

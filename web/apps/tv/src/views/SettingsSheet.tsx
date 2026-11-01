@@ -64,6 +64,10 @@ interface Props {
   onSwitchProfile: (id: string) => void;
   onAddProfile: (name: string) => void;
   onAskDeleteProfile: (id: string) => void;
+  /** The active profile's lock and kids setting. */
+  onSetPin: () => void;
+  onRemovePin: () => void;
+  onToggleKids: () => void;
   onQr: (name: string, address: string) => void;
   onRedoWizard: () => void;
   update: { state: UpdateState; check: () => void; install: () => void };
@@ -144,7 +148,8 @@ export function SettingsSheet(p: Props) {
                 channelCount={p.channelCount} active={p.active} headerGuides={p.headerGuides} onRefresh={p.guide.onRefresh} onClear={p.guide.onClear} />
             ) : null}
             {page === "profiles" ? (
-              <ProfilesPanel book={p.book} onSwitch={p.onSwitchProfile} onAdd={p.onAddProfile} onAskDelete={p.onAskDeleteProfile} />
+              <ProfilesPanel book={p.book} onSwitch={p.onSwitchProfile} onAdd={p.onAddProfile} onAskDelete={p.onAskDeleteProfile}
+                onSetPin={p.onSetPin} onRemovePin={p.onRemovePin} onToggleKids={p.onToggleKids} />
             ) : null}
             {page === "system" ? <SystemPanel settings={s} onChange={onChange} onQr={p.onQr} onReset={p.onAskReset} onRedo={p.onRedoWizard} update={p.update} /> : null}
             {page === "backup" ? <BackupPanel /> : null}
