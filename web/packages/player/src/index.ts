@@ -18,13 +18,17 @@ export interface EngineOptions {
   bufferSeconds?: number;
   /** Timeshift: open the live stream this many seconds behind its edge. Only hls.js can, so it alone is used. */
   liveBehindSeconds?: number;
+  /** Take no picture taller than this many lines (hls.js can; a tile of the multiview that has no sound). */
+  maxHeight?: number;
 }
 
 /** The engines in the order they are tried. By default the TV's own decoder first, then hls.js for `.m3u8`, then mpegts.js for raw `.ts`. */
 export function defaultEngines(options: EngineOptions = {}): PlayerEngine[] {
   const native = new NativeEngine();
-  const hls = new HlsJsEngine({ bufferSeconds: options.bufferSeconds, liveBehindSeconds: options.liveBehindSeconds });
+  const hls = new HlsJsEngine({ bufferSeconds: options.bufferSeconds, liveBehindSeconds: options.liveBehindSeconds, maxHeight: options.maxHeight });
   if (options.liveBehindSeconds) return [hls];
+  // A capped picture is only possible on hls.js: it goes first, the TV's own decoder takes what hls.js cannot open.
+  if (options.maxHeight && (options.preference ?? "auto") === "auto") return [hls, native, new MpegTsEngine()];
   const mpegts = new MpegTsEngine();
   switch (options.preference ?? "auto") {
     case "native": return [native];

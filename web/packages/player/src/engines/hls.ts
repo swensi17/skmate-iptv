@@ -24,6 +24,23 @@ export interface HlsOptions {
   bufferSeconds?: number | undefined;
   /** Timeshift: start this many seconds behind the live edge and keep the played picture to wind back in. */
   liveBehindSeconds?: number | undefined;
+  /** The tallest picture to take, in lines (a multiview tile without the sound: 720, as on Android); absent for the best there is. */
+  maxHeight?: number | undefined;
+}
+
+/**
+ * The quality level to cap at: the best one whose picture is no taller than [maxHeight] lines, else the lowest.
+ * [heights] are the levels' heights in hls.js's order (by bitrate); a level that names none (0) is never preferred.
+ */
+export function capLevelFor(heights: readonly number[], maxHeight: number): number {
+  let best = -1;
+  let lowest = -1;
+  heights.forEach((h, i) => {
+    if (!(h > 0)) return;
+    if (h <= maxHeight && (best < 0 || h >= (heights[best] as number))) best = i;
+    if (lowest < 0 || h < (heights[lowest] as number)) lowest = i;
+  });
+  return best >= 0 ? best : Math.max(0, lowest);
 }
 
 /** How much played live picture hls.js keeps to wind back in while timeshifting (the browser may keep less). */
@@ -100,7 +117,11 @@ export class HlsJsEngine implements PlayerEngine {
         reject(new PlayFailure(this.id, "error", data.details));
       });
       video.addEventListener("playing", () => resolve(), { once: true });
-      hls.on(HlsLib.Events.MANIFEST_PARSED, () => { void video.play().catch(() => undefined); });
+      hls.on(HlsLib.Events.MANIFEST_PARSED, (_e, data) => {
+        const cap = this.options.maxHeight;
+        if (cap) hls.autoLevelCapping = capLevelFor(data.levels.map((l) => l.height), cap);
+        void video.play().catch(() => undefined);
+      });
       hls.loadSource(source.url);
       hls.attachMedia(video);
     });
