@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "preact/hooks";
+import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { archiveUrl, canRemind, clampTiles, nextEpisode, openGrid, type Grid, type Episode, type Movie, type Show, hashPin, validPin, verifyPin, visibleTo, type Channel, type Reminder } from "@skmate/core";
 import type { Programme } from "@skmate/epg";
 import { Icon, installDpad, Presence, watchFrames, type IconName } from "@skmate/ui";
@@ -150,6 +150,18 @@ export function App() {
   // A note at the top that goes by itself: a recording saved, an external player that did not start.
   const [flash, setFlash] = useState<{ icon: IconName; text: string } | null>(null);
   useEffect(() => { if (!flash) return; const id = setTimeout(() => setFlash(null), 5000); return () => clearTimeout(id); }, [flash]);
+  // A playlist that has just loaded after being added from the settings: say so, and take the viewer to the channels.
+  const wasLoading = useRef(false);
+  useEffect(() => {
+    const loading = pl.status.kind === "loading";
+    if (wasLoading.current && !loading) {
+      if (pl.status.kind === "idle" && pl.channels.length > 0 && sheet && sheetPage === "playlists") {
+        setFlash({ icon: "playlist", text: `${pl.active?.name ?? ""} · ${t("channelsCount", { n: pl.channels.length })}` });
+        setSheet(false);
+      }
+    }
+    wasLoading.current = loading;
+  }, [pl.status.kind]);
   const recEnd = useRecordingEnd();
   useEffect(() => {
     const e = recEnd.end;

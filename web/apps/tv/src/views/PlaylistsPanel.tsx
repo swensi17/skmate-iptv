@@ -43,7 +43,7 @@ export function PlaylistsPanel(p: Props) {
           <button class="btn" data-focus={`pl-del-${pl.id}`} onClick={() => p.onAskDelete(pl.id)}>{t("playlistDelete")}</button>
         </div>
       ))}
-      <SourceForm idPrefix="pl" onSubmit={p.onAdd} onFile={p.onAddFile} />
+      <SourceForm idPrefix="pl" onSubmit={p.onAdd} onFile={p.onAddFile} busy={p.status.kind === "loading"} />
       {desktop() ? (
         <button class="srow" data-focus="pl-remote" onClick={() => { setRemoteError(null); setRemote(true); }}>
           <span class="srow-text"><span class="srow-title">{t("fromPhone")}</span><span class="srow-hint">{t("fromPhoneWifi")}</span></span>
@@ -55,7 +55,7 @@ export function PlaylistsPanel(p: Props) {
           {remoteError ? <div class="status error" style={{ textAlign: "center" }}>{remoteError}</div> : null}
         </LinkDialog>
       ) : null}
-      {p.status.kind === "loading" ? <div class="status">{t("playlistLoading")}</div> : null}
+      {p.status.kind === "loading" ? <div class="status busy" role="status">{t("playlistLoading")}</div> : null}
       {p.status.kind === "error" ? <div class="status error">{p.status.message}</div> : null}
     </div>
   );
