@@ -40,6 +40,8 @@ interface Props {
 }
 
 const ROW = 84;
+/** From under the title to the foot of the panel (1080 high), so the list fills it and no gap is left below. */
+const LIST_H = 940;
 
 /** The deepest layer of the player's menu: home first, then what was watched lately, then the other places of the app. */
 const MENU: Array<[string, IconName, Key, Go | { tab: PanelTab }]> = [
@@ -83,7 +85,7 @@ export function PlayerPanel(p: Props) {
       ) : null}
       {p.tab === "groups" ? (
         <VirtualList
-          key="groups" items={rows} rowHeight={ROW} height={780} pageSize={8} autofocus
+          key="groups" items={rows} rowHeight={ROW} height={LIST_H} pageSize={8} autofocus
           idOf={(g) => `pg:${g.key}`}
           renderRow={(g) => (
             <button class="row" data-focus={`pg:${g.key}`} onClick={() => { setGroup(g.key); p.onTab("channels"); }} aria-pressed={group === g.key}>
@@ -95,7 +97,7 @@ export function PlayerPanel(p: Props) {
       ) : null}
       {p.tab === "channels" ? (
         <VirtualList
-          key={`channels|${group}`} items={list} rowHeight={ROW} height={780} pageSize={9} autofocus
+          key={`channels|${group}`} items={list} rowHeight={ROW} height={LIST_H} pageSize={9} autofocus
           initialIndex={group === null ? p.index : 0}
           idOf={(c) => `pc-${c.id}`}
           renderRow={(c, i) => (
@@ -106,7 +108,7 @@ export function PlayerPanel(p: Props) {
       {p.tab === "favorites" ? (
         favs.length === 0 ? <div class="list-head">{t("favoritesEmpty")}</div> : (
           <VirtualList
-            key="favorites" items={favs} rowHeight={ROW} height={780} pageSize={9} autofocus
+            key="favorites" items={favs} rowHeight={ROW} height={LIST_H} pageSize={9} autofocus
             idOf={(c) => `pf-${c.id}`}
             renderRow={(c, i) => (
               <ChannelRow channel={c} index={i} favorite onOpen={() => p.onPick(c, favs)} onFav={p.onFav} />
@@ -117,7 +119,7 @@ export function PlayerPanel(p: Props) {
       {p.tab === "recent" ? (
         p.recents.length === 0 ? <div class="list-head">{t("recentEmpty")}</div> : (
           <VirtualList
-            key="recent" items={p.recents} rowHeight={ROW} height={780} pageSize={9} autofocus
+            key="recent" items={p.recents} rowHeight={ROW} height={LIST_H} pageSize={9} autofocus
             idOf={(c) => `pr2-${c.id}`}
             renderRow={(c, i) => (
               <ChannelRow channel={c} index={i} favorite={p.favorites.has(channelKey(c))} onOpen={() => p.onPick(c, p.recents)} onFav={p.onFav} />
