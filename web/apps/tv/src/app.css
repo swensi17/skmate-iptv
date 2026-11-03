@@ -502,4 +502,6 @@ html[data-rtl] #app * { unicode-bidi: plaintext; }
 .ticks rect { fill: #f1f2f3; opacity: .15; animation: tick 1200ms linear infinite; }
 .loading .ticks { width: 72px; height: 72px; }
 @keyframes tick { 0% { opacity: 1; } 100% { opacity: .15; } }
-.ticks rect { animation-duration: 1200ms !important; } /* like .spinner: a still one reads as a hang */
+/* A still spinner reads as a hang, so it keeps turning and fading in even with motion off (that rule is stronger than a plain class). */
+:root[data-motion] .ticks rect { animation-duration: 1200ms !important; }
+:root[data-motion] .spinner { transition-duration: 220ms !important; }
