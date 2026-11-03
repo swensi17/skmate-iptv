@@ -32,7 +32,13 @@ export function installDpad(onBack: () => boolean): () => void {
     }
     const dir = DIRS[e.key] ?? DIR_CODES[e.keyCode];
     if (!dir) return;
-    if (typing && (dir === "left" || dir === "right")) return; // the caret moves inside a field
+    // The caret moves inside a field; at its edge the arrow leaves, so the controls beside a field stay reachable.
+    if (typing && (dir === "left" || dir === "right")) {
+      const f = active as HTMLInputElement;
+      const start = f.selectionStart, end = f.selectionEnd;
+      const atEdge = start === null || end === null || (dir === "left" ? start === 0 && end === 0 : start === f.value.length && end === f.value.length);
+      if (!atEdge) return;
+    }
     // An open dialog (`[data-modal]`) owns the remote: focus cannot leave it.
     const modals = document.querySelectorAll("[data-modal]");
     let all = boxes(modals.length > 0 ? (modals[modals.length - 1] as Element) : document);
