@@ -54,7 +54,7 @@ h2 { margin: 0 0 24px; font-size: 40px; font-weight: 700; }
 .rec-badge { position: absolute; top: 40px; right: 48px; z-index: 25; display: flex; align-items: center; gap: 10px; padding: 8px 16px; border-radius: 8px; background: rgba(0,0,0,.6); color: #fff; font-size: 22px; font-weight: 700; letter-spacing: 1px; }
 .rec-badge span { width: 14px; height: 14px; border-radius: 50%; background: #ef4444; animation: rec-blink 1s steps(1) infinite; }
 @keyframes rec-blink { 50% { opacity: .3; } }
-.spinner { position: absolute; left: 50%; top: 50%; width: 84px; height: 84px; margin: -42px 0 0 -42px; border-radius: 50%; border: 6px solid rgba(255,255,255,.18); border-top-color: #f1f2f3; animation: spin 900ms linear infinite; }
+.spinner { position: absolute; left: 50%; top: 50%; width: 84px; height: 84px; margin: -42px 0 0 -42px; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .player-error { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; background: #1e2125; }
 .player-error-title { font-size: 44px; font-weight: 700; margin-top: 12px; }
@@ -103,7 +103,6 @@ h2 { margin: 0 0 24px; font-size: 40px; font-weight: 700; }
 .empty-hint { font-size: 26px; color: var(--muted); margin-bottom: 24px; }
 .empty-actions { display: flex; gap: 16px; }
 .star { color: var(--ok); font-size: 26px; }
-.spinner { animation-duration: 900ms !important; } /* a still spinner reads as a hang, so it keeps turning even with motion off */
 
 /* A setting is one full line: the name on the left, the choices on the right. */
 .srow { display: flex; align-items: center; gap: 20px; width: 100%; min-height: 96px; padding: 12px 28px; border: 0; border-radius: var(--radius); background: none; color: var(--text); font-family: var(--font); text-align: left; outline: none; cursor: pointer; transition: background-color 120ms linear, color 120ms linear; }
@@ -157,7 +156,7 @@ h2 { margin: 0 0 24px; font-size: 40px; font-weight: 700; }
 .preview-info { display: flex; gap: 20px; align-items: center; }
 .preview-title { font-size: 34px; font-weight: 700; }
 .preview-sub { font-size: 22px; color: var(--muted); }
-.spinner.small { width: 48px; height: 48px; margin: -24px 0 0 -24px; border-width: 4px; }
+.spinner.small { width: 48px; height: 48px; margin: -24px 0 0 -24px; }
 
 /* Channel badge when the playlist has no logo. */
 .badge { display: flex; align-items: center; justify-content: center; background: hsl(var(--h) 38% 30%); color: hsl(var(--h) 60% 90%); font-weight: 800; font-size: 24px; letter-spacing: .5px; }
@@ -492,13 +491,15 @@ html[data-rtl] #app * { unicode-bidi: plaintext; }
 .mv-note { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 0 40px; text-align: center; font-size: 26px; font-weight: 600; background: rgba(0,0,0,.55); }
 .mv-caption { position: absolute; left: 12px; bottom: 12px; max-width: calc(100% - 24px); display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 8px; background: rgba(0,0,0,.55); font-size: 22px; font-weight: 700; }
 .mv-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.mv-spin { position: absolute; inset: auto; left: 50%; top: 50%; margin: -28px 0 0 -28px; }
+.mv-spin { width: 56px; height: 56px; margin: -28px 0 0 -28px; }
 .dialog.mv-menu { width: 640px; display: flex; flex-direction: column; gap: 4px; }
 .dialog.mv-picker { width: 1000px; max-height: 900px; }
 .mv-groups { display: flex; flex-direction: column; gap: 2px; max-height: 800px; overflow-y: auto; }
 
 /* A playlist is loading: a spinner in the middle of the screen, twelve ticks fading round as on an iPhone. */
 .loading { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 40; width: 148px; height: 148px; border-radius: 28px; background: rgba(30, 31, 33, .88); display: flex; align-items: center; justify-content: center; pointer-events: none; box-shadow: 0 8px 40px rgba(0,0,0,.45); }
-.loading rect { fill: #f1f2f3; opacity: .15; animation: tick 1200ms linear infinite; }
+.ticks { width: 100%; height: 100%; display: block; }
+.ticks rect { fill: #f1f2f3; opacity: .15; animation: tick 1200ms linear infinite; }
+.loading .ticks { width: 72px; height: 72px; }
 @keyframes tick { 0% { opacity: 1; } 100% { opacity: .15; } }
-.loading rect { animation-duration: 1200ms !important; } /* like .spinner: a still one reads as a hang */
+.ticks rect { animation-duration: 1200ms !important; } /* like .spinner: a still one reads as a hang */

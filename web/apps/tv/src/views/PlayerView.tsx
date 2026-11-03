@@ -1,3 +1,4 @@
+import { Spinner } from "./Spinner";
 import { useContext, useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { behindLive, lagBehind, LIVE_EDGE_S, pickMirrors, SEEK_STEP_S, startOverUrl, timeshiftPhpAlternate, windTo, type Channel, type LiveAnchor, type SeekWindow } from "@skmate/core";
 import type { Programme } from "@skmate/epg";
@@ -315,7 +316,7 @@ export function PlayerView({ channels, catalog, index, favorites, recents, onPic
       <video ref={video} class="video" style={{ objectFit: looks }} autoplay playsInline />
       <div class="player-shade" />
 
-      <div class={`spinner${state === "loading" ? " on" : ""}`} aria-label={t("playerLoading")} />
+      <Spinner class={state === "loading" ? "on" : ""} label={t("playerLoading")} />
       {recording ? <div class="rec-badge" role="status"><span />{t("recBadge")}</div> : null}
       {paused ? <div class="paused" aria-label={t("playerPaused")}><Icon name="pause" size={96} /></div> : null}
 

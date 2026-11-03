@@ -2,6 +2,7 @@ import { useContext, useRef } from "preact/hooks";
 import type { Channel } from "@skmate/core";
 import { Icon } from "@skmate/ui";
 import { t } from "../i18n";
+import { Spinner } from "./Spinner";
 import type { Settings } from "../state/settings";
 import { usePlayback } from "../state/usePlayback";
 import { GuideContext } from "../state/GuideContext";
@@ -53,7 +54,7 @@ function PreviewVideo({ channel, settings }: { channel: Channel; settings: Setti
   return (
     <>
       <video ref={video} class="pv" muted autoplay playsInline style={{ objectFit: "cover" }} />
-      {state === "loading" ? <div class="spinner small" /> : null}
+      {state === "loading" ? <Spinner class="small" /> : null}
       {state === "failed" ? <div class="preview-empty"><Icon name="warning" size={56} /></div> : null}
     </>
   );
