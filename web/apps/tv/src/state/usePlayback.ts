@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import type { Channel } from "@skmate/core";
-import { detectPlatform } from "../platform";
 import { defaultEngines, PlayerLadder, type EnginePreference } from "@skmate/player";
 
 export type PlayState = "loading" | "playing" | "failed";
@@ -25,6 +24,12 @@ export interface PlaybackOptions {
   maxHeight?: number;
 }
 
+/** hls.js before the page's own decoder; off by default. `localStorage.setItem("skmate.hlsfirst", "0" | "1")` overrides it, to compare the two orders on a stream. */
+function hlsFirstHere(): boolean {
+  try { const v = localStorage.getItem("skmate.hlsfirst"); if (v === "0") return false; if (v === "1") return true; } catch { /* no storage: the default */ }
+  return false; // not measured to be faster yet (a provider that is slow to start hides the difference), so the TV order stays
+}
+
 export function usePlayback(
   video: { current: HTMLVideoElement | null },
   channel: Channel,
@@ -46,7 +51,7 @@ export function usePlayback(
     if (!el) return;
     // Why an engine gave up goes to the console: the one line that tells a codec problem from a dead stream.
     const ladder = new PlayerLadder(
-      defaultEngines({ preference: o.engine, hlsFirst: detectPlatform() === "browser", bufferSeconds: o.bufferSeconds, liveBehindSeconds: o.liveBehindSeconds, ...(o.maxHeight ? { maxHeight: o.maxHeight } : {}) }),
+      defaultEngines({ preference: o.engine, hlsFirst: hlsFirstHere(), bufferSeconds: o.bufferSeconds, liveBehindSeconds: o.liveBehindSeconds, ...(o.maxHeight ? { maxHeight: o.maxHeight } : {}) }),
       { onFail: (f) => console.warn(`[player] ${f.message}`) },
       { openTimeoutMs: o.openTimeoutMs },
     );
