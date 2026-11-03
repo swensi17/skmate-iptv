@@ -5,7 +5,7 @@ import { cacheDrop, cacheGet, cachePut, fetchPlaylist, PlaylistError } from "./f
 import { fileDrop, fileGet, filePut, isLocal, localUrl, readPlaylistFile } from "./localFiles";
 import { demoText } from "./playlist";
 import { desktop } from "./desktop";
-import { addPlaylist, isStalker, xtreamGuide, loadStore, nextActive, normalizeUrl, playlistFromSearch, removePlaylist, saveStore, type PlaylistStore } from "./playlists";
+import { addPlaylist, updatePlaylist, isStalker, xtreamGuide, loadStore, nextActive, normalizeUrl, playlistFromSearch, removePlaylist, saveStore, type PlaylistStore } from "./playlists";
 
 export type Status = { kind: "idle" } | { kind: "loading" } | { kind: "error"; message: string };
 
@@ -107,6 +107,19 @@ export function usePlaylists() {
     return null;
   }, []);
 
+  /** A playlist's name and link changed: an error text, or null when saved. A playlist from a file keeps its link. */
+  const update = useCallback((id: string, name: string, input: string): string | null => {
+    const old = store.list.find((p) => p.id === id);
+    if (!old) return null;
+    const url = isLocal(old.url) || old.url === DEMO_URL ? old.url : isStalker(input) ? input : normalizeUrl(input);
+    if (!url) return t("playlistBadUrl");
+    const list = updatePlaylist(store.list, id, name, url);
+    if (!list) return t("playlistBadUrl");
+    if (url !== old.url) cacheDrop(id); // another link is another list: the copy kept for the old one is not shown
+    setStore((s) => ({ ...s, list: updatePlaylist(s.list, id, name, url) ?? s.list }));
+    return null;
+  }, [store.list]);
+
   const addDemo = useCallback(() => {
     setStore((s) => {
       const list = addPlaylist(s.list, DEMO_URL, t("demoPlaylist"));
@@ -126,5 +139,5 @@ export function usePlaylists() {
     });
   }, []);
 
-  return { store, active, channels, status, headerGuides, add, addFile, addDemo, select, remove };
+  return { store, active, channels, status, headerGuides, add, addFile, addDemo, select, update, remove };
 }

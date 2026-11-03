@@ -83,6 +83,12 @@ export function addPlaylist(list: readonly PlaylistEntry[], url: string, name?: 
   return [...list, { id, name: name?.trim() || nameFromUrl(url), url }];
 }
 
+/** A playlist with a new name and link; null when the link is already another playlist's. The id (and so the cache and the active mark) stays. */
+export function updatePlaylist(list: readonly PlaylistEntry[], id: string, name: string, url: string): PlaylistEntry[] | null {
+  if (list.some((p) => p.id !== id && p.url === url)) return null;
+  return list.map((p) => (p.id === id ? { ...p, name: name.trim() || nameFromUrl(url), url } : p));
+}
+
 export function removePlaylist(list: readonly PlaylistEntry[], id: string): PlaylistEntry[] {
   return list.filter((p) => p.id !== id);
 }
