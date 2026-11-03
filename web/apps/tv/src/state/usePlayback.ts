@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import type { Channel } from "@skmate/core";
+import { detectPlatform } from "../platform";
 import { defaultEngines, PlayerLadder, type EnginePreference } from "@skmate/player";
 
 export type PlayState = "loading" | "playing" | "failed";
@@ -45,7 +46,7 @@ export function usePlayback(
     if (!el) return;
     // Why an engine gave up goes to the console: the one line that tells a codec problem from a dead stream.
     const ladder = new PlayerLadder(
-      defaultEngines({ preference: o.engine, bufferSeconds: o.bufferSeconds, liveBehindSeconds: o.liveBehindSeconds, ...(o.maxHeight ? { maxHeight: o.maxHeight } : {}) }),
+      defaultEngines({ preference: o.engine, hlsFirst: detectPlatform() === "browser", bufferSeconds: o.bufferSeconds, liveBehindSeconds: o.liveBehindSeconds, ...(o.maxHeight ? { maxHeight: o.maxHeight } : {}) }),
       { onFail: (f) => console.warn(`[player] ${f.message}`) },
       { openTimeoutMs: o.openTimeoutMs },
     );
