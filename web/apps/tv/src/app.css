@@ -496,3 +496,9 @@ html[data-rtl] #app * { unicode-bidi: plaintext; }
 .dialog.mv-menu { width: 640px; display: flex; flex-direction: column; gap: 4px; }
 .dialog.mv-picker { width: 1000px; max-height: 900px; }
 .mv-groups { display: flex; flex-direction: column; gap: 2px; max-height: 800px; overflow-y: auto; }
+
+/* A playlist is loading: a spinner in the middle of the screen, twelve ticks fading round as on an iPhone. */
+.loading { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 40; width: 148px; height: 148px; border-radius: 28px; background: rgba(30, 31, 33, .88); display: flex; align-items: center; justify-content: center; pointer-events: none; box-shadow: 0 8px 40px rgba(0,0,0,.45); }
+.loading rect { fill: #f1f2f3; opacity: .15; animation: tick 1200ms linear infinite; }
+@keyframes tick { 0% { opacity: 1; } 100% { opacity: .15; } }
+.loading rect { animation-duration: 1200ms !important; } /* like .spinner: a still one reads as a hang */

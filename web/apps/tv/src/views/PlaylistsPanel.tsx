@@ -55,7 +55,6 @@ export function PlaylistsPanel(p: Props) {
           {remoteError ? <div class="status error" style={{ textAlign: "center" }}>{remoteError}</div> : null}
         </LinkDialog>
       ) : null}
-      {p.status.kind === "loading" ? <div class="status busy" role="status">{t("playlistLoading")}</div> : null}
       {p.status.kind === "error" ? <div class="status error">{p.status.message}</div> : null}
     </div>
   );
