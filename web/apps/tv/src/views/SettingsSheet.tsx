@@ -55,6 +55,7 @@ interface Props {
   onAddPlaylist: (input: string) => string | null;
   onAddPlaylistFile: (name: string, text: string) => Promise<string | null>;
   onSelectPlaylist: (id: string) => void;
+  onEditPlaylist: (id: string, name: string, url: string) => string | null;
   onAskDeletePlaylist: (id: string) => void;
   onAskReset: () => void;
   guide: { data: GuideData; status: GuideStatus; outcomes: SourceOutcome[]; onRefresh: () => void; onClear: () => void };
@@ -142,7 +143,7 @@ export function SettingsSheet(p: Props) {
               </>
             ) : null}
             {page === "playlists" ? (
-              <PlaylistsPanel store={p.store} status={p.status} onAdd={p.onAddPlaylist} onAddFile={p.onAddPlaylistFile} onSelect={p.onSelectPlaylist} onAskDelete={p.onAskDeletePlaylist} />
+              <PlaylistsPanel store={p.store} status={p.status} onAdd={p.onAddPlaylist} onAddFile={p.onAddPlaylistFile} onSelect={p.onSelectPlaylist} onEdit={p.onEditPlaylist} onAskDelete={p.onAskDeletePlaylist} />
             ) : null}
             {page === "epg" ? (
               <EpgPanel settings={s} onChange={onChange} data={p.guide.data} status={p.guide.status} outcomes={p.guide.outcomes}

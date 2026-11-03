@@ -427,7 +427,7 @@ export function App() {
           <SettingsSheet
             show={!out} page={sheetPage} onPage={setSheetPage} onClose={() => setSheet(false)}
             settings={settings} onChange={setSettings} store={pl.store} status={pl.status}
-            onAddPlaylist={pl.add} onAddPlaylistFile={pl.addFile} onSelectPlaylist={pl.select} onAskDeletePlaylist={setDeleting}
+            onAddPlaylist={pl.add} onAddPlaylistFile={pl.addFile} onSelectPlaylist={pl.select} onEditPlaylist={pl.update} onAskDeletePlaylist={setDeleting}
             onAskReset={() => setResetting(true)}
             guide={{ data: guide.data, status: guide.status, outcomes: guide.outcomes, onRefresh: () => void guide.sync(), onClear: guide.clear }}
             channelCount={pl.channels.length} active={pl.active} headerGuides={pl.headerGuides}

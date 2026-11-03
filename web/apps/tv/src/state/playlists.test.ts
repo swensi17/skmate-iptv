@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addPlaylist, canonicalMac, isStalker, nameFromUrl, nextActive, normalizeUrl, playlistFromSearch, removePlaylist, stalkerSource } from "./playlists";
+import { addPlaylist, canonicalMac, isStalker, nameFromUrl, nextActive, normalizeUrl, playlistFromSearch, removePlaylist, stalkerSource, updatePlaylist } from "./playlists";
 import { channelKey, toggle } from "./favorites";
 import { fetchPlaylist, looksLikeM3U, PlaylistError } from "./fetchPlaylist";
 
@@ -103,5 +103,21 @@ describe("Xtream Codes", () => {
     expect(xtreamGuide("http://h:8080/get.php?username=a&password=b&type=m3u_plus")).toBe("http://h:8080/xmltv.php?username=a&password=b");
     expect(xtreamGuide("http://h/list.m3u")).toBeNull();
     expect(xtreamGuide("not a url")).toBeNull();
+  });
+});
+
+describe("editing a playlist", () => {
+  const list = addPlaylist(addPlaylist([], "http://a.example/x.m3u", "Первый"), "http://b.example/y.m3u", "Второй");
+  it("changes the name and the link and keeps the id", () => {
+    const out = updatePlaylist(list, "1", "Мой список", "http://c.example/z.m3u");
+    expect(out?.[0]).toEqual({ id: "1", name: "Мой список", url: "http://c.example/z.m3u" });
+    expect(out?.[1]).toEqual(list[1]);
+  });
+  it("names it after the link when the name is left empty", () => {
+    expect(updatePlaylist(list, "1", "  ", "http://c.example/z.m3u")?.[0]?.name).toBe(nameFromUrl("http://c.example/z.m3u"));
+  });
+  it("refuses a link that is another playlist's, but accepts its own", () => {
+    expect(updatePlaylist(list, "1", "Первый", "http://b.example/y.m3u")).toBeNull();
+    expect(updatePlaylist(list, "1", "Новое имя", "http://a.example/x.m3u")?.[0]?.name).toBe("Новое имя");
   });
 });
