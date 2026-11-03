@@ -10,7 +10,7 @@ import { ChannelLogo } from "./ChannelLogo";
 import type { Programme } from "@skmate/epg";
 
 const ROW = 84;
-const LIST_HEIGHT = 672;
+const LIST_HEIGHT = 840; // from under the time scale to the foot of the screen
 const NAME_W = 340;
 const TIMELINE_W = 1280;
 const SPAN_MS = 3 * 3_600_000;
