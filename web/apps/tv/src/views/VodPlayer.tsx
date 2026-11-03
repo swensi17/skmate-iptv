@@ -1,3 +1,4 @@
+import { Spinner } from "./Spinner";
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { NEXT_EPISODE_AT_END_MS, NEXT_EPISODE_CARD_MS, VOD_SEEK_STEP_S, type Channel } from "@skmate/core";
 import { focusFirst, Icon, isBack } from "@skmate/ui";
@@ -112,7 +113,7 @@ export function VodPlayer(p: Props) {
     <div class={`player vod-player${bar || paused ? " info" : ""}`}>
       <video ref={video} class="video" style={{ objectFit: "contain" }} autoplay playsInline />
       <div class="player-shade" />
-      <div class={`spinner${state === "loading" ? " on" : ""}`} aria-label={t("playerLoading")} />
+      <Spinner class={state === "loading" ? "on" : ""} label={t("playerLoading")} />
       {paused ? <div class="paused" aria-label={t("playerPaused")}><Icon name="pause" size={96} /></div> : null}
       <div class="vod-bar">
         <div class="vod-title">{p.title}</div>

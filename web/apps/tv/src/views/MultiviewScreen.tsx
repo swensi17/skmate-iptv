@@ -1,3 +1,4 @@
+import { Spinner } from "./Spinner";
 import { useContext, useEffect, useMemo, useRef, useState } from "preact/hooks";
 import {
   addTile, BACKGROUND_TILE_HEIGHT, canAddTile, clear, connectionBudget, fill, focus as focusTile, giveSound, groupsOf, LONG_PRESS_MS, rowsOf,
@@ -84,7 +85,7 @@ function Tile(p: TileProps) {
           {p.audible ? <span aria-label={t("mvAudioTile")}><Icon name="volume_high" size={22} /></span> : null}
         </span>
       ) : null}
-      {state === "loading" && live ? <span class="mv-spin spinner on" /> : null}
+      {state === "loading" && live ? <Spinner class="mv-spin on" /> : null}
     </button>
   );
 }

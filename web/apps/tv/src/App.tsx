@@ -1,3 +1,4 @@
+import { Ticks } from "./views/Spinner";
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { archiveUrl, canRemind, clampTiles, nextEpisode, openGrid, type Grid, type Episode, type Movie, type Show, hashPin, validPin, verifyPin, visibleTo, type Channel, type Reminder } from "@skmate/core";
 import type { Programme } from "@skmate/epg";
@@ -475,11 +476,7 @@ export function App() {
       {flash ? <div class="toast" role="status"><Icon name={flash.icon} size={28} /><span>{flash.text}</span></div> : null}
       {pl.status.kind === "loading" ? (
         <div class="loading" role="status" aria-label={t("playlistLoading")}>
-          <svg viewBox="0 0 100 100" width="72" height="72" aria-hidden="true">
-            {Array.from({ length: 12 }, (_, k) => (
-              <rect key={k} x="46" y="8" width="8" height="24" rx="4" transform={`rotate(${k * 30} 50 50)`} style={{ animationDelay: `${(k - 12) * 100}ms` }} />
-            ))}
-          </svg>
+          <Ticks />
         </div>
       ) : null}
       {/* A fresh dialog for every question: the digits of "New PIN" must not carry over into "Repeat the PIN". */}
