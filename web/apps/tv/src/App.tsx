@@ -473,6 +473,15 @@ export function App() {
       {prompt ? <ReminderPrompt reminder={prompt} now={Date.now()} onWatch={() => watchReminder(prompt)} onClose={() => rem.remove(prompt)} /> : null}
       {note ? <ReminderNote reminder={note} now={Date.now()} /> : null}
       {flash ? <div class="toast" role="status"><Icon name={flash.icon} size={28} /><span>{flash.text}</span></div> : null}
+      {pl.status.kind === "loading" ? (
+        <div class="loading" role="status" aria-label={t("playlistLoading")}>
+          <svg viewBox="0 0 100 100" width="72" height="72" aria-hidden="true">
+            {Array.from({ length: 12 }, (_, k) => (
+              <rect key={k} x="46" y="8" width="8" height="24" rx="4" transform={`rotate(${k * 30} 50 50)`} style={{ animationDelay: `${(k - 12) * 100}ms` }} />
+            ))}
+          </svg>
+        </div>
+      ) : null}
       {/* A fresh dialog for every question: the digits of "New PIN" must not carry over into "Repeat the PIN". */}
       {pinAsk ? <PinDialog key={pinAsk.title} title={pinAsk.title} hint={pinAsk.hint} check={pinAsk.check} onDone={pinAsk.onDone} onCancel={() => setPinAsk(null)} /> : null}
       {book === null || redo ? (
