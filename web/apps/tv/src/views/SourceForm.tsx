@@ -15,6 +15,8 @@ export function SourceForm(p: {
   idPrefix: string;
   onSubmit: (url: string) => string | null;
   addLabel?: string;
+  /** A playlist is loading: adding another now would only restart it. */
+  busy?: boolean;
   /** A playlist from a file of this device: the error text, or null when it was taken. */
   onFile?: (name: string, text: string) => Promise<string | null>;
 }) {
@@ -46,6 +48,7 @@ export function SourceForm(p: {
       if (!normalizeUrl(portal)) { setError(t("stkPortalBad")); return; }
       if (!canonicalMac(mac)) { setError(t("stkMacBad")); return; }
     }
+    if (p.busy) return;
     const link = kind === "m3u" ? normalizeUrl(url) : kind === "xtream" ? xtreamUrl(server, user, pass) : stalkerSource(portal, mac);
     if (!link) { setError(t(kind === "m3u" ? "playlistBadUrl" : kind === "xtream" ? "xtBad" : "stkPortalBad")); return; }
     const err = p.onSubmit(link);
@@ -73,7 +76,7 @@ export function SourceForm(p: {
       {kind === "m3u" ? (
         <div class="add">
           {field("url", url, setUrl, t("playlistUrlPlaceholder"))}
-          <button class="btn" data-focus={`${p.idPrefix}-add`} onClick={submit}>{p.addLabel ?? t("playlistAdd")}</button>
+          <button class="btn" data-focus={`${p.idPrefix}-add`} onClick={submit} aria-busy={p.busy}>{p.busy ? t("playlistLoading") : (p.addLabel ?? t("playlistAdd"))}</button>
           {canPickFile ? (
             <>
               <button class="btn" data-focus={`${p.idPrefix}-file`} onClick={() => picker.current?.click()}>{t("srcFile")}</button>
@@ -87,7 +90,7 @@ export function SourceForm(p: {
           {field("portal", portal, setPortal, `${t("stkPortal")}: http://host:port/c/`)}
           <div class="add">
             {field("mac", mac, setMac, `${t("stkMac")}: 00:1A:79:AA:BB:CC`)}
-            <button class="btn" data-focus={`${p.idPrefix}-add`} onClick={submit}>{p.addLabel ?? t("playlistAdd")}</button>
+            <button class="btn" data-focus={`${p.idPrefix}-add`} onClick={submit} aria-busy={p.busy}>{p.busy ? t("playlistLoading") : (p.addLabel ?? t("playlistAdd"))}</button>
           </div>
         </div>
       ) : (
@@ -96,7 +99,7 @@ export function SourceForm(p: {
           <div class="add">
             {field("user", user, setUser, t("xtUser"))}
             {field("pass", pass, setPass, t("xtPass"), "password")}
-            <button class="btn" data-focus={`${p.idPrefix}-add`} onClick={submit}>{p.addLabel ?? t("playlistAdd")}</button>
+            <button class="btn" data-focus={`${p.idPrefix}-add`} onClick={submit} aria-busy={p.busy}>{p.busy ? t("playlistLoading") : (p.addLabel ?? t("playlistAdd"))}</button>
           </div>
         </div>
       )}
