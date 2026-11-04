@@ -561,3 +561,5 @@ button.sc-now:not(:focus) { color: var(--accent); }
 @keyframes sk-glow { 50% { opacity: .45; } }
 .tm-col.tm-menu.open { width: 100px; overflow: visible; z-index: 3; }
 .tm-icons { width: 100px; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 12px; }
+/* Channel numbers in the player's list all start at one edge, so 9 and 10 do not sit at different distances from the logo. */
+.tm .row .num { width: 58px; text-align: left; margin-right: -8px; font-size: 28px; }
