@@ -540,4 +540,24 @@ html[data-rtl] #app * { unicode-bidi: plaintext; }
 .groups .row.gr:focus { background: var(--focus-fill); }
 .groups .row.gr[aria-pressed="true"]:focus { background: var(--focus-fill); }
 .player.panel-wide .pinfo { display: none; } /* the strip would show through the list */
-.sc-none { margin-top: 40px; font-size: 28px; color: var(--muted); text-align: center; }
+.sc-none { margin: 28px 0 12px; font-size: 28px; font-weight: 600; color: var(--muted); }
+
+/* One panel that grows to the left: the menu and the categories open beside the channels instead of over them. */
+.drawer.tm-drawer { transition: width 260ms cubic-bezier(.2, 0, 0, 1); max-width: 100%; }
+.tm-col { flex: none; width: 0; overflow: hidden; transition: width 260ms cubic-bezier(.2, 0, 0, 1); border-right: 0 solid var(--line); }
+.tm-col.open { width: 380px; border-right-width: 1px; }
+.tm-inner { width: 380px; animation: fade-in 260ms linear both; }
+.tm-col .tm-head { height: 56px; }
+.row.gr.mrow { gap: 18px; padding-left: 28px; }
+/* The day of a channel: a row is a button the remote can stop on, and a few quiet lines stand in for a missing guide. */
+button.sc-row { width: 100%; border: 0; background: none; font: 500 25px var(--font); text-align: left; padding: 0 12px; margin: 0 -12px; border-radius: var(--radius); color: var(--muted); }
+button.sc-row:focus { background: var(--focus-fill); color: var(--focus-text); outline: none; }
+button.sc-now:not(:focus) { color: var(--accent); }
+.sc-row.sk { animation: sk-pulse 1400ms ease-in-out infinite; }
+.sk-at { width: 72px; height: 20px; border-radius: 4px; background: rgba(255,255,255,.1); flex: none; }
+.sk-t { height: 20px; border-radius: 4px; background: rgba(255,255,255,.1); }
+@keyframes sk-pulse { 50% { background: rgba(255,255,255,.05); } }
+.sc-row.sk .sk-at, .sc-row.sk .sk-t { animation: sk-glow 1400ms ease-in-out infinite; animation-delay: inherit; }
+@keyframes sk-glow { 50% { opacity: .45; } }
+.tm-col.tm-menu.open { width: 100px; overflow: visible; z-index: 3; }
+.tm-icons { width: 100px; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 12px; }
