@@ -251,7 +251,8 @@ export function PlayerView({ channels, catalog, index, favorites, recents, onPic
         else onExit();
         return;
       }
-      if (state === "failed") return; // the error screen has its own buttons
+      // The error screen has its own buttons, but the channel list must stay reachable from it: a dead channel is when it is needed.
+      if (state === "failed" && !panel && e.key !== "ArrowLeft") return;
       const up = e.key === "ArrowUp";
       const down = e.key === "ArrowDown";
       if (CH_UP.includes(e.keyCode)) { swallow(e); onStep(1); return; }

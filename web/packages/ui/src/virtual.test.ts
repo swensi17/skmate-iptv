@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { clampIndex, revealTop, visibleWindow } from "./virtual";
+import { centerTop, clampIndex, revealTop, visibleWindow } from "./virtual";
 
 describe("visibleWindow", () => {
   it("draws the viewport plus a buffer, never the whole list", () => {
@@ -34,5 +34,19 @@ describe("clampIndex", () => {
     expect(clampIndex(5, 10, 100)).toBe(15);
     expect(clampIndex(95, 10, 100)).toBe(99);
     expect(clampIndex(3, -10, 100)).toBe(0);
+  });
+});
+
+describe("centerTop", () => {
+  it("puts the row in the middle", () => {
+    expect(centerTop(50, 84, 840, 100)).toBe(50 * 84 - (840 - 84) / 2);
+  });
+  it("stays inside the list at both ends", () => {
+    expect(centerTop(0, 84, 840, 100)).toBe(0);
+    expect(centerTop(2, 84, 840, 100)).toBe(0);
+    expect(centerTop(99, 84, 840, 100)).toBe(100 * 84 - 840);
+  });
+  it("is zero when the list is shorter than the viewport", () => {
+    expect(centerTop(3, 84, 840, 5)).toBe(0);
   });
 });
