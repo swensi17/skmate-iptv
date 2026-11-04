@@ -312,7 +312,7 @@ export function PlayerView({ channels, catalog, index, favorites, recents, onPic
 
   const looks = settings.aspect === "fit" ? "contain" : settings.aspect === "fill" ? "fill" : "cover";
   return (
-    <div class={`player${info ? " info" : ""}${bar ? " with-bar" : ""}${closing ? " closing" : ""}`}>
+    <div class={`player${panel && tab === "channels" ? " panel-wide" : ""}${info ? " info" : ""}${bar ? " with-bar" : ""}${closing ? " closing" : ""}`}>
       <video ref={video} class="video" style={{ objectFit: looks }} autoplay playsInline />
       <div class="player-shade" />
 

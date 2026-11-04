@@ -85,6 +85,7 @@ export const cs: Record<keyof typeof en, string> = {
   playlistEdit: "Upravit",
   playlistName: "Název",
   playlistSave: "Uložit",
+  scheduleNone: "Žádný průvodce",
   playlistErrNetwork: "Nelze načíst: zkontrolujte odkaz a síť",
   playlistErrHttp: "Server playlist nevydal",
   playlistErrInvalid: "Tento odkaz není playlist M3U",

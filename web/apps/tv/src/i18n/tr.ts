@@ -85,6 +85,7 @@ export const tr: Record<keyof typeof en, string> = {
   playlistEdit: "Düzenle",
   playlistName: "Ad",
   playlistSave: "Kaydet",
+  scheduleNone: "Rehber yok",
   playlistErrNetwork: "Yüklenemedi: bağlantıyı ve ağı kontrol edin",
   playlistErrHttp: "Sunucu listeyi vermedi",
   playlistErrInvalid: "Bu bağlantı bir M3U listesi değil",

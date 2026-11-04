@@ -85,6 +85,7 @@ export const hu: Record<keyof typeof en, string> = {
   playlistEdit: "Szerkesztés",
   playlistName: "Név",
   playlistSave: "Mentés",
+  scheduleNone: "Nincs műsorfüzet",
   playlistErrNetwork: "Nem tölthető be: ellenőrizd a hivatkozást és a hálózatot",
   playlistErrHttp: "A kiszolgáló nem adta ki a listát",
   playlistErrInvalid: "Ez a hivatkozás nem M3U lista",

@@ -104,7 +104,7 @@ export function PlayerPanel(p: Props) {
           <div class="tm-list">
             <div class="tm-head">{group === null || group === "~all" ? t("allChannelsShort") : group === "~fav" ? t("favorites") : capitalize(group)}</div>
             <VirtualList
-              key={`channels|${group}`} items={list} rowHeight={ROW} height={LIST_H - 56} pageSize={9} autofocus
+              key={`channels|${group}`} items={list} rowHeight={ROW} height={1080 - 56 - 16} pageSize={9} autofocus
               initialIndex={group === null ? p.index : 0}
               idOf={(c) => `pc-${c.id}`}
               renderRow={(c, i) => (

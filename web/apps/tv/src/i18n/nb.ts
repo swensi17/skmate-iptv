@@ -85,6 +85,7 @@ export const nb: Record<keyof typeof en, string> = {
   playlistEdit: "Rediger",
   playlistName: "Navn",
   playlistSave: "Lagre",
+  scheduleNone: "Ingen guide",
   playlistErrNetwork: "Kunne ikke laste inn: sjekk lenken og nettverket",
   playlistErrHttp: "Serveren ga ikke ut spillelisten",
   playlistErrInvalid: "Lenken er ikke en M3U-spilleliste",

@@ -85,6 +85,7 @@ export const fr: Record<keyof typeof en, string> = {
   playlistEdit: "Modifier",
   playlistName: "Nom",
   playlistSave: "Enregistrer",
+  scheduleNone: "Pas de guide",
   playlistErrNetwork: "Échec du chargement : vérifiez le lien et le réseau",
   playlistErrHttp: "Le serveur n'a pas fourni la playlist",
   playlistErrInvalid: "Ce lien n'est pas une playlist M3U",

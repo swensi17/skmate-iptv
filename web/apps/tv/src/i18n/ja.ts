@@ -85,6 +85,7 @@ export const ja: Record<keyof typeof en, string> = {
   playlistEdit: "編集",
   playlistName: "名前",
   playlistSave: "保存",
+  scheduleNone: "ガイドなし",
   playlistErrNetwork: "読み込めません: リンクとネットワークを確認してください",
   playlistErrHttp: "サーバーがプレイリストを返しませんでした",
   playlistErrInvalid: "このリンクは M3U プレイリストではありません",

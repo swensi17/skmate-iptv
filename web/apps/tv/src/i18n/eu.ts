@@ -85,6 +85,7 @@ export const eu: Record<keyof typeof en, string> = {
   playlistEdit: "Editatu",
   playlistName: "Izena",
   playlistSave: "Gorde",
+  scheduleNone: "Gida gabe",
   playlistErrNetwork: "Ezin izan da kargatu: egiaztatu esteka eta sarea",
   playlistErrHttp: "Zerbitzariak ez du zerrenda eman",
   playlistErrInvalid: "Esteka hori ez da M3U zerrenda bat",

@@ -85,6 +85,7 @@ export const hi: Record<keyof typeof en, string> = {
   playlistEdit: "संपादित करें",
   playlistName: "नाम",
   playlistSave: "सहेजें",
+  scheduleNone: "गाइड उपलब्ध नहीं",
   playlistErrNetwork: "लोड नहीं हुई: लिंक और नेटवर्क जाँचें",
   playlistErrHttp: "सर्वर ने प्लेलिस्ट नहीं दी",
   playlistErrInvalid: "यह लिंक M3U प्लेलिस्ट नहीं है",
