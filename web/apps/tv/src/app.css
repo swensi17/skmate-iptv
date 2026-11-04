@@ -530,3 +530,12 @@ html[data-rtl] #app * { unicode-bidi: plaintext; }
 .sc-t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sc-now { color: var(--accent); font-weight: 700; }
 .drawer-scrim:has(.tm-drawer) { z-index: 14; } /* over the player bar, which would show through the list */
+
+/* The categories as a quiet list under the playlist's name: text only, the chosen one is a light bar. */
+.gr-head { height: 72px; display: flex; align-items: center; gap: 12px; padding: 0 28px; font-size: 30px; font-weight: 700; }
+.gr-head svg { transform: rotate(-90deg); opacity: .7; }
+.row.gr { height: 64px; font-size: 26px; font-weight: 500; padding: 0 28px 0 40px; }
+.row.gr .sub { font-size: 20px; color: var(--dim); }
+.groups .row.gr[aria-pressed="true"] { background: rgba(255,255,255,.16); box-shadow: none; font-weight: 700; }
+.groups .row.gr:focus { background: var(--focus-fill); }
+.groups .row.gr[aria-pressed="true"]:focus { background: var(--focus-fill); }
