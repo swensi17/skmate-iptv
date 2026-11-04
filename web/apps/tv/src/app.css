@@ -505,3 +505,28 @@ html[data-rtl] #app * { unicode-bidi: plaintext; }
 /* A still spinner reads as a hang, so it keeps turning and fading in even with motion off (that rule is stronger than a plain class). */
 :root[data-motion] .ticks rect { animation-duration: 1200ms !important; }
 :root[data-motion] .spinner { transition-duration: 220ms !important; }
+
+/* The player's channel list as on a set-top box: a see-through panel, the list on its left and the day of the channel under the cursor beside it. */
+.drawer.tm-drawer { background: rgba(18, 20, 23, .95); padding: 0; box-shadow: none; }
+.tm { display: flex; height: 100%; }
+.tm-list { width: 700px; flex: none; display: flex; flex-direction: column; border-right: 1px solid var(--line); }
+.tm-head { height: 56px; display: flex; align-items: center; padding: 0 28px; font-size: 26px; font-weight: 700; background: rgba(255,255,255,.08); }
+.tm .row .prog { color: var(--accent); }
+.tm .row:focus .prog { color: var(--focus-text); opacity: .75; }
+.tm .row .bar { height: 3px; }
+.now-mark { color: var(--accent); font-size: 22px; flex: none; }
+.row:focus .now-mark { color: var(--focus-text); }
+.tm-sched { flex: 1; min-width: 0; padding: 20px 28px 0; display: flex; flex-direction: column; overflow: hidden; }
+.sc-name { font-size: 28px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sc-group { font-size: 22px; color: var(--muted); margin-top: 2px; }
+.sc-card { margin: 16px 0 12px; padding: 16px 20px; border-radius: var(--radius); background: rgba(255,255,255,.08); }
+.sc-title { font-size: 28px; font-weight: 700; }
+.sc-time { font-size: 21px; color: var(--muted); margin: 4px 0 10px; }
+.sc-card .bar { display: block; height: 3px; background: rgba(255,255,255,.2); }
+.sc-desc { margin-top: 10px; font-size: 21px; line-height: 1.35; color: var(--muted); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.sc-list { flex: 1; overflow: hidden; padding-bottom: 24px; }
+.sc-row { display: flex; gap: 22px; height: 56px; align-items: center; font-size: 25px; color: var(--muted); }
+.sc-at { flex: none; width: 82px; font-variant-numeric: tabular-nums; }
+.sc-t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sc-now { color: var(--accent); font-weight: 700; }
+.drawer-scrim:has(.tm-drawer) { z-index: 14; } /* over the player bar, which would show through the list */
