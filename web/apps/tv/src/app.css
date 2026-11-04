@@ -565,15 +565,5 @@ button.sc-now:not(:focus) { color: var(--accent); }
 /* Channel numbers in the player's list all start at one edge, so 9 and 10 do not sit at different distances from the logo. */
 .tm .row .num { width: 58px; text-align: left; margin-right: -8px; font-size: 28px; }
 
-.rcol { flex: none; align-self: stretch; display: flex; flex-direction: column; align-items: flex-end; justify-content: flex-start; gap: 4px; padding-top: 10px; }
-.rcol .rtop { display: flex; align-items: center; gap: 8px; height: 26px; }
-.rcol .now-mark { font-size: 24px; line-height: 1; }
-.rcol .tag.small { font-size: 15px; padding: 2px 8px; }
-
-/* The panels' slide stays smooth when the page only guessed the device was slow ("auto" went to off): a slide is cheap, and
-   a panel that jumps feels broken. A viewer who chose "off" still gets none. */
-:root[data-motion-pref="auto"] .drawer.drawer-left, :root[data-motion-pref="auto"] .drawer.drawer-right { animation-duration: 260ms !important; }
-:root[data-motion-pref="auto"] .drawer.out { animation-duration: 220ms !important; }
-:root[data-motion-pref="auto"] .drawer-scrim { animation-duration: 220ms !important; }
-:root[data-motion-pref="auto"] .drawer.tm-drawer, :root[data-motion-pref="auto"] .tm-col { transition-duration: 260ms !important; }
-:root[data-motion-pref="auto"] .tm-inner { animation-duration: 260ms !important; }
+.mark-slot { flex: none; width: 26px; display: flex; align-items: center; justify-content: center; }
+.mark-slot .now-mark { font-size: 22px; line-height: 1; }
