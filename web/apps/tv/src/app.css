@@ -612,3 +612,9 @@ nav.rail .rail-item:focus { background: var(--focus-fill); color: var(--focus-te
 nav.rail .rail-item:focus::after { display: none; }
 nav.rail .rail-label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 :root[data-motion-pref="auto"] nav.rail { transition-duration: 240ms !important; }
+
+/* The main menu opens like the lists do: it slides in from the left and the page moves aside to the right. Both only
+   move (a transform), so nothing is laid out again while they do. */
+.content { transition: transform 260ms cubic-bezier(.2, 0, 0, 1); will-change: transform; }
+nav.rail.open ~ .content { transform: translateX(400px); }
+:root[data-motion-pref="auto"] .content { transition-duration: 260ms !important; }
