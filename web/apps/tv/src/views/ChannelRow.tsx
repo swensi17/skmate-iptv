@@ -1,9 +1,9 @@
 import { useContext } from "preact/hooks";
 import type { Channel } from "@skmate/core";
+import { Icon } from "@skmate/ui";
 import { t } from "../i18n";
 import { GuideContext } from "../state/GuideContext";
 import { UiContext } from "../state/UiContext";
-import { capitalize } from "../text";
 import { ChannelLogo } from "./ChannelLogo";
 import { leftLabel } from "./Left";
 
@@ -38,13 +38,16 @@ export function ChannelRow(props: {
           </>
         ) : null}
       </span>
-      {/* What is said about the channel on the right, all on one level: favourite, category, archive, and the sign of the channel on the screen. */}
-      <span class="rinfo">
-        {props.favorite ? <span class="star">★</span> : null}
-        {on ? null : channel.group ? <span class="sub">{capitalize(channel.group)}</span> : null}
-        {channel.catchupDays ? <span class="tag">{t("archiveDays", { n: channel.catchupDays })}</span> : null}
-        {props.playing ? <span class="now-mark" aria-hidden="true">▶</span> : null}
-      </span>
+      {/* The right edge: a sign that this channel is on the screen in the top corner, the archive under it. No category tag. */}
+      {props.playing || props.favorite || channel.catchupDays ? (
+        <span class="redge">
+          <span class="rtop">
+            {props.favorite ? <span class="star">★</span> : null}
+            {props.playing ? <span class="now-mark" aria-hidden="true"><Icon name="play" size={22} /></span> : null}
+          </span>
+          {channel.catchupDays ? <span class="tag">{t("archiveDays", { n: channel.catchupDays })}</span> : null}
+        </span>
+      ) : null}
     </button>
   );
 }
