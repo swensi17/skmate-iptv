@@ -259,12 +259,25 @@ export function PlayerView({ channels, catalog, index, favorites, recents, onPic
       const left = e.key === "ArrowLeft";
       const right = e.key === "ArrowRight";
       if (panel) {
+        // In the day of a channel Up and Down walk the programmes, Left is back to the list, Right has nowhere to go.
+        const sched = (document.activeElement as HTMLElement | null)?.closest<HTMLElement>(".tm-sched");
+        if (sched) {
+          if (left) { swallow(e); focusFirst(document, `ch-${sched.dataset.ch}`); }
+          else if (right) swallow(e);
+          return;
+        }
         // Left walks deeper into the menu (channels, categories, home), Right walks back and then closes it.
         const edge = side === "left" ? left : right; // the key that leads away from the picture
         const back = side === "left" ? right : left;
         if (tab === "channels" && side === "left") {
           if (edge) { swallow(e); setTab("groups"); return; }
-          if (back) { swallow(e); setPanel(false); return; }
+          if (back) {
+            // Right from the list goes to its day, when it has one; with nothing there it closes the panel.
+            swallow(e);
+            const day = document.querySelector<HTMLElement>(".tm-sched .sc-now") ?? document.querySelector<HTMLElement>(".tm-sched .sc-row[data-focus]");
+            if (day) day.focus({ preventScroll: false }); else setPanel(false);
+            return;
+          }
         } else if (tab === "groups") {
           if (edge) { swallow(e); setTab("menu"); return; }
           if (back) { swallow(e); setTab("channels"); return; }

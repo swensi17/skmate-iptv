@@ -5,8 +5,8 @@ import { t, type Key } from "../i18n";
 import { channelKey } from "../state/favorites";
 import type { Settings } from "../state/settings";
 import { capitalize } from "../text";
-import { GroupIcon } from "./GroupIcon";
 import { ChannelRow } from "./ChannelRow";
+import { GroupIcon } from "./GroupIcon";
 import { PlayerSettingRows } from "./PlayerRows";
 import { Schedule } from "./Schedule";
 import { SheetHead } from "./SheetHead";
@@ -43,6 +43,8 @@ interface Props {
 const ROW = 84;
 /** From under the title to the foot of the panel (1080 high), so the list fills it and no gap is left below. */
 const LIST_H = 940;
+/** A category or a menu line: plain text, closer together than a channel. */
+const GROUP_ROW = 64;
 
 /** The deepest layer of the player's menu: home first, then what was watched lately, then the other places of the app. */
 const MENU: Array<[string, IconName, Key, Go | { tab: PanelTab }]> = [
@@ -72,39 +74,51 @@ export function PlayerPanel(p: Props) {
     ...groups.map((g) => ({ key: g.name, label: capitalize(g.name), count: g.channels.length })),
   ], [p.catalog.length, favs.length, groups]);
 
-  const wide = p.tab === "channels";
+  // Channels, categories and the menu are one panel: Left opens the next column on the left, Right closes it again.
+  const wide = p.tab === "channels" || p.tab === "groups" || p.tab === "menu";
+  const showGroups = p.tab === "groups" || p.tab === "menu";
+  const showMenu = p.tab === "menu";
   const current = p.channels[p.index] ?? null;
   const [looking, setLooking] = useState<Channel | null>(null);
+  const width = !wide ? 980 : showMenu ? 1800 : showGroups ? 1700 : 1320;
+  const listing = p.tab === "channels";
   return (
-    <Drawer side={p.side} width={wide ? 1320 : 980} label={t("playerMenu")} onClose={p.onClose} closing={p.closing} className={wide ? "tm-drawer" : undefined}>
-      {wide ? null : <SheetHead title={p.tab === "menu" ? t("playerMenu") : t(TITLE[p.tab])} />}
-      {p.tab === "menu" ? (
-        <div class="drawer-scroll">
-          {MENU.map(([id, icon, label, act]) => (
-            <button class="menu-row" key={id} data-focus={`pm-${id}`} onClick={() => (typeof act === "string" ? p.onGo(act) : p.onTab(act.tab))}>
-              <Icon name={icon} size={40} /><span class="grow">{t(label)}</span><Icon name="chevron" size={28} />
-            </button>
-          ))}
-        </div>
-      ) : null}
-      {p.tab === "groups" ? (
-        <VirtualList
-          key="groups" items={rows} rowHeight={ROW} height={LIST_H} pageSize={8} autofocus
-          idOf={(g) => `pg:${g.key}`}
-          renderRow={(g) => (
-            <button class="row" data-focus={`pg:${g.key}`} onClick={() => { setGroup(g.key); p.onTab("channels"); }} aria-pressed={group === g.key}>
-              <GroupIcon id={g.key} />
-              <span class="grow">{g.label}</span><span class="sub">{g.count}</span>
-            </button>
-          )}
-        />
-      ) : null}
-      {p.tab === "channels" ? (
+    <Drawer side={p.side} width={width} label={t("playerMenu")} onClose={p.onClose} closing={p.closing} className={wide ? "tm-drawer" : undefined}>
+      {wide ? null : <SheetHead title={t(TITLE[p.tab as Exclude<PanelTab, "menu">])} />}
+      {wide ? (
         <div class="tm">
+          <div class={`tm-col tm-menu${showMenu ? " open" : ""}`}>
+            {showMenu ? (
+              <div class="tm-inner tm-icons">
+                {MENU.map(([id, icon, label, act]) => (
+                  <button class="rail-item" key={id} data-focus={`pm-${id}`} data-label={t(label)} aria-label={t(label)}
+                    onClick={() => (typeof act === "string" ? p.onGo(act) : p.onTab(act.tab))}>
+                    <Icon name={icon} size={40} />
+                  </button>
+                ))}
+              </div>
+            ) : null}
+          </div>
+          <div class={`tm-col tm-groups${showGroups ? " open" : ""}`}>
+            {showGroups ? (
+              <div class="tm-inner">
+                <div class="tm-head">{t("panelGroups")}</div>
+                <VirtualList
+                  key="groups" items={rows} rowHeight={GROUP_ROW} height={1080 - 56 - 16} pageSize={8} autofocus={p.tab === "groups"}
+                  idOf={(g) => `pg:${g.key}`}
+                  renderRow={(g) => (
+                    <button class="row gr" data-focus={`pg:${g.key}`} onClick={() => { setGroup(g.key); p.onTab("channels"); }} aria-pressed={group === g.key}>
+                      <GroupIcon id={g.key} /><span class="grow">{g.label}</span><span class="sub">{g.count}</span>
+                    </button>
+                  )}
+                />
+              </div>
+            ) : null}
+          </div>
           <div class="tm-list">
             <div class="tm-head">{group === null || group === "~all" ? t("allChannelsShort") : group === "~fav" ? t("favorites") : capitalize(group)}</div>
             <VirtualList
-              key={`channels|${group}`} items={list} rowHeight={ROW} height={1080 - 56 - 16} pageSize={9} autofocus
+              key={`channels|${group}|${listing}`} items={list} rowHeight={ROW} height={1080 - 56 - 16} pageSize={9} autofocus={listing}
               initialIndex={group === null ? p.index : 0}
               idOf={(c) => `pc-${c.id}`}
               renderRow={(c, i) => (
