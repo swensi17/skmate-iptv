@@ -10,6 +10,7 @@ const SLOW_FRAMES_TO_THROTTLE = 6;
 export function applyMotion(setting: MotionSetting, throttled: boolean, root: HTMLElement = document.documentElement): boolean {
   const off = setting === "off" || (setting === "auto" && throttled);
   root.setAttribute("data-motion", off ? "off" : "on");
+  root.setAttribute("data-motion-pref", setting); // what the viewer chose: "auto" may be slowed by the page, "off" never animates
   return !off;
 }
 

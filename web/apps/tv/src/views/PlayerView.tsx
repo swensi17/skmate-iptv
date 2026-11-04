@@ -259,11 +259,11 @@ export function PlayerView({ channels, catalog, index, favorites, recents, onPic
       const left = e.key === "ArrowLeft";
       const right = e.key === "ArrowRight";
       if (panel) {
-        // In the day of a channel Up and Down walk the programmes, Left is back to the list, Right has nowhere to go.
+        // In the day of a channel Up and Down walk the programmes, Left is back to the list, Right closes the panel.
         const sched = (document.activeElement as HTMLElement | null)?.closest<HTMLElement>(".tm-sched");
         if (sched) {
           if (left) { swallow(e); focusFirst(document, `ch-${sched.dataset.ch}`); }
-          else if (right) swallow(e);
+          else if (right) { swallow(e); setPanel(false); } // on past the day: the panel slides away to the left
           return;
         }
         // Left walks deeper into the menu (channels, categories, home), Right walks back and then closes it.
