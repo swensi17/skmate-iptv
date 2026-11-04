@@ -22,6 +22,11 @@ export function Schedule({ channel }: { channel: Channel | null }) {
   const from = items.findIndex((x) => x.stop > now - 30 * 60_000);
   const shown = from < 0 ? [] : items.slice(from, from + 40);
 
+  /** The row under the cursor stays at one place, a little above the middle, and the day moves under it. */
+  const pin = (row: HTMLElement) => {
+    const list = box.current;
+    if (list) list.scrollTop = row.offsetTop - list.clientHeight * 0.38;
+  };
   useEffect(() => { setPicked(null); }, [channel?.id]);
   useEffect(() => {
     box.current?.querySelector<HTMLElement>(".sc-now")?.scrollIntoView({ block: "center" });
@@ -58,7 +63,7 @@ export function Schedule({ channel }: { channel: Channel | null }) {
           ) : null}
           <div class="sc-list" ref={box}>
             {shown.map((x, i) => (
-              <button class={`sc-row${x === live ? " sc-now" : ""}`} key={x.start} data-focus={`sc-${i}`} onFocus={() => setPicked(x)} tabIndex={-1}>
+              <button class={`sc-row${x === live ? " sc-now" : ""}`} key={x.start} data-focus={`sc-${i}`} onFocus={(e) => { setPicked(x); pin(e.currentTarget as HTMLElement); }} tabIndex={-1}>
                 <span class="sc-at">{clock(x.start)}</span>
                 <span class="sc-t">{x.title}</span>
               </button>

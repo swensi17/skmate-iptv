@@ -516,7 +516,8 @@ html[data-rtl] #app * { unicode-bidi: plaintext; }
 .tm .row .bar { height: 3px; }
 .now-mark { color: var(--accent); font-size: 22px; flex: none; }
 .row:focus .now-mark { color: var(--focus-text); }
-.tm-sched { flex: 1; min-width: 0; padding: 20px 28px 0; display: flex; flex-direction: column; overflow: hidden; }
+.tm-sched { flex: 1; min-width: 0; padding: 20px 16px 0; display: flex; flex-direction: column; overflow: hidden; }
+.sc-head { padding: 0 12px; }
 .sc-name { font-size: 28px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sc-group { font-size: 22px; color: var(--muted); margin-top: 2px; }
 .sc-card { margin: 16px 0 12px; padding: 16px 20px; border-radius: var(--radius); background: rgba(255,255,255,.08); }
@@ -524,7 +525,7 @@ html[data-rtl] #app * { unicode-bidi: plaintext; }
 .sc-time { font-size: 21px; color: var(--muted); margin: 4px 0 10px; }
 .sc-card .bar { display: block; height: 3px; background: rgba(255,255,255,.2); }
 .sc-desc { margin-top: 10px; font-size: 21px; line-height: 1.35; color: var(--muted); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-.sc-list { flex: 1; overflow: hidden; padding-bottom: 24px; }
+.sc-list { flex: 1; overflow: hidden; padding-bottom: 24px; position: relative; }
 .sc-row { display: flex; gap: 22px; height: 56px; align-items: center; font-size: 25px; color: var(--muted); }
 .sc-at { flex: none; width: 82px; font-variant-numeric: tabular-nums; }
 .sc-t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -550,7 +551,7 @@ html[data-rtl] #app * { unicode-bidi: plaintext; }
 .tm-col .tm-head { height: 56px; }
 .row.gr.mrow { gap: 18px; padding-left: 28px; }
 /* The day of a channel: a row is a button the remote can stop on, and a few quiet lines stand in for a missing guide. */
-button.sc-row { width: 100%; border: 0; background: none; font: 500 25px var(--font); text-align: left; padding: 0 12px; margin: 0 -12px; border-radius: var(--radius); color: var(--muted); }
+button.sc-row { width: 100%; border: 0; background: none; font: 500 25px var(--font); text-align: left; padding: 0 20px; margin: 0; border-radius: var(--radius); color: var(--muted); flex: none; }
 button.sc-row:focus { background: var(--focus-fill); color: var(--focus-text); outline: none; }
 button.sc-now:not(:focus) { color: var(--accent); }
 .sc-row.sk { animation: sk-pulse 1400ms ease-in-out infinite; }
