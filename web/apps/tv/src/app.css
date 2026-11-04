@@ -569,4 +569,4 @@ button.sc-now:not(:focus) { color: var(--accent); }
 .redge .rtop { display: flex; align-items: center; gap: 8px; height: 26px; }
 .redge .now-mark { display: flex; color: var(--accent); }
 .row:focus .redge .now-mark { color: var(--focus-text); }
-.redge .tag { font-size: 16px; padding: 1px 8px; margin-top: auto; }
+.redge .tag { display: flex; align-items: center; gap: 6px; font-size: 20px; padding: 2px 10px; margin-top: auto; }

@@ -41,6 +41,12 @@ interface Props {
 }
 
 const ROW = 84;
+
+/**
+ * Where the viewer was in the channel panel: the category and the channel under the cursor. Reopening the panel (or coming
+ * back from the categories) lands there, until the picture moves to another channel by other means.
+ */
+const memory: { group: string | null; channel: string | null; playing: string | null } = { group: null, channel: null, playing: null };
 /** From under the title to the foot of the panel (1080 high), so the list fills it and no gap is left below. */
 const LIST_H = 940;
 /** A category or a menu line: plain text, closer together than a channel. */
@@ -56,10 +62,19 @@ const MENU: Array<[string, IconName, Key, Go | { tab: PanelTab }]> = [
   ["settings", "settings", "panelSettings", { tab: "settings" }],
 ];
 
+/** The row to start on: where the viewer was, else the channel on the screen (in its own list), else the top. */
+function memoryIndex(list: readonly Channel[], group: string | null, playing: number): number {
+  const at = memory.channel === null ? -1 : list.findIndex((c) => c.id === memory.channel);
+  return at >= 0 ? at : group === null ? playing : 0;
+}
+
 /** The player's side sheet. Left leads channels → categories → menu; Right brings recently watched; the bar brings the settings. */
 export function PlayerPanel(p: Props) {
   // A category picked in the first tab narrows the channels tab; until then it shows what is being watched.
-  const [group, setGroup] = useState<string | null>(null);
+  const playingId = p.channels[p.index]?.id ?? null;
+  if (memory.playing !== playingId) { memory.group = null; memory.channel = null; memory.playing = playingId; } // another channel is on: start from it
+  const [group, setGroupState] = useState<string | null>(memory.group);
+  const setGroup = (g: string | null) => { memory.group = g; memory.channel = null; setGroupState(g); };
   // The lists focus their own current row; the menu and the settings page start at their first row.
   useEffect(() => { if (p.tab === "menu") focusFirst(document, "pm-home"); else if (p.tab === "settings") focusFirst(document, "s-engine"); }, [p.tab]);
   const groups = useMemo(() => groupsOf(p.catalog), [p.catalog]);
@@ -105,6 +120,7 @@ export function PlayerPanel(p: Props) {
                 <div class="tm-head">{t("panelGroups")}</div>
                 <VirtualList
                   key="groups" items={rows} rowHeight={GROUP_ROW} height={1080 - 56 - 16} pageSize={8} autofocus={p.tab === "groups"}
+                  initialIndex={Math.max(0, rows.findIndex((r) => r.key === (group ?? "~all")))}
                   idOf={(g) => `pg:${g.key}`}
                   renderRow={(g) => (
                     <button class="row gr" data-focus={`pg:${g.key}`} onClick={() => { setGroup(g.key); p.onTab("channels"); }} aria-pressed={group === g.key}>
@@ -119,11 +135,11 @@ export function PlayerPanel(p: Props) {
             <div class="tm-head">{group === null || group === "~all" ? t("allChannelsShort") : group === "~fav" ? t("favorites") : capitalize(group)}</div>
             <VirtualList
               key={`channels|${group}|${listing}`} items={list} rowHeight={ROW} height={1080 - 56 - 16} pageSize={9} autofocus={listing}
-              initialIndex={group === null ? p.index : 0}
+              initialIndex={memoryIndex(list, group, p.index)}
               idOf={(c) => `pc-${c.id}`}
               renderRow={(c, i) => (
                 <ChannelRow channel={c} index={i} favorite={p.favorites.has(channelKey(c))} playing={c.id === current?.id}
-                  onOpen={() => p.onPick(c, list)} onFav={p.onFav} onFocus={setLooking} />
+                  onOpen={() => p.onPick(c, list)} onFav={p.onFav} onFocus={(ch) => { memory.channel = ch.id; setLooking(ch); }} />
               )}
             />
           </div>

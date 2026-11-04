@@ -1,6 +1,6 @@
 import type { ComponentChildren } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
-import { clampIndex, revealTop, visibleWindow } from "./virtual";
+import { centerTop, clampIndex, revealTop, visibleWindow } from "./virtual";
 
 export interface VirtualListProps<T> {
   items: readonly T[];
@@ -24,7 +24,7 @@ const PAGE_DOWN = [34, 428];
  * D-pad handler; this component scrolls to keep the focused row in view and pages by [pageSize].
  */
 export function VirtualList<T>(p: VirtualListProps<T>) {
-  const [top, setTop] = useState(() => revealTop(0, p.initialIndex ?? 0, p.rowHeight, p.height, p.items.length));
+  const [top, setTop] = useState(() => centerTop(p.initialIndex ?? 0, p.rowHeight, p.height, p.items.length));
   const [wanted, setWanted] = useState<number | null>(p.autofocus ? p.initialIndex ?? 0 : null);
   const box = useRef<HTMLDivElement>(null);
   /** The row a page jump is heading to: a second press before the first lands continues from there. */
@@ -49,13 +49,18 @@ export function VirtualList<T>(p: VirtualListProps<T>) {
   };
 
   const onKeyDown = (e: KeyboardEvent) => {
-    const dir = PAGE_UP.includes(e.keyCode) ? -1 : PAGE_DOWN.includes(e.keyCode) ? 1 : 0;
+    const step = e.key === "ArrowDown" ? 1 : e.key === "ArrowUp" ? -1 : 0;
+    const dir = step !== 0 ? step : PAGE_UP.includes(e.keyCode) ? -1 : PAGE_DOWN.includes(e.keyCode) ? 1 : 0;
     if (dir === 0) return;
     const current = (document.activeElement as HTMLElement | null)?.closest<HTMLElement>("[data-index]");
     if (!current) return;
-    e.preventDefault();
     const from = heading.current ?? Number(current.dataset.index);
-    const to = clampIndex(from, dir * (p.pageSize ?? 10), p.items.length);
+    // Up and Down walk this list row by row, however fast they come: the row to land on may not be drawn yet, and the
+    // geometry of the screen would then pick something beside the list. Only past the first or last row do they leave it.
+    if (step !== 0 && (from + step < 0 || from + step > p.items.length - 1)) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const to = clampIndex(from, step !== 0 ? step : dir * (p.pageSize ?? 10), p.items.length);
     heading.current = to;
     setWanted(to);
   };

@@ -18,6 +18,11 @@ export function revealTop(top: number, index: number, rowHeight: number, viewpor
   return Math.max(0, Math.min(next, Math.max(0, count * rowHeight - viewport)));
 }
 
+/** The scroll position that puts row [index] in the middle of the viewport (as near as the ends of the list allow). */
+export function centerTop(index: number, rowHeight: number, viewport: number, count: number): number {
+  return Math.max(0, Math.min(index * rowHeight - (viewport - rowHeight) / 2, Math.max(0, count * rowHeight - viewport)));
+}
+
 /** A row [delta] steps away, kept inside the list. */
 export function clampIndex(index: number, delta: number, count: number): number {
   return Math.max(0, Math.min(count - 1, index + delta));

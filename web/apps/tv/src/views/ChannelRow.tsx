@@ -10,6 +10,13 @@ import { leftLabel } from "./Left";
 /** Yellow on webOS (405) and on Tizen (12 once registered); `y` on a keyboard. */
 const isYellow = (e: KeyboardEvent) => e.keyCode === 405 || e.keyCode === 12 || e.key === "y";
 
+/** The archive in few words: "3 дн." (the word "archive" is dropped; the clock beside it says it), the unit as the language writes it. */
+function archiveShort(n: number): string {
+  const s = t("archiveDays", { n });
+  const at = s.search(/\d/);
+  return at > 0 ? s.slice(at) : s;
+}
+
 export function ChannelRow(props: {
   channel: Channel; index: number; favorite: boolean;
   onOpen: (c: Channel) => void; onFav: (c: Channel) => void; onFocus?: (c: Channel) => void;
@@ -45,7 +52,7 @@ export function ChannelRow(props: {
             {props.favorite ? <span class="star">★</span> : null}
             {props.playing ? <span class="now-mark" aria-hidden="true"><Icon name="play" size={22} /></span> : null}
           </span>
-          {channel.catchupDays ? <span class="tag">{t("archiveDays", { n: channel.catchupDays })}</span> : null}
+          {channel.catchupDays ? <span class="tag"><Icon name="history" size={18} />{archiveShort(channel.catchupDays)}</span> : null}
         </span>
       ) : null}
     </button>
