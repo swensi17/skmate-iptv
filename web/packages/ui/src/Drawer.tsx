@@ -14,13 +14,15 @@ export function Drawer(p: {
   closing?: boolean;
   modal?: boolean;
   bottomGap?: number;
+  /** An extra class for the panel itself. */
+  className?: string;
   children: ComponentChildren;
 }) {
   const modal = p.modal ?? true;
   return (
     <div class={`scrim drawer-scrim${p.closing ? " closing" : ""}${modal ? "" : " open-ended"}`} data-modal={modal && !p.closing ? "" : undefined} onClick={p.onClose}>
       <aside
-        class={`drawer drawer-${p.side}${p.closing ? " out" : ""}`}
+        class={`drawer drawer-${p.side}${p.closing ? " out" : ""}${p.className ? ` ${p.className}` : ""}`}
         style={{ width: `${p.width}px`, ...(p.bottomGap ? { height: `calc(100% - ${p.bottomGap}px)` } : {}) }}
         role="dialog" aria-label={p.label} onClick={(e) => e.stopPropagation()}
       >

@@ -8,6 +8,7 @@ import { capitalize } from "../text";
 import { GroupIcon } from "./GroupIcon";
 import { ChannelRow } from "./ChannelRow";
 import { PlayerSettingRows } from "./PlayerRows";
+import { Schedule } from "./Schedule";
 import { SheetHead } from "./SheetHead";
 
 /** "menu" is the main menu; the others are the pages it opens, in the same sheet. */
@@ -71,9 +72,12 @@ export function PlayerPanel(p: Props) {
     ...groups.map((g) => ({ key: g.name, label: capitalize(g.name), count: g.channels.length })),
   ], [p.catalog.length, favs.length, groups]);
 
+  const wide = p.tab === "channels";
+  const current = p.channels[p.index] ?? null;
+  const [looking, setLooking] = useState<Channel | null>(null);
   return (
-    <Drawer side={p.side} width={980} label={t("playerMenu")} onClose={p.onClose} closing={p.closing}>
-      <SheetHead title={p.tab === "menu" ? t("playerMenu") : t(TITLE[p.tab])} />
+    <Drawer side={p.side} width={wide ? 1320 : 980} label={t("playerMenu")} onClose={p.onClose} closing={p.closing} className={wide ? "tm-drawer" : undefined}>
+      {wide ? null : <SheetHead title={p.tab === "menu" ? t("playerMenu") : t(TITLE[p.tab])} />}
       {p.tab === "menu" ? (
         <div class="drawer-scroll">
           {MENU.map(([id, icon, label, act]) => (
@@ -96,14 +100,21 @@ export function PlayerPanel(p: Props) {
         />
       ) : null}
       {p.tab === "channels" ? (
-        <VirtualList
-          key={`channels|${group}`} items={list} rowHeight={ROW} height={LIST_H} pageSize={9} autofocus
-          initialIndex={group === null ? p.index : 0}
-          idOf={(c) => `pc-${c.id}`}
-          renderRow={(c, i) => (
-            <ChannelRow channel={c} index={i} favorite={p.favorites.has(channelKey(c))} onOpen={() => p.onPick(c, list)} onFav={p.onFav} />
-          )}
-        />
+        <div class="tm">
+          <div class="tm-list">
+            <div class="tm-head">{group === null || group === "~all" ? t("allChannelsShort") : group === "~fav" ? t("favorites") : capitalize(group)}</div>
+            <VirtualList
+              key={`channels|${group}`} items={list} rowHeight={ROW} height={LIST_H - 56} pageSize={9} autofocus
+              initialIndex={group === null ? p.index : 0}
+              idOf={(c) => `pc-${c.id}`}
+              renderRow={(c, i) => (
+                <ChannelRow channel={c} index={i} favorite={p.favorites.has(channelKey(c))} playing={c.id === current?.id}
+                  onOpen={() => p.onPick(c, list)} onFav={p.onFav} onFocus={setLooking} />
+              )}
+            />
+          </div>
+          <Schedule channel={looking ?? current ?? list[0] ?? null} />
+        </div>
       ) : null}
       {p.tab === "favorites" ? (
         favs.length === 0 ? <div class="list-head">{t("favoritesEmpty")}</div> : (

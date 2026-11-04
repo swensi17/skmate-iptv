@@ -13,6 +13,8 @@ const isYellow = (e: KeyboardEvent) => e.keyCode === 405 || e.keyCode === 12 || 
 export function ChannelRow(props: {
   channel: Channel; index: number; favorite: boolean;
   onOpen: (c: Channel) => void; onFav: (c: Channel) => void; onFocus?: (c: Channel) => void;
+  /** The channel on the screen now: marked with a play sign in the player's list. */
+  playing?: boolean;
 }) {
   const { channel } = props;
   const { data, now } = useContext(GuideContext);
@@ -36,6 +38,7 @@ export function ChannelRow(props: {
           </>
         ) : null}
       </span>
+      {props.playing ? <span class="now-mark" aria-hidden="true">▶</span> : null}
       {props.favorite ? <span class="star">★</span> : null}
       {channel.catchupDays ? <span class="tag">{t("archiveDays", { n: channel.catchupDays })}</span> : null}
       {on ? null : channel.group ? <span class="sub">{capitalize(channel.group)}</span> : null}
