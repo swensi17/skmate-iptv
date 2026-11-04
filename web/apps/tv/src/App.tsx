@@ -408,7 +408,7 @@ export function App() {
             recents={recents} paused={false}
           />
         ) : null}
-        {section === "guide" ? <GuideView channels={channels} favorites={favorites} status={guide.status} onRefresh={() => void guide.sync()} onOpen={open} onArchive={openArchive} onUpcoming={openUpcoming} reminded={reminded} /> : null}
+        {section === "guide" ? <GuideView settings={settings} channels={channels} favorites={favorites} status={guide.status} onRefresh={() => void guide.sync()} onOpen={open} onArchive={openArchive} onUpcoming={openUpcoming} reminded={reminded} /> : null}
         {section === "sport" ? <SportView channels={channels} favorites={favorites} onOpen={open} onFav={toggleFavorite} /> : null}
         {section === "movies" || section === "series" ? (
           <VodView kind={section === "movies" ? "movie" : "series"} source={vod}

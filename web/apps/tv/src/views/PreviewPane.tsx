@@ -46,7 +46,7 @@ export function PreviewPane({ channel, focused, settings }: { channel: Channel |
   );
 }
 
-function PreviewVideo({ channel, settings }: { channel: Channel; settings: Settings }) {
+export function PreviewVideo({ channel, settings }: { channel: Channel; settings: Settings }) {
   const video = useRef<HTMLVideoElement>(null);
   const { state } = usePlayback(video, channel, {
     engine: settings.engine, bufferSeconds: 10, openTimeoutMs: settings.openTimeout * 1000, autoRestart: false,
