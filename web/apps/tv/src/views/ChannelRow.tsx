@@ -38,10 +38,13 @@ export function ChannelRow(props: {
           </>
         ) : null}
       </span>
-      {props.favorite ? <span class="star">★</span> : null}
-      {channel.catchupDays ? <span class="tag">{t("archiveDays", { n: channel.catchupDays })}</span> : null}
-      {on ? null : channel.group ? <span class="sub">{capitalize(channel.group)}</span> : null}
-      {props.playing !== undefined ? <span class="mark-slot">{props.playing ? <span class="now-mark" aria-hidden="true">▶</span> : null}</span> : null}
+      {/* What is said about the channel on the right, all on one level: favourite, category, archive, and the sign of the channel on the screen. */}
+      <span class="rinfo">
+        {props.favorite ? <span class="star">★</span> : null}
+        {on ? null : channel.group ? <span class="sub">{capitalize(channel.group)}</span> : null}
+        {channel.catchupDays ? <span class="tag">{t("archiveDays", { n: channel.catchupDays })}</span> : null}
+        {props.playing ? <span class="now-mark" aria-hidden="true">▶</span> : null}
+      </span>
     </button>
   );
 }

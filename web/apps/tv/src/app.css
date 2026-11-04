@@ -565,5 +565,8 @@ button.sc-now:not(:focus) { color: var(--accent); }
 /* Channel numbers in the player's list all start at one edge, so 9 and 10 do not sit at different distances from the logo. */
 .tm .row .num { width: 58px; text-align: left; margin-right: -8px; font-size: 28px; }
 
-.mark-slot { flex: none; width: 26px; display: flex; align-items: center; justify-content: center; }
-.mark-slot .now-mark { font-size: 22px; line-height: 1; }
+.rinfo { flex: none; display: flex; align-items: center; gap: 12px; height: 32px; }
+.rinfo > * { display: flex; align-items: center; height: 32px; line-height: 1; }
+.rinfo .sub { font-size: 20px; }
+.rinfo .tag { font-size: 18px; padding: 0 10px; }
+.rinfo .now-mark { font-size: 22px; }
