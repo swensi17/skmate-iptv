@@ -85,6 +85,7 @@ export const bn: Record<keyof typeof en, string> = {
   playlistEdit: "সম্পাদনা",
   playlistName: "নাম",
   playlistSave: "সংরক্ষণ",
+  scheduleNone: "গাইড নেই",
   playlistErrNetwork: "লোড হয়নি: লিংক ও নেটওয়ার্ক দেখুন",
   playlistErrHttp: "সার্ভার প্লেলিস্ট দেয়নি",
   playlistErrInvalid: "এই লিংকটি M3U প্লেলিস্ট নয়",

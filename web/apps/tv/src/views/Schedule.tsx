@@ -1,5 +1,6 @@
 import { useContext, useEffect, useRef } from "preact/hooks";
 import type { Channel } from "@skmate/core";
+import { t } from "../i18n";
 import { GuideContext } from "../state/GuideContext";
 import { capitalize } from "../text";
 import { leftLabel } from "./Left";
@@ -37,6 +38,7 @@ export function Schedule({ channel }: { channel: Channel | null }) {
           {live.desc ? <div class="sc-desc">{live.desc}</div> : null}
         </div>
       ) : null}
+      {shown.length === 0 ? <div class="sc-none">{t("scheduleNone")}</div> : null}
       <div class="sc-list" ref={box}>
         {shown.map((x) => (
           <div class={`sc-row${x === live ? " sc-now" : ""}`} key={x.start}>

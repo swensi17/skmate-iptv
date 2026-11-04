@@ -85,6 +85,7 @@ export const zhCN: Record<keyof typeof en, string> = {
   playlistEdit: "编辑",
   playlistName: "名称",
   playlistSave: "保存",
+  scheduleNone: "没有节目指南",
   playlistErrNetwork: "无法加载：请检查链接和网络",
   playlistErrHttp: "服务器未返回播放列表",
   playlistErrInvalid: "该链接不是 M3U 播放列表",

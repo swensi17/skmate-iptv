@@ -85,6 +85,7 @@ export const ml: Record<keyof typeof en, string> = {
   playlistEdit: "എഡിറ്റ് ചെയ്യുക",
   playlistName: "പേര്",
   playlistSave: "സംരക്ഷിക്കുക",
+  scheduleNone: "ഗൈഡ് ഇല്ല",
   playlistErrNetwork: "ലോഡ് ആയില്ല: ലിങ്കും നെറ്റ്‌വർക്കും പരിശോധിക്കുക",
   playlistErrHttp: "സെർവർ പ്ലേലിസ്റ്റ് നൽകിയില്ല",
   playlistErrInvalid: "ഈ ലിങ്ക് M3U പ്ലേലിസ്റ്റ് അല്ല",

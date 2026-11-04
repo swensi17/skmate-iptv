@@ -85,6 +85,7 @@ export const ar: Record<keyof typeof en, string> = {
   playlistEdit: "تعديل",
   playlistName: "الاسم",
   playlistSave: "حفظ",
+  scheduleNone: "لا يوجد دليل",
   playlistErrNetwork: "تعذّر التحميل: تحقّق من الرابط والشبكة",
   playlistErrHttp: "لم يُرسل الخادم القائمة",
   playlistErrInvalid: "هذا الرابط ليس قائمة M3U",

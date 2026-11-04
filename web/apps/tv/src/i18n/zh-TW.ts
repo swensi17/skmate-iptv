@@ -85,6 +85,7 @@ export const zhTW: Record<keyof typeof en, string> = {
   playlistEdit: "編輯",
   playlistName: "名稱",
   playlistSave: "儲存",
+  scheduleNone: "沒有節目指南",
   playlistErrNetwork: "無法載入：請檢查連結和網路",
   playlistErrHttp: "伺服器沒有提供播放清單",
   playlistErrInvalid: "此連結不是 M3U 播放清單",

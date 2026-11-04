@@ -510,7 +510,7 @@ html[data-rtl] #app * { unicode-bidi: plaintext; }
 .drawer.tm-drawer { background: rgba(18, 20, 23, .95); padding: 0; box-shadow: none; }
 .tm { display: flex; height: 100%; }
 .tm-list { width: 700px; flex: none; display: flex; flex-direction: column; border-right: 1px solid var(--line); }
-.tm-head { height: 56px; display: flex; align-items: center; padding: 0 28px; font-size: 26px; font-weight: 700; background: rgba(255,255,255,.08); }
+.tm-head { height: 56px; display: flex; align-items: center; padding: 0 28px; font-size: 26px; font-weight: 700; }
 .tm .row .prog { color: var(--accent); }
 .tm .row:focus .prog { color: var(--focus-text); opacity: .75; }
 .tm .row .bar { height: 3px; }
@@ -539,3 +539,5 @@ html[data-rtl] #app * { unicode-bidi: plaintext; }
 .groups .row.gr[aria-pressed="true"] { background: rgba(255,255,255,.16); box-shadow: none; font-weight: 700; }
 .groups .row.gr:focus { background: var(--focus-fill); }
 .groups .row.gr[aria-pressed="true"]:focus { background: var(--focus-fill); }
+.player.panel-wide .pinfo { display: none; } /* the strip would show through the list */
+.sc-none { margin-top: 40px; font-size: 28px; color: var(--muted); text-align: center; }

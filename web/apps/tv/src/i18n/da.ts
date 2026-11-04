@@ -85,6 +85,7 @@ export const da: Record<keyof typeof en, string> = {
   playlistEdit: "Rediger",
   playlistName: "Navn",
   playlistSave: "Gem",
+  scheduleNone: "Ingen guide",
   playlistErrNetwork: "Kunne ikke indlæse: tjek linket og netværket",
   playlistErrHttp: "Serveren udleverede ikke afspilningslisten",
   playlistErrInvalid: "Linket er ikke en M3U-afspilningsliste",

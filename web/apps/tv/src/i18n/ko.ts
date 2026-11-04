@@ -85,6 +85,7 @@ export const ko: Record<keyof typeof en, string> = {
   playlistEdit: "편집",
   playlistName: "이름",
   playlistSave: "저장",
+  scheduleNone: "가이드 없음",
   playlistErrNetwork: "불러오지 못했습니다: 링크와 네트워크를 확인하세요",
   playlistErrHttp: "서버가 플레이리스트를 주지 않았습니다",
   playlistErrInvalid: "이 링크는 M3U 플레이리스트가 아닙니다",

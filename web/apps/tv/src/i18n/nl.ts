@@ -85,6 +85,7 @@ export const nl: Record<keyof typeof en, string> = {
   playlistEdit: "Bewerken",
   playlistName: "Naam",
   playlistSave: "Opslaan",
+  scheduleNone: "Geen gids",
   playlistErrNetwork: "Laden mislukt: controleer de link en het netwerk",
   playlistErrHttp: "De server gaf de afspeellijst niet",
   playlistErrInvalid: "Deze link is geen M3U-afspeellijst",

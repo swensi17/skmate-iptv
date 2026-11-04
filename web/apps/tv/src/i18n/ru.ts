@@ -83,6 +83,7 @@ export const ru = {
   playlistEdit: "Изменить",
   playlistName: "Название",
   playlistSave: "Сохранить",
+  scheduleNone: "Нет телегида",
   playlistErrNetwork: "Не удалось загрузить: проверьте ссылку и сеть",
   playlistErrHttp: "Сервер не отдал плейлист",
   playlistErrInvalid: "По ссылке не M3U-плейлист",

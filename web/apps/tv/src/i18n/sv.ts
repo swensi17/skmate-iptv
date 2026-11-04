@@ -85,6 +85,7 @@ export const sv: Record<keyof typeof en, string> = {
   playlistEdit: "Redigera",
   playlistName: "Namn",
   playlistSave: "Spara",
+  scheduleNone: "Ingen tablå",
   playlistErrNetwork: "Kunde inte läsa in: kontrollera länken och nätverket",
   playlistErrHttp: "Servern lämnade inte ut spellistan",
   playlistErrInvalid: "Länken är ingen M3U-spellista",
