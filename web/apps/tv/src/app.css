@@ -612,12 +612,3 @@ nav.rail .rail-item:focus { background: var(--focus-fill); color: var(--focus-te
 nav.rail .rail-item:focus::after { display: none; }
 nav.rail .rail-label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 :root[data-motion-pref="auto"] nav.rail { transition-duration: 240ms !important; }
-
-/* The categories slide in over the list from the left instead of pushing it aside: the list stays where it is. */
-.live-main { position: relative; }
-.live .groups { position: absolute; left: -28px; top: 0; bottom: 0; z-index: 4; width: 440px; margin-right: 0; padding: 0 20px 0 28px; background: #181a1d; box-shadow: 0 0 40px rgba(0,0,0,.45); border-right: 0; animation: cats-slide-in 260ms cubic-bezier(.2, 0, 0, 1) both; will-change: transform; }
-.live .groups.out { animation: cats-slide-out 220ms cubic-bezier(.4, 0, 1, 1) both; }
-@keyframes cats-slide-in { from { transform: translateX(-100%); } to { transform: none; } }
-@keyframes cats-slide-out { to { transform: translateX(-100%); } }
-:root[data-motion-pref="auto"] .live .groups { animation-duration: 260ms !important; }
-:root[data-motion-pref="auto"] .live .groups.out { animation-duration: 220ms !important; }
