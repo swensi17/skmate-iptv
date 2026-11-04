@@ -618,3 +618,14 @@ nav.rail .rail-label { white-space: nowrap; overflow: hidden; text-overflow: ell
 .content { transition: transform 260ms cubic-bezier(.2, 0, 0, 1); will-change: transform; }
 nav.rail.open ~ .content { transform: translateX(400px); }
 :root[data-motion-pref="auto"] .content { transition-duration: 260ms !important; }
+
+/* The categories no longer grow in width (that laid the whole list out again on every frame, and it lagged): the column
+   takes its place at once and only its content slides and fades in, which the compositor does without the main thread. */
+.live .groups { animation: cats-appear 220ms cubic-bezier(.2, 0, 0, 1) both; will-change: transform, opacity; }
+.live .groups.out { animation: cats-vanish 160ms linear both; }
+@keyframes cats-appear { from { transform: translateX(-48px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes cats-vanish { to { opacity: 0; } }
+:root[data-motion-pref="auto"] .live .groups { animation-duration: 220ms !important; }
+:root[data-motion-pref="auto"] .live .groups.out { animation-duration: 160ms !important; }
+/* The main menu is grey, not near black: the page's own panel grey, a little lighter than the page. */
+nav.rail { background: #2b2f33; }
