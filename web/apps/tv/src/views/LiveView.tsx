@@ -152,7 +152,7 @@ export function LiveView(p: Props) {
         </div>
       </div>
       <div class="live-main">
-        <Presence show={catsOpen} ms={240}>
+        <Presence show={catsOpen} ms={170}>
           {(out) => (
             <aside class={`groups${out ? " out" : ""}`} onKeyDown={(e) => {
               if (e.key === "ArrowRight" || e.keyCode === 39) { e.stopPropagation(); e.preventDefault(); closeCats(); }
