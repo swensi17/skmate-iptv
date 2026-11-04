@@ -9,7 +9,6 @@ import { capitalize } from "../text";
 import { ChannelSearch } from "../state/channelSearch";
 import { interestRank } from "../state/interests";
 import { GuideContext } from "../state/GuideContext";
-import { GroupIcon } from "./GroupIcon";
 import { ChannelRow } from "./ChannelRow";
 import { UiContext } from "../state/UiContext";
 import { PreviewPane } from "./PreviewPane";
@@ -20,6 +19,8 @@ const ALL = "~all";
 const RECENT = "~recent";
 const ARCHIVE = "~archive";
 const LIST_HEIGHT = 840;
+/** A category is a plain line of text, closer together than a channel. */
+const GROUP_ROW = 64;
 const DWELL_MS = 600;
 const TYPING_PAUSE_MS = 180;
 
@@ -155,12 +156,12 @@ export function LiveView(p: Props) {
             <aside class={`groups${out ? " out" : ""}`} onKeyDown={(e) => {
               if (e.key === "ArrowRight" || e.keyCode === 39) { e.stopPropagation(); e.preventDefault(); closeCats(); }
             }}>
+              <div class="gr-head"><span class="grow">{p.playlistName ?? t("noPlaylist")}</span><Icon name="chevron" size={28} /></div>
               <VirtualList
-                items={groupItems} rowHeight={ROW} height={LIST_HEIGHT}
+                items={groupItems} rowHeight={GROUP_ROW} height={LIST_HEIGHT - 72}
                 idOf={(g) => `g:${g.key}`}
                 renderRow={(g) => (
-                  <button class="row" data-focus={`g:${g.key}`} onClick={() => { setGroup(g.key); setCatsOpen(false); }} aria-pressed={group === g.key}>
-                    <GroupIcon id={g.key} />
+                  <button class="row gr" data-focus={`g:${g.key}`} onClick={() => { setGroup(g.key); setCatsOpen(false); }} aria-pressed={group === g.key}>
                     <span class="grow">{g.label}</span>
                     <span class="sub">{g.count}</span>
                   </button>
