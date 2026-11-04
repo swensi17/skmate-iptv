@@ -598,3 +598,17 @@ button.sc-now:not(:focus) { color: var(--accent); }
 .gnum { width: 40px; flex: none; text-align: right; font-size: 22px; color: var(--muted); font-variant-numeric: tabular-nums; }
 .guide .gname:focus .gnum { color: var(--focus-text); }
 .guide-empty { height: 560px; }
+
+/* The main menu as on a box: it slides in from the left with the names beside the icons and the whole mark on top.
+   It keeps one width and only slides (a transform), so nothing is laid out again while it moves. */
+nav.rail { width: 400px; align-items: stretch; padding: 0 28px; background: #181a1d; will-change: transform; }
+nav.rail .rail-brand { position: absolute; top: 40px; left: 56px; display: flex; align-items: center; gap: 4px; pointer-events: none; }
+nav.rail .rail-logo { position: static; transform: none; width: 64px; }
+nav.rail .rail-word { font: 800 52px var(--font); letter-spacing: -1px; color: var(--muted); line-height: 1; margin-top: 6px; }
+nav.rail .rail-mid { gap: 8px; }
+nav.rail .rail-item { width: 100%; height: 80px; justify-content: flex-start; gap: 28px; padding: 0 28px; font: 600 28px var(--font); }
+nav.rail .rail-item[aria-current="true"] { background: rgba(255,255,255,.12); box-shadow: none; }
+nav.rail .rail-item:focus { background: var(--focus-fill); color: var(--focus-text); }
+nav.rail .rail-item:focus::after { display: none; }
+nav.rail .rail-label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+:root[data-motion-pref="auto"] nav.rail { transition-duration: 240ms !important; }

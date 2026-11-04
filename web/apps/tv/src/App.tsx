@@ -381,19 +381,19 @@ export function App() {
         onFocusIn={() => setRailOpen(true)}
         onFocusOut={(e) => { if (!(e.currentTarget as HTMLElement).contains(e.relatedTarget as Node | null)) setRailOpen(false); }}
       >
-        <img class="rail-logo" src={skLogo} alt="SkMate" />
+        <div class="rail-brand"><img class="rail-logo" src={skLogo} alt="" /><span class="rail-word">mate</span></div>
         <div class="rail-mid">
           {NAV.map(([id, icon, label]) => (
             <button class="rail-item" key={id} data-focus={`nav-${id}`} data-label={t(label)} aria-label={t(label)} aria-current={section === id && !sheet} onClick={() => goTo(id)}>
-              <Icon name={icon} />
+              <Icon name={icon} /><span class="rail-label">{t(label)}</span>
             </button>
           ))}
           <button class="rail-item" data-focus="nav-settings" data-label={t("navSettings")} aria-label={t("navSettings")} aria-current={sheet} onClick={() => { setSheetPage(null); setSheet(true); }}>
-            <Icon name="settings" />
+            <Icon name="settings" /><span class="rail-label">{t("navSettings")}</span>
           </button>
           {full ? (
             <button class="rail-item" data-focus="nav-full" data-label={t(full.on ? "fullScreenExit" : "fullScreen")} aria-label={t(full.on ? "fullScreenExit" : "fullScreen")} onClick={full.toggle}>
-              <Icon name={full.on ? "fullscreen_exit" : "fullscreen"} />
+              <Icon name={full.on ? "fullscreen_exit" : "fullscreen"} /><span class="rail-label">{t(full.on ? "fullScreenExit" : "fullScreen")}</span>
             </button>
           ) : null}
         </div>
