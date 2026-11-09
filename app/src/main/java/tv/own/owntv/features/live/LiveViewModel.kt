@@ -393,7 +393,7 @@ class LiveViewModel(
     val categoryMoveState: StateFlow<CategoryMove?> = _categoryMoveState.asStateFlow()
 
     val livePreviewEnabled: StateFlow<Boolean> = settings.livePreviewEnabled
-        .stateIn(viewModelScope, SharingStarted.Eagerly, true)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, settings.livePreviewDefault)
 
     /** List ordering for this section (Playlist order vs A–Z), persisted in DataStore. */
     val sortMode: StateFlow<SettingsRepository.SortMode> = settings.sortLive

@@ -253,7 +253,7 @@ class SettingsViewModel(
     }
 
     val livePreviewEnabled: StateFlow<Boolean> = settings.livePreviewEnabled
-        .stateIn(viewModelScope, SharingStarted.Eagerly, true)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, settings.livePreviewDefault)
 
     val livePreviewPanelActive: StateFlow<Boolean> = settings.livePreviewPanelActive
         .stateIn(viewModelScope, SharingStarted.Eagerly, true)
