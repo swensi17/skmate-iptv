@@ -2390,8 +2390,16 @@ class SettingsRepository(private val context: Context, private val localeStore: 
         return org.json.JSONObject(map.toMap()).toString()
     }
 
-    /** Whether focusing a channel auto-plays it in the Live preview pane. */
-    val livePreviewEnabled: Flow<Boolean> = prefsFlow { it[Keys.LIVE_PREVIEW] ?: true }
+    /**
+     * Whether focusing a channel auto-plays it in the Live preview pane. Defaults on, but off on a
+     * low-RAM device, like [heroPreviewDefault]: the preview is a second live decoder running while the
+     * user scrolls the list, which is where a weak box has the least to spare.
+     */
+    val livePreviewEnabled: Flow<Boolean> = prefsFlow { it[Keys.LIVE_PREVIEW] ?: livePreviewDefault }
+
+    /** The value [livePreviewEnabled] reports until the user picks one; also the initial value of the
+     *  state holders, so a weak box never starts a preview for the frame before the setting loads. */
+    val livePreviewDefault: Boolean get() = !lowSpecDevice
 
     /** False only while a saved, enabled Live layout has intentionally hidden its preview panel. */
     val livePreviewPanelActive: Flow<Boolean> = prefsFlow { !livePreviewPanelHidden(it) }
