@@ -85,9 +85,11 @@ fun UpdateStatusToast(onDone: () -> Unit, onViewChangelog: () -> Unit, modifier:
             body = stringResource(R.string.update_background),
             progress = s.percent,
             onDismiss = onDone,
-            buttons = if (auto) null else ({
+            buttons = if (auto) null else (
+                {
                 StageButton(stringResource(R.string.update_later), onClick = onDone, height = 52.mpx, textSize = 18, tinted = true)
-            }),
+            }
+            ),
         )
         is UpdateManager.State.Ready -> UpdateWindow(
             title = stringResource(R.string.update_downloaded),

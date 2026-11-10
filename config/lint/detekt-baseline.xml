@@ -768,6 +768,8 @@
     <ID>FunctionNaming:TvNotices.kt$@Composable fun TvNoticeStack()</ID>
     <ID>FunctionNaming:UpdateDialog.kt$@Composable fun UpdateDialog(onDismiss: () -&gt; Unit, checkOnOpen: Boolean = false)</ID>
     <ID>FunctionNaming:UpdateStatusToast.kt$@Composable fun UpdateStatusToast(onDone: () -&gt; Unit, onViewChangelog: () -&gt; Unit, modifier: Modifier = Modifier)</ID>
+    <ID>FunctionNaming:UpdateStatusToast.kt$@Composable private fun UpdateProgressBar(percent: Int)</ID>
+    <ID>FunctionNaming:UpdateStatusToast.kt$@Composable private fun UpdateWindow( title: String, body: String, onDismiss: () -&gt; Unit, progress: Int? = null, buttons: (@Composable RowScope.() -&gt; Unit)? = null, )</ID>
     <ID>FunctionNaming:VideoPlayerSettingsScreen.kt$@Composable fun SubtitleStylePage(onBack: () -&gt; Unit, modifier: Modifier = Modifier)</ID>
     <ID>FunctionNaming:VideoPlayerSettingsScreen.kt$@Composable internal fun KeyedSettingRow( icon: OwnTVIcon, title: String, value: SettingValue?, onClick: () -&gt; Unit, modifier: Modifier = Modifier, desc: String? = null, /** Its key in [VIDEO_QUICK_ROWS]. Present = a held OK offers to pin this row to Quick. */ quickKey: String? = null, /** Help-text key when it is not [quickKey] (rows that cannot be pinned). */ helpKey: String? = null, /** The panel's choices for a row picked from a list, and the current / recommended one. */ choices: List&lt;String&gt; = emptyList(), chosen: Int = -1, recommended: Int = -1, onStep: ((Int) -&gt; Unit)? = null, )</ID>
     <ID>FunctionNaming:VideoPlayerSettingsScreen.kt$@Composable internal fun PickerDialog( title: String, options: List&lt;Pair&lt;String, String&gt;&gt;, selected: String, onSelect: (String) -&gt; Unit, onDismiss: () -&gt; Unit, searchable: Boolean = false, trailingLabels: Map&lt;String, String&gt; = emptyMap(), leadingIcons: Map&lt;String, OwnTVIcon&gt; = emptyMap(), subtitle: String? = null, descriptions: Map&lt;String, String&gt; = emptyMap(), /** Drawn under an option — the layout chooser's little bar preview. */ optionPreview: (@Composable (String) -&gt; Unit)? = null, )</ID>
@@ -1709,6 +1711,8 @@
     <ID>MagicNumber:LiveScreen.kt$912</ID>
     <ID>MagicNumber:LiveSportsRow.kt$26</ID>
     <ID>MagicNumber:LiveSportsRow.kt$800</ID>
+    <ID>MagicNumber:LiveStage.kt$0.075f</ID>
+    <ID>MagicNumber:LiveStage.kt$0.08f</ID>
     <ID>MagicNumber:LiveStage.kt$0.25f</ID>
     <ID>MagicNumber:LiveStage.kt$0.45f</ID>
     <ID>MagicNumber:LiveStage.kt$0.4f</ID>
@@ -2560,6 +2564,7 @@
     <ID>MagicNumber:SportsFilterPanel.kt$600</ID>
     <ID>MagicNumber:SportsFilterPanel.kt$700</ID>
     <ID>MagicNumber:SportsFilterPanel.kt$800</ID>
+    <ID>MagicNumber:SportsHubScreen.kt$0.075f</ID>
     <ID>MagicNumber:SportsHubScreen.kt$0.30f</ID>
     <ID>MagicNumber:SportsHubScreen.kt$0.42f</ID>
     <ID>MagicNumber:SportsHubScreen.kt$0.7f</ID>
@@ -2993,15 +2998,9 @@
     <ID>MagicNumber:UpdateDialog.kt$800</ID>
     <ID>MagicNumber:UpdatePrefs.kt$UpdatePrefs.Every.DAY$24</ID>
     <ID>MagicNumber:UpdatePrefs.kt$UpdatePrefs.Every.HOURS_6$6</ID>
+    <ID>MagicNumber:UpdateStatusToast.kt$0.02f</ID>
+    <ID>MagicNumber:UpdateStatusToast.kt$100f</ID>
     <ID>MagicNumber:UpdateStatusToast.kt$120</ID>
-    <ID>MagicNumber:UpdateStatusToast.kt$16</ID>
-    <ID>MagicNumber:UpdateStatusToast.kt$17</ID>
-    <ID>MagicNumber:UpdateStatusToast.kt$21</ID>
-    <ID>MagicNumber:UpdateStatusToast.kt$2_000</ID>
-    <ID>MagicNumber:UpdateStatusToast.kt$500</ID>
-    <ID>MagicNumber:UpdateStatusToast.kt$600</ID>
-    <ID>MagicNumber:UpdateStatusToast.kt$6_000</ID>
-    <ID>MagicNumber:UpdateStatusToast.kt$800</ID>
     <ID>MagicNumber:VideoPlayerSettingsScreen.kt$0.8f</ID>
     <ID>MagicNumber:VideoPlayerSettingsScreen.kt$0xFF2E4A6B</ID>
     <ID>MagicNumber:VideoPlayerSettingsScreen.kt$0xFF3B6B4A</ID>
@@ -4448,8 +4447,8 @@
     <ID>MaxLineLength:PanelWidthSettingsScreen.kt$Box(Modifier.weight(detailsWeight.coerceAtLeast(0.01f)).fillMaxWidth().background(tv.own.owntv.ui.theme.stageAccent.accent.copy(alpha = 0.32f)))</ID>
     <ID>MaxLineLength:PanelWidthSettingsScreen.kt$Box(Modifier.weight(w.list.toFloat()).fillMaxHeight().clip(RoundedCornerShape(6.dp)).background(tv.own.owntv.ui.theme.StageColors.Ink.copy(alpha = 0.08f)))</ID>
     <ID>MaxLineLength:PanelWidthSettingsScreen.kt$Box(Modifier.weight(w.preview.toFloat()).fillMaxHeight().clip(RoundedCornerShape(6.dp)).background(tv.own.owntv.ui.theme.StageColors.Ink.copy(alpha = 0.12f)))</ID>
-    <ID>MaxLineLength:PanelWidthSettingsScreen.kt$OwnTVIcon(OwnTVIcon.CHEVRON, if (value &gt; minimum) tv.own.owntv.ui.theme.StageColors.Muted else tv.own.owntv.ui.theme.StageColors.Dim, Modifier.size(20.mpx).graphicsLayer { rotationZ = 180f })</ID>
     <ID>MaxLineLength:PanelWidthSettingsScreen.kt$OwnTVIcon(OwnTVIcon.CHEVRON, if (value &lt; maximum) tv.own.owntv.ui.theme.StageColors.Muted else tv.own.owntv.ui.theme.StageColors.Dim, Modifier.size(20.mpx))</ID>
+    <ID>MaxLineLength:PanelWidthSettingsScreen.kt$OwnTVIcon(OwnTVIcon.CHEVRON, if (value &gt; minimum) tv.own.owntv.ui.theme.StageColors.Muted else tv.own.owntv.ui.theme.StageColors.Dim, Modifier.size(20.mpx).graphicsLayer { rotationZ = 180f })</ID>
     <ID>MaxLineLength:PanelWidthSettingsScreen.kt$StepRow</ID>
     <ID>MaxLineLength:PanelWidthSettingsScreen.kt$StepRow(listLabel(section, cinematic), draft.list, maximum = PanelWidthLimits.listMax(draft.preview)) { draft = draft.copy(list = it) }</ID>
     <ID>MaxLineLength:PanelWidthSettingsScreen.kt$StepRow(stringResource(R.string.settings_panel_width_category), draft.category) { draft = draft.copy(category = it) }</ID>
@@ -5775,14 +5774,14 @@
     <ID>MaxLineLength:SportsViewModel.kt$SportsViewModel$return config.orderSports(SportsCatalog.sports.filter { s -&gt; keys.any { SportsCatalog.league(it)?.sport == s } })</ID>
     <ID>MaxLineLength:SportsViewModel.kt$SportsViewModel$val</ID>
     <ID>MaxLineLength:SportsViewModel.kt$SportsViewModel$val matches = (b.today[key].orEmpty() + b.tomorrow[key].orEmpty()).distinctBy { it.key }.sortedBy { it.startMs }</ID>
-    <ID>MaxLineLength:StageComponents.kt$&lt;no name provided&gt;$override</ID>
-    <ID>MaxLineLength:StageComponents.kt$&lt;no name provided&gt;$return androidx.compose.ui.graphics.Outline.Rounded(androidx.compose.ui.geometry.RoundRect(0f, 0f, size.width, size.height, CornerRadius(r)))</ID>
     <ID>MaxLineLength:StageComponents.kt$(focusStyle == StageFocus.FX &amp;&amp; (tv.own.owntv.ui.theme.LocalInSettingsSheet.current || (tvBox &amp;&amp; (!palette.isLight || !pill))))</ID>
     <ID>MaxLineLength:StageComponents.kt$.</ID>
     <ID>MaxLineLength:StageComponents.kt$/** The PRIMARY (1.04) and POSTER (1.08, from 50% 40%) lift; FX and FILLED stay put. An episode lifts 1.06 from 50% 30%. */</ID>
     <ID>MaxLineLength:StageComponents.kt$/** The mark's colour as shown: the pastel marks are darkened in light (`.mine.light .pm`, brightness .72) to read on white. */</ID>
     <ID>MaxLineLength:StageComponents.kt$/** `.tag`: a provider or quality badge, 13/800 caps-spaced on white 8%. [onAccent] inside a focused item; [tint] for a coloured tag. */</ID>
     <ID>MaxLineLength:StageComponents.kt$// One focus everywhere: a plain grey bar, square, across the whole line. No card, no outline, no shadow.</ID>
+    <ID>MaxLineLength:StageComponents.kt$&lt;no name provided&gt;$override</ID>
+    <ID>MaxLineLength:StageComponents.kt$&lt;no name provided&gt;$return androidx.compose.ui.graphics.Outline.Rounded(androidx.compose.ui.geometry.RoundRect(0f, 0f, size.width, size.height, CornerRadius(r)))</ID>
     <ID>MaxLineLength:StageComponents.kt$Modifier.align(Alignment.TopEnd).padding(10.mpx).size(30.mpx).background(badge.copy(alpha = 0.9f), RoundedCornerShape(8.mpx))</ID>
     <ID>MaxLineLength:StageComponents.kt$Row</ID>
     <ID>MaxLineLength:StageComponents.kt$StageSurface</ID>
@@ -6055,15 +6054,14 @@
     <ID>MaxLineLength:UpdateFailureText.kt$is UpdateManager.Failure.DownloadHttp -&gt; stringResource(R.string.update_failed_download_http, failure.code.toString())</ID>
     <ID>MaxLineLength:UpdatePrefs.kt$UpdatePrefs$fun nextEvery()</ID>
     <ID>MaxLineLength:UpdatePrefs.kt$UpdatePrefs$fun nextWindow()</ID>
-    <ID>MaxLineLength:UpdateStatusToast.kt$Text(stringResource(R.string.update_downloading, s.percent), style = stageText(17, 600), color = StageColors.Text)</ID>
-    <ID>MaxLineLength:UpdateStatusToast.kt$Text(stringResource(R.string.update_ready, s.info.version, manager.currentVersion), style = stageText(17, 500), color = StageColors.Muted)</ID>
-    <ID>MaxLineLength:UpdateStatusToast.kt$UpdateManager.State.Idle</ID>
-    <ID>MaxLineLength:UpdateStatusToast.kt$if (!auto) buttons { tv.own.owntv.ui.stage.StageButton(stringResource(R.string.update_later), onClick = onDone, height = 52.mpx, textSize = 18) }</ID>
+    <ID>MaxLineLength:UpdateStatusToast.kt$StageButton(stringResource(R.string.settings_close), onClick = { manager.reset(); onDone() }, height = 52.mpx, textSize = 18)</ID>
+    <ID>MaxLineLength:UpdateStatusToast.kt$StageButton(stringResource(R.string.update_install), onClick = { manager.installReady() }, height = 52.mpx, textSize = 18, tinted = true, modifier = primary)</ID>
+    <ID>MaxLineLength:UpdateStatusToast.kt$StageButton(stringResource(R.string.update_later), onClick = onDone, height = 52.mpx, textSize = 18, tinted = true)</ID>
+    <ID>MaxLineLength:UpdateStatusToast.kt$StageButton(stringResource(R.string.update_now), onClick = { manager.download() }, height = 52.mpx, textSize = 18, tinted = true, modifier = primary)</ID>
+    <ID>MaxLineLength:UpdateStatusToast.kt$StageButton(stringResource(R.string.update_try_again), onClick = { manager.retry() }, height = 52.mpx, textSize = 18, tinted = true, modifier = primary)</ID>
+    <ID>MaxLineLength:UpdateStatusToast.kt$StageButton(stringResource(R.string.update_whats_new), onClick = onViewChangelog, height = 52.mpx, textSize = 18)</ID>
+    <ID>MaxLineLength:UpdateStatusToast.kt$if (s.retryInfo == null) { manager.reset(); onDone() } else { delay(120); runCatching { focus.requestFocus() } }</ID>
     <ID>MaxLineLength:UpdateStatusToast.kt$is UpdateManager.State.Available -&gt; if (auto) manager.download() else { delay(120); runCatching { focus.requestFocus() } }</ID>
-    <ID>MaxLineLength:UpdateStatusToast.kt$tv.own.owntv.ui.stage.StageButton(stringResource(R.string.update_install), onClick = { manager.installReady() }, height = 52.mpx, textSize = 18, tinted = true, modifier = Modifier.focusRequester(focus))</ID>
-    <ID>MaxLineLength:UpdateStatusToast.kt$tv.own.owntv.ui.stage.StageButton(stringResource(R.string.update_later), onClick = onDone, height = 52.mpx, textSize = 18)</ID>
-    <ID>MaxLineLength:UpdateStatusToast.kt$tv.own.owntv.ui.stage.StageButton(stringResource(R.string.update_now), onClick = { manager.download() }, height = 52.mpx, textSize = 18, tinted = true, modifier = Modifier.focusRequester(focus))</ID>
-    <ID>MaxLineLength:UpdateStatusToast.kt$tv.own.owntv.ui.stage.StageButton(stringResource(R.string.update_whats_new), onClick = onViewChangelog, height = 52.mpx, textSize = 18)</ID>
     <ID>MaxLineLength:VideoPlayerSettingsScreen.kt$"vp_timeshift"</ID>
     <ID>MaxLineLength:VideoPlayerSettingsScreen.kt$"vp_vod_engine"</ID>
     <ID>MaxLineLength:VideoPlayerSettingsScreen.kt$"vp_volume"</ID>
@@ -6382,7 +6380,6 @@
     <ID>TopLevelPropertyNaming:MpvVideoSurface.kt$/** How long after a channel's first frame its picture is shown: enough for it to be drawn at the window's size. */ private const val RevealAfterMs = 250L</ID>
     <ID>TopLevelPropertyNaming:MultiviewScreen.kt$/** * How long a tile may be stopped before the grid calls it lost. * * Comfortably longer than the slowest tile open measured on a real television (2.9 s), so a * channel that is merely slow to start is never mistaken for one the provider refused — and far * shorter than the engine's own eight-attempt ladder, which takes over eighty seconds to conclude * anything and would leave a black tile and no explanation for all of it. */ private const val StreamLostGraceMs = 12_000L</ID>
     <ID>TopLevelPropertyNaming:MultiviewScreen.kt$/** How long OK must be held for "open the tile menu" rather than "give it the sound". */ private const val LongPressMs = 500L</ID>
-    <ID>TopLevelPropertyNaming:OwnTVAvatar.kt$/** How much the person is enlarged so their own circle reaches past the avatar's edge. */ private const val PersonScale = 1.85f</ID>
     <ID>TopLevelPropertyNaming:OwnTVShell.kt$/** * The side menu as TV boxes show it: hidden, nothing at the screen edge, until ◀ from the content's * left edge focuses it; it opens over the content and goes again when focus leaves it. Overrides the * Navigation style setting (Docked / Floating) while on. */ @Suppress("ktlint:standard:property-naming") internal const val TvBoxNav = true</ID>
     <ID>TopLevelPropertyNaming:OwnTVShell.kt$/** How long the Settings sheet takes to slide in and out. */ private const val SheetSlideMs = 300</ID>
     <ID>TopLevelPropertyNaming:OwnTVShell.kt$/** How often, and how far apart, the shell tries to put focus in a screen that is still composing. */ private const val ContentFocusTries = 60</ID>
@@ -6423,6 +6420,7 @@
     <ID>UnusedParameter:SportsHubScreen.kt$now: Long</ID>
     <ID>UnusedParameter:SubtitleSearchScreen.kt$modifier: Modifier = Modifier</ID>
     <ID>UnusedParameter:TvBoxChannelPanel.kt$playingGuide: EpgNowNext?</ID>
+    <ID>UnusedParameter:UpdateStatusToast.kt$modifier: Modifier = Modifier</ID>
     <ID>UnusedPrivateMember:BackupScreen.kt$@Composable private fun BackupTool(text: String, icon: OwnTVIcon, modifier: Modifier = Modifier, onClick: () -&gt; Unit)</ID>
     <ID>UnusedPrivateMember:LocalSyncScreen.kt$@Composable private fun SyncTile( icon: OwnTVIcon, title: String, body: String, onClick: () -&gt; Unit, modifier: Modifier = Modifier, trailing: @Composable () -&gt; Unit, )</ID>
     <ID>UnusedPrivateMember:SettingsStage.kt$@Composable private fun sheetHeaderFill(): Color</ID>
