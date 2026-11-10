@@ -71,6 +71,7 @@ open class MainActivity : ComponentActivity() {
             finish()
             return true
         }
+        if (dropRepeatThatOutrunsScreen(event)) return true
         if (event.keyCode == android.view.KeyEvent.KEYCODE_ESCAPE) {
             return super.dispatchKeyEvent(
                 android.view.KeyEvent(event.downTime, event.eventTime, event.action, android.view.KeyEvent.KEYCODE_BACK, event.repeatCount),
@@ -78,7 +79,45 @@ open class MainActivity : ComponentActivity() {
         }
         return super.dispatchKeyEvent(event)
     }
+
+    /**
+     * A held ▲▼◀▶ (or CH±) sends a repeat every ~50 ms. A weak TV box (4 × Cortex-A55, 32-bit) can take
+     * longer than that to draw one step of a long list, so the repeats queued up: the list froze while the
+     * key was held, the next row was not laid out yet so focus stopped at the edge, and after release the
+     * queue drained and focus landed hundreds of rows on. A repeat is now let through only once the frame
+     * of the previous one has been drawn; the ones in between are dropped. The list then moves as fast as
+     * the screen can show it, and stops where the key was let go. Single presses are never dropped.
+     */
+    private var repeatGateOpen = true
+    private val reopenRepeatGate = android.view.Choreographer.FrameCallback {
+        // First callback: the frame that draws the step has started. The next one means it was drawn.
+        android.view.Choreographer.getInstance().postFrameCallback { repeatGateOpen = true }
+    }
+
+    private fun dropRepeatThatOutrunsScreen(event: android.view.KeyEvent): Boolean {
+        val heldRepeat = event.action == android.view.KeyEvent.ACTION_DOWN &&
+            event.repeatCount > 0 && event.keyCode in PACED_KEYS
+        val drop = heldRepeat && !repeatGateOpen
+        if (heldRepeat && !drop) {
+            repeatGateOpen = false
+            android.view.Choreographer.getInstance().postFrameCallback(reopenRepeatGate)
+        }
+        return drop
+    }
+
     companion object {
+        /** Keys whose held repeats are paced to the screen (see [dropRepeatThatOutrunsScreen]). */
+        private val PACED_KEYS = setOf(
+            android.view.KeyEvent.KEYCODE_DPAD_UP,
+            android.view.KeyEvent.KEYCODE_DPAD_DOWN,
+            android.view.KeyEvent.KEYCODE_DPAD_LEFT,
+            android.view.KeyEvent.KEYCODE_DPAD_RIGHT,
+            android.view.KeyEvent.KEYCODE_CHANNEL_UP,
+            android.view.KeyEvent.KEYCODE_CHANNEL_DOWN,
+            android.view.KeyEvent.KEYCODE_PAGE_UP,
+            android.view.KeyEvent.KEYCODE_PAGE_DOWN,
+        )
+
         /** The activity behind [context], through any wrappers (the localized and themed ones the app puts around it). */
         fun from(context: android.content.Context): MainActivity? {
             var c: android.content.Context? = context

@@ -149,7 +149,22 @@ fun TvBoxChannelPanel(
         stepMs = tv.own.owntv.ui.components.DwellTiming.StepMs,
         onFire = { focused?.let { onPreview?.invoke(it) } },
     )
-    val now = System.currentTimeMillis()
+    // The clock the rows' progress bars read. A minute is the finest step they show; reading the time on
+    // every recomposition instead handed each visible row a new value on every ▲/▼, and all of them
+    // recomposed for a highlight that moved one row (a held key on a slow box stuttered on that).
+    val now by produceState(System.currentTimeMillis()) {
+        while (true) {
+            delay(NOW_TICK_MS - System.currentTimeMillis() % NOW_TICK_MS)
+            value = System.currentTimeMillis()
+        }
+    }
+    // The block under the picture follows focus once it rests, like the guide: a held ▼ would otherwise
+    // load a logo and lay out a name for every row it passes.
+    var shown by remember { mutableStateOf(focused) }
+    LaunchedEffect(focused?.id) {
+        if (shown != null) delay(HEADER_SETTLE_MS)
+        shown = focused
+    }
     androidx.compose.foundation.layout.BoxWithConstraints(modifier.fillMaxSize()) {
         val screenW = maxWidth
         // Dark over everything but the picture's corner, which stays a clear window onto the video.
@@ -225,11 +240,20 @@ fun TvBoxChannelPanel(
             Modifier.padding(start = TvBoxDock.Left + inset, top = TvBoxDock.Top + TvBoxDock.height(screenW, inset) + 24.mpx)
                 .width(dockW).fillMaxHeight(),
         ) {
-            if (focused != null) {
+            val head = shown
+            if (head != null) {
                 Row(horizontalArrangement = Arrangement.spacedBy(16.mpx), verticalAlignment = Alignment.CenterVertically) {
-                    Logo(focused, 68.mpx, 48.mpx)
-                    focused.number?.let { Text(it.toString(), style = stageText(24, 700), color = Soft, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) }
-                    Text(focused.name, style = stageText(24, 700), color = c.text, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Logo(head, 68.mpx, 48.mpx)
+                    head.number?.let {
+                        Text(
+                            it.toString(), style = stageText(24, 700), color = Soft,
+                            maxLines = 1, overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                    Text(
+                        head.name, style = stageText(24, 700), color = c.text,
+                        maxLines = 1, overflow = TextOverflow.Ellipsis,
+                    )
                 }
                 val entries = schedule?.let { g -> listOfNotNull(g.previous, g.now) + listOfNotNull(g.next) + g.upcoming }
                     ?.distinctBy { it.startMs }?.sortedBy { it.startMs }.orEmpty()
@@ -352,4 +376,6 @@ internal fun tvBoxPanelColors(): TvBoxPanelColors =
         TvBoxPanelColors(Color(0xF2232629), Color.White, Color.White.copy(alpha = 0.8f), Color.White.copy(alpha = 0.55f), Color(0xFF3A3F45), Color.White, Color(0x1FFFFFFF))
     }
 private const val ScheduleSettleMs = 250L
+private const val HEADER_SETTLE_MS = 120L
+private const val NOW_TICK_MS = 30_000L
 private const val MaxScheduleRows = 14
