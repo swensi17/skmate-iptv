@@ -605,11 +605,11 @@ private const val SKELETON_MS = 3_000L
 /** Rows the shape of [OnChannelsRow] — logo, two lines, progress — while the hub looks for what is on. */
 @Composable
 private fun OnChannelsSkeleton(modifier: Modifier = Modifier) {
-    val pulse by androidx.compose.animation.core.rememberInfiniteTransition(label = "sportsSkeleton").animateFloat(
+    val pulse = if (tv.own.owntv.ui.theme.DevicePerf.lite) 0.075f else androidx.compose.animation.core.rememberInfiniteTransition(label = "sportsSkeleton").animateFloat(
         initialValue = 0.05f, targetValue = 0.10f,
         animationSpec = androidx.compose.animation.core.infiniteRepeatable(androidx.compose.animation.core.tween<Float>(900), androidx.compose.animation.core.RepeatMode.Reverse),
         label = "sportsSkeletonPulse",
-    )
+    ).value
     val bar = StageColors.Text.copy(alpha = pulse)
     Column(modifier) {
         repeat(5) {
