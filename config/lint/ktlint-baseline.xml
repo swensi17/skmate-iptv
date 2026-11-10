@@ -39,10 +39,10 @@
     </file>
     <file name="app/src/main/java/tv/own/owntv/MainActivity.kt">
         <error line="3" column="1" source="standard:import-ordering" />
-        <error line="93" column="27" source="standard:property-naming" />
-        <error line="94" column="9" source="standard:spacing-between-declarations-with-comments" />
-        <error line="127" column="5" source="standard:spacing-between-declarations-with-comments" />
-        <error line="129" column="5" source="standard:spacing-between-declarations-with-comments" />
+        <error line="132" column="27" source="standard:property-naming" />
+        <error line="133" column="9" source="standard:spacing-between-declarations-with-comments" />
+        <error line="166" column="5" source="standard:spacing-between-declarations-with-comments" />
+        <error line="168" column="5" source="standard:spacing-between-declarations-with-comments" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/OwnTVApp.kt">
         <error line="3" column="1" source="standard:import-ordering" />
@@ -668,9 +668,9 @@
     <file name="app/src/main/java/tv/own/owntv/features/shell/components/TvBoxChannelPanel.kt">
         <error line="115" column="9" source="standard:property-naming" />
         <error line="116" column="9" source="standard:property-naming" />
-        <error line="343" column="1" source="standard:spacing-between-declarations-with-comments" />
-        <error line="354" column="19" source="standard:property-naming" />
-        <error line="355" column="19" source="standard:property-naming" />
+        <error line="367" column="1" source="standard:spacing-between-declarations-with-comments" />
+        <error line="378" column="19" source="standard:property-naming" />
+        <error line="381" column="19" source="standard:property-naming" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/shell/components/TvBoxPlayerInfo.kt">
         <error line="136" column="19" source="standard:property-naming" />
@@ -752,9 +752,6 @@
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/update/UpdateFailureText.kt">
         <error line="27" column="47" source="standard:wrapping" />
-    </file>
-    <file name="app/src/main/java/tv/own/owntv/features/update/UpdateStatusToast.kt">
-        <error line="3" column="1" source="standard:import-ordering" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/player/AudioNowPlayingBar.kt">
         <error line="3" column="1" source="standard:import-ordering" />
@@ -864,7 +861,6 @@
     </file>
     <file name="app/src/main/java/tv/own/owntv/ui/components/OwnTVAvatar.kt">
         <error line="3" column="1" source="standard:import-ordering" />
-        <error line="72" column="19" source="standard:property-naming" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/ui/components/OwnTVIcon.kt">
         <error line="27" column="14" source="standard:enum-wrapping" />
