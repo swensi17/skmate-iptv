@@ -153,9 +153,12 @@ class UpdateManager(
                         // Already downloaded on an earlier run (the viewer pressed Later): no second download.
                         val kept = apkFor(version)
                         _state.value = if (kept.isFile && runCatching { verifyApk(kept) }.isSuccess) State.Ready(info) else State.Available(info)
-                        dropOtherDownloads(keep = kept)
+                        dropOtherDownloads(keepStem = stemFor(version))
+                        // The viewer pressed Update before the TV was switched off or the app was closed: carry on
+                        // from the bytes already on disk instead of asking again.
+                        if (_state.value is State.Available && acceptedFor(version).isFile && partFor(version).isFile) download()
                     } else {
-                        dropOtherDownloads(keep = null) // the update went in: its file is not needed any more
+                        dropOtherDownloads(keepStem = null) // the update went in: its file is not needed any more
                         _state.value = State.UpToDate
                     }
                 }
@@ -177,50 +180,80 @@ class UpdateManager(
      */
     fun download(installWhenDone: Boolean = false) {
         val info = (_state.value as? State.Available)?.info ?: return
-        _state.value = State.Downloading(0, info)
+        _state.value = State.Downloading(savedPercent(info.version), info)
         scope.launch {
             runCatching {
-                val dir = File(context.filesDir, "updates").apply { mkdirs() }
+                val dir = updatesDir()
                 val out = apkFor(info.version)
-                val part = File(dir, out.name + ".part")
-                part.delete() // never build on top of a previous half-download
-                val request = Request.Builder().url(info.apkUrl).header("User-Agent", tv.own.owntv.core.brand.BrandName.SHORT).build()
-                try {
-                    client.newCall(request).execute().use { resp ->
+                val part = partFor(info.version)
+                val meta = metaFor(info.version)
+                // The viewer asked for this update: if the TV is switched off or the app closed halfway, the next
+                // start picks it up again from the bytes already on disk.
+                acceptedFor(info.version).createNewFile()
+                var restarted = false
+                while (true) {
+                    val saved = readMeta(meta)
+                    val canResume = saved != null && saved.url == info.apkUrl && saved.validator.isNotEmpty() &&
+                        !saved.validator.startsWith("W/") && part.isFile && part.length() > 0
+                    val offset = if (canResume) part.length() else 0L
+                    if (!canResume) { part.delete(); meta.delete() }
+                    val request = Request.Builder().url(info.apkUrl)
+                        .header("User-Agent", tv.own.owntv.core.brand.BrandName.SHORT)
+                        .apply { if (canResume) { header("Range", "bytes=$offset-"); header("If-Range", saved!!.validator) } }
+                        .build()
+                    val finished = client.newCall(request).execute().use { resp ->
+                        // The file on the server changed, or the part already holds all of it: start from nothing.
+                        if (resp.code == 416 && canResume) { part.delete(); meta.delete(); return@use false }
                         if (!resp.isSuccessful) throw DownloadHttpException(resp.code)
                         val body = resp.body
-                        val total = body.contentLength()
+                        val resumed = canResume && resp.code == 206
+                        val total = if (resumed) {
+                            resp.header("Content-Range")?.substringAfterLast('/')?.toLongOrNull() ?: -1L
+                        } else {
+                            body.contentLength()
+                        }
+                        val have = if (resumed) offset else 0L
                         // The APK is written once here and copied again into the install session, so
-                        // the download needs room for two of it. Checking up front turns a silent short
-                        // write — which reaches the installer as "App not installed" — into a real message.
-                        if (total > 0 && dir.usableSpace < total * 2) throw NotEnoughSpaceException(total * 2)
-                        var copied = 0L
+                        // the download needs room for what is still to come plus a second whole copy. Checking
+                        // up front turns a silent short write — which reaches the installer as "App not
+                        // installed" — into a real message.
+                        if (total > 0 && dir.usableSpace < (total - have) + total) throw NotEnoughSpaceException(total * 2 - have)
+                        val validator = resp.header("ETag") ?: resp.header("Last-Modified").orEmpty()
+                        writeMeta(meta, DownloadMeta(info.apkUrl, validator, total))
+                        var written = have
                         var shown = -1
                         body.byteStream().use { input ->
-                            part.outputStream().use { output ->
+                            java.io.FileOutputStream(part, resumed).use { output ->
                                 val buf = ByteArray(64 * 1024)
                                 while (true) {
                                     val n = input.read(buf)
                                     if (n < 0) break
                                     output.write(buf, 0, n)
-                                    copied += n
-                                    val percent = if (total > 0) (copied * 100 / total).toInt() else 0
+                                    written += n
+                                    val percent = if (total > 0) (written * 100 / total).toInt() else 0
                                     if (percent != shown) { shown = percent; _state.value = State.Downloading(percent, info) }
                                 }
                             }
                         }
-                        if (copied == 0L) throw EmptyDownloadException()
-                        if (total > 0 && copied != total) {
-                            throw DamagedDownloadException("truncated: got $copied of $total bytes")
-                        }
+                        if (written == 0L) throw EmptyDownloadException()
+                        // A cut connection is not a damaged file: the part stays and the next try goes on from it.
+                        if (total > 0 && written != total) throw IOException("short read: $written of $total bytes")
+                        true
                     }
+                    if (finished) break
+                    if (restarted) throw DownloadHttpException(416)
+                    restarted = true
+                }
+                try {
                     verifyApk(part)
-                    out.delete()
-                    if (!part.renameTo(out)) throw DamagedDownloadException("could not keep the download")
                 } catch (e: Throwable) {
-                    part.delete() // a bad file must not linger and be retried as-is
+                    // Only a file that arrived whole and is wrong is thrown away.
+                    part.delete(); meta.delete(); acceptedFor(info.version).delete()
                     throw e
                 }
+                out.delete()
+                if (!part.renameTo(out)) throw DamagedDownloadException("could not keep the download")
+                meta.delete()
                 _state.value = State.Ready(info)
                 if (installWhenDone) installReady()
             }.onFailure { error ->
@@ -247,14 +280,53 @@ class UpdateManager(
         }
     }
 
-    private fun apkFor(version: String): File {
+    private fun updatesDir(): File = File(context.filesDir, "updates").apply { mkdirs() }
+
+    private fun stemFor(version: String): String {
         val safe = version.filter { it.isLetterOrDigit() || it == '.' || it == '-' }
-        return File(File(context.filesDir, "updates"), "update-$safe.apk")
+        return "update-$safe"
     }
 
-    /** Old downloads go: an update already installed, or one a newer release replaced. */
-    private fun dropOtherDownloads(keep: File?) {
-        File(context.filesDir, "updates").listFiles()?.forEach { if (it != keep) it.delete() }
+    private fun apkFor(version: String): File = File(updatesDir(), stemFor(version) + ".apk")
+
+    /** The half-downloaded file; it survives a lost connection, a restart of the app and a switched-off TV. */
+    private fun partFor(version: String): File = File(updatesDir(), stemFor(version) + ".apk.part")
+
+    /** What the part belongs to: the address, the server's validator for the file, its full size. */
+    private fun metaFor(version: String): File = File(updatesDir(), stemFor(version) + ".meta")
+
+    /** Present once the viewer pressed Update for this version: the next start carries on by itself. */
+    private fun acceptedFor(version: String): File = File(updatesDir(), stemFor(version) + ".accepted")
+
+    private class DownloadMeta(val url: String, val validator: String, val total: Long)
+
+    private fun readMeta(file: File): DownloadMeta? = runCatching {
+        val o = JSONObject(file.readText())
+        DownloadMeta(o.getString("url"), o.getString("validator"), o.getLong("total"))
+    }.getOrNull()
+
+    private fun writeMeta(file: File, meta: DownloadMeta) {
+        runCatching {
+            file.writeText(JSONObject().put("url", meta.url).put("validator", meta.validator).put("total", meta.total).toString())
+        }
+    }
+
+    /** How much of [version]'s file is already on disk, so a carried-on download does not start at 0 %. */
+    private fun savedPercent(version: String): Int {
+        val part = partFor(version)
+        val total = readMeta(metaFor(version))?.total ?: return 0
+        return if (part.isFile && total > 0) (part.length() * 100 / total).toInt().coerceIn(0, 99) else 0
+    }
+
+    /**
+     * Old downloads go: an update already installed, or one a newer release replaced. Everything that
+     * belongs to [keepStem] stays — the finished file, the half-done part and its notes — so a check at
+     * start never throws away a download that is still being carried on.
+     */
+    private fun dropOtherDownloads(keepStem: String?) {
+        updatesDir().listFiles()?.forEach { file ->
+            if (keepStem == null || !(file.name == "$keepStem.apk" || file.name.startsWith("$keepStem."))) file.delete()
+        }
     }
 
     /**
