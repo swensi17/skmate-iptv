@@ -827,13 +827,13 @@ private val SkeletonBase = Color(0xFF1A1C1F)
 /** Bars standing in for the programme's title, time and synopsis while they load. */
 @Composable
 private fun TextSkeleton() {
-    val pulse by androidx.compose.animation.core.rememberInfiniteTransition(label = "textSkeleton").animateFloat(
+    val pulse = if (tv.own.owntv.ui.theme.DevicePerf.lite) 0.08f else androidx.compose.animation.core.rememberInfiniteTransition(label = "textSkeleton").animateFloat(
         initialValue = 0.05f, targetValue = 0.11f,
         animationSpec = androidx.compose.animation.core.infiniteRepeatable(
             androidx.compose.animation.core.tween<Float>(900), androidx.compose.animation.core.RepeatMode.Reverse,
         ),
         label = "textSkeletonPulse",
-    )
+    ).value
     val bar = StageColors.Text.copy(alpha = pulse)
     Column(verticalArrangement = Arrangement.spacedBy(14.mpx)) {
         Box(Modifier.fillMaxWidth(0.7f).height(40.mpx).background(bar, RoundedCornerShape(10.mpx)))
@@ -863,11 +863,11 @@ private val RowLine = Color(0x14000000)
 /** Channel rows standing in while the list loads. */
 @Composable
 internal fun ChannelListSkeleton(modifier: Modifier = Modifier) {
-    val pulse by androidx.compose.animation.core.rememberInfiniteTransition(label = "listSkeleton").animateFloat(
+    val pulse = if (tv.own.owntv.ui.theme.DevicePerf.lite) 0.075f else androidx.compose.animation.core.rememberInfiniteTransition(label = "listSkeleton").animateFloat(
         initialValue = 0.05f, targetValue = 0.10f,
         animationSpec = androidx.compose.animation.core.infiniteRepeatable(androidx.compose.animation.core.tween<Float>(900), androidx.compose.animation.core.RepeatMode.Reverse),
         label = "listSkeletonPulse",
-    )
+    ).value
     val bar = StageColors.Text.copy(alpha = pulse)
     Column(modifier) {
         repeat(8) {

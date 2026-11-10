@@ -18,6 +18,7 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
 import tv.own.owntv.R
+import tv.own.owntv.ui.theme.DevicePerf
 
 /**
  * The profile avatars: [OwnTVAvatars.COUNT] animated people (res/raw/avatar_1…7.json, vector Lottie,
@@ -52,7 +53,7 @@ fun OwnTVAvatar(avatarId: Int, modifier: Modifier = Modifier, imagePath: String 
             // above cuts them all to one circle, so no person looks bigger than the next.
             LottieAnimation(
                 composition = composition,
-                iterations = LottieConstants.IterateForever,
+                iterations = if (DevicePerf.lite) 1 else LottieConstants.IterateForever,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.matchParentSize().graphicsLayer { scaleX = PersonScale; scaleY = PersonScale },
             )
