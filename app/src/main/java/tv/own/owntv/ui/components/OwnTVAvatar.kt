@@ -55,7 +55,7 @@ fun OwnTVAvatar(avatarId: Int, modifier: Modifier = Modifier, imagePath: String 
                 composition = composition,
                 iterations = if (DevicePerf.lite) 1 else LottieConstants.IterateForever,
                 contentScale = ContentScale.Crop,
-                modifier = Modifier.matchParentSize().graphicsLayer { scaleX = PersonScale; scaleY = PersonScale },
+                modifier = Modifier.matchParentSize().graphicsLayer { scaleX = PERSON_SCALE; scaleY = PERSON_SCALE },
             )
         }
         if (imagePath.isNotBlank()) {
@@ -70,7 +70,7 @@ fun OwnTVAvatar(avatarId: Int, modifier: Modifier = Modifier, imagePath: String 
 }
 
 /** How much the person is enlarged so their own circle reaches past the avatar's edge. */
-private const val PersonScale = 1.85f
+private const val PERSON_SCALE = 1.85f
 
 /** The light blue of the animations' own circles, behind every person. */
 private val Backdrop = Color(0xFFD3E6F7)
