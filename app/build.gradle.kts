@@ -233,6 +233,10 @@ android {
             keepDebugSymbols += "**/*.so"
             // libVLC and libmpv both ship the NDK C++ runtime.
             pickFirsts += "**/libc++_shared.so"
+            // On armeabi-v7a the merge kept libVLC's old libc++_shared (no std::from_chars<float>), and
+            // libmpv.so needs that symbol: on a 32-bit TV (Haier, Fire TV) the first channel opened
+            // crashed with UnsatisfiedLinkError. src/main/jniLibs/armeabi-v7a/libc++_shared.so is
+            // libmpv's own runtime (newer, a superset), and the app's own libs win the merge.
         }
     }
 
