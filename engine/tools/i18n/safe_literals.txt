@@ -5436,16 +5436,27 @@
 1	technical	core/src/main/java/tv/own/owntv/core/ui/stage/StageGlyph.kt	M8 8a4 4 0 1 0 8 0a4 4 0 1 0 -8 0zM4 21a8 8 0 0 1 16 0
 1	technical	core/src/main/java/tv/own/owntv/core/ui/stage/StageGlyph.kt	M9 18l6-6-6-6
 1	technical	core/src/main/java/tv/own/owntv/core/ui/stage/StageGlyph.kt	M9.5 2.5H14.5A2.5 2.5 0 0 1 17 5V19A2.5 2.5 0 0 1 14.5 21.5H9.5A2.5 2.5 0 0 1 7 19V5A2.5 2.5 0 0 1 9.5 2.5zM11 18.5h2
-1	technical	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	.apk
-1	file-path	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	.part
+1	file-path	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	$keepStem.
+1	file-path	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	$keepStem.apk
+1	file-path	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	.accepted
+2	technical	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	.apk
+1	file-path	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	.apk.part
+1	file-path	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	.meta
 1	technical	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	Accept
+1	protocol	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	Content-Range
 1	compiler	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	DEPRECATION
+1	protocol	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	ETag
+1	protocol	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	If-Range
+1	protocol	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	Last-Modified
+1	protocol	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	Range
 1	log	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	UpdateManager
 2	technical	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	User-Agent
+1	protocol	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	W/
 1	mime	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	application/vnd.github+json
 1	json	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	assets
 1	json	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	body
 1	json	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	browser_download_url
+1	protocol	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	bytes=$offset-
 1	log	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	could not keep the download
 1	url	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	https://api.github.com/repos/${CoreBuildInfo.releaseRepo}/releases/latest
 1	log	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	install cancelled by user
@@ -5453,19 +5464,22 @@
 1	json	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	name
 1	log	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	not newer than the installed build
 1	file-path	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	owntv-update
+1	log	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	short read: $written of $total bytes
 1	log	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	signed with another key
 1	json	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	tag_name
 1	log	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	the downloaded update is gone
-1	log	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	truncated: got $copied of $total bytes
+2	json	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	total
 1	uri	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	tv.own.owntv.UPDATE_INSTALL_STATUS
 1	log	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	unparseable APK (${apk.length()} bytes)
 1	log	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	update check failed: ${error.message}
 1	log	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	update download failed: ${error.message}
 1	log	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	update install failed: ${error.message}
 1	log	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	update installed
-1	file-path	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	update-$safe.apk
-3	file-path	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	updates
+1	file-path	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	update-$safe
+1	file-path	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	updates
+2	json	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	url
 1	technical	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	v
+2	json	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	validator
 1	log	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	wrong package ${info.packageName}
 2	technical	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	x86_64
 1	technical	core/src/main/java/tv/own/owntv/core/util/CrashRecorder.kt	Crashed $stamp on thread "${thread.name}"
@@ -5825,8 +5839,8 @@
 1	technical	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	16:9
 1	technical	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	4:3
 1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	:http-referrer=$it
-1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	:http-user-agent=${userAgent ?: DEFAULT_UA}
-1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	:network-caching=${cachingMs()}
+1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	:http-user-agent=$agent
+1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	:network-caching=$caching
 1	technical	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	Referer
 1	technical	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	STEREO
 3	technical	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	UNUSED_PARAMETER
@@ -5836,9 +5850,11 @@
 1	technical	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	error
 1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	first frame after ${SystemClock.elapsedRealtime() - openedAt}ms
 1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	gave up after $reconnects reconnects ($why)
+1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	memory pressure: the preview lets go
 1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	open timeout
 1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	picture stuck while data arrives — reopening on the software decoder
 1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	play() engine=$engineId url=${HttpClient.redactUrl(url)} muted=$muted
+1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	preview: control step failed (${t.javaClass.simpleName}: ${t.message})
 1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	reconnect $reconnects/$MAX_RECONNECTS after $why
 1	technical	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	stop() — intentional
 4	technical	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	unused

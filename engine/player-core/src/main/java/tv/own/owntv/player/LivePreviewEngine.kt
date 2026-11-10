@@ -48,6 +48,21 @@ class LivePreviewEngine(
     /** libVLC's stop/open can wait on its own threads; never on the UI thread, or a slow stream freezes the remote. */
     private var control = android.os.HandlerThread("vlc-control").apply { start() }
     @Volatile private var ctl = Handler(control.looper)
+
+    /**
+     * Runs [block] on the control thread. An exception there has no caller to catch it and takes the whole app
+     * down — a surface already gone, a player released a moment before, libVLC refusing on a box short of
+     * memory — so a failed step is written to the log and the stalled tune is left to the watchdog.
+     */
+    private fun ctlPost(block: () -> Unit) {
+        ctl.post {
+            try {
+                block()
+            } catch (t: Throwable) {
+                LiveDiagnosticsLog.event("preview: control step failed (${t.javaClass.simpleName}: ${t.message})")
+            }
+        }
+    }
     private val engineId = System.identityHashCode(this)
     private val vlc: LibVLC by lazy { LibVLC(context.applicationContext, vlcOptions()) }
     private var player: MediaPlayer? = null
@@ -151,7 +166,7 @@ class LivePreviewEngine(
     private fun detachBounded(vout: org.videolan.libvlc.interfaces.IVLCVout) {
         if (!vout.areViewsAttached()) return
         val done = java.util.concurrent.CountDownLatch(1)
-        ctl.post { try { if (vout.areViewsAttached()) vout.detachViews() } finally { done.countDown() } }
+        ctlPost { try { if (vout.areViewsAttached()) vout.detachViews() } finally { done.countDown() } }
         done.await(DETACH_WAIT_MS, java.util.concurrent.TimeUnit.MILLISECONDS)
     }
 
@@ -168,7 +183,7 @@ class LivePreviewEngine(
     private fun applyWindow(p: MediaPlayer) {
         if (surfaceW <= 0 || surfaceH <= 0) return
         val w = surfaceW; val h = surfaceH
-        ctl.post { applyWindowNow(p, w, h) }
+        ctlPost { applyWindowNow(p, w, h) }
     }
 
     private fun applyWindowNow(p: MediaPlayer, w: Int, h: Int) {
@@ -188,7 +203,7 @@ class LivePreviewEngine(
         val vout = p.vlcVout
         val w = surfaceW; val h = surfaceH
         attachPending = true
-        ctl.post {
+        ctlPost {
             attachPending = false
             if (vout.areViewsAttached()) vout.detachViews()
             vout.setVideoSurface(s, null)
@@ -232,19 +247,29 @@ class LivePreviewEngine(
         // The window size goes in before every open: a new channel builds a new video output, and without it
         // libVLC drew the first frames at the stream's own size in the corner until the next resize.
         applyWindow(p)
-        val media = Media(vlc, Uri.parse(url)).apply {
-            setHWDecoderEnabled(!softwareTried, false)
-            addOption(":network-caching=${cachingMs()}")
-            addOption(":http-user-agent=${userAgent ?: DEFAULT_UA}")
-            headerValue("Referer")?.let { addOption(":http-referrer=$it") }
-        }
+        val software = softwareTried
+        val caching = cachingMs()
+        val agent = userAgent ?: DEFAULT_UA
+        val referer = headerValue("Referer")
         val vol = if (muted) 0 else _volume.value
         val gen = ++openGen
         ctl.removeCallbacksAndMessages(null)
         if (attachPending) surface?.let { attach(p, it) }
-        ctl.post {
-            p.media = media
-            media.release()
+        ctlPost {
+            // Built here, not above: a channel the viewer has already scrolled past never gets here, and
+            // a Media made for it on the interface thread would be dropped with the queue and never freed — one
+            // native object leaked per skipped channel, which a box with little memory pays for within minutes.
+            val media = Media(vlc, Uri.parse(url)).apply {
+                setHWDecoderEnabled(!software, false)
+                addOption(":network-caching=$caching")
+                addOption(":http-user-agent=$agent")
+                referer?.let { addOption(":http-referrer=$it") }
+            }
+            try {
+                p.media = media
+            } finally {
+                media.release()
+            }
             p.volume = vol
             startedGen = gen
             p.play()
@@ -457,7 +482,7 @@ class LivePreviewEngine(
         LiveDiagnosticsLog.event("stop() — intentional")
         main.removeCallbacks(watchdog); main.removeCallbacks(reconnectRun)
         currentUrl = null
-        player?.let { p -> ctl.removeCallbacksAndMessages(null); ctl.post { p.stop() } }
+        player?.let { p -> ctl.removeCallbacksAndMessages(null); ctlPost { p.stop() } }
         _state.value = State.IDLE; _isPlaying.value = false; _buffering.value = false
         _error.value = null; _errorInfo.value = null; _stalledSinceMs.value = null
         _videoRes.value = null; _videoSize.value = null; _videoAspect.value = null; _videoFps.value = null
@@ -466,7 +491,7 @@ class LivePreviewEngine(
 
     fun release() {
         stop()
-        player?.let { p -> p.setEventListener(null); p.vlcVout.detachViews(); ctl.post { p.release() } }
+        player?.let { p -> p.setEventListener(null); p.vlcVout.detachViews(); ctlPost { p.release() } }
         player = null
         ctl.post { control.quitSafely() }
     }
@@ -474,7 +499,7 @@ class LivePreviewEngine(
     fun abandon(reason: String) {
         LiveDiagnosticsLog.event("abandon: $reason")
         gaveUp = true
-        player?.let { p -> ctl.post { p.stop() } }
+        player?.let { p -> ctlPost { p.stop() } }
         _state.value = State.ERROR
     }
 
@@ -488,11 +513,15 @@ class LivePreviewEngine(
     val activePrerollSecs: Int get() = 0
     fun livePositionMs(): Long = player?.time?.coerceAtLeast(0L) ?: 0L
     fun releaseDecoderForUhd() {}
-    fun onMemoryPressure() {}
+    /** Critical memory: the preview is the first thing a box short of memory can do without. */
+    fun onMemoryPressure() {
+        LiveDiagnosticsLog.event("memory pressure: the preview lets go")
+        main.post { stop() }
+    }
     fun setMaxVideoHeight(@Suppress("UNUSED_PARAMETER") height: Int?) {}
     fun setTunnelingAllowed(@Suppress("UNUSED_PARAMETER") allowed: Boolean) {}
-    fun onAppBackgrounded() { player?.let { p -> ctl.post { p.pause() } } }
-    fun onAppForegrounded() { if (currentUrl != null) player?.let { p -> ctl.post { p.play() } } }
+    fun onAppBackgrounded() { player?.let { p -> ctlPost { p.pause() } } }
+    fun onAppForegrounded() { if (currentUrl != null) player?.let { p -> ctlPost { p.play() } } }
     fun discardBackgroundRestore() {}
 
     fun setMuted(m: Boolean) {
@@ -512,7 +541,7 @@ class LivePreviewEngine(
 
     override fun togglePlayPause() {
         val p = player ?: return
-        ctl.post { if (p.isPlaying) p.pause() else p.play() }
+        ctlPost { if (p.isPlaying) p.pause() else p.play() }
     }
     override fun setZoomMode(mode: ZoomMode) { _zoomMode.value = mode }
     override fun adjustVolume(delta: Int) {
