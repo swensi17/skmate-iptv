@@ -7,16 +7,15 @@
 
 <h1 align="center">SkMate IPTV</h1>
 
-<p align="center"><b>Бесплатный IPTV-плеер с открытым кодом для Android TV, Google TV, Fire TV, Windows, LG webOS и Samsung Tizen.</b><br>
+<p align="center"><b>Бесплатный IPTV-плеер с открытым кодом для Android TV, Google TV и Fire TV.</b> Версии для Windows, LG webOS и Samsung Tizen — в разработке.<br>
 M3U и Xtream Codes, телегид (EPG), архив, профили — управление только пультом, без рекламы и аккаунтов.</p>
 
 <p align="center">
   <a href="https://github.com/swensi17/skmate-iptv/releases/latest"><img alt="Release" src="https://img.shields.io/github/v/release/swensi17/skmate-iptv?label=release&color=1e88e5"></a>
   <a href="https://github.com/swensi17/skmate-iptv/releases"><img alt="Downloads" src="https://img.shields.io/github/downloads/swensi17/skmate-iptv/total?color=43a047"></a>
-  <a href="https://github.com/swensi17/skmate-iptv#%D0%B1%D0%B5%D0%B7%D0%BE%D0%BF%D0%B0%D1%81%D0%BD%D0%BE%D1%81%D1%82%D1%8C"><img alt="VirusTotal" src="https://img.shields.io/badge/VirusTotal-exe%20%2B%20apk%3A%200%20threats-2ecc71?logo=virustotal&logoColor=white"></a>
+  <a href="https://github.com/swensi17/skmate-iptv#%D0%B1%D0%B5%D0%B7%D0%BE%D0%BF%D0%B0%D1%81%D0%BD%D0%BE%D1%81%D1%82%D1%8C"><img alt="VirusTotal" src="https://img.shields.io/badge/VirusTotal-apk%3A%200%20threats-2ecc71?logo=virustotal&logoColor=white"></a>
   <a href="LICENSE"><img alt="License GPL-3.0" src="https://img.shields.io/badge/license-GPL--3.0-blue"></a>
   <a href="https://github.com/swensi17/skmate-iptv/actions/workflows/build.yml"><img alt="Build" src="https://img.shields.io/github/actions/workflow/status/swensi17/skmate-iptv/build.yml?branch=main&label=build"></a>
-  <a href="https://github.com/swensi17/skmate-iptv/actions/workflows/web.yml"><img alt="Web" src="https://img.shields.io/github/actions/workflow/status/swensi17/skmate-iptv/web.yml?branch=main&label=web"></a>
   <a href="https://github.com/swensi17/skmate-iptv/commits/main"><img alt="Last commit" src="https://img.shields.io/github/last-commit/swensi17/skmate-iptv?color=8e44ad"></a>
   <a href="https://github.com/swensi17/skmate-iptv/commits/main"><img alt="Commit activity" src="https://img.shields.io/github/commit-activity/m/swensi17/skmate-iptv?color=8e44ad"></a>
   <a href="https://github.com/swensi17/skmate-iptv/issues"><img alt="Issues" src="https://img.shields.io/github/issues/swensi17/skmate-iptv?color=e67e22"></a>
@@ -26,27 +25,18 @@ M3U и Xtream Codes, телегид (EPG), архив, профили — упр
   <img alt="Android TV" src="https://img.shields.io/badge/Android%20TV-8.0%2B-3ddc84?logo=android&logoColor=white">
   <img alt="Google TV" src="https://img.shields.io/badge/Google%20TV-supported-4285f4?logo=googletv&logoColor=white">
   <img alt="Fire TV" src="https://img.shields.io/badge/Fire%20TV-supported-ff9900?logo=android&logoColor=white">
-  <img alt="Windows" src="https://img.shields.io/badge/Windows-10%20%7C%2011-0078d4?logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0id2hpdGUiPjxwYXRoIGQ9Ik0wIDBoMTF2MTFIMHpNMTMgMGgxMXYxMUgxM3pNMCAxM2gxMXYxMUgwek0xMyAxM2gxMXYxMUgxM3oiLz48L3N2Zz4%3D&logoColor=white">
-  <img alt="LG webOS" src="https://img.shields.io/badge/LG-webOS%204%2B-a50034?logo=lg&logoColor=white">
-  <img alt="Samsung Tizen" src="https://img.shields.io/badge/Samsung-Tizen%204%2B-1428a0?logo=samsung&logoColor=white">
-  <a href="https://swensi17.github.io/skmate-iptv/"><img alt="Web demo" src="https://img.shields.io/badge/demo-online-00b894?logo=googlechrome&logoColor=white"></a>
 </p>
 
 <p align="center">
   <img alt="Kotlin" src="https://img.shields.io/badge/Kotlin-Compose%20for%20TV-7f52ff?logo=kotlin&logoColor=white">
   <img alt="libVLC" src="https://img.shields.io/badge/engine-libVLC-ff8800?logo=vlcmediaplayer&logoColor=white">
   <img alt="mpv" src="https://img.shields.io/badge/engine-mpv-691f69?logo=mpv&logoColor=white">
-  <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-Preact-3178c6?logo=typescript&logoColor=white">
-  <img alt="Electron" src="https://img.shields.io/badge/Electron-Windows-47848f?logo=electron&logoColor=white">
   <img alt="M3U" src="https://img.shields.io/badge/M3U%20%7C%20Xtream%20%7C%20Stalker-sources-555">
   <img alt="EPG" src="https://img.shields.io/badge/EPG-XMLTV-555">
   <img alt="No ads" src="https://img.shields.io/badge/ads-none-2ecc71">
 </p>
 
-<p align="center">
-  <a href="https://swensi17.github.io/skmate-iptv/"><b>▶ Демо веб-версии для LG webOS и Samsung Tizen</b></a> — открывается в браузере, управление стрелками, OK = Enter, «Назад» = Esc<br>
-  <a href="https://github.com/swensi17/skmate-iptv/releases/latest"><b>⬇ SkMate IPTV для Windows</b></a> — установщик <code>SkMate-IPTV-Setup-X.Y.Z.exe</code> в последнем релизе, обновляется сам
-</p>
+<p align="center"><a href="https://github.com/swensi17/skmate-iptv/releases/latest/download/SkMate-IPTV.apk"><b>⬇ Скачать APK для Android TV</b></a> — последняя подписанная версия</p>
 
 <p align="center"><b>Русский</b> · <a href="docs/i18n-readme/README.en.md">English</a> · <a href="docs/i18n-readme/README.zh.md">中文</a></p>
 
@@ -86,18 +76,18 @@ SkMate рядом с самыми известными IPTV-плеерами.
 
 | | SkMate IPTV | TiviMate | IPTV Smarters Pro | Kodi + IPTV Simple | Sparkle TV | VLC |
 |---|---|---|---|---|---|---|
-| Платформы | Android TV, Google TV, Fire TV, Windows, LG, Samsung, браузер | Android TV | Android, Fire TV, Windows, macOS, LG, Samsung, браузер, iOS (отдельное приложение) | Windows, Linux, Android, macOS, iOS, tvOS, webOS | Android TV, Google TV, Fire TV | Windows, Linux, macOS, Android, iOS, Apple TV |
+| Платформы | Android TV, Google TV, Fire TV | Android TV | Android, Fire TV, Windows, macOS, LG, Samsung, браузер, iOS (отдельное приложение) | Windows, Linux, Android, macOS, iOS, tvOS, webOS | Android TV, Google TV, Fire TV | Windows, Linux, macOS, Android, iOS, Apple TV |
 | Всё бесплатно | ✅ | ❌ премиум платный | ❌ часть функций в премиуме | ✅ | ❌ Plus от $1.49 в месяц | ✅ |
 | Открытый код | ✅ GPL-3.0 | — | — | ✅ GPL | — | ✅ GPL / LGPL |
 | Без рекламы | ✅ | — | — | — | — | ✅ |
 | M3U | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Xtream Codes | ✅ | ✅ | ✅ | ❌ только адреса архива | ✅ | — |
-| Stalker / MAC-портал | ✅ Android, Windows | ✅ | — | — | ✅ | — |
+| Stalker / MAC-портал | ✅ | ✅ | — | — | ✅ | — |
 | Телегид XMLTV | ✅ | ✅ | ✅ | ✅ | ✅ | — |
 | Телегид без `tvg-id` (по названию) | ✅ | — | — | ✅ | — | — |
 | Архив (catch-up) | ✅ | ✅ | ✅ | ✅ | ✅ в Plus | — |
 | Перемотка эфира (таймшифт) | ✅ | — | — | ✅ | ✅ в Plus | ✅ |
-| Запись эфира | ✅ Android, Windows | ✅ | — | — | ✅ в Plus | ✅ |
+| Запись эфира | ✅ | ✅ | — | — | ✅ в Plus | ✅ |
 | Мультивид | ✅¹ | ✅ | — | — | ✅ в Plus | — |
 | Резервная копия канала из другого плейлиста при сбое | ✅ | — | — | — | — | — |
 | Умный поиск: раскладка, транслит, опечатки | ✅ | — | — | — | — | — |
@@ -110,7 +100,7 @@ SkMate рядом с самыми известными IPTV-плеерами.
 **Почему выбирают SkMate**
 - **Всё бесплатно.** Никакого премиума, Plus и подписок: все функции открыты сразу.
 - **Открытый код (GPL-3.0) и ни одной рекламы.**
-- **Один плеер на всё:** Android TV, Google TV, Fire TV, Windows, LG, Samsung и браузер. Тот же вид и те же возможности везде.
+- **Сделан для телевизора:** Android TV, Google TV, Fire TV и приставки на Android, всё пультом.
 - **Всё нужное в одном месте:** M3U, Xtream Codes и Stalker, телегид, архив, перемотка эфира, запись, мультивид, профили и родительский контроль.
 - **Умные мелочи:** упал канал, включится его копия из другого плейлиста; поиск понимает неверную раскладку, транслит и опечатки; телегид находит канал по названию.
 - **Фильмы и сериалы:** постеры, сезоны и серии, продолжение с того места, где остановились, следующая серия сама.
@@ -119,7 +109,7 @@ SkMate рядом с самыми известными IPTV-плеерами.
 
 <details><summary>Источники и как читать таблицу</summary>
 
-В таблице то, что сами приложения пишут в своих официальных источниках: на сайтах, в Google Play, App Store, на GitHub. «—» значит, что в официальном источнике об этом не сказано. Данные собраны 1 ноября 2026 года. У SkMate каждая отметка проверяется в этом репозитории: [docs/PARITY.md](docs/PARITY.md).
+В таблице то, что сами приложения пишут в своих официальных источниках: на сайтах, в Google Play, App Store, на GitHub. «—» значит, что в официальном источнике об этом не сказано. Данные собраны 1 ноября 2026 года. У SkMate каждая отметка подтверждена в разделе «Что умеет SkMate и чем это подтверждено» ниже.
 
 - TiviMate: [Google Play](https://play.google.com/store/apps/details?id=ar.tvplayer.tv), [tivimate.com](https://tivimate.com/)
 - IPTV Smarters Pro: [официальный сайт, копия на archive.org от 15.08.2026](https://web.archive.org/web/20260815103748/https://www.iptvsmarters.com/), [Smarters Player Lite в App Store](https://apps.apple.com/us/app/smarters-player-lite/id1628995509)
@@ -131,7 +121,7 @@ SkMate рядом с самыми известными IPTV-плеерами.
 
 ## Что умеет SkMate и чем это подтверждено
 
-Как подтверждена каждая функция SkMate. «Тест» значит автоматический тест, который запускается в CI; «эмулятор» значит, что функцию вручную проверили на эмуляторе Android TV; «браузер» значит живую проверку веб-версии (она же Windows, LG и Samsung) с пультом на тестовом плейлисте.
+Как подтверждена каждая функция SkMate. «Тест» значит автоматический тест, который запускается в CI; «эмулятор» значит, что функцию вручную проверили на эмуляторе Android TV.
 
 | Возможность | Чем подтверждена |
 |---|---|
@@ -143,21 +133,9 @@ SkMate рядом с самыми известными IPTV-плеерами.
 | Гиды по умолчанию: из плейлиста, по провайдеру, общие | тест [`GuideDefaultsTest`](engine/core/src/test/java/tv/own/owntv/core/epg/GuideDefaultsTest.kt) |
 | «Скрыть повторы» (одна ссылка у нескольких каналов) | тест [`FeedDedupeTest`](engine/core/src/test/java/tv/own/owntv/core/epg/FeedDedupeTest.kt), эмулятор |
 | Сортировка каналов и подборки «Сейчас идёт» | тесты [`LiveSortTest`](engine/core/src/test/java/tv/own/owntv/core/live/LiveSortTest.kt), [`SmartPicksTest`](engine/core/src/test/java/tv/own/owntv/core/content/SmartPicksTest.kt), эмулятор |
-| Адреса архива (catch-up) разных провайдеров | тест [`CatchupUrlTest`](engine/core/src/test/java/tv/own/owntv/core/epg/CatchupUrlTest.kt) и те же случаи в веб-ядре [`catchup.test.ts`](web/packages/core/src/catchup.test.ts) |
-| Архив в веб-версии: телегид, поиск, перемотка ±30 с, «В эфир» | браузер, тестовый плейлист с `catchup="append"`; на Android TV у провайдера с архивом не проверялось |
-| Таймшифт в веб-версии: пауза эфира и продолжение с того же места, ±30 с, «с начала», «в эфир» | тест [`timeshift.test.ts`](web/packages/core/src/timeshift.test.ts), браузер на живом HLS-потоке (после паузы картинка продолжилась с того же места, ← отвёл ещё на 30 с, «в эфир» вернул к эфиру: часы в кадре отстают на 8 с, обычная задержка потока) |
-| PIN профиля и детский профиль в веб-версии | тест [`parental.test.ts`](web/packages/core/src/parental.test.ts) (случаи классификатора с Android, хеш PIN совпадает с форматом Android), браузер: детский режим скрыл категорию «Для взрослых» в списке и поиске, PIN спрошен при запуске, при смене профиля, при выключении детского режима; неверный PIN и «Назад» не открывают профиль |
-| Напоминания о передачах в веб-версии | тест [`reminders.test.ts`](web/packages/core/src/reminders.test.ts) (случаи `ReminderScheduleTest` с Android), браузер: «Напомнить» из телегида, окно «Скоро начнётся» поверх плеера за 1 минуту до начала, «Смотреть» переключил канал; режимы «Переключать» и «Только уведомлять» |
-| 23 языка в веб-версии | тест [`languages.test.ts`](web/apps/tv/src/i18n/languages.test.ts): в каждом языке все строки и все подстановки `{n}`; браузер: все языки пройдены в настройках без обрезанных подписей; Windows: язык подгружается в оболочке. Переводы сделаны с опорой на термины Android-переводов, носителями не вычитаны |
-| Плейлист из файла в веб-версии и Windows | тест [`localFiles.test.ts`](web/apps/tv/src/state/localFiles.test.ts); браузер: файл в настройках и в мастере, пустой файл отклонён, каналы на месте после перезапуска, удаление плейлиста удаляет и копию файла; Windows: хранилище файла работает в оболочке |
+| Адреса архива (catch-up) разных провайдеров | тест [`CatchupUrlTest`](engine/core/src/test/java/tv/own/owntv/core/epg/CatchupUrlTest.kt) |
 | Шифрованная резервная копия | инструментальные тесты [`BackupRoundTripTest`](engine/core/src/androidTest/java/tv/own/owntv/core/backup/BackupRoundTripTest.kt), [`BackupContainerTest`](engine/core/src/androidTest/java/tv/own/owntv/core/backup/BackupContainerTest.kt) |
-| Картинка в картинке | эмулятор (Android); Windows: «Мини» в окне Electron открыло видео в мини-окне |
-| Мультивид в веб-версии и Windows | тесты [`multiview.test.ts`](web/packages/core/src/multiview.test.ts) (раскладка по два в ряд, звук у одной плитки и его передача, удаление плитки с конца, случаи `ConnectionBudgetTest` с Android) и `engines.test.ts` (потолок высоты картинки); браузер с подставной панелью Xtream (лимит 2): мультивид открылся из панели плеера, пустая плитка → выбор категории и канала, OK на плитке передал звук (у остальных звук выключен), долгое OK открыло меню в порядке Android, «Добавить канал» дал третью плитку, она отказала «Провайдер разрешает 2 потока…», беззвучная плитка 720 строк против 1080 у звучащей, «На весь экран» открыл канал, «Назад» остановил все плитки; предупреждение при выборе больше двух. На настоящих телевизорах не проверено |
-| Фильмы и сериалы в веб-версии и Windows | тест [`vod.test.ts`](web/packages/core/src/vod.test.ts) (случаи `M3uVodByExtensionTest`, `M3uEpisodeNameTest`, `NumberBlankEpisodesTest`, `XtreamStreamUrlTest` и порядок серий с Android) и [`stalker.test.cjs`](desktop/stalker.test.cjs) (`StalkerSeasonNumberTest`, подставной портал); браузер с подставной панелью Xtream: фильмы ушли из «Каналов» в свой раздел, категории, постеры, карточка с описанием, фильм заиграл и перематывается, место сохраняется, «Продолжить» и «Смотреть с начала», сезоны и серии, «Следующая серия через N с» и переход, спецвыпуски после последнего сезона, детский профиль скрыл категорию и фильм для взрослых; окно Electron с подставным порталом Stalker: фильм и серии заиграли, ссылка на фильм без номера серии, на серию с номером. С настоящей панелью провайдера и на телевизорах LG и Samsung пока не проверено |
-| Плейлист с телефона и перенос по Wi-Fi в Windows-версии | тест [`companion.test.cjs`](desktop/companion.test.cjs) (случаи `CompanionHttpServerTest` и `CompanionLinkTest` с Android, блокировка после десяти неверных PIN); окно Electron и телефон в той же сети: QR и PIN на экране, неверный PIN отклонён, ссылка на плейлист и файл плейлиста с телефона появились в списке; два окна Electron с разными профилями: получение и отправка данных с подтверждением «Применить», неверный PIN отклонён. На двух настоящих компьютерах Windows пока не проверено |
-| Stalker в Windows-версии | тест [`stalker.test.cjs`](desktop/stalker.test.cjs) (случаи `StalkerClientTest` и `StalkerAuthManagerTest` с Android, подставной портал Ministra); окно Electron с подставным порталом, который отвечает только на заголовки MAG: портал добавлен в форме, неверный MAC отклонён, каналы с категориями, телегид портала, канал заиграл через `create_link`, «С начала» открыло архив через таблицу программ портала, сообщения «Портал отклонил этот MAC-адрес» и «Не удалось связаться с порталом». С настоящим порталом провайдера пока не проверено |
-| Запись эфира и внешний плеер на Windows | тест [`recorder.test.cjs`](desktop/recorder.test.cjs); окно Electron на живом HLS-потоке: «Записать» → REC в углу, «Остановить запись» → «Запись сохранена», файл `.ts` целый (все пакеты с синхробайтом); запись сама остановилась в конце передачи. Внешний плеер: подставной VLC получил адрес, название, User-Agent и Referer; отсутствующий mpv → сообщение и канал во встроенном плеере. С настоящими VLC и mpv на Windows пока не проверено |
-| Напоминания о передачах поверх любого экрана | эмулятор (Android), браузер (веб-версия) |
+| Картинка в картинке | эмулятор |
 | Открытый исходный код (GPL-3.0), подписанные сборки | [`LICENSE`](LICENSE), [`release.yml`](.github/workflows/release.yml), контрольные суммы в релизе |
 
 **Не проверено на настоящем телевизоре:** плавность и скорость на слабых приставках, мультивид, запись и таймшифт, воспроизведение архива. Они реализованы в коде, но мы не заявляем, что они работают на всех устройствах.
@@ -245,6 +223,7 @@ SkMate рядом с самыми известными IPTV-плеерами.
 **Это аналог TiviMate?** Да, это бесплатная альтернатива TiviMate с открытым кодом для Android TV, Google TV и Fire TV.
 **Есть ли в приложении каналы?** Нет. Это только плеер: вы добавляете свой M3U, Xtream Codes или Stalker.
 **Как добавить плейлист без набора адреса пультом?** Отсканируйте QR-код на телевизоре телефоном; телефон и ТВ должны быть в одной сети Wi-Fi.
+**А Windows, LG и Samsung?** В разработке, выйдут отдельными версиями.
 **Какой нужен Android?** Android TV / Google TV 8.0 и новее, Fire TV, приставки на arm64-v8a и armeabi-v7a.
 
 ## Установка
@@ -261,38 +240,30 @@ SkMate рядом с самыми известными IPTV-плеерами.
 
 ### Проверка VirusTotal: v2.2.3
 
-Файлы выпуска [v2.2.3](https://github.com/swensi17/skmate-iptv/releases/tag/v2.2.3) отправлены на [VirusTotal](https://www.virustotal.com) по ссылке на скачивание с GitHub: VirusTotal сам скачивает файл из релиза и проверяет его всеми антивирусами. Для установщика Windows и обеих APK ни один антивирус не нашёл угроз. Нажмите на отчёт, чтобы увидеть полный список антивирусов и дату проверки.
+Файлы выпуска [v2.2.3](https://github.com/swensi17/skmate-iptv/releases/tag/v2.2.3) отправлены на [VirusTotal](https://www.virustotal.com) по ссылке на скачивание с GitHub: VirusTotal сам скачивает файл из релиза и проверяет его всеми антивирусами. Для обеих APK ни один антивирус не нашёл угроз. Нажмите на отчёт, чтобы увидеть полный список антивирусов и дату проверки.
 
 | Файл | Результат | Отчёт |
 |---|---|---|
-| `SkMate-IPTV-Setup-2.2.3.exe` (Windows) | ✅ 0 из 68 | [открыть](https://www.virustotal.com/gui/file/e6ee399665b8f34d3bccb1faa19768ccd4e7383b434524bcecbbba801573a4cd) |
 | `SkMate-IPTV-v2.2.3-arm.apk` (Android TV) | ✅ 0 из 67 | [открыть](https://www.virustotal.com/gui/file/bf29972ea044d05a6b810e24d433ff06168e0a96c8e9996a45949381cdeef93f) |
 | `SkMate-IPTV-v2.2.3-x86_64.apk` | ✅ 0 из 67 | [открыть](https://www.virustotal.com/gui/file/f39d6c0602dc6ed97f34fe0e8b47b95d9d879ed229a7941c150434c8270de209) |
 
-Пакеты для телевизоров (`.ipk`, `.wgt`, `.zip`) содержат тот же веб-код, что открыт в [демо](https://swensi17.github.io/skmate-iptv/). Их проверка на VirusTotal не завершена: сайт запросил капчу. Начатые отчёты: [`.wgt`](https://www.virustotal.com/gui/file/a86076ec6a174a18dd48115d53d17e3751d88fe58c9a7629f3291220a201d8fb), [`.zip`](https://www.virustotal.com/gui/file/08576d9ebe52c23895ee7753cb08a12e8befd8f8a8679b265ffc24b120cf03a1). Пока проверка не закончена, «0 угроз» для них мы не заявляем.
-
 «0 из 68» значит: 68 антивирусов проверили файл, ни один не счёл его опасным. Остальные движки VirusTotal не умеют разбирать этот тип файла и в счёт не входят.
 
-### Почему Windows и браузер всё равно предупреждают
+### Почему Android предупреждает при установке
 
-- **Установщик Windows не подписан сертификатом разработчика** (он платный). Поэтому при первом запуске SmartScreen пишет «Windows защитила ваш компьютер»: это значит «издатель неизвестен», а не «найден вирус». Нажмите «Подробнее» → «Выполнить в любом случае».
 - **APK ставится не из Google Play**, поэтому Android один раз просит разрешить установку из этого источника. Все версии подписаны одним ключом проекта: приложение принимает обновление, только если подпись совпадает.
 
 ### Как проверить файл самому
 
 1. Скачайте файл из [релиза](https://github.com/swensi17/skmate-iptv/releases/latest).
-2. Посчитайте сумму: `shasum -a 256 <файл>` (macOS, Linux) или `certutil -hashfile <файл> SHA256` (Windows).
+2. Посчитайте сумму: `shasum -a 256 <файл>` (macOS, Linux).
 3. Сравните с `SHA256SUMS.txt` в релизе и с суммами ниже. Совпала: файл тот же, что собрал GitHub Actions.
 
 Суммы SHA-256 v2.2.3:
 
 ```
-e6ee399665b8f34d3bccb1faa19768ccd4e7383b434524bcecbbba801573a4cd  SkMate-IPTV-Setup-2.2.3.exe
 bf29972ea044d05a6b810e24d433ff06168e0a96c8e9996a45949381cdeef93f  SkMate-IPTV-v2.2.3-arm.apk
 f39d6c0602dc6ed97f34fe0e8b47b95d9d879ed229a7941c150434c8270de209  SkMate-IPTV-v2.2.3-x86_64.apk
-14fed87c3410952f15642abe38356af51a9c832259546c8e798b5022a9c2ad8e  uz.skmate.iptv_2.2.3_all.ipk
-a86076ec6a174a18dd48115d53d17e3751d88fe58c9a7629f3291220a201d8fb  SkMate-IPTV-tizen-v2.2.3.wgt
-08576d9ebe52c23895ee7753cb08a12e8befd8f8a8679b265ffc24b120cf03a1  SkMate-IPTV-web-v2.2.3.zip
 ```
 
 ### Откуда берутся файлы

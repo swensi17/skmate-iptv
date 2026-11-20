@@ -9,11 +9,6 @@ name: Release
 #   SkMate-IPTV-vX.Y.Z-x86_64.apk   emulators and rare Intel boxes
 #   SkMate-IPTV.apk                 copy of the arm APK under a fixed name for
 #                                   https://github.com/swensi17/skmate-iptv/releases/latest/download/SkMate-IPTV.apk
-#   SkMate-IPTV-web-vX.Y.Z.zip      the web version for any web server
-#   SkMate-IPTV-tizen-vX.Y.Z.wgt    Samsung Tizen widget (unsigned: sign with your Samsung certificate)
-#   uz.skmate.iptv_X.Y.Z_all.ipk    LG webOS package (installs in Developer Mode)
-#   SkMate-IPTV-Setup-X.Y.Z.exe     Windows installer (desktop/, job "desktop"), with latest.yml and the
-#                                   .blockmap the installed app reads to update itself
 #   SHA256SUMS.txt                  sha256 of every file above
 #   mapping-vX.Y.Z.txt              R8 mapping, to read crash stack traces
 on:
@@ -116,28 +111,6 @@ jobs:
           MAP=app/build/outputs/mapping/standardRelease/mapping.txt
           [ -f "$MAP" ] && cp "$MAP" "dist/mapping-v$NAME.txt" || true
 
-      - name: Set up Node for the web version
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: web/package-lock.json
-
-      - name: Build and pack the web version for the televisions
-        working-directory: web
-        env:
-          NAME: ${{ steps.ver.outputs.name }}
-        run: |
-          set -euo pipefail
-          # The web app carries the release's version, so its update check and the TV packages agree.
-          npm pkg set version="$NAME" --workspace @skmate/tv
-          npm ci
-          npm run build
-          npm run package
-          npx --yes -p @webos-tools/cli@3 ares-package -o release release/webos
-          cp release/*.zip release/*.wgt release/*.ipk ../dist/
-          (cd ../dist && sha256sum *.apk *.zip *.wgt *.ipk > SHA256SUMS.txt && cat SHA256SUMS.txt)
-
       - name: Release notes from CHANGELOG.md
         run: |
           awk -v ver="$TAG" '
@@ -164,54 +137,9 @@ jobs:
         run: |
           set -euo pipefail
           FILES=(dist/SkMate-IPTV-v$NAME-arm.apk dist/SkMate-IPTV-v$NAME-x86_64.apk dist/SkMate-IPTV.apk dist/SHA256SUMS.txt)
-          FILES+=(dist/SkMate-IPTV-web-v$NAME.zip dist/SkMate-IPTV-tizen-v$NAME.wgt dist/uz.skmate.iptv_${NAME}_all.ipk)
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" "${FILES[@]}" --clobber
             gh release edit "$TAG" --notes-file dist/RELEASE_NOTES.md
           else
             gh release create "$TAG" "${FILES[@]}" --title "SkMate IPTV $TAG" --notes-file dist/RELEASE_NOTES.md --verify-tag
           fi
-
-  # Windows: the web version in its own window (desktop/, Electron), packed into an installer and attached to the
-  # release made above. latest.yml next to it is what installed copies read to update themselves.
-  desktop:
-    needs: release
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          ref: ${{ inputs.tag || github.ref }}
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: |
-            web/package-lock.json
-            desktop/package-lock.json
-
-      - name: Build the web version
-        working-directory: web
-        shell: bash
-        run: |
-          npm pkg set version="${TAG#v}" --workspace @skmate/tv
-          npm ci
-          npm run build
-
-      - name: Build the Windows installer
-        working-directory: desktop
-        shell: bash
-        run: |
-          npm ci
-          npm pkg set version="${TAG#v}"
-          npm run dist
-
-      - name: Attach it to the release
-        working-directory: desktop
-        shell: bash
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          set -euo pipefail
-          NAME="${TAG#v}"
-          gh release upload "$TAG" "dist/SkMate-IPTV-Setup-$NAME.exe" "dist/SkMate-IPTV-Setup-$NAME.exe.blockmap" dist/latest.yml --clobber
