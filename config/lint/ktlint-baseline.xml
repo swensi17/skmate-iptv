@@ -590,10 +590,10 @@
         <error line="1529" column="26" source="standard:wrapping" />
         <error line="1573" column="107" source="standard:wrapping" />
         <error line="1586" column="26" source="standard:wrapping" />
-        <error line="2510" column="19" source="standard:property-naming" />
-        <error line="2522" column="1" source="standard:kdoc" />
+        <error line="2509" column="19" source="standard:property-naming" />
+        <error line="2521" column="1" source="standard:kdoc" />
+        <error line="2527" column="19" source="standard:property-naming" />
         <error line="2528" column="19" source="standard:property-naming" />
-        <error line="2529" column="19" source="standard:property-naming" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/shell/ShellViewModel.kt">
         <error line="3" column="1" source="standard:import-ordering" />

@@ -2151,8 +2151,7 @@ fun OwnTVShell(
                             onOpenMenu = {
                                 menuPending = true
                                 scope.launch {
-                                    // The panels are leaving and focus is still settling: ask until the menu has it.
-                                    kotlinx.coroutines.delay(220)
+                                    // The panels stay, so the menu can take focus at once; ask until it has it.
                                     var tries = 0
                                     while (focusedLayer != ShellLayer.SIDEBAR && tries++ < 12) {
                                         focusRail()

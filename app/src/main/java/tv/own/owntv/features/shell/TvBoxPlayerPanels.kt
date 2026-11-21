@@ -224,7 +224,15 @@ private fun Modifier.slideInFromLeft(key: Any): Modifier {
     val smooth = tv.own.owntv.ui.theme.MotionPrefs.smooth
     val shift = androidx.compose.runtime.remember(key) { androidx.compose.animation.core.Animatable(if (smooth) 1f else 0f) }
     androidx.compose.runtime.LaunchedEffect(shift) {
-        shift.animateTo(0f, androidx.compose.animation.core.tween(tv.own.owntv.ui.theme.MotionPrefs.ms(240), easing = androidx.compose.animation.core.FastOutSlowInEasing))
+        shift.animateTo(
+            0f,
+            androidx.compose.animation.core.tween(
+                tv.own.owntv.ui.theme.MotionPrefs.dur(PANEL_SLIDE_MS),
+                easing = androidx.compose.animation.core.FastOutSlowInEasing,
+            ),
+        )
     }
     return graphicsLayer { translationX = -shift.value * size.width * 0.25f; alpha = 1f - shift.value }
 }
+
+private const val PANEL_SLIDE_MS = 240
