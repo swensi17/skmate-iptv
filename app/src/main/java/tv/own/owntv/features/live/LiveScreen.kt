@@ -721,7 +721,10 @@ fun LiveScreen(
         val tvBox = tv.own.owntv.features.shell.TvBoxNav
         val listPush by androidx.compose.animation.core.animateDpAsState(
             if (tvBox && categoriesOpen) sheetW else 0.mpx,
-            androidx.compose.animation.core.tween(tv.own.owntv.ui.theme.MotionPrefs.dur(280), easing = androidx.compose.animation.core.FastOutSlowInEasing),
+            androidx.compose.animation.core.tween(
+                tv.own.owntv.ui.theme.MotionPrefs.slideMs(SHEET_SLIDE_MS),
+                easing = androidx.compose.animation.core.FastOutSlowInEasing,
+            ),
             label = "liveListPush",
         )
         Box(
@@ -1013,8 +1016,15 @@ fun LiveScreen(
 
         androidx.compose.animation.AnimatedVisibility(
             visible = categoriesOpen,
-            enter = androidx.compose.animation.slideInHorizontally(androidx.compose.animation.core.tween(tv.own.owntv.ui.theme.MotionPrefs.dur(280), easing = androidx.compose.animation.core.FastOutSlowInEasing)) { -it },
-            exit = androidx.compose.animation.slideOutHorizontally(androidx.compose.animation.core.tween(tv.own.owntv.ui.theme.MotionPrefs.dur(240))) { -it },
+            enter = androidx.compose.animation.slideInHorizontally(
+                androidx.compose.animation.core.tween(
+                    tv.own.owntv.ui.theme.MotionPrefs.slideMs(SHEET_SLIDE_MS),
+                    easing = androidx.compose.animation.core.FastOutSlowInEasing,
+                ),
+            ) { -it },
+            exit = androidx.compose.animation.slideOutHorizontally(
+                androidx.compose.animation.core.tween(tv.own.owntv.ui.theme.MotionPrefs.slideMs(SHEET_HIDE_MS)),
+            ) { -it },
         ) {
             LiveCategories(
                 entries = categoryEntries,
@@ -1709,3 +1719,6 @@ private const val ListRisePx = 14f
 
 /** After full screen: how long the picture has to shrink back before the preview takes the channel. */
 private const val ReturnPreviewMs = 350L
+
+private const val SHEET_SLIDE_MS = 280
+private const val SHEET_HIDE_MS = 240

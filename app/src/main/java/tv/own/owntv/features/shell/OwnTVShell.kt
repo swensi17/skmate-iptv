@@ -762,15 +762,15 @@ fun OwnTVShell(
         railIdleHidden -> tv.own.owntv.features.shell.components.RailState.HIDDEN
         else -> tv.own.owntv.features.shell.components.RailState.CAPSULE
     }
-    // The open TV-box menu's width, eased, by which the screen slides right while it is open.
+    // The open TV-box menu's width, by which the screen moves right while it is open.
+    val menuPushTarget = if (TvBoxNav && railState == tv.own.owntv.features.shell.components.RailState.OPEN) {
+        tv.own.owntv.features.shell.components.tvBoxMenuWidth(navSize)
+    } else {
+        0.dp
+    }
+    // Eased; read only inside layer and placement lambdas, so a step redraws layers, never recomposes.
     val menuPush by androidx.compose.animation.core.animateDpAsState(
-        // The menu always moves the screen aside, never lies over it. Weak TVs jump there in one step
-        // (a full frame redrawn per animation step is what they cannot afford), the rest slide.
-        if (TvBoxNav && railState == tv.own.owntv.features.shell.components.RailState.OPEN) {
-            tv.own.owntv.features.shell.components.tvBoxMenuWidth(navSize)
-        } else {
-            0.dp
-        },
+        menuPushTarget,
         androidx.compose.animation.core.tween(
             if (tv.own.owntv.ui.theme.MotionPrefs.smoothMenu) tv.own.owntv.ui.theme.MotionPrefs.ms(MENU_PUSH_MS) else 0,
             easing = androidx.compose.animation.core.FastOutSlowInEasing,
@@ -1822,7 +1822,7 @@ fun OwnTVShell(
             val docked = TvBoxNav && isFull && zapSource == MainSection.LIVE_TV && (showChannelList || showHistoryList)
             val videoDock = rememberVideoDock(
                 docked, docked && showCategoryBrowser, playerDock, panelInset,
-            ) { menuPush }
+            ) { menuPushTarget }
             // "Promote Preview": a Live channel playing on ExoPlayer renders the ExoPlayer surface — in BOTH
             // full-screen AND the docked mini-player (same call site = the surface persists across dock/
             // expand, so playback never blips). Everything else (mpv) renders mpv's surface.

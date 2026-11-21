@@ -120,7 +120,7 @@ internal fun TvBoxPlayerPanels(
  */
 @Composable
 internal fun PanelEnter(fromX: Float = 0f, fromY: Float = 0f, startAlpha: Float = 0f, content: @Composable () -> Unit) {
-    val duration = tv.own.owntv.ui.theme.MotionPrefs.dur(PANEL_ENTER_MS)
+    val duration = tv.own.owntv.ui.theme.MotionPrefs.slideMs(PANEL_ENTER_MS)
     val progress = androidx.compose.runtime.remember { androidx.compose.animation.core.Animatable(if (duration == 0) 1f else 0f) }
     androidx.compose.runtime.LaunchedEffect(Unit) {
         if (duration == 0) return@LaunchedEffect

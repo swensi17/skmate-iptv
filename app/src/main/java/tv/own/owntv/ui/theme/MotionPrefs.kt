@@ -32,7 +32,12 @@ object MotionPrefs {
 
     /** One switch for everything that moves: the side menu, a channel opening, the panels over the picture. */
     val smooth: Boolean get() = active
-    val smoothMenu: Boolean get() = smooth
+
+    /**
+     * The side menu only moves layers (no relayout, no resize), which even a weak box draws at full rate,
+     * so it slides whenever the user has not switched animations off.
+     */
+    val smoothMenu: Boolean get() = animationsOn
     val smoothPlayer: Boolean get() = smooth
     var speed by mutableStateOf(Speed.NORMAL)
         private set
@@ -103,6 +108,9 @@ object MotionPrefs {
 
     /** [baseMs] at the chosen speed, or 0 (an instant snap) when Animations is Off. Never for `infiniteRepeatable`. */
     fun dur(baseMs: Int): Int = if (active) ms(baseMs) else 0
+
+    /** For panels that only slide (a layer moved, nothing resized): they run on weak boxes too, Off stops them. */
+    fun slideMs(baseMs: Int): Int = if (animationsOn) ms(baseMs) else 0
 
     private const val FILE = "motion"
     private const val KEY_SPEED = "speed"
