@@ -142,6 +142,17 @@ internal fun EpgSourceForm(
                 hints = keys(ok to stringResource(R.string.settings_key_switch), back to parent), extra = submitButton,
             ),
         )
+        // The same action as a plain row at the end of the form: ▶ to the panel is easy to miss on a remote.
+        if (url.isNotBlank()) {
+            StageSettingRow(
+                icon = OwnTVIcon.DOWNLOADS,
+                title = submitLabel,
+                desc = null,
+                value = SettingValue.Opens(null),
+                onClick = { onSave(name, url, ua, autoRefresh, useLogos) },
+                help = SettingHelp(submitLabel, fieldHelp, hints = keys(ok to submitLabel, back to parent)),
+            )
+        }
     }
 
     if (showPlaylistPicker) {

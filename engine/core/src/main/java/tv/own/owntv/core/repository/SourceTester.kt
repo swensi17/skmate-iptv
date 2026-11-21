@@ -46,6 +46,12 @@ sealed interface SourceTestResult {
 
     /** The host could not be reached at all: DNS, timeout, TLS, 5xx. [detail] is technical, for the log line. */
     data class Unreachable(val detail: String?) : SourceTestResult
+
+    /** An M3U link answered, but with something other than a playlist (an HTML page, an error text). */
+    data object NotPlaylist : SourceTestResult
+
+    /** An M3U link answered 401/403: the server refuses this request (blocked region, User-Agent, token). */
+    data class Denied(val code: Int) : SourceTestResult
 }
 
 /**
@@ -127,10 +133,10 @@ class SourceTester(
             if (head.trimStart('\uFEFF', ' ', '\n', '\r', '\t').startsWith("#EXTM3U", ignoreCase = true)) {
                 SourceTestResult.Ok()
             } else {
-                SourceTestResult.AuthFailed
+                SourceTestResult.NotPlaylist
             }
         } catch (e: Exception) {
-            classify(e)
+            if (e is HttpClient.HttpStatusException && (e.code == 401 || e.code == 403)) SourceTestResult.Denied(e.code) else classify(e)
         }
     }
 

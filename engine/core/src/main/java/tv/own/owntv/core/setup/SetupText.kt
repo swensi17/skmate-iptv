@@ -92,6 +92,8 @@ fun SourceTestResult.headline(res: Resources): String = when (this) {
     SourceTestResult.AuthFailed -> res.getString(R.string.settings_sources_test_auth)
     is SourceTestResult.Expired -> res.getString(R.string.settings_sources_test_expired)
     is SourceTestResult.Unreachable -> res.getString(R.string.settings_sources_test_unreachable)
+    SourceTestResult.NotPlaylist -> res.getString(R.string.setup_error_not_playlist)
+    is SourceTestResult.Denied -> res.getString(R.string.setup_error_denied)
 }
 
 /**
@@ -116,7 +118,7 @@ fun SourceTestResult.detailLines(
     return buildList {
         ok?.status?.takeIf { it.isNotBlank() }?.let { add(res.getString(R.string.settings_sources_test_status, it)) }
         if (ok?.trial == true) add(res.getString(R.string.settings_sources_test_trial))
-        if (this@detailLines !is SourceTestResult.Unreachable && this@detailLines !== SourceTestResult.AuthFailed) {
+        if (this@detailLines is SourceTestResult.Ok || this@detailLines is SourceTestResult.Expired) {
             // A portal's own wording first, then a timestamp, then "none reported".
             val expiry = ok?.expiryText?.takeIf { it.isNotBlank() }
                 ?: expiryMs?.let { formatTestDate(it) }

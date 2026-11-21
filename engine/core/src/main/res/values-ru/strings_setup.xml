@@ -129,7 +129,9 @@
     <string name="setup_error_address_scheme">Адрес должен начинаться с http:// или https://</string>
     <string name="setup_error_portal_address">Проверьте адрес портала, например http://сервер:порт/c/</string>
     <string name="setup_error_mac">MAC-адрес: <xliff:g id="hint">%1$s</xliff:g></string>
-    <string name="setup_error_unreachable">Не удалось открыть плейлист по этому адресу</string>
+    <string name="setup_error_unreachable">Сервер не ответил. Проверьте адрес, интернет или VPN</string>
+    <string name="setup_error_not_playlist">По ссылке открывается не плейлист. Проверьте адрес</string>
+    <string name="setup_error_denied">Сервер не пускает. Проверьте ссылку, User-Agent или VPN</string>
     <string name="setup_error_login">Неверное имя пользователя или пароль</string>
     <string name="setup_error_expired">Срок подписки истёк</string>
     <string name="setup_device_model_preset">Предустановка модели устройства (User-Agent)…</string>

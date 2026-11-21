@@ -173,4 +173,45 @@ class M3uHeaderParsingTest {
     fun reservedHeadersAreRejected() {
         assertEquals(emptyMap<String, String>(), StreamHeaders.decode("Host: evil.example\nContent-Length: 3"))
     }
+
+    @Test
+    fun userAgentAttributeOnExtM3uAppliesToEveryEntry() {
+        val entries = parse(
+            """
+            #EXTM3U url-tvg="http://epg/x.xml" user-agent="TiviMate/4.7"
+            #EXTINF:-1,A
+            http://host/a.ts
+            #EXTINF:-1,B
+            http://host/b.ts
+            """.trimIndent(),
+        )
+        assertEquals(listOf("TiviMate/4.7", "TiviMate/4.7"), entries.map { it.headers["User-Agent"] })
+    }
+
+    @Test
+    fun extInfAttributesAndDirectivesLayerFromPlaylistToUrl() {
+        val entries = parse(
+            """
+            #EXTM3U http-user-agent="Global/1" referer="http://global/"
+            #EXTINF:-1 user-agent="Entry/2",A
+            http://host/a.ts
+            #EXTINF:-1 user-agent="Entry/2",B
+            #EXTVLCOPT:http-user-agent=Vlc/3
+            http://host/b.ts
+            #EXTINF:-1 http-referrer="http://entry/",C
+            http://host/c.ts|User-Agent=Pipe/4
+            """.trimIndent(),
+        )
+        assertEquals("Entry/2", entries[0].headers["User-Agent"])
+        assertEquals("http://global/", entries[0].headers["Referer"])
+        assertEquals("Vlc/3", entries[1].headers["User-Agent"])
+        assertEquals("Pipe/4", entries[2].headers["User-Agent"])
+        assertEquals("http://entry/", entries[2].headers["Referer"])
+    }
+
+    @Test
+    fun noAttributesMeansNoHeaders() {
+        val entries = parse("#EXTM3U\n#EXTINF:-1 tvg-id=\"x\",A\nhttp://host/a.ts")
+        assertTrue(entries[0].headers.isEmpty())
+    }
 }

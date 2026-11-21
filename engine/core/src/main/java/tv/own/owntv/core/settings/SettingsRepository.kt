@@ -415,6 +415,7 @@ class SettingsRepository(private val context: Context, private val localeStore: 
 
         /** The one-time "this stream judders at your TV's refresh rate" suggestion has been answered. */
         val AUTO_FRAME_RATE_PROMPTED = booleanPreferencesKey("auto_frame_rate_prompted")
+        val PLAYER_CLOCK = booleanPreferencesKey("player_clock")
         val ANDROID_TV_HOME = booleanPreferencesKey("android_tv_home")
 
         // Multiview: watching up to four live channels at once.
@@ -2588,6 +2589,13 @@ class SettingsRepository(private val context: Context, private val localeStore: 
      */
     val autoFrameRatePrompted: Flow<Boolean> = prefsFlow { it[Keys.AUTO_FRAME_RATE_PROMPTED] ?: false }
 
+    /** Clock in the corner of the full-screen player, over the video. */
+    val playerClock: Flow<Boolean> = prefsFlow { it[Keys.PLAYER_CLOCK] ?: false }
+
+    suspend fun setPlayerClock(enabled: Boolean) {
+        context.dataStore.edit { it[Keys.PLAYER_CLOCK] = enabled }
+    }
+
     /** The choices for films' buffer (seconds; 0 = Auto, the device tier). */
     val vodBufferChoicesSecs: List<Int> = listOf(0, 30, 60, 120, 300)
 
@@ -3167,7 +3175,7 @@ class SettingsRepository(private val context: Context, private val localeStore: 
             Keys.TIMESHIFT_WINDOW_MINUTES)
         val bools = listOf(
             Keys.GUIDE_SHOW_EMPTY, Keys.GUIDE_PREVIEW,
-            Keys.LIVE_PREVIEW, Keys.LIVE_PREVIEW_AUDIO, Keys.HERO_PREVIEW, Keys.PREFER_SDR, Keys.AUTO_FRAME_RATE, Keys.AFR_MATCH_RESOLUTION, Keys.AUTO_FRAME_RATE_PROMPTED, Keys.ANDROID_TV_HOME, Keys.HW_DECODING, Keys.SOFTWARE_DECODE_ABOVE_1080P,
+            Keys.LIVE_PREVIEW, Keys.LIVE_PREVIEW_AUDIO, Keys.HERO_PREVIEW, Keys.PREFER_SDR, Keys.AUTO_FRAME_RATE, Keys.AFR_MATCH_RESOLUTION, Keys.AUTO_FRAME_RATE_PROMPTED, Keys.PLAYER_CLOCK, Keys.ANDROID_TV_HOME, Keys.HW_DECODING, Keys.SOFTWARE_DECODE_ABOVE_1080P,
             Keys.VOD_PREFER_EXO, Keys.MEASURED_STREAM_STATS, Keys.DETAILED_DIAGNOSTICS, Keys.DIRECT_TUNE, Keys.LIVE_LEFT_RIGHT_REWINDS, Keys.EXTERNAL_PLAYER,
             Keys.EXTERNAL_PLAYER_LIVE, Keys.EXTERNAL_PLAYER_MOVIES, Keys.EXTERNAL_PLAYER_SERIES, Keys.UPDATE_CHECK_ON_START, Keys.SURROUND_SOUND, Keys.AUTO_PLAY_NEXT, Keys.PROXY_ENABLED,
             Keys.WEATHER_ENABLED, Keys.WEATHER_FAHRENHEIT, Keys.RESUME_LAST_CHANNEL, Keys.METADATA_ENABLED, Keys.CH_NAV_ENABLED,

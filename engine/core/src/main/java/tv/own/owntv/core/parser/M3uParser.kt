@@ -81,6 +81,8 @@ class M3uParser {
         var header = M3uHeader(urlTvg = null)
         // `catchup-correction` on the #EXTM3U line is the default for every entry that has none.
         var headerCorrectionMin = 0
+        // `user-agent="…"` / `referer="…"` on the #EXTM3U line: defaults for every entry.
+        var headerAttrHeaders: Map<String, String> = emptyMap()
         var pending: PendingExtInf? = null
         // Per-channel HTTP options arrive on their own lines BETWEEN the #EXTINF and the URL, so they
         // are collected separately and consumed by the URL line.
@@ -107,6 +109,7 @@ class M3uParser {
                     val attrs = parseAttrs(line)
                     header = M3uHeader(urlTvg = attrs.attr("url-tvg") ?: attrs.attr("x-tvg-url"))
                     headerCorrectionMin = correctionMinutes(attrs.attr("catchup-correction")) ?: 0
+                    headerAttrHeaders = attrHeaders(attrs)
                 }
 
                 line.startsWith("#EXTINF") -> {
@@ -130,6 +133,7 @@ class M3uParser {
                         catchupDays = attrs.attr("catchup-days")?.toIntOrNull() ?: timeshiftDays
                             ?: attrs.attr("tvg-rec")?.toIntOrNull()?.takeIf { it > 0 },
                         catchupCorrectionMin = correctionMinutes(attrs.attr("catchup-correction")) ?: headerCorrectionMin,
+                        headers = attrHeaders(attrs),
                     )
                     nextGroup = null
                 }
@@ -190,7 +194,7 @@ class M3uParser {
                                     catchup = p.catchup,
                                     catchupSource = p.catchupSource,
                                     catchupDays = p.catchupDays,
-                                    headers = pendingHeaders ?: emptyMap(),
+                                    headers = mergeHeaders(headerAttrHeaders, p.headers, pendingHeaders),
                                     drm = pendingKodiProps?.let { tv.own.owntv.core.drm.DrmConfig.fromKodiProps(it) },
                                     manifestType = pendingKodiProps?.let {
                                         tv.own.owntv.core.player.ManifestType.fromKodiProps(it)
@@ -248,7 +252,31 @@ class M3uParser {
         val catchupSource: String?,
         val catchupDays: Int?,
         val catchupCorrectionMin: Int,
+        val headers: Map<String, String> = emptyMap(),
     )
+
+    /** `user-agent` / `http-user-agent` / `referer` / `http-referrer` attributes of an #EXTM3U or
+     *  #EXTINF line as request headers. */
+    private fun attrHeaders(attrs: Map<String, String>): Map<String, String> {
+        val out = LinkedHashMap<String, String>(2)
+        for (key in ATTR_HEADER_KEYS) {
+            val value = attrs.attr(key)?.trim()?.takeIf { it.isNotEmpty() } ?: continue
+            val name = StreamHeaders.canonicalName(key.removePrefix("http-")) ?: continue
+            out.putIfAbsent(name, value)
+        }
+        return out
+    }
+
+    /** Playlist-wide defaults, then the entry's attributes, then its directives and URL suffix: the
+     *  closer to the URL, the stronger. */
+    private fun mergeHeaders(vararg layers: Map<String, String>?): Map<String, String> {
+        val present = layers.filter { !it.isNullOrEmpty() }
+        if (present.isEmpty()) return emptyMap()
+        if (present.size == 1) return present[0]!!
+        val out = LinkedHashMap<String, String>(4)
+        present.forEach { out.putAll(it!!) }
+        return out
+    }
 
     /** `catchup-correction` is in hours and may be fractional or negative ("-1.5"); null when it is
      *  not a number. Rounded to whole minutes, which is all a guide time ever needs. */
@@ -434,6 +462,7 @@ class M3uParser {
     private companion object {
         private const val TAG = "M3uParser"
         private const val STREAM_LOG_ITEM_STEP = 10_000
+        private val ATTR_HEADER_KEYS = listOf("http-user-agent", "user-agent", "http-referrer", "http-referer", "referer", "referrer")
         private const val EXTVLCOPT = "#EXTVLCOPT:"
         private const val EXTGRP = "#EXTGRP:"
         private const val EXTHTTP = "#EXTHTTP:"

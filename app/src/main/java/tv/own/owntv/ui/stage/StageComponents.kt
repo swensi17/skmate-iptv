@@ -1,6 +1,7 @@
 package tv.own.owntv.ui.stage
 
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.input.pointer.pointerInput
 import tv.own.owntv.ui.theme.stageTone
 import androidx.compose.animation.core.animateFloatAsState
@@ -226,9 +227,16 @@ fun StageSurface(
         if (sheetFocus || whiteFocus) {
             // On the light grey bar text is dark: the light palette, and an accent whose "on" colour is ink.
             val light = tv.own.owntv.ui.theme.StagePalette.Light
+            // A pale accent (white in the dark theme) vanishes on the light bar; the brand blue reads on it.
+            val onBar = if (accent.accent.luminance() > PALE_ACCENT_LUMINANCE) {
+                tv.own.owntv.ui.brand.SkMateBlue
+            } else {
+                accent.accent
+            }
             androidx.compose.runtime.CompositionLocalProvider(
                 LocalStagePalette provides light,
-                tv.own.owntv.ui.theme.LocalStageAccentOverride provides tv.own.owntv.ui.theme.StageAccent(accent.accent, light.text, light.text),
+                tv.own.owntv.ui.theme.LocalStageAccentOverride provides
+                    tv.own.owntv.ui.theme.StageAccent(onBar, light.text, light.text),
             ) { content(focused) }
         } else content(focused)
     }
@@ -1333,3 +1341,6 @@ private fun focusShape(radius: Dp) = object : androidx.compose.ui.graphics.Shape
 /** Segment corners: barely rounded on the TV, like every focus bar. */
 @androidx.compose.runtime.Composable
 private fun segShape(r: Int) = androidx.compose.foundation.shape.RoundedCornerShape(if (tv.own.owntv.features.shell.TvBoxNav) 4.mpx else r.mpx)
+
+/** Above this an accent is too pale for text on the light focus bar. */
+private const val PALE_ACCENT_LUMINANCE = 0.6f

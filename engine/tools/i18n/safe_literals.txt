@@ -2491,12 +2491,17 @@
 1	protocol	core/src/main/java/tv/own/owntv/core/parser/M3uParser.kt	catchup-source
 1	protocol	core/src/main/java/tv/own/owntv/core/parser/M3uParser.kt	catchup-type
 1	protocol	core/src/main/java/tv/own/owntv/core/parser/M3uParser.kt	group-title
-2	technical	core/src/main/java/tv/own/owntv/core/parser/M3uParser.kt	http-
+3	protocol	core/src/main/java/tv/own/owntv/core/parser/M3uParser.kt	http-
+1	protocol	core/src/main/java/tv/own/owntv/core/parser/M3uParser.kt	http-referer
+1	protocol	core/src/main/java/tv/own/owntv/core/parser/M3uParser.kt	http-referrer
+1	protocol	core/src/main/java/tv/own/owntv/core/parser/M3uParser.kt	http-user-agent
 2	protocol	core/src/main/java/tv/own/owntv/core/parser/M3uParser.kt	movie
 1	protocol	core/src/main/java/tv/own/owntv/core/parser/M3uParser.kt	parse end entries=$entries totalMs=${SystemClock.elapsedRealtime() - startedAt}
 1	protocol	core/src/main/java/tv/own/owntv/core/parser/M3uParser.kt	parse progress entries=$entries deltaMs=${now - lastLogAt}
 1	protocol	core/src/main/java/tv/own/owntv/core/parser/M3uParser.kt	parse start
 1	protocol	core/src/main/java/tv/own/owntv/core/parser/M3uParser.kt	parseOrReadMs=$parseOrReadDelta callbackMs=$callbackDelta
+1	protocol	core/src/main/java/tv/own/owntv/core/parser/M3uParser.kt	referer
+1	protocol	core/src/main/java/tv/own/owntv/core/parser/M3uParser.kt	referrer
 2	protocol	core/src/main/java/tv/own/owntv/core/parser/M3uParser.kt	series
 1	protocol	core/src/main/java/tv/own/owntv/core/parser/M3uParser.kt	shift
 1	protocol	core/src/main/java/tv/own/owntv/core/parser/M3uParser.kt	timeshift
@@ -2510,6 +2515,7 @@
 1	protocol	core/src/main/java/tv/own/owntv/core/parser/M3uParser.kt	tvg-type
 1	protocol	core/src/main/java/tv/own/owntv/core/parser/M3uParser.kt	type
 1	protocol	core/src/main/java/tv/own/owntv/core/parser/M3uParser.kt	url-tvg
+1	protocol	core/src/main/java/tv/own/owntv/core/parser/M3uParser.kt	user-agent
 2	protocol	core/src/main/java/tv/own/owntv/core/parser/M3uParser.kt	vod
 1	protocol	core/src/main/java/tv/own/owntv/core/parser/M3uParser.kt	x-tvg-url
 1	technical	core/src/main/java/tv/own/owntv/core/parser/ProgressiveVideoUrl.kt	://
@@ -3242,6 +3248,7 @@
 1	preference-key	core/src/main/java/tv/own/owntv/core/settings/SettingsRepository.kt	pip_on_back
 1	preference-key	core/src/main/java/tv/own/owntv/core/settings/SettingsRepository.kt	pip_size
 1	preference-key	core/src/main/java/tv/own/owntv/core/settings/SettingsRepository.kt	pip_snap
+1	preference-key	core/src/main/java/tv/own/owntv/core/settings/SettingsRepository.kt	player_clock
 1	preference-key	core/src/main/java/tv/own/owntv/core/settings/SettingsRepository.kt	playlist_auto_refresh
 1	preference-key	core/src/main/java/tv/own/owntv/core/settings/SettingsRepository.kt	popup_font_family
 1	preference-key	core/src/main/java/tv/own/owntv/core/settings/SettingsRepository.kt	popup_font_size_percent

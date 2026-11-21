@@ -298,6 +298,7 @@ fun OwnTVShell(
     // ...and the one-time suggestion to turn it on, for the 25-fps-on-60-Hz judder the direct render path
     // cannot fix by itself. `true` until the flag is read, so it can never flash on first frame.
     val afrPrompted by settingsRepo.autoFrameRatePrompted.collectAsStateWithLifecycle(initialValue = true)
+    val playerClock by settingsRepo.playerClock.collectAsStateWithLifecycle(initialValue = false)
     // Direct tune (type a channel number on the remote). Settings › Live TV › Channel numbers; default on.
     val directTuneEnabled by settingsRepo.directTune.collectAsStateWithLifecycle(initialValue = true)
     // "Prefer EPG logos": start following the setting once, here rather than in Application.onCreate —
@@ -1850,6 +1851,7 @@ fun OwnTVShell(
                     },
                 )
             }
+            if (isFull && playerClock) tv.own.owntv.player.PlayerCornerClock(Modifier.fillMaxSize())
             if (isFull && !autoFrameRate && !afrPrompted) {
                 // Frame rate of whichever engine is on screen. On the mpv side this is what the direct
                 // path judders on; on Exo it now survives "Measured stream stats" being off.

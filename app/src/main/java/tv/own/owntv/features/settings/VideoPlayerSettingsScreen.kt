@@ -73,11 +73,17 @@ private const val SECTION_DIAGNOSTICS = 11
  * listed under it. App adds Diagnostics under its own rows; Watching & recording adds Recording after.
  */
 internal enum class VideoGroup(val titleRes: Int, val parts: List<Pair<Int, List<Int>>>) {
-    PLAYER(R.string.settings_vp_cat_player, listOf(R.string.settings_vp_cat_player to listOf(SECTION_PLAYER))),
+    PLAYER(
+        R.string.settings_vp_cat_player,
+        listOf(
+            R.string.settings_vp_cat_player to listOf(SECTION_PLAYER),
+            R.string.settings_vp_cat_controls to listOf(SECTION_CONTROLS),
+        ),
+    ),
     PICTURE(R.string.settings_vp_cat_picture, listOf(R.string.settings_vp_cat_picture to listOf(SECTION_PICTURE), R.string.settings_vp_cat_frame_rate to listOf(SECTION_FRAME_RATE))),
     SOUND(R.string.settings_group_sound_subtitles, listOf(R.string.settings_vp_section_sound to listOf(SECTION_SOUND), R.string.settings_vp_cat_languages to listOf(SECTION_LANGUAGES))),
     LIVE(R.string.settings_live_tv, listOf(R.string.settings_live_tv to listOf(SECTION_LIVE), R.string.settings_vp_cat_live_tuning to listOf(SECTION_LIVE_TUNING))),
-    WATCHING(R.string.settings_group_watching_recording, listOf(R.string.settings_vp_cat_controls_resume to listOf(SECTION_CONTROLS, SECTION_RESUME), R.string.settings_vp_cat_multiview to listOf(SECTION_MULTIVIEW))),
+    WATCHING(R.string.settings_group_watching_recording, listOf(R.string.settings_vp_cat_resume to listOf(SECTION_RESUME), R.string.settings_vp_cat_multiview to listOf(SECTION_MULTIVIEW))),
     DIAGNOSTICS(R.string.settings_group_app, listOf(R.string.settings_diagnostics to listOf(SECTION_DIAGNOSTICS))),
 }
 
@@ -110,7 +116,7 @@ internal fun videoSectionCounts(vm: SettingsViewModel): List<Int> {
         3,
         4 + (if (livePreview) 1 else 0) + (if (timeshift) 1 else 0),
         3 + (if (perPlaylist) 3 else 0),
-        2,
+        3,
         2 + (if (multiview) 1 else 0),
         9, 3, 2, 2,
     )
@@ -164,6 +170,9 @@ private val RemovedVideoRows = setOf(
 )
 
 /** Every row of this screen that can be pinned to Quick, in the order the sections show them. */
+private val PLAYER_CLOCK_TITLE = R.string.settings_player_clock
+private val PLAYER_CLOCK_DESC = R.string.settings_player_clock_description
+
 internal val VIDEO_QUICK_ROWS: List<VideoQuickRef> = listOf(
     VideoQuickRef("vp_live_engine", SECTION_PLAYER, OwnTVIcon.PLAY, R.string.settings_live_tv_player, R.string.settings_live_player_description),
     VideoQuickRef("vp_live_engine_sources", SECTION_PLAYER, OwnTVIcon.PLAY, R.string.settings_live_engine_per_playlist, R.string.settings_live_engine_per_playlist_description),
@@ -179,6 +188,7 @@ internal val VIDEO_QUICK_ROWS: List<VideoQuickRef> = listOf(
     VideoQuickRef("vp_tunneled", SECTION_PICTURE, OwnTVIcon.VIDEO, R.string.settings_tunneled_playback, R.string.settings_tunneled_playback_description),
     VideoQuickRef("vp_zoom", SECTION_PICTURE, OwnTVIcon.ASPECT, R.string.settings_default_zoom, R.string.settings_default_zoom_description),
     VideoQuickRef("vp_reset_zoom", SECTION_PICTURE, OwnTVIcon.ASPECT, R.string.settings_reset_saved_zoom, R.string.settings_reset_saved_zoom_description),
+    VideoQuickRef("vp_clock", SECTION_CONTROLS, OwnTVIcon.CLOCK, PLAYER_CLOCK_TITLE, PLAYER_CLOCK_DESC),
     VideoQuickRef("vp_afr", SECTION_FRAME_RATE, OwnTVIcon.VIDEO, R.string.settings_auto_frame_rate, R.string.settings_auto_frame_rate_description),
     VideoQuickRef("vp_afr_pause", SECTION_FRAME_RATE, OwnTVIcon.PAUSE, R.string.settings_afr_pause, R.string.settings_afr_pause_description),
     VideoQuickRef("vp_afr_resolution", SECTION_FRAME_RATE, OwnTVIcon.ASPECT, R.string.settings_afr_resolution, R.string.settings_afr_resolution_description),
@@ -289,6 +299,10 @@ internal fun videoQuickBinding(key: String, vm: SettingsViewModel): VideoQuickBi
                 stringResource(R.string.settings_multiview_tiles_max_value, tiles),
                 tiles > tv.own.owntv.core.live.DEFAULT_MULTIVIEW_TILES,
             )
+        }
+        "vp_clock" -> {
+            val on by vm.playerClock.collectAsStateWithLifecycle()
+            toggle(onOff(on), on) { vm.setPlayerClock(!on) }
         }
         "vp_afr" -> {
             val on by vm.autoFrameRate.collectAsStateWithLifecycle()
@@ -615,6 +629,7 @@ internal fun VideoPlayerGroupRows(
     // groups are the one complete list; a pin or a search result is a shortcut to the same value.
     val hdr by vm.preferSdr.collectAsStateWithLifecycle()
     val autoFrameRate by vm.autoFrameRate.collectAsStateWithLifecycle()
+    val playerClock by vm.playerClock.collectAsStateWithLifecycle()
     val multiviewEnabled by vm.multiviewEnabled.collectAsStateWithLifecycle()
     val multiviewTiles by vm.multiviewTiles.collectAsStateWithLifecycle()
     val multiviewWarningAccepted by vm.multiviewWarningAccepted.collectAsStateWithLifecycle()
@@ -1154,6 +1169,14 @@ internal fun VideoPlayerGroupRows(
         }
                     }
                     SECTION_CONTROLS -> {
+        KeyedSettingRow(
+            quickKey = "vp_clock",
+            icon = OwnTVIcon.CLOCK,
+            title = stringResource(R.string.settings_player_clock),
+            desc = stringResource(R.string.settings_player_clock_description),
+            value = SettingValue.Switch(playerClock),
+            onClick = { vm.setPlayerClock(!playerClock) },
+        )
         KeyedSettingRow(
             quickKey = "vp_seek_step",
             choices = tv.own.owntv.core.settings.SeekSteps.SEEK_CHOICES.map { stringResource(R.string.settings_live_buffer_seconds, it) },

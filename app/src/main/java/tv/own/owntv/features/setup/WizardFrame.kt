@@ -232,7 +232,9 @@ private fun WizardButton(action: WizardAction, width: Dp, primary: Boolean, modi
         modifier = modifier.width(width).height(76.mpx).then(action.focus?.let { Modifier.focusRequester(it) } ?: Modifier),
     ) { focused ->
         // Focused: transparent, so the row's sliding white highlight shows through behind the text.
-        val color = StageColors.Text.copy(alpha = if (action.enabled) 1f else 0.4f)
+        // The highlight is light grey in both themes, so the focused label is dark to stay readable.
+        val base = if (focused) WIZARD_FOCUS_TEXT else StageColors.Text
+        val color = base.copy(alpha = if (action.enabled) 1f else DISABLED_ALPHA)
         Row(horizontalArrangement = Arrangement.spacedBy(12.mpx), verticalAlignment = Alignment.CenterVertically) {
             // Back says where it goes: an arrow pointing left before the word.
             if (isBack) OwnTVIcon(OwnTVIcon.BACK, color, Modifier.size(26.mpx))
@@ -303,6 +305,11 @@ private val WizardButtonShape = RoundedCornerShape(4.mpx)
 
 /** The light grey bar that slides under the focused button. */
 private val WizardFocusFill = Color(0xFFDADCDF)
+
+/** Label on [WizardFocusFill]. */
+private val WIZARD_FOCUS_TEXT = Color(WIZARD_FOCUS_TEXT_ARGB)
+private const val WIZARD_FOCUS_TEXT_ARGB = 0xFF1B1E22
+private const val DISABLED_ALPHA = 0.4f
 
 /** The setup backdrop: the theme's flat page colour (cream paper in the Family light theme). */
 internal val SetupBackdrop: Color @Composable get() = tv.own.owntv.ui.theme.LocalStagePalette.current.page

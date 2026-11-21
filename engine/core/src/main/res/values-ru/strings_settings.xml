@@ -1789,4 +1789,8 @@
     <string name="settings_motion_auto">Подстраиваться под устройство</string>
     <string name="settings_motion_auto_desc">На слабой приставке или при лагах анимации сами отключаются, на нормальной включены</string>
     <string name="settings_motion_auto_off_now">Устройство не успевает: анимации пока отключены, позже проверим снова</string>
+    <string name="settings_player_clock">Часы поверх видео</string>
+    <string name="settings_player_clock_description">Текущее время в углу экрана во время просмотра</string>
+    <string name="settings_vp_cat_controls">Управление</string>
+    <string name="settings_vp_cat_resume">Продолжение просмотра</string>
 </resources>

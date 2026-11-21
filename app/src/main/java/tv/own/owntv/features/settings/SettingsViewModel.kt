@@ -305,6 +305,13 @@ class SettingsViewModel(
         viewModelScope.launch { settings.setAutoFrameRate(enabled) }
     }
 
+    val playerClock: StateFlow<Boolean> = settings.playerClock
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
+
+    fun setPlayerClock(enabled: Boolean) {
+        viewModelScope.launch { settings.setPlayerClock(enabled) }
+    }
+
     // The old surround BOOLEAN is gone from here: [surroundMode] replaced it, and the leftover flow
     // defaulted to `true` where the setting's own default is `false` — a trap for anyone who wired a UI
     // to it. The legacy key itself still lives in SettingsRepository, which reads it so an upgrading

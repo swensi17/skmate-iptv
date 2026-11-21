@@ -444,6 +444,9 @@ fun AddSourceScreen(
             is tv.own.owntv.core.repository.SourceTestResult.Ok -> SourceCheck.Ok
             is tv.own.owntv.core.repository.SourceTestResult.AuthFailed -> SourceCheck.Failed(R.string.setup_error_login)
             is tv.own.owntv.core.repository.SourceTestResult.Expired -> SourceCheck.Failed(R.string.setup_error_expired)
+            tv.own.owntv.core.repository.SourceTestResult.NotPlaylist ->
+                SourceCheck.Failed(R.string.setup_error_not_playlist)
+            is tv.own.owntv.core.repository.SourceTestResult.Denied -> SourceCheck.Failed(R.string.setup_error_denied)
             else -> if (r == null || r is tv.own.owntv.core.repository.SourceTestResult.Unreachable) SourceCheck.Failed(R.string.setup_error_unreachable) else SourceCheck.Ok
         }
     }
@@ -456,7 +459,10 @@ fun AddSourceScreen(
             SourceCheck.Idle -> Unit
         }
     }
-    val canStart = errors.isEmpty() && (editing || localFile || check == SourceCheck.Ok) && when (kind) {
+    // An M3U link the quick probe could not confirm may still sync: some servers answer the full
+    // download and not a short probe, or only through the user's VPN. The error stays on screen.
+    val m3uTried = kind == SourceKind.M3U && check is SourceCheck.Failed
+    val canStart = errors.isEmpty() && (editing || localFile || check == SourceCheck.Ok || m3uTried) && when (kind) {
         SourceKind.XTREAM -> server.isNotBlank() && username.isNotBlank() && password.isNotBlank() && hasAnySectionOn
         SourceKind.M3U -> m3uUrl.isNotBlank()
         SourceKind.STALKER -> tv.own.owntv.core.stalker.StalkerClient.isValidPortalUrl(portalUrl) && macValid && hasAnySectionOn
