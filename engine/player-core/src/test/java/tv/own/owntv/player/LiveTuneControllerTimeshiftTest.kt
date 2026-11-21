@@ -192,6 +192,9 @@ class LiveTuneControllerTimeshiftTest {
         engines.exoWatch!!.complete(null)
         c.tune(channel(first))
         awaitLog(engines) { log -> log.count { it.startsWith("exo:") } >= 3 }
+        // The tune logs the engine call before it publishes the kept copy: wait for that too, or a busy
+        // machine read the copy a moment too early.
+        repeat(100) { if (c.localTimeshift.value != null) return c to engines; delay(50) }
         return c to engines
     }
 

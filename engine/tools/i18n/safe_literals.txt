@@ -5864,6 +5864,7 @@
 1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	gave up after $reconnects reconnects ($why)
 1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	memory pressure: the preview lets go
 1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	open timeout
+1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	picture ready after ${SystemClock.elapsedRealtime() - openedAt}ms
 1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	picture stuck while data arrives — reopening on the software decoder
 1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	play() engine=$engineId url=${HttpClient.redactUrl(url)} muted=$muted
 1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	preview: control step failed (${t.javaClass.simpleName}: ${t.message})

@@ -1,5 +1,7 @@
 package tv.own.owntv.player
 
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import android.content.Context
 import android.net.Uri
 import android.os.Handler
@@ -64,6 +66,8 @@ class LivePreviewEngine(
         }
     }
     private val engineId = System.identityHashCode(this)
+    private val lowSpec: Boolean by lazy { tv.own.owntv.core.player.PlayerBudget.of(context).lowSpec }
+
     private val vlc: LibVLC by lazy { LibVLC(context.applicationContext, vlcOptions()) }
     private var player: MediaPlayer? = null
     private var surface: Surface? = null
@@ -123,13 +127,14 @@ class LivePreviewEngine(
     private var muted = false
     private var userAgent: String? = null
     private var headers: String? = null
-    private var liveBufferSecs: Int? = null
+    @Volatile private var liveBufferSecs: Int? = null
     private var liveBufferOverride: LiveBuffer.Override? = null
     private var hasPlayed = false
     private var gaveUp = false
     private var reconnects = 0
     private var softwareTried = false
     private var lastShown = 0
+    private var bufferedOnce = false
     private var lastRead = 0L
     private var stuckChecks = 0
     private var openedAt = 0L
@@ -140,8 +145,20 @@ class LivePreviewEngine(
     private var audioTracks: List<TrackOption> = emptyList()
     private var textTracks: List<TrackOption> = emptyList()
 
+    private val settingsScope =
+        kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.SupervisorJob() + kotlinx.coroutines.Dispatchers.Default)
+
     init {
         LiveDiagnosticsLog.init(context)
+        // The global "Live latency" choice: a playlist's own choice still wins (liveBufferOverride).
+        settingsScope.launch {
+            kotlinx.coroutines.flow.combine(settings.liveLatencyMode, settings.liveLatencyCustomSecs) { mode, custom ->
+                tv.own.owntv.core.settings.LiveBuffer.effectiveSeconds(
+                    tv.own.owntv.core.settings.LiveLatency.fromName(mode),
+                    custom,
+                )
+            }.collect { liveBufferSecs = it }
+        }
     }
 
     // ---- surfaces -----------------------------------------------------------------------------------------
@@ -276,7 +293,7 @@ class LivePreviewEngine(
         }
         _error.value = null; _errorInfo.value = null
         _state.value = State.LOADING; _buffering.value = true; _isPlaying.value = false
-        lastShown = 0; lastRead = 0L; stuckChecks = 0; sawLife = false
+        lastShown = 0; lastRead = 0L; stuckChecks = 0; sawLife = false; bufferedOnce = false
         openedAt = SystemClock.elapsedRealtime()
         main.removeCallbacks(watchdog)
         main.postDelayed(watchdog, WATCH_MS)
@@ -289,7 +306,10 @@ class LivePreviewEngine(
     private fun cachingMs(): Int {
         val secs = liveBufferOverride?.secs ?: liveBufferSecs
         // A connection that keeps stalling gets a deeper buffer on the next open (see [StallMeter]).
-        return (((secs ?: DEFAULT_CACHE_SECS) + stalls.extraSecs()) * 1000).coerceIn(MIN_CACHE_MS, MAX_CACHE_MS)
+        // libVLC holds the first picture until this much is buffered, so it is most of the zap time: 1 s
+        // (libVLC's own default), 1.5 s on a weak box. A connection that keeps stalling still gets more.
+        val base = secs?.let { it * MS_PER_SEC } ?: if (lowSpec) LOW_SPEC_CACHE_MS else DEFAULT_CACHE_MS
+        return (base + stalls.extraSecs() * MS_PER_SEC).coerceIn(MIN_CACHE_MS, MAX_CACHE_MS)
     }
 
     private val stalls = StallMeter(SystemClock::elapsedRealtime)
@@ -310,6 +330,11 @@ class LivePreviewEngine(
                 if (hasPlayed && _stalledSinceMs.value == null) { _stalledSinceMs.value = SystemClock.elapsedRealtime(); noteStall() }
                 _buffering.value = true
             } else {
+                // The honest zap time: the buffer is full and the picture really moves (Vout comes earlier).
+                if (!bufferedOnce) {
+                    bufferedOnce = true
+                    LiveDiagnosticsLog.event("picture ready after ${SystemClock.elapsedRealtime() - openedAt}ms")
+                }
                 _buffering.value = false; _stalledSinceMs.value = null
             }
             MediaPlayer.Event.Playing -> { _isPlaying.value = true }
@@ -342,10 +367,14 @@ class LivePreviewEngine(
             _videoRes.value = "${h}p"
             val fps = if (video.frameRateDen > 0) video.frameRateNum.toFloat() / video.frameRateDen else null
             _videoFps.value = fps?.takeIf { it in 1f..240f }
-            val media = p.media
-            val channels = media?.let { m ->
-                (0 until m.trackCount).map { m.getTrack(it) }
-                    .firstNotNullOfOrNull { it as? org.videolan.libvlc.interfaces.IMedia.AudioTrack }?.channels
+            // getMedia() retains the native Media: it is released here, or every channel's stayed in memory.
+            val channels = p.media?.let { m ->
+                try {
+                    (0 until m.trackCount).map { m.getTrack(it) }
+                        .firstNotNullOfOrNull { it as? org.videolan.libvlc.interfaces.IMedia.AudioTrack }?.channels
+                } finally {
+                    m.release()
+                }
             }
             val stereo = channels
             _streamChips.value = listOfNotNull(
@@ -392,7 +421,8 @@ class LivePreviewEngine(
                 val gen = openGen
                 ctl.post {
                     val snap = runCatching {
-                        val stats = p.media?.stats
+                        // Released at once: the watchdog asks every second, and each ask retained the Media.
+                        val stats = p.media?.let { m -> try { m.stats } finally { m.release() } }
                         if (stats == null) null else Snapshot(
                             maxOf(stats.decodedVideo, stats.displayedPictures),
                             stats.demuxReadBytes.toLong(), p.videoTracksCount, p.audioTracksCount,
@@ -490,6 +520,7 @@ class LivePreviewEngine(
     }
 
     fun release() {
+        settingsScope.cancel()
         stop()
         player?.let { p -> p.setEventListener(null); p.vlcVout.detachViews(); ctlPost { p.release() } }
         player = null
@@ -573,8 +604,10 @@ class LivePreviewEngine(
         internal const val DEATH_VERDICT_MS = 30_000L
         private const val DEFAULT_UA = "VLC/3.0.20 LibVLC/3.0.20"
         /** The cache behind the picture when the latency setting says nothing: enough for a slow segment. */
-        private const val DEFAULT_CACHE_SECS = 3
-        private const val MIN_CACHE_MS = 1_000
+        private const val DEFAULT_CACHE_MS = 1_000
+        private const val LOW_SPEC_CACHE_MS = 1_500
+        private const val MS_PER_SEC = 1_000
+        private const val MIN_CACHE_MS = 500
         private const val MAX_CACHE_MS = 30_000
         private const val WATCH_MS = 1_000L
         /** The longest the main thread waits for libVLC to let go of a surface. */
