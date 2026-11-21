@@ -89,8 +89,8 @@ internal fun TvBoxPlayerPanels(
             width = categoriesWidth,
             onLongSelect = { categoryMenu = it },
             paused = categoryMenu != null,
+            // The categories stay beside the menu, as on the home screen.
             onOpenMenu = {
-                liveVm.hideCategoryBrowser()
                 startChannel = null
                 onOpenMenu()
             },
@@ -180,6 +180,8 @@ internal fun rememberVideoDock(
     besideCategories: Boolean,
     progress: androidx.compose.animation.core.Animatable<Float, androidx.compose.animation.core.AnimationVector1D>,
     inset: androidx.compose.animation.core.Animatable<Dp, androidx.compose.animation.core.AnimationVector1D>,
+    /** The side menu's push: the docked picture moves aside with the panels. */
+    menuShift: () -> Dp = { Dp(0f) },
 ): Modifier {
     val spec = androidx.compose.animation.core.tween<Float>(DockAnimMs, easing = androidx.compose.animation.core.FastOutSlowInEasing)
     androidx.compose.runtime.LaunchedEffect(besideCategories) {
@@ -199,11 +201,12 @@ internal fun rememberVideoDock(
         } else {
             fun lerp(a: Float, b: Float) = a + (b - a) * t
             val dock = tv.own.owntv.features.shell.components.TvBoxDock
-            val dockW = dock.width(w.toDp(), inset.value)
+            val dockW = dock.width(w.toDp(), inset.value + menuShift())
             val dw = lerp(w.toFloat(), dockW.toPx()).roundToInt().coerceAtLeast(1)
             val dh = lerp(h.toFloat(), (dockW * 9f / 16f).toPx()).roundToInt().coerceAtLeast(1)
             val p = measurable.measure(androidx.compose.ui.unit.Constraints.fixed(dw, dh))
-            layout(w, h) { p.place(lerp(0f, (dock.Left + inset.value).toPx()).roundToInt(), lerp(0f, dock.Top.toPx()).roundToInt()) }
+            val x = lerp(0f, (dock.Left + inset.value + menuShift()).toPx()).roundToInt()
+            layout(w, h) { p.place(x, lerp(0f, dock.Top.toPx()).roundToInt()) }
         }
     }
 }

@@ -764,9 +764,17 @@ fun OwnTVShell(
     }
     // The open TV-box menu's width, eased, by which the screen slides right while it is open.
     val menuPush by androidx.compose.animation.core.animateDpAsState(
-        // Weak TVs do not slide the whole screen aside (a full frame redrawn per step); the menu lies over it.
-        if (TvBoxNav && tv.own.owntv.ui.theme.MotionPrefs.smoothMenu && railState == tv.own.owntv.features.shell.components.RailState.OPEN) tv.own.owntv.features.shell.components.tvBoxMenuWidth(navSize) else 0.dp,
-        androidx.compose.animation.core.tween(tv.own.owntv.ui.theme.MotionPrefs.ms(300), easing = androidx.compose.animation.core.FastOutSlowInEasing),
+        // The menu always moves the screen aside, never lies over it. Weak TVs jump there in one step
+        // (a full frame redrawn per animation step is what they cannot afford), the rest slide.
+        if (TvBoxNav && railState == tv.own.owntv.features.shell.components.RailState.OPEN) {
+            tv.own.owntv.features.shell.components.tvBoxMenuWidth(navSize)
+        } else {
+            0.dp
+        },
+        androidx.compose.animation.core.tween(
+            if (tv.own.owntv.ui.theme.MotionPrefs.smoothMenu) tv.own.owntv.ui.theme.MotionPrefs.ms(MENU_PUSH_MS) else 0,
+            easing = androidx.compose.animation.core.FastOutSlowInEasing,
+        ),
         label = "menuPush",
     )
     // The playlist chip reflects the active filter: "All playlists" when none is chosen (id <= 0), the
@@ -1812,7 +1820,9 @@ fun OwnTVShell(
             // TV-box look: with the channel panel open the picture moves into the top-right corner beside it,
             // laid out at that size (a SurfaceView ignores layer scaling), and comes back when it closes.
             val docked = TvBoxNav && isFull && zapSource == MainSection.LIVE_TV && (showChannelList || showHistoryList)
-            val videoDock = rememberVideoDock(docked, docked && showCategoryBrowser, playerDock, panelInset)
+            val videoDock = rememberVideoDock(
+                docked, docked && showCategoryBrowser, playerDock, panelInset,
+            ) { menuPush }
             // "Promote Preview": a Live channel playing on ExoPlayer renders the ExoPlayer surface — in BOTH
             // full-screen AND the docked mini-player (same call site = the surface persists across dock/
             // expand, so playback never blips). Everything else (mpv) renders mpv's surface.
@@ -2117,6 +2127,7 @@ fun OwnTVShell(
                 // Left — the playing channel's own provider category.
                 if (showChannelList && isLiveChannel) {
                     if (TvBoxNav) {
+                      Box(Modifier.graphicsLayer { translationX = menuPush.toPx() }) {
                       PanelEnter(fromX = -48f) {
                         TvBoxPlayerPanels(
                             liveVm = liveVm,
@@ -2135,10 +2146,9 @@ fun OwnTVShell(
                             // The picture first comes back from its corner, then shrinks into the preview:
                             // both at once resized the video surface faster than some decoders follow.
                             // The menu opens where the viewer is: over the picture, which stays playing.
+                            // The same side menu as on the home screen: it slides in from the left and moves
+                            // the channels, the categories and the picture aside; nothing closes under it.
                             onOpenMenu = {
-                                showChannelList = false
-                                liveVm.hideCategoryBrowser()
-                                // After the HUD has taken its focus back from the closing panels, not before.
                                 menuPending = true
                                 scope.launch {
                                     // The panels are leaving and focus is still settling: ask until the menu has it.
@@ -2152,6 +2162,7 @@ fun OwnTVShell(
                                 }
                             },
                         )
+                      }
                       }
                     } else if (showCategoryBrowser) {
                         // Second Left — every Live TV category (dark glass over the picture in the TV-box look).
@@ -2516,3 +2527,6 @@ private val DockMs: Int get() = 0
 /** How often, and how far apart, the shell tries to put focus in a screen that is still composing. */
 private const val ContentFocusTries = 60
 private const val ContentFocusStepMs = 50L
+
+/** How long the side menu takes to move the screen aside. */
+private const val MENU_PUSH_MS = 300
