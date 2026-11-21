@@ -75,7 +75,7 @@ fun TvNoticeStack() {
 private const val ENTER_MS = 320
 private const val EXIT_MS = 260
 private const val EXIT_SLACK_MS = 30L
-private const val HIDE_GAP = 16
+private const val HIDE_GAP = 60
 private const val STACK_GAP = 10
 private const val TITLE_SIZE = 20
 private const val TITLE_WEIGHT = 600
@@ -90,8 +90,9 @@ private const val NOTICE_TEXT_ARGB = 0xFFB5BAC1
 @Suppress("FunctionNaming")
 private fun TvNoticeItem(n: TvNotices.Notice) {
     var shown by remember { mutableStateOf(false) }
-    val enterMs = tv.own.owntv.ui.theme.MotionPrefs.dur(ENTER_MS)
-    val exitMs = tv.own.owntv.ui.theme.MotionPrefs.dur(EXIT_MS)
+    // A blind: only a layer moves, so it slides on weak boxes too; Animations Off makes it appear in place.
+    val enterMs = tv.own.owntv.ui.theme.MotionPrefs.slideMs(ENTER_MS)
+    val exitMs = tv.own.owntv.ui.theme.MotionPrefs.slideMs(EXIT_MS)
     val p by animateFloatAsState(
         targetValue = if (shown) 1f else 0f,
         animationSpec = tween(
@@ -106,12 +107,11 @@ private fun TvNoticeItem(n: TvNotices.Notice) {
         delay(exitMs.toLong() + EXIT_SLACK_MS)
         TvNotices.items.removeAll { it.id == n.id }
     }
-    // Fades in with a short drop; the whole text is shown, wrapped, never cut with "…".
+    // Drops down from behind the top edge like a blind and rolls back up; the whole text is shown, never cut.
     Column(
         Modifier
             .graphicsLayer {
-                translationY = -(1f - p) * HIDE_GAP.mpx.toPx()
-                alpha = p
+                translationY = -(1f - p) * (size.height + HIDE_GAP.mpx.toPx())
             }
             .tvNoticeCard(),
         verticalArrangement = Arrangement.spacedBy(2.mpx),

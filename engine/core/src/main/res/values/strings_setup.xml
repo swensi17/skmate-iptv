@@ -235,9 +235,9 @@
     <string name="setup_error_address_scheme">The address must start with http:// or https://</string>
     <string name="setup_error_portal_address">Check the portal address, e.g. http://server:port/c/</string>
     <string name="setup_error_mac">MAC address: <xliff:g id="hint">%1$s</xliff:g></string>
-    <string name="setup_error_unreachable">The server didn\'t answer. Check the address, internet or VPN</string>
-    <string name="setup_error_not_playlist">The link opens something other than a playlist. Check the address</string>
-    <string name="setup_error_denied">The server refused access. Check the link, User-Agent or VPN</string>
+    <string name="setup_error_unreachable">The server is not answering</string>
+    <string name="setup_error_not_playlist">The link is not a playlist</string>
+    <string name="setup_error_denied">The server refuses access, check User-Agent or VPN</string>
     <string name="setup_error_login">Wrong username or password</string>
     <string name="setup_error_expired">This subscription has expired</string>
     <string name="setup_stalker_advanced_identity">Advanced device identification</string>

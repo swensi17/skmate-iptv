@@ -1384,9 +1384,9 @@
     <!-- Translators: Failure line in the source-test popup: the server answered but rejected the credentials. -->
     <string name="settings_sources_test_auth">The provider refused the login, password or MAC</string>
     <!-- Translators: Failure line in the source-test popup: the subscription has run out. -->
-    <string name="settings_sources_test_expired">This subscription has expired.</string>
+    <string name="settings_sources_test_expired">The subscription expired</string>
     <!-- Translators: Failure line in the source-test popup: the server could not be contacted at all. -->
-    <string name="settings_sources_test_unreachable">The server is not answering. Check the address and internet</string>
+    <string name="settings_sources_test_unreachable">The server is not answering</string>
     <!-- Translators: Account status word reported verbatim by the provider (e.g. "Active"). "status" is that word. -->
     <string name="settings_sources_test_status">Status: <xliff:g id="status">%1$s</xliff:g></string>
     <!-- Translators: How many streams the account has open now vs. how many it may open. "used" and "max" are counts. -->

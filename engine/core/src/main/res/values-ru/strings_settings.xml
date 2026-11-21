@@ -685,8 +685,8 @@
     <string name="settings_sources_test_title">Проверка источника</string>
     <string name="settings_sources_test_ok">Соединение в порядке</string>
     <string name="settings_sources_test_auth">Провайдер не принял логин, пароль или MAC</string>
-    <string name="settings_sources_test_expired">Срок действия подписки истёк.</string>
-    <string name="settings_sources_test_unreachable">Сервер не отвечает. Проверьте адрес и интернет</string>
+    <string name="settings_sources_test_expired">Подписка истекла</string>
+    <string name="settings_sources_test_unreachable">Сервер не отвечает</string>
     <string name="settings_sources_test_status">Статус: <xliff:g id="status">%1$s</xliff:g></string>
     <string name="settings_sources_test_connections">Подключения: занято <xliff:g id="used">%1$d</xliff:g> из <xliff:g id="max">%2$d</xliff:g></string>
     <string name="settings_sources_test_connections_max">Подключения: до <xliff:g id="max">%1$d</xliff:g> одновременно</string>

@@ -87,32 +87,32 @@
     <string name="player_switch_exo">Переключено на ExoPlayer</string>
     <string name="player_switch_mpv">Переключено на mpv</string>
     <string name="player_smoothness_hint">Этот канал теряет кадры. Переключение плеера на mpv может сделать воспроизведение плавнее.</string>
-    <string name="player_error_image_subtitle_audio">Графические субтитры недоступны для аудиоформата этого видео.</string>
+    <string name="player_error_image_subtitle_audio">Эти субтитры не поддерживаются</string>
     <string name="player_error_both_engines_exo_first">Формат не поддерживается этим телевизором</string>
     <string name="player_error_both_engines_mpv_first">Формат не поддерживается (<xliff:g id="error">%1$s</xliff:g>)</string>
     <string name="player_error_stream_link">Портал не выдал ссылку на поток</string>
     <string name="player_error_not_streaming">Видео не подготовлено для онлайн-просмотра</string>
-    <string name="player_error_lost_connection">Соединение с этим каналом потеряно.</string>
-    <string name="player_error_channel">Не удалось воспроизвести этот канал.</string>
+    <string name="player_error_lost_connection">Связь с каналом потеряна</string>
+    <string name="player_error_channel">Канал не открылся</string>
     <string name="player_error_exo_decode">Формат не поддерживается (<xliff:g id="error">%1$s</xliff:g>)</string>
-    <string name="player_error_exo_play">ExoPlayer не удалось воспроизвести этот поток (<xliff:g id="error">%1$s</xliff:g>).</string>
-    <string name="player_error_image_format">Графические субтитры недоступны для формата этого файла.</string>
-    <string name="player_error_image_show">Не удалось показать графические субтитры для этого файла.</string>
+    <string name="player_error_exo_play">Поток не воспроизводится (<xliff:g id="error">%1$s</xliff:g>)</string>
+    <string name="player_error_image_format">Эти субтитры не поддерживаются</string>
+    <string name="player_error_image_show">Субтитры не показываются</string>
     <string name="player_external_could_not_open">Не удалось открыть этот поток.</string>
     <string name="player_external_not_found">Внешний плеер не найден — установите VLC или MX Player.</string>
     <string name="player_error_audio_no_video">Есть звук, но нет картинки</string>
     <string name="player_error_file_corrupt">Файл повреждён</string>
     <string name="player_error_multiple_videos">Видео недоступны</string>
-    <string name="player_error_decoder_busy">Декодер занят. Попробуйте через минуту</string>
+    <string name="player_error_decoder_busy">Декодер занят, попробуйте через минуту</string>
     <string name="player_error_no_internet">Нет интернета</string>
-    <string name="player_error_stream_unavailable">Поток недоступен. <xliff:g id="hint">%1$s</xliff:g></string>
+    <string name="player_error_stream_unavailable">Поток недоступен — <xliff:g id="hint">%1$s</xliff:g></string>
     <string name="player_error_account_in_use">Аккаунт уже смотрит на другом устройстве</string>
-    <string name="player_error_mpv_open_decode">mpv не удалось открыть или декодировать этот файл.</string>
-    <string name="player_error_mpv_stream_never_started">После нескольких попыток поток так и не запустился в mpv.</string>
+    <string name="player_error_mpv_open_decode">Файл не открывается</string>
+    <string name="player_error_mpv_stream_never_started">Поток не запустился</string>
     <string name="player_error_surround">Многоканальный звук не поддерживается, включено стерео</string>
     <string name="player_error_hardware_fallback">Телевизор не тянет этот поток в <xliff:g id="resolution">%1$s</xliff:g></string>
     <string name="player_error_hardware_disabled">Включите аппаратное декодирование для <xliff:g id="resolution">%1$s</xliff:g></string>
-    <string name="player_error_custom_user_agent">Возможно, нужен свой User-Agent в настройках плейлиста</string>
+    <string name="player_error_custom_user_agent">нужен свой User-Agent в настройках плейлиста</string>
     <string name="player_reason_decoder_busy">Аппаратный видеодекодер занят или не справляется с этим потоком</string>
     <string name="player_reason_decoder_transient">Временная ошибка аппаратного видеодекодера — повторите попытку</string>
     <string name="player_reason_unsupported_video">Декодер этого устройства не поддерживает данный формат или профиль видео (например, HEVC 10-bit)</string>
@@ -289,7 +289,7 @@
     <string name="player_provider_retry_after">HTTP <xliff:g id="code">%1$d</xliff:g>: <xliff:g id="reason">%2$s</xliff:g> Повторная попытка через <xliff:g id="seconds">%3$d</xliff:g> с.</string>
     <string name="player_provider_busy">Провайдер занят.</string>
     <string name="player_reconnecting">Трансляция прервана. Переподключение…</string>
-    <string name="player_error_data_saver">Включена экономия трафика. Подключите Wi-Fi</string>
+    <string name="player_error_data_saver">Включена экономия трафика</string>
     <string name="player_sleep_timer">Таймер сна</string>
     <string name="player_sleep_timer_end_of_programme">Конец передачи</string>
     <string name="player_sleep_timer_end_of_movie">Конец фильма</string>

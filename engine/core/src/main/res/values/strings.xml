@@ -93,15 +93,15 @@
     <!-- Translators: Error message when the device appears to be offline during a sync operation. -->
     <string name="sync_error_offline">No internet</string>
     <!-- Translators: Generic sync error message. -->
-    <string name="sync_error_generic">Something went wrong. Try again</string>
+    <string name="sync_error_generic">Something went wrong</string>
     <!-- Translators: Error message when the server responds too slowly during sync. -->
-    <string name="sync_error_timeout">The server is slow to answer. Try again</string>
+    <string name="sync_error_timeout">The server is slow to answer</string>
     <!-- Translators: Error message when the server is unreachable during sync. -->
-    <string name="sync_error_unreachable">The server is not answering. Check the address and internet</string>
+    <string name="sync_error_unreachable">The server is not answering</string>
     <!-- Translators: Error message when the server connection fails during sync. -->
-    <string name="sync_error_connection">Server unavailable. Check the address</string>
+    <string name="sync_error_connection">Server unavailable</string>
     <!-- Translators: Error message when the server interrupts the download during sync. -->
-    <string name="sync_error_interrupted">The download stopped. Try again</string>
+    <string name="sync_error_interrupted">The download stopped</string>
     <!-- Translators: Error message when the Stalker portal rejects the MAC address. Suggests checking MAC and date/time. -->
     <string name="sync_error_mac">The portal refused the MAC address or the plan expired</string>
     <!-- Translators: Error message when the MAC address format is invalid. "AA:BB:CC:DD:EE:FF" is an example format. -->
@@ -236,23 +236,23 @@
         <item quantity="other"><xliff:g id="count">%1$d</xliff:g> categories removed</item>
     </plurals>
     <!-- Translators: Error when the Stalker portal URL is unreachable. Suggests checking the URL format. -->
-    <string name="sync_error_portal">The portal is not answering. The address usually ends in /c/</string>
+    <string name="sync_error_portal">The portal is not answering</string>
     <!-- Translators: Error when the Stalker portal session expires. -->
-    <string name="sync_error_session">The portal session expired. Try again</string>
+    <string name="sync_error_session">The portal session expired</string>
     <!-- Translators: Error when the server rejects login credentials. -->
     <string name="sync_error_auth">Wrong username or password</string>
     <!-- Translators: Error when the requested resource is not found on the server. -->
     <string name="sync_error_not_found">Nothing at this link (404)</string>
     <!-- Translators: Generic server error during sync. -->
-    <string name="sync_error_server">Server error. Try later</string>
+    <string name="sync_error_server">Server error</string>
     <!-- Translators: Error when the SSL/TLS connection to the server fails. -->
     <string name="sync_error_secure">Secure connection failed (certificate)</string>
     <!-- Translators: Error when the guide data from the server is malformed. -->
-    <string name="sync_error_malformed_guide">The guide has a format error. Check the link</string>
+    <string name="sync_error_malformed_guide">The guide has a format error</string>
     <!-- Translators: shown on a guide source that fetched successfully but contained no programmes at all - usually the provider has not published this week's guide yet. -->
-    <string name="sync_error_guide_empty">The guide is empty for now. Try later</string>
+    <string name="sync_error_guide_empty">The guide is empty for now</string>
     <!-- Translators: shown on a guide source that fetched successfully and has programmes, but none of its channels is one of the playlist's channels, so nothing was kept. "TV Guide" and "Auto-match EPG" are the screen and button names used elsewhere in the app. -->
-    <string name="sync_error_guide_no_matching_channels">Guide channels don\'t match the playlist. Use “Fix guide”</string>
+    <string name="sync_error_guide_no_matching_channels">Channels didn\'t match, use “Fix guide”</string>
 
     <!-- Translators: Label above the number field in a minutes input dialog, e.g. the recording start-early and run-over times. -->
     <string name="common_minutes">Minutes</string>

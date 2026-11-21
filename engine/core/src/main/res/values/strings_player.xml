@@ -180,7 +180,7 @@
     <!-- Translators: One-time hint over the live player when a channel keeps dropping frames on the ExoPlayer engine. "MPV" is the other engine's brand name; the player bar has a button that switches to it. -->
     <string name="player_smoothness_hint">This channel is dropping frames. Switching the player to MPV may play it more smoothly.</string>
     <!-- Translators: Error message when image-based subtitles are incompatible with the video\'s audio format. -->
-    <string name="player_error_image_subtitle_audio">Image subtitles aren\'t available for this video\'s audio format.</string>
+    <string name="player_error_image_subtitle_audio">These subtitles aren\'t supported</string>
     <!-- Translators: Error message when both ExoPlayer and mpv fail. "ExoPlayer" and "mpv" are engine brand names. Shown in player error overlay and toast. -->
     <string name="player_error_both_engines_exo_first">This TV doesn\'t support the format</string>
     <!-- Translators: Error message when both engines fail, with mpv tried first. "error" is another complete localized failure sentence; it is rendered recursively. -->
@@ -190,17 +190,17 @@
     <!-- Translators: Error when the video file is not properly configured for streaming (missing fast-start). -->
     <string name="player_error_not_streaming">This video isn\'t prepared for streaming</string>
     <!-- Translators: Error when the connection to a live channel is lost. -->
-    <string name="player_error_lost_connection">Lost connection to this channel.</string>
+    <string name="player_error_lost_connection">Lost connection to the channel</string>
     <!-- Translators: Generic error when a channel fails to play. -->
-    <string name="player_error_channel">Couldn\'t play this channel.</string>
+    <string name="player_error_channel">The channel didn\'t open</string>
     <!-- Translators: Error when ExoPlayer cannot decode the video format. "error" is the engine error code/message. "ExoPlayer" is a brand name. -->
     <string name="player_error_exo_decode">Format not supported (<xliff:g id="error">%1$s</xliff:g>)</string>
     <!-- Translators: Error when ExoPlayer fails to play the stream. "error" is the engine error code/message. -->
-    <string name="player_error_exo_play">ExoPlayer couldn\'t play this stream (<xliff:g id="error">%1$s</xliff:g>).</string>
+    <string name="player_error_exo_play">The stream doesn\'t play (<xliff:g id="error">%1$s</xliff:g>)</string>
     <!-- Translators: Error when image-based subtitles are unavailable for the file\'s format. -->
-    <string name="player_error_image_format">Image subtitles aren\'t available for this file\'s format.</string>
+    <string name="player_error_image_format">These subtitles aren\'t supported</string>
     <!-- Translators: Error when image-based subtitles cannot be rendered for the file. -->
-    <string name="player_error_image_show">Couldn\'t show image subtitles for this file.</string>
+    <string name="player_error_image_show">Subtitles can\'t be shown</string>
     <!-- Translators: Toast when an external player cannot open the stream URL. -->
     <string name="player_external_could_not_open">Could not open this stream.</string>
     <!-- Translators: Toast when no external player app is installed. "VLC" and "MX Player" are brand names. -->
@@ -212,17 +212,17 @@
     <!-- Translators: Error when multiple video tracks fail to play. -->
     <string name="player_error_multiple_videos">Videos unavailable</string>
     <!-- Translators: Error when the TV\'s hardware video decoder is busy. -->
-    <string name="player_error_decoder_busy">The decoder is busy. Try in a minute</string>
+    <string name="player_error_decoder_busy">The decoder is busy, try in a minute</string>
     <!-- Translators: Error when there is no internet connection. -->
     <string name="player_error_no_internet">No internet</string>
     <!-- Translators: Generic stream playback error with an optional hint. "hint" is a hint string (may be empty or contain player_error_custom_user_agent text). -->
-    <string name="player_error_stream_unavailable">Stream unavailable. <xliff:g id="hint">%1$s</xliff:g></string>
+    <string name="player_error_stream_unavailable">Stream unavailable — <xliff:g id="hint">%1$s</xliff:g></string>
     <!-- Translators: Error title when the provider refuses playback because the same account is already streaming elsewhere (HTTP 458). "Retry" is the button below it. -->
     <string name="player_error_account_in_use">The account is watching on another device</string>
     <!-- Translators: Error when mpv cannot open or decode the file. "mpv" is an engine brand name. -->
-    <string name="player_error_mpv_open_decode">mpv couldn\'t open or decode this file.</string>
+    <string name="player_error_mpv_open_decode">The file doesn\'t open</string>
     <!-- Translators: Error when mpv fails to start the stream after multiple retries. -->
-    <string name="player_error_mpv_stream_never_started">The stream never started in mpv after several retries.</string>
+    <string name="player_error_mpv_stream_never_started">The stream didn\'t start</string>
     <!-- Translators: Notification when the audio output cannot do surround and falls back to stereo. -->
     <string name="player_error_surround">Surround sound isn\'t supported, switched to stereo</string>
     <!-- Translators: Error when hardware decoding fails and software decoding cannot handle the resolution. "resolution" is a string such as "4K" or "3840x2160". This is a technical diagnostic, not actionable advice for most users. -->
@@ -230,7 +230,7 @@
     <!-- Translators: Error when hardware decoding is disabled in settings and the resolution is too high for software decoding. "resolution" is a string such as "4K". Directs the user to Settings. -->
     <string name="player_error_hardware_disabled">Turn on hardware decoding for <xliff:g id="resolution">%1$s</xliff:g></string>
     <!-- Translators: Hint appended to player_error_stream_unavailable when the provider may require a custom User-Agent. Shown as a hint, not a standalone error. -->
-    <string name="player_error_custom_user_agent">This provider may need its own User-Agent in the playlist settings</string>
+    <string name="player_error_custom_user_agent">the playlist may need its own User-Agent</string>
     <!-- Translators: Technical failure reason shown in the player error overlay detail section. "HEVC 10-bit" is a video codec example. -->
     <string name="player_reason_decoder_busy">Hardware video decoder is busy or can\'t handle this stream</string>
     <!-- Translators: Technical failure reason in the player error overlay. -->
@@ -520,7 +520,7 @@
     <string name="player_frame_rate_prompt_description">It plays at <xliff:g id="fps">%1$d</xliff:g> fps while your TV is running at <xliff:g id="current_hz">%2$d</xliff:g> Hz, which can’t show those frames evenly — motion looks slightly jerky.\n\nAuto frame rate switches the TV to <xliff:g id="target_hz">%3$d</xliff:g> Hz while you watch and puts it back afterwards. Some TVs blank for a moment when the rate changes; you can turn it off again in Settings → Picture → Frame rate.</string>
     <string name="player_frame_rate_turn_on">Turn on</string>
     <!-- Translators: Shown instead of the picture when the user has turned the data saver on and the phone is on mobile data. -->
-    <string name="player_error_data_saver">Data saver is on. Connect to Wi-Fi</string>
+    <string name="player_error_data_saver">Data saver is on</string>
     <!-- Translators: Button on the sound-only player screen. Stops playback after a chosen time so the user can fall asleep to it. -->
     <string name="player_sleep_timer">Sleep timer</string>
     <!-- Translators: Sleep-timer option. Stop when the programme currently on air ends. -->
