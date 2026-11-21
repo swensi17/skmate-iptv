@@ -547,4 +547,8 @@
     <string name="setup_remote_wifi_named">Connect to your own Wi-Fi: <xliff:g id="ssid">%1$s</xliff:g>. The phone must be on the same network as the TV</string>
     <string name="setup_remote_wifi_range">Connect to your own Wi-Fi: the phone must be on the <xliff:g id="range">%1$s</xliff:g> network, like the TV</string>
     <string name="setup_files_hidden_grant_access">No access to files, allow it</string>
+    <!-- Translators: A row in the add-playlist form when no playlist files were found on the device. -->
+    <string name="setup_local_files_none">No playlist files on this TV</string>
+    <!-- Translators: Hint under the row above. -->
+    <string name="setup_local_files_none_hint">Put an .m3u file in Downloads or on a USB drive</string>
 </resources>

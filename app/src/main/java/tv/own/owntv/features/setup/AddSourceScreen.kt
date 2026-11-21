@@ -68,7 +68,6 @@ import tv.own.owntv.core.settings.PlaylistRefresh
 import tv.own.owntv.core.settings.SettingsRepository
 import tv.own.owntv.ui.components.BrowseMode
 import tv.own.owntv.ui.components.DayStepperDialog
-import tv.own.owntv.ui.components.StorageBrowser
 
 private enum class SourceKind { XTREAM, M3U, STALKER }
 
@@ -179,7 +178,6 @@ fun AddSourceScreen(
         mutableStateOf(if (initial?.syncSeries == false) SyncScopeChoice.Off else SyncScopeChoice.Now)
     }
     var hasRemoteStalkerScopes by remember { mutableStateOf(false) }
-    var showFileBrowser by remember { mutableStateOf(false) }
     var showAutoRefreshPicker by remember { mutableStateOf(false) }
     var showManualDaysPicker by remember { mutableStateOf(false) }
     val firstFocus = remember { FocusRequester() }
@@ -491,6 +489,12 @@ fun AddSourceScreen(
     val ok = stringResource(R.string.common_ok)
     val back = stringResource(R.string.common_back)
     val fieldHelp = stringResource(R.string.settings_form_field_help)
+    // TV-box look: the same barely rounded corners as every other button.
+    val submitShape = if (tv.own.owntv.features.shell.TvBoxNav) {
+        tv.own.owntv.ui.stage.FocusBarShape
+    } else {
+        RoundedCornerShape(16.mpx)
+    }
     val submitLabel = stringResource(if (editing) R.string.setup_update_source_save else R.string.setup_start_import)
     // The panel's button: only while the form can be sent, so ▶ never lands on a dead control.
     val submitButton: @Composable () -> Unit = {
@@ -548,14 +552,17 @@ fun AddSourceScreen(
             // The form's one button, under the rows; dim and out of the focus path until the form can be sent.
             tv.own.owntv.ui.stage.StageSurface(
                 onClick = { submit() },
-                radius = 16.mpx,
+                radius = if (tv.own.owntv.features.shell.TvBoxNav) 4.mpx else 16.mpx,
                 focusStyle = tv.own.owntv.ui.stage.StageFocus.NONE,
                 enabled = canStart,
-                idle = Modifier.background(if (canStart) StageColors.Text else StageColors.Text.copy(alpha = 0.08f), RoundedCornerShape(16.mpx)),
+                idle = Modifier.background(
+                    if (canStart) StageColors.Text else StageColors.Text.copy(alpha = 0.08f),
+                    submitShape,
+                ),
                 contentAlignment = Alignment.Center,
                 modifier = Modifier.width(440.mpx).height(76.mpx).focusRequester(startImportFocus),
             ) { focused ->
-                if (focused) Box(Modifier.matchParentSize().background(tv.own.owntv.ui.brand.SkMateBlue, RoundedCornerShape(16.mpx)))
+                if (focused) Box(Modifier.matchParentSize().background(tv.own.owntv.ui.brand.SkMateBlue, submitShape))
                 // Over the text-coloured fill the label takes the page colour, so it reads in both themes.
                 val tint = when {
                     focused -> androidx.compose.ui.graphics.Color.White
@@ -610,16 +617,15 @@ fun AddSourceScreen(
                     placeholder = stringResource(R.string.setup_playlist_example), keyboardType = KeyboardType.Uri,
                     about = stringResource(R.string.settings_help_playlist_url), trailing = checkMark,
                 )
-                val picked = remember(m3uUrl) { if (m3uUrl.startsWith("/")) java.io.File(m3uUrl).name else null }
-                val fileTitle = stringResource(R.string.settings_choose_local_file)
-                StageSettingRow(
-                    icon = OwnTVIcon.FOLDER,
-                    title = fileTitle,
-                    desc = picked?.let { stringResource(R.string.setup_local_file_prefix, it) } ?: stringResource(R.string.settings_line_local_file),
-                    value = SettingValue.Opens(null),
-                    onClick = { showFileBrowser = true },
+                // Playlist files on the TV are listed right here, like any other choice in the form: Android TV
+                // has no system file picker, and a separate file browser window was one step too many.
+                LocalPlaylistRows(
+                    selected = m3uUrl,
+                    onPick = { file ->
+                        m3uUrl = file.absolutePath
+                        if (name.isBlank()) name = file.nameWithoutExtension
+                    },
                     modifier = toSubmit,
-                    help = help(fileTitle, stringResource(R.string.setup_local_file_choose), openKeys),
                 )
             }
             SourceKind.STALKER -> {
@@ -747,20 +753,6 @@ fun AddSourceScreen(
         }
         }
     }
-      // In-app, TV-safe file picker (SAF / system file picker is missing on many TVs).
-      if (showFileBrowser) {
-          StorageBrowser(
-              title = stringResource(R.string.setup_pick_playlist_file),
-              mode = BrowseMode.FILE,
-              fileExtensions = setOf("m3u", "m3u8"),
-              onPick = { file ->
-                  showFileBrowser = false
-                  m3uUrl = file.absolutePath
-                  if (name.isBlank()) name = file.nameWithoutExtension
-              },
-              onDismiss = { showFileBrowser = false },
-          )
-      }
       if (showUaPresetPicker) {
           PickerDialog(
               title = stringResource(R.string.setup_device_model_preset_title),
@@ -910,3 +902,87 @@ private const val CheckRetryMs = 1_500L
 
 /** The check mark of a source that answered. */
 private val CheckGreen = androidx.compose.ui.graphics.Color(0xFF1FA34A)
+
+/**
+ * The .m3u / .m3u8 files on the TV (Downloads, a USB drive), newest first, one row each: OK picks it.
+ * Without storage access a single row asks for it; with none found, a row says where to put one.
+ */
+@Suppress("FunctionNaming")
+@Composable
+private fun LocalPlaylistRows(selected: String, onPick: (java.io.File) -> Unit, modifier: Modifier = Modifier) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val access = tv.own.owntv.core.storage.StorageAccess
+    var hasAccess by remember { mutableStateOf(access.hasStorageAccess(context)) }
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    androidx.compose.runtime.DisposableEffect(lifecycleOwner) {
+        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+            if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) hasAccess = access.hasStorageAccess(context)
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+    val files by androidx.compose.runtime.produceState<List<java.io.File>?>(null, hasAccess) {
+        value = if (hasAccess) {
+            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { findPlaylistFiles(context) }
+        } else {
+            null
+        }
+    }
+    val found = files
+    when {
+        !hasAccess -> StageSettingRow(
+            icon = OwnTVIcon.FOLDER,
+            title = stringResource(R.string.setup_files_hidden_grant_access),
+            desc = stringResource(R.string.settings_line_local_file),
+            value = SettingValue.Opens(null),
+            onClick = { access.openStoragePermissionSettings(context) },
+            modifier = modifier,
+        )
+        found == null -> Unit
+        found.isEmpty() -> StageSettingRow(
+            icon = OwnTVIcon.FOLDER,
+            title = stringResource(R.string.setup_local_files_none),
+            desc = stringResource(R.string.setup_local_files_none_hint),
+            value = SettingValue.Opens(null),
+            onClick = {},
+            modifier = modifier,
+        )
+        else -> found.forEach { file ->
+            StageSettingRow(
+                icon = OwnTVIcon.PLAYLIST,
+                title = file.name,
+                desc = file.parentFile?.name.orEmpty(),
+                value = SettingValue.Switch(file.absolutePath == selected),
+                onClick = { onPick(file) },
+                modifier = modifier,
+            )
+        }
+    }
+}
+
+/** Walks each storage a few folders deep (Android/ and hidden folders skipped) for playlist files. */
+private fun findPlaylistFiles(context: android.content.Context): List<java.io.File> {
+    val access = tv.own.owntv.core.storage.StorageAccess
+    val roots = access.storageRoots(context)
+        .filter { it.kind != tv.own.owntv.core.storage.StorageAccess.RootKind.APP }
+        .map { it.file }
+    val out = mutableListOf<java.io.File>()
+    fun walk(dir: java.io.File, depth: Int) {
+        if (out.size >= MAX_LOCAL_PLAYLISTS) return
+        val entries = runCatching { dir.listFiles() }.getOrNull() ?: return
+        for (f in entries) {
+            if (f.name.startsWith(".")) continue
+            if (f.isDirectory) {
+                if (depth < LOCAL_SCAN_DEPTH && f.name != "Android") walk(f, depth + 1)
+            } else if (f.extension.lowercase() in PLAYLIST_EXTENSIONS) {
+                out += f
+            }
+        }
+    }
+    roots.forEach { walk(it, 0) }
+    return out.sortedByDescending { it.lastModified() }.take(MAX_LOCAL_PLAYLISTS)
+}
+
+private const val MAX_LOCAL_PLAYLISTS = 8
+private const val LOCAL_SCAN_DEPTH = 3
+private val PLAYLIST_EXTENSIONS = setOf("m3u", "m3u8")

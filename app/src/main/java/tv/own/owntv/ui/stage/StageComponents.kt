@@ -1328,8 +1328,15 @@ fun Modifier.solidCard(radius: Dp): Modifier {
  */
 private val PillMaxHeight = 100.mpx
 
-private fun focusCornerPx(height: Float, ownRadius: Float, pillMaxHeight: Float): Float =
-    if (height <= pillMaxHeight) maxOf(height / 2f, ownRadius) else ownRadius
+private fun focusCornerPx(height: Float, ownRadius: Float, pillMaxHeight: Float): Float = when {
+    // TV-box look: every button and field has the same barely rounded corners, never a pill.
+    tv.own.owntv.features.shell.TvBoxNav -> minOf(ownRadius, pillMaxHeight * TV_CORNER_SHARE)
+    height <= pillMaxHeight -> maxOf(height / 2f, ownRadius)
+    else -> ownRadius
+}
+
+/** 4 of the 100 px [PillMaxHeight]: the focus bar's corner ([FocusBarShape]). */
+private const val TV_CORNER_SHARE = 0.04f
 
 private fun focusShape(radius: Dp) = object : androidx.compose.ui.graphics.Shape {
     override fun createOutline(size: androidx.compose.ui.geometry.Size, layoutDirection: androidx.compose.ui.unit.LayoutDirection, density: androidx.compose.ui.unit.Density): androidx.compose.ui.graphics.Outline {

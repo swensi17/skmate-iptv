@@ -126,7 +126,7 @@ fun ErrorButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier
     var focused by remember { mutableStateOf(false) }
     Row(
         modifier
-            .clip(RoundedCornerShape(18.dp))
+            .clip(if (tv.own.owntv.features.shell.TvBoxNav) FocusBarShape else RoundedCornerShape(18.dp))
             .background(if (focused) Color.White else Color.White.copy(alpha = 0.14f))
             .onFocusChanged { focused = it.isFocused }
             .clickable(onClick = onClick)
