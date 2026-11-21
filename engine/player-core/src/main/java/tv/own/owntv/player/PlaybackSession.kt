@@ -113,6 +113,7 @@ class PlaybackSession(
         // A different engine (or none) starts a fresh session as far as controllers are concerned, so the
         // next publish must send the metadata even if the title happens to match.
         lastMetaKey = null
+        lastStateKey = null
         this.engine = engine
         _active.value = engine != null
         if (engine == null) {
@@ -154,6 +155,13 @@ class PlaybackSession(
     private data class MetaKey(val title: String, val subtitle: String, val durationMs: Long)
 
     private var lastMetaKey: MetaKey? = null
+
+    /** What a controller cannot work out by itself; the position between two of these it extrapolates. */
+    private data class StateKey(val playing: Boolean, val live: Boolean)
+
+    private var lastStateKey: StateKey? = null
+    private var lastStatePos = 0L
+    private var lastStateAt = 0L
 
     private data class State(
         val playing: Boolean,
@@ -201,6 +209,17 @@ class PlaybackSession(
                 actions = actions or PlaybackState.ACTION_SEEK_TO or
                     PlaybackState.ACTION_FAST_FORWARD or PlaybackState.ACTION_REWIND
             }
+            // The state only when it changed, or when the position left where the last one said it would be
+            // (a seek, a stall). Every position tick re-published it: the TV's "now playing" card and every
+            // other controller redrew several times a second, and a channel switch sent six in 30 ms.
+            val stateKey = StateKey(state.playing, state.live)
+            val now = android.os.SystemClock.elapsedRealtime()
+            val expected = lastStatePos + if (lastStateKey?.playing == true) now - lastStateAt else 0L
+            val drifted = !state.live && kotlin.math.abs(state.positionMs - expected) > POSITION_DRIFT_MS
+            if (stateKey == lastStateKey && !drifted) return@runCatching
+            lastStateKey = stateKey
+            lastStatePos = state.positionMs
+            lastStateAt = now
             s.setPlaybackState(
                 PlaybackState.Builder()
                     .setActions(actions)
@@ -425,6 +444,9 @@ class PlaybackSession(
 
     private companion object {
         const val SESSION_TAG = "OwnTV"
+
+        /** A position this far from the extrapolated one is a seek or a stall, worth telling controllers. */
+        const val POSITION_DRIFT_MS = 2_000L
         val TRANSPORT_KEYS = setOf(
             KeyEvent.KEYCODE_MEDIA_PLAY, KeyEvent.KEYCODE_MEDIA_PAUSE, KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE,
         )
