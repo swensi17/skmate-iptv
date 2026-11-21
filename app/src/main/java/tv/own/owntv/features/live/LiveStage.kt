@@ -157,59 +157,87 @@ internal fun LiveStageRow(
     playing: Boolean = false,
 ) {
     val tvBox = tv.own.owntv.features.shell.TvBoxNav
-    StageRow(
-        onClick = onClick,
-        onLongClick = onLongClick,
-        height = if (tvBox) 92.mpx else 84.mpx,
-        modifier = modifier.fillMaxWidth().onFocusChanged { if (it.hasFocus) onFocus() }
-            // TV-box look: a hairline under each channel.
-            .then(if (tv.own.owntv.features.shell.TvBoxNav) Modifier.drawBehind {
-                val h = 1.mpx.toPx()
-                drawRect(RowLine, topLeft = androidx.compose.ui.geometry.Offset(20.mpx.toPx(), drawContext.size.height - h), size = androidx.compose.ui.geometry.Size(drawContext.size.width - 40.mpx.toPx(), h))
-            } else Modifier),
-    ) { focused ->
-        if (showNumber) {
-            Text(
-                channel.number?.toString().orEmpty(),
-                // TV-box look: from the left, so the numbers start on the search field's line.
-                style = stageText(20, 600).copy(textAlign = if (tv.own.owntv.features.shell.TvBoxNav) TextAlign.Start else TextAlign.End, fontFeatureSettings = Tabular),
-                color = if (focused) stageTone(Color(0xFFE6F2EE), StageColors.FxLine) else StageColors.Dim,
-                maxLines = 1, overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.width(50.mpx),
-            )
-        }
-        LivePlate(channel.displayLogoUrl, 76.mpx, 54.mpx)
-        Column(Modifier.weight(1f)) {
-            Text(name.name, style = stageText(if (tvBox) 23 else 22, 700), color = if (focused) StageColors.FxText else StageColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            val title = now?.title ?: nowTitle
-            if (title != null) {
-                val left = now?.let { timeLeftText(minutesLeft(it)) }
-                Spacer(Modifier.height(2.mpx))
+    val archiveTag = if (tvBox && channel.catchup && trailing == null) archiveTagText(channel.catchupDays) else null
+    Box(modifier.fillMaxWidth()) {
+        StageRow(
+            onClick = onClick,
+            onLongClick = onLongClick,
+            height = if (tvBox) 92.mpx else 84.mpx,
+            modifier = Modifier.fillMaxWidth().onFocusChanged { if (it.hasFocus) onFocus() }
+                // TV-box look: a hairline under each channel.
+                .then(if (tv.own.owntv.features.shell.TvBoxNav) Modifier.drawBehind {
+                    val h = 1.mpx.toPx()
+                    drawRect(RowLine, topLeft = androidx.compose.ui.geometry.Offset(20.mpx.toPx(), drawContext.size.height - h), size = androidx.compose.ui.geometry.Size(drawContext.size.width - 40.mpx.toPx(), h))
+                } else Modifier),
+        ) { focused ->
+            if (showNumber) {
                 Text(
-                    buildAnnotatedString {
-                        append(title)
-                        if (left != null) withStyle(SpanStyle(color = (if (focused) StageColors.FxLine else StageColors.Muted).copy(alpha = 0.6f))) { append(" · $left") }
-                    },
-                    style = stageText(if (tvBox) 18 else 17, 400), color = if (focused) StageColors.FxLine else StageColors.Muted,
+                    channel.number?.toString().orEmpty(),
+                    // TV-box look: from the left, so the numbers start on the search field's line.
+                    style = stageText(20, 600).copy(textAlign = if (tv.own.owntv.features.shell.TvBoxNav) TextAlign.Start else TextAlign.End, fontFeatureSettings = Tabular),
+                    color = if (focused) stageTone(Color(0xFFE6F2EE), StageColors.FxLine) else StageColors.Dim,
                     maxLines = 1, overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.width(50.mpx),
                 )
             }
-            if (now != null) {
-                Spacer(Modifier.height(8.mpx))
-                // TV-box look: the bar runs the whole width of the row's text, to the row's end.
-                StageProgress(progressOf(now), if (tvBox) Modifier.fillMaxWidth() else Modifier.width(300.mpx), flat = true)
+            LivePlate(channel.displayLogoUrl, 76.mpx, 54.mpx)
+            Column(Modifier.weight(1f)) {
+                Text(name.name, style = stageText(if (tvBox) 23 else 22, 700), color = if (focused) StageColors.FxText else StageColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                val title = now?.title ?: nowTitle
+                if (title != null) {
+                    val left = now?.let { timeLeftText(minutesLeft(it)) }
+                    Spacer(Modifier.height(2.mpx))
+                    Text(
+                        buildAnnotatedString {
+                            append(title)
+                            if (left != null) withStyle(SpanStyle(color = (if (focused) StageColors.FxLine else StageColors.Muted).copy(alpha = 0.6f))) { append(" · $left") }
+                        },
+                        style = stageText(if (tvBox) 18 else 17, 400), color = if (focused) StageColors.FxLine else StageColors.Muted,
+                        maxLines = 1, overflow = TextOverflow.Ellipsis,
+                    )
+                }
+                if (now != null) {
+                    Spacer(Modifier.height(8.mpx))
+                    // TV-box look: the bar runs the whole width of the row's text, to the row's end.
+                    StageProgress(progressOf(now), if (tvBox) Modifier.fillMaxWidth() else Modifier.width(300.mpx), flat = true)
+                }
+            }
+            if (trailing != null) trailing()
+            else Row(horizontalArrangement = Arrangement.spacedBy(8.mpx), verticalAlignment = Alignment.CenterVertically) {
+                if (playing && tvBox) tv.own.owntv.ui.components.PlayingMark(Modifier.padding(start = 6.mpx))
+                name.tags.forEach { StageTag(it) }
+                // TV-box look: the archive is the blue corner tag, and no coloured playlist marks.
+                if (channel.catchup && !tvBox) OwnTVIcon(OwnTVIcon.REWIND, StageColors.Dim, Modifier.size(22.mpx))
+                if (isFavorite) OwnTVIcon(OwnTVIcon.FAVORITE, stageAccent.accent, Modifier.size(22.mpx), filled = true)
+                if (!tvBox) mark?.let { StagePlaylistMark(it) }
             }
         }
-        if (trailing != null) trailing()
-        else Row(horizontalArrangement = Arrangement.spacedBy(8.mpx), verticalAlignment = Alignment.CenterVertically) {
-            if (playing && tvBox) tv.own.owntv.ui.components.PlayingMark(Modifier.padding(start = 6.mpx))
-            name.tags.forEach { StageTag(it) }
-            if (channel.catchup) OwnTVIcon(OwnTVIcon.REWIND, StageColors.Dim, Modifier.size(22.mpx))
-            if (isFavorite) OwnTVIcon(OwnTVIcon.FAVORITE, stageAccent.accent, Modifier.size(22.mpx), filled = true)
-            mark?.let { StagePlaylistMark(it) }
-        }
+        archiveTag?.let { ArchiveCornerTag(it, Modifier.align(Alignment.TopEnd)) }
     }
 }
+
+/**
+ * The channel's archive as a small blue tag in the row's top-right corner: its top and right edges sit
+ * on the row's own edges, only the bottom-left corner is rounded. White text.
+ */
+@Suppress("FunctionNaming")
+@Composable
+private fun ArchiveCornerTag(text: String, modifier: Modifier = Modifier) {
+    Box(
+        modifier
+            .background(
+                tv.own.owntv.ui.brand.SkMateBlue,
+                RoundedCornerShape(topEnd = ARCHIVE_TAG_EDGE_RADIUS.mpx, bottomStart = ARCHIVE_TAG_RADIUS.mpx),
+            )
+            .padding(horizontal = 12.mpx, vertical = 4.mpx),
+    ) {
+        Text(text, style = stageText(ARCHIVE_TAG_TEXT_SIZE, 600), color = Color.White, maxLines = 1)
+    }
+}
+
+private const val ARCHIVE_TAG_RADIUS = 10
+private const val ARCHIVE_TAG_EDGE_RADIUS = 4
+private const val ARCHIVE_TAG_TEXT_SIZE = 14
 
 /**
  * `.plate`: the logo, radius 12 (the guide's 10). Transparent logos keep their transparency; only one
@@ -229,6 +257,15 @@ internal fun LivePlate(
         }
     }
 }
+
+/** "3 дня" when the playlist says how deep the archive goes, otherwise "Архив". */
+@Composable
+internal fun archiveTagText(days: Int): String =
+    if (days > 0) {
+        pluralStringResource(R.plurals.settings_epg_guide_days_value, days, days)
+    } else {
+        stringResource(R.string.content_catchup)
+    }
 
 internal fun minutesLeft(p: XtEpgEntry): Long = ((p.stopMs - System.currentTimeMillis()).coerceAtLeast(0) + 59_999) / 60_000
 

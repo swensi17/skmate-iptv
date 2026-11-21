@@ -278,7 +278,10 @@ internal fun GuideChannelLabel(channel: ChannelEntity, name: String, dot: Color?
         horizontalArrangement = Arrangement.spacedBy(10.mpx),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Box(Modifier.size(7.mpx).background(dot ?: Color.Transparent, RoundedCornerShape(50)))
+        // TV-box look: no coloured playlist dots before the numbers.
+        if (!tv.own.owntv.features.shell.TvBoxNav) {
+            Box(Modifier.size(7.mpx).background(dot ?: Color.Transparent, RoundedCornerShape(50)))
+        }
         Text(
             channel.number?.toString().orEmpty(),
             style = stageText(17, 700).copy(fontFeatureSettings = Tabular), color = if (selected) a.accent else StageColors.Dim,
