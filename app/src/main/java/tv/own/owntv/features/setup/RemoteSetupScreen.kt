@@ -81,30 +81,32 @@ fun RemoteSetupScreen(
     if (windowed) {
         val newPin = remember { FocusRequester() }
         androidx.compose.runtime.LaunchedEffect(Unit) { kotlinx.coroutines.delay(120); runCatching { newPin.requestFocus() } }
-        CenterWindow(onDismiss = onBack, modifier = modifier, width = 900.mpx) {
-            Text(stringResource(R.string.setup_from_phone), style = stageText(32, 800, (-0.02f).em), color = StageColors.Text, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
-            Column(Modifier.padding(top = 24.mpx), horizontalAlignment = Alignment.CenterHorizontally) { panel() }
-            val line = when (state) {
-                CompanionServerState.Idle, CompanionServerState.Starting -> stringResource(R.string.setup_opening)
-                is CompanionServerState.Listening -> stringResource(R.string.settings_remote_nothing_yet)
+        CenterWindow(onDismiss = onBack, modifier = modifier, width = 760.mpx) {
+            Text(
+                stringResource(R.string.setup_from_phone),
+                style = stageText(30, 800, (-0.02f).em),
+                color = StageColors.Text,
+                maxLines = 1,
+                overflow = Ellipsis,
+            )
+            // Just the QR, the address and the PIN; a line only when something is wrong.
+            RemoteCompact(state, Modifier.padding(top = 28.mpx))
+            val problem = when (state) {
                 is CompanionServerState.Failed -> state.failure.displayText()
                 CompanionServerState.Locked -> companionLockedText()
+                else -> null
             }
-            Text(line, style = stageText(19, 500), color = StageColors.Muted, maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, modifier = Modifier.padding(top = 4.mpx))
-            Text(stringResource(R.string.settings_remote_details_note), style = stageText(16, 500), color = StageColors.Dim, modifier = Modifier.padding(top = 10.mpx))
-            // The phone must be on the same network as this television, or the address will not open.
-            Text(
-                wifiNotice(state), style = stageText(18, 600), color = Color(0xFFE5484D),
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center, maxLines = 3,
-                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
-                modifier = Modifier.padding(top = 18.mpx),
-            )
-            Row(Modifier.padding(top = 22.mpx), horizontalArrangement = Arrangement.spacedBy(14.mpx)) {
+            if (problem != null) {
+                Text(
+                    problem, style = stageText(18, 500), color = StageColors.Muted, maxLines = 2,
+                    overflow = Ellipsis, modifier = Modifier.padding(top = 16.mpx),
+                )
+            }
+            Row(Modifier.padding(top = 28.mpx), horizontalArrangement = Arrangement.spacedBy(14.mpx)) {
                 tv.own.owntv.ui.stage.StageButton(
                     stringResource(R.string.settings_remote_new_pin),
                     onClick = { onStopListener(); onStartListener(CompanionLink.DEFAULT_PORT) },
                     modifier = Modifier.focusRequester(newPin),
-                    tinted = true,
                 )
                 tv.own.owntv.ui.stage.StageButton(stringResource(R.string.common_back), onClick = onBack)
             }
@@ -177,30 +179,43 @@ private fun RemotePanel(state: CompanionServerState) {
     }
 }
 
-private val PanelText: Color @Composable get() = stageTone(Color(0xFFD3DCD8), StageColors.Body)
-
-/**
- * "Connect to your own Wi-Fi": the network's name when the system gives it (it hides it from apps
- * without the location permission, then it reads "<unknown ssid>"), otherwise the address range the
- * television sits in, which is what the phone has to share.
- */
+/** QR on the left; the address and the PIN on the right, large. No headings, no notes. */
+@Suppress("FunctionNaming")
 @Composable
-private fun wifiNotice(state: CompanionServerState): String {
-    val context = androidx.compose.ui.platform.LocalContext.current
-    val ssid = remember {
-        runCatching {
-            @Suppress("DEPRECATION")
-            val raw = (context.applicationContext.getSystemService(android.content.Context.WIFI_SERVICE) as android.net.wifi.WifiManager).connectionInfo?.ssid
-            raw?.trim('"')?.takeIf { it.isNotBlank() && !it.contains("unknown ssid", ignoreCase = true) }
-        }.getOrNull()
-    }
-    val range = (state as? CompanionServerState.Listening)?.urls?.firstOrNull()?.let { url ->
-        val octets = url.substringAfter("//").substringBefore(':').substringBefore('/').split('.')
-        if (octets.size == 4 && octets.all { it.toIntOrNull() != null }) octets.take(3).joinToString(".") + ".*" else null
-    }
-    return when {
-        ssid != null -> stringResource(R.string.setup_remote_wifi_named, ssid)
-        range != null -> stringResource(R.string.setup_remote_wifi_range, range)
-        else -> stringResource(R.string.setup_remote_wifi)
+private fun RemoteCompact(state: CompanionServerState, modifier: Modifier = Modifier) {
+    val listening = state as? CompanionServerState.Listening
+    Row(modifier, horizontalArrangement = Arrangement.spacedBy(32.mpx), verticalAlignment = Alignment.CenterVertically) {
+        Box(Modifier.size(220.mpx).clip(RoundedCornerShape(4.mpx)).background(Color.White).padding(14.mpx)) {
+            listening?.qr?.let { qr ->
+                Image(
+                    bitmap = qr.asImageBitmap(),
+                    contentDescription = stringResource(R.string.common_qr_code_companion_url),
+                    contentScale = ContentScale.Fit,
+                )
+            }
+        }
+        Column {
+            listening?.urls?.firstOrNull()?.let { url ->
+                Text(
+                    url.removePrefix("http://").trimEnd('/'),
+                    style = stageText(REMOTE_URL_TEXT, 700),
+                    color = StageColors.Text,
+                    maxLines = 1,
+                    overflow = Ellipsis,
+                )
+            }
+            Text(
+                listening?.pin.orEmpty(),
+                style = stageText(REMOTE_PIN_TEXT, 800, 0.3.em),
+                color = tv.own.owntv.ui.brand.SkMateBlue,
+                maxLines = 1, overflow = Ellipsis, modifier = Modifier.padding(top = 12.mpx),
+            )
+        }
     }
 }
+
+private const val REMOTE_URL_TEXT = 26
+private const val REMOTE_PIN_TEXT = 52
+private val Ellipsis = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+
+private val PanelText: Color @Composable get() = stageTone(Color(0xFFD3DCD8), StageColors.Body)

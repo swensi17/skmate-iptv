@@ -563,6 +563,7 @@
 5	technical	app/src/main/java/tv/own/owntv/features/settings/VideoPlayerSettingsScreen.kt	${src.name} · $value
 1	locale	app/src/main/java/tv/own/owntv/features/settings/VideoPlayerSettingsScreen.kt	,
 1	technical	app/src/main/java/tv/own/owntv/features/settings/VideoPlayerSettingsScreen.kt	-1
+2	technical	app/src/main/java/tv/own/owntv/features/settings/VideoPlayerSettingsScreen.kt	FunctionNaming
 4	preference-key	app/src/main/java/tv/own/owntv/features/settings/VideoPlayerSettingsScreen.kt	vp_afr
 4	technical	app/src/main/java/tv/own/owntv/features/settings/VideoPlayerSettingsScreen.kt	vp_afr_pause
 3	technical	app/src/main/java/tv/own/owntv/features/settings/VideoPlayerSettingsScreen.kt	vp_afr_resolution
@@ -632,11 +633,8 @@
 1	technical	app/src/main/java/tv/own/owntv/features/setup/AddSourceScreen.kt	▶
 1	technical	app/src/main/java/tv/own/owntv/features/setup/AddSourceScreen.kt	◀ ▶
 2	empty	app/src/main/java/tv/own/owntv/features/setup/RemoteSetupScreen.kt	\0
-1	technical	app/src/main/java/tv/own/owntv/features/setup/RemoteSetupScreen.kt	.
-1	regex	app/src/main/java/tv/own/owntv/features/setup/RemoteSetupScreen.kt	.*
-1	technical	app/src/main/java/tv/own/owntv/features/setup/RemoteSetupScreen.kt	//
-1	technical	app/src/main/java/tv/own/owntv/features/setup/RemoteSetupScreen.kt	DEPRECATION
-1	technical	app/src/main/java/tv/own/owntv/features/setup/RemoteSetupScreen.kt	unknown ssid
+1	technical	app/src/main/java/tv/own/owntv/features/setup/RemoteSetupScreen.kt	FunctionNaming
+1	protocol	app/src/main/java/tv/own/owntv/features/setup/RemoteSetupScreen.kt	http://
 1	technical	app/src/main/java/tv/own/owntv/features/setup/RemoteSetupScreen.kt	…
 12	empty	app/src/main/java/tv/own/owntv/features/setup/SetupViewModel.kt	\0
 1	preference-key	app/src/main/java/tv/own/owntv/features/setup/SetupViewModel.kt	pending_profile_id

@@ -308,6 +308,13 @@ class SettingsViewModel(
     val playerClock: StateFlow<Boolean> = settings.playerClock
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
 
+    val playerClockStyle: StateFlow<tv.own.owntv.core.settings.ClockStyle> = settings.playerClockStyle
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), tv.own.owntv.core.settings.ClockStyle.DEFAULT)
+
+    fun setPlayerClockStyle(style: tv.own.owntv.core.settings.ClockStyle) {
+        viewModelScope.launch { settings.setPlayerClockStyle(style) }
+    }
+
     fun setPlayerClock(enabled: Boolean) {
         viewModelScope.launch { settings.setPlayerClock(enabled) }
     }

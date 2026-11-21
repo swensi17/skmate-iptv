@@ -3192,4 +3192,20 @@
     <string name="settings_vp_cat_controls">Controls</string>
     <string name="settings_vp_cat_resume">Resume watching</string>
     <string name="settings_sources_refresh_daily">Every day</string>
+    <!-- Translators: Player clock look settings. Short labels. -->
+    <string name="settings_clock_size">Clock size</string>
+    <string name="settings_clock_weight">Clock font</string>
+    <string name="settings_clock_bg">Clock background</string>
+    <string name="settings_clock_color">Clock colour</string>
+    <string name="settings_clock_size_s">Small</string>
+    <string name="settings_clock_size_m">Medium</string>
+    <string name="settings_clock_size_l">Large</string>
+    <string name="settings_clock_weight_regular">Regular</string>
+    <string name="settings_clock_weight_bold">Bold</string>
+    <string name="settings_clock_bg_none">None</string>
+    <string name="settings_clock_bg_dark">Dark</string>
+    <string name="settings_clock_bg_light">Light</string>
+    <string name="settings_clock_bg_blue">Blue</string>
+    <string name="settings_clock_color_yellow">Yellow</string>
+    <string name="settings_clock_color_blue">Light blue</string>
 </resources>

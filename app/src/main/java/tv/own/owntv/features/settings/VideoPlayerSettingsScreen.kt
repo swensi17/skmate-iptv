@@ -1177,6 +1177,7 @@ internal fun VideoPlayerGroupRows(
             value = SettingValue.Switch(playerClock),
             onClick = { vm.setPlayerClock(!playerClock) },
         )
+        if (playerClock) ClockStyleRows(vm)
         KeyedSettingRow(
             quickKey = "vp_seek_step",
             choices = tv.own.owntv.core.settings.SeekSteps.SEEK_CHOICES.map { stringResource(R.string.settings_live_buffer_seconds, it) },
@@ -2525,3 +2526,54 @@ private fun audioOutputName(output: tv.own.owntv.core.player.AudioOutputKind): I
     tv.own.owntv.core.player.AudioOutputKind.SPEAKER -> R.string.settings_audio_output_speaker
     tv.own.owntv.core.player.AudioOutputKind.OTHER -> R.string.settings_audio_output_other
 }
+
+/** The clock's look, under its switch: each row flips through its choices with OK or ◀ ▶. */
+@Suppress("FunctionNaming")
+@Composable
+private fun ClockStyleRows(vm: SettingsViewModel) {
+    val style by vm.playerClockStyle.collectAsStateWithLifecycle()
+
+    @Suppress("FunctionNaming")
+    @Composable
+    fun row(title: Int, options: List<Int>, current: Int, icon: OwnTVIcon, set: (Int) -> Unit) {
+        val labels = options.map { stringResource(it) }
+        val step: (Int) -> Unit = { d -> set((current + d).mod(labels.size)) }
+        KeyedSettingRow(
+            icon = icon,
+            title = stringResource(title),
+            value = SettingValue.Segmented(labels, current),
+            onClick = { step(1) },
+            onStep = step,
+        )
+    }
+    row(R.string.settings_clock_size, CLOCK_SIZES, style.size, OwnTVIcon.ZOOM) {
+        vm.setPlayerClockStyle(style.copy(size = it))
+    }
+    row(R.string.settings_clock_weight, CLOCK_WEIGHTS, style.weight, OwnTVIcon.THEME) {
+        vm.setPlayerClockStyle(style.copy(weight = it))
+    }
+    row(R.string.settings_clock_bg, CLOCK_BGS, style.background, OwnTVIcon.PALETTE) {
+        vm.setPlayerClockStyle(style.copy(background = it))
+    }
+    row(R.string.settings_clock_color, CLOCK_COLORS, style.color, OwnTVIcon.PALETTE) {
+        vm.setPlayerClockStyle(style.copy(color = it))
+    }
+}
+
+private val CLOCK_SIZES = listOf(
+    R.string.settings_clock_size_s,
+    R.string.settings_clock_size_m,
+    R.string.settings_clock_size_l,
+)
+private val CLOCK_WEIGHTS = listOf(R.string.settings_clock_weight_regular, R.string.settings_clock_weight_bold)
+private val CLOCK_BGS = listOf(
+    R.string.settings_clock_bg_none,
+    R.string.settings_clock_bg_dark,
+    R.string.settings_clock_bg_light,
+    R.string.settings_clock_bg_blue,
+)
+private val CLOCK_COLORS = listOf(
+    R.string.settings_clock_color_white,
+    R.string.settings_clock_color_yellow,
+    R.string.settings_clock_color_blue,
+)

@@ -416,6 +416,10 @@ class SettingsRepository(private val context: Context, private val localeStore: 
         /** The one-time "this stream judders at your TV's refresh rate" suggestion has been answered. */
         val AUTO_FRAME_RATE_PROMPTED = booleanPreferencesKey("auto_frame_rate_prompted")
         val PLAYER_CLOCK = booleanPreferencesKey("player_clock")
+        val PLAYER_CLOCK_SIZE = intPreferencesKey("player_clock_size")
+        val PLAYER_CLOCK_WEIGHT = intPreferencesKey("player_clock_weight")
+        val PLAYER_CLOCK_BG = intPreferencesKey("player_clock_bg")
+        val PLAYER_CLOCK_COLOR = intPreferencesKey("player_clock_color")
         val ANDROID_TV_HOME = booleanPreferencesKey("android_tv_home")
 
         // Multiview: watching up to four live channels at once.
@@ -2596,6 +2600,25 @@ class SettingsRepository(private val context: Context, private val localeStore: 
         context.dataStore.edit { it[Keys.PLAYER_CLOCK] = enabled }
     }
 
+    /** How the player clock looks: each part is an index into its list of choices (see [ClockStyle]). */
+    val playerClockStyle: Flow<ClockStyle> = prefsFlow {
+        ClockStyle(
+            size = it[Keys.PLAYER_CLOCK_SIZE] ?: ClockStyle.DEFAULT.size,
+            weight = it[Keys.PLAYER_CLOCK_WEIGHT] ?: ClockStyle.DEFAULT.weight,
+            background = it[Keys.PLAYER_CLOCK_BG] ?: ClockStyle.DEFAULT.background,
+            color = it[Keys.PLAYER_CLOCK_COLOR] ?: ClockStyle.DEFAULT.color,
+        )
+    }
+
+    suspend fun setPlayerClockStyle(style: ClockStyle) {
+        context.dataStore.edit {
+            it[Keys.PLAYER_CLOCK_SIZE] = style.size
+            it[Keys.PLAYER_CLOCK_WEIGHT] = style.weight
+            it[Keys.PLAYER_CLOCK_BG] = style.background
+            it[Keys.PLAYER_CLOCK_COLOR] = style.color
+        }
+    }
+
     /** The choices for films' buffer (seconds; 0 = Auto, the device tier). */
     val vodBufferChoicesSecs: List<Int> = listOf(0, 30, 60, 120, 300)
 
@@ -3154,6 +3177,7 @@ class SettingsRepository(private val context: Context, private val localeStore: 
             Keys.REMOTE_SHORTCUT_BINDINGS,
         )
         val ints = listOf(Keys.GUIDE_DAYS_TO_KEEP, Keys.FOCUS_HIGHLIGHT_WIDTH, Keys.DEFAULT_VOLUME, Keys.SEEK_STEP_SEC, Keys.LIVE_REWIND_STEP_SEC, Keys.UI_ZOOM_PCT, Keys.FONT_SIZE_PCT, Keys.AUDIO_DELAY_MS, Keys.CATCHUP_OFFSET_MIN, Keys.EPG_OFFSET_MIN, Keys.PROXY_PORT, Keys.DNS_PORT, Keys.CH_NAV_UP_SKIP, Keys.CH_NAV_DOWN_SKIP, Keys.MINI_PLAYER_SIZE_PCT, Keys.LIVE_LATENCY_CUSTOM_SECS, Keys.LIVE_PREROLL_SECS, Keys.LIVE_TUNE_TIMEOUT_SECS, Keys.GLASS_SCOPE, Keys.GLASS_ALPHA, Keys.BG_DIM, Keys.BG_BLUR, Keys.SUB_BG_OPACITY,
+            Keys.PLAYER_CLOCK_SIZE, Keys.PLAYER_CLOCK_WEIGHT, Keys.PLAYER_CLOCK_BG, Keys.PLAYER_CLOCK_COLOR,
             Keys.PANEL_W_LIVE_CAT, Keys.PANEL_W_LIVE_LIST, Keys.PANEL_W_LIVE_PREVIEW,
             Keys.LIVE_STAGE_SHEET, Keys.LIVE_STAGE_LIST, Keys.LIVE_STAGE_PREVIEW,
             Keys.PANEL_W_MOVIES_CAT, Keys.PANEL_W_MOVIES_LIST, Keys.PANEL_W_MOVIES_PREVIEW,

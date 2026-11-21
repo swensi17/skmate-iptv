@@ -487,11 +487,11 @@
     <file name="app/src/main/java/tv/own/owntv/features/settings/SettingsViewModel.kt">
         <error line="5" column="1" source="standard:import-ordering" />
         <error line="102" column="5" source="standard:spacing-between-declarations-with-comments" />
-        <error line="519" column="1" source="standard:no-consecutive-blank-lines" />
-        <error line="831" column="5" source="standard:spacing-between-declarations-with-comments" />
-        <error line="843" column="5" source="standard:spacing-between-declarations-with-comments" />
-        <error line="951" column="1" source="standard:no-consecutive-blank-lines" />
-        <error line="997" column="5" source="standard:spacing-between-declarations-with-comments" />
+        <error line="526" column="1" source="standard:no-consecutive-blank-lines" />
+        <error line="838" column="5" source="standard:spacing-between-declarations-with-comments" />
+        <error line="850" column="5" source="standard:spacing-between-declarations-with-comments" />
+        <error line="958" column="1" source="standard:no-consecutive-blank-lines" />
+        <error line="1004" column="5" source="standard:spacing-between-declarations-with-comments" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/settings/VideoPlayerSettingsScreen.kt">
         <error line="3" column="1" source="standard:import-ordering" />
@@ -522,28 +522,28 @@
         <error line="1152" column="17" source="standard:wrapping" />
         <error line="1162" column="44" source="standard:wrapping" />
         <error line="1165" column="21" source="standard:wrapping" />
-        <error line="1254" column="40" source="standard:wrapping" />
-        <error line="1255" column="116" source="standard:wrapping" />
-        <error line="1255" column="131" source="standard:wrapping" />
-        <error line="1333" column="40" source="standard:wrapping" />
-        <error line="1334" column="124" source="standard:wrapping" />
-        <error line="1334" column="143" source="standard:wrapping" />
-        <error line="2296" column="1" source="standard:kdoc" />
-        <error line="2306" column="1" source="standard:spacing-between-declarations-with-comments" />
-        <error line="2308" column="1" source="standard:spacing-between-declarations-with-comments" />
-        <error line="2343" column="25" source="standard:wrapping" />
-        <error line="2344" column="144" source="standard:wrapping" />
-        <error line="2345" column="25" source="standard:wrapping" />
-        <error line="2346" column="144" source="standard:wrapping" />
-        <error line="2348" column="25" source="standard:wrapping" />
-        <error line="2349" column="157" source="standard:wrapping" />
-        <error line="2350" column="25" source="standard:wrapping" />
-        <error line="2351" column="69" source="standard:wrapping" />
-        <error line="2353" column="25" source="standard:wrapping" />
-        <error line="2354" column="111" source="standard:wrapping" />
-        <error line="2355" column="25" source="standard:wrapping" />
-        <error line="2356" column="150" source="standard:wrapping" />
-        <error line="2515" column="1" source="standard:no-consecutive-blank-lines" />
+        <error line="1255" column="40" source="standard:wrapping" />
+        <error line="1256" column="116" source="standard:wrapping" />
+        <error line="1256" column="131" source="standard:wrapping" />
+        <error line="1334" column="40" source="standard:wrapping" />
+        <error line="1335" column="124" source="standard:wrapping" />
+        <error line="1335" column="143" source="standard:wrapping" />
+        <error line="2297" column="1" source="standard:kdoc" />
+        <error line="2307" column="1" source="standard:spacing-between-declarations-with-comments" />
+        <error line="2309" column="1" source="standard:spacing-between-declarations-with-comments" />
+        <error line="2344" column="25" source="standard:wrapping" />
+        <error line="2345" column="144" source="standard:wrapping" />
+        <error line="2346" column="25" source="standard:wrapping" />
+        <error line="2347" column="144" source="standard:wrapping" />
+        <error line="2349" column="25" source="standard:wrapping" />
+        <error line="2350" column="157" source="standard:wrapping" />
+        <error line="2351" column="25" source="standard:wrapping" />
+        <error line="2352" column="69" source="standard:wrapping" />
+        <error line="2354" column="25" source="standard:wrapping" />
+        <error line="2355" column="111" source="standard:wrapping" />
+        <error line="2356" column="25" source="standard:wrapping" />
+        <error line="2357" column="150" source="standard:wrapping" />
+        <error line="2516" column="1" source="standard:no-consecutive-blank-lines" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/settings/WeatherSettingsScreen.kt">
         <error line="222" column="37" source="standard:annotation" />
@@ -586,14 +586,14 @@
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt">
         <error line="3" column="1" source="standard:import-ordering" />
-        <error line="1527" column="187" source="standard:wrapping" />
-        <error line="1541" column="26" source="standard:wrapping" />
-        <error line="1585" column="107" source="standard:wrapping" />
-        <error line="1598" column="26" source="standard:wrapping" />
-        <error line="2565" column="19" source="standard:property-naming" />
-        <error line="2577" column="1" source="standard:kdoc" />
-        <error line="2583" column="19" source="standard:property-naming" />
-        <error line="2584" column="19" source="standard:property-naming" />
+        <error line="1530" column="187" source="standard:wrapping" />
+        <error line="1544" column="26" source="standard:wrapping" />
+        <error line="1588" column="107" source="standard:wrapping" />
+        <error line="1601" column="26" source="standard:wrapping" />
+        <error line="2568" column="19" source="standard:property-naming" />
+        <error line="2580" column="1" source="standard:kdoc" />
+        <error line="2586" column="19" source="standard:property-naming" />
+        <error line="2587" column="19" source="standard:property-naming" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/shell/ShellViewModel.kt">
         <error line="3" column="1" source="standard:import-ordering" />

@@ -1794,4 +1794,19 @@
     <string name="settings_vp_cat_controls">Управление</string>
     <string name="settings_vp_cat_resume">Продолжение просмотра</string>
     <string name="settings_sources_refresh_daily">Каждый день</string>
+    <string name="settings_clock_size">Размер часов</string>
+    <string name="settings_clock_weight">Шрифт часов</string>
+    <string name="settings_clock_bg">Фон часов</string>
+    <string name="settings_clock_color">Цвет часов</string>
+    <string name="settings_clock_size_s">Маленький</string>
+    <string name="settings_clock_size_m">Средний</string>
+    <string name="settings_clock_size_l">Большой</string>
+    <string name="settings_clock_weight_regular">Обычный</string>
+    <string name="settings_clock_weight_bold">Жирный</string>
+    <string name="settings_clock_bg_none">Нет</string>
+    <string name="settings_clock_bg_dark">Тёмный</string>
+    <string name="settings_clock_bg_light">Светлый</string>
+    <string name="settings_clock_bg_blue">Синий</string>
+    <string name="settings_clock_color_yellow">Жёлтый</string>
+    <string name="settings_clock_color_blue">Голубой</string>
 </resources>
