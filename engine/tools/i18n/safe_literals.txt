@@ -5867,8 +5867,10 @@
 1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	gave up after $reconnects reconnects ($why)
 1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	memory pressure: the preview lets go
 1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	open timeout
+1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	open timing: queue ${startedAt - queuedAt}ms, stop+set ${mediaSetAt - startedAt}ms,
 1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	picture ready after ${SystemClock.elapsedRealtime() - openedAt}ms
 1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	picture stuck while data arrives — reopening on the software decoder
+1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	play ${SystemClock.elapsedRealtime() - mediaSetAt}ms
 1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	play() engine=$engineId url=${HttpClient.redactUrl(url)} muted=$muted
 1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	preview: control step failed (${t.javaClass.simpleName}: ${t.message})
 1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	reconnect $reconnects/$MAX_RECONNECTS after $why
@@ -6535,6 +6537,7 @@
 1	log	player-core/src/main/java/tv/own/owntv/player/SegmentPrefetcher.kt	prefetch start host=${e.uri.host}
 2	log	player-core/src/main/java/tv/own/owntv/player/SegmentPrefetcher.kt	segment too large to hold
 1	technical	player-core/src/main/java/tv/own/owntv/player/SegmentPrefetcher.kt	segment-prefetch
+1	technical	player-core/src/main/java/tv/own/owntv/player/SharedLibVlc.kt	vlc-warmup
 1	empty	player-core/src/main/java/tv/own/owntv/player/SmartBuffer.kt	\0
 1	technical	player-core/src/main/java/tv/own/owntv/player/SmartBuffer.kt	${roundUpToMib(bytes) / MIB}MiB
 1	regex	player-core/src/main/java/tv/own/owntv/player/SmartBuffer.kt	(\\d+)\\s*([KkMmGg]i[Bb])?

@@ -70,7 +70,7 @@ class LivePreviewEngine(
 
     private val lowSpec: Boolean by lazy { tv.own.owntv.core.player.PlayerBudget.of(context).lowSpec }
 
-    private val vlc: LibVLC by lazy { LibVLC(context.applicationContext, vlcOptions()) }
+    private val vlc: LibVLC get() = SharedLibVlc.get(context)
     private var player: MediaPlayer? = null
     private var surface: Surface? = null
 
@@ -149,8 +149,8 @@ class LivePreviewEngine(
      *  in between still belong to the channel being left, and must not mark the new one as showing. */
     @Volatile private var openGen = 0
     @Volatile private var startedGen = 0
-    private var audioTracks: List<TrackOption> = emptyList()
-    private var textTracks: List<TrackOption> = emptyList()
+    @Volatile private var audioTracks: List<TrackOption> = emptyList()
+    @Volatile private var textTracks: List<TrackOption> = emptyList()
 
     private val settingsScope =
         kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.SupervisorJob() + kotlinx.coroutines.Dispatchers.Default)
@@ -280,7 +280,9 @@ class LivePreviewEngine(
         // video output, and a size request dropped with the queue left the picture at the preview's size in
         // the corner of the full screen.
         applyWindow(p)
+        val queuedAt = SystemClock.elapsedRealtime()
         ctlPost {
+            val startedAt = SystemClock.elapsedRealtime()
             // Built here, not above: a channel the viewer has already scrolled past never gets here, and
             // a Media made for it on the interface thread would be dropped with the queue and never freed — one
             // native object leaked per skipped channel, which a box with little memory pays for within minutes.
@@ -302,9 +304,16 @@ class LivePreviewEngine(
             } finally {
                 media.release()
             }
+            // set_media stops the previous channel first: how much of a zap that costs, against the wait in
+            // the queue and the play() call.
+            val mediaSetAt = SystemClock.elapsedRealtime()
             p.volume = vol
             startedGen = gen
             p.play()
+            LiveDiagnosticsLog.event(
+                "open timing: queue ${startedAt - queuedAt}ms, stop+set ${mediaSetAt - startedAt}ms, " +
+                    "play ${SystemClock.elapsedRealtime() - mediaSetAt}ms",
+            )
         }
         _error.value = null; _errorInfo.value = null
         _state.value = State.LOADING; _buffering.value = true; _isPlaying.value = false
@@ -373,8 +382,13 @@ class LivePreviewEngine(
         readTracks()
     }
 
+    /** Reads the tracks on the control thread: libVLC's calls can wait on a lock a stuck stream holds. */
     private fun readTracks() {
         val p = player ?: return
+        ctlPost { readTracksNow(p) }
+    }
+
+    private fun readTracksNow(p: MediaPlayer) {
         val video = (p.currentVideoTrack)
         if (video != null && video.width > 0 && video.height > 0) {
             val w = video.width; val h = video.height
@@ -578,7 +592,8 @@ class LivePreviewEngine(
 
     fun setMuted(m: Boolean) {
         muted = m
-        player?.volume = if (m) 0 else _volume.value
+        val vol = if (m) 0 else _volume.value
+        player?.let { p -> ctlPost { p.volume = vol } }
     }
 
     fun setLiveBufferSecs(secs: Int?) { liveBufferSecs = secs }
@@ -598,26 +613,18 @@ class LivePreviewEngine(
     override fun setZoomMode(mode: ZoomMode) { _zoomMode.value = mode }
     override fun adjustVolume(delta: Int) {
         _volume.value = (_volume.value + delta).coerceIn(0, 100)
-        if (!muted) player?.volume = _volume.value
+        val vol = _volume.value
+        if (!muted) player?.let { p -> ctlPost { p.volume = vol } }
     }
     override fun toggleMute() = setMuted(!muted)
     override fun retry() { currentUrl?.let { reconnects = 0; gaveUp = false; open(it) } }
-    override fun selectAudio(id: Int) { player?.audioTrack = id; readTracks() }
-    override fun selectSubtitle(id: Int) { player?.spuTrack = id; readTracks() }
-    override fun disableSubtitles() { player?.spuTrack = -1; readTracks() }
+    override fun selectAudio(id: Int) { player?.let { p -> ctlPost { p.audioTrack = id; readTracksNow(p) } } }
+    override fun selectSubtitle(id: Int) { player?.let { p -> ctlPost { p.spuTrack = id; readTracksNow(p) } } }
+    override fun disableSubtitles() { player?.let { p -> ctlPost { p.spuTrack = -1; readTracksNow(p) } } }
     override fun audioTracks(): List<TrackOption> = audioTracks
     override fun textTracks(): List<TrackOption> = textTracks
     override fun enterAudioOnly() { _audioOnly.value = true }
     override fun exitAudioOnly() { _audioOnly.value = false }
-
-    private fun vlcOptions() = arrayListOf(
-        "--http-reconnect",
-        // Interlaced channels (576i) come out of the decoder as fields; let libVLC pick a deinterlacer.
-        "--deinterlace=-1",
-        "--deinterlace-mode=yadif",
-        "--audio-time-stretch",
-        "--stats",
-    )
 
     companion object {
         /** Kept for the tune controller's watchers: playback this long earns back the reconnect budget. */

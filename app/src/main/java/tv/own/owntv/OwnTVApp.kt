@@ -101,6 +101,8 @@ class OwnTVApp : Application(), SingletonImageLoader.Factory, androidx.work.Conf
         tv.own.owntv.core.CoreBuildInfo.releaseRepo = "swensi17/skmate-iptv"
         // Fixed for this process before any player exists: the setting applies only after a restart.
         tv.own.owntv.core.player.FfmpegAudioSetting.load(this)
+        // The live player's engine loads in the background now, so the first channel opens on a ready one.
+        tv.own.owntv.player.SharedLibVlc.warmUp(this)
         // First thing after the context exists: a crash from here on leaves a trace on disk that the
         // user can export from Settings, instead of being lost with the process.
         tv.own.owntv.core.util.CrashRecorder.diagnostics = { tv.own.owntv.player.LiveDiagnosticsLog.snapshot() }

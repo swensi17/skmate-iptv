@@ -304,11 +304,6 @@
 1	core/src/main/java/tv/own/owntv/core/util/CrashRecorder.kt	${Build.MANUFACTURER} ${Build.MODEL} · Android ${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})
 1	core/src/main/java/tv/own/owntv/core/util/CrashRecorder.kt	${tv.own.owntv.core.brand.BrandName.NAME} ${CoreBuildInfo.versionName} (${CoreBuildInfo.versionCode})
 1	core/src/main/java/tv/own/owntv/core/util/CrashRecorder.kt	--- live diagnostics leading up to the crash ---
-1	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	--audio-time-stretch
-1	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	--deinterlace-mode=yadif
-1	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	--deinterlace=-1
-1	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	--http-reconnect
-1	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	--stats
 1	player-core/src/main/java/tv/own/owntv/player/LiveRouting.kt	vlc
 4	player-core/src/main/java/tv/own/owntv/player/LiveStreamQuirks.kt	.m3u8
 3	player-core/src/main/java/tv/own/owntv/player/LiveStreamQuirks.kt	.ts
@@ -327,4 +322,9 @@
 1	player-core/src/main/java/tv/own/owntv/player/PlayerDiagnostics.kt	\0
 1	player-core/src/main/java/tv/own/owntv/player/PlayerDiagnostics.kt	429
 1	player-core/src/main/java/tv/own/owntv/player/PlayerDiagnostics.kt	458
+1	player-core/src/main/java/tv/own/owntv/player/SharedLibVlc.kt	--audio-time-stretch
+1	player-core/src/main/java/tv/own/owntv/player/SharedLibVlc.kt	--deinterlace-mode=yadif
+1	player-core/src/main/java/tv/own/owntv/player/SharedLibVlc.kt	--deinterlace=-1
+1	player-core/src/main/java/tv/own/owntv/player/SharedLibVlc.kt	--http-reconnect
+1	player-core/src/main/java/tv/own/owntv/player/SharedLibVlc.kt	--stats
 2	player-core/src/main/java/tv/own/owntv/player/SoftwareDecodeMemory.kt	\0
