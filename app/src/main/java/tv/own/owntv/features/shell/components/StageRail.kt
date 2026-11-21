@@ -22,7 +22,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import tv.own.owntv.ui.stage.drawInnerRing
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -70,6 +69,7 @@ import tv.own.owntv.ui.stage.StageSurface
 import tv.own.owntv.ui.stage.drawBoxShadow
 import tv.own.owntv.ui.stage.stageGlass
 import tv.own.owntv.ui.theme.StageColors
+import tv.own.owntv.ui.theme.LocalStagePalette
 import tv.own.owntv.ui.theme.mpx
 import tv.own.owntv.ui.theme.ownTvTween
 import tv.own.owntv.ui.theme.stageAccent
@@ -260,7 +260,10 @@ fun StageRail(
                                 drawRect(line, topLeft = androidx.compose.ui.geometry.Offset(box.width - w, 0f), size = androidx.compose.ui.geometry.Size(w, box.height))
                             }
                         }
-                        tvBoxStrip -> Modifier.background(if (tv.own.owntv.ui.theme.LocalStagePalette.current.isLight) tv.own.owntv.features.shell.components.TvBoxPanelLight else TvBoxMenuFill, TvBoxEdgeShape)
+                        // Square, flush with the edge: no dark corners top and bottom.
+                        tvBoxStrip -> Modifier.background(
+                            if (LocalStagePalette.current.isLight) TvBoxPanelLight else TvBoxMenuFill,
+                        )
                             .drawBehind { drawRect(androidx.compose.ui.graphics.Color(0x14000000), topLeft = androidx.compose.ui.geometry.Offset(drawContext.size.width - 1.mpx.toPx(), 0f), size = androidx.compose.ui.geometry.Size(1.mpx.toPx(), drawContext.size.height)) }
                         open -> Modifier.stageGlass(34.mpx, overContent = true)
                         else -> Modifier
@@ -529,9 +532,6 @@ internal val TvBoxMenuFill = androidx.compose.ui.graphics.Color(0xFF232629)
 
 /** Sections the TV-box menu leaves out: Home is the channels themselves. */
 internal val TvBoxHiddenSections = setOf(MainSection.HOME, MainSection.MOVIES, MainSection.SERIES, MainSection.DOWNLOADS)
-
-/** The TV-box panels' shape at the left edge: square on the screen side, softly rounded on the other. */
-internal val TvBoxEdgeShape = RoundedCornerShape(topEnd = 20.mpx, bottomEnd = 20.mpx)
 
 /**
  * Whether a screen's own panel (Live TV's categories) is open beside the menu: then the menu is a plain

@@ -1881,6 +1881,16 @@ class LiveViewModel(
 
     /** Replay a past programme from the channel's archive (seekable, like the Guide's "Watch from start"). */
     fun playCatchupProgramme(ch: ChannelEntity, programme: tv.own.owntv.core.database.entity.EpgProgrammeEntity) {
+        // TV-box look: one player for everything. A programme from the guide is the channel rewound to the
+        // programme's start, in the live player with its own timeline, not a separate film-style player.
+        // The archive then simply carries on into the programmes after it.
+        if (tv.own.owntv.features.shell.TvBoxNav && ch.catchup) {
+            val backSec = ((System.currentTimeMillis() - programme.startMs) / MS_PER_SECOND).toInt()
+            if (backSec > 0) {
+                playCatchupAt(ch, backSec)
+                return
+            }
+        }
         // The controller's one tune job: a live tune still resolving is cancelled rather than starting
         // over the programme a moment later.
         live.launch {
@@ -2384,3 +2394,5 @@ class LiveViewModel(
 
     }
 }
+
+private const val MS_PER_SECOND = 1_000L

@@ -489,7 +489,8 @@ fun SettingsSheet(
         // A tap beside the sheet is Back, as on the remote.
         val backDispatcher = androidx.activity.compose.LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
         if (scrim) Box(
-            Modifier.fillMaxSize().graphicsLayer { alpha = 1f - panelIn.value }.background(if (tv.own.owntv.ui.theme.LocalStagePalette.current.isLight) Color(0x33000000) else SideScrim).pointerInput(backDispatcher) {
+            // No grey wash over the screen beside the sheet: it stays as it is, only a tap there still means Back.
+            Modifier.fillMaxSize().pointerInput(backDispatcher) {
                 detectTapGestures { backDispatcher?.onBackPressed() }
             },
         )
@@ -566,7 +567,6 @@ private val SideInMs: Int get() = 0
 // TV-box greys: the sheet, its header band.
 private val SideFill = Color(0xFF232629)
 private val SideHeaderFill = Color(0xFF333639)
-private val SideScrim = Color(0x73000000)
 
 /** `.helpc h5`: 13/800 caps, +0.13em, dim. */
 @Composable

@@ -645,7 +645,7 @@ internal fun LiveCategories(
             .then(
                 when {
                     // TV-box style: a full-height strip of the screen's own grey, not a floating card.
-                    sheet && tv.own.owntv.features.shell.TvBoxNav -> Modifier.background(if (tv.own.owntv.ui.theme.LocalStagePalette.current.isLight) tv.own.owntv.features.shell.components.TvBoxPanelLight else androidx.compose.ui.graphics.Color(0xFF232629), tv.own.owntv.features.shell.components.TvBoxEdgeShape)
+                    sheet && tv.own.owntv.features.shell.TvBoxNav -> Modifier.background(if (tv.own.owntv.ui.theme.LocalStagePalette.current.isLight) tv.own.owntv.features.shell.components.TvBoxPanelLight else androidx.compose.ui.graphics.Color(0xFF232629))
                         // The page's own colour, set off from the screen by a hairline on its open side.
                         .drawBehind { drawRect(androidx.compose.ui.graphics.Color(0x14000000), topLeft = androidx.compose.ui.geometry.Offset(drawContext.size.width - 1.mpx.toPx(), 0f), size = androidx.compose.ui.geometry.Size(1.mpx.toPx(), drawContext.size.height)) }.padding(horizontal = 16.mpx, vertical = 30.mpx)
                     sheet -> Modifier.stageGlass(StageRadii.Sheet, overContent = true).padding(horizontal = 16.mpx, vertical = 26.mpx)

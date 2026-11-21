@@ -33,6 +33,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.input.key.Key
@@ -899,6 +900,14 @@ fun PlayerHud(
         when {
             // A clean screen of its own: a picture of what went wrong, a plain headline, one line of why.
             // The engine's raw wording stays out of sight in release builds (a debug build still shows it).
+            // Behind the channel panels the failure is only a quiet mark: the panels are what the viewer is
+            // using, and the headline, reason and Retry showed through them as clutter.
+            error != null && inert -> Box(Modifier.fillMaxSize().background(Color(0xFF0B0F14))) {
+                val art = error?.let { errorArtOf(it) } ?: tv.own.owntv.ui.stage.ErrorArt.SIGNAL
+                Box(Modifier.align(Alignment.Center).graphicsLayer { alpha = QUIET_ERROR_ALPHA }) {
+                    tv.own.owntv.ui.stage.ErrorIllustration(art, size = QUIET_ERROR_SIZE.dp)
+                }
+            }
             error != null -> Box(Modifier.fillMaxSize().background(Color(0xFF0B0F14))) {
               // The button is composed in the same frame as this screen: ask for focus once it exists.
               LaunchedEffect(Unit) { delay(150); runCatching { retryFocus.requestFocus() } }
@@ -1112,3 +1121,7 @@ internal fun errorArtOf(failure: PlaybackFailure): tv.own.owntv.ui.stage.ErrorAr
     -> tv.own.owntv.ui.stage.ErrorArt.DEVICE
     else -> tv.own.owntv.ui.stage.ErrorArt.SIGNAL
 }
+
+/** The failure mark behind open panels: small and faded, so it reads as a state, not a message. */
+private const val QUIET_ERROR_SIZE = 96
+private const val QUIET_ERROR_ALPHA = 0.6f

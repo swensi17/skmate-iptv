@@ -1852,7 +1852,10 @@ fun OwnTVShell(
             // expand, so playback never blips). Everything else (mpv) renders mpv's surface.
             if (liveOnExo) {
                 tv.own.owntv.player.ExoPreviewSurface(
-                    engine = liveVm.previewEngine, modifier = videoDock, revealKey = docked, coverOnResize = true,
+                    engine = liveVm.previewEngine, modifier = videoDock, revealKey = docked,
+                    // The picture keeps showing while it grows to full screen and shrinks back: covering it black
+                    // on every step read as the channel dropping out at each open and close.
+                    coverOnResize = !(growingFull || collapsingFull),
                     keepAwake = true, autoFrameRate = isFull && autoFrameRate,
                 )
             } else {
