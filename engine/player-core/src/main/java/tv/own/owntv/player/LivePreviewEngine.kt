@@ -170,8 +170,8 @@ class LivePreviewEngine(
         done.await(DETACH_WAIT_MS, java.util.concurrent.TimeUnit.MILLISECONDS)
     }
 
-    private var surfaceW = 0
-    private var surfaceH = 0
+    @Volatile private var surfaceW = 0
+    @Volatile private var surfaceH = 0
 
     /** The surface's size in pixels: libVLC scales the picture to it (Fit), the composable sizes the view. */
     fun setSurfaceSize(width: Int, height: Int) {
@@ -182,8 +182,8 @@ class LivePreviewEngine(
     /** On the control thread: libVLC's calls on a surface can wait on a lock a stuck connection holds. */
     private fun applyWindow(p: MediaPlayer) {
         if (surfaceW <= 0 || surfaceH <= 0) return
-        val w = surfaceW; val h = surfaceH
-        ctlPost { applyWindowNow(p, w, h) }
+        // The size is read when the call runs, not when it is queued: the latest size always wins.
+        ctlPost { if (surfaceW > 0 && surfaceH > 0) applyWindowNow(p, surfaceW, surfaceH) }
     }
 
     private fun applyWindowNow(p: MediaPlayer, w: Int, h: Int) {
@@ -201,14 +201,13 @@ class LivePreviewEngine(
 
     private fun attach(p: MediaPlayer, s: Surface) {
         val vout = p.vlcVout
-        val w = surfaceW; val h = surfaceH
         attachPending = true
         ctlPost {
             attachPending = false
             if (vout.areViewsAttached()) vout.detachViews()
             vout.setVideoSurface(s, null)
             vout.attachViews()
-            if (w > 0 && h > 0) applyWindowNow(p, w, h)
+            if (surfaceW > 0 && surfaceH > 0) applyWindowNow(p, surfaceW, surfaceH)
         }
     }
 
@@ -244,9 +243,6 @@ class LivePreviewEngine(
         main.removeCallbacks(watchdog); main.removeCallbacks(reconnectRun)
         val p = player ?: MediaPlayer(vlc).also { player = it; it.setEventListener(::onEvent) }
         surface?.let { attach(p, it) }
-        // The window size goes in before every open: a new channel builds a new video output, and without it
-        // libVLC drew the first frames at the stream's own size in the corner until the next resize.
-        applyWindow(p)
         val software = softwareTried
         val caching = cachingMs()
         val agent = userAgent ?: DEFAULT_UA
@@ -255,6 +251,10 @@ class LivePreviewEngine(
         val gen = ++openGen
         ctl.removeCallbacksAndMessages(null)
         if (attachPending) surface?.let { attach(p, it) }
+        // The window size goes in before every open, and after the queue is cleared: a new channel builds a new
+        // video output, and a size request dropped with the queue left the picture at the preview's size in
+        // the corner of the full screen.
+        applyWindow(p)
         ctlPost {
             // Built here, not above: a channel the viewer has already scrolled past never gets here, and
             // a Media made for it on the interface thread would be dropped with the queue and never freed — one
@@ -576,13 +576,13 @@ class LivePreviewEngine(
         private const val DEFAULT_CACHE_SECS = 3
         private const val MIN_CACHE_MS = 1_000
         private const val MAX_CACHE_MS = 30_000
-        private const val WATCH_MS = 2_000L
+        private const val WATCH_MS = 1_000L
         /** The longest the main thread waits for libVLC to let go of a surface. */
         private const val DETACH_WAIT_MS = 400L
         /** No byte received this long after opening: the server is not answering. */
         private const val OPEN_TIMEOUT_MS = 10_000L
         private const val OPEN_TIMEOUT_WHY = "open timeout"
-        private const val STUCK_CHECKS = 3
+        private const val STUCK_CHECKS = 2
         private const val FIRST_PICTURE_MS = 6_000L
         private const val AUDIO_ONLY_AFTER_MS = 5_000L
         private const val MAX_RECONNECTS = 6
