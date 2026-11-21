@@ -231,7 +231,7 @@ private fun ArchiveCornerTag(text: String, modifier: Modifier = Modifier) {
             )
             .padding(horizontal = 12.mpx, vertical = 4.mpx),
     ) {
-        Text(text, style = stageText(ARCHIVE_TAG_TEXT_SIZE, 600), color = Color.White, maxLines = 1)
+        Text(text, style = stageText(ARCHIVE_TAG_TEXT_SIZE, 600), color = Color.White, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
 }
 
