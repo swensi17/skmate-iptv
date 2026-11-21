@@ -13,10 +13,10 @@ import tv.own.owntv.core.R
 /** "12K channels · 4.1K movies" — the parts a caller wants, joined. Empty when nothing arrived. */
 fun SyncCounts.breakdownText(res: Resources, includeEpg: Boolean = false): String {
     val parts = buildList {
-        if (channels > 0) add(res.getQuantityString(R.plurals.sync_count_channels, channels, compactCount(res, channels)))
-        if (movies > 0) add(res.getQuantityString(R.plurals.sync_count_movies, movies, compactCount(res, movies)))
-        if (series > 0) add(res.getQuantityString(R.plurals.sync_count_series, series, compactCount(res, series)))
-        if (includeEpg && epg > 0) add(res.getQuantityString(R.plurals.sync_count_epg, epg, compactCount(res, epg)))
+        if (channels > 0) add(res.getQuantityString(R.plurals.sync_count_channels, tv.own.owntv.core.sync.compactPluralQuantity(channels), compactCount(res, channels)))
+        if (movies > 0) add(res.getQuantityString(R.plurals.sync_count_movies, tv.own.owntv.core.sync.compactPluralQuantity(movies), compactCount(res, movies)))
+        if (series > 0) add(res.getQuantityString(R.plurals.sync_count_series, tv.own.owntv.core.sync.compactPluralQuantity(series), compactCount(res, series)))
+        if (includeEpg && epg > 0) add(res.getQuantityString(R.plurals.sync_count_epg, tv.own.owntv.core.sync.compactPluralQuantity(epg), compactCount(res, epg)))
     }
     return parts.joinToString(res.getString(R.string.sync_counts_separator))
 }
@@ -34,14 +34,23 @@ fun SyncCounts.summaryText(res: Resources, includeEpg: Boolean = false): String 
 /** The live tally while the import runs — only the phases that are actually running. */
 fun SyncProgressCounts.displayText(res: Resources): String {
     val parts = buildList {
-        if (liveActive && live > 0) add(res.getQuantityString(R.plurals.sync_count_channels, live, compactCount(res, live)))
-        if (moviesActive && movies > 0) add(res.getQuantityString(R.plurals.sync_count_movies, movies, compactCount(res, movies)))
-        if (seriesActive && series > 0) add(res.getQuantityString(R.plurals.sync_count_series, series, compactCount(res, series)))
+        if (liveActive && live > 0) add(res.getQuantityString(R.plurals.sync_count_channels, tv.own.owntv.core.sync.compactPluralQuantity(live), compactCount(res, live)))
+        if (moviesActive && movies > 0) add(res.getQuantityString(R.plurals.sync_count_movies, tv.own.owntv.core.sync.compactPluralQuantity(movies), compactCount(res, movies)))
+        if (seriesActive && series > 0) add(res.getQuantityString(R.plurals.sync_count_series, tv.own.owntv.core.sync.compactPluralQuantity(series), compactCount(res, series)))
     }
     return parts.joinToString(res.getString(R.string.sync_counts_separator))
 }
 
 /** Android ICU compact notation keeps the pill readable without losing the raw plural quantity. */
+/**
+ * The quantity a plural should agree with when [value] is shown through [compactCount]. From a thousand
+ * the number on screen is "1,4 тыс." / "1.4K", which always takes the many-form ("каналов"), while the
+ * exact 1371 picked the one-form ("канал").
+ */
+fun compactPluralQuantity(value: Int): Int = if (value >= COMPACT_FROM) COMPACT_FROM else value
+
+private const val COMPACT_FROM = 1000
+
 fun compactCount(res: Resources, value: Int): String {
     val locale = res.configuration.locales[0] ?: java.util.Locale.getDefault()
     return CompactDecimalFormat.getInstance(locale, CompactDecimalFormat.CompactStyle.SHORT)

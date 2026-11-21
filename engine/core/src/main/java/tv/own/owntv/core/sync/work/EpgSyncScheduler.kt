@@ -59,6 +59,16 @@ class EpgSyncScheduler(private val context: Context) {
     companion object {
         const val TAG_EPG_SYNC = "epg-sync"
 
+        /**
+         * How many guide downloads have finished: it rises each time one does, so a screen that showed
+         * "no guide" while the first download was still running can look its programmes up again.
+         */
+        fun finishedSyncs(context: Context): Flow<Int> =
+            WorkManager.getInstance(context)
+                .getWorkInfosByTagFlow(TAG_EPG_SYNC)
+                .map { infos -> infos.count { it.state == androidx.work.WorkInfo.State.SUCCEEDED } }
+                .distinctUntilChanged()
+
         fun workName(sourceId: Long) = "epg-sync-source-$sourceId"
     }
 }

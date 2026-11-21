@@ -366,15 +366,17 @@ fun SearchScreen(
         if (searching) {
             // Filter buttons: OK switches one on or off, several can be on, none on shows everything.
             Row(Modifier.padding(start = fieldX, top = 192.mpx).width(listW), horizontalArrangement = Arrangement.spacedBy(8.mpx)) {
-                SearchKind.entries.forEach { k ->
+                // Each button as wide as its words: equal quarters cut "Прямой эфир 10" to "Прямой эфир …".
+                val tabs = SearchKind.entries.map { k -> Triple(k, k.label(), localizedInteger(results.count(k))) }
+                tabs.forEach { (k, label, count) ->
                     StageTab(
-                        label = k.label(),
-                        count = localizedInteger(results.count(k)),
+                        label = label,
+                        count = count,
                         selected = k in kinds,
                         onClick = { vm.toggleKind(k) },
                         centered = true,
                         modifier = Modifier
-                            .weight(1f)
+                            .weight((label.length + count.length + TAB_PADDING_CHARS).toFloat())
                             .focusRequester(filterFocus.getValue(k))
                             .onFocusChanged { if (it.isFocused) filterFocused = k else if (filterFocused == k) filterFocused = null },
                     )
@@ -896,3 +898,6 @@ private fun NothingFound(title: String, modifier: Modifier = Modifier) {
         )
     }
 }
+
+/** Room a search filter button needs beyond its words, in characters, for its padding and gap. */
+private const val TAB_PADDING_CHARS = 4

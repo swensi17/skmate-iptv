@@ -262,8 +262,14 @@ private fun SyncLine.text(): String = when (this) {
     is SyncLine.Epg -> {
         val context = LocalContext.current
         val countParts = buildList {
-            if (sync.channels > 0) add(pluralStringResource(R.plurals.sync_count_channels, sync.channels, compactCount(context, sync.channels)))
-            if (sync.programmes > 0) add(pluralStringResource(R.plurals.sync_count_epg, sync.programmes, compactCount(context, sync.programmes)))
+            if (sync.channels > 0) {
+                val q = tv.own.owntv.core.sync.compactPluralQuantity(sync.channels)
+                add(pluralStringResource(R.plurals.sync_count_channels, q, compactCount(context, sync.channels)))
+            }
+            if (sync.programmes > 0) {
+                val q = tv.own.owntv.core.sync.compactPluralQuantity(sync.programmes)
+                add(pluralStringResource(R.plurals.sync_count_epg, q, compactCount(context, sync.programmes)))
+            }
         }
         val countsText = countParts.joinToString(stringResource(R.string.sync_counts_separator))
         if (countsText.isBlank()) stringResource(R.string.sync_status_epg, sync.sourceName)

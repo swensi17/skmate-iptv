@@ -38,7 +38,10 @@ class ImportFinalizer(
     private val epgSyncScheduler: tv.own.owntv.core.sync.work.EpgSyncScheduler,
     private val guideDefaults: () -> tv.own.owntv.core.epg.GuideDefaults,
 ) {
-    suspend fun finalize(source: SourceEntity, deferIndexes: Boolean = false): SyncCounts {
+    suspend fun finalize(staleSource: SourceEntity, deferIndexes: Boolean = false): SyncCounts {
+        // The sync has just written what the playlist declared (its `url-tvg` guide, a portal's feed) into
+        // the row; the caller's copy predates it. Read it back, or the playlist's own guide is never added.
+        val source = runCatching { db.sourceDao().getById(staleSource.id) }.getOrNull() ?: staleSource
         val counts = contentCounts(source.id)
         registerPortalGuide(source)
         attachGuides(source)

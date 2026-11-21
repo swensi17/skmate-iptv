@@ -37,6 +37,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.withIndex
@@ -608,6 +609,23 @@ class LiveViewModel(
             else customize.observe(c.profileId, MediaType.LIVE)
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, SectionCustomizations())
+
+    // A guide download that finishes while this screen is open: drop what was looked up before it (the
+    // "no guide" answers above all), so the details pane and the list show the programmes it brought.
+    init {
+        tv.own.owntv.core.sync.work.EpgSyncScheduler.finishedSyncs(appContext)
+            .withIndex()
+            .onEach {
+                if (it.index == 0) return@onEach
+                epgReader.clearCache(); epgRefresh.value++; clearNowPlaying()
+                // The rows already on screen are not asked again by themselves (only new ones are).
+                // Read as nullable: this property is declared further down and could, in theory, still be unset.
+                @Suppress("USELESS_CAST")
+                val rows = lastNowPlayingRows as List<ChannelEntity>?
+                if (!rows.isNullOrEmpty()) ensureNowPlaying(rows)
+            }
+            .launchIn(viewModelScope)
+    }
 
     /** Global guide shift (minutes); a per-channel override in [custom] wins over it. Changing it
      *  drops the now/next cache so the details pane reflects the new offset straight away. */
@@ -2141,6 +2159,9 @@ class LiveViewModel(
 
     private var nowPlayingJob: kotlinx.coroutines.Job? = null
 
+    /** The rows the list last asked about, asked again when a guide download brings new data. */
+    @Volatile private var lastNowPlayingRows: List<ChannelEntity> = emptyList()
+
     private fun publishNowPlaying(resolved: Map<Long, tv.own.owntv.core.parser.XtEpgEntry?>) {
         synchronized(nowPlayingCache) {
             nowPlayingCache.putAll(resolved)
@@ -2166,6 +2187,7 @@ class LiveViewModel(
      */
     fun ensureNowPlaying(loaded: List<ChannelEntity>) {
         if (loaded.isEmpty()) return
+        lastNowPlayingRows = loaded
         val known = cachedNowPlaying()
         val missing = loaded.filter { it.id !in known }
         if (missing.isEmpty()) return
