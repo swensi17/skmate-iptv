@@ -11,7 +11,7 @@ import tv.own.owntv.core.settings.EpgRefresh
 @Composable
 internal fun epgRefreshLabel(refresh: EpgRefresh): String =
     if (refresh.mode == EpgAutoRefresh.MANUAL) {
-        pluralStringResource(R.plurals.settings_sources_refresh_days, refresh.manualDays, refresh.manualDays)
+        tv.own.owntv.features.settings.refreshDaysLabel(refresh.manualDays)
     } else {
         epgAutoRefreshLabel(refresh.mode)
     }
@@ -30,3 +30,8 @@ internal fun epgAutoRefreshLabel(mode: EpgAutoRefresh): String = stringResource(
         EpgAutoRefresh.MANUAL -> R.string.settings_sources_refresh_manual
     },
 )
+
+/** "Every day" / "Every 3 days" for a refresh interval; see [tv.own.owntv.core.sync.refreshDaysText]. */
+@androidx.compose.runtime.Composable
+internal fun refreshDaysLabel(days: Int): String =
+    tv.own.owntv.core.sync.refreshDaysText(androidx.compose.ui.platform.LocalContext.current.resources, days)

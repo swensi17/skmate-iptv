@@ -174,13 +174,25 @@ private fun StorageBrowserContent(
                     }
                     itemsIndexed(roots) { i, root ->
                         val m = if (i == 0 && hasAccess) Modifier.focusRequester(firstFocus) else Modifier
-                        BrowserRow(OwnTVIcon.DOWNLOADS, root.displayLabel(), m) { current = root.file }
+                        BrowserRow(OwnTVIcon.FOLDER, root.displayLabel(), m) { current = root.file }
                     }
                 } else {
                     // Up a folder — not shown at the top of the only storage, where there is nowhere to go.
                     val atOnlyRoot = onlyRoot != null && dir.absolutePath == onlyRoot.absolutePath
                     if (!atOnlyRoot) item { BrowserRow(OwnTVIcon.BACK, stringResource(R.string.setup_from_current_folder), Modifier.focusRequester(firstFocus)) { up(dir) } }
-                    itemsIndexed(folders) { i, f -> BrowserRow(OwnTVIcon.DOWNLOADS, f.name, if (atOnlyRoot && i == 0) Modifier.focusRequester(firstFocus) else Modifier) { current = f } }
+                    // Without access the system hides other apps' files, so a folder full of playlists
+                    // looked empty. Say why, with the way to fix it, instead of an empty list.
+                    if (!hasAccess && files.isEmpty()) {
+                        item {
+                            BrowserRow(OwnTVIcon.SETTINGS, stringResource(R.string.setup_files_hidden_grant_access)) {
+                                StorageAccess.openStoragePermissionSettings(context)
+                            }
+                        }
+                    }
+                    itemsIndexed(folders) { i, f ->
+                        val m = if (atOnlyRoot && i == 0) Modifier.focusRequester(firstFocus) else Modifier
+                        BrowserRow(OwnTVIcon.FOLDER, f.name, m) { current = f }
+                    }
                     itemsIndexed(files) { i, f ->
                         val first = atOnlyRoot && folders.isEmpty() && i == 0
                         BrowserRow(OwnTVIcon.PLAYLIST, f.name, if (first) Modifier.focusRequester(firstFocus) else Modifier) { onPick(f) }

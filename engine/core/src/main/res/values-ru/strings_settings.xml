@@ -1793,4 +1793,5 @@
     <string name="settings_player_clock_description">Время в углу экрана</string>
     <string name="settings_vp_cat_controls">Управление</string>
     <string name="settings_vp_cat_resume">Продолжение просмотра</string>
+    <string name="settings_sources_refresh_daily">Каждый день</string>
 </resources>

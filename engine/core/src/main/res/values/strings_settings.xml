@@ -3191,4 +3191,5 @@
     <string name="settings_player_clock_description">Time in the corner of the screen</string>
     <string name="settings_vp_cat_controls">Controls</string>
     <string name="settings_vp_cat_resume">Resume watching</string>
+    <string name="settings_sources_refresh_daily">Every day</string>
 </resources>

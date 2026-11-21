@@ -127,7 +127,7 @@ internal object CompanionHtml {
         // The TV form lets the user name any number of days; a web <select> cannot, so it offers the
         // common ones and the exact figure can still be changed on the TV afterwards.
         val refreshDays = COMPANION_DAY_PRESETS.associateWith {
-            context.resources.getQuantityString(R.plurals.settings_sources_refresh_days, it, it)
+            tv.own.owntv.core.sync.refreshDaysText(context.resources, it)
         }
         val defaultPlaylistLabel = s(R.string.companion_default_playlist)
         val sendToTv = s(R.string.companion_send_to_tv)

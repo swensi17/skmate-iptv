@@ -122,3 +122,8 @@ fun List<SyncWarning>.warningText(res: Resources): String? {
 
 fun SyncContentTypes.remainderText(res: Resources): String? =
     if (!hasAny) null else res.getString(R.string.sync_remainder_note)
+
+/** "Every day" for one, "Every 3 days" otherwise: the plural's one-form read "Каждый 1 день". */
+fun refreshDaysText(res: Resources, days: Int): String =
+    if (days == 1) res.getString(R.string.settings_sources_refresh_daily)
+    else res.getQuantityString(R.plurals.settings_sources_refresh_days, days, days)

@@ -193,7 +193,7 @@ internal fun EpgSourceForm(
             initialDays = autoRefresh.manualDays,
             minDays = PlaylistRefresh.MIN_MANUAL_DAYS,
             maxDays = PlaylistRefresh.MAX_MANUAL_DAYS,
-            label = { days -> pluralStringResource(R.plurals.settings_sources_refresh_days, days, days) },
+            label = { days -> tv.own.owntv.features.settings.refreshDaysLabel(days) },
             onConfirm = { autoRefresh = EpgRefresh(EpgAutoRefresh.MANUAL, it); showManualDays = false },
             onDismiss = { showManualDays = false },
         )

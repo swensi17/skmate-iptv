@@ -837,7 +837,7 @@ private fun refreshModeLabel(mode: PlaylistAutoRefresh): String = stringResource
 @Composable
 internal fun playlistAutoRefreshLabel(refresh: PlaylistRefresh): String =
     if (refresh.mode == PlaylistAutoRefresh.MANUAL) {
-        pluralStringResource(R.plurals.settings_sources_refresh_days, refresh.manualDays, refresh.manualDays)
+        tv.own.owntv.features.settings.refreshDaysLabel(refresh.manualDays)
     } else {
         refreshModeLabel(refresh.mode)
     }
@@ -854,7 +854,7 @@ private fun ManualDaysDialog(initialDays: Int, onConfirm: (Int) -> Unit, onDismi
         initialDays = initialDays,
         minDays = PlaylistRefresh.MIN_MANUAL_DAYS,
         maxDays = PlaylistRefresh.MAX_MANUAL_DAYS,
-        label = { days -> pluralStringResource(R.plurals.settings_sources_refresh_days, days, days) },
+        label = { days -> tv.own.owntv.features.settings.refreshDaysLabel(days) },
         onConfirm = onConfirm,
         onDismiss = onDismiss,
     )
