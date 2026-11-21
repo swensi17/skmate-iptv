@@ -24,7 +24,8 @@ env:
   DETEKT_SHA256: "2ce2ff952e150baf28a29cda70a363b0340b3e81a55f43e51ec5edffc3d066c1"
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  # main: one group per commit, so a newer push never pushes a queued run out (that shows as cancelled)
+  group: ${{ github.workflow }}-${{ github.ref == 'refs/heads/main' && github.sha || github.ref }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:

@@ -19,7 +19,8 @@ permissions:
   contents: read
 
 concurrency:
-  group: engine-ci-${{ github.ref }}
+  # main: one group per commit, so a newer push never pushes a queued run out (that shows as cancelled)
+  group: engine-ci-${{ github.ref == 'refs/heads/main' && github.sha || github.ref }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
