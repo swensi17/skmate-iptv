@@ -1798,6 +1798,7 @@
     <string name="settings_clock_weight">Шрифт часов</string>
     <string name="settings_clock_bg">Фон часов</string>
     <string name="settings_clock_color">Цвет часов</string>
+    <string name="settings_clock_transparency">Прозрачность фона</string>
     <string name="settings_clock_size_s">Маленький</string>
     <string name="settings_clock_size_m">Средний</string>
     <string name="settings_clock_size_l">Большой</string>

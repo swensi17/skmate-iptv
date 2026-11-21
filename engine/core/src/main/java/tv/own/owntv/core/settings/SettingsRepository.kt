@@ -420,6 +420,7 @@ class SettingsRepository(private val context: Context, private val localeStore: 
         val PLAYER_CLOCK_WEIGHT = intPreferencesKey("player_clock_weight")
         val PLAYER_CLOCK_BG = intPreferencesKey("player_clock_bg")
         val PLAYER_CLOCK_COLOR = intPreferencesKey("player_clock_color")
+        val PLAYER_CLOCK_ALPHA = intPreferencesKey("player_clock_alpha")
         val ANDROID_TV_HOME = booleanPreferencesKey("android_tv_home")
 
         // Multiview: watching up to four live channels at once.
@@ -2607,6 +2608,7 @@ class SettingsRepository(private val context: Context, private val localeStore: 
             weight = it[Keys.PLAYER_CLOCK_WEIGHT] ?: ClockStyle.DEFAULT.weight,
             background = it[Keys.PLAYER_CLOCK_BG] ?: ClockStyle.DEFAULT.background,
             color = it[Keys.PLAYER_CLOCK_COLOR] ?: ClockStyle.DEFAULT.color,
+            transparency = it[Keys.PLAYER_CLOCK_ALPHA] ?: ClockStyle.DEFAULT.transparency,
         )
     }
 
@@ -2616,6 +2618,7 @@ class SettingsRepository(private val context: Context, private val localeStore: 
             it[Keys.PLAYER_CLOCK_WEIGHT] = style.weight
             it[Keys.PLAYER_CLOCK_BG] = style.background
             it[Keys.PLAYER_CLOCK_COLOR] = style.color
+            it[Keys.PLAYER_CLOCK_ALPHA] = style.transparency
         }
     }
 
@@ -3177,7 +3180,7 @@ class SettingsRepository(private val context: Context, private val localeStore: 
             Keys.REMOTE_SHORTCUT_BINDINGS,
         )
         val ints = listOf(Keys.GUIDE_DAYS_TO_KEEP, Keys.FOCUS_HIGHLIGHT_WIDTH, Keys.DEFAULT_VOLUME, Keys.SEEK_STEP_SEC, Keys.LIVE_REWIND_STEP_SEC, Keys.UI_ZOOM_PCT, Keys.FONT_SIZE_PCT, Keys.AUDIO_DELAY_MS, Keys.CATCHUP_OFFSET_MIN, Keys.EPG_OFFSET_MIN, Keys.PROXY_PORT, Keys.DNS_PORT, Keys.CH_NAV_UP_SKIP, Keys.CH_NAV_DOWN_SKIP, Keys.MINI_PLAYER_SIZE_PCT, Keys.LIVE_LATENCY_CUSTOM_SECS, Keys.LIVE_PREROLL_SECS, Keys.LIVE_TUNE_TIMEOUT_SECS, Keys.GLASS_SCOPE, Keys.GLASS_ALPHA, Keys.BG_DIM, Keys.BG_BLUR, Keys.SUB_BG_OPACITY,
-            Keys.PLAYER_CLOCK_SIZE, Keys.PLAYER_CLOCK_WEIGHT, Keys.PLAYER_CLOCK_BG, Keys.PLAYER_CLOCK_COLOR,
+            Keys.PLAYER_CLOCK_SIZE, Keys.PLAYER_CLOCK_WEIGHT, Keys.PLAYER_CLOCK_BG, Keys.PLAYER_CLOCK_COLOR, Keys.PLAYER_CLOCK_ALPHA,
             Keys.PANEL_W_LIVE_CAT, Keys.PANEL_W_LIVE_LIST, Keys.PANEL_W_LIVE_PREVIEW,
             Keys.LIVE_STAGE_SHEET, Keys.LIVE_STAGE_LIST, Keys.LIVE_STAGE_PREVIEW,
             Keys.PANEL_W_MOVIES_CAT, Keys.PANEL_W_MOVIES_LIST, Keys.PANEL_W_MOVIES_PREVIEW,

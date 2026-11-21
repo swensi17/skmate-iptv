@@ -2535,8 +2535,7 @@ private fun ClockStyleRows(vm: SettingsViewModel) {
 
     @Suppress("FunctionNaming")
     @Composable
-    fun row(title: Int, options: List<Int>, current: Int, icon: OwnTVIcon, set: (Int) -> Unit) {
-        val labels = options.map { stringResource(it) }
+    fun rowOf(title: Int, labels: List<String>, current: Int, icon: OwnTVIcon, set: (Int) -> Unit) {
         val step: (Int) -> Unit = { d -> set((current + d).mod(labels.size)) }
         KeyedSettingRow(
             icon = icon,
@@ -2545,6 +2544,12 @@ private fun ClockStyleRows(vm: SettingsViewModel) {
             onClick = { step(1) },
             onStep = step,
         )
+    }
+
+    @Suppress("FunctionNaming")
+    @Composable
+    fun row(title: Int, options: List<Int>, current: Int, icon: OwnTVIcon, set: (Int) -> Unit) {
+        rowOf(title, options.map { stringResource(it) }, current, icon, set)
     }
     row(R.string.settings_clock_size, CLOCK_SIZES, style.size, OwnTVIcon.ZOOM) {
         vm.setPlayerClockStyle(style.copy(size = it))
@@ -2557,6 +2562,13 @@ private fun ClockStyleRows(vm: SettingsViewModel) {
     }
     row(R.string.settings_clock_color, CLOCK_COLORS, style.color, OwnTVIcon.PALETTE) {
         vm.setPlayerClockStyle(style.copy(color = it))
+    }
+    if (style.background != 0) {
+        val pct = tv.own.owntv.core.settings.ClockStyle.TRANSPARENCY_PCT
+            .map { stringResource(R.string.common_percent, it) }
+        rowOf(R.string.settings_clock_transparency, pct, style.transparency, OwnTVIcon.THEME) {
+            vm.setPlayerClockStyle(style.copy(transparency = it))
+        }
     }
 }
 

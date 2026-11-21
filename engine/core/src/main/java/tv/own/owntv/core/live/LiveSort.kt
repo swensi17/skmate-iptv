@@ -36,7 +36,15 @@ fun liveOrderBy(sort: SortMode, c: String = "c"): String = when (sort) {
  * queries handle it (provider order, A–Z) or the list has an order of its own (Favorites, History).
  * An explicit sort choice wins over a hand-made order inside a category.
  */
-fun liveSortQuery(key: LiveKey, sort: SortMode, profileId: Long, sourceIds: List<Long>, contextKey: String?): LiveSortQuery? {
+fun liveSortQuery(
+    key: LiveKey,
+    sort: SortMode,
+    profileId: Long,
+    sourceIds: List<Long>,
+    contextKey: String?,
+    /** Several category ids for a folder that merges same-named folders of several playlists. */
+    folderGroup: List<Long>? = null,
+): LiveSortQuery? {
     if (!sort.isCustomLiveOrder()) return null
     if (key == LiveKey.Favorites || key == LiveKey.History) return null
     val ids = sourceIds.ifEmpty { listOf(-1L) }
@@ -50,7 +58,13 @@ fun liveSortQuery(key: LiveKey, sort: SortMode, profileId: Long, sourceIds: List
     when (key) {
         LiveKey.All -> { sb.append("WHERE c.sourceId IN ($marks) "); args.addAll(ids) }
         LiveKey.Catchup -> { sb.append("WHERE c.sourceId IN ($marks) AND c.catchup = 1 "); args.addAll(ids) }
-        is LiveKey.Folder -> { sb.append("WHERE c.categoryId = ? "); args += key.id }
+        is LiveKey.Folder -> if (folderGroup != null) {
+            sb.append("WHERE c.categoryId IN (${folderGroup.joinToString(",") { "?" }}) ")
+            args.addAll(folderGroup)
+        } else {
+            sb.append("WHERE c.categoryId = ? ")
+            args += key.id
+        }
         is LiveKey.Custom -> {
             sb.append("INNER JOIN custom_category_members m ON m.itemId = c.id AND m.profileId = ? AND m.mediaType = 'LIVE' AND m.contextKey = ? ")
             sb.append("WHERE c.sourceId IN ($marks) ")

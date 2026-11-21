@@ -718,6 +718,11 @@ class LiveViewModel(
     private val custResolved: StateFlow<CustState> = combine(custom, hiddenCategoryIds) { c, h -> CustState(c, h) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), CustState(SectionCustomizations(), emptySet()))
 
+    /** Folder id → every same-named category of the active playlists it stands for (only groups of 2+). */
+    private val mergedFolders = MutableStateFlow<Map<Long, List<Long>>>(emptyMap())
+
+    private fun folderIds(id: Long): List<Long> = mergedFolders.value[id] ?: listOf(id)
+
     val railItems: StateFlow<List<LiveRailItem>> = ctx
         .flatMapLatest { c ->
             if (c.profileId < 0) flowOf(defaultRail)
@@ -740,13 +745,20 @@ class LiveViewModel(
                 )
                 val multiSourceNames = c.sourceNames.takeIf { it.size > 1 }.orEmpty()
                 val categoriesById = cats.associateBy { it.id }
-                railWithCatchup(catchupCount > 0) + folders.map { e ->
+                // Several playlists with the same group name: one folder for that name, holding all of them.
+                val groups = tv.own.owntv.core.live.mergeFoldersByName(
+                    folders.mapNotNull { e -> e.categoryId?.let { it to e.displayName } },
+                )
+                mergedFolders.value = groups.filterValues { it.size > 1 }
+                val dropped = groups.values.flatMap { it.drop(1) }.toSet()
+                railWithCatchup(catchupCount > 0) + folders.filter { it.categoryId !in dropped }.map { e ->
                     LiveRailItem(
                         key = e.categoryId?.let { LiveKey.Folder(it) } ?: LiveKey.Custom(e.customId!!),
                         title = e.displayName,
                         providerName = e.categoryId
                             ?.let(categoriesById::get)
                             ?.sourceId
+                            ?.takeIf { e.categoryId !in mergedFolders.value }
                             ?.let(multiSourceNames::get),
                     )
                 }
@@ -764,6 +776,8 @@ class LiveViewModel(
         // Rebuild the pager when a folder gains/loses manual order: the fast-path plain
         // PagingSource doesn't observe content_order, so the switch must recreate it.
         .combine(orderedContexts) { args, _ -> args }
+        // A folder that starts or stops merging same-named folders of several playlists needs a new query.
+        .combine(mergedFolders) { args, _ -> args }
         .flatMapLatest { (key, c, query, sort, cs) ->
             // Customizations are applied to each fresh PagingData inside the pager chain — a PagingData
             // that the UI already collected must never be re-transformed (Paging forbids re-collection,
@@ -949,8 +963,12 @@ class LiveViewModel(
             val single = items.filter { it.key !is LiveKey.Folder }.map { item ->
                 liveCountFlow(item.key, c.profileId, c.sourceIds, hidden, channelDao, customCategoryDao).map { mapOf(item.key to it) }
             }
+            val primaryOf = mergedFolders.value.flatMap { (primary, ids) -> ids.map { it to primary } }.toMap()
             val folders = channelDao.observeCountsByCategory(c.sourceIds.ifEmpty { listOf(-1L) })
-                .map { rows -> rows.associate { LiveKey.Folder(it.categoryId) as LiveKey to it.itemCount } }
+                .map { rows ->
+                    rows.groupBy { primaryOf[it.categoryId] ?: it.categoryId }
+                        .entries.associate { (id, part) -> LiveKey.Folder(id) as LiveKey to part.sumOf { it.itemCount } }
+                }
             combine(single + folders) { parts -> parts.fold(emptyMap<LiveKey, Int>()) { acc, m -> acc + m } }.throttleLatest()
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyMap())
@@ -1268,7 +1286,11 @@ class LiveViewModel(
     private suspend fun channelsInCategory(categoryId: Long): List<ChannelEntity> {
         val pid = currentProfileId() ?: return emptyList()
         val ctxKey = folderContextKeys.value[categoryId] ?: ""
-        return channelDao.snapshotByCategoryManual(categoryId, pid, ctxKey, ZAP_LIST_LIMIT)
+        // A folder merging same-named folders of several playlists zaps through all of them.
+        return folderIds(categoryId).flatMap { id ->
+            val key = if (id == categoryId) ctxKey else folderContextKeys.value[id] ?: ""
+            channelDao.snapshotByCategoryManual(id, pid, key, ZAP_LIST_LIMIT)
+        }
     }
 
     /** [channel]'s own provider category, with the same hide/rename treatment the browsing lists get,
@@ -2242,6 +2264,7 @@ class LiveViewModel(
             customCategoryDao = customCategoryDao,
             contextKey = { folderContextKeys.value[it] },
             hasManualOrder = { it in orderedContexts.value },
+            folderIds = ::folderIds,
         )
 
     fun enterMoveMode(channel: ChannelEntity, key: LiveKey) {
@@ -2330,7 +2353,7 @@ class LiveViewModel(
     }
 
     private fun countFlow(key: LiveKey, c: Ctx, hiddenCats: Set<Long>): Flow<Int> =
-        liveCountFlow(key, c.profileId, c.sourceIds, hiddenCats, channelDao, customCategoryDao)
+        liveCountFlow(key, c.profileId, c.sourceIds, hiddenCats, channelDao, customCategoryDao, ::folderIds)
 
     private companion object {
         /** An external player gone sooner than this did not play the channel. */

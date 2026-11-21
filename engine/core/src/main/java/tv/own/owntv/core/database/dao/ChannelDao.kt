@@ -291,6 +291,22 @@ interface ChannelDao {
     @Query("SELECT * FROM channels WHERE categoryId = :categoryId ORDER BY name ASC")
     fun pagingByCategoryAlpha(categoryId: Long): PagingSource<Int, ChannelEntity>
 
+    /** Same-named folders of several playlists as one list (see mergeFoldersByName). */
+    @Query("SELECT * FROM channels WHERE categoryId IN (:categoryIds) ORDER BY sourceId ASC, sortOrder ASC, name ASC")
+    fun pagingByCategories(categoryIds: List<Long>): PagingSource<Int, ChannelEntity>
+
+    @Query("SELECT * FROM channels WHERE categoryId IN (:categoryIds) ORDER BY name ASC")
+    fun pagingByCategoriesAlpha(categoryIds: List<Long>): PagingSource<Int, ChannelEntity>
+
+    @Query(
+        "SELECT * FROM channels WHERE categoryId IN (:categoryIds) AND name LIKE '%' || :query || '%' " +
+            "ORDER BY sourceId ASC, sortOrder ASC, name ASC",
+    )
+    fun searchInCategories(query: String, categoryIds: List<Long>): PagingSource<Int, ChannelEntity>
+
+    @Query("SELECT COUNT(*) FROM channels WHERE categoryId IN (:categoryIds)")
+    fun countByCategories(categoryIds: List<Long>): Flow<Int>
+
     @Query("SELECT * FROM channels WHERE sourceId IN (:sourceIds) ORDER BY name ASC")
     fun pagingAll(sourceIds: List<Long>): PagingSource<Int, ChannelEntity>
 

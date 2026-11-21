@@ -31,11 +31,14 @@ fun livePagingSource(
     customCategoryDao: CustomCategoryDao,
     contextKey: (Long) -> String?,
     hasManualOrder: (String) -> Boolean,
+    /** Every category id a folder stands for (same-named folders of several playlists); one by default. */
+    folderIds: (Long) -> List<Long> = { listOf(it) },
 ): PagingSource<Int, ChannelEntity> {
     val ids = sourceIds.ifEmpty { listOf(-1L) }
     val playlist = sort.forLive() == SettingsRepository.SortMode.PLAYLIST
+    val group = (key as? LiveKey.Folder)?.let { folderIds(it.id) }?.takeIf { it.size > 1 }
     if (query.isBlank()) {
-        liveSortQuery(key, sort, profileId, sourceIds, null)?.let {
+        liveSortQuery(key, sort, profileId, sourceIds, null, group)?.let {
             return channelDao.pagingSorted(androidx.sqlite.db.SimpleSQLiteQuery(it.sql, it.args.toTypedArray()))
         }
     }
@@ -46,7 +49,9 @@ fun livePagingSource(
             LiveKey.History -> channelDao.pagingHistory(profileId, ids)
             LiveKey.Catchup -> if (playlist) channelDao.pagingCatchupOriginal(ids) else channelDao.pagingCatchup(ids)
             is LiveKey.Custom -> if (playlist) customCategoryDao.pagingChannels(profileId, key.id, ids) else customCategoryDao.pagingChannelsAlpha(profileId, key.id, ids)
-            is LiveKey.Folder -> {
+            is LiveKey.Folder -> if (group != null) {
+                if (playlist) channelDao.pagingByCategories(group) else channelDao.pagingByCategoriesAlpha(group)
+            } else {
                 val ctxKey = contextKey(key.id) ?: ""
                 // Fast path: no manual order in this folder → the plain indexed query has
                 // the identical (sortOrder, name) order without the join-sort.
@@ -64,7 +69,7 @@ fun livePagingSource(
             LiveKey.History -> channelDao.searchHistory(query, profileId, ids)
             LiveKey.Catchup -> channelDao.searchCatchup(query, ids)
             is LiveKey.Custom -> customCategoryDao.searchChannels(query, profileId, key.id, ids)
-            is LiveKey.Folder -> channelDao.searchInCategory(query, key.id)
+            is LiveKey.Folder -> group?.let { channelDao.searchInCategories(query, it) } ?: channelDao.searchInCategory(query, key.id)
         }
     }
 }
@@ -77,6 +82,7 @@ fun liveCountFlow(
     hiddenCats: Set<Long>,
     channelDao: ChannelDao,
     customCategoryDao: CustomCategoryDao,
+    folderIds: (Long) -> List<Long> = { listOf(it) },
 ): Flow<Int> {
     val ids = sourceIds.ifEmpty { listOf(-1L) }
     return when (key) {
@@ -85,7 +91,8 @@ fun liveCountFlow(
         LiveKey.History -> channelDao.countHistory(profileId, ids)
         LiveKey.Catchup -> channelDao.observeCatchupCount(ids)
         is LiveKey.Custom -> customCategoryDao.countMembers(profileId, MediaType.LIVE, key.id, ids)
-        is LiveKey.Folder -> channelDao.countByCategory(key.id)
+        is LiveKey.Folder -> folderIds(key.id).takeIf { it.size > 1 }?.let { channelDao.countByCategories(it) }
+            ?: channelDao.countByCategory(key.id)
     }
 }
 

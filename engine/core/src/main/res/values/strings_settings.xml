@@ -3197,6 +3197,7 @@
     <string name="settings_clock_weight">Clock font</string>
     <string name="settings_clock_bg">Clock background</string>
     <string name="settings_clock_color">Clock colour</string>
+    <string name="settings_clock_transparency">Background transparency</string>
     <string name="settings_clock_size_s">Small</string>
     <string name="settings_clock_size_m">Medium</string>
     <string name="settings_clock_size_l">Large</string>

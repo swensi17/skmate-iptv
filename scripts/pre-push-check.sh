@@ -10,6 +10,7 @@ echo "== i18n"
 python3 tools/i18n/check_hardcoded_strings.py verify --bootstrap
 python3 tools/i18n/check_text_overflow.py
 python3 tools/i18n/check_number_locale.py
+(cd engine && python3 tools/i18n/gen_supported_locales.py check && python3 tools/i18n/check_text_overflow.py && python3 tools/i18n/check_number_locale.py && python3 tools/i18n/check_hardcoded_strings.py verify --bootstrap)
 echo "== ktlint"
 "$KTLINT" --baseline=config/lint/ktlint-baseline.xml "app/src/**/*.kt" "baselineprofile/src/**/*.kt"
 echo "== detekt"

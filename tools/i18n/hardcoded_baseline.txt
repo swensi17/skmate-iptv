@@ -18,6 +18,7 @@
 1	app/src/main/java/tv/own/owntv/features/customize/CustomizeViewModel.kt	Custom
 1	app/src/main/java/tv/own/owntv/features/customize/MoveToCategoryDialog.kt	new
 1	app/src/main/java/tv/own/owntv/features/live/LiveStage.kt	Mbps
+1	app/src/main/java/tv/own/owntv/features/live/LiveViewModel.kt	\0
 8	app/src/main/java/tv/own/owntv/features/settings/DnsSettingsScreen.kt	\0
 1	app/src/main/java/tv/own/owntv/features/settings/DnsSettingsScreen.kt	${cfg.host}$p
 1	app/src/main/java/tv/own/owntv/features/settings/DnsSettingsScreen.kt	:${cfg.port}
@@ -36,6 +37,7 @@
 1	app/src/main/java/tv/own/owntv/features/settings/VideoPlayerSettingsScreen.kt	#BDBDBD
 1	app/src/main/java/tv/own/owntv/features/settings/VideoPlayerSettingsScreen.kt	#FFEB3B
 2	app/src/main/java/tv/own/owntv/features/settings/VideoPlayerSettingsScreen.kt	#FFFFFF
+1	app/src/main/java/tv/own/owntv/features/settings/VideoPlayerSettingsScreen.kt	FunctionNaming
 2	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	ktlint:standard:property-naming
 1	app/src/main/java/tv/own/owntv/features/shell/components/MediaDetailsScreen.kt	\0
 1	app/src/main/java/tv/own/owntv/features/shell/components/StageStatus.kt	tnum

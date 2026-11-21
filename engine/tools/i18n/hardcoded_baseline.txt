@@ -123,6 +123,11 @@
 1	core/src/main/java/tv/own/owntv/core/database/OwnTVDatabase.kt	liveLatencyCustomSecs
 1	core/src/main/java/tv/own/owntv/core/database/OwnTVDatabase.kt	liveLatencyMode
 1	core/src/main/java/tv/own/owntv/core/database/OwnTVDatabase.kt	preferHls
+1	core/src/main/java/tv/own/owntv/core/database/dao/ChannelDao.kt	ORDER BY sourceId ASC, sortOrder ASC, name ASC
+1	core/src/main/java/tv/own/owntv/core/database/dao/ChannelDao.kt	SELECT * FROM channels WHERE categoryId IN (:categoryIds) AND name LIKE '%' || :query || '%'
+1	core/src/main/java/tv/own/owntv/core/database/dao/ChannelDao.kt	SELECT * FROM channels WHERE categoryId IN (:categoryIds) ORDER BY name ASC
+1	core/src/main/java/tv/own/owntv/core/database/dao/ChannelDao.kt	SELECT * FROM channels WHERE categoryId IN (:categoryIds) ORDER BY sourceId ASC, sortOrder ASC, name ASC
+1	core/src/main/java/tv/own/owntv/core/database/dao/ChannelDao.kt	SELECT COUNT(*) FROM channels WHERE categoryId IN (:categoryIds)
 1	core/src/main/java/tv/own/owntv/core/database/dao/ChannelDao.kt	SELECT COUNT(*) FROM channels WHERE sourceId IN (:sourceIds) AND catchup = 1
 1	core/src/main/java/tv/own/owntv/core/database/dao/CustomCategoryDao.kt	(:type = 'LIVE' AND itemId IN (SELECT id FROM channels WHERE sourceId IN (:sourceIds))) OR
 1	core/src/main/java/tv/own/owntv/core/database/dao/CustomCategoryDao.kt	(:type = 'LIVE' AND itemId NOT IN (SELECT id FROM channels)) OR
@@ -189,6 +194,9 @@
 1	core/src/main/java/tv/own/owntv/core/database/entity/UserDataEntities.kt	custom_category_members
 1	core/src/main/java/tv/own/owntv/core/database/entity/UserDataEntities.kt	itemId
 2	core/src/main/java/tv/own/owntv/core/database/entity/UserDataEntities.kt	mediaType
+1	core/src/main/java/tv/own/owntv/core/live/LiveSort.kt	,
+1	core/src/main/java/tv/own/owntv/core/live/LiveSort.kt	?
+1	core/src/main/java/tv/own/owntv/core/live/LiveSort.kt	WHERE c.categoryId IN (${folderGroup.joinToString(",") { "?" }})
 1	core/src/main/java/tv/own/owntv/core/metadata/MetadataBudget.kt	day_count
 1	core/src/main/java/tv/own/owntv/core/metadata/MetadataBudget.kt	day_start
 1	core/src/main/java/tv/own/owntv/core/metadata/MetadataBudget.kt	hour_count

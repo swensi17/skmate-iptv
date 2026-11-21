@@ -39,12 +39,16 @@ fun PlayerCornerClock(
     val size = CLOCK_TEXT_SIZES.getOrElse(style.size) { CORNER_CLOCK_TEXT }
     val weight = if (style.weight == 0) CLOCK_REGULAR else CORNER_CLOCK_WEIGHT
     val light = style.background == tv.own.owntv.core.settings.ClockStyle.BG_LIGHT
+    val opaque = 1f - tv.own.owntv.core.settings.ClockStyle.TRANSPARENCY_PCT
+        .getOrElse(style.transparency) { 0 } / PERCENT
     val fill = when (style.background) {
         0 -> Color.Transparent
-        tv.own.owntv.core.settings.ClockStyle.BG_LIGHT -> Color.White.copy(alpha = CLOCK_LIGHT_ALPHA)
+        tv.own.owntv.core.settings.ClockStyle.BG_LIGHT -> Color.White
         CLOCK_BG_BLUE -> tv.own.owntv.ui.brand.SkMateBlue
-        else -> Color.Black.copy(alpha = CORNER_CLOCK_SHADE)
-    }
+        else -> Color.Black
+    }.let { if (style.background == 0) it else it.copy(alpha = opaque) }
+    // With a background the plate hangs from the top edge, only its bottom corners rounded.
+    val plate = style.background != 0
     val ink = if (light) Color(CLOCK_DARK_INK) else CLOCK_INKS.getOrElse(style.color) { Color.White }
     // Without a background the digits get a soft shadow, so they read on a bright picture.
     val shadow = if (style.background == 0) {
@@ -61,8 +65,11 @@ fun PlayerCornerClock(
             style = stageText(size, weight).copy(shadow = shadow),
             color = ink,
             modifier = Modifier
-                .padding(top = CORNER_CLOCK_TOP.mpx, end = CORNER_CLOCK_END.mpx)
-                .background(fill, RoundedCornerShape(CORNER_CLOCK_RADIUS.mpx))
+                .padding(top = if (plate) 0.mpx else CORNER_CLOCK_TOP.mpx, end = CORNER_CLOCK_END.mpx)
+                .background(
+                    fill,
+                    RoundedCornerShape(bottomStart = CORNER_CLOCK_RADIUS.mpx, bottomEnd = CORNER_CLOCK_RADIUS.mpx),
+                )
                 .padding(horizontal = CORNER_CLOCK_PAD_H.mpx, vertical = CORNER_CLOCK_PAD_V.mpx),
         )
     }
@@ -75,14 +82,14 @@ private const val CLOCK_LIGHT_BLUE = 0xFF8CC8FF
 private val CLOCK_TEXT_SIZES = listOf(CLOCK_TEXT_S, CORNER_CLOCK_TEXT, CLOCK_TEXT_L)
 private val CLOCK_INKS = listOf(Color.White, Color(CLOCK_YELLOW), Color(CLOCK_LIGHT_BLUE))
 private const val CLOCK_DARK_INK = 0xFF15181C
-private const val CLOCK_LIGHT_ALPHA = 0.9f
+private const val PERCENT = 100f
 private const val CLOCK_BG_BLUE = 3
 private const val CLOCK_REGULAR = 500
 private const val CLOCK_SHADOW_BLUR = 8f
 
 private const val CORNER_CLOCK_MINUTE_MS = 60_000L
 private const val CORNER_CLOCK_SHADE = 0.45f
-private const val CORNER_CLOCK_RADIUS = 4
+private const val CORNER_CLOCK_RADIUS = 8
 private const val CORNER_CLOCK_TOP = 28
 private const val CORNER_CLOCK_END = 40
 private const val CORNER_CLOCK_PAD_H = 16

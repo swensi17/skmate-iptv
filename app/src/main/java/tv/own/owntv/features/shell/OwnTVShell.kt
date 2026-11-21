@@ -1919,7 +1919,11 @@ fun OwnTVShell(
                     },
                 )
             }
-            if (isFull && playerClock) tv.own.owntv.player.PlayerCornerClock(Modifier.fillMaxSize(), playerClockStyle)
+            // Only over the whole picture: never over the docked one beside the channel panel, nor while it grows.
+            val clockShown = isFull && playerClock
+            if (clockShown && !docked && !growingFull) {
+                tv.own.owntv.player.PlayerCornerClock(Modifier.fillMaxSize(), playerClockStyle)
+            }
             if (isFull && !autoFrameRate && !afrPrompted) {
                 // Frame rate of whichever engine is on screen. On the mpv side this is what the direct
                 // path judders on; on Exo it now survives "Measured stream stats" being off.
