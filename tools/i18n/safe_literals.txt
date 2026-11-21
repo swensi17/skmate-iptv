@@ -647,6 +647,7 @@
 1	protocol	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	ass
 1	performance	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	epg-preload
 1	technical	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	menuPush
+1	technical	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	pictureFade
 1	technical	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	settingsSheet
 1	performance	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	shell-composed
 1	protocol	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	srt

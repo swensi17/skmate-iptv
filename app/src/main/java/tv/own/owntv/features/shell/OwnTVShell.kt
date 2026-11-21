@@ -158,6 +158,8 @@ fun OwnTVShell(
     val playerFocus = remember { FocusRequester() }
     // The menu is being opened over the picture: the HUD must not take focus back meanwhile.
     var menuPending by remember { mutableStateOf(false) }
+    // The menu over the full-screen picture is on screen from the ◀ chain until focus leaves it.
+    var playerMenuOpen by remember { mutableStateOf(false) }
     // When focus was last sent to the rail on purpose: ◀ / ▶ from the content, or the app itself
     // ([focusRail]). A rail visit that follows neither does not open the floating rail (#7.1).
     var railKeyAt by remember { mutableLongStateOf(0L) }
@@ -591,6 +593,13 @@ fun OwnTVShell(
     val expandPlayer = { resumeVideo(); restoreFocus = false; playerMode = PlayerMode.FULLSCREEN }
     // TV-box look: Back from full screen first shrinks the picture back into the preview, then leaves.
     var collapsingFull by remember { mutableStateOf(false) }
+    // The picture has finished growing out of the preview to full screen. Until then the channels stay drawn
+    // under it: decided in the same frame full screen opens, so the list never drops out for a frame.
+    var fullSettled by remember { mutableStateOf(false) }
+    LaunchedEffect(playerMode) { if (playerMode != PlayerMode.FULLSCREEN) fullSettled = false }
+    val growsFromPreview = tv.own.owntv.ui.theme.MotionPrefs.smoothPlayer &&
+        tv.own.owntv.features.shell.components.TvBoxPanels.previewRect != null
+    val growingFull = TvBoxNav && playerMode == PlayerMode.FULLSCREEN && !fullSettled && growsFromPreview
     val exitPlayerNow = {
         collapsingFull = false
         // Flush the resume position BEFORE the stream is torn down — stop() drops the loaded item's
@@ -736,6 +745,8 @@ fun OwnTVShell(
     LaunchedEffect(railHasFocus, railKeyAt) {
         railFocused = railHasFocus && android.os.SystemClock.uptimeMillis() - railKeyAt <= RAIL_KEY_WINDOW_MS
     }
+    // The player's menu closes with the focus that left it (▶ back to the categories, Back, a pick).
+    LaunchedEffect(railFocused, menuPending) { if (!railFocused && !menuPending) playerMenuOpen = false }
     LaunchedEffect(railFocused, navStyle, navHideAfterMs) {
         railIdleHidden = false
         if (navStyle == tv.own.owntv.core.settings.SettingsRepository.NavStyle.FLOATING && !railFocused) {
@@ -1187,8 +1198,9 @@ fun OwnTVShell(
                 onNowPlaying = enterNowPlaying,
             )
     }
-      // Browse UI — hidden while the player is fullscreen (stays visible behind the docked mini-player).
-      if (playerMode != PlayerMode.FULLSCREEN) {
+      // Browse UI — hidden while the player is fullscreen (stays visible behind the docked mini-player), and
+      // kept while the picture grows over it or shrinks back into it, so nothing vanishes under the motion.
+      if (playerMode != PlayerMode.FULLSCREEN || growingFull || collapsingFull) {
         Column(
             modifier = Modifier.fillMaxSize()
                 // One group with a restorer: leaving for the mini player and coming back lands on the
@@ -1756,7 +1768,10 @@ fun OwnTVShell(
 
       // The menu over the full-screen picture: the browse screens (and the menu with them) are not composed
       // then, so it is its own copy of the same menu. Picking another screen leaves the player for it.
-      if (multiview == null && playerMode == PlayerMode.FULLSCREEN) {
+      // Only when the player's ◀ chain asked for it: focus also brushes the rail for a frame while full
+      // screen opens, and that flashed the menu over the black picture.
+      val playerMenuShown = playerMenuOpen || menuPending
+      if (multiview == null && playerMode == PlayerMode.FULLSCREEN && playerMenuShown) {
           railMenu(
               { section ->
                   if (section == selectedSection) { runCatching { playerFocus.requestFocus() } } else { exitPlayer(); onSelectSection(section) }
@@ -1777,7 +1792,16 @@ fun OwnTVShell(
         // ExoPreviewSurface), the picture shown once in place. Instant when the user turned it off.
         val growFrom = if (TvBoxNav && isFull && tv.own.owntv.ui.theme.MotionPrefs.smoothPlayer) tv.own.owntv.features.shell.components.TvBoxPanels.previewRect else null
         val grow = remember(isFull) { androidx.compose.animation.core.Animatable(if (growFrom != null) 0f else 1f) }
-        LaunchedEffect(grow) { grow.animateTo(1f, androidx.compose.animation.core.tween(FullGrowMs, easing = androidx.compose.animation.core.FastOutSlowInEasing)) }
+        LaunchedEffect(grow) {
+            grow.animateTo(
+                1f,
+                androidx.compose.animation.core.tween(
+                    FullGrowMs,
+                    easing = androidx.compose.animation.core.FastOutSlowInEasing,
+                ),
+            )
+            if (isFull) fullSettled = true
+        }
         LaunchedEffect(collapsingFull) {
             if (!collapsingFull) return@LaunchedEffect
             grow.animateTo(0f, androidx.compose.animation.core.tween(FullShrinkMs, easing = androidx.compose.animation.core.FastOutSlowInEasing))
@@ -1836,6 +1860,34 @@ fun OwnTVShell(
                     player = player, modifier = videoDock, autoFrameRate = isFull && autoFrameRate,
                     afrMatchResolution = afrMatchResolution, afrHoldSecs = afrPauseSecs,
                 )
+            }
+            // Opening a channel on full screen: black while the stream connects, then the picture fades in
+            // instead of jumping out of the black. Only for that first picture; a zap after it keeps its own look.
+            if (isFull && liveOnExo) {
+                val engineState by liveVm.previewEngine.state.collectAsStateWithLifecycle()
+                val showing = engineState == tv.own.owntv.player.LivePreviewEngine.State.PLAYING
+                var revealed by remember(isFull) { mutableStateOf(showing) }
+                // The engine reports the picture as its output opens, a few frames before the first one is on
+                // screen: the fade starts a moment later, so it lifts off the picture rather than off black.
+                LaunchedEffect(showing) {
+                    if (!showing) return@LaunchedEffect
+                    if (tv.own.owntv.ui.theme.MotionPrefs.smoothPlayer) {
+                        kotlinx.coroutines.delay(PICTURE_REVEAL_DELAY_MS)
+                    }
+                    revealed = true
+                }
+                val cover by androidx.compose.animation.core.animateFloatAsState(
+                    if (revealed) 0f else 1f,
+                    androidx.compose.animation.core.tween(tv.own.owntv.ui.theme.MotionPrefs.dur(PICTURE_FADE_MS)),
+                    label = "pictureFade",
+                )
+                if (cover > 0f) {
+                    Box(
+                        Modifier.fillMaxSize()
+                            .graphicsLayer { alpha = cover }
+                            .background(androidx.compose.ui.graphics.Color.Black),
+                    )
+                }
             }
             // The item has no video track of its own (a radio channel, a music-only "movie"). Playing it is
             // correct — but a black screen with sound reads as a broken player, so name what is happening.
@@ -2149,6 +2201,7 @@ fun OwnTVShell(
                             // The same side menu as on the home screen: it slides in from the left and moves
                             // the channels, the categories and the picture aside; nothing closes under it.
                             onOpenMenu = {
+                                playerMenuOpen = true
                                 menuPending = true
                                 scope.launch {
                                     // The panels stay, so the menu can take focus at once; ask until it has it.
@@ -2529,3 +2582,9 @@ private const val ContentFocusStepMs = 50L
 
 /** How long the side menu takes to move the screen aside. */
 private const val MENU_PUSH_MS = 300
+
+/** How long the first picture of a channel takes to fade in from black. */
+private const val PICTURE_FADE_MS = 320
+
+/** How long after the engine reports the picture the fade starts. */
+private const val PICTURE_REVEAL_DELAY_MS = 250L

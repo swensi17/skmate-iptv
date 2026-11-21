@@ -249,6 +249,11 @@ fun PlayerHud(
     val position = player.position.collectAsStateWithLifecycle()
     val duration by player.duration.collectAsStateWithLifecycle()
     val buffering by player.buffering.collectAsStateWithLifecycle()
+    // "Paused" only for a stream that has started: a channel still connecting is not paused, and showing
+    // the pause mark there flashed it before the loading spinner on every channel opened.
+    val tunedTitle by player.currentMeta.collectAsStateWithLifecycle()
+    var startedPlaying by remember(tunedTitle.title) { mutableStateOf(isPlaying) }
+    LaunchedEffect(isPlaying) { if (isPlaying) startedPlaying = true }
     val error by player.error.collectAsStateWithLifecycle()
     val errorInfo by player.errorInfo.collectAsStateWithLifecycle()
     val providerBackOff by player.providerBackOff.collectAsStateWithLifecycle()
@@ -711,7 +716,9 @@ fun PlayerHud(
         RecordingBadge(modifier = Modifier.align(Alignment.TopEnd))
 
         // Paused: one calm mark in the middle.
-        if (tvLive && !isPlaying && !buffering && error == null && !inert) {
+        val pausedByUser = startedPlaying && !isPlaying && !buffering
+        val showPauseMark = pausedByUser && error == null && !inert
+        if (tvLive && showPauseMark) {
             Box(Modifier.align(Alignment.Center).size(96.dp).background(Color(0x66000000), androidx.compose.foundation.shape.CircleShape), contentAlignment = Alignment.Center) {
                 tv.own.owntv.ui.components.OwnTVIcon(OwnTVIcon.PAUSE, Color.White, Modifier.size(44.dp))
             }
