@@ -870,7 +870,7 @@ private fun SeriesGrid(
                     hints = listOf(playHint, optionsHint),
                     series = true,
                     modifier = Modifier
-                        .padding(start = rightEdge - cardW, top = if (locked) 0.mpx else 118.mpx, bottom = if (locked) 0.mpx else 32.mpx)
+                        .padding(start = (rightEdge - cardW).coerceAtLeast(0.mpx), top = if (locked) 0.mpx else 118.mpx, bottom = if (locked) 0.mpx else 32.mpx)
                         .width(cardW)
                         .fillMaxHeight(),
                 )

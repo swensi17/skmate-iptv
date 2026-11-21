@@ -1008,7 +1008,8 @@ fun LiveScreen(
                     onOpenProgramme = { p -> previewChannel?.let { openProgramme = it to p } },
                     onBackToList = { focusCurrentRow() },
                     modifier = Modifier
-                        .padding(start = screenW - margin - stageW, top = 120.mpx)
+                        // Never below zero: laid out at no width for a frame (a panel opening over it), it threw.
+                        .padding(start = (screenW - margin - stageW).coerceAtLeast(0.mpx), top = 120.mpx)
                         .width(stageW),
                 )
             }

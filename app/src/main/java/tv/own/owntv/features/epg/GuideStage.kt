@@ -317,7 +317,7 @@ internal fun GuideMenuHost(x: Float, top: Dp, width: Dp, onDismiss: () -> Unit, 
                 Modifier
                     .then(
                         if (centred) Modifier.heightIn(max = maxHeight - 96.mpx)
-                        else Modifier.padding(start = (maxWidth * (x / 1920f)).coerceAtMost(maxWidth - width), top = top, bottom = 24.mpx),
+                        else Modifier.padding(start = (maxWidth * (x / 1920f)).coerceAtMost(maxWidth - width).coerceAtLeast(0.mpx), top = top, bottom = 24.mpx),
                     )
                     .width(width.coerceAtMost(maxWidth - 64.mpx))
                     .trapAllFocusExit()
