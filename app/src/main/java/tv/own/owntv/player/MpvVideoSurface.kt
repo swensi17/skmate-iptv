@@ -271,12 +271,16 @@ fun ExoPreviewSurface(
         // Between channels the screen is plain black: the old picture, or a new one not yet sized to the window,
         // never shows. The picture comes in a beat after the new channel's first frame, already in place.
         val state by engine.state.collectAsStateWithLifecycle()
+        val ready by engine.pictureReady.collectAsStateWithLifecycle()
         // Keyed on the box's size too: when the picture moves (the channel panel docking it, or letting it go) the
         // frame already on screen is drawn at the old size for a moment, so it is covered until redrawn.
-        val revealed by androidx.compose.runtime.produceState(false, state, if (coverOnResize) maxWidth else null, if (coverOnResize) maxHeight else null, revealKey) {
+        val revealed by androidx.compose.runtime.produceState(false, state, ready, if (coverOnResize) maxWidth else null, if (coverOnResize) maxHeight else null, revealKey) {
             // Covered again at once on every change (produceState keeps its last value across keys otherwise).
             value = false
-            if (state == LivePreviewEngine.State.PLAYING) { kotlinx.coroutines.delay(RevealAfterMs); value = true }
+            // Shown as soon as the picture really moves (a beat to be drawn at the window's size); if that signal
+            // never comes, after the old fixed wait.
+            val wait = if (ready) REVEAL_READY_MS else RevealAfterMs
+            if (state == LivePreviewEngine.State.PLAYING) { kotlinx.coroutines.delay(wait); value = true }
         }
         if (!revealed) androidx.compose.foundation.layout.Box(Modifier.matchParentSize().background(Color.Black))
     }
@@ -284,6 +288,9 @@ fun ExoPreviewSurface(
 
 /** How long after a channel's first frame its picture is shown: enough for it to be drawn at the window's size. */
 private const val RevealAfterMs = 250L
+
+/** After the buffer is full: only long enough for the first frame to be drawn at the window's size. */
+private const val REVEAL_READY_MS = 60L
 
 /**
  * Media3's [androidx.media3.ui.SubtitleView] with the user's subtitle appearance applied —

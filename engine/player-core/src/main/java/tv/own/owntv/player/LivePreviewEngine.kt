@@ -66,6 +66,8 @@ class LivePreviewEngine(
         }
     }
     private val engineId = System.identityHashCode(this)
+    private val softwareMemory by lazy { SoftwareDecodeMemory(context) }
+
     private val lowSpec: Boolean by lazy { tv.own.owntv.core.player.PlayerBudget.of(context).lowSpec }
 
     private val vlc: LibVLC by lazy { LibVLC(context.applicationContext, vlcOptions()) }
@@ -78,6 +80,11 @@ class LivePreviewEngine(
     override val isPlaying: StateFlow<Boolean> = _isPlaying.asStateFlow()
     private val _buffering = MutableStateFlow(false)
     override val buffering: StateFlow<Boolean> = _buffering.asStateFlow()
+
+    private val _pictureReady = MutableStateFlow(false)
+
+    /** The new channel's buffer is full and its picture really moves: the moment to uncover it. */
+    val pictureReady: StateFlow<Boolean> = _pictureReady.asStateFlow()
     private val _error = MutableStateFlow<PlaybackFailure?>(null)
     override val error: StateFlow<PlaybackFailure?> = _error.asStateFlow()
     private val _errorInfo = MutableStateFlow<ErrorInfo?>(null)
@@ -252,7 +259,7 @@ class LivePreviewEngine(
         this.liveBufferOverride = liveBufferOverride
         _currentMeta.value = meta
         hasPlayed = false; gaveUp = false; reconnects = 0
-        softwareTried = url in SOFTWARE_URLS
+        softwareTried = url in SOFTWARE_URLS || url in softwareMemory
         open(url)
     }
 
@@ -261,6 +268,7 @@ class LivePreviewEngine(
         val p = player ?: MediaPlayer(vlc).also { player = it; it.setEventListener(::onEvent) }
         surface?.let { attach(p, it) }
         val software = softwareTried
+        val maxHeight = maxVideoHeight
         val caching = cachingMs()
         val agent = userAgent ?: DEFAULT_UA
         val referer = headerValue("Referer")
@@ -281,6 +289,13 @@ class LivePreviewEngine(
                 addOption(":network-caching=$caching")
                 addOption(":http-user-agent=$agent")
                 referer?.let { addOption(":http-referrer=$it") }
+                maxHeight?.let { addOption(":adaptive-maxheight=$it") }
+                // A weak box: a shorter HLS read-ahead (30 s by default) and, on the software decoder, the
+                // in-loop deblocking skipped, which is most of its cost on a 2-core chip.
+                if (lowSpec) {
+                    addOption(":adaptive-maxbuffer=$LOW_SPEC_HLS_BUFFER_MS")
+                    if (software) addOption(":avcodec-skiploopfilter=$SKIP_LOOP_FILTER_NON_KEY")
+                }
             }
             try {
                 p.media = media
@@ -294,6 +309,7 @@ class LivePreviewEngine(
         _error.value = null; _errorInfo.value = null
         _state.value = State.LOADING; _buffering.value = true; _isPlaying.value = false
         lastShown = 0; lastRead = 0L; stuckChecks = 0; sawLife = false; bufferedOnce = false
+        _pictureReady.value = false
         openedAt = SystemClock.elapsedRealtime()
         main.removeCallbacks(watchdog)
         main.postDelayed(watchdog, WATCH_MS)
@@ -333,6 +349,7 @@ class LivePreviewEngine(
                 // The honest zap time: the buffer is full and the picture really moves (Vout comes earlier).
                 if (!bufferedOnce) {
                     bufferedOnce = true
+                    _pictureReady.value = true
                     LiveDiagnosticsLog.event("picture ready after ${SystemClock.elapsedRealtime() - openedAt}ms")
                 }
                 _buffering.value = false; _stalledSinceMs.value = null
@@ -455,6 +472,7 @@ class LivePreviewEngine(
                 LiveDiagnosticsLog.event("picture stuck while data arrives — reopening on the software decoder")
                 softwareTried = true
                 SOFTWARE_URLS += url
+                softwareMemory.remember(url)
                 open(url)
             }
         }
@@ -549,7 +567,10 @@ class LivePreviewEngine(
         LiveDiagnosticsLog.event("memory pressure: the preview lets go")
         main.post { stop() }
     }
-    fun setMaxVideoHeight(@Suppress("UNUSED_PARAMETER") height: Int?) {}
+    /** A cap on the stream variant (Multiview tiles ask for 720p); applied on the next open, HLS only. */
+    @Volatile private var maxVideoHeight: Int? = null
+
+    fun setMaxVideoHeight(height: Int?) { maxVideoHeight = height }
     fun setTunnelingAllowed(@Suppress("UNUSED_PARAMETER") allowed: Boolean) {}
     fun onAppBackgrounded() { player?.let { p -> ctlPost { p.pause() } } }
     fun onAppForegrounded() { if (currentUrl != null) player?.let { p -> ctlPost { p.play() } } }
@@ -606,6 +627,8 @@ class LivePreviewEngine(
         /** The cache behind the picture when the latency setting says nothing: enough for a slow segment. */
         private const val DEFAULT_CACHE_MS = 1_000
         private const val LOW_SPEC_CACHE_MS = 1_500
+        private const val LOW_SPEC_HLS_BUFFER_MS = 10_000
+        private const val SKIP_LOOP_FILTER_NON_KEY = 3
         private const val MS_PER_SEC = 1_000
         private const val MIN_CACHE_MS = 500
         private const val MAX_CACHE_MS = 30_000

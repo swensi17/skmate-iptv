@@ -777,7 +777,7 @@
         <error line="3" column="1" source="standard:import-ordering" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/player/MpvVideoSurface.kt">
-        <error line="286" column="19" source="standard:property-naming" />
+        <error line="290" column="19" source="standard:property-naming" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/player/PlayerClock.kt">
         <error line="3" column="1" source="standard:import-ordering" />

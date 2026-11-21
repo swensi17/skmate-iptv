@@ -327,3 +327,4 @@
 1	player-core/src/main/java/tv/own/owntv/player/PlayerDiagnostics.kt	\0
 1	player-core/src/main/java/tv/own/owntv/player/PlayerDiagnostics.kt	429
 1	player-core/src/main/java/tv/own/owntv/player/PlayerDiagnostics.kt	458
+2	player-core/src/main/java/tv/own/owntv/player/SoftwareDecodeMemory.kt	\0

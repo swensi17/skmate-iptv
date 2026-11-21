@@ -5850,12 +5850,15 @@
 1	technical	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	.m3u8
 1	technical	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	16:9
 1	technical	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	4:3
+1	technical	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	:adaptive-maxbuffer=$LOW_SPEC_HLS_BUFFER_MS
+1	technical	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	:adaptive-maxheight=$it
+1	technical	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	:avcodec-skiploopfilter=$SKIP_LOOP_FILTER_NON_KEY
 1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	:http-referrer=$it
 1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	:http-user-agent=$agent
 1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	:network-caching=$caching
 1	technical	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	Referer
 1	technical	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	STEREO
-3	technical	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	UNUSED_PARAMETER
+2	technical	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	UNUSED_PARAMETER
 1	technical	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	VLC/3.0.20 LibVLC/3.0.20
 1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	abandon: $reason
 1	technical	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	end of stream
@@ -6538,6 +6541,11 @@
 1	technical	player-core/src/main/java/tv/own/owntv/player/SmartBuffer.kt	gib
 1	technical	player-core/src/main/java/tv/own/owntv/player/SmartBuffer.kt	kib
 1	technical	player-core/src/main/java/tv/own/owntv/player/SmartBuffer.kt	mib
+1	technical	player-core/src/main/java/tv/own/owntv/player/SoftwareDecodeMemory.kt	%02x
+1	technical	player-core/src/main/java/tv/own/owntv/player/SoftwareDecodeMemory.kt	,
+1	technical	player-core/src/main/java/tv/own/owntv/player/SoftwareDecodeMemory.kt	SHA-256
+1	technical	player-core/src/main/java/tv/own/owntv/player/SoftwareDecodeMemory.kt	hashes
+1	technical	player-core/src/main/java/tv/own/owntv/player/SoftwareDecodeMemory.kt	live_software_decode
 1	empty	player-core/src/main/java/tv/own/owntv/player/StreamFormatLabels.kt	\0
 1	protocol	player-core/src/main/java/tv/own/owntv/player/StreamFormatLabels.kt	DASH
 1	protocol	player-core/src/main/java/tv/own/owntv/player/StreamFormatLabels.kt	HLS
