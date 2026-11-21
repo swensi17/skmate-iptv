@@ -1382,11 +1382,11 @@
     <!-- Translators: Success line in the source-test popup: the server answered and accepted the account. -->
     <string name="settings_sources_test_ok">Connection OK</string>
     <!-- Translators: Failure line in the source-test popup: the server answered but rejected the credentials. -->
-    <string name="settings_sources_test_auth">The provider rejected these details. Check the username, password or MAC address.</string>
+    <string name="settings_sources_test_auth">The provider refused the login, password or MAC</string>
     <!-- Translators: Failure line in the source-test popup: the subscription has run out. -->
     <string name="settings_sources_test_expired">This subscription has expired.</string>
     <!-- Translators: Failure line in the source-test popup: the server could not be contacted at all. -->
-    <string name="settings_sources_test_unreachable">Couldn’t reach the server. Check the address and your internet connection.</string>
+    <string name="settings_sources_test_unreachable">The server is not answering. Check the address and internet</string>
     <!-- Translators: Account status word reported verbatim by the provider (e.g. "Active"). "status" is that word. -->
     <string name="settings_sources_test_status">Status: <xliff:g id="status">%1$s</xliff:g></string>
     <!-- Translators: How many streams the account has open now vs. how many it may open. "used" and "max" are counts. -->
@@ -3188,7 +3188,7 @@
     <string name="settings_motion_auto_desc">On a weak box or when frames drop, animations switch off by themselves; on a good one they stay on</string>
     <string name="settings_motion_auto_off_now">The device cannot keep up: animations are off for now and will be tried again later</string>
     <string name="settings_player_clock">Clock over the video</string>
-    <string name="settings_player_clock_description">Current time in the corner of the full-screen player</string>
+    <string name="settings_player_clock_description">Time in the corner of the screen</string>
     <string name="settings_vp_cat_controls">Controls</string>
     <string name="settings_vp_cat_resume">Resume watching</string>
 </resources>

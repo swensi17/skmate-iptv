@@ -2,14 +2,7 @@ package tv.own.owntv.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -27,25 +20,31 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.graphicsLayer
 import kotlinx.coroutines.delay
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.style.TextAlign
 import androidx.tv.material3.Text
 import tv.own.owntv.ui.theme.mpx
 import tv.own.owntv.ui.theme.stageText
 
-/** The look of every notice in the top-right corner: the side menu's surface, its softly squared corners. */
+/** A notice: one dark, quiet plate with rounded corners. No border, no colour bar, nothing that blinks. */
 @Composable
-fun Modifier.tvNoticeCard(): Modifier {
-    val light = tv.own.owntv.ui.theme.LocalStagePalette.current.isLight
-    return this
-        .widthIn(min = 420.mpx, max = 600.mpx)
-        .clip(tv.own.owntv.ui.stage.FocusBarShape)
-        .background(if (light) tv.own.owntv.features.shell.components.TvBoxPanelLight else tv.own.owntv.features.shell.components.TvBoxMenuFill)
-        .border(1.mpx, tv.own.owntv.ui.theme.StageColors.Muted.copy(alpha = 0.22f), tv.own.owntv.ui.stage.FocusBarShape)
-        .padding(horizontal = 22.mpx, vertical = 16.mpx)
-}
+fun Modifier.tvNoticeCard(): Modifier = this
+    .widthIn(min = NOTICE_MIN_WIDTH.mpx, max = NOTICE_MAX_WIDTH.mpx)
+    .clip(RoundedCornerShape(NOTICE_RADIUS.mpx))
+    .background(NoticeFill)
+    .padding(horizontal = NOTICE_PAD_H.mpx, vertical = NOTICE_PAD_V.mpx)
 
-/** Short notices stacked in the top-right corner, newest on top; each leaves by itself. */
+private val NoticeFill = androidx.compose.ui.graphics.Color(NOTICE_FILL_ARGB)
+private const val NOTICE_FILL_ARGB = 0xF53A3E44
+private const val NOTICE_MIN_WIDTH = 360
+private const val NOTICE_MAX_WIDTH = 760
+private const val NOTICE_RADIUS = 14
+private const val NOTICE_PAD_H = 28
+private const val NOTICE_PAD_V = 14
+
+/** Short notices at the top centre of the screen, newest on top; each leaves by itself. */
 object TvNotices {
     data class Notice(val id: Long, val title: String, val text: String?, val millis: Long)
 
@@ -65,7 +64,10 @@ object TvNotices {
 /** The stack itself; put it in the column that also holds the update card. */
 @Composable
 fun TvNoticeStack() {
-    Column(verticalArrangement = Arrangement.spacedBy(12.mpx)) {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(STACK_GAP.mpx),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
         TvNotices.items.forEach { n -> key(n.id) { TvNoticeItem(n) } }
     }
 }
@@ -73,7 +75,15 @@ fun TvNoticeStack() {
 private const val ENTER_MS = 320
 private const val EXIT_MS = 260
 private const val EXIT_SLACK_MS = 30L
-private const val HIDE_GAP = 48
+private const val HIDE_GAP = 16
+private const val STACK_GAP = 10
+private const val TITLE_SIZE = 20
+private const val TITLE_WEIGHT = 600
+private const val TEXT_SIZE = 17
+private const val TEXT_WEIGHT = 400
+private val NoticeTitle = androidx.compose.ui.graphics.Color.White
+private val NoticeText = androidx.compose.ui.graphics.Color(NOTICE_TEXT_ARGB)
+private const val NOTICE_TEXT_ARGB = 0xFFB5BAC1
 
 /** One notice: drops in from the top edge like a blind, waits, and rolls back up before it is removed. */
 @Composable
@@ -96,20 +106,20 @@ private fun TvNoticeItem(n: TvNotices.Notice) {
         delay(exitMs.toLong() + EXIT_SLACK_MS)
         TvNotices.items.removeAll { it.id == n.id }
     }
-    Row(
+    // Fades in with a short drop; the whole text is shown, wrapped, never cut with "…".
+    Column(
         Modifier
             .graphicsLayer {
-                translationY = -(1f - p) * (size.height + HIDE_GAP.mpx.toPx())
+                translationY = -(1f - p) * HIDE_GAP.mpx.toPx()
                 alpha = p
             }
-            .tvNoticeCard()
-            .height(IntrinsicSize.Min),
-        horizontalArrangement = Arrangement.spacedBy(16.mpx),
+            .tvNoticeCard(),
+        verticalArrangement = Arrangement.spacedBy(2.mpx),
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Box(Modifier.width(4.mpx).fillMaxHeight().clip(RoundedCornerShape(2.mpx)).background(tv.own.owntv.ui.theme.stageAccent.accent))
-        Column(verticalArrangement = Arrangement.spacedBy(4.mpx)) {
-            Text(n.title, style = stageText(21, 600), color = tv.own.owntv.ui.theme.StageColors.Text, maxLines = 3, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
-            n.text?.let { Text(it, style = stageText(18, 500), color = tv.own.owntv.ui.theme.StageColors.Muted, maxLines = 3, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) }
+        Text(n.title, style = stageText(TITLE_SIZE, TITLE_WEIGHT), color = NoticeTitle, textAlign = TextAlign.Center)
+        n.text?.let {
+            Text(it, style = stageText(TEXT_SIZE, TEXT_WEIGHT), color = NoticeText, textAlign = TextAlign.Center)
         }
     }
 }

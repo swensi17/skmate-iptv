@@ -81,7 +81,13 @@ internal fun EpgRow(
         desc = if (failed) subtitle else status,
         value = when {
             failed -> SettingValue.Custom {
-                Text(status, style = tv.own.owntv.ui.theme.stageText(18, 700), color = tv.own.owntv.ui.theme.StageColors.Danger, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.widthIn(max = 360.mpx))
+                // The whole error, wrapped: a cut "…" hides exactly the part that says what to do.
+                Text(
+                    status,
+                    style = tv.own.owntv.ui.theme.stageText(ERROR_TEXT_SIZE, ERROR_TEXT_WEIGHT),
+                    color = tv.own.owntv.ui.theme.StageColors.Danger,
+                    modifier = Modifier.widthIn(max = ERROR_MAX_WIDTH.mpx),
+                )
             }
             badge != null -> SettingValue.Action(badge)
             else -> null
@@ -174,3 +180,7 @@ private fun epgSourceActions(
         StageAction(OwnTVIcon.PENCIL, stringResource(R.string.common_edit), onEdit),
     ) + orderActions + StageAction(OwnTVIcon.TRASH, stringResource(R.string.common_delete), onDelete, danger = true)
 }
+
+private const val ERROR_TEXT_SIZE = 17
+private const val ERROR_TEXT_WEIGHT = 600
+private const val ERROR_MAX_WIDTH = 420

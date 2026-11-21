@@ -2427,7 +2427,7 @@ fun OwnTVShell(
                 }
             }
         } else if (tv.own.owntv.ui.components.TvNotices.items.isNotEmpty()) {
-            Box(Modifier.fillMaxSize().padding(top = 40.mpx, end = 40.mpx), contentAlignment = Alignment.TopEnd) {
+            Box(Modifier.fillMaxSize().padding(top = 40.mpx), contentAlignment = Alignment.TopCenter) {
                 tv.own.owntv.ui.components.TvNoticeStack()
             }
         }

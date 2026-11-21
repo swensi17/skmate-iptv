@@ -91,19 +91,19 @@
     <string name="common_resume_prompt">Resume playback?</string>
 
     <!-- Translators: Error message when the device appears to be offline during a sync operation. -->
-    <string name="sync_error_offline">You appear to be offline. Check your connection and try again.</string>
+    <string name="sync_error_offline">No internet</string>
     <!-- Translators: Generic sync error message. -->
-    <string name="sync_error_generic">Something went wrong. Please try again.</string>
+    <string name="sync_error_generic">Something went wrong. Try again</string>
     <!-- Translators: Error message when the server responds too slowly during sync. -->
-    <string name="sync_error_timeout">The server took too long to respond. Please try again.</string>
+    <string name="sync_error_timeout">The server is slow to answer. Try again</string>
     <!-- Translators: Error message when the server is unreachable during sync. -->
-    <string name="sync_error_unreachable">Couldn\'t reach the server. Check the address and your connection.</string>
+    <string name="sync_error_unreachable">The server is not answering. Check the address and internet</string>
     <!-- Translators: Error message when the server connection fails during sync. -->
-    <string name="sync_error_connection">Couldn\'t connect to the server. It may be down, or the address may be wrong.</string>
+    <string name="sync_error_connection">Server unavailable. Check the address</string>
     <!-- Translators: Error message when the server interrupts the download during sync. -->
-    <string name="sync_error_interrupted">The server interrupted the download. Please try again.</string>
+    <string name="sync_error_interrupted">The download stopped. Try again</string>
     <!-- Translators: Error message when the Stalker portal rejects the MAC address. Suggests checking MAC and date/time. -->
-    <string name="sync_error_mac">The portal refused this MAC address. Check the MAC (and the TV\'s date &amp; time) \u2014 or the subscription may have expired.</string>
+    <string name="sync_error_mac">The portal refused the MAC address or the plan expired</string>
     <!-- Translators: Error message when the MAC address format is invalid. "AA:BB:CC:DD:EE:FF" is an example format. -->
     <string name="sync_error_invalid_mac">Invalid MAC address \u2014 use AA:BB:CC:DD:EE:FF</string>
     <!-- Translators: Separator between sync count segments. The middle dot (·) is surrounded by spaces. -->
@@ -236,23 +236,23 @@
         <item quantity="other"><xliff:g id="count">%1$d</xliff:g> categories removed</item>
     </plurals>
     <!-- Translators: Error when the Stalker portal URL is unreachable. Suggests checking the URL format. -->
-    <string name="sync_error_portal">Couldn\'t reach the portal. Check the portal URL \u2014 it usually ends in /c/.</string>
+    <string name="sync_error_portal">The portal is not answering. The address usually ends in /c/</string>
     <!-- Translators: Error when the Stalker portal session expires. -->
-    <string name="sync_error_session">The portal session expired. Please try again.</string>
+    <string name="sync_error_session">The portal session expired. Try again</string>
     <!-- Translators: Error when the server rejects login credentials. -->
-    <string name="sync_error_auth">The server rejected your login. Check your username and password.</string>
+    <string name="sync_error_auth">Wrong username or password</string>
     <!-- Translators: Error when the requested resource is not found on the server. -->
-    <string name="sync_error_not_found">Not found on the server. Check the URL.</string>
+    <string name="sync_error_not_found">Nothing at this link (404)</string>
     <!-- Translators: Generic server error during sync. -->
-    <string name="sync_error_server">The server had a problem. Please try again later.</string>
+    <string name="sync_error_server">Server error. Try later</string>
     <!-- Translators: Error when the SSL/TLS connection to the server fails. -->
-    <string name="sync_error_secure">Secure connection failed \u2014 the server\'s certificate may be invalid.</string>
+    <string name="sync_error_secure">Secure connection failed (certificate)</string>
     <!-- Translators: Error when the guide data from the server is malformed. -->
-    <string name="sync_error_malformed_guide">The guide data from the server was malformed. Some of it may still have loaded \u2014 please try again, or check the EPG URL.</string>
+    <string name="sync_error_malformed_guide">The guide has a format error. Check the link</string>
     <!-- Translators: shown on a guide source that fetched successfully but contained no programmes at all - usually the provider has not published this week's guide yet. -->
-    <string name="sync_error_guide_empty">This guide is empty right now. The provider may not have published it yet \u2014 please try again later.</string>
+    <string name="sync_error_guide_empty">The guide is empty for now. Try later</string>
     <!-- Translators: shown on a guide source that fetched successfully and has programmes, but none of its channels is one of the playlist's channels, so nothing was kept. "TV Guide" and "Auto-match EPG" are the screen and button names used elsewhere in the app. -->
-    <string name="sync_error_guide_no_matching_channels">None of this guide\'s channels match your playlist\'s yet. Open the TV Guide and use Auto-match EPG to pair them by name.</string>
+    <string name="sync_error_guide_no_matching_channels">Guide channels don\'t match the playlist. Use “Fix guide”</string>
 
     <!-- Translators: Label above the number field in a minutes input dialog, e.g. the recording start-early and run-over times. -->
     <string name="common_minutes">Minutes</string>

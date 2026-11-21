@@ -44,13 +44,13 @@
     <string name="common_timestamp_hours"><xliff:g id="hours">%1$d</xliff:g>:<xliff:g id="minutes">%2$02d</xliff:g>:<xliff:g id="seconds">%3$02d</xliff:g></string>
     <string name="common_resume_position">Вы остановились на <xliff:g id="position">%1$s</xliff:g>.</string>
     <string name="common_resume_prompt">Продолжить воспроизведение?</string>
-    <string name="sync_error_offline">Похоже, вы не в сети. Проверьте соединение и повторите попытку.</string>
-    <string name="sync_error_generic">Что-то пошло не так. Повторите попытку.</string>
-    <string name="sync_error_timeout">Сервер слишком долго не отвечал. Повторите попытку.</string>
-    <string name="sync_error_unreachable">Не удалось связаться с сервером. Проверьте адрес и соединение.</string>
-    <string name="sync_error_connection">Не удалось подключиться к серверу. Возможно, он недоступен или указан неверный адрес.</string>
-    <string name="sync_error_interrupted">Сервер прервал загрузку. Повторите попытку.</string>
-    <string name="sync_error_mac">Портал отклонил этот MAC-адрес: проверьте MAC-адрес (а также дату и время на телевизоре) — возможно, срок подписки истёк.</string>
+    <string name="sync_error_offline">Нет интернета</string>
+    <string name="sync_error_generic">Что-то пошло не так. Попробуйте снова</string>
+    <string name="sync_error_timeout">Сервер долго не отвечает. Попробуйте снова</string>
+    <string name="sync_error_unreachable">Сервер не отвечает. Проверьте адрес и интернет</string>
+    <string name="sync_error_connection">Сервер недоступен. Проверьте адрес</string>
+    <string name="sync_error_interrupted">Загрузка прервалась. Попробуйте снова</string>
+    <string name="sync_error_mac">Портал не принял MAC-адрес или подписка истекла</string>
     <string name="sync_error_invalid_mac">Недопустимый MAC-адрес — используйте формат AA:BB:CC:DD:EE:FF</string>
     <string name="sync_counts_separator">"  ·  "</string>
     <string name="sync_counts_success">Синхронизация успешно завершена</string>
@@ -131,15 +131,15 @@
         <item quantity="many"><xliff:g id="count">%1$d</xliff:g> категорий удалено</item>
         <item quantity="other"><xliff:g id="count">%1$d</xliff:g> категорий удалено</item>
     </plurals>
-    <string name="sync_error_portal">Не удалось связаться с порталом. Проверьте URL портала — обычно он заканчивается на /c/.</string>
-    <string name="sync_error_session">Сеанс портала истёк. Повторите попытку.</string>
-    <string name="sync_error_auth">Сервер отклонил данные для входа. Проверьте имя пользователя и пароль.</string>
-    <string name="sync_error_not_found">На сервере ничего не найдено. Проверьте URL.</string>
-    <string name="sync_error_server">На сервере произошла ошибка. Повторите попытку позже.</string>
-    <string name="sync_error_secure">Не удалось установить защищённое соединение — возможно, сертификат сервера недействителен.</string>
-    <string name="sync_error_malformed_guide">Данные программы передач, полученные от сервера, имеют неверный формат. Возможно, некоторые данные всё же загрузились — повторите попытку или проверьте URL EPG.</string>
-    <string name="sync_error_guide_empty">Эта телепрограмма сейчас пуста. Возможно, поставщик ещё не опубликовал её — повторите попытку позже.</string>
-    <string name="sync_error_guide_no_matching_channels">Ни один канал этой телепрограммы пока не совпадает с каналами вашего плейлиста. Откройте «Программу передач» и используйте «Автосопоставление EPG», чтобы сопоставить их по названию.</string>
+    <string name="sync_error_portal">Портал не отвечает. Адрес обычно кончается на /c/</string>
+    <string name="sync_error_session">Сеанс портала истёк. Попробуйте снова</string>
+    <string name="sync_error_auth">Неверный логин или пароль</string>
+    <string name="sync_error_not_found">По ссылке ничего нет (404)</string>
+    <string name="sync_error_server">Ошибка на сервере. Попробуйте позже</string>
+    <string name="sync_error_secure">Не удалось защищённое соединение (сертификат)</string>
+    <string name="sync_error_malformed_guide">Телегид пришёл с ошибкой формата. Проверьте ссылку</string>
+    <string name="sync_error_guide_empty">Телегид пока пуст. Попробуйте позже</string>
+    <string name="sync_error_guide_no_matching_channels">Каналы телегида не совпали с плейлистом. Нажмите «Починить телегид»</string>
     <string name="common_minutes">Минуты</string>
     <string name="common_size_mb"><xliff:g id="size">%1$s</xliff:g> МБ</string>
     <string name="common_size_gb"><xliff:g id="size">%1$s</xliff:g> ГБ</string>
