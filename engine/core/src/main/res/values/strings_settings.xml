@@ -3214,7 +3214,7 @@
     <string name="settings_author_playlist_desc">Kept up to date by the author</string>
     <string name="settings_live_keys">Buttons on a channel</string>
     <string name="settings_live_keys_description">What OK and the arrows do while a channel plays full screen with the controls hidden. A button left as it is keeps its usual job.</string>
-    <string name="settings_live_keys_choose">Button %1$s</string>
+    <string name="settings_live_keys_choose">Button <xliff:g id="button">%1$s</xliff:g></string>
     <string name="settings_live_keys_reset">Reset buttons on a channel</string>
     <string name="settings_live_keys_reset_description">OK shows the channel info, up and down change channel, left opens the list, right the history</string>
     <string name="settings_live_key_ok">OK</string>
@@ -3232,6 +3232,6 @@
     <string name="settings_live_key_action_forward">Fast forward</string>
     <string name="settings_live_key_action_pause">Pause</string>
     <string name="settings_live_key_action_nothing">Nothing</string>
-    <string name="settings_live_key_default">%1$s · usual</string>
+    <string name="settings_live_key_default"><xliff:g id="action">%1$s</xliff:g> · usual</string>
     <string name="settings_search_keywords_live_keys">remote buttons ok arrows channel list open list on ok up down left right zap rewind</string>
 </resources>
