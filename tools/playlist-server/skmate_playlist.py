@@ -631,6 +631,34 @@ EMOJI = {
     "🥳": "5328273248448686763", "😢": "5391310895768936514", "💯": "5274195706066781810",
     "☕️": "5395463497783983254", "👑": "5431505596316665041", "❓": "5235711188481883685",
 }
+# Button icons from the "Telegram iOS Icons" set (t.me/addemoji/tgiosicons): plain, single-colour, the
+# way a TV's own menus draw them. The text keeps the animated set above.
+ICON = {
+    "add": "6032924188828767321",  # ➕
+    "channels": "6039391078136681499",  # 📺
+    "sources": "6039630677182254664",  # 📂
+    "guide": "5890937706803894250",  # 📅
+    "check": "5769248574499983619",  # 🔄
+    "link": "6030864215139422409",  # 🔗
+    "wipe": "6039522349517115015",  # 🗑
+    "back": "5960671702059848143",  # ⬅️
+    "open": "5776233299424843260",  # 🌐
+    "test": "6032850693348399258",  # 🔎
+    "delete": "6039522349517115015",  # 🗑
+    "cancel": "6030757850274336631",  # ❌
+    "refresh": "5767310088255576068",  # 🔃
+    "main": "6028338546736107668",  # ⭐️
+    "guide_item": "5891100675042974129",  # 📅
+    "file": "6034969813032374911",  # 📄
+    "url": "5776078972659962594",  # 🔗
+    "error": "6030563507299160824",  # ❗️
+    "ok": "5774022692642492953",  # ✅
+    "dead": "5938215362473496448",  # 🚫
+    "wait": "6030537810509828330",  # ⏲
+    "prev": "6039539366177541657",  # ⬅️
+    "next": "5895383238473421210",  # ➡️
+    "yes": "6039522349517115015",  # 🗑
+}
 STATUS_ICON = {"ok": "💪", "dead": "😵", "wait": "🤔"}
 STATUS_TEXT = {"ok": "работает", "dead": "не работает", "wait": "ещё не проверен"}
 
@@ -652,7 +680,7 @@ def btn(text: str, data: str = "", icon: str = "", style: str = "", url: str = "
     else:
         b["callback_data"] = data
     if icon:
-        b["icon_custom_emoji_id"] = EMOJI[icon]
+        b["icon_custom_emoji_id"] = ICON[icon]
     if style:
         b["style"] = style
     return b
@@ -671,7 +699,7 @@ def kb(*rows: list) -> dict:
 
 
 def back(to: str = "home") -> list:
-    return [btn("Назад", to, "🫡")]
+    return [btn("Назад", to, "back")]
 
 
 def plural(n: int, one: str, few: str, many: str) -> str:
@@ -736,10 +764,10 @@ def screen_home(ui: dict) -> tuple[str, dict]:
             f"• Проверка: {ago(state.get('last_check', 0))}</blockquote>\n\n"
             f"{e('🔥')} <i>Ссылка для приложения:</i>\n<code>{h(PUBLIC)}</code>")
     markup = kb(
-        [btn("Добавить", "add", "➕", "success")],
-        [btn("Каналы", "ch:0", "⭐️"), btn("Источники", "src", "💎")],
-        [btn("Телегид", "epg", "🤓"), btn("Проверка", "chk", "⚡️", "primary")],
-        [btn("Ссылка", copy=PUBLIC, icon="👌"), btn("Очистка", "wipe1", "💀", "danger")],
+        [btn("Добавить", "add", "add", "success")],
+        [btn("Каналы", "ch:0", "channels"), btn("Источники", "src", "sources")],
+        [btn("Телегид", "epg", "guide"), btn("Проверка", "chk", "check", "primary")],
+        [btn("Ссылка", copy=PUBLIC, icon="link"), btn("Очистка", "wipe1", "wipe", "danger")],
     )
     return text, markup
 
@@ -768,11 +796,11 @@ def screen_channels(page: int) -> tuple[str, dict]:
     rows = []
     for i, c in enumerate(part):
         n = page * PAGE + i + 1
-        rows.append([btn(f"{n}. {short(c.entry.name or '?', 30)}", f"c:{c.id}:{page}", STATUS_ICON[channel_status(state, c)])])
+        rows.append([btn(f"{n}. {short(c.entry.name or '?', 30)}", f"c:{c.id}:{page}", channel_status(state, c))])
     nav = []
     if pages > 1:
-        nav = [btn("Ранее", f"ch:{(page - 1) % pages}"), btn(f"{page + 1} / {pages}", f"ch:{page}"),
-               btn("Дальше", f"ch:{(page + 1) % pages}")]
+        nav = [btn("Ранее", f"ch:{(page - 1) % pages}", "prev"), btn(f"{page + 1} / {pages}", f"ch:{page}"),
+               btn("Дальше", f"ch:{(page + 1) % pages}", "next")]
     return text, kb(*rows, nav, back())
 
 
@@ -801,13 +829,13 @@ def screen_channel(cid: str, page: int) -> tuple[str, dict]:
             f"• Адресов: {len(c.urls)}</blockquote>\n"
             f"<blockquote expandable>{chr(10).join(lines)}</blockquote>")
     main = next((u for u in c.urls if usable(state, u)), c.urls[0] if c.urls else "")
-    first = [btn("Ссылка", copy=main, icon="👌")] if main else []
+    first = [btn("Ссылка", copy=main, icon="link")] if main else []
     if openable(main):
-        first.append(btn("Открыть", url=main, icon="🤩"))
+        first.append(btn("Открыть", url=main, icon="open"))
     return fit(text), kb(
         first,
-        [btn("Проверить", f"cc:{cid}:{page}", "⚡️", "primary"), btn("Телегид", f"ct:{cid}:{page}", "🤓")],
-        [btn("Удалить", f"cd:{cid}:{page}", "💔", "danger")],
+        [btn("Проверить", f"cc:{cid}:{page}", "test", "primary"), btn("Телегид", f"ct:{cid}:{page}", "guide")],
+        [btn("Удалить", f"cd:{cid}:{page}", "delete", "danger")],
         back(f"ch:{page}"),
     )
 
@@ -818,7 +846,7 @@ def screen_channel_delete(cid: str, page: int) -> tuple[str, dict]:
     text = (f"{e('😱')} <b>Удалить «{h(name)}»?</b>\n\n"
             f"<blockquote>Канал пропадёт из плейлиста у всех. Вернётся, только если снова прислать "
             f"источник, где он есть.</blockquote>")
-    return text, kb([btn("Удалить", f"cx:{cid}:{page}", "💔", "danger"), btn("Отмена", f"c:{cid}:{page}", "👎")])
+    return text, kb([btn("Удалить", f"cx:{cid}:{page}", "delete", "danger"), btn("Отмена", f"c:{cid}:{page}", "cancel")])
 
 
 def screen_channel_tvg(cid: str) -> tuple[str, dict]:
@@ -847,9 +875,9 @@ def screen_sources() -> tuple[str, dict]:
         text += "\n\nИсточников нет."
     rows = []
     for i, (n, m) in enumerate(items[:20]):
-        icon = "😢" if m.get("error") else ("🔋" if m.get("kind") == "url" else "💎")
+        icon = "error" if m.get("error") else ("url" if m.get("kind") == "url" else "file")
         rows.append([btn(f"{i + 1}. {short(m.get('name') or n, 32)}", f"s:{short_id(n)}", icon)])
-    return text, kb(*rows, [btn("Добавить", "add", "➕", "success")], back())
+    return text, kb(*rows, [btn("Добавить", "add", "add", "success")], back())
 
 
 def find_source(sid: str) -> tuple[str, dict] | tuple[None, None]:
@@ -880,8 +908,8 @@ def screen_source(sid: str) -> tuple[str, dict]:
         text += f"\n<code>{h(short(m['url'], 300))}</code>"
     first = []
     if m.get("url"):
-        first = [btn("Ссылка", copy=m["url"], icon="👌"), btn("Обновить", f"sr:{sid}", "🔋", "primary")]
-    return fit(text), kb(first, [btn("Удалить", f"sd:{sid}", "💔", "danger")], back("src"))
+        first = [btn("Ссылка", copy=m["url"], icon="link"), btn("Обновить", f"sr:{sid}", "refresh", "primary")]
+    return fit(text), kb(first, [btn("Удалить", f"sd:{sid}", "delete", "danger")], back("src"))
 
 
 def screen_source_delete(sid: str) -> tuple[str, dict]:
@@ -889,7 +917,7 @@ def screen_source_delete(sid: str) -> tuple[str, dict]:
     name = (m or {}).get("name") or n or "источник"
     text = (f"{e('😱')} <b>Удалить источник «{h(name)}»?</b>\n\n"
             f"<blockquote>Его каналы останутся, только если они есть в других источниках.</blockquote>")
-    return text, kb([btn("Удалить", f"sx:{sid}", "💔", "danger"), btn("Отмена", f"s:{sid}", "👎")])
+    return text, kb([btn("Удалить", f"sx:{sid}", "delete", "danger"), btn("Отмена", f"s:{sid}", "cancel")])
 
 
 def screen_epg() -> tuple[str, dict]:
@@ -904,8 +932,8 @@ def screen_epg() -> tuple[str, dict]:
         text += "\n\nСейчас берётся из источников:\n" + "\n".join(f"<code>{h(short(u, 120))}</code>" for u in shown)
     elif not shown:
         text += "\n\nТелегид не задан."
-    rows = [[btn(f"{i + 1}. {short(urllib.parse.urlparse(u).netloc or u, 32)}", f"g:{short_id(u)}", "☕️")] for i, u in enumerate(own)]
-    return fit(text), kb(*rows, [btn("Добавить", "ga", "➕", "success")], back())
+    rows = [[btn(f"{i + 1}. {short(urllib.parse.urlparse(u).netloc or u, 32)}", f"g:{short_id(u)}", "guide_item")] for i, u in enumerate(own)]
+    return fit(text), kb(*rows, [btn("Добавить", "ga", "add", "success")], back())
 
 
 def screen_epg_add() -> tuple[str, dict]:
@@ -926,8 +954,8 @@ def screen_epg_item(gid: str) -> tuple[str, dict]:
     text = (f"{e('☕️')} <b>Телегид</b>\n\n<code>{h(u)}</code>\n\n"
             f"<blockquote>«Единый» оставит только этот телегид для всех каналов.</blockquote>")
     return fit(text), kb(
-        [btn("Ссылка", copy=u, icon="👌"), btn("Открыть", url=u, icon="🤩")] if openable(u) else [btn("Ссылка", copy=u, icon="👌")],
-        [btn("Единый", f"gm:{gid}", "🌟", "primary"), btn("Удалить", f"gd:{gid}", "💔", "danger")],
+        [btn("Ссылка", copy=u, icon="link"), btn("Открыть", url=u, icon="open")] if openable(u) else [btn("Ссылка", copy=u, icon="link")],
+        [btn("Единый", f"gm:{gid}", "main", "primary"), btn("Удалить", f"gd:{gid}", "delete", "danger")],
         back("epg"),
     )
 
@@ -942,8 +970,8 @@ WIPE = {
 def screen_wipe(step: int) -> tuple[str, dict]:
     title, note = WIPE[step]
     text = f"{e('😱')} <b>{title}</b>  <i>{step} / 3</i>\n\n<blockquote>{note}</blockquote>"
-    yes = btn("Удалить" if step == 3 else "Да", "wipe" + str(step + 1) if step < 3 else "wipex", "💀", "danger")
-    no = btn("Отмена", "home", "👎")
+    yes = btn("Удалить" if step == 3 else "Да", "wipe" + str(step + 1) if step < 3 else "wipex", "yes", "danger")
+    no = btn("Отмена", "home", "cancel")
     # The buttons swap sides on every step, so three quick taps in one place never wipe anything.
     return text, kb([yes, no] if step % 2 else [no, yes])
 
