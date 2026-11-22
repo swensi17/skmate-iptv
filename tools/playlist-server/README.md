@@ -16,20 +16,28 @@
 
 ## бот
 
-Принимает файлы только от id из `SKMATE_PL_ADMINS`, остальным не отвечает.
+`@skmate_playlist_bot`, отвечает только id из `SKMATE_PL_ADMINS`. В чате всегда одно сообщение: баннер, текст и
+кнопки. Бот его редактирует, а всё, что ему прислали, читает и сразу удаляет. Эмодзи из пака
+[Kawaii Emoji](https://t.me/addemoji/AnimatedAsianEmoji) видны, пока у владельца бота есть Telegram Premium.
 
-- файл `.m3u` / `.m3u8` — добавить каналы
-- `/status` — сколько работает
-- `/files` — список файлов
-- `/delete N` — убрать файл
+- **Добавить**: файл `.m3u` / `.m3u8` или ссылка на плейлист (ссылки скачиваются заново раз в 6 часов)
+- **Каналы**: список по страницам, у каждого карточка: адреса, копирование ссылки, открыть в браузере,
+  проверить сейчас, сменить tvg-id, удалить (одно подтверждение). Удалённый канал вернётся, только если
+  снова прислать источник, где он есть
+- **Источники**: файлы и ссылки, обновить ссылку, удалить
+- **Телегид**: адреса XMLTV уходят в `url-tvg` плейлиста; «Единый» оставляет один для всех каналов. Пока
+  своих нет, берутся из заголовков источников
+- **Проверка**: скачать ссылки заново и проверить все каналы
+- **Очистка**: удалить все каналы и источники, три подтверждения, кнопки меняются местами на каждом шаге
 
-Каждый день в 9:00 присылает сводку.
+Каждый день в 9:00 по Ташкенту приходит короткая сводка, вчерашняя удаляется. Баннер рисует
+`render_banner.py` (Pillow, шрифт SF Pro Rounded), результат лежит рядом: `banner.jpg`.
 
 ## сервер
 
 - сервер `nutrok`, папка `/opt/skmate-playlist`, данные в `/opt/skmate-playlist/data`
 - процесс pm2 `skmate-playlist`, порт `127.0.0.1:18110`
-- настройки в `/root/secrets/skmate-playlist/env` (права 600, не в git): `SKMATE_PL_TOKEN`, `SKMATE_PL_ADMINS`
+- настройки в `/root/secrets/skmate-playlist/env` (права 600, не в git): `SKMATE_PL_TOKEN`, `SKMATE_PL_ADMINS`, по желанию `SKMATE_PL_PUBLIC` (адрес плейлиста в боте)
 - адреса: `/playlist.m3u8` (плейлист), `/health` (сводка)
 - снаружи: `https://nutrokstore.xyz/skmate/playlist.m3u8` (блок `location` в nginx-конфиге `nutrokstore`, бэкапы в `/root/backups-nginx/`)
 - бот: `@skmate_playlist_bot`
@@ -37,6 +45,6 @@
 Обновить код:
 
 ```sh
-scp tools/playlist-server/skmate_playlist.py tools/playlist-server/start.sh nutrok:/opt/skmate-playlist/
+scp tools/playlist-server/skmate_playlist.py tools/playlist-server/start.sh tools/playlist-server/banner.jpg nutrok:/opt/skmate-playlist/
 ssh nutrok 'pm2 restart skmate-playlist'
 ```
