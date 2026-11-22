@@ -307,7 +307,7 @@ def record(state: dict, url: str, ok: bool, now: float, manual: bool = False) ->
 
 
 def check_urls(urls: list[str], manual: bool = False) -> dict:
-    counts = {"checked": 0, "died": 0, "revived": 0}
+    counts = {"checked": 0, "died": 0, "revived": 0, "failed": 0}
     if urls:
         with concurrent.futures.ThreadPoolExecutor(WORKERS) as pool:
             results = list(pool.map(lambda u: (u, check_url(u)), urls))
@@ -319,6 +319,8 @@ def check_urls(urls: list[str], manual: bool = False) -> dict:
         for u, ok in results:
             change = record(state, u, ok, now, manual)
             counts["checked"] += 1
+            if not ok:
+                counts["failed"] += 1
             if change:
                 counts[change] += 1
         channels = merged_channels(state)
@@ -1082,6 +1084,18 @@ def in_background(chat: int, work, after: str) -> None:
     threading.Thread(target=run, daemon=True).start()
 
 
+def token_warning(counts: dict) -> str:
+    """Most of a new source's addresses failing at once is the mark of a provider that hands out
+    one-time links: each one carries a token minted for whoever fetched the playlist and expires soon.
+    Fetched here on the server, the viewer gets links that are already dead."""
+    if counts["checked"] < 5 or counts["failed"] * 2 <= counts["checked"]:
+        return ""
+    return ("\n" + failed(f"Не отвечают {counts['failed']} из {counts['checked']}") +
+            "\n<blockquote>Похоже, плейлист выдаёт одноразовые ссылки с токеном: они работают только на том "
+            "устройстве, которое само скачало плейлист. Такой плейлист добавляйте прямо в приложении, "
+            "через бота он работать не будет.</blockquote>")
+
+
 def checked_note(counts: dict) -> str:
     s = summary()
     return done(f"Проверено {counts['checked']}, работают {s['working']} из {s['channels']}")
@@ -1112,7 +1126,7 @@ def add_from_text(chat: int, text: str) -> None:
         note = done(f"Добавлено {channels_word(total)}, проверено {counts['checked']}")
         if bad:
             note += "\n" + failed(f"Не скачалось: {bad}")
-        return note
+        return note + token_warning(counts)
     in_background(chat, work, "home")
 
 
@@ -1130,7 +1144,7 @@ def add_from_file(chat: int, doc: dict) -> None:
         if not n:
             return failed("В файле нет каналов")
         counts = check_round(force="new")
-        return done(f"Добавлено {channels_word(n)}, проверено {counts['checked']}")
+        return done(f"Добавлено {channels_word(n)}, проверено {counts['checked']}") + token_warning(counts)
     in_background(chat, work, "home")
 
 
