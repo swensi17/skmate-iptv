@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="272" height="170" viewBox="-16 0 272 170" role="img" aria-label="Скачать APK">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3CC067"/>
+      <stop offset="1" stop-color="#259A4C"/>
+    </linearGradient>
+  </defs>
+  <rect width="240" height="170" rx="36" fill="url(#bg)"/>
+  <circle cx="120" cy="50" r="32" fill="#FFFFFF"/>
+  <path d="M120 34 V63 M107 52 L120 65 L133 52" fill="none" stroke="#259A4C" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="120" y="148" text-anchor="middle" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="40" font-weight="700" fill="#FFFFFF">Скачать</text>
+</svg>
