@@ -840,10 +840,11 @@ class SettingsRepository(private val context: Context, private val localeStore: 
         context.dataStore.edit { it[Keys.REMEMBER_CAT_SERIES] = enabled }
     }
 
-    // --- Per-section "remember last ITEM per category" (default OFF each).
+    // --- Per-section "remember last ITEM per category" (Live on by default, films and series off).
     //     OFF = switching category resets the browse list to the top; ON = each category keeps its own
-    //     scroll position. The Live toggle additionally gates the lastLiveChannelId restore on re-entry. ---
-    val rememberLastLive: Flow<Boolean> = prefsFlow { it[Keys.REMEMBER_LAST_LIVE] ?: false }
+    //     scroll position. The Live toggle additionally gates the lastLiveChannelId restore on re-entry:
+    //     on by default, since opening the channels on the one watched last is what a TV viewer expects. ---
+    val rememberLastLive: Flow<Boolean> = prefsFlow { it[Keys.REMEMBER_LAST_LIVE] ?: true }
     suspend fun setRememberLastLive(enabled: Boolean) {
         context.dataStore.edit { it[Keys.REMEMBER_LAST_LIVE] = enabled }
     }

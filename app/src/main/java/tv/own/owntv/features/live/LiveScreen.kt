@@ -480,6 +480,9 @@ fun LiveScreen(
     // its row by id and focus it. The list can still be the old category's for a moment, so focus is
     // re-asserted for a short while; nothing found after ~5 s lands on the first row.
     val reveal by vm.reveal.collectAsStateWithLifecycle()
+    // The row focus really rests on: a requester can report success and still leave focus where it was
+    // (a row carries several), so landing is checked here, not trusted.
+    val focusedRowId = remember { longArrayOf(-1L) }
     LaunchedEffect(reveal, selectedKey) {
         val r = reveal ?: return@LaunchedEffect
         if (selectedKey != r.key) return@LaunchedEffect
@@ -491,7 +494,11 @@ fun LiveScreen(
                 if (idx >= 0) {
                     revealRow(idx)
                     withFrameNanos { }
-                    if (runCatching { selFocus.requestFocus() }.getOrDefault(false)) found = true
+                    // By row number, as ▲/▼ and the jump do: the selected-row requester said yes and
+                    // left focus on the first row when the list opened far from it.
+                    if (focusedRowId[0] != r.id) runCatching { rowFocus(idx).requestFocus() }
+                    withFrameNanos { }
+                    found = focusedRowId[0] == r.id
                     if (found && attempt >= 8) break
                 } else {
                     runCatching { effectiveListState.scrollToItem(r.position.coerceAtMost(channels.itemCount - 1)) }
@@ -967,6 +974,7 @@ fun LiveScreen(
                                         }
                                     },
                                     onFocus = {
+                                        focusedRowId[0] = channel.id
                                         if (tv.own.owntv.features.shell.TvBoxNav) {
                                             pendingPreview.value = channel
                                         } else {

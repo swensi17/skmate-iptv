@@ -1067,7 +1067,7 @@ class SettingsViewModel(
     }
 
     val rememberLastLive: StateFlow<Boolean> =
-        settings.rememberLastLive.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
+        settings.rememberLastLive.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), true)
     fun setRememberLastLive(enabled: Boolean) { viewModelScope.launch { settings.setRememberLastLive(enabled) } }
     val rememberLastMovies: StateFlow<Boolean> =
         settings.rememberLastMovies.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)

@@ -1029,6 +1029,13 @@ class LiveViewModel(
         _selected.value = key
     }
 
+    /**
+     * Search's "Go to channel" and the remembered channel at startup: the list scrolls to [reveal]
+     * and focuses it, then calls [revealDone].
+     */
+    private val _reveal = MutableStateFlow<tv.own.owntv.features.search.Reveal?>(null)
+    val reveal: StateFlow<tv.own.owntv.features.search.Reveal?> = _reveal.asStateFlow()
+
     init {
         // Persist the selected category (debounced — the rail fires select() on focus as you scroll).
         viewModelScope.launch {
@@ -1039,7 +1046,7 @@ class LiveViewModel(
         // Restore it once at startup — but only while still on the default (don't yank a user who already
         // navigated). A saved folder is honoured only once it actually exists in this profile's rail.
         // Gated by "Remember last category — Live TV" (Settings → Browsing & lists), on by default.
-        viewModelScope.launch {
+        val categoryRestore = viewModelScope.launch {
             if (!settings.rememberCategoryLive.first()) return@launch
             val saved = parseLiveKey(settings.lastLiveCategory.first()) ?: return@launch
             // A saved Folder/Custom is honoured only while it still exists in this profile's rail —
@@ -1064,11 +1071,19 @@ class LiveViewModel(
         }
         viewModelScope.launch {
             if (!settings.rememberLastLive.first()) return@launch
+            // Read first: the list's first row takes focus as it appears, and that is saved in turn.
             val savedId = settings.lastLiveChannelId.first()
-            if (savedId > 0 && _previewChannel.value == null) {
-                ctx.first { it.profileId >= 0 }
-                channelDao.getById(savedId)?.let { if (_previewChannel.value == null) _previewChannel.value = it }
-            }
+            if (savedId <= 0) return@launch
+            val c = ctx.first { it.profileId >= 0 }
+            val channel = channelDao.getById(savedId) ?: return@launch
+            _previewChannel.value = channel
+            // In the remembered category, scroll to the channel and focus it the way search's "Go to
+            // channel" does: the list opens at its top, where the channel's row is often not loaded yet.
+            categoryRestore.join()
+            val key = _selected.value
+            val source = pagingSource(key, c, "", settings.sortLive.first())
+            val position = source.positionOf(channel.id, { it.id }) ?: return@launch
+            if (_reveal.value == null) _reveal.value = tv.own.owntv.features.search.Reveal(key, channel.id, position)
         }
     }
 
@@ -1080,10 +1095,6 @@ class LiveViewModel(
         _previewArmed.value = true // a real user focus — the in-pane preview may now play
         _previewChannel.value = channel
     }
-
-    /** Search's "Go to channel": the list scrolls to [reveal] and focuses it, then calls [revealDone]. */
-    private val _reveal = MutableStateFlow<tv.own.owntv.features.search.Reveal?>(null)
-    val reveal: StateFlow<tv.own.owntv.features.search.Reveal?> = _reveal.asStateFlow()
 
     /** Open [channel] where it lives: its own category, or All channels when that category is not in
      *  the rail or the channel is not in it. It becomes the preview, as if the user had walked there. */
