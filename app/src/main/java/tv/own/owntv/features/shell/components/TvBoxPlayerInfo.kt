@@ -86,6 +86,7 @@ fun TvBoxPlayerInfo(channel: ChannelEntity?, nowNext: EpgNowNext?, chips: List<S
         Timeline(
             progress = current?.let { ((watching - it.startMs).toFloat() / (it.stopMs - it.startMs).coerceAtLeast(1)).coerceIn(0f, 1f) } ?: 1f,
             behind = (offsetSec ?: 0) > 0,
+            seeking = tv.own.owntv.player.LocalTvBoxSeeking.current,
         )
     }
 }
@@ -115,18 +116,25 @@ private fun Chip(text: String) {
     )
 }
 
-/** The full-width line under the info: the programme's span, the watched moment as a dot (◀ ▶ move it back). */
+/**
+ * The full-width line under the info: the programme's span and the watched moment as a dot. Raised
+ * (thicker, a larger ringed dot) while ▼ has put the viewer on it, which is where ◀ ▶ rewind.
+ */
 @Composable
-private fun Timeline(progress: Float, behind: Boolean) {
+private fun Timeline(progress: Float, behind: Boolean, seeking: Boolean) {
     Box(
-        Modifier.fillMaxWidth().height(14.mpx).drawBehind {
-            val h = 4.mpx.toPx()
+        Modifier.fillMaxWidth().height(24.mpx).drawBehind {
+            val h = (if (seeking) 8.mpx else 4.mpx).toPx()
             val y = (size.height - h) / 2
             val r = CornerRadius(h / 2)
-            drawRoundRect(Color.White.copy(alpha = 0.25f), topLeft = Offset(0f, y), size = Size(size.width, h), cornerRadius = r)
+            val track = Color.White.copy(alpha = if (seeking) 0.35f else 0.25f)
+            drawRoundRect(track, topLeft = Offset(0f, y), size = Size(size.width, h), cornerRadius = r)
             val x = size.width * progress
             drawRoundRect(SkMateBlue, topLeft = Offset(0f, y), size = Size(x, h), cornerRadius = r)
-            drawCircle(if (behind) SkMateBlue else Color.White, radius = 7.mpx.toPx(), center = Offset(x.coerceIn(7.mpx.toPx(), size.width - 7.mpx.toPx()), size.height / 2))
+            val dot = (if (seeking) 12.mpx else 7.mpx).toPx()
+            val center = Offset(x.coerceIn(dot, size.width - dot), size.height / 2)
+            if (seeking) drawCircle(SkMateBlue.copy(alpha = 0.45f), radius = dot + 5.mpx.toPx(), center = center)
+            drawCircle(if (behind && !seeking) SkMateBlue else Color.White, radius = dot, center = center)
         },
     )
 }

@@ -761,7 +761,7 @@
     <ID>FunctionNaming:TvBoxPlayerInfo.kt$@Composable fun TvBoxPlayerInfo(channel: ChannelEntity?, nowNext: EpgNowNext?, chips: List&lt;String&gt;, offsetSec: Int?, now: Long)</ID>
     <ID>FunctionNaming:TvBoxPlayerInfo.kt$@Composable private fun Chip(text: String)</ID>
     <ID>FunctionNaming:TvBoxPlayerInfo.kt$@Composable private fun MiniBar(progress: Float)</ID>
-    <ID>FunctionNaming:TvBoxPlayerInfo.kt$@Composable private fun Timeline(progress: Float, behind: Boolean)</ID>
+    <ID>FunctionNaming:TvBoxPlayerInfo.kt$@Composable private fun Timeline(progress: Float, behind: Boolean, seeking: Boolean)</ID>
     <ID>FunctionNaming:TvBoxPlayerPanels.kt$@Composable internal fun PanelEnter(fromX: Float = 0f, fromY: Float = 0f, startAlpha: Float = 0f, content: @Composable () -&gt; Unit)</ID>
     <ID>FunctionNaming:TvBoxPlayerPanels.kt$@Composable internal fun TvBoxGuideOverlay(liveVm: LiveViewModel, focusChannelId: Long?, onClose: () -&gt; Unit)</ID>
     <ID>FunctionNaming:TvBoxPlayerPanels.kt$@Composable internal fun TvBoxPlayerPanels( liveVm: LiveViewModel, previewChannel: ChannelEntity?, zapChannels: List&lt;ChannelEntity&gt;, title: String, categoryKey: LiveKey?, nowProgrammes: Map&lt;Long, XtEpgEntry&gt;, railItems: List&lt;LiveRailItem&gt;, railCounts: Map&lt;LiveKey, Int&gt;, categoriesOpen: Boolean, inset: Dp, categoriesWidth: Dp, dockProgress: () -&gt; Float, onClose: () -&gt; Unit, onOpenMenu: () -&gt; Unit, )</ID>
