@@ -35,6 +35,14 @@
         android:name="android.software.leanback"
         android:required="false" />
 
+    <!-- The system installer screen for an in-app update (it offers Open once the new version is in). -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:mimeType="application/vnd.android.package-archive" />
+        </intent>
+    </queries>
+
     <application
         android:name=".OwnTVApp"
         android:allowBackup="false"

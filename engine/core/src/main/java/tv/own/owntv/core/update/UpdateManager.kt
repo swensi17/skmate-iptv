@@ -278,7 +278,14 @@ class UpdateManager(
                 val apk = apkFor(info.version)
                 if (!apk.isFile) throw DamagedDownloadException("the downloaded update is gone")
                 // Checked in full when it was downloaded; reading the whole file again cost a weak TV seconds.
-                install(apk) { percent -> _state.value = State.Installing(info, percent) }
+                // The system installer first: once the update is in it offers Open, which brings the new version
+                // up (Android does not let the app reopen itself from the background). The session install is
+                // kept for a TV whose installer cannot be opened that way.
+                if (openSystemInstaller(apk)) {
+                    _state.value = State.Ready(info)
+                } else {
+                    install(apk) { percent -> _state.value = State.Installing(info, percent) }
+                }
             }.onFailure { error ->
                 Log.w(TAG, "update install failed: ${error.message}", error)
                 val failure = if (error is InstallException) Failure.Install else failureFor(error, checking = false)
@@ -393,6 +400,16 @@ class UpdateManager(
      * — insufficient storage, a signature conflict, a bad file — instead of the system's silent
      * "App not installed".
      */
+    /** Hands [apk] to the system installer screen; false when this TV has none that takes it. */
+    private fun openSystemInstaller(apk: File): Boolean {
+        val uri = androidx.core.content.FileProvider.getUriForFile(context, context.packageName + PROVIDER_SUFFIX, apk)
+        val intent = Intent(Intent.ACTION_VIEW)
+            .setDataAndType(uri, APK_MIME)
+            .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
+        if (intent.resolveActivity(context.packageManager) == null) return false
+        return runCatching { context.startActivity(intent) }.isSuccess
+    }
+
     private fun install(apk: File, onProgress: (Int) -> Unit = {}) {
         registerInstallReceiver()
         val installer = context.packageManager.packageInstaller
@@ -514,6 +531,8 @@ class UpdateManager(
         fun consumeRelaunchMark(context: Context): Boolean = relaunchMark(context).delete()
 
         private const val COPY_BUFFER_BYTES = 256 * 1024
+        private const val PROVIDER_SUFFIX = ".fileprovider"
+        private const val APK_MIME = "application/vnd.android.package-archive"
         private const val PERCENT = 100L
         private const val TEST_URL_FILE = "update-test-url.txt"
         private const val TAG = "UpdateManager"

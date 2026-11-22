@@ -65,7 +65,8 @@ fi
 # Version: the newest release tag's code, the name marked as a dev build.
 TAG="$(git -C "$ROOT" describe --tags --abbrev=0 --match 'v*' 2>/dev/null || echo v0.0.0)"
 IFS='.' read -r MA MI PA <<< "${TAG#v}"
-export VERSION_CODE=$(( MA * 10000 + MI * 100 + PA ))
+# SKMATE_VERSION_CODE: a TV that once took a higher test build (it cannot go back down without losing its data).
+export VERSION_CODE="${SKMATE_VERSION_CODE:-$(( MA * 10000 + MI * 100 + PA ))}"
 export VERSION_NAME="${TAG#v}-dev.$(git -C "$ROOT" rev-parse --short HEAD)"
 
 # Signing values go straight into the environment the build reads (KEYSTORE_FILE, KEYSTORE_PASSWORD,
