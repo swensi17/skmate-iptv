@@ -110,7 +110,7 @@
     <!-- Translators: Section header for the skip count settings. -->
     <string name="settings_skip_counts">Skip counts</string>
     <!-- Translators: Title of the settings screen where remote buttons are assigned to app actions. -->
-    <string name="settings_remote_shortcuts">Remote shortcuts</string>
+    <string name="settings_remote_shortcuts">Remote buttons</string>
     <!-- Translators: Description below the Remote shortcuts screen title. -->
     <string name="settings_remote_shortcuts_description">Assign spare remote buttons to navigation, playback and browsing actions. Essential navigation buttons stay protected.</string>
     <!-- Translators: Label for the master switch that enables configured remote shortcuts. -->
@@ -381,9 +381,9 @@
     <!-- Translators: Description of the Customize Categories & Items settings. -->
     <string name="settings_customize_nav_description">Hide &amp; unhide items, rename &amp; reorder categories</string>
     <!-- Translators: Settings navigation label for CH+ Key Paging. -->
-    <string name="settings_ch_paging">Remote shortcuts</string>
+    <string name="settings_ch_paging">Remote buttons</string>
     <!-- Translators: Description of the CH+ Key Paging settings. -->
-    <string name="settings_ch_paging_description">Assign spare remote buttons while keeping essential navigation protected</string>
+    <string name="settings_ch_paging_description">OK and the arrows on a channel, spare buttons for navigation, playback and lists</string>
     <!-- Translators: Settings navigation label for the long-press content menus. -->
     <string name="settings_content_menus_title">Long-press menus</string>
     <!-- Translators: Description of the long-press content menus settings. -->
@@ -586,7 +586,7 @@
     <!-- Translators: Settings navigation label for the About screen. -->
     <string name="settings_about">About</string>
     <!-- Translators: Setting label for the live stream latency setting. -->
-    <string name="settings_live_latency">Live latency</string>
+    <string name="settings_live_latency">Live buffer and delay</string>
     <!-- Translators: Empty-state message when a settings search returns no results. 'query' is the search text. -->
     <string name="settings_no_settings_match">No settings match “<xliff:g id="query">%1$s</xliff:g>”</string>
     <!-- Translators: Settings breadcrumb navigation display. 'group' is the group name, 'title' is the section title. -->
@@ -3212,4 +3212,26 @@
     <!-- Translators: The author's auto-updated playlist switch (Settings › Playlists, first run). -->
     <string name="settings_author_playlist">SkMate playlist</string>
     <string name="settings_author_playlist_desc">Kept up to date by the author</string>
+    <string name="settings_live_keys">Buttons on a channel</string>
+    <string name="settings_live_keys_description">What OK and the arrows do while a channel plays full screen with the controls hidden. A button left as it is keeps its usual job.</string>
+    <string name="settings_live_keys_choose">Button %1$s</string>
+    <string name="settings_live_keys_reset">Reset buttons on a channel</string>
+    <string name="settings_live_keys_reset_description">OK shows the channel info, up and down change channel, left opens the list, right the history</string>
+    <string name="settings_live_key_ok">OK</string>
+    <string name="settings_live_key_up">Up</string>
+    <string name="settings_live_key_down">Down</string>
+    <string name="settings_live_key_left">Left</string>
+    <string name="settings_live_key_right">Right</string>
+    <string name="settings_live_key_action_info">Channel info</string>
+    <string name="settings_live_key_action_list">Channel list</string>
+    <string name="settings_live_key_action_history">History</string>
+    <string name="settings_live_key_action_next">Next channel</string>
+    <string name="settings_live_key_action_previous">Previous channel</string>
+    <string name="settings_live_key_action_last">Last watched channel</string>
+    <string name="settings_live_key_action_rewind">Rewind</string>
+    <string name="settings_live_key_action_forward">Fast forward</string>
+    <string name="settings_live_key_action_pause">Pause</string>
+    <string name="settings_live_key_action_nothing">Nothing</string>
+    <string name="settings_live_key_default">%1$s · usual</string>
+    <string name="settings_search_keywords_live_keys">remote buttons ok arrows channel list open list on ok up down left right zap rewind</string>
 </resources>

@@ -139,6 +139,7 @@ class SettingsSearchCoverageTest {
         "settings_backup_encrypt_title", "settings_backup_export_title", "settings_backup_restore_title",
         "settings_backup_what_backup", "settings_backup_what_restore",
         "settings_remote_shortcuts_add", "settings_remote_shortcuts_choose_action", "settings_remote_shortcuts_enabled",
+        "settings_live_keys_choose", "settings_live_keys_reset",
         "settings_remote_shortcuts_reset", "common_reset", "settings_delete_all_subtitles", "settings_delete_subtitle",
         "settings_epg_sources_delete_title", "settings_sources_refresh_days_title", "content_epg_title",
         "settings_panel_width_customize", "settings_refresh_now", "profiles_delete_title",

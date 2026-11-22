@@ -54,6 +54,8 @@ import kotlinx.coroutines.withTimeoutOrNull
 import tv.own.owntv.R
 import tv.own.owntv.core.i18n.HorizontalDirection
 import tv.own.owntv.core.i18n.horizontalDirection
+import tv.own.owntv.core.settings.LiveKey
+import tv.own.owntv.core.settings.LiveKeyAction
 import tv.own.owntv.core.settings.RemoteShortcutAction
 import tv.own.owntv.core.settings.RemoteShortcutPress
 import tv.own.owntv.ui.components.LocalRemoteShortcuts
@@ -221,6 +223,8 @@ fun PlayerHud(
     // Settings → "Left and right rewind live TV": with the controls hidden, Left/Right on a
     // catch-up channel scrub instead of opening the lists. Films always seek.
     liveLeftRightRewinds: Boolean = false,
+    // Remote buttons settings: what OK and the arrows do on a channel with the controls hidden.
+    liveKeys: tv.own.owntv.core.settings.LiveKeyMap = tv.own.owntv.core.settings.LiveKeyMap.DEFAULT,
     // Sports Hub — only for a channel started from a match; all null means the plain Live player.
     // The match's score line under the channel name, drawn only while the controls are up.
     matchLine: (@Composable () -> Unit)? = null,
@@ -496,6 +500,9 @@ fun PlayerHud(
     // stay flat regardless of glass mode: opt out of the DIALOGS default explicitly.
     val remoteShortcuts = LocalRemoteShortcuts.current
     var shortcutKeyCode by remember { mutableIntStateOf(android.view.KeyEvent.KEYCODE_UNKNOWN) }
+    // OK with a chosen action runs on release: run on press, a list it opens would take the release
+    // as its own OK and start whatever channel sits under the focus.
+    var liveOkHeld by remember { mutableStateOf(false) }
     var shortcutPressedAt by remember { mutableStateOf(0L) }
     val dispatchPlayerShortcut: (RemoteShortcutAction) -> Unit = { action ->
         when (action) {
@@ -590,6 +597,56 @@ fun PlayerHud(
                             return@onPreviewKeyEvent true
                         }
                     }
+                }
+            }
+            // OK and the arrows the viewer gave another job on a channel. A key left alone falls through
+            // to the handling below, so the usual behaviour stays exactly as it was.
+            val liveKeysApply = isLive && error == null && !inert && dialog == HudDialog.NONE && !digitsActive
+            if (liveKeysApply) {
+                val liveKey = when (e.key) {
+                    Key.DirectionCenter, Key.Enter, Key.NumPadEnter -> LiveKey.OK
+                    Key.DirectionUp -> LiveKey.UP
+                    Key.DirectionDown -> LiveKey.DOWN
+                    Key.DirectionLeft -> LiveKey.LEFT
+                    Key.DirectionRight -> LiveKey.RIGHT
+                    else -> null
+                }
+                // With the controls up the arrows move through them; OK alone keeps the viewer's job on the
+                // TV-box info line, which every new channel shows for a moment (its tiles still pause).
+                val free = !controlsVisible || (tvLive && !tvActions && liveKey == LiveKey.OK)
+                if (liveKey != null && free && liveKeys.isCustom(liveKey)) {
+                    val ok = liveKey == LiveKey.OK
+                    val run = if (ok) {
+                        if (e.type == KeyEventType.KeyDown) liveOkHeld = true
+                        e.type == KeyEventType.KeyUp && liveOkHeld.also { liveOkHeld = false }
+                    } else {
+                        e.type == KeyEventType.KeyDown
+                    }
+                    val jobs = buildMap<LiveKeyAction, () -> Unit> {
+                        put(LiveKeyAction.INFO) { controlsVisible = true }
+                        onOpenChannelList?.let { open ->
+                            put(LiveKeyAction.CHANNEL_LIST) { controlsVisible = false; open() }
+                        }
+                        onOpenHistoryList?.let { open ->
+                            put(LiveKeyAction.HISTORY) { controlsVisible = false; open() }
+                        }
+                        if (canZap) {
+                            put(LiveKeyAction.NEXT_CHANNEL) { zap(1) }
+                            put(LiveKeyAction.PREVIOUS_CHANNEL) { zap(-1) }
+                        }
+                        put(LiveKeyAction.LAST_CHANNEL) {
+                            dispatchPlayerShortcut(RemoteShortcutAction.PREVIOUS_CHANNEL)
+                        }
+                        onScrubLive?.let { scrubBy ->
+                            val scrub = { sec: Int -> scrubBy(sec); focusSeekOnShow = true; controlsVisible = true }
+                            put(LiveKeyAction.REWIND) { scrub(LIVE_SCRUB_STEP_SEC) }
+                            put(LiveKeyAction.FORWARD) { scrub(-LIVE_SCRUB_STEP_SEC) }
+                        }
+                        put(LiveKeyAction.PLAY_PAUSE) { player.togglePlayPause() }
+                        put(LiveKeyAction.NOTHING) {}
+                    }
+                    val handled = !run || runLiveKey(liveKeys[liveKey], e.nativeKeyEvent.repeatCount == 0, jobs)
+                    if (handled) return@onPreviewKeyEvent true
                 }
             }
             // ---- Existing key handling (unchanged, but skip for digit KeyUp already consumed above) ----
@@ -1125,3 +1182,21 @@ internal fun errorArtOf(failure: PlaybackFailure): tv.own.owntv.ui.stage.ErrorAr
 /** The failure mark behind open panels: small and faded, so it reads as a state, not a message. */
 private const val QUIET_ERROR_SIZE = 96
 private const val QUIET_ERROR_ALPHA = 0.6f
+
+/**
+ * Runs the job a viewer gave one of the remote's keys on a channel, from [jobs]: what the player can
+ * do here. Returns false when the job is not among them (no archive to rewind, no list to open), so
+ * the key keeps its usual job. Held keys repeat: zapping and rewinding go on, the rest happens once.
+ */
+private fun runLiveKey(action: LiveKeyAction, firstPress: Boolean, jobs: Map<LiveKeyAction, () -> Unit>): Boolean {
+    val job = jobs[action] ?: return false
+    if (firstPress || action in LIVE_KEY_REPEATS) job()
+    return true
+}
+
+private val LIVE_KEY_REPEATS = setOf(
+    LiveKeyAction.NEXT_CHANNEL,
+    LiveKeyAction.PREVIOUS_CHANNEL,
+    LiveKeyAction.REWIND,
+    LiveKeyAction.FORWARD,
+)

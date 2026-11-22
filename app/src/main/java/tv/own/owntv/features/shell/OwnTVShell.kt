@@ -352,6 +352,7 @@ fun OwnTVShell(
     val multiviewEnabled by settingsRepo.multiviewEnabled.collectAsStateWithLifecycle(false)
     val recordWatchingEnabled by settingsRepo.recordWhatImWatching.collectAsStateWithLifecycle(false)
     val liveLeftRightRewinds by settingsRepo.liveLeftRightRewinds.collectAsStateWithLifecycle(false)
+    val liveKeys by settingsRepo.liveKeys.collectAsStateWithLifecycle(tv.own.owntv.core.settings.LiveKeyMap.DEFAULT)
     val multiviewTileCount by settingsRepo.multiviewTiles.collectAsStateWithLifecycle(
         tv.own.owntv.core.live.DEFAULT_MULTIVIEW_TILES,
     )
@@ -2041,6 +2042,7 @@ fun OwnTVShell(
                         // "End of programme" only at the live edge: rewound, the programme on air is not the one being watched.
                         sleepProgrammeEndMs = if (isTunedLive && !timeshifted) { { liveVm.nowNext.value?.now?.stopMs } } else null,
                         liveLeftRightRewinds = liveLeftRightRewinds,
+                        liveKeys = liveKeys,
                         timeshiftOffsetSec = if (isTunedLive) { { timeshiftOffsetState.value } } else null,
                         onTuneToNumber = if (directTuneEnabled && isTunedLive && isLiveStream && !timeshifted && previewChannel != null) liveVm::tuneByNumber else null,
                         directTuneContextKey = previewChannel?.id ?: 0L,

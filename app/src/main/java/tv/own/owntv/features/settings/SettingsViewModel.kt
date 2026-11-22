@@ -47,6 +47,9 @@ import tv.own.owntv.core.database.dao.resolveExistingProfileId
 import tv.own.owntv.core.launcher.LauncherIntegrationRepository
 import tv.own.owntv.core.settings.ChNavLimits
 import tv.own.owntv.core.settings.EpgRefresh
+import tv.own.owntv.core.settings.LiveKey
+import tv.own.owntv.core.settings.LiveKeyAction
+import tv.own.owntv.core.settings.LiveKeyMap
 import tv.own.owntv.core.settings.PanelSection
 import tv.own.owntv.core.settings.PanelShares
 import tv.own.owntv.core.settings.GuideWidthShares
@@ -535,6 +538,14 @@ class SettingsViewModel(
 
     val liveLeftRightRewinds: StateFlow<Boolean> = settings.liveLeftRightRewinds.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
     fun setLiveLeftRightRewinds(enabled: Boolean) { viewModelScope.launch { settings.setLiveLeftRightRewinds(enabled) } }
+
+    // OK and the arrows while a channel plays full screen.
+    val liveKeys: StateFlow<LiveKeyMap> =
+        settings.liveKeys.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), LiveKeyMap.DEFAULT)
+    fun setLiveKey(key: LiveKey, action: LiveKeyAction) {
+        viewModelScope.launch { settings.setLiveKey(key, action) }
+    }
+    fun resetLiveKeys() { viewModelScope.launch { settings.resetLiveKeys() } }
 
     // Pause and rewind channels without catch-up, from a copy saved while watching.
     val timeshiftEnabled: StateFlow<Boolean> = settings.timeshiftEnabled.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)

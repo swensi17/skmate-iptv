@@ -3069,6 +3069,8 @@
 1	log	core/src/main/java/tv/own/owntv/core/repository/SourceTester.kt	test sourceId=${source.id} type=${source.type} -> ${result::class.simpleName}
 3	empty	core/src/main/java/tv/own/owntv/core/settings/ClockColors.kt	\0
 1	technical	core/src/main/java/tv/own/owntv/core/settings/ClockColors.kt	accent
+1	protocol	core/src/main/java/tv/own/owntv/core/settings/LiveKeys.kt	${it.key.name}=${it.value.name}
+1	protocol	core/src/main/java/tv/own/owntv/core/settings/LiveKeys.kt	,
 1	protocol	core/src/main/java/tv/own/owntv/core/settings/RemoteShortcuts.kt	$keyCode:${press.name}
 1	protocol	core/src/main/java/tv/own/owntv/core/settings/RemoteShortcuts.kt	${it.keyCode}$SEPARATOR${it.press.name}$SEPARATOR${it.action.name}
 1	technical	core/src/main/java/tv/own/owntv/core/settings/SettingsImportRules.kt	audio_delay_ms
@@ -3188,6 +3190,7 @@
 1	preference-key	core/src/main/java/tv/own/owntv/core/settings/SettingsRepository.kt	last_series_category
 1	preference-key	core/src/main/java/tv/own/owntv/core/settings/SettingsRepository.kt	last_update_check_at
 1	preference-key	core/src/main/java/tv/own/owntv/core/settings/SettingsRepository.kt	live_engine
+1	preference-key	core/src/main/java/tv/own/owntv/core/settings/SettingsRepository.kt	live_keys
 1	preference-key	core/src/main/java/tv/own/owntv/core/settings/SettingsRepository.kt	live_latency_custom_secs
 1	preference-key	core/src/main/java/tv/own/owntv/core/settings/SettingsRepository.kt	live_latency_mode
 1	preference-key	core/src/main/java/tv/own/owntv/core/settings/SettingsRepository.kt	live_layout

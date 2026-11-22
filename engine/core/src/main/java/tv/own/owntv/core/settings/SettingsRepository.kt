@@ -445,6 +445,7 @@ class SettingsRepository(private val context: Context, private val localeStore: 
         val DETAILED_DIAGNOSTICS = booleanPreferencesKey("detailed_diagnostics")
         val DIRECT_TUNE = booleanPreferencesKey("direct_tune")
         val LIVE_LEFT_RIGHT_REWINDS = booleanPreferencesKey("live_left_right_rewinds")
+        val LIVE_KEYS = stringPreferencesKey("live_keys")
         val TIMESHIFT_ENABLED = booleanPreferencesKey("timeshift_enabled")
         val TIMESHIFT_WINDOW_MINUTES = intPreferencesKey("timeshift_window_minutes")
         val TIMESHIFT_RESUME_MODE = stringPreferencesKey("timeshift_resume_mode")
@@ -1690,6 +1691,20 @@ class SettingsRepository(private val context: Context, private val localeStore: 
 
     suspend fun setLiveLeftRightRewinds(enabled: Boolean) {
         context.dataStore.edit { it[Keys.LIVE_LEFT_RIGHT_REWINDS] = enabled }
+    }
+
+    /** What OK and the arrows do while a channel plays full screen with its controls hidden. */
+    val liveKeys: Flow<LiveKeyMap> = prefsFlow { LiveKeyMap.decode(it[Keys.LIVE_KEYS]) }
+
+    suspend fun setLiveKey(key: LiveKey, action: LiveKeyAction) {
+        context.dataStore.edit { prefs ->
+            val next = LiveKeyMap.decode(prefs[Keys.LIVE_KEYS]).with(key, action).encode()
+            if (next.isEmpty()) prefs.remove(Keys.LIVE_KEYS) else prefs[Keys.LIVE_KEYS] = next
+        }
+    }
+
+    suspend fun resetLiveKeys() {
+        context.dataStore.edit { it.remove(Keys.LIVE_KEYS) }
     }
 
     /** Pause and rewind live channels that have no catch-up, from a copy saved while watching
@@ -3132,6 +3147,8 @@ class SettingsRepository(private val context: Context, private val localeStore: 
             // Current global engine choices. VOD_PREFER_EXO below is migration-only and cannot represent
             // all four EnginePreference modes, so the two string values must travel themselves.
             Keys.LIVE_ENGINE, Keys.VOD_ENGINE,
+            // OK and the arrows in the full-screen channel player; the reader drops what it does not know.
+            Keys.LIVE_KEYS,
             Keys.MAIN_FONT_FAMILY, Keys.POPUP_FONT_FAMILY,
             Keys.PREF_AUDIO_LANG, Keys.PREF_SUB_LANG, Keys.SUB_SEARCH_LANGS, Keys.SORT_LIVE, Keys.SORT_GUIDE, Keys.SORT_MOVIES,
             Keys.SORT_SERIES, Keys.RESUME_MODE, Keys.TIMESHIFT_RESUME_MODE, Keys.DOWNLOAD_WATCH_CHOICE, Keys.CATCHUP_TZ, Keys.CATCHUP_PLAYER, Keys.ANIMATION_LEVEL, Keys.VOD_VIEW_MODE, Keys.GUIDE_VIEW,

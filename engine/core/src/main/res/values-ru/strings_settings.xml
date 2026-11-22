@@ -54,7 +54,7 @@
     <string name="settings_ch_nav_down">Переход по CH− / Перемотке вперёд (к концу)</string>
     <string name="settings_ch_nav_down_description">Количество элементов, на которое одно нажатие CH−/FF перемещает вниз. Долгое нажатие всегда выполняет переход к последнему элементу.</string>
     <string name="settings_skip_counts">Количество пропускаемых элементов</string>
-    <string name="settings_remote_shortcuts">Команды пульта</string>
+    <string name="settings_remote_shortcuts">Кнопки пульта</string>
     <string name="settings_remote_shortcuts_description">Назначьте свободным кнопкам навигацию, воспроизведение и просмотр списков. Основные кнопки навигации останутся защищёнными.</string>
     <string name="settings_remote_shortcuts_enabled">Использовать команды пульта</string>
     <string name="settings_remote_shortcuts_enabled_description">Отключить все пользовательские команды, не удаляя назначения</string>
@@ -177,8 +177,8 @@
     <string name="settings_epg_sources_nav_description">Добавление лент программы передач XMLTV для телегида</string>
     <string name="settings_customize">Настройка категорий и элементов</string>
     <string name="settings_customize_nav_description">Скрытие и отображение элементов, переименование и изменение порядка категорий</string>
-    <string name="settings_ch_paging">Команды пульта</string>
-    <string name="settings_ch_paging_description">Назначьте свободным кнопкам навигацию, воспроизведение и просмотр списков. Основные кнопки навигации останутся защищёнными.</string>
+    <string name="settings_ch_paging">Кнопки пульта</string>
+    <string name="settings_ch_paging_description">OK и стрелки на канале, свободные кнопки для навигации, воспроизведения и списков</string>
     <string name="settings_content_menus_title">Меню долгого нажатия</string>
     <string name="settings_content_menus_description">Измените порядок действий в меню каналов, фильмов, сериалов и серий</string>
     <string name="settings_content_menus_hint">Удерживайте OK на действии, чтобы взять его, затем перемещайте вверх и вниз. Повторное OK опускает его.</string>
@@ -263,7 +263,7 @@
     <string name="settings_update_startup">Проверять обновления при запуске</string>
     <string name="settings_update_startup_description">Искать новую версию при открытии приложения</string>
     <string name="settings_about">О приложении</string>
-    <string name="settings_live_latency">Задержка прямого эфира</string>
+    <string name="settings_live_latency">Буфер и задержка эфира</string>
     <string name="settings_no_settings_match">Нет настроек, соответствующих запросу «<xliff:g id="query">%1$s</xliff:g>»</string>
     <string name="settings_breadcrumb"><xliff:g id="group">%1$s</xliff:g> › <xliff:g id="title">%2$s</xliff:g></string>
     <string name="settings_startup_home">Главный экран</string>
@@ -1812,4 +1812,26 @@
     <string name="settings_clock_color_blue">Голубой</string>
     <string name="settings_author_playlist">Плейлист SkMate</string>
     <string name="settings_author_playlist_desc">Автообновляемый плейлист от автора</string>
+    <string name="settings_live_keys">Кнопки на канале</string>
+    <string name="settings_live_keys_description">Что делают OK и стрелки, когда канал открыт на весь экран и панель скрыта. Кнопка, которую не меняли, работает как обычно.</string>
+    <string name="settings_live_keys_choose">Кнопка %1$s</string>
+    <string name="settings_live_keys_reset">Сбросить кнопки на канале</string>
+    <string name="settings_live_keys_reset_description">OK показывает информацию, вверх и вниз переключают каналы, влево открывает список, вправо историю</string>
+    <string name="settings_live_key_ok">OK</string>
+    <string name="settings_live_key_up">Вверх</string>
+    <string name="settings_live_key_down">Вниз</string>
+    <string name="settings_live_key_left">Влево</string>
+    <string name="settings_live_key_right">Вправо</string>
+    <string name="settings_live_key_action_info">Информация о канале</string>
+    <string name="settings_live_key_action_list">Список каналов</string>
+    <string name="settings_live_key_action_history">История</string>
+    <string name="settings_live_key_action_next">Следующий канал</string>
+    <string name="settings_live_key_action_previous">Предыдущий канал</string>
+    <string name="settings_live_key_action_last">Прошлый просмотренный канал</string>
+    <string name="settings_live_key_action_rewind">Перемотка назад</string>
+    <string name="settings_live_key_action_forward">Перемотка вперёд</string>
+    <string name="settings_live_key_action_pause">Пауза</string>
+    <string name="settings_live_key_action_nothing">Ничего</string>
+    <string name="settings_live_key_default">%1$s · обычно</string>
+    <string name="settings_search_keywords_live_keys">пульт кнопки ок стрелки список каналов открывать список по ок вверх вниз влево вправо переключение перемотка</string>
 </resources>

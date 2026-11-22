@@ -26,6 +26,8 @@ import androidx.tv.material3.Text
 import org.koin.androidx.compose.koinViewModel
 import tv.own.owntv.R
 import tv.own.owntv.core.settings.ChNavLimits
+import tv.own.owntv.core.settings.LiveKey
+import tv.own.owntv.core.settings.LiveKeyAction
 import tv.own.owntv.core.settings.RemoteShortcutAction
 import tv.own.owntv.core.settings.RemoteShortcutBinding
 import tv.own.owntv.core.settings.RemoteShortcutBindings
@@ -38,7 +40,7 @@ import tv.own.owntv.ui.theme.StageColors
 import tv.own.owntv.ui.theme.mpx
 import tv.own.owntv.ui.theme.stageText
 
-private enum class ChNavDialog { NONE, ENABLED, UP_SKIP, DOWN_SKIP, CAPTURE, ACTION, RESET }
+private enum class ChNavDialog { NONE, ENABLED, UP_SKIP, DOWN_SKIP, CAPTURE, ACTION, RESET, LIVE_KEY, LIVE_RESET }
 
 @Composable
 fun ChNavSettingsScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
@@ -47,6 +49,9 @@ fun ChNavSettingsScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
     val upSkip by vm.chNavUpSkip.collectAsStateWithLifecycle()
     val downSkip by vm.chNavDownSkip.collectAsStateWithLifecycle()
     val bindings by vm.remoteShortcutBindings.collectAsStateWithLifecycle()
+    val liveKeys by vm.liveKeys.collectAsStateWithLifecycle()
+    var pendingLiveKey by remember { mutableStateOf(LiveKey.OK) }
+    val liveKeyFocus = remember { LiveKey.entries.associateWith { FocusRequester() } }
     val firstFocus = remember { FocusRequester() }
     val upSkipFocus = remember { FocusRequester() }
     val downSkipFocus = remember { FocusRequester() }
@@ -82,6 +87,41 @@ fun ChNavSettingsScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
         scroll = scrollState,
         rowsFocus = firstFocus,
     ) {
+        // OK and the arrows on a channel: what most viewers come here for, so first.
+        StageSettingsHeading(stringResource(R.string.settings_live_keys), LiveKey.entries.size)
+        val liveAbout = stringResource(R.string.settings_live_keys_description)
+        LiveKey.entries.forEach { key ->
+            val title = liveKeyLabel(key)
+            val action = liveKeys[key]
+            val desc = if (liveKeys.isCustom(key)) {
+                liveKeyActionLabel(action)
+            } else {
+                stringResource(R.string.settings_live_key_default, liveKeyActionLabel(action))
+            }
+            val focus = liveKeyFocus.getValue(key)
+            StageSettingRow(
+                icon = liveKeyIcon(key),
+                title = title,
+                desc = desc,
+                value = SettingValue.Opens(null),
+                onClick = { dialogReturn = focus; pendingLiveKey = key; dialog = ChNavDialog.LIVE_KEY },
+                modifier = Modifier.focusRequester(focus),
+                help = SettingHelp(title, liveAbout, hints = pageHints),
+            )
+        }
+        if (LiveKey.entries.any(liveKeys::isCustom)) {
+            val liveResetTitle = stringResource(R.string.settings_live_keys_reset)
+            val liveResetDesc = stringResource(R.string.settings_live_keys_reset_description)
+            StageSettingRow(
+                icon = OwnTVIcon.REFRESH,
+                title = liveResetTitle,
+                desc = liveResetDesc,
+                value = null,
+                onClick = { dialog = ChNavDialog.LIVE_RESET },
+                help = SettingHelp(liveResetTitle, liveResetDesc, hints = settingHints(null, pinnable = false)),
+            )
+        }
+
         val onTitle = stringResource(R.string.settings_remote_shortcuts_enabled)
         val onValue = SettingValue.Switch(enabled)
         val howItWorks = stringResource(R.string.settings_remote_shortcuts_help)
@@ -241,6 +281,34 @@ fun ChNavSettingsScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
             selected = "false",
             onSelect = { value ->
                 if (value.toBoolean()) vm.resetRemoteShortcutBindings()
+                dialog = ChNavDialog.NONE
+            },
+            onDismiss = { dialog = ChNavDialog.NONE },
+        )
+        ChNavDialog.LIVE_KEY -> {
+            val key = pendingLiveKey
+            val options = liveKeyChoices(key).map { it.name to liveKeyActionLabel(it) }
+            PickerDialog(
+                title = stringResource(R.string.settings_live_keys_choose, liveKeyLabel(key)),
+                options = options,
+                selected = liveKeys[key].name,
+                leadingIcons = liveKeyChoices(key).associate { it.name to liveKeyActionIcon(it) },
+                onSelect = { value ->
+                    vm.setLiveKey(key, LiveKeyAction.valueOf(value))
+                    dialog = ChNavDialog.NONE
+                },
+                onDismiss = { dialog = ChNavDialog.NONE },
+            )
+        }
+        ChNavDialog.LIVE_RESET -> PickerDialog(
+            title = stringResource(R.string.settings_live_keys_reset),
+            options = listOf(
+                "true" to stringResource(R.string.common_reset),
+                "false" to stringResource(R.string.common_cancel),
+            ),
+            selected = "false",
+            onSelect = { value ->
+                if (value.toBoolean()) vm.resetLiveKeys()
                 dialog = ChNavDialog.NONE
             },
             onDismiss = { dialog = ChNavDialog.NONE },
