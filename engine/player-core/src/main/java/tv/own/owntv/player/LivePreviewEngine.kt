@@ -535,19 +535,32 @@ class LivePreviewEngine(
     /**
      * A server that never answered leaves libVLC's input thread holding the player's lock, and every later
      * call on that player (the next channel's open included) would queue behind it. The next open starts on
-     * a new player. The old one is never released: `libvlc_media_player_release` destroys that lock while the
-     * input thread still holds it and aborts the whole process. It is let go of (listener off, picture
-     * detached, off every thread in use) and left to finish by itself; one small leak per dead server.
+     * a new player, and the old one is shut down on a thread of its own, where waiting on that lock costs
+     * nothing: muted first, then stopped (which waits for the input thread to end), and only then released.
+     * Releasing it while the input thread still held the lock aborted the whole process; leaving it alone
+     * was worse in another way: a slow server answered later and that channel's sound played on, under the
+     * next channel and after leaving the app, one more voice for every such channel.
      */
     private fun replaceWedgedPlayer() {
         val oldPlayer = player ?: return
+        val oldControl = control
+        val oldCtl = ctl
         player = null
         attachPending = false
         control = android.os.HandlerThread("vlc-control").apply { start() }
         ctl = Handler(control.looper)
         Thread({
             runCatching { oldPlayer.setEventListener(null); oldPlayer.vlcVout.detachViews() }
+            runCatching { oldPlayer.volume = 0 }
         }, "vlc-reap").start()
+        // Stopped and released on its own old control thread, after whatever it still has queued: a step
+        // that ran on a released player there would take the process down.
+        oldCtl.post {
+            runCatching { oldPlayer.stop() }
+            runCatching { oldPlayer.release() }
+            LiveDiagnosticsLog.event("wedged player shut down")
+            oldControl.quitSafely()
+        }
     }
 
     fun stop() {

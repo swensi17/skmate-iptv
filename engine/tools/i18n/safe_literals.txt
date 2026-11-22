@@ -5891,6 +5891,7 @@
 4	technical	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	unused
 2	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	vlc-control
 1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	vlc-reap
+1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	wedged player shut down
 1	empty	player-core/src/main/java/tv/own/owntv/player/LiveStreamQuirks.kt	\0
 1	protocol	player-core/src/main/java/tv/own/owntv/player/LiveStreamQuirks.kt	$rewritten?$query
 2	protocol	player-core/src/main/java/tv/own/owntv/player/LiveStreamQuirks.kt	.m3u8

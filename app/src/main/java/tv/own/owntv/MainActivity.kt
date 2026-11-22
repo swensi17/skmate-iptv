@@ -64,10 +64,12 @@ open class MainActivity : ComponentActivity() {
     /** Esc on a keyboard (or the emulator's) is Back, as on the remote. */
     @Suppress("RestrictedApi") // androidx.core marks the override restricted; the app is not in that library group
     override fun dispatchKeyEvent(event: android.view.KeyEvent): Boolean {
-        // Back held down (about a second of key repeats) closes the app outright, TV-box style.
-        if (tv.own.owntv.features.shell.TvBoxNav && event.keyCode == android.view.KeyEvent.KEYCODE_BACK &&
-            event.action == android.view.KeyEvent.ACTION_DOWN && (event.isLongPress || event.repeatCount >= LONG_BACK_REPEATS)
-        ) {
+        // Back held down (about a second of key repeats) closes the app outright, in every layout; onStop then
+        // stops every engine, so nothing plays on behind the launcher.
+        val backDown = event.keyCode == android.view.KeyEvent.KEYCODE_BACK &&
+            event.action == android.view.KeyEvent.ACTION_DOWN
+        val held = event.isLongPress || event.repeatCount >= LONG_BACK_REPEATS
+        if (backDown && held) {
             finish()
             return true
         }
