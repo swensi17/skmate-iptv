@@ -1810,4 +1810,6 @@
     <string name="settings_clock_bg_blue">Синий</string>
     <string name="settings_clock_color_yellow">Жёлтый</string>
     <string name="settings_clock_color_blue">Голубой</string>
+    <string name="settings_author_playlist">Плейлист SkMate</string>
+    <string name="settings_author_playlist_desc">Автообновляемый плейлист от автора</string>
 </resources>

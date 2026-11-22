@@ -316,6 +316,31 @@ fun ManageSourcesScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
                         onDelete = { contextId = source.id; contextIndex = index; confirmDelete = source },
                     )
                 }
+                // The author's auto-updated playlist: a switch, off until the viewer turns it on. On imports it
+                // like any playlist (with the import screen); off asks before removing it with its channels.
+                val ctx = androidx.compose.ui.platform.LocalContext.current
+                val authorUrl = remember { tv.own.owntv.core.setup.AuthorPlaylist.url(ctx) }
+                if (authorUrl != null) {
+                    val author = tv.own.owntv.core.setup.AuthorPlaylist.find(ctx, sources)
+                    StageSettingRow(
+                        icon = tv.own.owntv.ui.components.OwnTVIcon.PLAYLIST,
+                        title = stringResource(R.string.settings_author_playlist),
+                        desc = stringResource(R.string.settings_author_playlist_desc),
+                        value = SettingValue.Switch(author != null),
+                        onClick = {
+                            if (author != null) {
+                                confirmDelete = author
+                            } else {
+                                showAdd = true
+                                vm.addM3u(
+                                    tv.own.owntv.core.setup.AuthorPlaylist.NAME,
+                                    authorUrl,
+                                    autoRefresh = tv.own.owntv.core.setup.AuthorPlaylist.REFRESH,
+                                )
+                            }
+                        },
+                    )
+                }
                 // The add row closes the list, full width like every row above it.
                 StageSettingRow(
                     icon = tv.own.owntv.ui.components.OwnTVIcon.ADD,

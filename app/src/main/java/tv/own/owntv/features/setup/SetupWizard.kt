@@ -89,6 +89,8 @@ fun Onboarding(firstRun: Boolean, onDone: (Long?) -> Unit, onCancel: () -> Unit,
     var existing by remember { mutableStateOf<List<SourceEntity>>(emptyList()) }
     // Where "Try Again" returns to when an import fails (new source vs. linking existing).
     var importOrigin by remember { mutableStateOf(Step.ADD_SOURCE) }
+    val wizardContext = androidx.compose.ui.platform.LocalContext.current
+    val authorUrl = remember { tv.own.owntv.core.setup.AuthorPlaylist.url(wizardContext) }
     // The playlist being imported, for "Importing <name>"; null when linking existing playlists.
     var importName by remember { mutableStateOf<String?>(null) }
     // Where Back from the backup-restore picker returns to (first-run choice vs. add-content step).
@@ -174,11 +176,21 @@ fun Onboarding(firstRun: Boolean, onDone: (Long?) -> Unit, onCancel: () -> Unit,
             )
             Step.ADD_CONTENT -> AddContentStep(
                 hasExisting = existing.isNotEmpty(),
-                onPhone = { step = Step.ADD_SOURCE_REMOTE },
-                onType = { step = Step.ADD_SOURCE },
-                onExisting = { step = Step.EXISTING },
-                onImport = { backupOrigin = Step.ADD_CONTENT; step = Step.IMPORT_BACKUP_CHOOSER },
-                onSkip = { vm.finish(onDone) },
+                actions = AddContentActions(
+                    onPhone = { step = Step.ADD_SOURCE_REMOTE },
+                    onType = { step = Step.ADD_SOURCE },
+                    onExisting = { step = Step.EXISTING },
+                    onImport = { backupOrigin = Step.ADD_CONTENT; step = Step.IMPORT_BACKUP_CHOOSER },
+                    onSkip = { vm.finish(onDone) },
+                    onAuthor = authorUrl?.let { url ->
+                        {
+                            importName = tv.own.owntv.core.setup.AuthorPlaylist.NAME
+                            vm.startM3u(importName!!, url, autoRefresh = tv.own.owntv.core.setup.AuthorPlaylist.REFRESH)
+                            importOrigin = Step.ADD_CONTENT
+                            step = Step.IMPORTING
+                        }
+                    },
+                ),
             )
             Step.ADD_SOURCE_REMOTE -> RemoteSetupScreen(
                 state = vm.remoteState.collectAsStateWithLifecycle().value,
@@ -569,9 +581,26 @@ private fun AvatarStrip(ids: List<Int>, chosen: Int) {
     }
 }
 
+/** What the add-a-playlist step can lead to; [onAuthor] is null when this build offers no author playlist. */
+private class AddContentActions(
+    val onPhone: () -> Unit,
+    val onType: () -> Unit,
+    val onExisting: () -> Unit,
+    val onImport: () -> Unit,
+    val onSkip: () -> Unit,
+    val onAuthor: (() -> Unit)? = null,
+)
+
 /** Add a playlist: From your phone, Type it here, Import (and Existing when another profile has some). */
+@Suppress("FunctionNaming")
 @Composable
-private fun AddContentStep(hasExisting: Boolean, onPhone: () -> Unit, onType: () -> Unit, onExisting: () -> Unit, onImport: () -> Unit, onSkip: () -> Unit) {
+private fun AddContentStep(hasExisting: Boolean, actions: AddContentActions) {
+    val onPhone = actions.onPhone
+    val onType = actions.onType
+    val onExisting = actions.onExisting
+    val onImport = actions.onImport
+    val onSkip = actions.onSkip
+    val onAuthor = actions.onAuthor
     val first = rememberFirstFocus()
     WizardFrame(
         step = WizardStep.PLAYLIST,
@@ -586,6 +615,14 @@ private fun AddContentStep(hasExisting: Boolean, onPhone: () -> Unit, onType: ()
     ) {
         WizardCards(
             listOfNotNull(
+                onAuthor?.let {
+                    WizardCard(
+                        OwnTVIcon.PLAYLIST,
+                        stringResource(R.string.settings_author_playlist),
+                        stringResource(R.string.setup_author_playlist_line),
+                        it,
+                    )
+                },
                 WizardCard(OwnTVIcon.PHONE, stringResource(R.string.setup_from_phone), stringResource(R.string.setup_phone_card_line), onPhone),
                 WizardCard(OwnTVIcon.PENCIL, stringResource(R.string.settings_add_type_here), stringResource(R.string.settings_line_add_type_here), onType),
                 if (hasExisting) WizardCard(OwnTVIcon.PLAYLIST, stringResource(R.string.setup_existing), stringResource(R.string.setup_use_other_profile_playlists), onExisting) else null,

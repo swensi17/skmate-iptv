@@ -75,4 +75,7 @@ object CoreBuildInfo {
      * marker, which both repositories' release names carry.
      */
     var releaseRepo: String = "swensi17/skmate-iptv"
+
+    /** The author's auto-updated playlist (see [tv.own.owntv.core.setup.AuthorPlaylist]); empty = not offered. */
+    var authorPlaylistUrl: String = ""
 }

@@ -3209,4 +3209,7 @@
     <string name="settings_clock_bg_blue">Blue</string>
     <string name="settings_clock_color_yellow">Yellow</string>
     <string name="settings_clock_color_blue">Light blue</string>
+    <!-- Translators: The author's auto-updated playlist switch (Settings › Playlists, first run). -->
+    <string name="settings_author_playlist">SkMate playlist</string>
+    <string name="settings_author_playlist_desc">Kept up to date by the author</string>
 </resources>
