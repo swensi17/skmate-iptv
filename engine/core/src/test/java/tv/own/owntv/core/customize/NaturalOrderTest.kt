@@ -1,7 +1,10 @@
 package tv.own.owntv.core.customize
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
+import kotlin.math.sign
+import kotlin.random.Random
 
 class NaturalOrderTest {
     @Test
@@ -14,7 +17,29 @@ class NaturalOrderTest {
     }
 
     @Test
-    fun caseDoesNotMatter() {
-        assertEquals(0, NaturalOrder.compare("News", "news"))
+    fun differentNamesNeverCompareEqual() {
+        assertTrue(NaturalOrder.compare("News", "news") != 0)
+        assertTrue(NaturalOrder.compare("a01", "a1") != 0)
+    }
+
+    /** Random names from digits, letters, punctuation and non-ASCII digits: the order stays a total order. */
+    @Test
+    fun orderIsConsistentForAnyNames() {
+        val alphabet = "0123456789aAbBzZ .-!٣٤١۵"
+        val rnd = Random(42)
+        val names = List(300) { String(CharArray(rnd.nextInt(0, 7)) { alphabet[rnd.nextInt(alphabet.length)] }) }
+        for (x in names) {
+            assertEquals(0, NaturalOrder.compare(x, x))
+            for (y in names) {
+                assertEquals(NaturalOrder.compare(x, y).sign, -NaturalOrder.compare(y, x).sign)
+            }
+        }
+        for (k in 0 until 20_000) {
+            val (x, y, z) = Triple(names.random(rnd), names.random(rnd), names.random(rnd))
+            if (NaturalOrder.compare(x, y) <= 0 && NaturalOrder.compare(y, z) <= 0) {
+                assertTrue("$x <= $y <= $z", NaturalOrder.compare(x, z) <= 0)
+            }
+        }
+        names.sortedWith(NaturalOrder)
     }
 }
