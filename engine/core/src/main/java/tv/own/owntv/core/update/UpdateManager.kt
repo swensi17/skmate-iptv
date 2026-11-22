@@ -74,6 +74,9 @@ class UpdateManager(
 
         /** Downloaded and checked; the system installer opens when the viewer presses Install. */
         data class Ready(val info: UpdateInfo) : State
+
+        /** Update pressed: the file is being handed to the system installer, whose prompt comes next. */
+        data class Installing(val info: UpdateInfo, val percent: Int) : State
         data class Failed(val failure: Failure, val retryInfo: UpdateInfo? = null) : State
     }
 
@@ -108,12 +111,13 @@ class UpdateManager(
     /** Queries GitHub's latest release; moves to Available / UpToDate / a semantic failure. */
     fun check() {
         // A download in progress or one waiting to be installed is not thrown away by a new look.
-        if (_state.value is State.Checking || _state.value is State.Downloading || _state.value is State.Ready) return
+        val now = _state.value
+        if (now is State.Checking || now is State.Downloading || now is State.Ready || now is State.Installing) return
         _state.value = State.Checking
         scope.launch {
             runCatching {
                 val request = Request.Builder()
-                    .url("https://api.github.com/repos/${CoreBuildInfo.releaseRepo}/releases/latest")
+                    .url(testReleaseUrl() ?: "https://api.github.com/repos/${CoreBuildInfo.releaseRepo}/releases/latest")
                     .header("Accept", "application/vnd.github+json")
                     .header("User-Agent", tv.own.owntv.core.brand.BrandName.SHORT)
                     .build()
@@ -265,19 +269,33 @@ class UpdateManager(
 
     /** Opens the system installer for the downloaded update. The app is replaced in place: data and settings stay. */
     fun installReady() {
+        // One press is enough: further presses while the file is handed over are ignored, where each one
+        // used to start another install of its own and the system prompt came only after the third.
         val info = (_state.value as? State.Ready)?.info ?: return
+        _state.value = State.Installing(info, 0)
         scope.launch {
             runCatching {
                 val apk = apkFor(info.version)
                 if (!apk.isFile) throw DamagedDownloadException("the downloaded update is gone")
-                verifyApk(apk)
-                install(apk)
+                // Checked in full when it was downloaded; reading the whole file again cost a weak TV seconds.
+                install(apk) { percent -> _state.value = State.Installing(info, percent) }
             }.onFailure { error ->
                 Log.w(TAG, "update install failed: ${error.message}", error)
                 val failure = if (error is InstallException) Failure.Install else failureFor(error, checking = false)
                 _state.value = State.Failed(failure, retryInfo = info)
             }
         }
+    }
+
+    /**
+     * A maintainer build only: the address of a test release, from a file put on the TV over adb
+     * (Android/data/<package>/files/update-test-url.txt), so the whole update can be tried from a computer.
+     * Published builds have no dev tools and always ask GitHub.
+     */
+    private fun testReleaseUrl(): String? {
+        if (!CoreBuildInfo.devTools) return null
+        val file = File(context.getExternalFilesDir(null), TEST_URL_FILE)
+        return runCatching { file.readText().trim() }.getOrNull()?.takeIf { it.startsWith("http") }
     }
 
     private fun updatesDir(): File = File(context.filesDir, "updates").apply { mkdirs() }
@@ -375,7 +393,7 @@ class UpdateManager(
      * — insufficient storage, a signature conflict, a bad file — instead of the system's silent
      * "App not installed".
      */
-    private fun install(apk: File) {
+    private fun install(apk: File, onProgress: (Int) -> Unit = {}) {
         registerInstallReceiver()
         val installer = context.packageManager.packageInstaller
         val params = PackageInstaller.SessionParams(PackageInstaller.SessionParams.MODE_FULL_INSTALL)
@@ -386,11 +404,26 @@ class UpdateManager(
         }
         installer.openSession(sessionId).use { session ->
             session.openWrite(SESSION_ENTRY, 0, apk.length()).use { output ->
-                apk.inputStream().use { it.copyTo(output) }
+                val total = apk.length().coerceAtLeast(1L)
+                var copied = 0L
+                var shown = -1
+                val buffer = ByteArray(COPY_BUFFER_BYTES)
+                apk.inputStream().use { input ->
+                    while (true) {
+                        val n = input.read(buffer)
+                        if (n < 0) break
+                        output.write(buffer, 0, n)
+                        copied += n
+                        val percent = (copied * PERCENT / total).toInt()
+                        if (percent != shown) { shown = percent; onProgress(percent) }
+                    }
+                }
                 session.fsync(output)
             }
             val intent = Intent(INSTALL_STATUS_ACTION).setPackage(context.packageName)
             val flags = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
+            // The app opens again by itself once the new version is in (RelaunchAfterUpdateReceiver).
+            relaunchMark(context).writeText("1")
             session.commit(PendingIntent.getBroadcast(context, 0, intent, flags).intentSender)
         }
         // The file stays until the new version has started (the next check removes it), so a declined
@@ -425,7 +458,11 @@ class UpdateManager(
                 }
                 PackageInstaller.STATUS_SUCCESS -> Log.i(TAG, "update installed")
                 // Declining the system prompt is a choice, not an error — leave the dialog as it was.
-                PackageInstaller.STATUS_FAILURE_ABORTED -> Log.i(TAG, "install cancelled by user")
+                PackageInstaller.STATUS_FAILURE_ABORTED -> {
+                    Log.i(TAG, "install cancelled by user")
+                    relaunchMark(context).delete()
+                    (_state.value as? State.Installing)?.let { _state.value = State.Ready(it.info) }
+                }
                 else -> {
                     Log.w(TAG, "install refused status=$status message=$message")
                     _state.value = State.Failed(Failure.InstallRejected(message?.takeIf { it.isNotBlank() }))
@@ -469,6 +506,16 @@ class UpdateManager(
     private class InstallException(cause: Throwable) : IOException(cause)
 
     companion object {
+        private const val RELAUNCH_FILE = "relaunch-after-update"
+
+        private fun relaunchMark(context: Context) = File(context.filesDir, RELAUNCH_FILE)
+
+        /** True once, right after an update this app started went in. */
+        fun consumeRelaunchMark(context: Context): Boolean = relaunchMark(context).delete()
+
+        private const val COPY_BUFFER_BYTES = 256 * 1024
+        private const val PERCENT = 100L
+        private const val TEST_URL_FILE = "update-test-url.txt"
         private const val TAG = "UpdateManager"
         private const val SESSION_ENTRY = "owntv-update"
         private const val INSTALL_STATUS_ACTION = "tv.own.owntv.UPDATE_INSTALL_STATUS"

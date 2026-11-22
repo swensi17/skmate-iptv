@@ -68,7 +68,8 @@ fun UpdateDialog(onDismiss: () -> Unit, checkOnOpen: Boolean = false) {
             runCatching { focus.requestFocus() }
         }
     }
-    val busy = state is UpdateManager.State.Idle || state is UpdateManager.State.Checking || state is UpdateManager.State.Downloading
+    val busy = state is UpdateManager.State.Idle || state is UpdateManager.State.Checking ||
+        state is UpdateManager.State.Downloading || state is UpdateManager.State.Installing
     tv.own.owntv.ui.stage.StagePopup(
         onDismiss = onDismiss,
         title = stringResource(R.string.update_title),
@@ -139,6 +140,11 @@ fun UpdateDialog(onDismiss: () -> Unit, checkOnOpen: Boolean = false) {
                 Text(stringResource(R.string.update_installer), style = body, color = StageColors.Muted, modifier = Modifier.padding(top = 10.mpx))
             }
             is UpdateManager.State.Ready -> Text(stringResource(R.string.update_ready, s.info.version, manager.currentVersion), style = stageText(19, 600), color = StageColors.Text)
+            is UpdateManager.State.Installing -> Row(verticalAlignment = Alignment.CenterVertically) {
+                OwnTVSpinner(sizeDp = 28)
+                Spacer(Modifier.width(16.mpx))
+                Text(stringResource(R.string.update_preparing, s.percent), style = body, color = StageColors.Text)
+            }
             is UpdateManager.State.Failed -> Text(updateFailureText(s.failure), style = body, color = StageColors.Muted)
         }
     }

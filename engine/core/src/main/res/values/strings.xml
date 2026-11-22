@@ -296,4 +296,6 @@
     <!-- Translators: Button that closes a prompt without acting on it, e.g. a programme reminder. -->
     <string name="common_dismiss">Dismiss</string>
     <string name="shell_press_back_again">Press Back again to exit</string>
+    <!-- Translators: Update window while the downloaded file is handed to the system installer. -->
+    <string name="update_preparing">Preparing the install… <xliff:g id="percent">%1$d</xliff:g>%%</string>
 </resources>

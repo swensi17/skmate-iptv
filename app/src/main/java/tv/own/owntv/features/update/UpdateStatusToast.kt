@@ -91,6 +91,14 @@ fun UpdateStatusToast(onDone: () -> Unit, onViewChangelog: () -> Unit, modifier:
             }
             ),
         )
+        // Update pressed: the file goes to the system installer, its window comes next. No buttons, so a second
+        // press has nothing to start again.
+        is UpdateManager.State.Installing -> UpdateWindow(
+            title = stringResource(R.string.update_title),
+            body = stringResource(R.string.update_preparing, s.percent),
+            progress = s.percent,
+            onDismiss = {},
+        )
         is UpdateManager.State.Ready -> UpdateWindow(
             title = stringResource(R.string.update_downloaded),
             body = stringResource(R.string.update_ready, s.info.version, manager.currentVersion),

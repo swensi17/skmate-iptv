@@ -2442,7 +2442,7 @@ fun OwnTVShell(
         val updateState by updateManager.state.collectAsStateWithLifecycle()
         // While the update card is up (asking, downloading or ready to install) the Telegram note waits.
         val updateAsking = updateState is UpdateManager.State.Available || updateState is UpdateManager.State.Ready ||
-            updateState is UpdateManager.State.Downloading
+            updateState is UpdateManager.State.Downloading || updateState is UpdateManager.State.Installing
         LaunchedEffect(quiet) {
             if (quiet && !showTelegram && !shellVm.telegramAsked && TelegramWelcomePrefs.due(appContext)) {
                 kotlinx.coroutines.delay(1_500)

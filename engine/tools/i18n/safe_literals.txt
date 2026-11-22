@@ -5456,6 +5456,7 @@
 2	technical	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	.apk
 1	file-path	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	.apk.part
 1	file-path	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	.meta
+1	technical	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	1
 1	technical	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	Accept
 1	protocol	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	Content-Range
 1	compiler	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	DEPRECATION
@@ -5472,12 +5473,14 @@
 1	json	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	browser_download_url
 1	protocol	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	bytes=$offset-
 1	log	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	could not keep the download
+1	technical	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	http
 1	url	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	https://api.github.com/repos/${CoreBuildInfo.releaseRepo}/releases/latest
 1	log	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	install cancelled by user
 1	log	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	install refused status=$status message=$message
 1	json	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	name
 1	log	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	not newer than the installed build
 1	file-path	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	owntv-update
+1	technical	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	relaunch-after-update
 1	log	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	short read: $written of $total bytes
 1	log	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	signed with another key
 1	json	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	tag_name
@@ -5490,6 +5493,7 @@
 1	log	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	update install failed: ${error.message}
 1	log	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	update installed
 1	file-path	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	update-$safe
+1	technical	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	update-test-url.txt
 1	file-path	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	updates
 2	json	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	url
 1	technical	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	v

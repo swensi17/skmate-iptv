@@ -353,6 +353,13 @@
             </intent-filter>
         </activity>
 
+        <receiver
+            android:name=".update.RelaunchAfterUpdateReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
         <!-- Lets a CPU profile be taken over adb on a real TV (shell only, nothing for other apps). -->
         <profileable android:shell="true" tools:targetApi="29" />
     </application>

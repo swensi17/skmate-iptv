@@ -208,4 +208,5 @@
     <string name="common_weather_degrees_city"><xliff:g id="temperature">%1$d</xliff:g>° <xliff:g id="city">%2$s</xliff:g></string>
     <string name="common_dismiss">Закрыть</string>
     <string name="shell_press_back_again">Нажмите «Назад» ещё раз для выхода</string>
+    <string name="update_preparing">Готовим установку… <xliff:g id="percent">%1$d</xliff:g>%%</string>
 </resources>
