@@ -157,6 +157,7 @@ internal fun LiveStageRow(
     playing: Boolean = false,
 ) {
     val tvBox = tv.own.owntv.features.shell.TvBoxNav
+    val lite = tv.own.owntv.ui.theme.DevicePerf.lite
     val archiveTag = if (tvBox && channel.catchup && trailing == null) archiveTagText(channel.catchupDays) else null
     Box(modifier.fillMaxWidth()) {
         StageRow(
@@ -165,7 +166,8 @@ internal fun LiveStageRow(
             height = if (tvBox) 92.mpx else 84.mpx,
             modifier = Modifier.fillMaxWidth().onFocusChanged { if (it.hasFocus) onFocus() }
                 // TV-box look: a hairline under each channel.
-                .then(if (tv.own.owntv.features.shell.TvBoxNav) Modifier.drawBehind {
+                // A weak TV leaves the hairlines out: one less thing to draw for every row on every frame.
+                .then(if (tv.own.owntv.features.shell.TvBoxNav && !lite) Modifier.drawBehind {
                     val h = 1.mpx.toPx()
                     drawRect(RowLine, topLeft = androidx.compose.ui.geometry.Offset(20.mpx.toPx(), drawContext.size.height - h), size = androidx.compose.ui.geometry.Size(drawContext.size.width - 40.mpx.toPx(), h))
                 } else Modifier),
@@ -196,11 +198,7 @@ internal fun LiveStageRow(
                         maxLines = 1, overflow = TextOverflow.Ellipsis,
                     )
                 }
-                if (now != null) {
-                    Spacer(Modifier.height(8.mpx))
-                    // TV-box look: the bar runs the whole width of the row's text, to the row's end.
-                    StageProgress(progressOf(now), if (tvBox) Modifier.fillMaxWidth() else Modifier.width(300.mpx), flat = true)
-                }
+                if (now != null) RowProgress(now, focused, tvBox, lite)
             }
             if (trailing != null) trailing()
             else Row(horizontalArrangement = Arrangement.spacedBy(8.mpx), verticalAlignment = Alignment.CenterVertically) {
@@ -943,3 +941,22 @@ private const val PictureSettleMs = 250L
 
 /** Playing with no load seen: how long to wait for one before taking the stream as this channel's. */
 private const val NoLoadWaitMs = 700L
+
+/**
+ * The row's progress under the programme. A weak TV draws it only on the focused row (a bar on every row
+ * cost each frame); the others keep its room, so the text does not move when focus arrives.
+ */
+@Suppress("FunctionNaming")
+@Composable
+private fun RowProgress(now: XtEpgEntry, focused: Boolean, tvBox: Boolean, lite: Boolean) {
+    Spacer(Modifier.height(8.mpx))
+    if (lite && !focused) {
+        Spacer(Modifier.height(ROW_PROGRESS_HEIGHT.mpx))
+    } else {
+        // TV-box look: the bar runs the whole width of the row's text, to the row's end.
+        StageProgress(progressOf(now), if (tvBox) Modifier.fillMaxWidth() else Modifier.width(300.mpx), flat = true)
+    }
+}
+
+/** The flat progress bar's height ([StageProgress]), kept as room on rows that do not draw it. */
+private const val ROW_PROGRESS_HEIGHT = 4
