@@ -11,11 +11,13 @@
 M3U и Xtream Codes, телегид (EPG), архив, профили — управление только пультом, без рекламы и аккаунтов.</p>
 
 <p align="center">
-  <a href="https://t.me/skmates"><img alt="Канал в Telegram: @skmates" src="docs/brand/telegram/tg-channel.svg" width="168"></a>
+  <a href="https://t.me/skmates"><img alt="Канал в Telegram: @skmates" src="docs/brand/telegram/tg-channel.svg" width="140"></a>
   &nbsp;&nbsp;
-  <a href="https://t.me/skmatetv"><img alt="Группа в Telegram: @skmatetv" src="docs/brand/telegram/tg-group.svg" width="168"></a>
+  <a href="https://t.me/skmatetv"><img alt="Группа в Telegram: @skmatetv" src="docs/brand/telegram/tg-group.svg" width="140"></a>
   &nbsp;&nbsp;
-  <a href="https://t.me/swensi17"><img alt="Связь с автором в Telegram: @swensi17" src="docs/brand/telegram/tg-dm.svg" width="168"></a>
+  <a href="https://t.me/swensi17"><img alt="Связь с автором в Telegram: @swensi17" src="docs/brand/telegram/tg-dm.svg" width="140"></a>
+  &nbsp;&nbsp;
+  <a href="https://github.com/swensi17/skmate-iptv/releases/latest/download/SkMate-IPTV.apk"><img alt="Скачать APK для Android TV" src="docs/brand/telegram/tg-download.svg" width="140"></a>
 </p>
 
 <p align="center">
