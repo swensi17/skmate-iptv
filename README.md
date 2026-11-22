@@ -11,6 +11,12 @@
 M3U и Xtream Codes, телегид (EPG), архив, профили — управление только пультом, без рекламы и аккаунтов.</p>
 
 <p align="center">
+  <a href="https://t.me/skmates"><img alt="Канал в Telegram" src="https://img.shields.io/badge/%D0%9A%D0%B0%D0%BD%D0%B0%D0%BB-%40skmates-26A5E4?style=for-the-badge&logo=telegram&logoColor=white"></a>
+  &nbsp;
+  <a href="https://t.me/skmatetv"><img alt="Группа в Telegram" src="https://img.shields.io/badge/%D0%93%D1%80%D1%83%D0%BF%D0%BF%D0%B0-%40skmatetv-26A5E4?style=for-the-badge&logo=telegram&logoColor=white"></a>
+</p>
+
+<p align="center">
   <a href="https://github.com/swensi17/skmate-iptv/releases/latest"><img alt="Release" src="https://img.shields.io/github/v/release/swensi17/skmate-iptv?label=release&color=1e88e5"></a>
   <a href="https://github.com/swensi17/skmate-iptv/releases"><img alt="Downloads" src="https://img.shields.io/github/downloads/swensi17/skmate-iptv/total?color=43a047"></a>
   <a href="https://github.com/swensi17/skmate-iptv#%D0%B1%D0%B5%D0%B7%D0%BE%D0%BF%D0%B0%D1%81%D0%BD%D0%BE%D1%81%D1%82%D1%8C"><img alt="VirusTotal" src="https://img.shields.io/badge/VirusTotal-apk%3A%200%20threats-2ecc71?logo=virustotal&logoColor=white"></a>
