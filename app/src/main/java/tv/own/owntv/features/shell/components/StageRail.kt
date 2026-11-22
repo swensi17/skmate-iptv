@@ -166,6 +166,8 @@ fun StageRail(
     val rtl = LocalLayoutDirection.current == LayoutDirection.Rtl
     val scope = rememberCoroutineScope()
     var hasFocus by remember { mutableStateOf(false) }
+    // When the rail last pulled focus onto its item; read only in focus callbacks, so not a state.
+    val lastEntryPull = remember { longArrayOf(0L) }
     // Search, Settings and More all land on a rail item: Search has its own, Settings lives behind More.
     val focusSection = when {
         selected == MainSection.SETTINGS || selected == MainSection.MORE -> MainSection.MORE
@@ -216,7 +218,14 @@ fun StageRail(
                     val entered = it.hasFocus && !hasFocus
                     hasFocus = it.hasFocus
                     if (it.hasFocus) onFocused()
-                    if (entered) scope.launch { runCatching { selectedItemFocusRequester.requestFocus() } }
+                    // Once per entry burst: when something else pulls focus straight back out (a second
+                    // copy of this menu while full screen closes, a screen placing its own focus), two
+                    // requests answering each other spun the main thread forever and froze the app.
+                    val now = android.os.SystemClock.uptimeMillis()
+                    if (entered && now - lastEntryPull[0] >= ENTRY_PULL_GAP_MS) {
+                        lastEntryPull[0] = now
+                        scope.launch { runCatching { selectedItemFocusRequester.requestFocus() } }
+                    }
                 }
                 .focusProperties {
                     onExit = {
@@ -547,3 +556,6 @@ object TvBoxPanels {
 
 /** The light side panels: the soft grey the screen's backdrop shows beside them. */
 val TvBoxPanelLight = androidx.compose.ui.graphics.Color(0xFFEFF2F5)
+
+/** The rail pulls focus onto its selected item at most this often (see the entry in [StageRail]). */
+private const val ENTRY_PULL_GAP_MS = 300L
