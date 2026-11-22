@@ -1,5 +1,6 @@
 package tv.own.owntv.features.shell.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -57,13 +58,11 @@ import tv.own.owntv.ui.components.displayText
 @Composable
 fun SyncStatusPill(modifier: Modifier = Modifier) {
     val catalogTracker: SyncActivityTracker = koinInject()
-    val epgTracker: EpgActivityTracker = koinInject()
     val trendingTracker: TrendingActivityTracker = koinInject()
     val downloadTracker: DownloadActivityTracker = koinInject()
     val recordingTracker: RecordingActivityTracker = koinInject()
     val connectivity: ConnectivityObserver = koinInject()
     val activeCatalog by catalogTracker.active.collectAsStateWithLifecycle()
-    val activeEpg by epgTracker.active.collectAsStateWithLifecycle()
     val activeTrending by trendingTracker.active.collectAsStateWithLifecycle()
     val activeDownload by downloadTracker.active.collectAsStateWithLifecycle()
     val activeRecordings by recordingTracker.active.collectAsStateWithLifecycle()
@@ -89,7 +88,8 @@ fun SyncStatusPill(modifier: Modifier = Modifier) {
     var currentCompleted by remember { mutableStateOf<SyncActivityTracker.CompletedSync?>(null) }
     var currentTrendingCompleted by remember { mutableStateOf<TrendingActivityTracker.CompletedBuild?>(null) }
 
-    val anyActive = activeCatalog.isNotEmpty() || activeEpg.isNotEmpty() || activeTrending.isNotEmpty() ||
+    // Guide refreshes run quietly: their progress is in Settings › EPG sources, not in a pill over the screen.
+    val anyActive = activeCatalog.isNotEmpty() || activeTrending.isNotEmpty() ||
         activeDownload != null || activeRecordings.isNotEmpty() || sportsRebuild is tv.own.owntv.core.sports.RebuildState.Running
 
     LaunchedEffect(lastCompleted) {
@@ -145,7 +145,6 @@ fun SyncStatusPill(modifier: Modifier = Modifier) {
             add(SyncLine.Trending(it))
             add(SyncLine.TrendingDetail(it))
         }
-        activeEpg.values.sortedBy { it.sourceId }.forEach { add(SyncLine.Epg(it)) }
         if (sportsRebuild is tv.own.owntv.core.sports.RebuildState.Running) add(SyncLine.Sports)
     }
     val shown = rows.take(MAX_ROWS)
@@ -159,7 +158,14 @@ fun SyncStatusPill(modifier: Modifier = Modifier) {
         modifier = modifier
             .padding(bottom = 28.mpx)
             .widthIn(max = 1100.mpx)
-            .stageGlass(radius, overContent = true)
+            // TV-box look: a solid grey plate like every other panel, never see-through over the list.
+            .then(
+                if (tv.own.owntv.features.shell.TvBoxNav) {
+                    Modifier.background(PillFill, androidx.compose.foundation.shape.RoundedCornerShape(4.mpx))
+                } else {
+                    Modifier.stageGlass(radius, overContent = true)
+                },
+            )
             .padding(horizontal = 24.mpx, vertical = 12.mpx),
         verticalArrangement = Arrangement.spacedBy(6.mpx),
     ) {
@@ -408,3 +414,7 @@ private fun recordingSizeMb(bytes: Long): String =
         minimumFractionDigits = 1
         maximumFractionDigits = 1
     }.format(bytes / 1_048_576.0)
+
+/** The same grey as the notices that drop in from the top: it stands out from the dark screen behind. */
+private const val PILL_FILL_ARGB = 0xFF3A3E44
+private val PillFill = androidx.compose.ui.graphics.Color(PILL_FILL_ARGB)

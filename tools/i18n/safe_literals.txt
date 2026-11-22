@@ -961,6 +961,7 @@
 1	log	app/src/main/java/tv/own/owntv/player/FrameRateController.kt	FrameRate
 1	empty	app/src/main/java/tv/own/owntv/player/MiniPlayer.kt	\0
 1	technical	app/src/main/java/tv/own/owntv/player/MiniPlayer.kt	miniControls
+1	technical	app/src/main/java/tv/own/owntv/player/MpvVideoSurface.kt	FunctionNaming
 1	technical	app/src/main/java/tv/own/owntv/player/PlayerClock.kt	EEEdMMM
 1	technical	app/src/main/java/tv/own/owntv/player/PlayerCornerClock.kt	FunctionNaming
 9	empty	app/src/main/java/tv/own/owntv/player/PlayerHud.kt	\0

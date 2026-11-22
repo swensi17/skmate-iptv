@@ -18,6 +18,9 @@ object SharedLibVlc {
     /** Builds the instance on a background thread; a failure is left for the first real use to report. */
     fun warmUp(context: Context) {
         val app = context.applicationContext
+        // A weak box loads it at the first channel instead: at start-up it competed with the interface for
+        // the little memory there is.
+        if (tv.own.owntv.core.player.PlayerBudget.of(app).lowSpec) return
         Thread({ runCatching { get(app) } }, THREAD_NAME).apply { priority = Thread.MIN_PRIORITY }.start()
     }
 

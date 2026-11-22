@@ -237,6 +237,9 @@ android {
             // libmpv.so needs that symbol: on a 32-bit TV (Haier, Fire TV) the first channel opened
             // crashed with UnsatisfiedLinkError. src/main/jniLibs/armeabi-v7a/libc++_shared.so is
             // libmpv's own runtime (newer, a superset), and the app's own libs win the merge.
+            // Compressed inside the APK: the download is about half the size (the player libraries are most
+            // of it). Android unpacks them once at install.
+            useLegacyPackaging = true
         }
     }
 

@@ -44,13 +44,18 @@ internal class JankJudge {
  * are tried again after [PROBE_MS] (longer each time, and not at all after [MAX_THROTTLES]), and kept
  * if the screen is then smooth. [now] is the clock, handed in so every rule is tested.
  */
-internal class MotionGovernor(private val now: () -> Long, startThrottled: Boolean = false) {
+internal class MotionGovernor(
+    private val now: () -> Long,
+    startThrottled: Boolean = false,
+    /** A weak box by its hardware: animations stay off for good, never probed again. */
+    private val pinned: Boolean = false,
+) {
     private val judge = JankJudge()
     var throttled = startThrottled
         private set
     private var slowInARow = 0
     private var throttles = 0
-    private var probeAt = if (startThrottled) now() + PROBE_MS else 0L
+    private var probeAt = if (startThrottled && !pinned) now() + PROBE_MS else 0L
 
     /** Feed one frame gap; returns true when [throttled] changed. */
     fun onFrameGap(gapMs: Long): Boolean {
@@ -61,7 +66,7 @@ internal class MotionGovernor(private val now: () -> Long, startThrottled: Boole
         when (judge.onFrameGap(gapMs)) {
             JankJudge.Verdict.SLOW -> if (!throttled && ++slowInARow >= 2) {
                 throttled = true; throttles++; slowInARow = 0
-                probeAt = now() + PROBE_MS * throttles
+                probeAt = if (pinned) 0L else now() + PROBE_MS * throttles
                 return true
             }
             JankJudge.Verdict.SMOOTH -> slowInARow = 0

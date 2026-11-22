@@ -46,8 +46,10 @@ object MotionPrefs {
         speed = Speed.entries.getOrElse(p.getInt(KEY_SPEED, Speed.NORMAL.ordinal)) { Speed.NORMAL }
         auto = p.getBoolean(KEY_AUTO, true)
         // A weak box starts without animations; so does one that struggled last time. Both are tried again later.
-        val weak = isWeakDevice(context) || p.getBoolean(KEY_LEARNED_SLOW, false)
-        governor = MotionGovernor(System::currentTimeMillis, startThrottled = weak)
+        val weakHardware = isWeakDevice(context)
+        val weak = weakHardware || p.getBoolean(KEY_LEARNED_SLOW, false)
+        // On weak hardware animations never come back on their own: each probe made the lists stutter again.
+        governor = MotionGovernor(System::currentTimeMillis, startThrottled = weak, pinned = weakHardware)
         throttled = governor.throttled
     }
 
@@ -114,5 +116,7 @@ object MotionPrefs {
     private const val KEY_AUTO = "auto"
     private const val KEY_LEARNED_SLOW = "learned_slow"
     private const val STARTUP_GRACE_MS = 6_000L
-    private const val WEAK_RAM_BYTES = 1_500_000_000L
+
+    // The same line as DevicePerf.lite: a TV under 3 GB gets the light interface everywhere.
+    private const val WEAK_RAM_BYTES = 3L * 1024 * 1024 * 1024
 }

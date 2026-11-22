@@ -457,5 +457,5 @@ fun List<CategoryEntity>.applyCustomizationsWithCustoms(
     val orderIndex = c.categoryOrder.withIndex().associate { (i, k) -> k to i }
     val (pinned, rest) = entries.partition { it.key in orderIndex }
     return pinned.sortedBy { orderIndex.getValue(it.key) } +
-        (if (alphaRest) rest.sortedBy { it.displayName.lowercase() } else rest)
+        (if (alphaRest) rest.sortedWith(compareBy(NaturalOrder) { it.displayName }) else rest)
 }

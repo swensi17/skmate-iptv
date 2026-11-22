@@ -66,6 +66,9 @@ class LivePreviewEngine(
         }
     }
     private val engineId = System.identityHashCode(this)
+    /** How often the watchdog looks: every second, every two on a weak box (each look costs a native call). */
+    private val watchMs: Long get() = if (lowSpec) LOW_SPEC_WATCH_MS else WATCH_MS
+
     private val softwareMemory by lazy { SoftwareDecodeMemory(context) }
 
     private val lowSpec: Boolean by lazy { tv.own.owntv.core.player.PlayerBudget.of(context).lowSpec }
@@ -80,6 +83,11 @@ class LivePreviewEngine(
     override val isPlaying: StateFlow<Boolean> = _isPlaying.asStateFlow()
     private val _buffering = MutableStateFlow(false)
     override val buffering: StateFlow<Boolean> = _buffering.asStateFlow()
+
+    private val _softwareDecoding = MutableStateFlow(false)
+
+    /** The current channel is on the software decoder (no hardware padding rows to hide). */
+    val softwareDecoding: StateFlow<Boolean> = _softwareDecoding.asStateFlow()
 
     private val _pictureReady = MutableStateFlow(false)
 
@@ -268,7 +276,9 @@ class LivePreviewEngine(
         val p = player ?: MediaPlayer(vlc).also { player = it; it.setEventListener(::onEvent) }
         surface?.let { attach(p, it) }
         val software = softwareTried
-        val maxHeight = maxVideoHeight
+        _softwareDecoding.value = software
+        // A weak box never asks an adaptive stream for more than 1080p: 4K only filled its memory.
+        val maxHeight = maxVideoHeight ?: if (lowSpec) LOW_SPEC_MAX_HEIGHT else null
         val caching = cachingMs()
         val agent = userAgent ?: DEFAULT_UA
         val referer = headerValue("Referer")
@@ -321,7 +331,7 @@ class LivePreviewEngine(
         _pictureReady.value = false
         openedAt = SystemClock.elapsedRealtime()
         main.removeCallbacks(watchdog)
-        main.postDelayed(watchdog, WATCH_MS)
+        main.postDelayed(watchdog, watchMs)
     }
 
     private fun headerValue(name: String): String? = headers?.lineSequence()
@@ -332,7 +342,7 @@ class LivePreviewEngine(
         val secs = liveBufferOverride?.secs ?: liveBufferSecs
         // A connection that keeps stalling gets a deeper buffer on the next open (see [StallMeter]).
         // libVLC holds the first picture until this much is buffered, so it is most of the zap time: 1 s
-        // (libVLC's own default), 1.5 s on a weak box. A connection that keeps stalling still gets more.
+        // (libVLC's own default), 3 s on a weak box, where a short buffer stuttered on a slow provider. A connection that keeps stalling still gets more.
         val base = secs?.let { it * MS_PER_SEC } ?: if (lowSpec) LOW_SPEC_CACHE_MS else DEFAULT_CACHE_MS
         return (base + stalls.extraSecs() * MS_PER_SEC).coerceIn(MIN_CACHE_MS, MAX_CACHE_MS)
     }
@@ -462,7 +472,7 @@ class LivePreviewEngine(
                     main.post { snapshotBusy = false; if (gen == openGen && currentUrl == url) judge(snap, url) }
                 }
             }
-            main.postDelayed(this, WATCH_MS)
+            main.postDelayed(this, watchMs)
         }
     }
 
@@ -633,13 +643,15 @@ class LivePreviewEngine(
         private const val DEFAULT_UA = "VLC/3.0.20 LibVLC/3.0.20"
         /** The cache behind the picture when the latency setting says nothing: enough for a slow segment. */
         private const val DEFAULT_CACHE_MS = 1_000
-        private const val LOW_SPEC_CACHE_MS = 1_500
+        private const val LOW_SPEC_CACHE_MS = 3_000
         private const val LOW_SPEC_HLS_BUFFER_MS = 10_000
         private const val SKIP_LOOP_FILTER_NON_KEY = 3
         private const val MS_PER_SEC = 1_000
         private const val MIN_CACHE_MS = 500
         private const val MAX_CACHE_MS = 30_000
         private const val WATCH_MS = 1_000L
+        private const val LOW_SPEC_WATCH_MS = 2_000L
+        private const val LOW_SPEC_MAX_HEIGHT = 1080
         /** The longest the main thread waits for libVLC to let go of a surface. */
         private const val DETACH_WAIT_MS = 400L
         /** No byte received this long after opening: the server is not answering. */

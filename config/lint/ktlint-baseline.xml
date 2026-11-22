@@ -662,8 +662,8 @@
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/shell/components/SyncStatusPill.kt">
         <error line="3" column="1" source="standard:import-ordering" />
-        <error line="87" column="1" source="standard:no-consecutive-blank-lines" />
-        <error line="401" column="1" source="standard:no-consecutive-blank-lines" />
+        <error line="86" column="1" source="standard:no-consecutive-blank-lines" />
+        <error line="407" column="1" source="standard:no-consecutive-blank-lines" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/shell/components/TvBoxChannelPanel.kt">
         <error line="115" column="9" source="standard:property-naming" />
@@ -777,7 +777,7 @@
         <error line="3" column="1" source="standard:import-ordering" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/player/MpvVideoSurface.kt">
-        <error line="290" column="19" source="standard:property-naming" />
+        <error line="278" column="19" source="standard:property-naming" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/player/PlayerClock.kt">
         <error line="3" column="1" source="standard:import-ordering" />

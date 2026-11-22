@@ -243,19 +243,7 @@ fun ExoPreviewSurface(
                     update = { it.keepScreenOn = keepAwake },
                 )
             } else {
-                AndroidView(
-                    modifier = viewModifier,
-                    factory = { ctx ->
-                        SurfaceView(ctx).apply {
-                            holder.addCallback(object : SurfaceHolder.Callback {
-                                override fun surfaceCreated(holder: SurfaceHolder) = engine.setSurface(holder.surface)
-                                override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) = engine.setSurfaceSize(width, height)
-                                override fun surfaceDestroyed(holder: SurfaceHolder) = engine.detachSurface(holder.surface)
-                            })
-                        }
-                    },
-                    update = { it.keepScreenOn = keepAwake },
-                )
+                PaddedSurfaceView(engine, viewModifier, keepAwake)
             }
         }
         // Subtitle overlay — mounted ONLY while subs are on, so 4K live keeps its direct hardware-overlay path.
@@ -387,4 +375,38 @@ private fun anchor(cue: androidx.media3.common.text.Cue, position: SubtitleStyle
             },
         )
         .build()
+}
+
+/**
+ * The full-screen live picture: a SurfaceView in a [DecoderPaddingFrame]. The hardware decoder's padding
+ * rows (1080 → 1088) are pushed below the frame's edge and clipped; the engine is still told the visible size.
+ */
+@Suppress("FunctionNaming")
+@Composable
+private fun PaddedSurfaceView(engine: LivePreviewEngine, modifier: Modifier, keepAwake: Boolean) {
+    val software by engine.softwareDecoding.collectAsStateWithLifecycle()
+    val videoSize by engine.videoSize.collectAsStateWithLifecycle()
+    val extra = if (software) 1f else DecoderPaddingFrame.paddingRatio(videoSize?.second ?: 0)
+    AndroidView(
+        modifier = modifier,
+        factory = { ctx ->
+            DecoderPaddingFrame(ctx).apply {
+                val frame = this
+                addView(
+                    SurfaceView(ctx).apply {
+                        holder.addCallback(object : SurfaceHolder.Callback {
+                            override fun surfaceCreated(holder: SurfaceHolder) = engine.setSurface(holder.surface)
+                            override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) =
+                                engine.setSurfaceSize(width, (height / frame.extra).toInt())
+                            override fun surfaceDestroyed(holder: SurfaceHolder) = engine.detachSurface(holder.surface)
+                        })
+                    },
+                )
+            }
+        },
+        update = {
+            it.keepScreenOn = keepAwake
+            it.extra = extra
+        },
+    )
 }
