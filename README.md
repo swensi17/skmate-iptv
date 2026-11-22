@@ -11,9 +11,11 @@
 M3U и Xtream Codes, телегид (EPG), архив, профили — управление только пультом, без рекламы и аккаунтов.</p>
 
 <p align="center">
-  <a href="https://t.me/skmates"><img alt="Канал в Telegram" src="https://img.shields.io/badge/%D0%9A%D0%B0%D0%BD%D0%B0%D0%BB-%40skmates-26A5E4?style=for-the-badge&logo=telegram&logoColor=white"></a>
-  &nbsp;
-  <a href="https://t.me/skmatetv"><img alt="Группа в Telegram" src="https://img.shields.io/badge/%D0%93%D1%80%D1%83%D0%BF%D0%BF%D0%B0-%40skmatetv-26A5E4?style=for-the-badge&logo=telegram&logoColor=white"></a>
+  <a href="https://t.me/skmates"><img alt="Канал в Telegram: @skmates" src="docs/brand/telegram/channel.svg" width="132"></a>
+  &nbsp;&nbsp;
+  <a href="https://t.me/skmatetv"><img alt="Группа в Telegram: @skmatetv" src="docs/brand/telegram/group.svg" width="132"></a>
+  &nbsp;&nbsp;
+  <a href="https://t.me/swensi17"><img alt="Связь с автором в Telegram: @swensi17" src="docs/brand/telegram/dm.svg" width="132"></a>
 </p>
 
 <p align="center">
