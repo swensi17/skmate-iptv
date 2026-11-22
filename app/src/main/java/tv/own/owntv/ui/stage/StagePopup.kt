@@ -252,7 +252,8 @@ fun StagePopupOption(
 
 /**
  * The single-choice marker: a check on the chosen row (accent; white on the focused row) and nothing on
- * the others, as Android TV's own lists do. Same 24 px slot either way, so the titles stay aligned.
+ * the others, as Android TV's own lists do. It goes at the row's end (the option's trailing slot); the
+ * same 24 px slot either way, so the row's right edge stays even.
  */
 @Composable
 fun StagePopupRadio(on: Boolean, focused: Boolean) {

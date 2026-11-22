@@ -76,7 +76,8 @@ fun NavigationSettingsPopup(
                 subtitle = stringResource(text.second),
                 onClick = { onStyle(value) },
                 modifier = if (i == 0) Modifier.focusRequester(first) else Modifier,
-                leading = { focused -> StagePopupRadio(on = value == style, focused = focused) },
+                chosen = value == style,
+                trailing = { focused -> StagePopupRadio(on = value == style, focused = focused) },
             )
         }
         StagePopupDivider()

@@ -479,10 +479,10 @@
         <error line="564" column="1" source="standard:kdoc" />
         <error line="565" column="1" source="standard:spacing-between-declarations-with-comments" />
         <error line="567" column="1" source="standard:spacing-between-declarations-with-comments" />
-        <error line="590" column="22" source="standard:wrapping" />
-        <error line="592" column="64" source="standard:wrapping" />
-        <error line="1339" column="1" source="standard:spacing-between-declarations-with-annotations" />
-        <error line="1339" column="29" source="standard:annotation" />
+        <error line="593" column="22" source="standard:wrapping" />
+        <error line="595" column="50" source="standard:wrapping" />
+        <error line="1348" column="1" source="standard:spacing-between-declarations-with-annotations" />
+        <error line="1348" column="29" source="standard:annotation" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/settings/SettingsViewModel.kt">
         <error line="5" column="1" source="standard:import-ordering" />
@@ -528,22 +528,22 @@
         <error line="1334" column="40" source="standard:wrapping" />
         <error line="1335" column="124" source="standard:wrapping" />
         <error line="1335" column="143" source="standard:wrapping" />
-        <error line="2297" column="1" source="standard:kdoc" />
-        <error line="2307" column="1" source="standard:spacing-between-declarations-with-comments" />
-        <error line="2309" column="1" source="standard:spacing-between-declarations-with-comments" />
-        <error line="2344" column="25" source="standard:wrapping" />
-        <error line="2345" column="144" source="standard:wrapping" />
-        <error line="2346" column="25" source="standard:wrapping" />
-        <error line="2347" column="144" source="standard:wrapping" />
+        <error line="2302" column="1" source="standard:kdoc" />
+        <error line="2312" column="1" source="standard:spacing-between-declarations-with-comments" />
+        <error line="2314" column="1" source="standard:spacing-between-declarations-with-comments" />
         <error line="2349" column="25" source="standard:wrapping" />
-        <error line="2350" column="157" source="standard:wrapping" />
+        <error line="2350" column="144" source="standard:wrapping" />
         <error line="2351" column="25" source="standard:wrapping" />
-        <error line="2352" column="69" source="standard:wrapping" />
+        <error line="2352" column="144" source="standard:wrapping" />
         <error line="2354" column="25" source="standard:wrapping" />
-        <error line="2355" column="111" source="standard:wrapping" />
+        <error line="2355" column="157" source="standard:wrapping" />
         <error line="2356" column="25" source="standard:wrapping" />
-        <error line="2357" column="150" source="standard:wrapping" />
-        <error line="2516" column="1" source="standard:no-consecutive-blank-lines" />
+        <error line="2357" column="69" source="standard:wrapping" />
+        <error line="2359" column="25" source="standard:wrapping" />
+        <error line="2360" column="111" source="standard:wrapping" />
+        <error line="2361" column="25" source="standard:wrapping" />
+        <error line="2362" column="150" source="standard:wrapping" />
+        <error line="2521" column="1" source="standard:no-consecutive-blank-lines" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/settings/WeatherSettingsScreen.kt">
         <error line="222" column="37" source="standard:annotation" />
@@ -673,7 +673,7 @@
         <error line="388" column="19" source="standard:property-naming" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/shell/components/TvBoxPlayerInfo.kt">
-        <error line="136" column="19" source="standard:property-naming" />
+        <error line="144" column="19" source="standard:property-naming" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/shell/components/VodStage.kt">
         <error line="3" column="1" source="standard:import-ordering" />
@@ -784,18 +784,18 @@
     </file>
     <file name="app/src/main/java/tv/own/owntv/player/PlayerHud.kt">
         <error line="3" column="1" source="standard:import-ordering" />
-        <error line="353" column="69" source="standard:wrapping" />
-        <error line="355" column="6" source="standard:wrapping" />
-        <error line="356" column="65" source="standard:wrapping" />
-        <error line="358" column="6" source="standard:wrapping" />
-        <error line="396" column="9" source="standard:keyword-spacing" />
-        <error line="796" column="17" source="standard:wrapping" />
-        <error line="797" column="133" source="standard:wrapping" />
-        <error line="839" column="17" source="standard:wrapping" />
-        <error line="845" column="17" source="standard:wrapping" />
-        <error line="846" column="17" source="standard:wrapping" />
-        <error line="852" column="17" source="standard:wrapping" />
-        <error line="1170" column="19" source="standard:property-naming" />
+        <error line="358" column="69" source="standard:wrapping" />
+        <error line="360" column="6" source="standard:wrapping" />
+        <error line="361" column="65" source="standard:wrapping" />
+        <error line="363" column="6" source="standard:wrapping" />
+        <error line="401" column="9" source="standard:keyword-spacing" />
+        <error line="830" column="17" source="standard:wrapping" />
+        <error line="831" column="133" source="standard:wrapping" />
+        <error line="875" column="17" source="standard:wrapping" />
+        <error line="881" column="17" source="standard:wrapping" />
+        <error line="882" column="17" source="standard:wrapping" />
+        <error line="888" column="17" source="standard:wrapping" />
+        <error line="1206" column="19" source="standard:property-naming" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/player/PlayerHudChrome.kt">
         <error line="3" column="1" source="standard:import-ordering" />

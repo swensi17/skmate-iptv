@@ -245,7 +245,7 @@ private fun LanguageStageRow(
         value = SettingValue.Custom {
             Row(horizontalArrangement = Arrangement.spacedBy(12.mpx), verticalAlignment = Alignment.CenterVertically) {
                 if (coverage != null) StageTag(stringResource(R.string.settings_language_coverage, coverage))
-                StageRadio(selected)
+                tv.own.owntv.ui.stage.StagePopupRadio(on = selected, focused = false)
             }
         },
         onClick = onClick,

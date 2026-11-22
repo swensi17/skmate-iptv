@@ -1615,8 +1615,11 @@ private fun androidx.compose.foundation.layout.ColumnScope.StartupChannelList(
                 focusStyle = tv.own.owntv.ui.stage.StageFocus.FX,
                 modifier = Modifier.fillMaxWidth().height(52.mpx),
             ) { focused ->
-                Row(Modifier.padding(horizontal = 14.mpx), horizontalArrangement = Arrangement.spacedBy(12.mpx), verticalAlignment = Alignment.CenterVertically) {
-                    tv.own.owntv.features.settings.StageRadio(isSelected)
+                Row(
+                    Modifier.fillMaxWidth().padding(horizontal = 14.mpx),
+                    horizontalArrangement = Arrangement.spacedBy(12.mpx),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
                     Text(
                         channel.number?.toString().orEmpty(), style = tv.own.owntv.ui.theme.stageText(16, 700),
                         color = tv.own.owntv.ui.theme.StageColors.Dim, modifier = Modifier.width(54.mpx), maxLines = 1, overflow = TextOverflow.Ellipsis,
@@ -1625,7 +1628,9 @@ private fun androidx.compose.foundation.layout.ColumnScope.StartupChannelList(
                         channel.name, style = tv.own.owntv.ui.theme.stageText(18, 600),
                         color = if (isSelected || focused) tv.own.owntv.ui.theme.StageColors.Text else tv.own.owntv.ui.theme.StageColors.Muted,
                         maxLines = 1, overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f),
                     )
+                    tv.own.owntv.ui.stage.StagePopupRadio(on = isSelected, focused = focused)
                 }
             }
         }

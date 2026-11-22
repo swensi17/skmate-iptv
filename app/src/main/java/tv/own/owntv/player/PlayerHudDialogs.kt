@@ -429,7 +429,7 @@ private fun DialogScaffold(
 private fun OptionRow(label: String, selected: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
     tv.own.owntv.ui.stage.StagePopupOption(
         title = label, onClick = onClick, modifier = modifier, chosen = selected,
-        leading = { f -> tv.own.owntv.ui.stage.StagePopupRadio(selected, f) },
+        trailing = { f -> tv.own.owntv.ui.stage.StagePopupRadio(selected, f) },
     )
 }
 

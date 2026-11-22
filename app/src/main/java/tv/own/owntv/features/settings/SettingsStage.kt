@@ -585,14 +585,18 @@ private fun SettingPanelBody(help: SettingHelp) {
         val a = stageAccent
         help.choices.forEachIndexed { i, label ->
             val on = i == help.chosen
-            Row(Modifier.height(44.mpx), horizontalArrangement = Arrangement.spacedBy(12.mpx), verticalAlignment = Alignment.CenterVertically) {
-                StageRadio(on)
+            Row(
+                Modifier.fillMaxWidth().height(44.mpx),
+                horizontalArrangement = Arrangement.spacedBy(12.mpx),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
                 Text(label, style = stageText(18, 600), color = if (on) StageColors.Text else StageColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis,
                     // A long choice gives way to the RECOMMENDED tag, never the other way round.
-                    modifier = Modifier.weight(1f, fill = false))
+                    modifier = Modifier.weight(1f))
                 if (i == help.recommended) {
                     Box(Modifier.padding(start = 6.mpx)) { StageTag(stringResource(R.string.settings_panel_recommended).uppercase()) }
                 }
+                tv.own.owntv.ui.stage.StagePopupRadio(on = on, focused = false)
             }
         }
     }
@@ -675,14 +679,19 @@ fun androidx.compose.foundation.layout.ColumnScope.PanelChoices(picker: PanelPic
                     focusStyle = StageFocus.FX,
                     modifier = Modifier.fillMaxWidth().heightIn(min = 52.mpx).then(if (i == selIndex) Modifier.focusRequester(first) else Modifier),
                 ) { focused ->
-                    Row(Modifier.padding(horizontal = 14.mpx, vertical = 8.mpx), horizontalArrangement = Arrangement.spacedBy(12.mpx), verticalAlignment = Alignment.CenterVertically) {
-                        StageRadio(on)
-                        Column(Modifier.weight(1f, fill = false)) {
+                    Row(
+                        Modifier.fillMaxWidth().padding(horizontal = 14.mpx, vertical = 8.mpx),
+                        horizontalArrangement = Arrangement.spacedBy(12.mpx),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Column(Modifier.weight(1f)) {
                             Text(label, style = stageText(18, 600), color = if (on || focused) StageColors.Text else StageColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis)
                             picker.descriptions[value]?.let { Text(it, style = stageText(14.5f, 500), color = StageColors.Muted, maxLines = 2, overflow = TextOverflow.Ellipsis) }
                             picker.preview?.let { Box(Modifier.padding(top = 8.mpx)) { it(value) } }
                         }
                         if (label == recommended) StageTag(stringResource(R.string.settings_panel_recommended).uppercase())
+                        // The check at the row's end, the same mark as every other single-choice list.
+                        tv.own.owntv.ui.stage.StagePopupRadio(on = on, focused = focused)
                     }
                 }
             }

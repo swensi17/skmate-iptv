@@ -85,8 +85,11 @@ fun MoveToCategoryDialog(
                     title = target.displayName,
                     onClick = { selectedTarget = target.id },
                     chosen = selected,
-                    leading = { f -> tv.own.owntv.ui.stage.StagePopupRadio(selected, f) },
-                    trailing = { Text(stringResource(R.string.common_number_grouped, target.count), style = stageText(18, 700), color = StageColors.Muted) },
+                    trailing = { f ->
+                        val count = stringResource(R.string.common_number_grouped, target.count)
+                        Text(count, style = stageText(18, 700), color = StageColors.Muted)
+                        tv.own.owntv.ui.stage.StagePopupRadio(selected, f)
+                    },
                 )
             }
         }

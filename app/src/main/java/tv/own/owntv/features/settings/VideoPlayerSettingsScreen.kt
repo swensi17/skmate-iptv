@@ -2192,16 +2192,21 @@ internal fun PickerDialog(
                         subtitle = descriptions[value],
                         onClick = { onSelect(value) },
                         modifier = if (index == selIndex) Modifier.focusRequester(fr) else Modifier,
-                        leading = { focused ->
-                            tv.own.owntv.ui.stage.StagePopupRadio(on = isSel, focused = focused)
-                            leadingIcons[value]?.let { tv.own.owntv.ui.stage.StagePopupIcon(it) }
+                        chosen = isSel,
+                        leading = leadingIcons[value]?.let { icon ->
+                            { _ -> tv.own.owntv.ui.stage.StagePopupIcon(icon) }
                         },
-                        trailing = trailingLabels[value]?.let { name ->
-                            { _ -> tv.own.owntv.ui.components.ProviderChip(name = name, maxWidth = 160.mpx, compact = true) }
+                        // The check at the row's end, as a TV's own lists have it; the titles start in one line.
+                        trailing = { focused ->
+                            trailingLabels[value]?.let { name ->
+                                tv.own.owntv.ui.components.ProviderChip(name = name, maxWidth = 160.mpx, compact = true)
+                            }
+                            tv.own.owntv.ui.stage.StagePopupRadio(on = isSel, focused = focused)
                         },
                     )
                     optionPreview?.let { preview ->
-                        Box(Modifier.padding(start = 64.mpx, end = 22.mpx, top = 4.mpx, bottom = 10.mpx)) { preview(value) }
+                        val inset = Modifier.padding(horizontal = 22.mpx).padding(top = 4.mpx, bottom = 10.mpx)
+                        Box(inset) { preview(value) }
                     }
                 }
             }
