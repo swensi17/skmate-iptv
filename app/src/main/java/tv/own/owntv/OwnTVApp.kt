@@ -99,6 +99,7 @@ class OwnTVApp : Application(), SingletonImageLoader.Factory, androidx.work.Conf
         // repository instead of relying on core to guess it, the same as the phone app does. A
         // default that happens to be right for one app is a trap for every other one.
         tv.own.owntv.core.CoreBuildInfo.releaseRepo = "swensi17/skmate-iptv"
+        tv.own.owntv.core.CoreBuildInfo.authorPlaylistUrl = "https://nutrokstore.xyz/skmate/playlist.m3u8"
         // Fixed for this process before any player exists: the setting applies only after a restart.
         tv.own.owntv.core.player.FfmpegAudioSetting.load(this)
         // The live player's engine loads in the background now, so the first channel opens on a ready one.

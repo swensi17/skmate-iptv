@@ -39,6 +39,7 @@
 1	performance	app/src/main/java/tv/own/owntv/MainActivity.kt	profiles-loaded
 1	technical	app/src/main/java/tv/own/owntv/MainActivity.kt	screen
 1	compiler	app/src/main/java/tv/own/owntv/OwnTVApp.kt	DEPRECATION
+1	url	app/src/main/java/tv/own/owntv/OwnTVApp.kt	https://nutrokstore.xyz/skmate/playlist.m3u8
 1	file-path	app/src/main/java/tv/own/owntv/OwnTVApp.kt	image_cache
 1	performance	app/src/main/java/tv/own/owntv/OwnTVApp.kt	koin-started
 1	url	app/src/main/java/tv/own/owntv/OwnTVApp.kt	swensi17/skmate-iptv

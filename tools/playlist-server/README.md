@@ -31,6 +31,8 @@
 - процесс pm2 `skmate-playlist`, порт `127.0.0.1:18110`
 - настройки в `/root/secrets/skmate-playlist/env` (права 600, не в git): `SKMATE_PL_TOKEN`, `SKMATE_PL_ADMINS`
 - адреса: `/playlist.m3u8` (плейлист), `/health` (сводка)
+- снаружи: `https://nutrokstore.xyz/skmate/playlist.m3u8` (блок `location` в nginx-конфиге `nutrokstore`, бэкапы в `/root/backups-nginx/`)
+- бот: `@skmate_playlist_bot`
 
 Обновить код:
 

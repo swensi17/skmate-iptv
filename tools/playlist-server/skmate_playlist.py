@@ -399,6 +399,15 @@ def say(chat: int, text: str) -> None:
         print("send failed:", e, file=sys.stderr)
 
 
+def channels_word(n):
+    """«1 канал», «2 канала», «5 каналов»."""
+    if n % 10 == 1 and n % 100 != 11:
+        return f"{n} канал"
+    if 2 <= n % 10 <= 4 and not 12 <= n % 100 <= 14:
+        return f"{n} канала"
+    return f"{n} каналов"
+
+
 def safe_name(name: str) -> str:
     base = re.sub(r"[^\w.\-]+", "_", os.path.basename(name or "playlist.m3u8"))
     if not base.lower().endswith((".m3u", ".m3u8")):
@@ -437,7 +446,7 @@ def handle(msg: dict) -> None:
         os.makedirs(FILES, exist_ok=True)
         with open(os.path.join(FILES, safe_name(doc.get("file_name"))), "w", encoding="utf-8") as f:
             f.write(text_body)
-        say(chat, f"принял {len(entries)} каналов, проверяю")
+        say(chat, f"принял {channels_word(len(entries))}, проверяю")
         counts = check_round(force_new=True)
         say(chat, f"проверено {counts['checked']}\n" + report(summary()))
     elif text in ("/start", "/help"):
