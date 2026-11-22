@@ -32,6 +32,7 @@ import androidx.compose.runtime.produceState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -175,12 +176,16 @@ fun LiveScreen(
 
     // TV-box look: the preview (picture and programme) stays on the channel being watched while focus only
     // passes over rows — on the way up to the search or the sort, say. It moves to a row focus rests on.
-    var pendingPreview by remember { mutableStateOf<ChannelEntity?>(null) }
-    LaunchedEffect(pendingPreview?.id) {
-        val ch = pendingPreview ?: return@LaunchedEffect
-        delay(PreviewDwellMs)
-        vm.onChannelFocused(ch)
-        pendingPreview = null
+    // Not composition state: each focus step writes it, and a state read here rebuilt the whole screen
+    // (list, panels, preview) on every key press, which a weak TV felt on each step.
+    val pendingPreview = remember { kotlinx.coroutines.flow.MutableStateFlow<ChannelEntity?>(null) }
+    LaunchedEffect(Unit) {
+        pendingPreview.collectLatest { ch ->
+            if (ch == null) return@collectLatest
+            delay(PreviewDwellMs)
+            vm.onChannelFocused(ch)
+            pendingPreview.value = null
+        }
     }
 
     // TV-box look: back from full screen the preview takes the channel again at once, wherever focus lands —
@@ -752,7 +757,7 @@ fun LiveScreen(
                     .padding(start = listX, top = 118.mpx)
                     .width(listWidth)
                     .fillMaxHeight()
-                    .onFocusChanged { channelPaneFocused = it.hasFocus; if (!it.hasFocus) pendingPreview = null }
+                    .onFocusChanged { channelPaneFocused = it.hasFocus; if (!it.hasFocus) pendingPreview.value = null }
                     .chNavPaging(
                         enabled = chNavEnabled,
                         upSkip = chNavUpSkip,
@@ -816,7 +821,7 @@ fun LiveScreen(
                     modifier = Modifier.padding(start = 4.mpx)
                         .then(if (tv.own.owntv.features.shell.TvBoxNav) Modifier.fillMaxWidth().padding(end = 4.mpx) else Modifier)
                         // Up to the tools: a row focus only passed over does not take the preview.
-                        .onFocusChanged { if (it.hasFocus) pendingPreview = null }
+                        .onFocusChanged { if (it.hasFocus) pendingPreview.value = null }
                         .focusGroup(),
                 ) {
                     tv.own.owntv.ui.stage.StageSearchField(
@@ -962,7 +967,11 @@ fun LiveScreen(
                                         }
                                     },
                                     onFocus = {
-                                        if (tv.own.owntv.features.shell.TvBoxNav) pendingPreview = channel else vm.onChannelFocused(channel)
+                                        if (tv.own.owntv.features.shell.TvBoxNav) {
+                                            pendingPreview.value = channel
+                                        } else {
+                                            vm.onChannelFocused(channel)
+                                        }
                                         if (rememberLive) perCategoryChannelIds[selectedKey] = channel.id
                                     },
                                     onClick = {

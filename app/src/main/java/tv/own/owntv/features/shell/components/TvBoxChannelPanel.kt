@@ -77,7 +77,9 @@ object TvBoxDock {
 
     /** The picture's width on a screen [screenWidth] wide: all the room right of the list (and of the
      *  categories, [inset], when they are open beside it). */
-    fun width(screenWidth: Dp, inset: Dp = 0.mpx): Dp = screenWidth - Left - inset - 36.mpx
+    // Never below zero: laid out for a frame at almost no width (a panel opening over the player), the
+    // padding built from it went negative and Compose threw.
+    fun width(screenWidth: Dp, inset: Dp = 0.mpx): Dp = (screenWidth - Left - inset - 36.mpx).coerceAtLeast(0.mpx)
     fun height(screenWidth: Dp, inset: Dp = 0.mpx): Dp = width(screenWidth, inset) * 9f / 16f
 }
 
@@ -192,11 +194,13 @@ fun TvBoxChannelPanel(
         )
         if (loading) {
             Box(
-                Modifier.padding(start = TvBoxDock.Left + inset, top = TvBoxDock.Top).size(dockW, dockW * 9f / 16f),
+                Modifier
+                    .padding(start = (TvBoxDock.Left + inset).coerceAtLeast(0.mpx), top = TvBoxDock.Top)
+                    .size(dockW, dockW * 9f / 16f),
                 contentAlignment = Alignment.Center,
             ) { tv.own.owntv.ui.components.OwnTVSpinner(sizeDp = 44, color = Color.White.copy(alpha = 0.9f)) }
         }
-        Row(Modifier.fillMaxHeight().padding(start = inset)) {
+        Row(Modifier.fillMaxHeight().padding(start = inset.coerceAtLeast(0.mpx))) {
             // Channels.
             Column(
                 Modifier.width(ListWidth).fillMaxHeight()
@@ -237,7 +241,10 @@ fun TvBoxChannelPanel(
         }
         // Under the picture: the focused channel and its guide, the width of the picture.
         Column(
-            Modifier.padding(start = TvBoxDock.Left + inset, top = TvBoxDock.Top + TvBoxDock.height(screenW, inset) + 24.mpx)
+            Modifier.padding(
+                start = (TvBoxDock.Left + inset).coerceAtLeast(0.mpx),
+                top = TvBoxDock.Top + TvBoxDock.height(screenW, inset) + 24.mpx,
+            )
                 .width(dockW).fillMaxHeight(),
         ) {
             val head = shown

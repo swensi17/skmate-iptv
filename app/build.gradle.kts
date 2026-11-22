@@ -494,3 +494,8 @@ licensee {
     allowDependency("org.videolan.android", "libvlc-all", "3.7.7") { because("LGPL-2.1-or-later, used as a dynamically linked library") }
     allowDependency("uz.skmate.iptv", "libmpv", "2026.10.4") { because("GPL-3.0-or-later binaries, MIT wrapper: libmpv/") }
 }
+
+composeCompiler {
+    // Engine models are immutable: see the file for why this matters on a weak TV.
+    stabilityConfigurationFiles.add(project.layout.projectDirectory.file("compose-stability.conf"))
+}
