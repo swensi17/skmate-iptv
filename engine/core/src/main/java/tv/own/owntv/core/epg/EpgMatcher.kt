@@ -145,10 +145,17 @@ object EpgMatcher {
      * inside the loop re-runs the same regex millions of times over a catalogue — it dominated the
      * scan's allocation. Callers that already know the runs (see [Prepared]) pass them in.
      */
-    internal fun scoreNormalized(a: String, b: String, da: List<String>, db: List<String>): Double {
+    internal fun scoreNormalized(
+        a: String,
+        b: String,
+        da: List<String>,
+        db: List<String>,
+        ta: Set<String> = tokens(a),
+        tb: Set<String> = tokens(b),
+    ): Double {
         if (a.isEmpty() || b.isEmpty()) return 0.0
         if (a == b) return 1.0
-        var score = maxOf(jaroWinkler(a, b), tokenDice(a, b))
+        var score = maxOf(jaroWinkler(a, b), tokenDice(ta, tb))
         if (da != db) {
             val cap = if (da.isNotEmpty() && db.isNotEmpty()) DIGIT_MISMATCH_CAP else DIGIT_MISSING_CAP
             score = minOf(score, cap)
@@ -157,9 +164,7 @@ object EpgMatcher {
     }
 
     /** Sørensen–Dice over the two token sets — order-insensitive word overlap. */
-    private fun tokenDice(a: String, b: String): Double {
-        val ta = a.split(' ').toSet()
-        val tb = b.split(' ').toSet()
+    private fun tokenDice(ta: Set<String>, tb: Set<String>): Double {
         if (ta.isEmpty() || tb.isEmpty()) return 0.0
         val inter = ta.count { it in tb }
         return 2.0 * inter / (ta.size + tb.size)
@@ -170,6 +175,12 @@ object EpgMatcher {
      * Digits are read by numeric value rather than by character, so a run written in another script
      * compares equal to its ASCII spelling — "MTV ٢" and "MTV 2" are the same channel.
      */
+    /**
+     * The words of a normalized name. Worked out once per name in a bulk scan: splitting both names on
+     * every one of millions of comparisons was most of the scan's time and garbage on a weak TV.
+     */
+    internal fun tokens(s: String): Set<String> = s.split(' ').toSet()
+
     private fun digitRuns(s: String): List<String> =
         DIGIT_RUN.findAll(s).map { run ->
             val digits = run.value
@@ -244,6 +255,8 @@ object EpgMatcher {
         val normId: String,
         internal val normNameDigits: List<String> = digitRuns(normName),
         internal val normIdDigits: List<String> = digitRuns(normId),
+        internal val normNameTokens: Set<String> = tokens(normName),
+        internal val normIdTokens: Set<String> = tokens(normId),
     )
 
     /** The chosen guide channel for a source channel, with the confidence that picked it. */
@@ -275,10 +288,11 @@ object EpgMatcher {
         val target = normalizeForEpg(channelName)
         if (target.isEmpty()) return null
         val targetDigits = digitRuns(target)
+        val targetTokens = tokens(target)
         var best: Result? = null
         for (c in candidates) {
-            val byName = scoreNormalized(target, c.normName, targetDigits, c.normNameDigits)
-            val byId = scoreNormalized(target, c.normId, targetDigits, c.normIdDigits)
+            val byName = scoreNormalized(target, c.normName, targetDigits, c.normNameDigits, targetTokens, c.normNameTokens)
+            val byId = scoreNormalized(target, c.normId, targetDigits, c.normIdDigits, targetTokens, c.normIdTokens)
             val score = maxOf(byName, byId)
             if (score >= minScore && (best == null || score > best.score)) {
                 best = Result(c.epgChannelId, c.displayName, score)
@@ -313,7 +327,9 @@ object EpgMatcher {
         if (channelNames.size < PARALLEL_MIN_ITEMS) {
             return channelNames.map { bestEpgMatchPrepared(it, candidates, minScore) }
         }
-        val workers = kotlin.math.max(2, Runtime.getRuntime().availableProcessors())
+        // Half the cores: the scan runs in the background (often right at start-up), and taking every core left
+        // a weak TV's interface without one, which froze it until the system closed the app.
+        val workers = kotlin.math.max(1, Runtime.getRuntime().availableProcessors() / 2)
         val chunkSize = (channelNames.size + workers - 1) / workers
         return coroutineScope {
             channelNames.chunked(chunkSize)

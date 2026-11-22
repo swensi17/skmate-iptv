@@ -29,14 +29,25 @@ class GuideAutoLink(
     private val epgRepository: EpgRepository,
 ) {
     /** Links what it can and returns how many channels it linked. Never throws. */
-    suspend fun run(): Int = runCatching {
+    suspend fun run(force: Boolean = true): Int = runCatching {
         val pid = settings.activeProfileId.first()
         if (pid < 0) return 0
         val playlistIds = sourceDao.sourceIdsForProfile(pid)
         if (playlistIds.isEmpty()) return 0
         val cust = customize.observe(pid, MediaType.LIVE).first()
+        // At start-up it only runs when something changed since the last scan: channels that never match
+        // were scored against the whole guide on every launch, minutes of every core on a weak TV.
+        val key = listOf(
+            pid,
+            playlistIds.sorted(),
+            channelDao.countAll(playlistIds).first(),
+            GuideCandidates(epgDao).all().size,
+            cust.epgMatches.size,
+        ).joinToString("|")
+        if (!force && settings.guideAutoLinkKey() == key) return 0
         val outcome = EpgAutoMatcher(channelDao, GuideCandidates(epgDao))
             .run(cust, playlistIds, applyWithoutProgrammes = true)
+        settings.setGuideAutoLinkKey(key)
         val matches = outcome.applied.mapNotNull { (key, epgId) ->
             epgId.trim().lowercase().takeIf { it.isNotEmpty() }?.let { key to it }
         }.toMap()

@@ -416,6 +416,7 @@ class SettingsRepository(private val context: Context, private val localeStore: 
         /** The one-time "this stream judders at your TV's refresh rate" suggestion has been answered. */
         val AUTO_FRAME_RATE_PROMPTED = booleanPreferencesKey("auto_frame_rate_prompted")
         val PLAYER_CLOCK = booleanPreferencesKey("player_clock")
+        val GUIDE_AUTOLINK_KEY = stringPreferencesKey("guide_autolink_key")
         val PLAYER_CLOCK_SIZE = intPreferencesKey("player_clock_size")
         val PLAYER_CLOCK_WEIGHT = intPreferencesKey("player_clock_weight")
         val PLAYER_CLOCK_BG = intPreferencesKey("player_clock_bg")
@@ -2599,6 +2600,13 @@ class SettingsRepository(private val context: Context, private val localeStore: 
 
     suspend fun setPlayerClock(enabled: Boolean) {
         context.dataStore.edit { it[Keys.PLAYER_CLOCK] = enabled }
+    }
+
+    /** What the guide auto-link last scored (playlists, channels, guide): unchanged means nothing new to link. */
+    suspend fun guideAutoLinkKey(): String? = context.dataStore.data.first()[Keys.GUIDE_AUTOLINK_KEY]
+
+    suspend fun setGuideAutoLinkKey(key: String) {
+        context.dataStore.edit { it[Keys.GUIDE_AUTOLINK_KEY] = key }
     }
 
     /** How the player clock looks: each part is an index into its list of choices (see [ClockStyle]). */

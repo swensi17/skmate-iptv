@@ -103,7 +103,7 @@ class AutoRefresh(
             // Channels added since the last guide download (or by a build without auto-linking) get
             // their guide by name; only channels with no guide yet are scored, so this stays cheap.
             rereadPlaylistsForNewParser(pid)
-            guideAutoLink.run()
+            guideAutoLink.run(force = false)
             refillGuideEmptiedByMigration()
             vodResort.runOnce()
         }

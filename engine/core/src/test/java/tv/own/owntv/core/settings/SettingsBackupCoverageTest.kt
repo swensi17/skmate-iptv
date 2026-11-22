@@ -19,6 +19,7 @@ class SettingsBackupCoverageTest {
     /** Keys the settings whitelist deliberately leaves out, each with its reason. */
     private val notInSettingsBackup = setOf(
         // Internal state and one-shot migration flags.
+        "guide_autolink_key",
         "active_profile_id", "default_source_id", "refresh_migration_done", "epg_refill_checked", "m3u_parser_revision",
         "m3u_vod_resort_checked",
         "restore_in_progress", "font_jakarta_migrated", "live_latency_reset_416", "auto_frame_rate_reset_416",

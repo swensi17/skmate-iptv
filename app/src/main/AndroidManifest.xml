@@ -353,6 +353,8 @@
             </intent-filter>
         </activity>
 
+        <!-- Lets a CPU profile be taken over adb on a real TV (shell only, nothing for other apps). -->
+        <profileable android:shell="true" tools:targetApi="29" />
     </application>
 
 </manifest>
