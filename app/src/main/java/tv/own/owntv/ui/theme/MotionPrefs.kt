@@ -47,6 +47,7 @@ object MotionPrefs {
         auto = p.getBoolean(KEY_AUTO, true)
         // A weak box starts without animations; so does one that struggled last time. Both are tried again later.
         val weakHardware = isWeakDevice(context)
+        pinnedWeak = weakHardware
         val weak = weakHardware || p.getBoolean(KEY_LEARNED_SLOW, false)
         // On weak hardware animations never come back on their own: each probe made the lists stutter again.
         governor = MotionGovernor(System::currentTimeMillis, startThrottled = weak, pinned = weakHardware)
@@ -79,10 +80,13 @@ object MotionPrefs {
     }
 
     @Volatile private var monitoring = false
+    private var pinnedWeak = false
 
     /** Watch the frames while the app is on screen (call from onStart); the first seconds, which compile and load, do not count. */
     fun startMonitoring() {
-        if (monitoring) return
+        // Nothing to judge on weak hardware (animations are off for good) or with Auto off: the watch woke the
+        // main thread on every display refresh for the whole session, which a weak TV paid for all the time.
+        if (monitoring || pinnedWeak || !auto) return
         monitoring = true
         lastFrameNs = 0L
         android.view.Choreographer.getInstance().postFrameCallbackDelayed(frameCallback, STARTUP_GRACE_MS)
