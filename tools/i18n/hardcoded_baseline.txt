@@ -18,7 +18,6 @@
 1	app/src/main/java/tv/own/owntv/features/customize/CustomizeViewModel.kt	Custom
 1	app/src/main/java/tv/own/owntv/features/customize/MoveToCategoryDialog.kt	new
 1	app/src/main/java/tv/own/owntv/features/live/LiveStage.kt	Mbps
-1	app/src/main/java/tv/own/owntv/features/remote/OwnTelegramBot.kt	0
 1	app/src/main/java/tv/own/owntv/features/remote/OwnTelegramBot.kt	code_at
 1	app/src/main/java/tv/own/owntv/features/remote/OwnTelegramBot.kt	data
 2	app/src/main/java/tv/own/owntv/features/remote/OwnTelegramBot.kt	deleteMessage
@@ -103,7 +102,6 @@
 3	app/src/main/java/tv/own/owntv/features/remote/OwnTelegramBot.kt	text
 1	app/src/main/java/tv/own/owntv/features/remote/OwnTelegramBot.kt	timeout
 1	app/src/main/java/tv/own/owntv/features/remote/OwnTelegramBot.kt	token
-1	app/src/main/java/tv/own/owntv/features/remote/OwnTelegramBot.kt	tries
 1	app/src/main/java/tv/own/owntv/features/remote/OwnTelegramBot.kt	type
 1	app/src/main/java/tv/own/owntv/features/remote/OwnTelegramBot.kt	update failed: ${it.message}
 1	app/src/main/java/tv/own/owntv/features/remote/OwnTelegramBot.kt	update_id

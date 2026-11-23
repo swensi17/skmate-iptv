@@ -61,6 +61,7 @@ class OwnTelegramBot(
     private var messageId = 0L
     private var wait = ""
     private var items: List<JSONObject> = emptyList()
+    private val wrongTries = HashMap<Long, Int>()
 
     private val token get() = prefs.get(KEY_TOKEN)
     private val owner get() = prefs.get(KEY_OWNER)?.toLongOrNull()
@@ -88,7 +89,7 @@ class OwnTelegramBot(
     private fun startPairing() {
         prefs.put(KEY_CODE, newCode())
         prefs.put(KEY_CODE_AT, System.currentTimeMillis().toString())
-        prefs.put(KEY_TRIES, "0")
+        wrongTries.clear()
     }
 
     fun newPairingCode() {
@@ -159,7 +160,8 @@ class OwnTelegramBot(
                 // Not owned yet: only the code from the TV's screen makes this account the owner.
                 val code = prefs.get(KEY_CODE)
                 val age = System.currentTimeMillis() - (prefs.get(KEY_CODE_AT)?.toLongOrNull() ?: 0L)
-                val tries = prefs.get(KEY_TRIES)?.toIntOrNull() ?: 0
+                // Wrong codes are counted per account: a stranger's guesses never lock the real owner out.
+                val tries = wrongTries[chatId] ?: 0
                 if (code == null || age > CODE_TTL_MS || tries >= MAX_TRIES) {
                     // Pairing is closed until the TV shows a new code (Settings → Telegram → Your own bot).
                     send(chatId, s(R.string.tg_bot_code_expired))
@@ -172,7 +174,7 @@ class OwnTelegramBot(
                     _state.value = State.Running((_state.value as? State.Waiting)?.botName.orEmpty(), name)
                     show(chatId, remoteScreen(), keypad(), note = s(R.string.tg_bot_linked), fresh = true)
                 } else {
-                    prefs.put(KEY_TRIES, (tries + 1).toString())
+                    wrongTries[chatId] = tries + 1
                     send(chatId, s(R.string.tg_bot_send_code))
                 }
                 return
@@ -357,7 +359,6 @@ class OwnTelegramBot(
         const val KEY_OWNER_NAME = "owner_name"
         const val KEY_CODE = "code"
         const val KEY_CODE_AT = "code_at"
-        const val KEY_TRIES = "tries"
         const val CODE_TTL_MS = 10 * 60 * 1000L
         const val MAX_TRIES = 5
         const val POLL_S = 50
