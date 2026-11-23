@@ -134,6 +134,10 @@ class OwnTVApp : Application(), SingletonImageLoader.Factory, androidx.work.Conf
         )
         // The Stage UI's own defaults, once per install: Docked · Compact rail, glass
         // on at 50%, the Stage background; Movies & Series keep an update's layout.
+        // A TV linked to the Telegram remote listens again; one never linked opens no connection.
+        runCatching { GlobalContext.get().get<tv.own.owntv.features.remote.RemoteCommands>().start() }
+        // A bot of the viewer, when a token was set: the TV runs it, the SkMate server is not involved.
+        runCatching { GlobalContext.get().get<tv.own.owntv.features.remote.OwnTelegramBot>().start() }
         appScope.launch {
             runCatching {
                 GlobalContext.get().get<tv.own.owntv.core.settings.SettingsRepository>().applyStageDefaults()

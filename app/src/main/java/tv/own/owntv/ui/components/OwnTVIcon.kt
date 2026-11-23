@@ -70,6 +70,11 @@ internal fun androidx.compose.ui.graphics.drawscope.DrawScope.drawStageGlyph(
     sizePx: Float,
     filled: Boolean = false,
 ) {
+    if (!filled) UniconsPaths[icon]?.let { u ->
+        val k = sizePx / UNICONS_GRID
+        translate(topLeft.x, topLeft.y) { scale(k, k, pivot = Offset.Zero) { drawPath(u, tint, style = Fill) } }
+        return
+    }
     // The Phosphor set first, as [OwnTVIcon] draws it.
     phosphorPath(icon, filled)?.let { ph ->
         val k = sizePx / PHOSPHOR_GRID
@@ -97,7 +102,13 @@ fun OwnTVIcon(
         fun p(x: Float, y: Float) = Offset(x * s, y * s)
         val stroke = Stroke(width = 2f * s, cap = StrokeCap.Round, join = StrokeJoin.Round)
 
-        // SkMate's icon set ([phosphorPath], Phosphor Icons): one family for every icon in the app.
+        // The line set ([UniconsPaths]) where it has the glyph; then Phosphor for the rest and for filled ones.
+        val unicon = if (!filled) UniconsPaths[icon] else null
+        if (unicon != null) {
+            val k = size.minDimension / UNICONS_GRID
+            scale(k, k, pivot = Offset.Zero) { drawPath(unicon, tint, style = Fill) }
+            return@Canvas
+        }
         val phosphor = phosphorPath(icon, filled)
         if (phosphor != null) {
             val k = size.minDimension / PHOSPHOR_GRID
@@ -206,9 +217,9 @@ fun OwnTVIcon(
             }
             OwnTVIcon.AUDIO -> {
                 // Music note (audio track) — clearly distinct from the speaker/volume icon.
-                drawCircle(tint, radius = 3f * s, center = p(8.5f, 17.5f))    // filled note head
-                drawLineStroke(p(11.5f, 17.5f), p(11.5f, 5f), tint, stroke)   // stem
-                drawLineStroke(p(11.5f, 5f), p(16.5f, 7f), tint, stroke)      // upper flag
+                drawCircle(tint, radius = 3f * s, center = p(8.5f, 17.5f)) // filled note head
+                drawLineStroke(p(11.5f, 17.5f), p(11.5f, 5f), tint, stroke) // stem
+                drawLineStroke(p(11.5f, 5f), p(16.5f, 7f), tint, stroke) // upper flag
                 drawLineStroke(p(11.5f, 8.5f), p(16.5f, 10.5f), tint, stroke) // lower flag
             }
             OwnTVIcon.BACK -> {

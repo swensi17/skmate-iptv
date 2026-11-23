@@ -224,6 +224,9 @@ private val SettingsCards = listOf(
     SettingsGroupCard(OwnTVIcon.INFO, R.string.settings_group_app, R.string.settings_card_app, 10, R.string.settings_short_app),
 )
 
+/** Where the group list was scrolled when a group opened over it. */
+private var groupListScroll: Int = 0
+
 /** The card last opened, so Back from its group lands on it again rather than on the search field. */
 private var lastOpenedCard: Int? = null
 
@@ -290,9 +293,14 @@ internal fun SettingsPage(entry: FocusRequester, pinned: Int, onOpenGroup: (Int)
 @Composable
 private fun SettingsGroupList(entry: FocusRequester, onOpenGroup: (Int) -> Unit, onSearch: () -> Unit, extras: List<SettingsExtra>) {
     val back = lastOpenedCard
-    tv.own.owntv.features.settings.SettingsSheet(title = stringResource(R.string.common_nav_settings), scrim = true, fromStart = back != null) {
+    val returning = back != null || lastOpenedExtra != null
+    // Back from a group: the list is drawn where it was, at once. Sliding it in again and starting it
+    // scrolled to the top made the lines (the four at the bottom most of all) jump on every return.
+    val scroll = androidx.compose.foundation.rememberScrollState(if (returning) groupListScroll else 0)
+    androidx.compose.runtime.DisposableEffect(Unit) { onDispose { groupListScroll = scroll.value } }
+    tv.own.owntv.features.settings.SettingsSheet(title = stringResource(R.string.common_nav_settings), scrim = true, fromStart = back != null, slideIn = !returning) {
         Column(
-            Modifier.fillMaxWidth().weight(1f).focusGroup().verticalScroll(androidx.compose.foundation.rememberScrollState())
+            Modifier.fillMaxWidth().weight(1f).focusGroup().verticalScroll(scroll)
                 .padding(start = 0.mpx, end = 0.mpx, top = 12.mpx, bottom = 40.mpx),
             verticalArrangement = Arrangement.spacedBy(0.mpx),
         ) {

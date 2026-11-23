@@ -884,6 +884,17 @@ fun OwnTVShell(
         }
     }
     val latestRemoteShortcutDispatch by rememberUpdatedState(dispatchRemoteShortcut)
+    // The Telegram remote: a channel picked in the bot opens full screen, as from a launcher tile.
+    LaunchedEffect(Unit) {
+        tv.own.owntv.features.remote.RemoteShellRequests.play.collect { channel ->
+            onSelectSection(MainSection.LIVE_TV)
+            liveVm.watchFullscreen(channel, emptyList())
+            openFullscreen(MainSection.LIVE_TV)
+        }
+    }
+    LaunchedEffect(Unit) {
+        tv.own.owntv.features.remote.RemoteShellRequests.shortcut.collect { latestRemoteShortcutDispatch(it) }
+    }
     val remoteShortcutEnvironment = remember(remoteShortcutsEnabled, remoteShortcutBindings) {
         RemoteShortcutEnvironment(
             enabled = remoteShortcutsEnabled,
@@ -1223,6 +1234,11 @@ fun OwnTVShell(
               // TV-box look: OK on a menu item opens that screen and the menu closes, focus in the screen —
               // also on the screen already open, which before only re-selected it and left the menu up.
               if (TvBoxNav && section != MainSection.SEARCH) {
+                  // Settings over the channels: the categories beside the list close with it, or the whole screen stays
+                  // pushed to the right and the clock and weather go off its edge.
+                  if (section == MainSection.MORE || section == MainSection.SETTINGS) {
+                      if (tv.own.owntv.features.shell.components.TvBoxPanels.besideOpen) tv.own.owntv.features.shell.components.TvBoxPanels.closeBeside++
+                  }
                   if (section != selectedSection) { contentFocusPending = true; onSelectSection(section) } else if (tv.own.owntv.features.shell.components.TvBoxPanels.besideOpen) tv.own.owntv.features.shell.components.TvBoxPanels.closeBeside++
                   else closeMenuToContent()
               } else onSelectSection(section)
@@ -1528,7 +1544,8 @@ fun OwnTVShell(
                             modifier = Modifier.fillMaxSize(),
                         )
 
-                        selectedSection == MainSection.LIVE_TV && liveView == tv.own.owntv.core.settings.SettingsRepository.LiveView.GUIDE -> PanelEnter(fromY = 24f, startAlpha = 0.7f) { EpgScreen(
+                        selectedSection == MainSection.LIVE_TV && liveView == tv.own.owntv.core.settings.SettingsRepository.LiveView.GUIDE -> PanelEnter(fromY = 24f, startAlpha = 0.7f) {
+                            EpgScreen(
                             onPlayChannel = guidePlayChannel,
                             onPlayCatchup = guidePlayCatchup,
                             onAddEpg = { openEpgAdd = true; onSelectSection(MainSection.SETTINGS) },
@@ -1542,7 +1559,8 @@ fun OwnTVShell(
                                 .fillMaxSize()
                                 .onFocusChanged { if (it.hasFocus) focusedLayer = ShellLayer.CONTENT }
                                 .focusGroup(),
-                        ) }
+                        )
+                        }
 
                         // The channels list is drawn above, outside this switch, so it survives the settings sheet.
                         selectedSection == MainSection.LIVE_TV -> Unit
@@ -1586,7 +1604,8 @@ fun OwnTVShell(
                             modifier = Modifier.fillMaxSize(),
                         )
 
-                        selectedSection == MainSection.EPG -> PanelEnter(fromY = 24f, startAlpha = 0.7f) { EpgScreen(
+                        selectedSection == MainSection.EPG -> PanelEnter(fromY = 24f, startAlpha = 0.7f) {
+                            EpgScreen(
                             onFullscreen = { openFullscreen() },
                             onPlayChannel = guidePlayChannel,
                             onPlayCatchup = guidePlayCatchup,
@@ -1599,7 +1618,8 @@ fun OwnTVShell(
                                 .fillMaxSize()
                                 .onFocusChanged { if (it.hasFocus) focusedLayer = ShellLayer.CONTENT }
                                 .focusGroup(),
-                        ) }
+                        )
+                        }
                     }
                 }
             }

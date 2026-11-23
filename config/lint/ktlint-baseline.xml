@@ -39,10 +39,10 @@
     </file>
     <file name="app/src/main/java/tv/own/owntv/MainActivity.kt">
         <error line="3" column="1" source="standard:import-ordering" />
-        <error line="134" column="27" source="standard:property-naming" />
-        <error line="135" column="9" source="standard:spacing-between-declarations-with-comments" />
-        <error line="168" column="5" source="standard:spacing-between-declarations-with-comments" />
-        <error line="170" column="5" source="standard:spacing-between-declarations-with-comments" />
+        <error line="148" column="27" source="standard:property-naming" />
+        <error line="150" column="9" source="standard:spacing-between-declarations-with-comments" />
+        <error line="184" column="5" source="standard:spacing-between-declarations-with-comments" />
+        <error line="187" column="5" source="standard:spacing-between-declarations-with-comments" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/OwnTVApp.kt">
         <error line="3" column="1" source="standard:import-ordering" />
@@ -162,9 +162,9 @@
         <error line="170" column="23" source="standard:wrapping" />
         <error line="173" column="31" source="standard:wrapping" />
         <error line="388" column="13" source="standard:keyword-spacing" />
-        <error line="937" column="19" source="standard:property-naming" />
-        <error line="940" column="19" source="standard:property-naming" />
-        <error line="943" column="19" source="standard:property-naming" />
+        <error line="938" column="19" source="standard:property-naming" />
+        <error line="941" column="19" source="standard:property-naming" />
+        <error line="944" column="19" source="standard:property-naming" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/live/LiveViewModel.kt">
         <error line="5" column="1" source="standard:import-ordering" />
@@ -476,9 +476,9 @@
         <error line="269" column="43" source="standard:wrapping" />
         <error line="281" column="17" source="standard:wrapping" />
         <error line="376" column="11" source="standard:property-naming" />
-        <error line="564" column="1" source="standard:kdoc" />
-        <error line="565" column="1" source="standard:spacing-between-declarations-with-comments" />
+        <error line="566" column="1" source="standard:kdoc" />
         <error line="567" column="1" source="standard:spacing-between-declarations-with-comments" />
+        <error line="570" column="1" source="standard:spacing-between-declarations-with-comments" />
         <error line="593" column="22" source="standard:wrapping" />
         <error line="595" column="50" source="standard:wrapping" />
         <error line="1348" column="1" source="standard:spacing-between-declarations-with-annotations" />
@@ -590,10 +590,10 @@
         <error line="1545" column="26" source="standard:wrapping" />
         <error line="1589" column="107" source="standard:wrapping" />
         <error line="1602" column="26" source="standard:wrapping" />
-        <error line="2574" column="19" source="standard:property-naming" />
-        <error line="2586" column="1" source="standard:kdoc" />
-        <error line="2592" column="19" source="standard:property-naming" />
-        <error line="2593" column="19" source="standard:property-naming" />
+        <error line="2594" column="19" source="standard:property-naming" />
+        <error line="2606" column="1" source="standard:kdoc" />
+        <error line="2612" column="19" source="standard:property-naming" />
+        <error line="2613" column="19" source="standard:property-naming" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/shell/ShellViewModel.kt">
         <error line="3" column="1" source="standard:import-ordering" />

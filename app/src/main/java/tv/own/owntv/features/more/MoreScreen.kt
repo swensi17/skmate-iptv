@@ -68,7 +68,7 @@ import tv.own.owntv.ui.theme.stageAccent
 import tv.own.owntv.ui.theme.stageText
 
 /** The sheet's items, top to bottom. [DEVELOPER] exists only in local builds (BuildConfig.DEV_TOOLS). */
-private enum class MoreItem { SETTINGS, FAVORITES, HISTORY, BACKUP, LOCAL_SYNC, ABOUT, DEVELOPER }
+private enum class MoreItem { SETTINGS, FAVORITES, HISTORY, BACKUP, LOCAL_SYNC, TELEGRAM, ABOUT, DEVELOPER }
 
 /**
  * More: the glass section sheet, topped by the profile, and one page on the right
@@ -250,6 +250,7 @@ fun MoreScreen(
                     extras = if (!sheetOnly) emptyList() else listOfNotNull(
                         SettingsExtra(OwnTVIcon.DOWNLOADS, stringResource(R.string.settings_short_backup)) { choose(MoreItem.BACKUP) },
                         SettingsExtra(OwnTVIcon.PHONE, stringResource(R.string.settings_short_sync)) { choose(MoreItem.LOCAL_SYNC) },
+                        SettingsExtra(OwnTVIcon.SEND, stringResource(R.string.settings_short_telegram)) { choose(MoreItem.TELEGRAM) },
                         SettingsExtra(OwnTVIcon.INFO, stringResource(R.string.settings_short_about)) { choose(MoreItem.ABOUT) },
                         SettingsExtra(OwnTVIcon.PERSON, stringResource(R.string.more_profile_switch), onClick = onSwitchProfile),
                     ),
@@ -268,6 +269,9 @@ fun MoreScreen(
                 MoreItem.BACKUP -> InSheet(sheetOnly, stringResource(R.string.settings_backup_restore)) { BackupScreen(entry = pageTarget, modifier = Modifier.fillMaxSize()) }
                 MoreItem.LOCAL_SYNC -> InSheet(sheetOnly, stringResource(R.string.local_sync_title)) { LocalSyncScreen(entry = pageTarget, modifier = Modifier.fillMaxSize()) }
                 MoreItem.ABOUT -> InSheet(sheetOnly, stringResource(R.string.settings_about), trailing = tv.own.owntv.BuildConfig.VERSION_NAME.substringBefore('-'), edgeToEdge = true) { AboutPage(vm = vm, entry = pageTarget) }
+                MoreItem.TELEGRAM -> Box(Modifier.focusRequester(pageTarget).focusGroup()) {
+                    tv.own.owntv.features.settings.TelegramRemoteScreen(onBack = { if (sheetOnly) { selected = MoreItem.SETTINGS; pageEntry = null } else backToSheet() }, modifier = Modifier.fillMaxSize())
+                }
                 MoreItem.DEVELOPER -> Box(Modifier.focusRequester(pageTarget).focusGroup()) { DeveloperScreen(onBack = backToSheet) }
             }
         }
@@ -323,7 +327,7 @@ private fun relativeShort(at: Long): String =
     ).toString()
 
 /** The pages that open in the settings sheet like a settings group does, not as a screen of their own. */
-private val SheetPages = setOf(MoreItem.BACKUP, MoreItem.LOCAL_SYNC, MoreItem.ABOUT)
+private val SheetPages = setOf(MoreItem.BACKUP, MoreItem.LOCAL_SYNC, MoreItem.TELEGRAM, MoreItem.ABOUT)
 
 @Composable
 private fun InSheet(sheet: Boolean, title: String, trailing: String? = null, edgeToEdge: Boolean = false, content: @Composable () -> Unit) {

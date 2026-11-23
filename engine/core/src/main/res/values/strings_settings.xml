@@ -2247,7 +2247,7 @@
     <!-- Translators: More menu: group heading over Backup & Restore and Local sync. Shown in capitals by the style. -->
     <string name="more_group_keep_safe">Keep it safe</string>
     <!-- Translators: More menu: button beside the profile name that switches to another profile. One short verb. -->
-    <string name="more_profile_switch">Switch</string>
+    <string name="more_profile_switch">Switch profile</string>
     <!-- Translators: More › Favorites: heading over the favorite movies and series. -->
     <string name="more_fav_movies_series">Movies &amp; Series</string>
     <!-- Translators: More › Favorites: nothing has been added to Favorites yet. -->
@@ -3152,17 +3152,17 @@
         <item quantity="other">catch-up on <xliff:g id="count">%1$s</xliff:g></item>
     </plurals>
     <!-- One-word names of the Settings groups (TV-box look). -->
-    <string name="settings_short_quick">Quick</string>
-    <string name="settings_short_profile">Profile</string>
-    <string name="settings_short_sources">Sources</string>
-    <string name="settings_short_appearance">Look</string>
-    <string name="settings_short_layout">Layout</string>
-    <string name="settings_short_content">Content</string>
-    <string name="settings_short_player">Player</string>
-    <string name="settings_short_picture">Video</string>
+    <string name="settings_short_quick">Quick settings</string>
+    <string name="settings_short_profile">My profile</string>
+    <string name="settings_short_sources">Channel sources</string>
+    <string name="settings_short_appearance">Theme colors</string>
+    <string name="settings_short_layout">Screen layout</string>
+    <string name="settings_short_content">Media info</string>
+    <string name="settings_short_player">Player options</string>
+    <string name="settings_short_picture">Picture quality</string>
     <string name="settings_short_sound">Audio</string>
-    <string name="settings_short_watching">Watching</string>
-    <string name="settings_short_app">System</string>
+    <string name="settings_short_watching">Recording</string>
+    <string name="settings_short_app">General</string>
     <string name="settings_short_search">Search</string>
     <string name="settings_part_theme">Theme &amp; colours</string>
     <string name="settings_part_text">Text &amp; zoom</string>
@@ -3170,10 +3170,10 @@
     <string name="settings_part_navigation">Navigation</string>
     <string name="settings_part_lists">Lists</string>
     <string name="settings_part_home">Home screen</string>
-    <string name="settings_short_backup">Backup</string>
-    <string name="settings_short_sync">Sync</string>
+    <string name="settings_short_backup">Backups</string>
+    <string name="settings_short_sync">TV sync</string>
     <string name="settings_short_log">Log</string>
-    <string name="settings_short_about">Version</string>
+    <string name="settings_short_about">About app</string>
     <string name="settings_clear_log_title">Clear the error log?</string>
     <string name="settings_clear_log_message">All recorded playback errors will be removed from this TV.</string>
     <string name="about_thanks_title">Thank you for your support</string>
@@ -3234,4 +3234,55 @@
     <string name="settings_live_key_action_nothing">Nothing</string>
     <string name="settings_live_key_default"><xliff:g id="action">%1$s</xliff:g> · usual</string>
     <string name="settings_search_keywords_live_keys">remote buttons ok arrows channel list open list on ok up down left right zap rewind</string>
+    <string name="settings_short_telegram">Telegram remote</string>
+    <string name="settings_tg_remote">Telegram remote</string>
+    <string name="settings_tg_remote_description">Control this TV from Telegram</string>
+    <string name="settings_tg_remote_code">Code: <xliff:g id="code">%1$s</xliff:g></string>
+    <string name="settings_tg_remote_code_hint">Scan the QR code with your phone or send the code to @<xliff:g id="bot">%1$s</xliff:g> in Telegram</string>
+    <string name="settings_tg_remote_linked">Linked: <xliff:g id="name">%1$s</xliff:g></string>
+    <string name="settings_tg_remote_new_code">New code</string>
+    <string name="settings_tg_remote_unlink">Unlink Telegram</string>
+    <string name="settings_tg_remote_connecting">Connecting…</string>
+    <string name="settings_tg_remote_failed">No connection to the server</string>
+    <string name="settings_tg_remote_explanation">The bot @<xliff:g id="bot">%1$s</xliff:g> becomes a remote for this TV: arrows, OK, back, channels up and down, rewind, a channel by its number or name. Playlists, TV guides and channels are changed by the TV itself, with the same limits as in Settings. Only the account the code was sent from controls the TV.</string>
+    <string name="tg_bot_menu">Remote</string>
+    <string name="tg_bot_linked">This TV is yours now</string>
+    <string name="tg_bot_send_code">Send the code shown on the TV: SkMate → Settings → Telegram</string>
+    <string name="tg_bot_need_link">A link is needed</string>
+    <string name="tg_bot_done">Done</string>
+    <string name="tg_bot_playing">Opening <xliff:g id="channel">%1$s</xliff:g></string>
+    <string name="tg_bot_found">Search: <xliff:g id="query">%1$s</xliff:g>, found <xliff:g id="count">%2$d</xliff:g></string>
+    <string name="tg_bot_send_playlist">Send a link to the playlist</string>
+    <string name="tg_bot_send_guide">Send a link to the TV guide</string>
+    <string name="tg_bot_deleted">Deleted</string>
+    <string name="tg_bot_refreshing">Updating</string>
+    <string name="tg_bot_hidden">Channel hidden</string>
+    <string name="tg_bot_play">Play</string>
+    <string name="tg_bot_hide">Hide channel</string>
+    <string name="tg_bot_back">Back</string>
+    <string name="tg_bot_remote_title">📺 SkMate remote</string>
+    <string name="tg_bot_remote_hint">The buttons work as the TV remote. Send a channel number to open it, or a name to find it.</string>
+    <string name="tg_bot_playlists">Playlists</string>
+    <string name="tg_bot_guides">TV guide</string>
+    <string name="tg_bot_empty">Empty</string>
+    <string name="tg_bot_add">Add</string>
+    <string name="tg_bot_refresh">Update</string>
+    <string name="tg_bot_delete">Delete</string>
+    <string name="tg_bot_replace">Replace</string>
+    <string name="tg_bot_failed">The TV could not do it</string>
+    <string name="tg_bot_footer">Choose a button below:</string>
+    <string name="settings_tg_own">Your own bot</string>
+    <string name="settings_tg_own_token">Bot token</string>
+    <string name="settings_tg_own_token_hint">From @BotFather: 123456:ABC…</string>
+    <string name="settings_tg_own_waiting">@<xliff:g id="bot">%1$s</xliff:g> is running. Send it the code <xliff:g id="code">%2$s</xliff:g></string>
+    <string name="settings_tg_own_running">@<xliff:g id="bot">%1$s</xliff:g> works for <xliff:g id="name">%2$s</xliff:g></string>
+    <string name="settings_tg_own_bad">Telegram did not accept this token</string>
+    <string name="settings_tg_own_offline">No connection to Telegram, trying again</string>
+    <string name="settings_tg_own_checking">Checking the token…</string>
+    <string name="settings_tg_own_remove">Remove the bot</string>
+    <string name="settings_tg_own_explanation">Create a bot in @BotFather and paste its token here. The TV runs the bot itself, without the SkMate server: it answers while SkMate is open on this TV. The first account that sends the code shown here controls the TV.</string>
+    <string name="settings_tg_remote_unlink_title">Unlink Telegram?</string>
+    <string name="settings_tg_remote_unlink_body">The TV will stop answering the bot until you link it again.</string>
+    <string name="settings_tg_own_remove_body">The token is deleted from this TV and the bot stops.</string>
+    <string name="settings_search_keywords_tg_remote">telegram bot remote control token phone qr code</string>
 </resources>

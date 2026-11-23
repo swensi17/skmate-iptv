@@ -464,9 +464,11 @@ fun SettingsSheet(
     fromStart: Boolean = false,
     /** Pages laid out for a wide screen (backup, sync, the log) take most of it instead of a third. */
     wide: Boolean = false,
+    /** Off for a list coming back as it was left: it appears in place, nothing slides or fades. */
+    slideIn: Boolean = true,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    val shown = remember { androidx.compose.animation.core.MutableTransitionState(false).apply { targetState = true } }
+    val shown = remember { androidx.compose.animation.core.MutableTransitionState(!slideIn).apply { targetState = true } }
     // The panel comes in as one piece (with its shade), only when Settings is first opened; moving between its
     // pages keeps it in place and slides just the page. A page change recreates this composable, so "still
     // here" is told by how recently the previous one went.
@@ -564,6 +566,7 @@ private val SideHeader = 132.mpx
 /** The sheet's slide: short, and none to speak of on a weak TV. */
 /** Settings change pages at once: no slide, no fade, nothing for a weak TV to draw in between. */
 private val SideInMs: Int get() = 0
+
 // TV-box greys: the sheet, its header band.
 private val SideFill = Color(0xFF232629)
 private val SideHeaderFill = Color(0xFF333639)
@@ -590,9 +593,11 @@ private fun SettingPanelBody(help: SettingHelp) {
                 horizontalArrangement = Arrangement.spacedBy(12.mpx),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(label, style = stageText(18, 600), color = if (on) StageColors.Text else StageColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                Text(
+                    label, style = stageText(18, 600), color = if (on) StageColors.Text else StageColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis,
                     // A long choice gives way to the RECOMMENDED tag, never the other way round.
-                    modifier = Modifier.weight(1f))
+                    modifier = Modifier.weight(1f)
+                )
                 if (i == help.recommended) {
                     Box(Modifier.padding(start = 6.mpx)) { StageTag(stringResource(R.string.settings_panel_recommended).uppercase()) }
                 }
@@ -836,22 +841,24 @@ fun StageRadio(on: Boolean) {
 private fun Int.mpxSpLine() = with(androidx.compose.ui.platform.LocalDensity.current) { this@mpxSpLine.mpx.toSp() }
 
 /**
- * `.sHead`: "PLAYER 8" above a group's part — 13/800 caps +0.13em in dim, the count darker.
- * [first] = the page's first heading (2 px above instead of 18).
+ * The title of a group's part ("Player", "Colors"): large, bold and white so it reads from the couch, with no
+ * count beside it. [first] = the page's first heading (less room above). [count] is kept for the callers
+ * that still pass it; it is not drawn.
  */
 @Composable
+@Suppress("UnusedParameter")
 fun StageSettingsHeading(text: String, count: Int?, first: Boolean = false) {
-    Row(
-        Modifier.padding(start = 22.mpx, top = if (first) 2.mpx else 18.mpx, bottom = 8.mpx),
-        horizontalArrangement = Arrangement.spacedBy(10.mpx),
-    ) {
-        Text(text.uppercase(), style = stageText(13, 800, 0.13.em), color = StageColors.Dim, maxLines = 1, overflow = TextOverflow.Ellipsis)
-        // A heading over a single setting carries no count (Home's NOW TRENDING).
-        if (count != null) Text(count.toString(), style = stageText(13, 800, 0.13.em), color = HeadingCount, maxLines = 1, overflow = TextOverflow.Ellipsis)
-    }
+    Text(
+        text,
+        style = stageText(HEADING_SIZE, 800),
+        color = StageColors.Text,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+        modifier = Modifier.padding(start = 22.mpx, top = if (first) 6.mpx else 26.mpx, bottom = 10.mpx),
+    )
 }
 
-private val HeadingCount: Color @Composable get() = stageTone(Color(0xFF4D5955), Color(0xFFA3AEA9))
+private const val HEADING_SIZE = 24
 
 /**
  * `.srow`: 84 high, radius 20, padding 0 22, gap 18 — a 24 px muted icon, the title 21/700 over a
@@ -1345,7 +1352,9 @@ fun StageFieldRow(
     val rowFocus = remember { FocusRequester() }
     val fieldFocus = remember { FocusRequester() }
     val keyboard = androidx.compose.ui.platform.LocalSoftwareKeyboardController.current
-    @Suppress("DEPRECATION") val clipboard = androidx.compose.ui.platform.LocalClipboardManager.current
+
+    @Suppress("DEPRECATION")
+    val clipboard = androidx.compose.ui.platform.LocalClipboardManager.current
     val imeWatcher = tv.own.owntv.ui.components.LocalTvImeWatcher.current
     val bring = remember { androidx.compose.foundation.relocation.BringIntoViewRequester() }
     fun stop() {

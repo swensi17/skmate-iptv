@@ -379,13 +379,14 @@ internal fun LiveStagePane(
                 ) { OwnTVIcon(OwnTVIcon.LIVE_TV, tint = StageColors.Dim, modifier = Modifier.size(56.mpx)) }
             }
             if (mpvPlayer != null && showVideo) tv.own.owntv.player.MpvVideoSurface(player = mpvPlayer, modifier = Modifier.fillMaxSize(), autoFrameRate = false)
-            else if (playing) tv.own.owntv.player.ExoPreviewSurface(engine = previewEngine, modifier = Modifier.fillMaxSize().graphicsLayer { alpha = surfaceAlpha })
+            // A TextureView, drawn with the rest of the screen: a SurfaceView is a hole the display fills on its own,
+            // and on MediaTek TVs every menu or settings sheet sliding over it flashed it black for a moment.
+            else if (playing) tv.own.owntv.player.ExoPreviewSurface(engine = previewEngine, modifier = Modifier.fillMaxSize().graphicsLayer { alpha = surfaceAlpha }, useTextureView = true)
             if (skeleton) {
                 PreviewSkeleton(Modifier.fillMaxSize())
                 // TV-box look: the same spinner as the player while the channel opens.
                 if (tv.own.owntv.features.shell.TvBoxNav && channel != null) OwnTVSpinner(sizeDp = 36, color = Color.White.copy(alpha = 0.85f))
-            }
-            else if (loading) OwnTVSpinner(sizeDp = 28)
+            } else if (loading) OwnTVSpinner(sizeDp = 28)
             // `.shade`: black 72% at the bottom, clear by 42% up — a video-sized gradient, one pass.
             // The shade is for the channel line over a picture; the empty "pick a channel" box has neither.
             if (channel != null) Box(Modifier.fillMaxSize().background(Brush.verticalGradient(0.58f to Color.Transparent, 1f to Color.Black.copy(alpha = 0.72f))))

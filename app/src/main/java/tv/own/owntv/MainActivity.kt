@@ -107,7 +107,21 @@ open class MainActivity : ComponentActivity() {
         return drop
     }
 
+    override fun onResume() {
+        super.onResume()
+        resumed = this
+    }
+
+    override fun onPause() {
+        if (resumed === this) resumed = null
+        super.onPause()
+    }
+
     companion object {
+        /** The activity on screen, for keys the Telegram remote presses (see RemoteCommands). */
+        @Volatile var resumed: MainActivity? = null
+            private set
+
         /** Keys whose held repeats are paced to the screen (see [dropRepeatThatOutrunsScreen]). */
         private val PACED_KEYS = setOf(
             android.view.KeyEvent.KEYCODE_DPAD_UP,
@@ -132,6 +146,7 @@ open class MainActivity : ComponentActivity() {
 
         /** The fade between the top-level screens (the profile gate and the app). */
         private const val ScreenFadeMs = 320
+
         /** Key repeats of a held Back that count as "hold to exit" (about a second). */
         private const val LONG_BACK_REPEATS = 12
 
@@ -165,8 +180,10 @@ open class MainActivity : ComponentActivity() {
     private val previewEngine: tv.own.owntv.player.LivePreviewEngine by inject()
     private val heroPreviewEngine: tv.own.owntv.player.HeroPreviewEngine by inject()
     private val engines: tv.own.owntv.player.PlaybackEngines by inject()
+
     // Activity-scoped: the same instance Compose retrieves via koinViewModel() inside setContent.
     private val shellViewModel: ShellViewModel by viewModel()
+
     // The sole locale authority (SharedPreferences-backed; see docs/internationalization.md 0b).
     private val localeStore: tv.own.owntv.core.i18n.LocaleStore by inject()
     private var pendingDeepLink by mutableStateOf<LauncherDeepLink?>(null)

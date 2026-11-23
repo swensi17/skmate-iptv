@@ -48,6 +48,8 @@ import urllib.error
 import urllib.parse
 import urllib.request
 import uuid
+
+import skmate_remote as remote
 from dataclasses import dataclass, field
 
 DATA = os.path.abspath(os.environ.get("SKMATE_PL_DATA", "data"))
@@ -585,6 +587,10 @@ class Handler(http.server.BaseHTTPRequestHandler):
             self.send_header("Content-Length", str(len(body)))
             self.end_headers()
             self.wfile.write(body)
+        elif path == "/tv/poll":
+            # The device's secret comes in headers, never in the address (nginx logs addresses).
+            r = remote.poll(self.headers.get("X-Device", ""), self.headers.get("X-Secret", ""))
+            self._json(r, 403 if r is None else 200)
         elif path == "/health":
             body = json.dumps(summary()).encode()
             self.send_response(200)
@@ -595,6 +601,45 @@ class Handler(http.server.BaseHTTPRequestHandler):
         else:
             self.send_response(404)
             self.end_headers()
+
+    def _json(self, obj, code: int = 200) -> None:
+        body = json.dumps(obj if obj is not None else {"error": "auth"}, ensure_ascii=False).encode()
+        self.send_response(code)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Cache-Control", "no-store")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    def do_POST(self):  # noqa: N802
+        path = urllib.parse.urlparse(self.path).path
+        try:
+            n = int(self.headers.get("Content-Length") or 0)
+            if n > 256 * 1024:
+                raise ValueError("too big")
+            body = json.loads(self.rfile.read(n) or b"{}")
+            if not isinstance(body, dict):
+                raise ValueError("not an object")
+        except (ValueError, OSError):
+            self._json({"error": "bad request"}, 400)
+            return
+        d, s = str(body.get("device", "")), str(body.get("secret", ""))
+        try:
+            if path == "/tv/register":
+                self._json(remote.register(d, str(body.get("name", "")), s))
+            elif path == "/tv/code":
+                r = remote.new_code(d, s)
+                self._json(r, 403 if r is None else 200)
+            elif path == "/tv/reply":
+                ok = remote.reply(d, s, str(body.get("id", "")), body.get("result"))
+                self._json({"ok": ok}, 200 if ok else 403)
+            elif path == "/tv/unlink":
+                ok = remote.unlink_device(d, s)
+                self._json({"ok": ok}, 200 if ok else 403)
+            else:
+                self._json({"error": "not found"}, 404)
+        except ValueError:
+            self._json({"error": "bad request"}, 400)
 
     def log_message(self, *args):  # quiet: nginx keeps the access log
         pass
@@ -719,8 +764,13 @@ STATUS_ICON = {"ok": "💪", "dead": "😵", "wait": "🤔"}
 STATUS_TEXT = {"ok": "работает", "dead": "не работает", "wait": "ещё не проверен"}
 
 
+FOOTER = '<tg-emoji emoji-id="5960671702059848143">⬅️</tg-emoji> Выберите кнопку ниже:'
+
+
 def e(ch: str) -> str:
-    return f'<tg-emoji emoji-id="{EMOJI[ch]}">{ch}</tg-emoji>'
+    """An animated emoji from the pack, or the plain one when the pack has none for it."""
+    eid = EMOJI.get(ch)
+    return f'<tg-emoji emoji-id="{eid}">{ch}</tg-emoji>' if eid else ch
 
 
 def h(text: str) -> str:
@@ -824,6 +874,7 @@ def screen_home(ui: dict) -> tuple[str, dict]:
         [btn("Каналы", "ch:0", "channels"), btn("Источники", "src", "sources")],
         [btn("Телегид", "epg", "guide"), btn("Проверка", "chk", "check", "primary")],
         [btn("Ссылка", copy=PUBLIC, icon="link"), btn("Очистка", "wipe1", "wipe", "danger")],
+        [btn("Пульт телевизора", "r", "channels", "primary")],
     )
     return text, markup
 
@@ -1050,15 +1101,46 @@ def set_ui(chat: int, **changes) -> dict:
         return dict(ui)
 
 
+def rich(text: str) -> str:
+    """The bot's screen text as rich-message HTML: blank lines split paragraphs, a newline is a line break."""
+    out = []
+    for para in text.split("\n\n"):
+        para = para.strip("\n")
+        if not para:
+            continue
+        body = para.replace("\n", "<br/>")
+        out.append(body if body.startswith("<blockquote") else f"<p>{body}</p>")
+    return "".join(out)
+
+
+def rich_message(text: str) -> dict:
+    """Banner on top, the screen, and the small line under it that points at the buttons."""
+    with lock:
+        file_id = load_state().get("banner_id")
+    head = '<img src="tg://photo?id=banner"/>' if file_id else ""
+    msg = {"html": head + rich(text) + f"<footer>{FOOTER}</footer>"}
+    if file_id:
+        msg["media"] = [{"id": "banner", "media": {"type": "photo", "media": file_id}}]
+    return msg
+
+
 def show(chat: int, text: str, markup: dict, note: str = "", fresh: bool = False) -> None:
     """Puts the screen into the chat's one message: edits it, or sends a new one when it is gone."""
     if note:
-        text = fit(text + "\n\n" + note)
+        text = text + "\n\n" + note
     ui = get_ui(chat)
     msg = ui.get("msg")
+    if not load_state().get("banner_id"):
+        # The banner's file id comes from a first upload as a photo; rich messages reuse it.
+        try:
+            res = tg_photo(chat, "…", {"inline_keyboard": []})
+            quiet("deleteMessage", chat_id=chat, message_id=res.get("result", {}).get("message_id"))
+        except (TgError, urllib.error.URLError, OSError, ValueError):
+            pass
+    body = rich_message(text)
     if msg and not fresh:
         try:
-            tg("editMessageCaption", chat_id=chat, message_id=msg, caption=text, parse_mode="HTML", reply_markup=markup)
+            tg("editMessageText", chat_id=chat, message_id=msg, rich_message=body, reply_markup=markup)
             return
         except TgError as err:
             if "not modified" in str(err):
@@ -1066,10 +1148,11 @@ def show(chat: int, text: str, markup: dict, note: str = "", fresh: bool = False
             if "BUTTON_URL" in str(err) and without_links(markup) != markup:
                 show(chat, text, without_links(markup))  # Telegram refused an address: show the rest
                 return
+            # An older photo message cannot become a rich one: a new message replaces it below.
         except (urllib.error.URLError, OSError, ValueError):
             return
     try:
-        res = tg_photo(chat, text, markup)
+        res = tg("sendRichMessage", chat_id=chat, rich_message=body, reply_markup=markup)
     except (TgError, urllib.error.URLError, OSError, ValueError) as err:
         print("show failed:", err, file=sys.stderr)
         return
@@ -1204,18 +1287,31 @@ def add_from_file(chat: int, doc: dict) -> None:
 
 def handle_message(msg: dict) -> None:
     chat = msg["chat"]["id"]
-    if msg.get("from", {}).get("id") not in ADMINS or msg["chat"].get("type") != "private":
-        return  # strangers get no answer at all
-    # The chat keeps only the bot's one message: what the author sent is read and removed.
+    if msg["chat"].get("type") != "private":
+        return
+    # The chat keeps only the bot's one message: what was sent is read and removed.
     quiet("deleteMessage", chat_id=chat, message_id=msg["message_id"])
     first = msg.get("from", {}).get("first_name", "")
+    text = (msg.get("text") or "").strip()
+    if try_link(chat, text, first):
+        return
+    admin = msg.get("from", {}).get("id") in ADMINS
+    wait = get_ui(chat).get("wait", "")
+    if not admin:
+        # Viewers get the remote only.
+        if not (text and not text.startswith("/") and remote_text(chat, text, wait)):
+            render_remote(chat, "r", fresh=text.startswith("/"))
+        return
     if first:
         set_ui(chat, first=first)
-    text = (msg.get("text") or "").strip()
     doc = msg.get("document")
-    wait = get_ui(chat).get("wait", "")
+    if text and not text.startswith("/") and remote_text(chat, text, wait):
+        return
     if text.startswith("/"):
-        render(chat, "home", fresh=True)
+        if remote.active(chat)[0] is not None:
+            render_remote(chat, "r", fresh=True)
+        else:
+            render(chat, "home", fresh=True)
     elif doc and wait != "epg":
         add_from_file(chat, doc)
     elif wait.startswith("tvg:") and text:
@@ -1252,14 +1348,26 @@ def handle_message(msg: dict) -> None:
 
 def handle_callback(cb: dict) -> None:
     chat = cb.get("message", {}).get("chat", {}).get("id")
-    if cb.get("from", {}).get("id") not in ADMINS or chat is None:
+    if chat is None:
         quiet("answerCallbackQuery", callback_query_id=cb["id"])
         return
     data = cb.get("data") or "home"
-    toast = None
     msg_id = cb["message"]["message_id"]
+    if data.startswith("k:"):
+        # A remote key: as quick as possible, nothing else read or written.
+        remote_callback(chat, cb, data)
+        return
     if get_ui(chat).get("msg") != msg_id:
         set_ui(chat, msg=msg_id)  # a button on an older copy of the message takes it over
+    if data.split(":")[0] in ("r", "rp", "rg", "rpl", "rgl", "rpi", "rgi", "rpa", "rga", "rgr", "rpx", "rgx", "rpu",
+                              "rc", "rcl", "rci", "rcp", "rcx", "rt", "rta", "rtx"):
+        remote_callback(chat, cb, data)
+        return
+    if cb.get("from", {}).get("id") not in ADMINS:
+        quiet("answerCallbackQuery", callback_query_id=cb["id"])
+        render_remote(chat, "r")
+        return
+    toast = None
     parts = data.split(":")
     act = parts[0]
     if act == "chk":
@@ -1353,6 +1461,306 @@ def handle_callback(cb: dict) -> None:
     quiet("answerCallbackQuery", callback_query_id=cb["id"], text=toast)
 
 
+# ---------------------------------------------------------------------------------------------
+# Telegram: remote for a linked TV
+# ---------------------------------------------------------------------------------------------
+
+# callback key -> what the TV presses
+KEYS = {"u": "up", "d": "down", "l": "left", "r": "right", "o": "ok", "b": "back", "h": "home",
+        "cu": "ch_up", "cd": "ch_down", "rw": "rewind", "ff": "forward", "pp": "play_pause", "m": "menu"}
+REMOTE_PAGE = 8
+TV_ERRORS = {"bad_url": "Нужна ссылка", "not_found": "На телевизоре такого нет", "failed": "Телевизор не смог выполнить",
+             "unknown": "Телевизор не знает этой команды, обновите SkMate"}
+
+
+def no_tv_text() -> str:
+    return (f"{e('📺')} <b>Пульт SkMate</b>\n\n"
+            f"<blockquote>На телевизоре откройте <b>SkMate → Настройки → Пульт через Telegram</b> "
+            f"и пришлите сюда код с экрана.</blockquote>")
+
+
+def screen_remote(chat: int) -> tuple[str, dict]:
+    did, d = remote.active(chat)
+    if did is None:
+        return no_tv_text(), kb(*([back()] if chat in ADMINS else []))
+    state = "в сети" if remote.online(d) else "не в сети"
+    text = (f"{e('📺')} <b>{h(d.get('name', 'TV'))}</b> · {state}\n\n"
+            f"<blockquote>Кнопки работают как пульт. Пришлите <b>номер</b> канала, чтобы включить его, "
+            f"или <b>название</b>, чтобы найти.</blockquote>")
+    rows = [
+        [btn("⏮ Канал", "k:cd"), btn("▲", "k:u"), btn("Канал ⏭", "k:cu")],
+        [btn("◀", "k:l"), btn("OK", "k:o", style="primary"), btn("▶", "k:r")],
+        [btn("⏪ Назад", "k:rw"), btn("▼", "k:d"), btn("Вперёд ⏩", "k:ff")],
+        [btn("↩ Назад", "k:b"), btn("⏯", "k:pp"), btn("Меню", "k:m"), btn("⌂ Домой", "k:h")],
+        [btn("Плейлисты", "rp", "sources"), btn("Телегид", "rg", "guide")],
+        [btn("Каналы", "rc", "channels"), btn("Телевизоры", "rt")],
+    ]
+    if chat in ADMINS:
+        rows.append([btn("Плейлист SkMate", "home", "main")])
+    return text, kb(*rows)
+
+
+def tv_call(chat: int, ctype: str, args: dict | None = None):
+    """The TV's answer, or a note saying why there is none."""
+    r = remote.send(chat, ctype, args, wait=True)
+    if r is False:
+        return None, failed("Телевизор не подключён")
+    if r is None:
+        return None, failed("Телевизор не ответил. Он включён и SkMate открыт?")
+    if isinstance(r, dict) and r.get("error"):
+        return None, failed(TV_ERRORS.get(str(r["error"]), "Телевизор не смог выполнить"))
+    return r, ""
+
+
+def screen_remote_list(chat: int, kind: str, ui: dict) -> tuple[str, dict]:
+    """Playlists ('p') or guides ('g') as the TV answered them last (kept in ui so paging needs no call)."""
+    items = ui.get(f"r{kind}_items") or []
+    title = "Плейлисты" if kind == "p" else "Телегид"
+    lines = [f"{e('📂' if kind == 'p' else '📅')} <b>{title} на телевизоре</b>\n"]
+    if not items:
+        lines.append("<blockquote>Пусто</blockquote>")
+    rows = []
+    for i, it in enumerate(items[:20]):
+        label = short(it.get("name") or it.get("url") or "—", 40)
+        extra = f" · {it['channels']} кан." if it.get("channels") is not None else ""
+        rows.append([btn(label + extra, f"r{kind}i:{i}")])
+    rows.append([btn("Добавить", f"r{kind}a", "add", "success"), btn("Обновить", f"r{kind}", "refresh")])
+    rows.append(back("r"))
+    return "\n".join(lines), kb(*rows)
+
+
+def screen_remote_item(chat: int, kind: str, i: int, ui: dict) -> tuple[str, dict]:
+    items = ui.get(f"r{kind}_items") or []
+    if i >= len(items):
+        return screen_remote_list(chat, kind, ui)
+    it = items[i]
+    text = (f"{e('📂' if kind == 'p' else '📅')} <b>{h(it.get('name') or 'Без названия')}</b>\n\n"
+            f"<blockquote><code>{h(short(it.get('url', ''), 300))}</code></blockquote>")
+    rows = []
+    if kind == "p":
+        rows.append([btn("Обновить", f"rpu:{i}", "refresh")])
+    else:
+        rows.append([btn("Заменить", f"rgr:{i}", "refresh")])
+    rows.append([btn("Удалить", f"r{kind}x:{i}", "delete", "danger")])
+    rows.append(back(f"r{kind}l"))
+    return text, kb(*rows)
+
+
+def screen_remote_add(kind: str, replace: int = -1) -> tuple[str, dict]:
+    what = "плейлист" if kind == "p" else "телегид"
+    verb = "заменить" if replace >= 0 else "добавить"
+    text = (f"{e('➕')} <b>{verb.capitalize()} {what}</b>\n\n"
+            f"<blockquote>Пришлите ссылку, телевизор {verb} {what} сам, с теми же ограничениями, что и в настройках.</blockquote>")
+    return text, kb(back(f"r{kind}l"))
+
+
+def screen_remote_channels(ui: dict) -> tuple[str, dict]:
+    items = ui.get("rc_items") or []
+    q = ui.get("rc_q", "")
+    head = f"{e('📺')} <b>Каналы</b>\n\n"
+    if not q:
+        return head + "<blockquote>Пришлите название канала или его номер</blockquote>", kb(back("r"))
+    head += f"<blockquote>Поиск: <b>{h(q)}</b>, найдено {len(items)}</blockquote>"
+    rows = [[btn(short(f"{it.get('number') or ''} {it.get('name', '')}".strip(), 40), f"rci:{i}")] for i, it in enumerate(items[:REMOTE_PAGE * 2])]
+    rows.append(back("r"))
+    return head, kb(*rows)
+
+
+def screen_remote_channel(i: int, ui: dict) -> tuple[str, dict]:
+    items = ui.get("rc_items") or []
+    if i >= len(items):
+        return screen_remote_channels(ui)
+    it = items[i]
+    text = f"{e('📺')} <b>{h(it.get('name', ''))}</b>" + (f"\nНомер {it['number']}" if it.get("number") else "")
+    return text, kb([btn("Включить", f"rcp:{i}", style="success")],
+                    [btn("Скрыть канал", f"rcx:{i}", "delete", "danger")], back("rcl"))
+
+
+def screen_remote_tvs(chat: int) -> tuple[str, dict]:
+    did, _ = remote.active(chat)
+    rows = []
+    lines = [f"{e('📺')} <b>Телевизоры</b>\n"]
+    for k, v in remote.devices_of(chat):
+        mark = "● " if k == did else ""
+        lines.append(f"• {mark}{h(v.get('name', 'TV'))} · {'в сети' if remote.online(v) else 'не в сети'}")
+        rows.append([btn(("✓ " if k == did else "") + short(v.get("name", "TV"), 30), f"rta:{k[:40]}"),
+                     btn("Отвязать", f"rtx:{k[:40]}", "cancel", "danger")])
+    lines.append("\n<blockquote>Чтобы добавить телевизор, пришлите код с его экрана.</blockquote>")
+    rows.append(back("r"))
+    return "\n".join(lines), kb(*rows)
+
+
+def render_remote(chat: int, screen: str, note: str = "", fresh: bool = False) -> bool:
+    """Draws a remote screen; False when [screen] is not one."""
+    ui = get_ui(chat)
+    p = screen.split(":")
+    n = p[0]
+    wait = "remote"
+    if n == "r":
+        text, markup = screen_remote(chat)
+    elif n in ("rpl", "rgl"):
+        text, markup = screen_remote_list(chat, n[1], ui)
+    elif n in ("rpi", "rgi"):
+        text, markup = screen_remote_item(chat, n[1], int(p[1]), ui)
+    elif n in ("rpa", "rga"):
+        text, markup = screen_remote_add(n[1])
+        wait = n
+    elif n == "rgr":
+        text, markup = screen_remote_add("g", int(p[1]))
+        wait = "rgr:" + p[1]
+    elif n == "rcl":
+        text, markup = screen_remote_channels(ui)
+    elif n == "rci":
+        text, markup = screen_remote_channel(int(p[1]), ui)
+    elif n == "rt":
+        text, markup = screen_remote_tvs(chat)
+    else:
+        return False
+    set_ui(chat, screen=screen, wait=wait)
+    show(chat, text, markup, note, fresh)
+    return True
+
+
+def remote_fetch(chat: int, kind: str) -> None:
+    """Asks the TV for its playlists / guides and shows them."""
+    def work():
+        r, err = tv_call(chat, "sources.list" if kind == "p" else "epg.list")
+        if err:
+            return err
+        set_ui(chat, **{f"r{kind}_items": (r or {}).get("items", [])[:20]})
+        return ""
+    render_remote(chat, "r", f"{e('⚡️')} <i>Спрашиваю телевизор…</i>")
+    threading.Thread(target=lambda: _after(chat, work, f"r{kind}l"), daemon=True).start()
+
+
+def _after(chat: int, work, screen: str) -> None:
+    try:
+        note = work()
+    except Exception as err:  # the message must not stay on "working"
+        print("remote job failed:", err, file=sys.stderr)
+        note = failed("Не получилось, попробуйте ещё раз")
+    render_remote(chat, screen, note)
+
+
+def remote_action(chat: int, ctype: str, args: dict, after: str, ok_text: str, refetch: str = "") -> None:
+    def work():
+        r, err = tv_call(chat, ctype, args)
+        if err:
+            return err
+        if refetch:
+            r2, _ = tv_call(chat, "sources.list" if refetch == "p" else "epg.list")
+            if r2 is not None:
+                set_ui(chat, **{f"r{refetch}_items": r2.get("items", [])[:20]})
+        msg = (r or {}).get("message") if isinstance(r, dict) else None
+        return done(msg or ok_text)
+    render_remote(chat, after, f"{e('⚡️')} <i>Телевизор выполняет…</i>")
+    threading.Thread(target=lambda: _after(chat, work, after), daemon=True).start()
+
+
+def remote_text(chat: int, text: str, wait: str) -> bool:
+    """A message while a remote screen is open. True when handled."""
+    if wait in ("rpa", "rga") or wait.startswith("rgr:"):
+        urls = re.findall(r"https?://\S+", text)
+        if not urls:
+            render_remote(chat, wait if ":" not in wait else wait, failed("Нужна ссылка"))
+            return True
+        if wait == "rpa":
+            remote_action(chat, "sources.add", {"url": urls[0]}, "rpl", "Плейлист добавлен", "p")
+        elif wait == "rga":
+            remote_action(chat, "epg.add", {"url": urls[0]}, "rgl", "Телегид добавлен", "g")
+        else:
+            items = get_ui(chat).get("rg_items") or []
+            i = int(wait[4:])
+            if i < len(items):
+                remote_action(chat, "epg.replace", {"id": items[i].get("id"), "url": urls[0]}, "rgl", "Телегид заменён", "g")
+        return True
+    if wait != "remote":
+        return False
+    digits = text.replace(" ", "")
+    if digits.isdigit() and len(digits) <= 5:
+        r = remote.send(chat, "play", {"number": int(digits)})
+        render_remote(chat, "r", done(f"Включаю канал {digits}") if r else failed("Телевизор не подключён"))
+        return True
+
+    def work():
+        r, err = tv_call(chat, "channels.search", {"q": text[:60]})
+        if err:
+            return err
+        set_ui(chat, rc_items=(r or {}).get("items", [])[:REMOTE_PAGE * 2], rc_q=text[:60])
+        return ""
+    render_remote(chat, "r", f"{e('⚡️')} <i>Ищу «{h(short(text, 30))}»…</i>")
+    threading.Thread(target=lambda: _after(chat, work, "rcl"), daemon=True).start()
+    return True
+
+
+def remote_callback(chat: int, cb: dict, data: str) -> bool:
+    """A button of the remote. True when handled (callback answered here)."""
+    p = data.split(":")
+    a = p[0]
+    cbid = cb["id"]
+    if a == "k":
+        # A key: no redraw, just a quick tick, so presses feel like a remote.
+        r = remote.send(chat, "key", {"key": KEYS.get(p[1], "")})
+        quiet("answerCallbackQuery", callback_query_id=cbid, text=None if r else "Телевизор не подключён")
+        return True
+    ui = get_ui(chat)
+    quiet("answerCallbackQuery", callback_query_id=cbid)
+    if a in ("rp", "rg"):
+        remote_fetch(chat, a[1])
+    elif a in ("rpx", "rgx", "rpu"):
+        kind = a[1]
+        items = ui.get(f"r{kind}_items") or []
+        i = int(p[1])
+        if i < len(items):
+            it = items[i]
+            if a == "rpx":
+                remote_action(chat, "sources.delete", {"id": it.get("id")}, "rpl", "Плейлист удалён", "p")
+            elif a == "rpu":
+                remote_action(chat, "sources.refresh", {"id": it.get("id")}, "rpl", "Плейлист обновляется", "p")
+            else:
+                remote_action(chat, "epg.delete", {"id": it.get("id")}, "rgl", "Телегид удалён", "g")
+    elif a == "rc":
+        set_ui(chat, rc_items=[], rc_q="")
+        render_remote(chat, "rcl")
+    elif a in ("rcp", "rcx"):
+        items = ui.get("rc_items") or []
+        i = int(p[1])
+        if i < len(items):
+            if a == "rcp":
+                remote.send(chat, "play", {"id": items[i].get("id")})
+                render_remote(chat, "r", done(f"Включаю {h(items[i].get('name', ''))}"))
+            else:
+                remote_action(chat, "channels.hide", {"id": items[i].get("id")}, "r", "Канал скрыт")
+    elif a == "rta":
+        for k, _ in remote.devices_of(chat):
+            if k.startswith(p[1]):
+                remote.set_active(chat, k)
+        render_remote(chat, "rt")
+    elif a == "rtx":
+        for k, _ in remote.devices_of(chat):
+            if k.startswith(p[1]):
+                remote.unlink_from_chat(chat, k)
+        render_remote(chat, "rt", done("Телевизор отвязан"))
+    elif not render_remote(chat, data):
+        return False
+    return True
+
+
+def try_link(chat: int, text: str, first: str) -> bool:
+    """A pairing code (6 digits, or /start tv123456). True when it was one."""
+    m = re.fullmatch(r"(?:/start\s+tv)?\s*(\d{3}\s?\d{3})\s*", text)
+    if not m:
+        return False
+    r = remote.link(chat, m.group(1), first)
+    if r.startswith("ok:"):
+        render_remote(chat, "r", done(f"Подключён: {h(r[3:])}"), fresh=True)
+    elif r == "full":
+        render_remote(chat, "rt", failed(f"Не больше {remote.MAX_DEVICES_PER_CHAT} телевизоров"))
+    else:
+        render_remote(chat, "r", failed("Код не подходит или устарел. Откройте пульт на телевизоре ещё раз"))
+    return True
+
+
 def bot_loop() -> None:
     quiet("setMyCommands", commands=[{"command": "start", "description": "Меню"}])
     offset = 0
@@ -1413,9 +1821,10 @@ def checker_loop() -> None:
 
 def main() -> None:
     os.makedirs(FILES, exist_ok=True)
+    remote.init(DATA)
     rebuild()
     threading.Thread(target=checker_loop, daemon=True).start()
-    if TOKEN and ADMINS:
+    if TOKEN:
         threading.Thread(target=bot_loop, daemon=True).start()
     else:
         print("bot off: no token or admins yet", flush=True)

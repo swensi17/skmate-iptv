@@ -1235,7 +1235,7 @@
     <string name="more_pane_encrypted">Зашифрована</string>
     <string name="more_group_your_things">Ваше</string>
     <string name="more_group_keep_safe">Сохранность</string>
-    <string name="more_profile_switch">Сменить</string>
+    <string name="more_profile_switch">Сменить профиль</string>
     <string name="more_fav_movies_series">Фильмы и сериалы</string>
     <string name="more_fav_empty_title">Избранного пока нет</string>
     <string name="more_fav_empty_body">Удерживайте OK на канале, фильме или сериале и выберите «Добавить в избранное».</string>
@@ -1754,17 +1754,17 @@
         <item quantity="many">архив на <xliff:g id="count">%1$s</xliff:g></item>
         <item quantity="other">архив на <xliff:g id="count">%1$s</xliff:g></item>
     </plurals>
-    <string name="settings_short_quick">Быстрые</string>
-    <string name="settings_short_profile">Профиль</string>
-    <string name="settings_short_sources">Источники</string>
-    <string name="settings_short_appearance">Оформление</string>
-    <string name="settings_short_layout">Экран</string>
-    <string name="settings_short_content">Контент</string>
-    <string name="settings_short_player">Плеер</string>
-    <string name="settings_short_picture">Видео</string>
+    <string name="settings_short_quick">Быстрые настройки</string>
+    <string name="settings_short_profile">Мой профиль</string>
+    <string name="settings_short_sources">Источники каналов</string>
+    <string name="settings_short_appearance">Внешний вид</string>
+    <string name="settings_short_layout">Вид экрана</string>
+    <string name="settings_short_content">Описания фильмов</string>
+    <string name="settings_short_player">Настройки плеера</string>
+    <string name="settings_short_picture">Качество картинки</string>
     <string name="settings_short_sound">Аудио</string>
-    <string name="settings_short_watching">Просмотр</string>
-    <string name="settings_short_app">Система</string>
+    <string name="settings_short_watching">Запись эфира</string>
+    <string name="settings_short_app">Общие настройки</string>
     <string name="settings_short_search">Поиск</string>
     <string name="settings_part_theme">Тема и цвета</string>
     <string name="settings_part_text">Текст и масштаб</string>
@@ -1772,10 +1772,10 @@
     <string name="settings_part_navigation">Навигация</string>
     <string name="settings_part_lists">Списки</string>
     <string name="settings_part_home">Главный экран</string>
-    <string name="settings_short_backup">Копии</string>
-    <string name="settings_short_sync">Синхронизация</string>
+    <string name="settings_short_backup">Резервные копии</string>
+    <string name="settings_short_sync">Синхронизация ТВ</string>
     <string name="settings_short_log">Журнал</string>
-    <string name="settings_short_about">Версия</string>
+    <string name="settings_short_about">О приложении</string>
     <string name="settings_clear_log_title">Очистить журнал ошибок?</string>
     <string name="settings_clear_log_message">Все записанные ошибки воспроизведения будут удалены с этого телевизора.</string>
     <string name="about_thanks_title">Спасибо вам за поддержку</string>
@@ -1834,4 +1834,55 @@
     <string name="settings_live_key_action_nothing">Ничего</string>
     <string name="settings_live_key_default"><xliff:g id="action">%1$s</xliff:g> · обычно</string>
     <string name="settings_search_keywords_live_keys">пульт кнопки ок стрелки список каналов открывать список по ок вверх вниз влево вправо переключение перемотка</string>
+    <string name="settings_short_telegram">Пульт Telegram</string>
+    <string name="settings_tg_remote">Пульт через Telegram</string>
+    <string name="settings_tg_remote_description">Управление телевизором из Telegram</string>
+    <string name="settings_tg_remote_code">Код: <xliff:g id="code">%1$s</xliff:g></string>
+    <string name="settings_tg_remote_code_hint">Наведите камеру телефона на QR-код или отправьте код боту @<xliff:g id="bot">%1$s</xliff:g> в Telegram</string>
+    <string name="settings_tg_remote_linked">Подключён: <xliff:g id="name">%1$s</xliff:g></string>
+    <string name="settings_tg_remote_new_code">Новый код</string>
+    <string name="settings_tg_remote_unlink">Отвязать Telegram</string>
+    <string name="settings_tg_remote_connecting">Подключение…</string>
+    <string name="settings_tg_remote_failed">Нет связи с сервером</string>
+    <string name="settings_tg_remote_explanation">Бот @<xliff:g id="bot">%1$s</xliff:g> становится пультом этого телевизора: стрелки, OK, назад, каналы вверх и вниз, перемотка, канал по номеру или названию. Плейлисты, телегид и каналы меняет сам телевизор, с теми же ограничениями, что и в настройках. Управлять может только аккаунт, с которого отправлен код.</string>
+    <string name="tg_bot_menu">Пульт</string>
+    <string name="tg_bot_linked">Телевизор подключён к вам</string>
+    <string name="tg_bot_send_code">Пришлите код с экрана телевизора: SkMate → Настройки → Telegram</string>
+    <string name="tg_bot_need_link">Нужна ссылка</string>
+    <string name="tg_bot_done">Готово</string>
+    <string name="tg_bot_playing">Включаю <xliff:g id="channel">%1$s</xliff:g></string>
+    <string name="tg_bot_found">Поиск: <xliff:g id="query">%1$s</xliff:g>, найдено <xliff:g id="count">%2$d</xliff:g></string>
+    <string name="tg_bot_send_playlist">Пришлите ссылку на плейлист</string>
+    <string name="tg_bot_send_guide">Пришлите ссылку на телегид</string>
+    <string name="tg_bot_deleted">Удалено</string>
+    <string name="tg_bot_refreshing">Обновляется</string>
+    <string name="tg_bot_hidden">Канал скрыт</string>
+    <string name="tg_bot_play">Включить</string>
+    <string name="tg_bot_hide">Скрыть канал</string>
+    <string name="tg_bot_back">Назад</string>
+    <string name="tg_bot_remote_title">📺 Пульт SkMate</string>
+    <string name="tg_bot_remote_hint">Кнопки работают как пульт. Пришлите номер канала, чтобы включить его, или название, чтобы найти.</string>
+    <string name="tg_bot_playlists">Плейлисты</string>
+    <string name="tg_bot_guides">Телегид</string>
+    <string name="tg_bot_empty">Пусто</string>
+    <string name="tg_bot_add">Добавить</string>
+    <string name="tg_bot_refresh">Обновить</string>
+    <string name="tg_bot_delete">Удалить</string>
+    <string name="tg_bot_replace">Заменить</string>
+    <string name="tg_bot_failed">Телевизор не смог выполнить</string>
+    <string name="tg_bot_footer">Выберите кнопку ниже:</string>
+    <string name="settings_tg_own">Свой бот</string>
+    <string name="settings_tg_own_token">Токен бота</string>
+    <string name="settings_tg_own_token_hint">Из @BotFather: 123456:ABC…</string>
+    <string name="settings_tg_own_waiting">@<xliff:g id="bot">%1$s</xliff:g> работает. Отправьте ему код <xliff:g id="code">%2$s</xliff:g></string>
+    <string name="settings_tg_own_running">@<xliff:g id="bot">%1$s</xliff:g> работает для <xliff:g id="name">%2$s</xliff:g></string>
+    <string name="settings_tg_own_bad">Telegram не принял этот токен</string>
+    <string name="settings_tg_own_offline">Нет связи с Telegram, пробую снова</string>
+    <string name="settings_tg_own_checking">Проверяю токен…</string>
+    <string name="settings_tg_own_remove">Удалить бота</string>
+    <string name="settings_tg_own_explanation">Создайте бота в @BotFather и вставьте сюда его токен. Бота держит сам телевизор, без сервера SkMate: он отвечает, пока SkMate открыт на этом телевизоре. Управлять может только аккаунт, который первым отправит код с экрана.</string>
+    <string name="settings_tg_remote_unlink_title">Отвязать Telegram?</string>
+    <string name="settings_tg_remote_unlink_body">Телевизор перестанет отвечать боту, пока вы не подключите его снова.</string>
+    <string name="settings_tg_own_remove_body">Токен удалится с телевизора, бот остановится.</string>
+    <string name="settings_search_keywords_tg_remote">телеграм бот пульт управление токен телефон qr код</string>
 </resources>

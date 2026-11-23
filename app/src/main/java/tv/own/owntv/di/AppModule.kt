@@ -34,6 +34,9 @@ import tv.own.owntv.features.settings.HomeSettingsViewModel
 import tv.own.owntv.features.settings.LanguageSettingsViewModel
 import tv.own.owntv.features.settings.OpenSubtitlesViewModel
 import tv.own.owntv.features.settings.SettingsViewModel
+import tv.own.owntv.features.remote.OwnTelegramBot
+import tv.own.owntv.features.remote.RemoteCommands
+import tv.own.owntv.features.remote.TelegramRemote
 import tv.own.owntv.features.setup.DisplaySizeViewModel
 import tv.own.owntv.features.setup.SetupViewModel
 import tv.own.owntv.features.shell.ShellViewModel
@@ -62,6 +65,10 @@ val appModule = module {
     singleOf(::HomeFeedReader)
     // Sports Hub: which match the playing channel came from. Lazy; nothing runs until it is asked.
     singleOf(::SportsPlayback)
+    // Telegram remote: the link to the author's service and what runs the commands it brings.
+    singleOf(::TelegramRemote)
+    singleOf(::RemoteCommands)
+    singleOf(::OwnTelegramBot)
     // Process-long scope for work that must outlive the screen that started it (a first-run restore).
     single<kotlinx.coroutines.CoroutineScope> {
         kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.SupervisorJob() + kotlinx.coroutines.Dispatchers.Default)
