@@ -42,28 +42,19 @@ def main() -> None:
         for x in range(mark.size[0]):
             r, g, b = px[x, y]
             mp[x, y] = max(0, min(255, int((b - 45) * 255 / (245 - 45))))
-    scale = 0.78
+    scale = 1.0
     mark = mark.resize((int(mark.size[0] * scale), int(mark.size[1] * scale)), Image.LANCZOS)
     mask = mask.resize(mark.size, Image.LANCZOS)
     solid = Image.new("RGB", mark.size, ACCENT)
     mx = (W - mark.size[0]) // 2
-    my = 150
+    my = 148
     img.paste(solid, (mx, my), mask)
 
     draw = ImageDraw.Draw(img)
     title = "плейлист"
-    f1 = font(64, 700)
+    f1 = font(84, 700)
     tw = draw.textlength(title, font=f1)
-    draw.text(((W - tw) / 2, my + mark.size[1] + 30), title, font=f1, fill=(236, 240, 244))
-
-    tag = "каналы  ·  телегид  ·  проверка 24/7"
-    f2 = font(30, 500)
-    tw2 = draw.textlength(tag, font=f2)
-    pad_x, pad_y = 28, 14
-    top = my + mark.size[1] + 135
-    box = ((W - tw2) / 2 - pad_x, top, (W + tw2) / 2 + pad_x, top + 30 + pad_y * 2 + 6)
-    draw.rounded_rectangle(box, radius=40, fill=(38, 44, 51), outline=(52, 60, 69), width=2)
-    draw.text(((W - tw2) / 2, top + pad_y), tag, font=f2, fill=(160, 172, 184))
+    draw.text(((W - tw) / 2, my + mark.size[1] + 24), title, font=f1, fill=(236, 240, 244))
 
     img.save(os.path.join(HERE, "banner.jpg"), quality=92)
 

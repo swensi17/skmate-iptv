@@ -1130,6 +1130,17 @@ def show(chat: int, text: str, markup: dict, note: str = "", fresh: bool = False
         text = text + "\n\n" + note
     ui = get_ui(chat)
     msg = ui.get("msg")
+    # A new banner.jpg replaces the cached picture: Telegram keeps the old one under its file id.
+    try:
+        sig = f"{os.path.getsize(BANNER)}:{int(os.path.getmtime(BANNER))}"
+    except OSError:
+        sig = ""
+    with lock:
+        state = load_state()
+        if state.get("banner_sig") != sig:
+            state.pop("banner_id", None)
+            state["banner_sig"] = sig
+            save_state(state)
     if not load_state().get("banner_id"):
         # The banner's file id comes from a first upload as a photo; rich messages reuse it.
         try:
