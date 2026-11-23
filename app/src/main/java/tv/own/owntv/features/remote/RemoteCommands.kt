@@ -156,11 +156,23 @@ class RemoteCommands(
             RemoteShellRequests.shortcut(RemoteShortcutAction.OPEN_HOME)
             return
         }
-        val code = KEYS[key] ?: return
         val activity = MainActivity.resumed ?: return
+        when (key) {
+            "vol_up" -> return adjustVolume(activity, android.media.AudioManager.ADJUST_RAISE)
+            "vol_down" -> return adjustVolume(activity, android.media.AudioManager.ADJUST_LOWER)
+            "mute" -> return adjustVolume(activity, android.media.AudioManager.ADJUST_TOGGLE_MUTE)
+            // An app cannot switch the TV itself off: this stops playback and closes SkMate.
+            "power" -> return activity.finish()
+        }
+        val code = KEYS[key] ?: return
         val now = SystemClock.uptimeMillis()
         activity.dispatchKeyEvent(KeyEvent(now, now, KeyEvent.ACTION_DOWN, code, 0))
         activity.dispatchKeyEvent(KeyEvent(now, SystemClock.uptimeMillis(), KeyEvent.ACTION_UP, code, 0))
+    }
+
+    private fun adjustVolume(activity: MainActivity, direction: Int) {
+        val audio = activity.getSystemService(android.content.Context.AUDIO_SERVICE) as android.media.AudioManager
+        audio.adjustStreamVolume(android.media.AudioManager.STREAM_MUSIC, direction, android.media.AudioManager.FLAG_SHOW_UI)
     }
 
     private suspend fun profileId(): Long? = withContext(Dispatchers.IO) {

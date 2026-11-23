@@ -57,11 +57,14 @@
 1	app/src/main/java/tv/own/owntv/features/remote/OwnTelegramBot.kt	k:home
 1	app/src/main/java/tv/own/owntv/features/remote/OwnTelegramBot.kt	k:left
 1	app/src/main/java/tv/own/owntv/features/remote/OwnTelegramBot.kt	k:menu
+1	app/src/main/java/tv/own/owntv/features/remote/OwnTelegramBot.kt	k:mute
 1	app/src/main/java/tv/own/owntv/features/remote/OwnTelegramBot.kt	k:ok
 1	app/src/main/java/tv/own/owntv/features/remote/OwnTelegramBot.kt	k:play_pause
 1	app/src/main/java/tv/own/owntv/features/remote/OwnTelegramBot.kt	k:rewind
 1	app/src/main/java/tv/own/owntv/features/remote/OwnTelegramBot.kt	k:right
 1	app/src/main/java/tv/own/owntv/features/remote/OwnTelegramBot.kt	k:up
+1	app/src/main/java/tv/own/owntv/features/remote/OwnTelegramBot.kt	k:vol_down
+1	app/src/main/java/tv/own/owntv/features/remote/OwnTelegramBot.kt	k:vol_up
 2	app/src/main/java/tv/own/owntv/features/remote/OwnTelegramBot.kt	key
 1	app/src/main/java/tv/own/owntv/features/remote/OwnTelegramBot.kt	m
 4	app/src/main/java/tv/own/owntv/features/remote/OwnTelegramBot.kt	message
@@ -120,6 +123,13 @@
 1	app/src/main/java/tv/own/owntv/features/remote/OwnTelegramBot.kt	▼
 1	app/src/main/java/tv/own/owntv/features/remote/OwnTelegramBot.kt	◀
 1	app/src/main/java/tv/own/owntv/features/remote/OwnTelegramBot.kt	☰
+1	app/src/main/java/tv/own/owntv/features/remote/OwnTelegramBot.kt	🔇
+1	app/src/main/java/tv/own/owntv/features/remote/OwnTelegramBot.kt	🔉
+1	app/src/main/java/tv/own/owntv/features/remote/OwnTelegramBot.kt	🔊
+1	app/src/main/java/tv/own/owntv/features/remote/RemoteCommands.kt	mute
+1	app/src/main/java/tv/own/owntv/features/remote/RemoteCommands.kt	power
+1	app/src/main/java/tv/own/owntv/features/remote/RemoteCommands.kt	vol_down
+1	app/src/main/java/tv/own/owntv/features/remote/RemoteCommands.kt	vol_up
 1	app/src/main/java/tv/own/owntv/features/remote/TelegramRemote.kt	$BASE/$path
 1	app/src/main/java/tv/own/owntv/features/remote/TelegramRemote.kt	TelegramRemote
 1	app/src/main/java/tv/own/owntv/features/remote/TelegramRemote.kt	application/json; charset=utf-8

@@ -1360,7 +1360,7 @@ def handle_callback(cb: dict) -> None:
     if get_ui(chat).get("msg") != msg_id:
         set_ui(chat, msg=msg_id)  # a button on an older copy of the message takes it over
     if data.split(":")[0] in ("r", "rp", "rg", "rpl", "rgl", "rpi", "rgi", "rpa", "rga", "rgr", "rpx", "rgx", "rpu",
-                              "rc", "rcl", "rci", "rcp", "rcx", "rt", "rta", "rtx"):
+                              "rc", "rcl", "rci", "rcp", "rcx", "rt", "rtd", "rtp", "rta", "rtx", "rtxa"):
         remote_callback(chat, cb, data)
         return
     if cb.get("from", {}).get("id") not in ADMINS:
@@ -1467,14 +1467,15 @@ def handle_callback(cb: dict) -> None:
 
 # callback key -> what the TV presses
 KEYS = {"u": "up", "d": "down", "l": "left", "r": "right", "o": "ok", "b": "back", "h": "home",
-        "cu": "ch_up", "cd": "ch_down", "rw": "rewind", "ff": "forward", "pp": "play_pause", "m": "menu"}
+        "cu": "ch_up", "cd": "ch_down", "rw": "rewind", "ff": "forward", "pp": "play_pause", "m": "menu",
+        "vu": "vol_up", "vd": "vol_down", "mu": "mute"}
 REMOTE_PAGE = 8
 TV_ERRORS = {"bad_url": "Нужна ссылка", "not_found": "На телевизоре такого нет", "failed": "Телевизор не смог выполнить",
              "unknown": "Телевизор не знает этой команды, обновите SkMate"}
 
 
 def no_tv_text() -> str:
-    return (f"{e('📺')} <b>Пульт SkMate</b>\n\n"
+    return (f"<b>Пульт SkMate</b>\n\n"
             f"<blockquote>На телевизоре откройте <b>SkMate → Настройки → Пульт через Telegram</b> "
             f"и пришлите сюда код с экрана.</blockquote>")
 
@@ -1484,16 +1485,17 @@ def screen_remote(chat: int) -> tuple[str, dict]:
     if did is None:
         return no_tv_text(), kb(*([back()] if chat in ADMINS else []))
     state = "в сети" if remote.online(d) else "не в сети"
-    text = (f"{e('📺')} <b>{h(d.get('name', 'TV'))}</b> · {state}\n\n"
+    text = (f"<b>{h(d.get('name', 'TV'))}</b> · {state}\n\n"
             f"<blockquote>Кнопки работают как пульт. Пришлите <b>номер</b> канала, чтобы включить его, "
             f"или <b>название</b>, чтобы найти.</blockquote>")
     rows = [
         [btn("⏮ Канал", "k:cd"), btn("▲", "k:u"), btn("Канал ⏭", "k:cu")],
         [btn("◀", "k:l"), btn("OK", "k:o", style="primary"), btn("▶", "k:r")],
         [btn("⏪ Назад", "k:rw"), btn("▼", "k:d"), btn("Вперёд ⏩", "k:ff")],
+        [btn("🔉", "k:vd"), btn("🔇", "k:mu"), btn("🔊", "k:vu")],
         [btn("↩ Назад", "k:b"), btn("⏯", "k:pp"), btn("Меню", "k:m"), btn("⌂ Домой", "k:h")],
         [btn("Плейлисты", "rp", "sources"), btn("Телегид", "rg", "guide")],
-        [btn("Каналы", "rc", "channels"), btn("Телевизоры", "rt")],
+        [btn("Каналы", "rc", "channels"), btn("Телевизоры", "rt", "channels")],
     ]
     if chat in ADMINS:
         rows.append([btn("Плейлист SkMate", "home", "main")])
@@ -1557,7 +1559,7 @@ def screen_remote_add(kind: str, replace: int = -1) -> tuple[str, dict]:
 def screen_remote_channels(ui: dict) -> tuple[str, dict]:
     items = ui.get("rc_items") or []
     q = ui.get("rc_q", "")
-    head = f"{e('📺')} <b>Каналы</b>\n\n"
+    head = f"<b>Каналы</b>\n\n"
     if not q:
         return head + "<blockquote>Пришлите название канала или его номер</blockquote>", kb(back("r"))
     head += f"<blockquote>Поиск: <b>{h(q)}</b>, найдено {len(items)}</blockquote>"
@@ -1571,7 +1573,7 @@ def screen_remote_channel(i: int, ui: dict) -> tuple[str, dict]:
     if i >= len(items):
         return screen_remote_channels(ui)
     it = items[i]
-    text = f"{e('📺')} <b>{h(it.get('name', ''))}</b>" + (f"\nНомер {it['number']}" if it.get("number") else "")
+    text = f"<b>{h(it.get('name', ''))}</b>" + (f"\nНомер {it['number']}" if it.get("number") else "")
     return text, kb([btn("Включить", f"rcp:{i}", style="success")],
                     [btn("Скрыть канал", f"rcx:{i}", "delete", "danger")], back("rcl"))
 
@@ -1579,15 +1581,27 @@ def screen_remote_channel(i: int, ui: dict) -> tuple[str, dict]:
 def screen_remote_tvs(chat: int) -> tuple[str, dict]:
     did, _ = remote.active(chat)
     rows = []
-    lines = [f"{e('📺')} <b>Телевизоры</b>\n"]
+    lines = [f"<b>Телевизоры</b>\n"]
     for k, v in remote.devices_of(chat):
         mark = "● " if k == did else ""
         lines.append(f"• {mark}{h(v.get('name', 'TV'))} · {'в сети' if remote.online(v) else 'не в сети'}")
-        rows.append([btn(("✓ " if k == did else "") + short(v.get("name", "TV"), 30), f"rta:{k[:40]}"),
-                     btn("Отвязать", f"rtx:{k[:40]}", "cancel", "danger")])
+        rows.append([btn(("✓ " if k == did else "") + short(v.get("name", "TV"), 40), f"rtd:{k[:40]}", "channels")])
     lines.append("\n<blockquote>Чтобы добавить телевизор, пришлите код с его экрана.</blockquote>")
+    if did is not None:
+        rows.append([btn("Отвязать все", "rtxa", "cancel", "danger")])
     rows.append(back("r"))
     return "\n".join(lines), kb(*rows)
+
+
+def screen_remote_tv(chat: int, prefix: str) -> tuple[str, dict]:
+    """One TV: only what can be done with it as a device, the unlink and Back at the very bottom."""
+    for k, v in remote.devices_of(chat):
+        if k.startswith(prefix):
+            text = (f"<b>{h(v.get('name', 'TV'))}</b> · {'в сети' if remote.online(v) else 'не в сети'}\n\n"
+                    f"<blockquote>Закрыть SkMate на телевизоре или отвязать его от этого аккаунта.</blockquote>")
+            return text, kb([btn("Закрыть SkMate", f"rtp:{k[:40]}", "cancel")],
+                            [btn("Отвязать", f"rtx:{k[:40]}", "cancel", "danger")], back("rt"))
+    return screen_remote_tvs(chat)
 
 
 def render_remote(chat: int, screen: str, note: str = "", fresh: bool = False) -> bool:
@@ -1614,6 +1628,8 @@ def render_remote(chat: int, screen: str, note: str = "", fresh: bool = False) -
         text, markup = screen_remote_channel(int(p[1]), ui)
     elif n == "rt":
         text, markup = screen_remote_tvs(chat)
+    elif n == "rtd":
+        text, markup = screen_remote_tv(chat, p[1])
     else:
         return False
     set_ui(chat, screen=screen, wait=wait)
@@ -1629,7 +1645,7 @@ def remote_fetch(chat: int, kind: str) -> None:
             return err
         set_ui(chat, **{f"r{kind}_items": (r or {}).get("items", [])[:20]})
         return ""
-    render_remote(chat, "r", f"{e('⚡️')} <i>Спрашиваю телевизор…</i>")
+    render_remote(chat, "r", f"{e('⚡️')} Спрашиваю телевизор…")
     threading.Thread(target=lambda: _after(chat, work, f"r{kind}l"), daemon=True).start()
 
 
@@ -1653,7 +1669,7 @@ def remote_action(chat: int, ctype: str, args: dict, after: str, ok_text: str, r
                 set_ui(chat, **{f"r{refetch}_items": r2.get("items", [])[:20]})
         msg = (r or {}).get("message") if isinstance(r, dict) else None
         return done(msg or ok_text)
-    render_remote(chat, after, f"{e('⚡️')} <i>Телевизор выполняет…</i>")
+    render_remote(chat, after, f"{e('⚡️')} Телевизор выполняет…")
     threading.Thread(target=lambda: _after(chat, work, after), daemon=True).start()
 
 
@@ -1688,7 +1704,7 @@ def remote_text(chat: int, text: str, wait: str) -> bool:
             return err
         set_ui(chat, rc_items=(r or {}).get("items", [])[:REMOTE_PAGE * 2], rc_q=text[:60])
         return ""
-    render_remote(chat, "r", f"{e('⚡️')} <i>Ищу «{h(short(text, 30))}»…</i>")
+    render_remote(chat, "r", f"{e('⚡️')} Ищу «{h(short(text, 30))}»…")
     threading.Thread(target=lambda: _after(chat, work, "rcl"), daemon=True).start()
     return True
 
@@ -1736,6 +1752,16 @@ def remote_callback(chat: int, cb: dict, data: str) -> bool:
             if k.startswith(p[1]):
                 remote.set_active(chat, k)
         render_remote(chat, "rt")
+    elif a == "rtp":
+        for k, _ in remote.devices_of(chat):
+            if k.startswith(p[1]):
+                remote.set_active(chat, k)
+                remote.send(chat, "key", {"key": "power"})
+        render_remote(chat, "rt", done("SkMate на телевизоре закрывается"))
+    elif a == "rtxa":
+        for k, _ in remote.devices_of(chat):
+            remote.unlink_from_chat(chat, k)
+        render_remote(chat, "r", done("Все телевизоры отвязаны"))
     elif a == "rtx":
         for k, _ in remote.devices_of(chat):
             if k.startswith(p[1]):

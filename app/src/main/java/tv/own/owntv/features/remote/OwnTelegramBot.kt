@@ -271,6 +271,7 @@ class OwnTelegramBot(
         listOf(button("⏮", "k:ch_down"), button("▲", "k:up"), button("⏭", "k:ch_up")),
         listOf(button("◀", "k:left"), button("OK", "k:ok"), button("▶", "k:right")),
         listOf(button("⏪", "k:rewind"), button("▼", "k:down"), button("⏩", "k:forward")),
+        listOf(button("🔉", "k:vol_down"), button("🔇", "k:mute"), button("🔊", "k:vol_up")),
         listOf(button("↩", "k:back"), button("⏯", "k:play_pause"), button("☰", "k:menu"), button("⌂", "k:home")),
         listOf(button(s(R.string.tg_bot_playlists), SCR_PLAYLISTS), button(s(R.string.tg_bot_guides), SCR_GUIDES)),
     )
