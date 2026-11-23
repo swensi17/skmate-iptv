@@ -18,10 +18,17 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        arch: [ arm, arm64, x86_64 ]
+        include:
+          # The images VideoLAN's own CI builds libvlc 3.x with (vlc-android buildsystem/gitlab/.gitlab-ci.yml):
+          # 32-bit on the 3.0 image, 64-bit on the newer NDK of the main one.
+          - arch: arm
+            image: registry.videolan.org/vlc-debian-android-3.0:20260701183656
+          - arch: arm64
+            image: registry.videolan.org/vlc-debian-android:20260610055743
+          - arch: x86_64
+            image: registry.videolan.org/vlc-debian-android:20260610055743
     container:
-      # The image VideoLAN's own CI builds libvlc 3.x with (vlc-android buildsystem/gitlab/.gitlab-ci.yml).
-      image: registry.videolan.org/vlc-debian-android-3.0:20260701183656
+      image: ${{ matrix.image }}
       options: --user root
     env:
       VLC_ANDROID_TAG: libvlc-3.7.7
