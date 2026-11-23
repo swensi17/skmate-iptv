@@ -1,0 +1,16 @@
+# hand-written rules on top of the generated profile (generated/baselineProfiles), which is recorded on an
+# emulator and does not reach the live screen, the player's channel panel or the shared ui: those paths ran
+# interpreted until the box's background compiler caught up, and a weak arm box scrolled them at half speed
+HSPLtv/own/owntv/features/live/**->**(**)**
+HSPLtv/own/owntv/features/shell/**->**(**)**
+HSPLtv/own/owntv/features/epg/**->**(**)**
+HSPLtv/own/owntv/ui/**->**(**)**
+HSPLtv/own/owntv/core/live/**->**(**)**
+HSPLtv/own/owntv/player/**->**(**)**
+HSPLandroidx/compose/foundation/**->**(**)**
+HSPLandroidx/compose/ui/**->**(**)**
+HSPLandroidx/compose/runtime/**->**(**)**
+HSPLandroidx/compose/animation/**->**(**)**
+HSPLandroidx/tv/material3/**->**(**)**
+HSPLandroidx/paging/**->**(**)**
+HSPLcoil3/**->**(**)**
