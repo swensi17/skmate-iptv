@@ -232,6 +232,14 @@
 1	technical	app/src/main/java/tv/own/owntv/features/profiles/ProfilePictureChooser.kt	webp
 1	technical	app/src/main/java/tv/own/owntv/features/recordings/RecordingsScreen.kt	r_${it.id}
 1	technical	app/src/main/java/tv/own/owntv/features/recordings/RecordingsScreen.kt	rhdr_$labelRes
+1	technical	app/src/main/java/tv/own/owntv/features/remote/AuthorPlaylistWatcher.kt	AuthorWatcher
+1	technical	app/src/main/java/tv/own/owntv/features/remote/AuthorPlaylistWatcher.kt	Cache-Control
+1	technical	app/src/main/java/tv/own/owntv/features/remote/AuthorPlaylistWatcher.kt	ETag
+1	technical	app/src/main/java/tv/own/owntv/features/remote/AuthorPlaylistWatcher.kt	If-None-Match
+1	technical	app/src/main/java/tv/own/owntv/features/remote/AuthorPlaylistWatcher.kt	author playlist changed, syncing sourceId=${source.id}
+1	technical	app/src/main/java/tv/own/owntv/features/remote/AuthorPlaylistWatcher.kt	author_update
+1	technical	app/src/main/java/tv/own/owntv/features/remote/AuthorPlaylistWatcher.kt	check failed: ${it.javaClass.simpleName}
+1	technical	app/src/main/java/tv/own/owntv/features/remote/AuthorPlaylistWatcher.kt	no-cache
 14	technical	app/src/main/java/tv/own/owntv/features/remote/OwnTelegramBot.kt	\0
 1	technical	app/src/main/java/tv/own/owntv/features/remote/OwnTelegramBot.kt	$API$t/$method
 1	technical	app/src/main/java/tv/own/owntv/features/remote/OwnTelegramBot.kt	$method failed: ${it.javaClass.simpleName}

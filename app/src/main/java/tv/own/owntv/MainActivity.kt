@@ -110,10 +110,13 @@ open class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         resumed = this
+        // The author's playlist is kept current while the screen is on (see AuthorPlaylistWatcher).
+        runCatching { authorWatcher.start() }
     }
 
     override fun onPause() {
         if (resumed === this) resumed = null
+        runCatching { authorWatcher.stop() }
         super.onPause()
     }
 
@@ -176,6 +179,7 @@ open class MainActivity : ComponentActivity() {
     @Volatile
     private var contentReady = false
 
+    private val authorWatcher: tv.own.owntv.features.remote.AuthorPlaylistWatcher by inject()
     private val player: tv.own.owntv.player.OwnTVPlayer by inject()
     private val previewEngine: tv.own.owntv.player.LivePreviewEngine by inject()
     private val heroPreviewEngine: tv.own.owntv.player.HeroPreviewEngine by inject()

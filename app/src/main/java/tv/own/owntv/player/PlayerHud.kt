@@ -682,7 +682,7 @@ fun PlayerHud(
                 // With it hidden, ▲ ▼ change channel (below) and OK shows the info.
                 tvLive && error == null && !controlsVisible && !inert &&
                     (e.key == Key.DirectionCenter || e.key == Key.Enter || e.key == Key.NumPadEnter) -> { controlsVisible = true; true }
-                tvLive && error == null && controlsVisible && !tvActions && !tvSeek && onScrubLive != null &&
+                tvLive && error == null && controlsVisible && !tvActions && !tvSeek && onScrubLive != null && liveProgrammes.isNotEmpty() &&
                     e.key == Key.DirectionDown -> { tvSeek = true; wakeTick++; true }
                 tvLive && error == null && controlsVisible && !tvActions && e.key == Key.DirectionDown -> {
                     tvSeek = false
@@ -698,7 +698,7 @@ fun PlayerHud(
                 tvLive && error == null && controlsVisible && !tvActions && e.key == Key.DirectionUp -> { controlsVisible = false; true }
                 tvLive && error == null && controlsVisible && tvActions && e.key == Key.DirectionUp -> {
                     tvActions = false
-                    tvSeek = onScrubLive != null
+                    tvSeek = onScrubLive != null && liveProgrammes.isNotEmpty()
                     wakeTick++
                     true
                 }
@@ -709,7 +709,9 @@ fun PlayerHud(
                     wakeTick++
                     true
                 }
-                tvLive && error == null && controlsVisible && !tvActions && tvSeek && onScrubLive != null &&
+                // A channel with no programme data has nothing to scrub: ◀ ▶ then fall through to the lists below,
+                // instead of rewinding into nothing and looking dead.
+                tvLive && error == null && controlsVisible && !tvActions && tvSeek && onScrubLive != null && liveProgrammes.isNotEmpty() &&
                     (e.key == Key.DirectionLeft || e.key == Key.DirectionRight) -> {
                     onScrubLive(if (e.key == Key.DirectionLeft) LIVE_SCRUB_STEP_SEC else -LIVE_SCRUB_STEP_SEC)
                     wakeTick++
@@ -731,10 +733,12 @@ fun PlayerHud(
                 // Decided in the bottom bar's own order: a channel with an archive draws the live timeline
                 // even while rewound (when the engine is playing a file and calls it not live), so that
                 // is what the keys scrub; only without one does a film's seek bar apply.
+                // Without programme data there is no timeline to rewind on: ◀ ▶ then open the lists, so the key
+                // never looks dead on a channel that has no guide.
                 !controlsVisible && error == null && (e.key == Key.DirectionLeft || e.key == Key.DirectionRight) &&
-                    (if (onScrubLive != null) liveLeftRightRewinds else !isLive && duration > 0L) -> {
+                    (if (onScrubLive != null && liveProgrammes.isNotEmpty()) liveLeftRightRewinds else !isLive && duration > 0L) -> {
                     val back = e.key == Key.DirectionLeft
-                    if (onScrubLive != null) {
+                    if (onScrubLive != null && liveProgrammes.isNotEmpty()) {
                         onScrubLive(if (back) LIVE_SCRUB_STEP_SEC else -LIVE_SCRUB_STEP_SEC)
                     } else {
                         val step = player.seekStepMs.value

@@ -34,6 +34,7 @@ import tv.own.owntv.features.settings.HomeSettingsViewModel
 import tv.own.owntv.features.settings.LanguageSettingsViewModel
 import tv.own.owntv.features.settings.OpenSubtitlesViewModel
 import tv.own.owntv.features.settings.SettingsViewModel
+import tv.own.owntv.features.remote.AuthorPlaylistWatcher
 import tv.own.owntv.features.remote.OwnTelegramBot
 import tv.own.owntv.features.remote.RemoteCommands
 import tv.own.owntv.features.remote.TelegramRemote
@@ -69,6 +70,7 @@ val appModule = module {
     singleOf(::TelegramRemote)
     singleOf(::RemoteCommands)
     singleOf(::OwnTelegramBot)
+    singleOf(::AuthorPlaylistWatcher)
     // Process-long scope for work that must outlive the screen that started it (a first-run restore).
     single<kotlinx.coroutines.CoroutineScope> {
         kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.SupervisorJob() + kotlinx.coroutines.Dispatchers.Default)
