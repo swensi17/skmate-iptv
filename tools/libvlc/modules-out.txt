@@ -1,0 +1,125 @@
+# libVLC modules left out of SkMate's build, on top of VideoLAN's own list.
+# One regular expression per line, matched against lib<name>_plugin.a (see libvlcjni compile-libvlc.sh).
+# The live engine needs network access (http/https, HLS/DASH, udp, rtp, rtsp, rtmp through avio),
+# the TS/ES/MP4/MKV demuxers, MediaCodec plus avcodec, deinterlacing, subtitles and teletext: none of those is here.
+
+# network shares, discs, capture and remote desktops
+access_concat
+access_mms
+access_realrtsp
+access_srt
+cdda
+dcp
+dsm
+dtv
+dvb
+dvdnav
+dvdread
+ftp
+libbluray
+nfs
+rdp
+rist
+satip
+sftp
+smb
+smb2
+vcd
+vdr
+vnc
+screen
+timecode
+archive
+
+# stream output: recording, transcoding, casting
+access_output_.*
+stream_out_.*
+demux_chromecast
+mux_.*
+
+# encoders and rare decoders
+x264
+x26410b
+x262
+x265
+shine
+twolame
+aom
+vpx
+fluidsynth
+gstdecode
+kate
+libmpeg2
+mad
+svgdec
+bpg
+xwd
+theora
+daala
+oggspots
+tremor
+sdl_image
+aribsub
+crystalhd
+qsv
+libass
+
+# music, game and tracker formats
+gme
+mod
+sid
+smf
+mpc
+nsv
+nuv
+ty
+xa
+voc
+demuxdump
+directory_demux
+dmxmus
+
+# audio effects
+chorus_flanger
+compressor
+karaoke
+param_eq
+spatialaudio
+spatializer
+stereo_widen
+afile
+
+# video effects and visualisations
+anaglyph
+antiflicker
+colorthres
+edgedetection
+extract
+gaussianblur
+gradfun
+hqdn3d
+invert
+oldmovie
+postproc
+sepia
+vhs
+wave
+glspectrum
+goom
+projectm
+vsxu
+
+# scripting, tags, discovery
+lua
+taglib
+folder
+fingerprinter
+vod_rtsp
+aribcam
+adf
+avahi
+bonjour
+microdns
+mtp
+upnp
+podcast

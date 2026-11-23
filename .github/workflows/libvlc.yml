@@ -1,0 +1,87 @@
+name: libVLC
+
+# SkMate's own libVLC: VideoLAN's libvlc 3.7.7 (the version the app's Java API comes from) built with only the
+# modules live TV needs. tools/libvlc/modules-out.txt lists what is left out. Run by hand; the job uploads
+# libvlc.so and libvlcjni.so per ABI, and they are committed under app/src/main/jniLibs, where they take the
+# place of the libraries in org.videolan.android:libvlc-all.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: libvlc ${{ matrix.arch }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [ arm, arm64, x86_64 ]
+    container:
+      # The image VideoLAN's own CI builds libvlc 3.x with (vlc-android buildsystem/gitlab/.gitlab-ci.yml).
+      image: registry.videolan.org/vlc-debian-android-3.0:20260701183656
+      options: --user root
+    env:
+      VLC_ANDROID_TAG: libvlc-3.7.7
+      LIBVLCJNI_HASH: 0b8dc65efb203c86a0476bc337ddd99ecf1c0ef6
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          path: skmate
+          sparse-checkout: tools/libvlc
+
+      - name: Sources
+        run: |
+          set -eux
+          git config --global --add safe.directory '*'
+          git clone --depth 1 --branch "$VLC_ANDROID_TAG" https://code.videolan.org/videolan/vlc-android.git va
+          cd va
+          # Cloned before compile.sh runs, so it is used as it is (compile.sh only resets a fresh clone).
+          git clone --single-branch --branch libvlcjni-3.x https://code.videolan.org/videolan/libvlcjni.git libvlcjni
+          git -C libvlcjni reset --hard "$LIBVLCJNI_HASH"
+
+      - name: Leave out the modules live TV does not use
+        run: |
+          set -eux
+          script=va/libvlcjni/buildsystem/compile-libvlc.sh
+          extra=$(grep -vE '^\s*(#|$)' skmate/tools/libvlc/modules-out.txt | tr '\n' ' ')
+          grep -q '^VLC_MODULE_BLACKLIST="$' "$script"
+          # The list is a quoted, newline-separated string; ours goes in right after its opening line.
+          python3 - "$script" "$extra" <<'PY'
+          import sys
+          path, extra = sys.argv[1], sys.argv[2]
+          s = open(path).read()
+          marker = 'VLC_MODULE_BLACKLIST="\n'
+          assert s.count(marker) == 1
+          s = s.replace(marker, marker + "".join(f"    {m}\n" for m in extra.split()))
+          open(path, "w").write(s)
+          PY
+          grep -A5 '^VLC_MODULE_BLACKLIST="$' "$script"
+
+      - name: Build
+        working-directory: va
+        run: |
+          set -eux
+          export RELEASE=1
+          ./buildsystem/compile.sh -l -a ${{ matrix.arch }} -t -r
+
+      - name: Collect
+        run: |
+          set -eux
+          case "${{ matrix.arch }}" in
+            arm) abi=armeabi-v7a ;;
+            arm64) abi=arm64-v8a ;;
+            *) abi=${{ matrix.arch }} ;;
+          esac
+          mkdir -p out/$abi
+          cp va/libvlcjni/libvlc/jni/libs/$abi/libvlc.so va/libvlcjni/libvlc/jni/libs/$abi/libvlcjni.so out/$abi/
+          ls -la out/$abi
+          (cd out && sha256sum */*.so)
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: libvlc-${{ matrix.arch }}
+          path: out/
+          if-no-files-found: error
