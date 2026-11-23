@@ -71,7 +71,9 @@ TRIES = 2                      # tries per check, TRY_GAP apart, so one dropped 
 TRY_GAP = 3                    # seconds
 SEGMENT_BYTES = 65536          # read of a media segment
 SOURCE_EVERY = 6 * 3600        # a source added by link is downloaded again after this
-WORKERS = 4                    # checks at once: more and the provider answers 503
+WORKERS = 24                   # checks at once, over all providers
+PER_HOST = 6                   # at once on one provider: more and it answers 503
+BATCH = 120                    # addresses checked between two publications of the playlist
 TIMEOUT = 10                   # seconds per request
 USER_AGENT = "SkMate-IPTV-check/1.0"
 MAX_FILE_BYTES = 20 * 1024 * 1024
@@ -354,37 +356,56 @@ def record(state: dict, url: str, result: str, now: float) -> str | None:
     return None
 
 
+_host_slots: dict[str, threading.Semaphore] = {}
+_host_lock = threading.Lock()
+
+
+def _host_slot(url: str) -> threading.Semaphore:
+    """One provider is asked by at most PER_HOST checks at a time, so it never answers 503 to the checker."""
+    host = urllib.parse.urlparse(url).netloc.lower()
+    with _host_lock:
+        return _host_slots.setdefault(host, threading.Semaphore(PER_HOST))
+
+
+def _checked(url: str) -> str:
+    with _host_slot(url):
+        return check_url(url)
+
+
 def check_urls(urls: list[str], manual: bool = False) -> dict:
+    """Checks addresses in batches and publishes each batch at once: a big new source fills the playlist
+    as it is checked, and nothing is lost when the service restarts in the middle."""
     counts = {"checked": 0, "died": 0, "revived": 0, "failed": 0, "unsure": 0, "held": False}
-    if urls:
-        with concurrent.futures.ThreadPoolExecutor(WORKERS) as pool:
-            results = list(pool.map(lambda u: (u, check_url(u)), urls))
-    else:
-        results = []
-    bad = sum(1 for _, r in results if r != OK)
-    # Most of a round failing is the host or the network, not the channels: nothing dies on it.
-    held = len(results) >= 20 and bad * 2 > len(results)
-    counts["held"] = held
-    with lock:
-        state = load_state()
-        now = time.time()
-        for u, r in results:
-            if held and r == DEAD:
-                r = UNSURE
-            change = record(state, u, r, now)
-            counts["checked"] += 1
-            if r != OK:
-                counts["failed"] += 1
-            if r == UNSURE:
-                counts["unsure"] += 1
-            if change:
-                counts[change] += 1
-        channels = merged_channels(state)
-        known = {u for ch in channels for u in ch.urls}
-        state["urls"] = {u: v for u, v in state["urls"].items() if u in known}
-        state["last_check"] = now
-        build_output(channels, state)
-        save_state(state)
+    # Addresses of one provider are spread through the batch, so a slow host does not stall the others.
+    urls = sorted(urls, key=lambda u: hash(urllib.parse.urlparse(u).netloc) ^ hash(u))
+    with concurrent.futures.ThreadPoolExecutor(WORKERS) as pool:
+        for start in range(0, len(urls), BATCH):
+            batch = urls[start:start + BATCH]
+            results = list(pool.map(lambda u: (u, _checked(u)), batch))
+            bad = sum(1 for _, r in results if r != OK)
+            # Most of a batch failing is the host or the network, not the channels: nothing dies on it.
+            held = len(batch) >= 20 and bad * 2 > len(batch)
+            counts["held"] = counts["held"] or held
+            with lock:
+                state = load_state()
+                now = time.time()
+                for u, r in results:
+                    if held and r == DEAD:
+                        r = UNSURE
+                    change = record(state, u, r, now)
+                    counts["checked"] += 1
+                    if r != OK:
+                        counts["failed"] += 1
+                    if r == UNSURE:
+                        counts["unsure"] += 1
+                    if change:
+                        counts[change] += 1
+                channels = merged_channels(state)
+                known = {u for ch in channels for u in ch.urls}
+                state["urls"] = {u: v for u, v in state["urls"].items() if u in known}
+                state["last_check"] = now
+                build_output(channels, state)
+                save_state(state)
     return counts
 
 
