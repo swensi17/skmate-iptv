@@ -364,6 +364,8 @@ class LivePreviewEngine(
             MediaPlayer.Event.Buffering -> if (e.buffering < 100f) {
                 if (hasPlayed && _stalledSinceMs.value == null) { _stalledSinceMs.value = SystemClock.elapsedRealtime(); noteStall() }
                 _buffering.value = true
+                // Loading is shown by its own spinner; "sound only" is a verdict on a stream that plays.
+                _audioOnlyMedia.value = false
             } else {
                 // The honest zap time: the buffer is full and the picture really moves (Vout comes earlier).
                 if (!bufferedOnce) {
@@ -403,6 +405,9 @@ class LivePreviewEngine(
         if (video != null && video.width > 0 && video.height > 0) {
             val w = video.width; val h = video.height
             val sar = if (video.sarDen > 0 && video.sarNum > 0) video.sarNum.toFloat() / video.sarDen else 1f
+            // A channel changing resolution mid-stream (an SD programme after an HD advert) builds its picture at the
+            // new size: the window size is handed over again, or the picture stays in a corner at its own size.
+            if (_videoSize.value != (w to h) && surfaceW > 0 && surfaceH > 0) applyWindowNow(p, surfaceW, surfaceH)
             _videoSize.value = w to h
             _videoAspect.value = w * sar / h
             _videoRes.value = "${h}p"
@@ -469,6 +474,11 @@ class LivePreviewEngine(
                             stats.demuxReadBytes.toLong(), p.videoTracksCount, p.audioTracksCount,
                         )
                     }.getOrNull()
+                    // A resolution change mid-stream raises no track event: the size is compared here as well.
+                    runCatching {
+                        val v = p.currentVideoTrack
+                        if (v != null && v.width > 0 && v.height > 0 && _videoSize.value != (v.width to v.height)) readTracksNow(p)
+                    }
                     main.post { snapshotBusy = false; if (gen == openGen && currentUrl == url) judge(snap, url) }
                 }
             }
@@ -483,7 +493,7 @@ class LivePreviewEngine(
         val shown = snap.shown
         val read = snap.read
         val noVideo = snap.videoTracks == 0 && snap.audioTracks > 0
-        _audioOnlyMedia.value = noVideo && SystemClock.elapsedRealtime() - openedAt > AUDIO_ONLY_AFTER_MS
+        _audioOnlyMedia.value = noVideo && !_buffering.value && SystemClock.elapsedRealtime() - openedAt > AUDIO_ONLY_AFTER_MS
         if (read > 0L || shown > 0 || snap.videoTracks > 0 || snap.audioTracks > 0) sawLife = true
         val dataFlows = read > lastRead
         receivingNow = dataFlows

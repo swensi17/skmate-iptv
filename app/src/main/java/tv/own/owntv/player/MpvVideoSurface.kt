@@ -265,17 +265,19 @@ fun ExoPreviewSurface(
         val revealed by androidx.compose.runtime.produceState(false, state, ready, if (coverOnResize) maxWidth else null, if (coverOnResize) maxHeight else null, revealKey) {
             // Covered again at once on every change (produceState keeps its last value across keys otherwise).
             value = false
-            // Shown as soon as the picture really moves (a beat to be drawn at the window's size); if that signal
-            // never comes, after the old fixed wait.
-            val wait = if (ready) REVEAL_READY_MS else RevealAfterMs
+            // Shown once the new channel's picture really moves (a beat to be drawn at the window's size). The video
+            // output opening is not enough: until its first frame the surface still holds the last channel's, drawn
+            // into the new output's geometry as a small square in a corner over black. A stream that never reports
+            // a full buffer is shown after a longer wait.
+            val wait = if (ready) REVEAL_READY_MS else REVEAL_UNREADY_MS
             if (state == LivePreviewEngine.State.PLAYING) { kotlinx.coroutines.delay(wait); value = true }
         }
         if (!revealed) androidx.compose.foundation.layout.Box(Modifier.matchParentSize().background(Color.Black))
     }
 }
 
-/** How long after a channel's first frame its picture is shown: enough for it to be drawn at the window's size. */
-private const val RevealAfterMs = 250L
+/** A channel whose buffer never reports full: its picture is shown this long after its video output opens. */
+private const val REVEAL_UNREADY_MS = 2_500L
 
 /** After the buffer is full: only long enough for the first frame to be drawn at the window's size. */
 private const val REVEAL_READY_MS = 60L
