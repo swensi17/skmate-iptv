@@ -1495,8 +1495,17 @@ def screen_remote(chat: int) -> tuple[str, dict]:
     did, d = remote.active(chat)
     if did is None:
         return no_tv_text(), kb(*([back()] if chat in ADMINS else []))
-    state = "в сети" if remote.online(d) else "не в сети"
-    text = (f"<b>{h(d.get('name', 'TV'))}</b> · {state}\n\n"
+    if not remote.online(d):
+        # The TV is off (or SkMate is closed): no remote keys, only a way to check again.
+        text = (f"<b>{h(d.get('name', 'TV'))}</b> · выключен\n\n"
+                f"<blockquote>Телевизор выключен или SkMate закрыт. Включите его, и пульт оживёт.</blockquote>")
+        rows = [[btn("Проверить снова", "r", "refresh", "primary")],
+                [btn("Плейлисты", "rp", "sources"), btn("Телегид", "rg", "guide")],
+                [btn("Телевизоры", "rt", "channels")]]
+        if chat in ADMINS:
+            rows.append([btn("Плейлист SkMate", "home", "main")])
+        return text, kb(*rows)
+    text = (f"<b>{h(d.get('name', 'TV'))}</b> · включён\n\n"
             f"<blockquote>Кнопки работают как пульт. Пришлите <b>номер</b> канала, чтобы включить его, "
             f"или <b>название</b>, чтобы найти.</blockquote>")
     rows = [
@@ -1515,6 +1524,9 @@ def screen_remote(chat: int) -> tuple[str, dict]:
 
 def tv_call(chat: int, ctype: str, args: dict | None = None):
     """The TV's answer, or a note saying why there is none."""
+    _, d = remote.active(chat)
+    if d is not None and not remote.online(d):
+        return None, failed("Телевизор выключен")
     r = remote.send(chat, ctype, args, wait=True)
     if r is False:
         return None, failed("Телевизор не подключён")
@@ -1705,6 +1717,10 @@ def remote_text(chat: int, text: str, wait: str) -> bool:
         return False
     digits = text.replace(" ", "")
     if digits.isdigit() and len(digits) <= 5:
+        _, d = remote.active(chat)
+        if not remote.online(d):
+            render_remote(chat, "r", failed("Телевизор выключен"))
+            return True
         r = remote.send(chat, "play", {"number": int(digits)})
         render_remote(chat, "r", done(f"Включаю канал {digits}") if r else failed("Телевизор не подключён"))
         return True
@@ -1727,6 +1743,12 @@ def remote_callback(chat: int, cb: dict, data: str) -> bool:
     cbid = cb["id"]
     if a == "k":
         # A key: no redraw, just a quick tick, so presses feel like a remote.
+        _, d = remote.active(chat)
+        if not remote.online(d):
+            # A small window over the chat, not a message: the TV is off.
+            quiet("answerCallbackQuery", callback_query_id=cbid, text="Телевизор выключен", show_alert=True)
+            render_remote(chat, "r")
+            return True
         r = remote.send(chat, "key", {"key": KEYS.get(p[1], "")})
         quiet("answerCallbackQuery", callback_query_id=cbid, text=None if r else "Телевизор не подключён")
         return True

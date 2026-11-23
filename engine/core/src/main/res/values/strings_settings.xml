@@ -1460,6 +1460,7 @@
     <!-- Translators: Auto-refresh option: refresh when the app starts. -->
     <string name="settings_sources_refresh_startup">Refresh at startup</string>
     <!-- Translators: Auto-refresh interval: every 6 hours. -->
+    <string name="settings_sources_refresh_2h">2 hours</string>
     <string name="settings_sources_refresh_6h">6 hours</string>
     <!-- Translators: Auto-refresh interval: every 12 hours. -->
     <string name="settings_sources_refresh_12h">12 hours</string>

@@ -89,6 +89,7 @@ data class StartupChannelRef(
 enum class PlaylistAutoRefresh(val thresholdMs: Long? = null) {
     OFF,
     STARTUP,
+    HOURS_2(2 * 3600_000L),
     HOURS_6(6 * 3600_000L),
     HOURS_12(12 * 3600_000L),
 

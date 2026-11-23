@@ -182,7 +182,9 @@ class AutoRefresh(
         includeStartup: Boolean,
     ): Boolean = when (refresh.mode) {
         PlaylistAutoRefresh.OFF -> false
-        PlaylistAutoRefresh.STARTUP -> includeStartup
+        // "On entry": a cold start always; coming back to the app (a TV keeps it alive for days) when the
+        // last refresh is a few minutes old, so the list is current each time it is opened.
+        PlaylistAutoRefresh.STARTUP -> includeStartup || (now - (lastSyncAt ?: 0L)) >= REENTRY_MS
         else -> (now - (lastSyncAt ?: 0L)) >= (refresh.thresholdMs ?: Long.MAX_VALUE)
     }
 
@@ -209,5 +211,8 @@ class AutoRefresh(
         const val REASON = "auto_refresh"
         /** Minimum gap between resume-triggered checks (rotation, rapid background/foreground). */
         private const val RESUME_THROTTLE_MS = 60_000L
+
+        /** A source set to refresh "on entry" is refreshed again on return when this old. */
+        private const val REENTRY_MS = 5 * 60_000L
     }
 }

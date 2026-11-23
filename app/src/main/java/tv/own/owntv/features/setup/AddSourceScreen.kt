@@ -819,6 +819,7 @@ private fun refreshModeLabel(mode: PlaylistAutoRefresh): String = stringResource
     when (mode) {
         PlaylistAutoRefresh.OFF -> R.string.settings_sources_refresh_off
         PlaylistAutoRefresh.STARTUP -> R.string.settings_sources_refresh_startup
+        PlaylistAutoRefresh.HOURS_2 -> R.string.settings_sources_refresh_2h
         PlaylistAutoRefresh.HOURS_6 -> R.string.settings_sources_refresh_6h
         PlaylistAutoRefresh.HOURS_12 -> R.string.settings_sources_refresh_12h
         PlaylistAutoRefresh.MANUAL -> R.string.settings_sources_refresh_manual

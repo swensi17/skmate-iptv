@@ -627,6 +627,12 @@ fun OwnTVShell(
         if (!(TvBoxNav && (selectedSection == MainSection.LIVE_TV || selectedSection == MainSection.SEARCH || selectedSection == MainSection.SPORTS))) focusRail()
         Unit
     }
+    // A playlist removed (or switched off) while one of its channels plays: the picture stops with it, instead of
+    // playing on from a source that is no longer there.
+    LaunchedEffect(playlists, watchingSourceId) {
+        val id = watchingSourceId ?: return@LaunchedEffect
+        if (playlists.isNotEmpty() && playlists.none { it.id == id }) exitPlayerNow()
+    }
     val exitPlayer = {
         // Only the Live TV screen has a preview to shrink into; from Search or Sports the picture simply closes.
         if (TvBoxNav && playerMode == PlayerMode.FULLSCREEN && selectedSection == MainSection.LIVE_TV && tv.own.owntv.features.shell.components.TvBoxPanels.previewRect != null) collapsingFull = true
