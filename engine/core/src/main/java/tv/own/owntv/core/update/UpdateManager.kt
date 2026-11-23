@@ -136,20 +136,11 @@ class UpdateManager(
                         ?: throw InvalidReleaseResponseException()
                     val notes = o.optString("body").take(16_000)
                     val assets = o.optJSONArray("assets") ?: throw InvalidReleaseResponseException()
-                    // Releases carry one APK per ABI flavor (arm = generic, x86_64 suffixed). Never
-                    // silently install an APK for the wrong ABI.
-                    val wantX86 = android.os.Build.SUPPORTED_ABIS.firstOrNull() == "x86_64"
-                    val apkUrl = (0 until assets.length())
-                        .asSequence()
+                    val names = (0 until assets.length())
                         .mapNotNull { assets.optJSONObject(it) }
-                        .mapNotNull { asset ->
-                            val name = asset.optString("name")
-                            val url = asset.optString("browser_download_url")
-                            if (!name.endsWith(".apk") || url.isBlank()) return@mapNotNull null
-                            val isX86 = name.contains("x86_64", ignoreCase = true)
-                            if (isX86 == wantX86) url else null
-                        }
-                        .firstOrNull()
+                        .mapNotNull { a -> a.optString("name").takeIf { it.isNotBlank() }?.let { it to a.optString("browser_download_url") } }
+                        .filter { it.second.isNotBlank() }
+                    val apkUrl = pickReleaseApk(names, ReleaseAbi.current())
                         ?: throw NoCompatibleApkException()
                     val info = UpdateInfo(version, notes, apkUrl)
                     settings.recordUpdateCheck(System.currentTimeMillis())

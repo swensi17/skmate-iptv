@@ -600,7 +600,6 @@
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/shell/TvBoxPlayerPanels.kt">
         <error line="3" column="1" source="standard:import-ordering" />
-        <error line="214" column="1" source="standard:no-consecutive-blank-lines" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/shell/components/AvatarPickerDialog.kt">
         <error line="3" column="1" source="standard:import-ordering" />

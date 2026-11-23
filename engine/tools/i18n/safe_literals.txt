@@ -5455,10 +5455,13 @@
 1	technical	core/src/main/java/tv/own/owntv/core/ui/stage/StageGlyph.kt	M8 8a4 4 0 1 0 8 0a4 4 0 1 0 -8 0zM4 21a8 8 0 0 1 16 0
 1	technical	core/src/main/java/tv/own/owntv/core/ui/stage/StageGlyph.kt	M9 18l6-6-6-6
 1	technical	core/src/main/java/tv/own/owntv/core/ui/stage/StageGlyph.kt	M9.5 2.5H14.5A2.5 2.5 0 0 1 17 5V19A2.5 2.5 0 0 1 14.5 21.5H9.5A2.5 2.5 0 0 1 7 19V5A2.5 2.5 0 0 1 9.5 2.5zM11 18.5h2
+1	file-path	core/src/main/java/tv/own/owntv/core/update/ReleaseApk.kt	.apk
+2	technical	core/src/main/java/tv/own/owntv/core/update/ReleaseApk.kt	arm64
+3	technical	core/src/main/java/tv/own/owntv/core/update/ReleaseApk.kt	x86_64
 1	file-path	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	$keepStem.
 1	file-path	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	$keepStem.apk
 1	file-path	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	.accepted
-2	technical	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	.apk
+1	technical	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	.apk
 1	file-path	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	.apk.part
 1	technical	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	.fileprovider
 1	file-path	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	.meta
@@ -5506,7 +5509,6 @@
 1	technical	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	v
 2	json	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	validator
 1	log	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	wrong package ${info.packageName}
-2	technical	core/src/main/java/tv/own/owntv/core/update/UpdateManager.kt	x86_64
 1	technical	core/src/main/java/tv/own/owntv/core/util/CrashRecorder.kt	Crashed $stamp on thread "${thread.name}"
 1	file-path	core/src/main/java/tv/own/owntv/core/util/CrashRecorder.kt	diagnostics
 1	file-path	core/src/main/java/tv/own/owntv/core/util/CrashRecorder.kt	last_crash.txt

@@ -5,7 +5,8 @@ name: Release
 # release must never appear unsigned: the job fails if the signing secrets are missing.
 #
 # Assets:
-#   SkMate-IPTV-vX.Y.Z-arm.apk      arm64-v8a + armeabi-v7a, every real TV box
+#   SkMate-IPTV-vX.Y.Z-arm.apk      armeabi-v7a, installs on every arm TV box
+#   SkMate-IPTV-vX.Y.Z-arm64.apk    arm64-v8a, the in-app update for TVs on the 64-bit build
 #   SkMate-IPTV-vX.Y.Z-x86_64.apk   emulators and rare Intel boxes
 #   SkMate-IPTV.apk                 copy of the arm APK under a fixed name for
 #                                   https://github.com/swensi17/skmate-iptv/releases/latest/download/SkMate-IPTV.apk
@@ -84,7 +85,7 @@ jobs:
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
           chmod +x ./gradlew
-          ./gradlew :app:assembleStandardRelease :app:assembleX86_64Release --stacktrace
+          ./gradlew :app:assembleStandardRelease :app:assembleArm64Release :app:assembleX86_64Release --stacktrace
 
       - name: Verify signatures and package
         env:
@@ -96,8 +97,10 @@ jobs:
           mkdir -p dist
           ARM=$(ls app/build/outputs/apk/standard/release/*.apk | head -n1)
           X86=$(ls app/build/outputs/apk/x86_64/release/*.apk | head -n1)
+          ARM64=$(ls app/build/outputs/apk/arm64/release/*.apk | head -n1)
           cp "$ARM" "dist/SkMate-IPTV-v$NAME-arm.apk"
           cp "$X86" "dist/SkMate-IPTV-v$NAME-x86_64.apk"
+          cp "$ARM64" "dist/SkMate-IPTV-v$NAME-arm64.apk"
           cp "$ARM" "dist/SkMate-IPTV.apk"
           for apk in dist/*.apk; do
             # "Signer #1 certificate SHA-256 digest:" or, in newer build-tools, "V2 Signer: certificate SHA-256 digest:"
@@ -143,3 +146,6 @@ jobs:
           else
             gh release create "$TAG" "${FILES[@]}" --title "SkMate IPTV $TAG" --notes-file dist/RELEASE_NOTES.md --verify-tag
           fi
+          # Uploaded last on purpose: builds up to 2.4.2 update with the first non-x86 APK of the release,
+          # and that has to be the arm one, which installs on every TV.
+          gh release upload "$TAG" "dist/SkMate-IPTV-v$NAME-arm64.apk" --clobber

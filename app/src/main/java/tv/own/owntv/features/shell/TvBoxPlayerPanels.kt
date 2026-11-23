@@ -32,6 +32,7 @@ import tv.own.owntv.features.shell.components.TvBoxChannelPanel
  * The TV-box player's ◀ panels, kept out of [OwnTVShell] (whose body is already at the size the
  * Android verifier accepts): the channel panel, with the categories column beside it when open, and
  * a category's options on a long OK. Back after previewing other channels returns to the one that was on.
+ * With the live preview switched off a channel changes only on OK, never by resting on a row.
  */
 @Composable
 internal fun TvBoxPlayerPanels(
@@ -56,6 +57,7 @@ internal fun TvBoxPlayerPanels(
     if (zapChannels.isNotEmpty()) {
         val playingGuide by liveVm.nowNext.collectAsStateWithLifecycle()
         val loading by liveVm.previewEngine.buffering.collectAsStateWithLifecycle()
+        val previewOn by liveVm.livePreviewEnabled.collectAsStateWithLifecycle()
         TvBoxChannelPanel(
             channels = zapChannels,
             currentId = previewChannel?.id,
@@ -70,7 +72,10 @@ internal fun TvBoxPlayerPanels(
                 onClose()
             },
             onOpenCategories = { liveVm.showCategories() },
-            onPreview = { ch -> if (startChannel == null) startChannel = previewChannel; liveVm.ensurePlaying(ch) },
+            onPreview = { ch: ChannelEntity ->
+                if (startChannel == null) startChannel = previewChannel
+                liveVm.ensurePlaying(ch)
+            }.takeIf { previewOn },
             inset = inset,
             active = !categoriesOpen,
             loading = loading,
@@ -90,10 +95,7 @@ internal fun TvBoxPlayerPanels(
             onLongSelect = { categoryMenu = it },
             paused = categoryMenu != null,
             // The categories stay beside the menu, as on the home screen.
-            onOpenMenu = {
-                startChannel = null
-                onOpenMenu()
-            },
+            onOpenMenu = { startChannel = null; onOpenMenu() },
         )
         categoryMenu?.let { item ->
             CategoryContextMenu(
@@ -210,7 +212,6 @@ internal fun rememberVideoDock(
         }
     }
 }
-
 
 /** The picture moving into the panel's corner, and back. */
 private val DockAnimMs: Int get() = if (tv.own.owntv.ui.theme.MotionPrefs.smooth) tv.own.owntv.ui.theme.MotionPrefs.ms(220) else 0

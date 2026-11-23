@@ -96,20 +96,25 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
-    // ABI split via product flavors: real Android TV / Fire TV hardware is arm (arm64-v8a covers
-    // everything modern; armeabi-v7a keeps the original 32-bit Nvidia Shield TV 2015/2017, which runs
-    // Android 9+ but is 32-bit). x86_64 is emulator-only — no real TV box uses it. Shipping them as
-    // separate flavors halves the download users get via the Downloader code (~49MB vs the old 104MB
-    // universal APK that bundled all 4 ABIs), which fixes the "parse error on install" reports caused
-    // by truncated downloads. x86 (32-bit Intel) is dropped entirely — even emulators use x86_64.
+    // One APK per processor family, so a TV downloads and keeps only the player libraries it runs:
+    //   standard  armeabi-v7a  installs on every arm TV box (64-bit chips run it too), the default
+    //                          download and the 32-bit Nvidia Shield TV 2015/2017
+    //   arm64     arm64-v8a    the in-app update on a TV already running the 64-bit build
+    //   x86_64    x86_64       emulators only
+    // Shipping both arm ABIs in one file made it ~78 MB, and the unpacked libraries doubled that on
+    // the TV's storage. x86 (32-bit Intel) is dropped entirely: even emulators use x86_64.
     //
     // Local dev: pick a flavor in Android Studio's "Build Variants" panel before Run (standard for
-    // real devices / arm emulators, x86_64 for an x86_64 emulator). `assembleRelease` builds BOTH.
+    // real devices / arm emulators, x86_64 for an x86_64 emulator).
     flavorDimensions += "abi"
     productFlavors {
         create("standard") {
             dimension = "abi"
-            ndk { abiFilters += listOf("arm64-v8a", "armeabi-v7a") }
+            ndk { abiFilters += listOf("armeabi-v7a") }
+        }
+        create("arm64") {
+            dimension = "abi"
+            ndk { abiFilters += listOf("arm64-v8a") }
         }
         create("x86_64") {
             dimension = "abi"
@@ -224,13 +229,8 @@ android {
 
     packaging {
         jniLibs {
-            // Every .so we package is a prebuilt from a dependency (libmpv/FFmpeg, libc++_shared,
-            // androidx graphics-path and datastore) and all of them are already stripped at the
-            // source — none carries a .debug_info or .symtab section. AGP's strip step therefore has
-            // nothing to remove, and on a machine without an NDK it can't run at all, which is where
-            // the "Unable to strip the following libraries, packaging them as they are" line on every
-            // release task came from. Skipping it packages byte-identical libraries without the noise.
-            keepDebugSymbols += "**/*.so"
+            // Debug symbols are stripped at packaging (the NDK C++ runtime alone ships ~8 MB of them).
+            // The player libraries are already stripped at the source and come out byte-identical.
             // libVLC and libmpv both ship the NDK C++ runtime.
             pickFirsts += "**/libc++_shared.so"
             // On armeabi-v7a the merge kept libVLC's old libc++_shared (no std::from_chars<float>), and

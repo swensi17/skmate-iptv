@@ -28,7 +28,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir apks && cd apks
-          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern '*-arm.apk' --pattern '*-x86_64.apk'
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern '*-arm.apk' --pattern '*-arm64.apk' --pattern '*-x86_64.apk'
           sha256sum *.apk | tee ../sums.txt
 
       - name: Scan
