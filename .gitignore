@@ -10,16 +10,6 @@ local.properties
 .externalNativeBuild
 .cxx
 
-# Local tooling / agent state
-.codex-*
-.claude/
-.planning/
-.serena/
-.codegraph/
-.zcode/
-CLAUDE.md
-AGENT_HANDOVER.md
-
 # Signing keys & secrets — NEVER commit these
 *.keystore
 *.jks

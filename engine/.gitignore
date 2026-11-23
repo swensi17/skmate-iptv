@@ -10,16 +10,6 @@ local.properties
 .externalNativeBuild
 .cxx
 
-# Local tooling / agent state
-.codex-*
-.claude/
-.planning/
-.serena/
-.codegraph/
-.zcode/
-AGENT_HANDOVER.md
-CLAUDE.md
-
 # Signing keys & secrets — NEVER commit these. A library has no keystore, but the rule costs
 # nothing and prevents an accident.
 *.keystore
