@@ -8,9 +8,12 @@ standard library is used.
 Rules:
   - Channels with the same tvg-id (or, without one, the same normalised name) are one channel; every
     address they come with is kept as a fallback, newest source first.
-  - An address is dropped only after FAIL_LIMIT failed checks in a row, each at least RETRY_GAP apart,
-    so a short outage does not empty the list. A working fallback takes over meanwhile, in the same
-    place and under the same number.
+  - A new address is checked in depth before it is served: the playlist, the variant and a real media
+    segment. Until then it is not in the playlist.
+  - An address that fails a check (two tries a few seconds apart) leaves the playlist at once. A working
+    fallback takes over, in the same place and under the same number. A busy host (5xx, 429, timeout)
+    is not a failure: it is asked again later. When most of a round fails, nothing is taken out: that
+    is the provider or the network, not the channels.
   - Dead addresses are still checked, less often, and come back by themselves when they work again.
   - A channel the author removes stays out until a newly added source brings it again.
   - The app is never involved: it only downloads the finished playlist.
@@ -36,6 +39,7 @@ import json
 import os
 import re
 import socketserver
+import socket
 import ssl
 import sys
 import threading
@@ -58,12 +62,14 @@ FILES = os.path.join(DATA, "files")
 STATE = os.path.join(DATA, "state.json")
 OUT = os.path.join(DATA, "playlist.m3u8")
 
-FAIL_LIMIT = 3                 # failed checks in a row before an address counts as dead
 RETRY_GAP = 10 * 60            # seconds between checks of a failing address
-ALIVE_EVERY = 6 * 3600         # a working address is checked again after this
-DEAD_EVERY = 12 * 3600         # a dead address is tried again after this
+ALIVE_EVERY = 2 * 3600         # a working address is checked again after this
+DEAD_EVERY = 6 * 3600          # a dead address is tried again after this
+TRIES = 2                      # tries per check, TRY_GAP apart, so one dropped request is not a death
+TRY_GAP = 3                    # seconds
+SEGMENT_BYTES = 65536          # read of a media segment
 SOURCE_EVERY = 6 * 3600        # a source added by link is downloaded again after this
-WORKERS = 12                   # checks at once
+WORKERS = 4                    # checks at once: more and the provider answers 503
 TIMEOUT = 10                   # seconds per request
 USER_AGENT = "SkMate-IPTV-check/1.0"
 MAX_FILE_BYTES = 20 * 1024 * 1024
@@ -252,29 +258,69 @@ def _get(url: str, limit: int) -> tuple[int, bytes, str]:
         return r.status, r.read(limit), r.geturl()
 
 
-def check_url(url: str, depth: int = 0) -> bool:
-    """True when the address gives a playable stream: a playlist that leads to media, or media bytes."""
-    if not url.lower().startswith(("http://", "https://")):
-        return False
+def _is_media(body: bytes) -> bool:
+    """MPEG-TS, fragmented MP4 or ADTS/ID3 audio: bytes a player can decode, not an error page."""
+    if len(body) >= 189 and body[0] == 0x47 and body[188] == 0x47:
+        return True
+    if body[4:8] in (b"ftyp", b"moof", b"styp", b"sidx", b"moov"):
+        return True
+    if body[:3] == b"ID3" or (len(body) > 1 and body[0] == 0xFF and body[1] & 0xF0 == 0xF0):
+        return True
+    return False
+
+
+def _next_uri(text: str) -> str | None:
+    """A master playlist: its first variant. A media playlist: its newest segment, the one that is
+    surely still on the server (the oldest in a live window can expire while it is fetched)."""
+    uris = [line.strip() for line in text.splitlines() if line.strip() and not line.strip().startswith("#")]
+    if not uris:
+        return None
+    return uris[0] if "#EXT-X-STREAM-INF" in text else uris[-1]
+
+
+OK, DEAD, UNSURE = "ok", "dead", "unsure"
+
+
+def _probe(url: str, depth: int = 0) -> str:
+    """Follows master -> variant -> segment and wants real media bytes at the end. UNSURE when the
+    host is busy or slow (5xx, 429, timeout): that says nothing about the channel."""
+    if not url.lower().startswith(("http://", "https://")) or depth > 3:
+        return DEAD
     try:
-        status, body, final = _get(url, 262144)
-    except (urllib.error.URLError, OSError, ValueError):
-        return False
+        status, body, final = _get(url, 262144 if depth == 0 else SEGMENT_BYTES)
+    except urllib.error.HTTPError as e:
+        return UNSURE if e.code == 429 or e.code >= 500 else DEAD
+    except (TimeoutError, socket.timeout):
+        return UNSURE
+    except (urllib.error.URLError, OSError, ValueError) as e:
+        reason = getattr(e, "reason", None)
+        return UNSURE if isinstance(reason, (TimeoutError, socket.timeout)) else DEAD
     if status not in (200, 206) or not body:
-        return False
-    head = body.lstrip()[:7]
-    if head.startswith(b"#EXTM3U"):
-        if depth >= 2:
-            return True
-        text = body.decode("utf-8", "replace")
-        for line in text.splitlines():
-            line = line.strip()
-            if line and not line.startswith("#"):
-                return check_url(urllib.parse.urljoin(final, line), depth + 1)
-        return False
-    # Media: an HTML page or JSON error is not a stream.
-    lowered = body[:256].lower()
-    return not (lowered.lstrip().startswith(b"<") or lowered.lstrip().startswith(b"{"))
+        return DEAD
+    if body.lstrip()[:7].startswith(b"#EXTM3U"):
+        nxt = _next_uri(body.decode("utf-8", "replace"))
+        if nxt is None:
+            return DEAD
+        return _probe(urllib.parse.urljoin(final, nxt), depth + 1)
+    lowered = body[:256].lstrip().lower()
+    if lowered.startswith(b"<") or lowered.startswith(b"{"):
+        return DEAD
+    # A direct stream (depth 0) or a segment: it must look like media.
+    return OK if _is_media(body) else DEAD
+
+
+def check_url(url: str) -> str:
+    """OK when the whole chain down to a media segment answers on any of TRIES tries; DEAD when every
+    try says so; UNSURE otherwise."""
+    seen = []
+    for attempt in range(TRIES):
+        if attempt:
+            time.sleep(TRY_GAP)
+        r = _probe(url)
+        if r == OK:
+            return OK
+        seen.append(r)
+    return DEAD if all(r == DEAD for r in seen) else UNSURE
 
 
 def due(info: dict, now: float) -> bool:
@@ -283,44 +329,52 @@ def due(info: dict, now: float) -> bool:
     last = info.get("checked", 0)
     if info.get("dead"):
         return now - last >= DEAD_EVERY
-    if info.get("fails", 0) > 0:
+    if info.get("fails", 0) > 0 or not info.get("ok_at"):
         return now - last >= RETRY_GAP
     return now - last >= ALIVE_EVERY
 
 
-def record(state: dict, url: str, ok: bool, now: float, manual: bool = False) -> str | None:
-    """Stores a check; returns 'died' / 'revived' when the address changed side. A check the author
-    asked for decides at once: it is what they look at."""
+def record(state: dict, url: str, result: str, now: float) -> str | None:
+    """Stores a check; returns 'died' / 'revived' when the address changed side. DEAD takes it out at
+    once; UNSURE keeps it as it was and asks again after RETRY_GAP."""
     info = state["urls"].setdefault(url, {})
     was_dead = info.get("dead", False)
     info["checked"] = now
-    if ok:
+    if result == OK:
         info["fails"] = 0
         info["dead"] = False
         info["ok_at"] = now
         return "revived" if was_dead else None
-    info["fails"] = max(info.get("fails", 0) + 1, FAIL_LIMIT if manual else 0)
-    if info["fails"] >= FAIL_LIMIT and not was_dead:
+    info["fails"] = info.get("fails", 0) + 1
+    if result == DEAD and not was_dead:
         info["dead"] = True
         return "died"
     return None
 
 
 def check_urls(urls: list[str], manual: bool = False) -> dict:
-    counts = {"checked": 0, "died": 0, "revived": 0, "failed": 0}
+    counts = {"checked": 0, "died": 0, "revived": 0, "failed": 0, "unsure": 0, "held": False}
     if urls:
         with concurrent.futures.ThreadPoolExecutor(WORKERS) as pool:
             results = list(pool.map(lambda u: (u, check_url(u)), urls))
     else:
         results = []
+    bad = sum(1 for _, r in results if r != OK)
+    # Most of a round failing is the host or the network, not the channels: nothing dies on it.
+    held = len(results) >= 20 and bad * 2 > len(results)
+    counts["held"] = held
     with lock:
         state = load_state()
         now = time.time()
-        for u, ok in results:
-            change = record(state, u, ok, now, manual)
+        for u, r in results:
+            if held and r == DEAD:
+                r = UNSURE
+            change = record(state, u, r, now)
             counts["checked"] += 1
-            if not ok:
+            if r != OK:
                 counts["failed"] += 1
+            if r == UNSURE:
+                counts["unsure"] += 1
             if change:
                 counts[change] += 1
         channels = merged_channels(state)
@@ -387,7 +441,8 @@ def add_source(text: str, kind: str, name: str, url: str = "") -> int:
         # The author brought these channels again: a channel removed earlier comes back with them.
         again = {channel_key(e) for e in entries}
         state["removed"] = [k for k in state["removed"] if k not in again]
-        build_output(merged_channels(state), state)
+        # No rebuild here: the playlist changes only after the check that follows, so new addresses
+        # are never served unchecked and a refreshed source does not blink out meanwhile.
         save_state(state)
     return len(entries)
 
@@ -436,9 +491,8 @@ def remove_source(fname: str) -> None:
 
 def usable(state: dict, url: str) -> bool:
     info = state["urls"].get(url)
-    # Not yet checked counts as usable, so a fresh source shows at once; a failing one keeps its
-    # place until it is really dead.
-    return not (info and info.get("dead"))
+    # Only a checked, working address is served: a new one waits for its check, a failed one is out.
+    return bool(info and info.get("ok_at") and not info.get("dead"))
 
 
 def epg_list(state: dict) -> list[str]:
