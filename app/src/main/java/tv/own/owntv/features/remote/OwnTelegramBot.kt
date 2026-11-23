@@ -80,14 +80,21 @@ class OwnTelegramBot(
         prefs.put(KEY_TOKEN, t)
         prefs.remove(KEY_OWNER)
         prefs.remove(KEY_OWNER_NAME)
-        prefs.put(KEY_CODE, newCode())
+        startPairing()
         ensureLoop()
+    }
+
+    /** A fresh code with its clock and a clean count of wrong tries. */
+    private fun startPairing() {
+        prefs.put(KEY_CODE, newCode())
+        prefs.put(KEY_CODE_AT, System.currentTimeMillis().toString())
+        prefs.put(KEY_TRIES, "0")
     }
 
     fun newPairingCode() {
         prefs.remove(KEY_OWNER)
         prefs.remove(KEY_OWNER_NAME)
-        prefs.put(KEY_CODE, newCode())
+        startPairing()
         loop?.cancel()
         ensureLoop()
     }
@@ -151,13 +158,21 @@ class OwnTelegramBot(
             if (owner == null) {
                 // Not owned yet: only the code from the TV's screen makes this account the owner.
                 val code = prefs.get(KEY_CODE)
-                if (code != null && text.filter { it.isDigit() } == code) {
+                val age = System.currentTimeMillis() - (prefs.get(KEY_CODE_AT)?.toLongOrNull() ?: 0L)
+                val tries = prefs.get(KEY_TRIES)?.toIntOrNull() ?: 0
+                if (code == null || age > CODE_TTL_MS || tries >= MAX_TRIES) {
+                    // Pairing is closed until the TV shows a new code (Settings → Telegram → Your own bot).
+                    send(chatId, s(R.string.tg_bot_code_expired))
+                    return
+                }
+                if (text.filter { it.isDigit() } == code) {
                     prefs.put(KEY_OWNER, chatId.toString())
                     prefs.put(KEY_OWNER_NAME, name)
                     prefs.remove(KEY_CODE)
                     _state.value = State.Running((_state.value as? State.Waiting)?.botName.orEmpty(), name)
                     show(chatId, remoteScreen(), keypad(), note = s(R.string.tg_bot_linked), fresh = true)
                 } else {
+                    prefs.put(KEY_TRIES, (tries + 1).toString())
                     send(chatId, s(R.string.tg_bot_send_code))
                 }
                 return
@@ -341,6 +356,10 @@ class OwnTelegramBot(
         const val KEY_OWNER = "owner"
         const val KEY_OWNER_NAME = "owner_name"
         const val KEY_CODE = "code"
+        const val KEY_CODE_AT = "code_at"
+        const val KEY_TRIES = "tries"
+        const val CODE_TTL_MS = 10 * 60 * 1000L
+        const val MAX_TRIES = 5
         const val POLL_S = 50
         const val MAX_ITEMS = 16
         const val SCR_MAIN = "m"

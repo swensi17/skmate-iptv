@@ -3285,4 +3285,5 @@
     <string name="settings_tg_remote_unlink_body">The TV will stop answering the bot until you link it again.</string>
     <string name="settings_tg_own_remove_body">The token is deleted from this TV and the bot stops.</string>
     <string name="settings_search_keywords_tg_remote">telegram bot remote control token phone qr code</string>
+    <string name="tg_bot_code_expired">This code has expired or pairing is closed. Open Settings → Telegram on the TV for a new code</string>
 </resources>

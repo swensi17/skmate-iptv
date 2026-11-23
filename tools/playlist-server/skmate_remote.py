@@ -32,12 +32,17 @@ CODE_TTL = 10 * 60        # a pairing code lives this long
 CMD_TTL = 30              # a command not picked up in this time is dropped (a key press goes stale)
 REPLY_WAIT = 15           # seconds the bot waits for the TV's answer
 MAX_DEVICES_PER_CHAT = 5
+MAX_BAD_CODES = 5         # wrong codes from one chat before it is locked out
+LOCKOUT = 15 * 60         # seconds of lockout; failures also count down over this time
+GLOBAL_BAD_CODES = 60     # wrong codes from everyone within LOCKOUT: pairing is paused for all
 
 _lock = threading.Lock()
 _wake = threading.Condition(_lock)
 _queues: dict[str, list[dict]] = {}       # device -> pending commands (memory only: stale after a restart)
 _replies: dict[str, dict] = {}            # command id -> result
 _path = ""
+_bad: dict[int, list[float]] = {}   # chat -> times of its wrong codes
+_bad_all: list[float] = []
 
 
 def init(data_dir: str) -> None:
@@ -188,12 +193,22 @@ def _drop_link(s: dict, device: str) -> None:
 
 
 def link(chat: int, code: str, owner_name: str = "") -> str:
-    """'ok:<tv name>', 'bad' (no such code), 'full' (too many TVs on this account)."""
+    """'ok:<tv name>', 'bad' (no such code), 'full' (too many TVs on this account), 'locked' (too many wrong codes)."""
     code = "".join(ch for ch in code if ch.isdigit())
+    now = time.time()
     with _wake:
+        mine = [t for t in _bad.get(chat, []) if now - t < LOCKOUT]
+        _bad[chat] = mine
+        _bad_all[:] = [t for t in _bad_all if now - t < LOCKOUT]
+        if len(mine) >= MAX_BAD_CODES or len(_bad_all) >= GLOBAL_BAD_CODES:
+            return "locked"
         s = _load()
         c = s["codes"].get(code)
-        if not c or c["until"] < time.time() or c["device"] not in s["devices"]:
+        # A code only pairs a TV nobody owns yet: a linked TV is unlinked first, from the TV or its owner.
+        if (not c or c["until"] < now or c["device"] not in s["devices"]
+                or s["devices"][c["device"]].get("owner") not in (None, chat)):
+            mine.append(now)
+            _bad_all.append(now)
             return "bad"
         mine = [k for k, v in s["devices"].items() if v.get("owner") == chat and k != c["device"]]
         if len(mine) >= MAX_DEVICES_PER_CHAT:

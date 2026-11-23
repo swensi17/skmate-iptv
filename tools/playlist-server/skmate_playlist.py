@@ -1756,6 +1756,8 @@ def try_link(chat: int, text: str, first: str) -> bool:
         render_remote(chat, "r", done(f"Подключён: {h(r[3:])}"), fresh=True)
     elif r == "full":
         render_remote(chat, "rt", failed(f"Не больше {remote.MAX_DEVICES_PER_CHAT} телевизоров"))
+    elif r == "locked":
+        render_remote(chat, "r", failed("Слишком много неверных кодов, попробуйте через 15 минут"))
     else:
         render_remote(chat, "r", failed("Код не подходит или устарел. Откройте пульт на телевизоре ещё раз"))
     return True
