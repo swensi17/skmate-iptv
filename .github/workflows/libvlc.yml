@@ -36,6 +36,9 @@ jobs:
         run: |
           set -eux
           git config --global --add safe.directory '*'
+          # VideoLAN's scripts apply their patches with git am, which needs an identity (local commits only).
+          git config --global user.name build
+          git config --global user.email build@localhost
           git clone --depth 1 --branch "$VLC_ANDROID_TAG" https://code.videolan.org/videolan/vlc-android.git va
           cd va
           # Cloned before compile.sh runs, so it is used as it is (compile.sh only resets a fresh clone).
