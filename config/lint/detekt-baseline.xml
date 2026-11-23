@@ -6316,7 +6316,7 @@
     <ID>NewLineAtEndOfFile:ProfileGateSessionViewModel.kt$tv.own.owntv.features.profiles.ProfileGateSessionViewModel.kt</ID>
     <ID>NewLineAtEndOfFile:ProfileGateSessionViewModelTest.kt$tv.own.owntv.features.profiles.ProfileGateSessionViewModelTest.kt</ID>
     <ID>ReturnCount:AccentPopup.kt$private fun boxKeys( e: androidx.compose.ui.input.key.KeyEvent, editing: Boolean, setEditing: (Boolean) -&gt; Unit, onY: ((Int) -&gt; Unit)? = null, onX: (Int) -&gt; Unit, ): Boolean</ID>
-    <ID>ReturnCount:AuthorPlaylistWatcher.kt$AuthorPlaylistWatcher$private suspend fun check(known: String?): String?</ID>
+    <ID>ReturnCount:AuthorPlaylistWatcher.kt$AuthorPlaylistWatcher$private suspend fun check()</ID>
     <ID>ReturnCount:CustomizeItemsViewModel.kt$CustomizeItemsViewModel$private suspend fun orderedSnapshot(ci: CatInfo): List&lt;Pair&lt;Long, String&gt;&gt;?</ID>
     <ID>ReturnCount:DeleteSubtitlesScreen.kt$internal fun episodeDisplayTitleParts( mediaType: String, contentTitle: String, contentKey: String, ): EpisodeDisplayTitleParts?</ID>
     <ID>ReturnCount:DirectTune.kt$internal fun wrappedZapIndex(currentIndex: Int, delta: Int, listSize: Int): Int?</ID>

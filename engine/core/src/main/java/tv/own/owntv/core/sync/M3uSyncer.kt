@@ -473,8 +473,10 @@ internal class M3uSyncer(
             // Runs only after a fully successful parse (an exception above skips it), and also drops
             // legacy null-remoteId rows from the clear-then-insert era (one-time upgrade cleanup).
             // Live rows whose entry now arrives as a movie/series go first, whatever the live count.
+            // A forced pass (the author's own playlist, a clean resync) also prunes when nothing arrived: the
+            // playlist really was emptied.
             M3uReclassifiedLive.prune(s.id, seenChannelKeys, seenAsVodKeys, channelDao, categoryDao)
-            if (processed > 0) {
+            if (processed > 0 || stats.forcePrune) {
                 support.pruneRemoteIds("M3U live", s.id, seenChannelKeys, stats, { channelDao.remoteIdsForSource(it) }) { src, ids ->
                     channelDao.deleteByRemoteIds(src, ids)
                 }
@@ -483,14 +485,14 @@ internal class M3uSyncer(
                 val renumbered = PlaylistNumbering.apply(channelDao, s.id, providerNumbered, unnumberedKeys)
                 Log.d(TAG, "M3U playlist numbering sourceId=${s.id} providerNumbered=$providerNumbered renumbered=$renumbered")
             }
-            if (moviesProcessed > 0) {
+            if (moviesProcessed > 0 || stats.forcePrune) {
                 support.pruneRemoteIds("M3U movies", s.id, seenMovieKeys, stats, { movieDao.remoteIdsForSource(it) }) { src, ids ->
                     movieDao.deleteByRemoteIds(src, ids)
                 }
                 movieDao.deleteNullRemoteIds(s.id)
                 support.pruneCategories(s.id, MediaType.MOVIE, seenGroupsByType[MediaType.MOVIE].orEmpty(), "M3U movies", stats)
             }
-            if (seriesProcessed > 0) {
+            if (seriesProcessed > 0 || stats.forcePrune) {
                 support.pruneRemoteIds("M3U series", s.id, seenSeriesKeys, stats, { seriesDao.remoteIdsForSource(it) }) { src, ids ->
                     seriesDao.deleteByRemoteIds(src, ids)
                 }

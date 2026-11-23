@@ -74,6 +74,8 @@ class AutoRefresh(
                         reason = REASON,
                         contentTypes = SyncContentTypes.enabledOf(source),
                         baseItemCount = counts.channels + counts.movies + counts.series,
+                        // The author's own playlist is applied in full, even when it shrank or came back empty.
+                        forcePrune = source.url.trim() == tv.own.owntv.core.CoreBuildInfo.authorPlaylistUrl,
                         policy = ExistingWorkPolicy.KEEP,
                     )
                 }
