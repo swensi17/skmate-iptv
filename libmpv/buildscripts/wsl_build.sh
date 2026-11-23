@@ -1,13 +1,12 @@
 #!/bin/bash -e
 # Builds this repo's libmpv on the owner's PC, in WSL, and drops it into a local Maven folder that
-# core and both apps read for a build run with -Powntv.libmpvLocalRepo=E:/Linux/Libmpv/maven (see core's
-# CLAUDE.md, "Testing an mpv engine change before it is released"). Nothing is published; CI stays the only way to a
-# release.
+# core and both apps read for a build run with -Powntv.libmpvLocalRepo=E:/Linux/Libmpv/maven, to test an mpv
+# engine change before it is released. Nothing is published; CI stays the only way to a release.
 #
 # Once per WSL install (as root — installs the same packages as .github/workflows/build.yaml):
-#   wsl -d Debian -u root -- bash /mnt/e/MEGA/CODE/AI/OwnTV_Suite/OwnTV_libmpv/buildscripts/wsl_build.sh
+#   wsl -d Debian -u root -- bash /mnt/e/OwnTV_libmpv/buildscripts/wsl_build.sh
 # Every build (as the normal user):
-#   wsl -d Debian -- bash /mnt/e/MEGA/CODE/AI/OwnTV_Suite/OwnTV_libmpv/buildscripts/wsl_build.sh
+#   wsl -d Debian -- bash /mnt/e/OwnTV_libmpv/buildscripts/wsl_build.sh
 #
 # The build runs in $WORK, inside the distro's own disk (E:\Linux\Libmpv\ext4.vhdx): building on
 # /mnt/e is many times slower and would put gigabytes into the MEGA folder. The repo is copied

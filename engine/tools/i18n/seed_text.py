@@ -6,16 +6,15 @@ Owns (docs/i18n-phase4a-seed-translations.md, Part 2):
   - tokenizing ``<xliff:g>`` elements into opaque, collision-checked placeholders and
     detokenizing them back byte-exact, with strict multiset parity
   - decoding source escape syntax (XML entities, ``\\uXXXX``, Android backslash escapes,
-    ``%%``) before any text is sent to a translation model
-  - escaping model-authored text back into valid Android XML, in the documented order
+    ``%%``) before any text is translated
+  - escaping translated text back into valid Android XML, in the documented order
   - emitting Android resource XML by hand, preserving source key order
   - offline validation of a staged locale against the current source tree, stricter than
     ``validate_strings.py``'s CI report because a missing key here is a failure
   - atomic, same-filesystem promotion of a staged locale into ``core/src/main/res``
 
-This module must not import ``anthropic`` or perform any network I/O. It is exercised by
-the offline tests in ``test_i18n_tools.py`` in environments where the SDK is not
-installed, and by ``seed_translations.py`` for everything except the actual API calls.
+This module performs no network I/O and is exercised by the offline tests in
+``test_i18n_tools.py``.
 """
 from __future__ import annotations
 
