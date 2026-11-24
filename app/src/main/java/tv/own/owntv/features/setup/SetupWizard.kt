@@ -15,6 +15,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -796,7 +797,7 @@ private fun ImportProgressStep(
                 StageSettingRow(
                     icon = OwnTVIcon.EPG,
                     title = stringResource(R.string.setup_add_guide),
-                    desc = stringResource(R.string.setup_add_guide_line),
+                    desc = guideStatusLine(),
                     value = SettingValue.Opens(null),
                     onClick = onAddGuide,
                 )
@@ -810,4 +811,22 @@ private fun ImportProgressStep(
             next = WizardAction(stringResource(R.string.setup_try_again_caps), onRetry, rememberFirstFocus()),
         )
     }
+}
+
+/**
+ * The guide row's line on the last step. A playlist usually brings its guide along (its own, or the
+ * shared one), so this says it is downloading or connected instead of "no guide yet".
+ */
+@Composable
+private fun guideStatusLine(): String {
+    val guides by org.koin.compose.koinInject<tv.own.owntv.core.epg.EpgSourceStore>().sources
+        .collectAsState(initial = emptyList())
+    val loading = tv.own.owntv.ui.components.rememberGuideLoading()
+    return stringResource(
+        when {
+            loading -> R.string.content_guide_loading
+            guides.isNotEmpty() -> R.string.setup_guide_attached
+            else -> R.string.setup_add_guide_line
+        },
+    )
 }

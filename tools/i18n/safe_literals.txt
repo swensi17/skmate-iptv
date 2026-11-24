@@ -126,6 +126,7 @@
 1	preference-key	app/src/main/java/tv/own/owntv/features/live/LiveScreen.kt	favourite
 1	preference-key	app/src/main/java/tv/own/owntv/features/live/LiveScreen.kt	hide
 1	technical	app/src/main/java/tv/own/owntv/features/live/LiveScreen.kt	liveListPush
+1	protocol	app/src/main/java/tv/own/owntv/features/live/LiveScreen.kt	logo
 2	technical	app/src/main/java/tv/own/owntv/features/live/LiveScreen.kt	match_epg
 1	preference-key	app/src/main/java/tv/own/owntv/features/live/LiveScreen.kt	move
 1	preference-key	app/src/main/java/tv/own/owntv/features/live/LiveScreen.kt	move_to_category
@@ -411,6 +412,14 @@
 1	technical	app/src/main/java/tv/own/owntv/features/settings/DeveloperScreen.kt	Developer
 1	technical	app/src/main/java/tv/own/owntv/features/settings/DeveloperScreen.kt	Forces a fresh TMDB trending download for every playlist, ignoring the multi-day fetch timer.
 1	technical	app/src/main/java/tv/own/owntv/features/settings/DeveloperScreen.kt	Rebuild Now Trending
+1	technical	app/src/main/java/tv/own/owntv/features/settings/EpgCatalog.kt	TV Team
+1	technical	app/src/main/java/tv/own/owntv/features/settings/EpgCatalog.kt	epg.one
+1	url	app/src/main/java/tv/own/owntv/features/settings/EpgCatalog.kt	http://epg.it999.ru/edem.xml.gz
+1	url	app/src/main/java/tv/own/owntv/features/settings/EpgCatalog.kt	http://epg.it999.ru/ru2.xml.gz
+1	url	app/src/main/java/tv/own/owntv/features/settings/EpgCatalog.kt	http://epg.one/epg.xml.gz
+1	url	app/src/main/java/tv/own/owntv/features/settings/EpgCatalog.kt	http://epg.team/tvteam.xml.gz
+1	technical	app/src/main/java/tv/own/owntv/features/settings/EpgCatalog.kt	it999 Edem
+1	technical	app/src/main/java/tv/own/owntv/features/settings/EpgCatalog.kt	it999 RU (epg.one)
 5	empty	app/src/main/java/tv/own/owntv/features/settings/EpgSourceForm.kt	\0
 1	technical	app/src/main/java/tv/own/owntv/features/settings/EpgSourceForm.kt	▶
 1	technical	app/src/main/java/tv/own/owntv/features/settings/EpgSourceRow.kt	▶
@@ -1506,6 +1515,8 @@
 1	protocol	app/src/main/java/tv/own/owntv/ui/components/GenreColor.kt	وثائق
 1	protocol	app/src/main/java/tv/own/owntv/ui/components/GenreColor.kt	کارتون
 1	protocol	app/src/main/java/tv/own/owntv/ui/components/GenreColor.kt	کودک
+1	performance	app/src/main/java/tv/own/owntv/ui/components/GuideLoading.kt	guide-loading
+1	performance	app/src/main/java/tv/own/owntv/ui/components/GuideLoading.kt	guide-loading-alpha
 1	empty	app/src/main/java/tv/own/owntv/ui/components/NumberInputDialog.kt	\0
 1	technical	app/src/main/java/tv/own/owntv/ui/components/OwnTVAvatar.kt	\0
 2	technical	app/src/main/java/tv/own/owntv/ui/components/PhosphorIcons.kt	M104,40H56A16,16,0,0,0,40,56v48a16,16,0,0,0,16,16h48a16,16,0,0,0,16-16V56A16,16,0,0,0,104,40Zm0,64H56V56h48v48Zm96-64H152a16,16,0,0,0-16,16v48a16,16,0,0,0,16,16h48a16,16,0,0,0,16-16V56A16,16,0,0,0,200,40Zm0,64H152V56h48v48Zm-96,32H56a16,16,0,0,0-16,16v48a16,16,0,0,0,16,16h48a16,16,0,0,0,16-16V152A16,16,0,0,0,104,136Zm0,64H56V152h48v48Zm96-64H152a16,16,0,0,0-16,16v48a16,16,0,0,0,16,16h48a16,16,0,0,0,16-16V152A16,16,0,0,0,200,136Zm0,64H152V152h48v48Z

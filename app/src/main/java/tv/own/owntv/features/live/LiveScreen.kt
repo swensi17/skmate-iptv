@@ -248,6 +248,7 @@ fun LiveScreen(
     var channelPaneFocused by remember { mutableStateOf(false) }
     var railPaneFocused by remember { mutableStateOf(false) }
     var renaming by remember { mutableStateOf<ChannelEntity?>(null) }
+    var changingLogo by remember { mutableStateOf<ChannelEntity?>(null) }
     var matchingEpg by remember { mutableStateOf<ChannelEntity?>(null) }
     var offsettingEpg by remember { mutableStateOf<ChannelEntity?>(null) }
     var catchupChannel by remember { mutableStateOf<ChannelEntity?>(null) }
@@ -355,7 +356,7 @@ fun LiveScreen(
         contextMenuOpen = false
         // A follow-up dialog (rename / match EPG / catch-up / move) grabs focus itself — only restore
         // for plain closes (Cancel, Favourite, Hide, Close). Those dialogs restore on their own close.
-        if (renaming != null || matchingEpg != null || offsettingEpg != null || catchupChannel != null || schedulingChannel != null || enteringMoveMode ||
+        if (renaming != null || changingLogo != null || matchingEpg != null || offsettingEpg != null || catchupChannel != null || schedulingChannel != null || enteringMoveMode ||
             moveItem != null || creatingCategory
         ) return@LaunchedEffect
         restoreToContextRow()
@@ -375,8 +376,8 @@ fun LiveScreen(
     }
     // Rename restoration: re-assert row focus after dialog closes.
     var renameWasOpen by remember { mutableStateOf(false) }
-    LaunchedEffect(renaming) {
-        if (renaming != null) { renameWasOpen = true; return@LaunchedEffect }
+    LaunchedEffect(renaming, changingLogo) {
+        if (renaming != null || changingLogo != null) { renameWasOpen = true; return@LaunchedEffect }
         if (!renameWasOpen) return@LaunchedEffect
         renameWasOpen = false
         repeat(5) {
@@ -1154,6 +1155,17 @@ fun LiveScreen(
         )
     }
 
+    changingLogo?.let { ch ->
+        TextInputDialog(
+            title = stringResource(R.string.content_channel_logo),
+            initial = vm.ownChannelLogo(ch),
+            hint = stringResource(R.string.content_channel_logo_hint),
+            label = stringResource(R.string.content_channel_logo_link),
+            onConfirm = { vm.setChannelLogo(ch, it); changingLogo = null },
+            onDismiss = { changingLogo = null },
+        )
+    }
+
     matchingEpg?.let { ch ->
         EpgMatchDialog(
             channelName = ch.name,
@@ -1188,6 +1200,7 @@ fun LiveScreen(
             isHistory = selectedKey == LiveKey.History,
             onToggleFavorite = { vm.toggleFavorite(ch); contextChannel = null },
             onRename = { renaming = ch; contextChannel = null },
+            onChangeLogo = { changingLogo = ch; contextChannel = null },
             onHide = { vm.hideChannel(ch); contextChannel = null },
             onMatchEpg = { matchingEpg = ch; contextChannel = null },
             onEpgOffset = { offsettingEpg = ch; contextChannel = null },
@@ -1389,6 +1402,7 @@ private fun ChannelContextMenu(
     epgShiftMinutes: Int?,
     onToggleFavorite: () -> Unit,
     onRename: () -> Unit,
+    onChangeLogo: () -> Unit,
     onHide: () -> Unit,
     onMatchEpg: () -> Unit,
     onEpgOffset: () -> Unit,
@@ -1431,6 +1445,8 @@ private fun ChannelContextMenu(
         add(MenuAction("play_external", stringResource(R.string.content_play_external_short), OwnTVIcon.EXTERNAL, group = watch, onClick = onPlayExternal))
         add(MenuAction("favourite", if (isFavorite) stringResource(R.string.content_remove_favourite) else stringResource(R.string.content_add_favourite), OwnTVIcon.FAVORITE, group = chan, onClick = onToggleFavorite))
         add(MenuAction("rename", stringResource(R.string.content_rename), OwnTVIcon.PENCIL, group = chan, onClick = onRename))
+        val logoLabel = stringResource(R.string.content_channel_logo)
+        add(MenuAction("logo", logoLabel, OwnTVIcon.IMAGE, group = chan, onClick = onChangeLogo))
         add(MenuAction("hide", stringResource(R.string.content_hide_channel), OwnTVIcon.EYE_OFF, group = chan, onClick = onHide))
         if (isHistory) add(MenuAction("remove_history", stringResource(R.string.content_remove_history), OwnTVIcon.HISTORY, group = chan, onClick = onRemoveFromHistory))
         add(MenuAction("match_epg", stringResource(R.string.content_match_epg), OwnTVIcon.EPG, group = guide, onClick = onMatchEpg))

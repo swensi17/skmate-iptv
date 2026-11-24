@@ -30,6 +30,7 @@ import tv.own.owntv.core.live.EpgNowNext
 import tv.own.owntv.core.parser.XtEpgEntry
 import tv.own.owntv.ui.brand.SkMateBlue
 import tv.own.owntv.ui.components.ChannelLogoTile
+import tv.own.owntv.ui.components.GuideStatusText
 import tv.own.owntv.ui.components.OwnTVIcon
 import tv.own.owntv.ui.format.rememberSystemTimeFormatter
 import tv.own.owntv.ui.theme.mpx
@@ -56,10 +57,14 @@ fun TvBoxPlayerInfo(channel: ChannelEntity?, nowNext: EpgNowNext?, chips: List<S
                 fill = Color.Transparent,
             ) { tv.own.owntv.ui.components.OwnTVIcon(OwnTVIcon.LIVE_TV, Color.White.copy(alpha = 0.6f), Modifier.size(56.mpx)) }
             Column(verticalArrangement = Arrangement.spacedBy(8.mpx)) {
-                Text(
-                    current?.title ?: stringResource(R.string.content_no_guide),
-                    style = stageText(34, 700), color = Color.White, maxLines = 1, overflow = TextOverflow.Ellipsis,
-                )
+                if (current != null) {
+                    Text(
+                        current.title, style = stageText(34, 700), color = Color.White,
+                        maxLines = 1, overflow = TextOverflow.Ellipsis,
+                    )
+                } else {
+                    GuideStatusText(stringResource(R.string.content_no_guide), stageText(34, 700), Color.White)
+                }
                 Row(horizontalArrangement = Arrangement.spacedBy(16.mpx), verticalAlignment = Alignment.CenterVertically) {
                     if (current != null) {
                         Text(range(formatTime, current), style = stageText(20, 500), color = Soft, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)

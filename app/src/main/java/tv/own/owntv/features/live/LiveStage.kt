@@ -1,5 +1,6 @@
 package tv.own.owntv.features.live
 
+import tv.own.owntv.ui.components.GuideStatusText
 import tv.own.owntv.ui.theme.stageTone
 import tv.own.owntv.ui.theme.stageShadow
 import androidx.compose.foundation.background
@@ -257,10 +258,16 @@ internal fun LivePlate(
 ) {
     Box(Modifier.size(width, height).clip(RoundedCornerShape(radius))) {
         ChannelLogoTile(logoUrl = logoUrl, modifier = Modifier.fillMaxSize(), fill = StageColors.ControlFill) {
-            OwnTVIcon(OwnTVIcon.LIVE_TV, tint = StageColors.Dim, modifier = Modifier.align(Alignment.Center).size(height * 0.5f))
+            OwnTVIcon(
+                OwnTVIcon.LIVE_TV, tint = StageColors.Dim,
+                modifier = Modifier.align(Alignment.Center).size(height * PLACEHOLDER_ICON_SHARE),
+            )
         }
     }
 }
+
+/** How much of the plate's height the TV mark fills when a channel has no logo. */
+private const val PLACEHOLDER_ICON_SHARE = 0.78f
 
 /** "3 дня" when the playlist says how deep the archive goes, otherwise "Архив". */
 @Composable
@@ -376,7 +383,7 @@ internal fun LiveStagePane(
                     logoUrl = channel.displayLogoUrl,
                     modifier = Modifier.size(288.mpx),
                     fill = Color.Transparent,
-                ) { OwnTVIcon(OwnTVIcon.LIVE_TV, tint = StageColors.Dim, modifier = Modifier.size(56.mpx)) }
+                ) { OwnTVIcon(OwnTVIcon.LIVE_TV, tint = StageColors.Dim, modifier = Modifier.size(84.mpx)) }
             }
             if (mpvPlayer != null && showVideo) tv.own.owntv.player.MpvVideoSurface(player = mpvPlayer, modifier = Modifier.fillMaxSize(), autoFrameRate = false)
             // A TextureView, drawn with the rest of the screen: a SurfaceView is a hole the display fills on its own,
@@ -892,7 +899,7 @@ private fun TextSkeleton() {
 private fun NoGuideCard() {
     val bar = StageColors.Text.copy(alpha = 0.06f)
     Column(verticalArrangement = Arrangement.spacedBy(14.mpx)) {
-        Text(stringResource(R.string.content_no_guide), style = stageText(22, 700), color = StageColors.Muted, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+        GuideStatusText(stringResource(R.string.content_no_guide), stageText(22, 700), StageColors.Muted)
         Box(Modifier.fillMaxWidth(0.45f).height(16.mpx).background(bar, RoundedCornerShape(8.mpx)))
         Box(Modifier.fillMaxWidth().height(14.mpx).background(bar, RoundedCornerShape(7.mpx)))
         Box(Modifier.fillMaxWidth(0.75f).height(14.mpx).background(bar, RoundedCornerShape(7.mpx)))
@@ -929,7 +936,9 @@ internal fun ChannelListSkeleton(modifier: Modifier = Modifier) {
 @Composable
 internal fun NoChannelsNote(text: String, modifier: Modifier = Modifier) {
     Column(modifier, horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(14.mpx)) {
-        tv.own.owntv.ui.components.OwnTVIcon(tv.own.owntv.ui.components.OwnTVIcon.LIVE_TV, StageColors.Dim, Modifier.size(48.mpx))
+        tv.own.owntv.ui.components.OwnTVIcon(
+            tv.own.owntv.ui.components.OwnTVIcon.LIVE_TV, StageColors.Dim, Modifier.size(72.mpx),
+        )
         Text(text, style = stageText(22, 600), color = StageColors.Muted, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
     }
 }

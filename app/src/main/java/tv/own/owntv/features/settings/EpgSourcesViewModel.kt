@@ -57,6 +57,20 @@ class EpgSourcesViewModel(
         viewModelScope.launch { settings.setEpgUseLogos(source.id, enabled) }
     }
 
+    /**
+     * A ready guide from [EpgCatalog]: switched on, it is added with its logos and a daily refresh, and
+     * once it is downloaded every channel it knows by name gets its programmes and logo; switched off,
+     * the feed it added is removed again.
+     */
+    fun setCatalogGuide(guide: EpgCatalog.Guide, on: Boolean, current: List<EpgSource>) {
+        val existing = current.firstOrNull { it.url.trim() == guide.url }
+        if (on && existing == null) {
+            add(guide.name, guide.url, autoRefresh = EpgRefresh(EpgAutoRefresh.HOURS_24), useLogos = true)
+        } else if (!on && existing != null) {
+            delete(existing)
+        }
+    }
+
     fun add(name: String, url: String, userAgent: String? = null, autoRefresh: EpgRefresh = EpgRefresh.OFF, useLogos: Boolean = false) {
         viewModelScope.launch {
             val source = store.add(name, url, userAgent)

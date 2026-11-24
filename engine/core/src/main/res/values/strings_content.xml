@@ -678,5 +678,9 @@
     <string name="content_vod_more_in">More in <xliff:g id="category">%1$s</xliff:g></string>
     <string name="content_no_guide">No TV guide for this channel</string>
     <string name="content_no_guide_short">No TV guide</string>
+    <string name="content_guide_loading">Loading the TV guide…</string>
     <string name="content_preview_pick_channel">Pick a channel to preview it here</string>
+    <string name="content_channel_logo">Channel logo</string>
+    <string name="content_channel_logo_hint">Paste a link to a PNG or JPG. Leave empty to restore the original</string>
+    <string name="content_channel_logo_link">Image link</string>
 </resources>

@@ -40,6 +40,10 @@ object EpgLogoStore {
     /** The active profile's Live TV matches; empty until [start] has read them. */
     internal var matches by mutableStateOf(EpgMatchResolver(emptyMap()))
 
+    /** The active profile's own channel logos (Live TV → channel menu → Channel logo): item key → URL. */
+    var custom by mutableStateOf<Map<String, String>>(emptyMap())
+        internal set
+
     /** Follow the enabled EPG sources; while any is enabled, follow their stored feed icons and the matches. */
     @OptIn(ExperimentalCoroutinesApi::class)
     fun start(scope: CoroutineScope, settings: SettingsRepository, epgDao: EpgDao, customize: CustomizationStore) {
@@ -59,7 +63,10 @@ object EpgLogoStore {
         scope.launch {
             settings.activeProfileId
                 .flatMapLatest { profileId -> customize.observe(profileId, MediaType.LIVE) }
-                .collectLatest { matches = it.epgMatchResolver }
+                .collectLatest {
+                    matches = it.epgMatchResolver
+                    custom = it.itemLogos
+                }
         }
     }
 
@@ -78,6 +85,7 @@ object EpgLogoStore {
 
     /** The feed icon for [channel], or null when there is none / no feed has logos enabled. */
     fun iconFor(channel: ChannelEntity): String? {
+        if (custom.isNotEmpty()) custom[tv.own.owntv.core.customize.CustomizeKeys.channel(channel)]?.let { return it }
         if (icons.isEmpty()) return null
         matches.epgIdFor(channel)?.let { id -> icons[id.trim().lowercase()]?.let { return it } }
         val own = channel.epgChannelId
@@ -87,7 +95,7 @@ object EpgLogoStore {
 }
 
 /**
- * The logo to show for this channel: the EPG feed's icon when "Use this guide's channel logos" is on and the feed has
+ * The logo to show for this channel: the user's own one when set, then the EPG feed's icon when "Use this guide's channel logos" is on and the feed has
  * one — for the guide channel it is matched to, else its own id — otherwise the provider's own logo. Use
  * this everywhere a channel logo is displayed or handed to the player — `logoUrl` alone always means
  * "what the playlist said".

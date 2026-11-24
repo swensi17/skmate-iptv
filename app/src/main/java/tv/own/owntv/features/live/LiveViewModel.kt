@@ -823,6 +823,18 @@ class LiveViewModel(
         }
     }
 
+    /** The channel's own logo for this profile (blank goes back to the guide's / playlist's). */
+    fun setChannelLogo(channel: ChannelEntity, url: String?) {
+        viewModelScope.launch {
+            val pid = currentProfileId() ?: return@launch
+            customize.setItemLogo(pid, MediaType.LIVE, CustomizeKeys.channel(channel), url)
+        }
+    }
+
+    /** Current own logo of [channel], or "" when it shows the guide's / playlist's. */
+    fun ownChannelLogo(channel: ChannelEntity): String =
+        tv.own.owntv.core.epg.EpgLogoStore.custom[CustomizeKeys.channel(channel)].orEmpty()
+
     /** Manually map a channel to an EPG channel id (null clears the override → auto-match). */
     fun setEpgMatch(channel: ChannelEntity, epgChannelId: String?) {
         viewModelScope.launch {

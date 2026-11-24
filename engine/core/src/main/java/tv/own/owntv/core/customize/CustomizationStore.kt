@@ -124,6 +124,8 @@ data class SectionCustomizations(
     val hiddenItems: Map<String, String> = emptyMap(),
     val categoryNames: Map<String, String> = emptyMap(),
     val itemNames: Map<String, String> = emptyMap(),
+    /** The user's own logo for an item: item key → image URL. Shown before the guide's and the playlist's. */
+    val itemLogos: Map<String, String> = emptyMap(),
     /** Explicit category order (keys, first = top). Categories not listed follow in natural order. */
     val categoryOrder: List<String> = emptyList(),
     /** Manual EPG match: item key → the EPG channel id to use (overrides the channel's own epg id). */
@@ -151,7 +153,7 @@ data class SectionCustomizations(
 
     val isEmpty: Boolean
         get() = hiddenCategories.isEmpty() && hiddenItems.isEmpty() && categoryNames.isEmpty() &&
-            itemNames.isEmpty() && categoryOrder.isEmpty() && epgMatches.isEmpty() &&
+            itemNames.isEmpty() && itemLogos.isEmpty() && categoryOrder.isEmpty() && epgMatches.isEmpty() &&
             epgShifts.isEmpty() && customCategories.isEmpty() && movedFromOrigin.isEmpty()
 }
 
@@ -206,6 +208,13 @@ class CustomizationStore(private val context: Context) {
     suspend fun renameCategory(profileId: Long, type: MediaType, catKey: String, name: String?) =
         update(profileId, type) {
             it.copy(categoryNames = if (name.isNullOrBlank()) it.categoryNames - catKey else it.categoryNames + (catKey to name.trim()))
+        }
+
+    /** Set the item's own logo, or with a blank [url] go back to the guide's / playlist's. */
+    suspend fun setItemLogo(profileId: Long, type: MediaType, itemKey: String, url: String?) =
+        update(profileId, type) {
+            val clean = url?.trim()?.takeIf { it.startsWith("http", ignoreCase = true) }
+            it.copy(itemLogos = if (clean == null) it.itemLogos - itemKey else it.itemLogos + (itemKey to clean))
         }
 
     suspend fun renameItem(profileId: Long, type: MediaType, itemKey: String, name: String?) =
@@ -327,6 +336,7 @@ class CustomizationStore(private val context: Context) {
                 hiddenItems = o.optJSONObject("hiddenItems").toStringMap(),
                 categoryNames = o.optJSONObject("catNames").toStringMap(),
                 itemNames = o.optJSONObject("itemNames").toStringMap(),
+                itemLogos = o.optJSONObject("itemLogos").toStringMap(),
                 categoryOrder = o.optJSONArray("catOrder").toStringList(),
                 epgMatches = o.optJSONObject("epgMatch").toStringMap(),
                 epgShifts = o.optJSONObject("epgShift").toStringMap(),
@@ -341,6 +351,7 @@ class CustomizationStore(private val context: Context) {
         put("hiddenItems", JSONObject(c.hiddenItems as Map<*, *>))
         put("catNames", JSONObject(c.categoryNames as Map<*, *>))
         put("itemNames", JSONObject(c.itemNames as Map<*, *>))
+        put("itemLogos", JSONObject(c.itemLogos as Map<*, *>))
         put("catOrder", JSONArray(c.categoryOrder))
         put("epgMatch", JSONObject(c.epgMatches as Map<*, *>))
         put("epgShift", JSONObject(c.epgShifts as Map<*, *>))

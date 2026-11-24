@@ -139,6 +139,19 @@ fun EpgSourcesScreen(onBack: () -> Unit, modifier: Modifier = Modifier, startOnA
                 )
             }
         }
+        // Ready guides: one switch each, no address to type.
+        StageSettingsHeading(stringResource(R.string.settings_epg_catalog), null)
+        StageSettingsNote(stringResource(R.string.settings_epg_catalog_description), null)
+        EpgCatalog.guides.forEach { guide ->
+            val on = sources.any { it.url.trim() == guide.url }
+            StageSettingRow(
+                icon = OwnTVIcon.EPG,
+                title = guide.name,
+                desc = null,
+                value = SettingValue.Switch(on),
+                onClick = { vm.setCatalogGuide(guide, !on, sources) },
+            )
+        }
         // The add row closes the list, full width like every row above it.
         StageSettingRow(
             icon = OwnTVIcon.ADD,

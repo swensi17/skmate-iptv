@@ -1887,4 +1887,6 @@
     <string name="settings_tg_own_remove_body">Токен удалится с телевизора, бот остановится.</string>
     <string name="settings_search_keywords_tg_remote">телеграм бот пульт управление токен телефон qr код</string>
     <string name="tg_bot_code_expired">Код устарел или привязка закрыта. Откройте на телевизоре Настройки → Telegram и получите новый код</string>
+    <string name="settings_epg_catalog">Готовые телегиды</string>
+    <string name="settings_epg_catalog_description">Включите любой: каналы, которые он знает по названию, получат передачи и логотипы. Обновляется раз в сутки.</string>
 </resources>

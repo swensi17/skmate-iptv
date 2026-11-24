@@ -92,8 +92,8 @@ val dataModule = module {
     single { HttpClient(get()) }
     single { ConnectivityObserver(androidContext()) }
     single { CustomizationStore(androidContext()) }
-    // settings, sourceDao, customize, channelDao, epgDao, epgRepository
-    single { tv.own.owntv.core.epg.GuideAutoLink(get(), get(), get(), get(), get(), get()) }
+    // settings, sourceDao, customize, channelDao, epgDao, epgRepository, profileDao
+    single { tv.own.owntv.core.epg.GuideAutoLink(get(), get(), get(), get(), get(), get(), get()) }
     single { tv.own.owntv.core.epg.EpgSourceStore(androidContext()) }
     single { tv.own.owntv.core.player.ForceMpvStore(androidContext(), get()) }
     // Per-channel "watched without a picture" memory, for the mobile audio-only mode.

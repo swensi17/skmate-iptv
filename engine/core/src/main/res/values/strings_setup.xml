@@ -555,4 +555,5 @@
     <string name="setup_local_files_none_hint">Put an .m3u file in Downloads or on a USB drive</string>
     <!-- Translators: First-run card for the author's playlist. -->
     <string name="setup_author_playlist_line">Channels from the author, updated by themselves</string>
+    <string name="setup_guide_attached">A TV guide is connected. You can add another one</string>
 </resources>

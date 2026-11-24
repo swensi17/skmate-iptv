@@ -61,6 +61,7 @@ import tv.own.owntv.core.live.EpgNowNext
 import tv.own.owntv.core.parser.XtEpgEntry
 import tv.own.owntv.ui.brand.SkMateBlue
 import tv.own.owntv.ui.components.ChannelLogoTile
+import tv.own.owntv.ui.components.GuideStatusText
 import tv.own.owntv.ui.components.OwnTVIcon
 import tv.own.owntv.ui.format.rememberSystemTimeFormatter
 import tv.own.owntv.ui.theme.mpx
@@ -265,7 +266,10 @@ fun TvBoxChannelPanel(
                 val entries = schedule?.let { g -> listOfNotNull(g.previous, g.now) + listOfNotNull(g.next) + g.upcoming }
                     ?.distinctBy { it.startMs }?.sortedBy { it.startMs }.orEmpty()
                 if (entries.isEmpty()) {
-                    Text(stringResource(R.string.content_no_guide_short), style = stageText(21, 500), color = Faint, modifier = Modifier.padding(top = 22.mpx))
+                    GuideStatusText(
+                        stringResource(R.string.content_no_guide_short), stageText(21, 500), Faint,
+                        Modifier.padding(top = 22.mpx),
+                    )
                 } else {
                     Column(Modifier.padding(top = 14.mpx)) {
                         entries.take(MaxScheduleRows).forEach { p ->
@@ -336,7 +340,7 @@ private fun ChannelLine(
                 // The same thin line as the channels list: blue, the whole width, running out as the programme does.
                 tv.own.owntv.ui.stage.StageProgress(((nowMs - now.startMs).toFloat() / (now.stopMs - now.startMs).coerceAtLeast(1)).coerceIn(0f, 1f), Modifier.fillMaxWidth(), flat = true)
             } else {
-                Text(stringResource(R.string.content_no_guide_short), style = stageText(16, 500), color = soft, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                GuideStatusText(stringResource(R.string.content_no_guide_short), stageText(16, 500), soft)
             }
         }
         if (countdown > 0) tv.own.owntv.ui.components.CountdownRing(countdown, tv.own.owntv.ui.components.DwellTiming.CategoryTotalMs, diameter = 32.mpx)
@@ -356,8 +360,11 @@ private fun Logo(channel: ChannelEntity, w: Dp, h: Dp) {
         logoUrl = channel.displayLogoUrl,
         modifier = Modifier.size(w, h),
         fill = Color.Transparent,
-    ) { OwnTVIcon(OwnTVIcon.LIVE_TV, tvBoxPanelColors().faint, Modifier.size(24.mpx)) }
+    ) { OwnTVIcon(OwnTVIcon.LIVE_TV, tvBoxPanelColors().faint, Modifier.size(minOf(w, h) * PLACEHOLDER_ICON_SHARE)) }
 }
+
+/** How much of the tile the TV mark fills when a channel has no logo: big enough to read as a channel. */
+private const val PLACEHOLDER_ICON_SHARE = 0.8f
 
 @Composable
 private fun Bar(progress: Float, width: Dp, base: Color, thick: Boolean = false) {

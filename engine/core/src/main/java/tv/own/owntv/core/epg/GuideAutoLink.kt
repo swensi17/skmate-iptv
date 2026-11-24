@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.first
 import tv.own.owntv.core.customize.CustomizationStore
 import tv.own.owntv.core.database.dao.ChannelDao
 import tv.own.owntv.core.database.dao.EpgDao
+import tv.own.owntv.core.database.dao.ProfileDao
 import tv.own.owntv.core.database.dao.SourceDao
 import tv.own.owntv.core.model.MediaType
 import tv.own.owntv.core.repository.EpgRepository
@@ -27,11 +28,16 @@ class GuideAutoLink(
     private val channelDao: ChannelDao,
     private val epgDao: EpgDao,
     private val epgRepository: EpgRepository,
+    private val profileDao: ProfileDao,
 ) {
     /** Links what it can and returns how many channels it linked. Never throws. */
     suspend fun run(force: Boolean = true): Int = runCatching {
-        val pid = settings.activeProfileId.first()
-        if (pid < 0) return 0
+        // Right after onboarding the first guide finishes before the new profile is marked active; the
+        // only profile on the device is that one, so its channels are linked now rather than on the next
+        // launch (which is when the guide used to appear on a fresh install).
+        val pid = settings.activeProfileId.first().takeIf { it >= 0 }
+            ?: profileDao.getAllOnce().singleOrNull()?.id
+            ?: return 0
         val playlistIds = sourceDao.sourceIdsForProfile(pid)
         if (playlistIds.isEmpty()) return 0
         val cust = customize.observe(pid, MediaType.LIVE).first()

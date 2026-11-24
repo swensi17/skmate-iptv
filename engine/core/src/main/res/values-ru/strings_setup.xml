@@ -301,4 +301,5 @@
     <string name="setup_local_files_none">На телевизоре нет файлов плейлистов</string>
     <string name="setup_local_files_none_hint">Положите файл .m3u в Загрузки или на флешку</string>
     <string name="setup_author_playlist_line">Каналы от автора, обновляются сами</string>
+    <string name="setup_guide_attached">Телегид подключён. Можно добавить ещё один</string>
 </resources>

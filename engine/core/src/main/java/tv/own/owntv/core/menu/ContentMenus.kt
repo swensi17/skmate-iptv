@@ -31,6 +31,8 @@ fun catalogue(menu: ContentMenu): List<MenuActionRef> = when (menu) {
 private val LIVE_ACTIONS = listOf(
     MenuActionRef("favourite", R.string.content_add_favourite),
     MenuActionRef("rename", R.string.content_rename),
+    // The channel's own logo, for a playlist and guide that have none. Listed for the same reason as `record`.
+    MenuActionRef("logo", R.string.content_channel_logo),
     MenuActionRef("match_epg", R.string.content_match_epg),
     MenuActionRef("epg_offset", R.string.content_epg_time_offset),
     MenuActionRef("catchup", R.string.content_catchup),

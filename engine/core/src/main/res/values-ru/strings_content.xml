@@ -391,5 +391,9 @@
     <string name="content_vod_more_in">Ещё в категории «<xliff:g id="category">%1$s</xliff:g>»</string>
     <string name="content_no_guide">Нет телепрограммы для этого канала</string>
     <string name="content_no_guide_short">Телепрограмма отсутствует</string>
+    <string name="content_guide_loading">Загружаем телепрограмму…</string>
     <string name="content_preview_pick_channel">Выберите канал, чтобы посмотреть его здесь</string>
+    <string name="content_channel_logo">Свой логотип</string>
+    <string name="content_channel_logo_hint">Вставьте ссылку на PNG или JPG. Пусто — вернуть исходный</string>
+    <string name="content_channel_logo_link">Ссылка на картинку</string>
 </resources>
