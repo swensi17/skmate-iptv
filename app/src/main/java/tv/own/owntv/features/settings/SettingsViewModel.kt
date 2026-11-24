@@ -1123,7 +1123,8 @@ class SettingsViewModel(
             // A Stalker edit re-canonicalizes the MAC; a garbled edit keeps the stored one. On
             // MAC/URL change the cached portal session is stale — drop it so the next call re-handshakes.
             val newMac = tv.own.owntv.core.stalker.StalkerClient.canonicalizeMac(mac) ?: existing.mac
-            if (existing.type == tv.own.owntv.core.model.SourceType.STALKER) stalkerAuth.invalidate(id)
+            val stalker = existing.type == tv.own.owntv.core.model.SourceType.STALKER
+            if (stalker) stalkerAuth.invalidate(id)
             val scopeChanged =
                 existing.syncLive != syncLive || existing.syncMovies != syncMovies || existing.syncSeries != syncSeries
             val scopeTurnedOn =
@@ -1131,8 +1132,10 @@ class SettingsViewModel(
             val updated = existing.copy(
                 name = name.ifBlank { existing.name },
                 url = urlOrServer.trim().ifBlank { existing.url },
-                username = user.trim().takeIf { it.isNotBlank() } ?: existing.username,
-                password = pass.takeIf { it.isNotBlank() } ?: existing.password,
+                // A portal's login is optional and may be taken away; an Xtream account keeps what it had.
+                username = user.trim().takeIf { it.isNotBlank() } ?: existing.username.takeUnless { stalker },
+                password = pass.takeIf { if (stalker) it.isNotEmpty() else it.isNotBlank() }
+                    ?: existing.password.takeUnless { stalker },
                 mac = newMac,
                 stalkerSerialNumber = stalkerSerialNumber.trim().takeIf { it.isNotBlank() },
                 stalkerDeviceId = stalkerDeviceId.trim().takeIf { it.isNotBlank() },
@@ -1338,13 +1341,15 @@ class SettingsViewModel(
         movies: SyncScopeChoice = SyncScopeChoice.Later,
         series: SyncScopeChoice = SyncScopeChoice.Later,
         httpReferer: String = "",
+        login: String = "",
+        password: String = "",
     ) = runImport {
         importer.stalker(
             name = name, portalUrl = portalUrl, mac = mac,
             serialNumber = serialNumber, deviceId = deviceId, deviceId2 = deviceId2,
             signature = signature, userAgent = userAgent, autoRefresh = autoRefresh,
             live = live, movies = movies, series = series, makeDefault = isDefault,
-            httpReferer = httpReferer,
+            httpReferer = httpReferer, login = login, password = password,
         )
     }
 

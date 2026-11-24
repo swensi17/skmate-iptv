@@ -862,8 +862,6 @@ fun PlayerHud(
                             TvBoxAction(stringResource(R.string.player_sleep_timer), OwnTVIcon.BEDTIME, { dialog = HudDialog.SLEEP_TIMER }),
                         ),
                         firstFocus = tvActionFocus,
-                        // ◀ past the first tile opens the channel list, as ◀ does everywhere in the player.
-                        onLeftEdge = onOpenChannelList?.let { open -> { controlsVisible = false; open() } },
                     )
                 } else {
                     TvBoxInfoFocus(playFocus)

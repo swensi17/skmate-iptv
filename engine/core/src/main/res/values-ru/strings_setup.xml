@@ -258,6 +258,8 @@
     <string name="setup_stalker_device_id_optional">Идентификатор устройства (необязательно)</string>
     <string name="setup_stalker_device_id2_optional">Идентификатор устройства 2 (необязательно)</string>
     <string name="setup_stalker_signature_optional">Подпись (необязательно)</string>
+    <string name="setup_stalker_login_optional">Логин портала (необязательно)</string>
+    <string name="setup_stalker_password_optional">Пароль портала (необязательно)</string>
     <string name="companion_error_pair_failed">Не удалось выполнить сопряжение с этим устройством.</string>
     <string name="local_sync_browser_title">Локальная синхронизация SkMate IPTV</string>
     <string name="local_sync_browser_body">Этот адрес предназначен для приложения SkMate IPTV на другом устройстве. Откройте там локальную синхронизацию и выберите это устройство из списка.</string>

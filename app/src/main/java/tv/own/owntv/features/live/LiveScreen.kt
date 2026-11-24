@@ -955,6 +955,15 @@ fun LiveScreen(
                                         firstItemFocus = firstItemFocus,
                                     ).focusRequester(rowFocus(index)).onPreviewKeyEvent { e ->
                                         if (e.type != androidx.compose.ui.input.key.KeyEventType.KeyDown) return@onPreviewKeyEvent false
+                                        // Holding OK opens the menu on the remote's own auto-repeat,
+                                        // not on a timer a busy TV can miss; later repeats are swallowed.
+                                        if (isOkKey(e.key) && e.nativeKeyEvent.repeatCount > 0) {
+                                            if (e.nativeKeyEvent.repeatCount == 1) {
+                                                contextChannel = channel
+                                                contextChannelId = channel.id
+                                            }
+                                            return@onPreviewKeyEvent true
+                                        }
                                         when (e.key) {
                                             // The remote's Menu key opens the same menu as holding OK.
                                             androidx.compose.ui.input.key.Key.Menu -> { contextChannel = channel; contextChannelId = channel.id; true }
@@ -1740,3 +1749,8 @@ private const val ReturnPreviewMs = 350L
 
 private const val SHEET_SLIDE_MS = 280
 private const val SHEET_HIDE_MS = 240
+
+private fun isOkKey(key: androidx.compose.ui.input.key.Key) =
+    key == androidx.compose.ui.input.key.Key.DirectionCenter ||
+        key == androidx.compose.ui.input.key.Key.Enter ||
+        key == androidx.compose.ui.input.key.Key.NumPadEnter

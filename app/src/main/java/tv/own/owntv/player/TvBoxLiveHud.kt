@@ -13,7 +13,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -40,7 +43,7 @@ internal data class TvBoxAction(val label: String, val icon: OwnTVIcon, val onCl
  * and a bolder caption, the way a TV's own menus show it.
  */
 @Composable
-internal fun TvBoxActionRow(actions: List<TvBoxAction>, firstFocus: FocusRequester, modifier: Modifier = Modifier, onLeftEdge: (() -> Unit)? = null) {
+internal fun TvBoxActionRow(actions: List<TvBoxAction>, firstFocus: FocusRequester, modifier: Modifier = Modifier) {
     androidx.compose.foundation.layout.Row(
         modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -49,6 +52,9 @@ internal fun TvBoxActionRow(actions: List<TvBoxAction>, firstFocus: FocusRequest
         actions.forEachIndexed { i, action ->
             val interaction = remember { MutableInteractionSource() }
             val focused = interaction.collectIsFocusedAsState().value
+            // OK acts on release, and only for a press that also went down here: the release of the OK
+            // that opened the controls, or of one held on the row above, must not toggle a tile.
+            var okDown by remember { mutableStateOf(false) }
             val tint = when {
                 focused -> Color(0xFF16181D)
                 action.active -> tv.own.owntv.ui.brand.SkMateBlue
@@ -59,11 +65,20 @@ internal fun TvBoxActionRow(actions: List<TvBoxAction>, firstFocus: FocusRequest
                     .weight(1f)
                     .then(if (i == 0) Modifier.focusRequester(firstFocus) else Modifier)
                     .onKeyEvent { e ->
-                        if (e.type == KeyEventType.KeyUp && (e.key == Key.DirectionCenter || e.key == Key.Enter || e.key == Key.NumPadEnter)) {
-                            action.onClick(); true
-                        } else if (i == 0 && onLeftEdge != null && e.type == KeyEventType.KeyDown && e.key == Key.DirectionLeft) {
-                            onLeftEdge(); true
-                        } else false
+                        val ok = e.key == Key.DirectionCenter || e.key == Key.Enter || e.key == Key.NumPadEnter
+                        if (ok && e.type == KeyEventType.KeyDown) {
+                            if (e.nativeKeyEvent.repeatCount == 0) okDown = true
+                            true
+                        } else if (ok && e.type == KeyEventType.KeyUp) {
+                            if (okDown) { okDown = false; action.onClick() }
+                            true
+                        } else {
+                            // The row's ends are walls: ◀ on the first tile and ▶ on the last stay put
+                            // instead of escaping to the channel list or history behind the player.
+                            val first = i == 0 && e.key == Key.DirectionLeft
+                            val last = i == actions.lastIndex && e.key == Key.DirectionRight
+                            e.type == KeyEventType.KeyDown && (first || last)
+                        }
                     }
                     .focusable(interactionSource = interaction),
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -89,7 +104,6 @@ internal fun TvBoxActionRow(actions: List<TvBoxAction>, firstFocus: FocusRequest
 
 /** The TV-box player's bottom shade: clear above, dark under the info and the tiles. */
 internal val TvBoxShade = Color(0xB3000000)
-
 
 /** A focus holder for the info step: nothing to press, but the keys have to land somewhere. */
 @Composable

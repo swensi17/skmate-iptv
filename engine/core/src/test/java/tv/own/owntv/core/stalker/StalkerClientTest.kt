@@ -84,6 +84,20 @@ class StalkerClientTest {
     }
 
     @Test
+    fun authUrl_carriesEncodedLoginPasswordAndDeviceIds() {
+        val url = StalkerClient.authUrl(
+            "http://host/portal.php", "user@mail", "p&ss=1",
+            StalkerDeviceIdentity(deviceId = "dev+1", signature = "sig"),
+        )
+        assertTrue(url.startsWith("http://host/portal.php?type=stb&action=do_auth"))
+        assertTrue(url.contains("login=user%40mail"))
+        assertTrue(url.contains("password=p%26ss%3D1"))
+        assertTrue(url.contains("device_id=dev%2B1"))
+        assertFalse(url.contains("signature="))
+        assertTrue(url.endsWith("&JsHttpRequest=1-xml"))
+    }
+
+    @Test
     fun profileUrl_advancedIdentityIsEncodedAndEnablesSecondStep() {
         val url = StalkerClient.profileUrl(
             "http://host/portal.php",

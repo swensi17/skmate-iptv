@@ -121,6 +121,8 @@
     <string name="setup_stalker_device_id_optional">Eszközazonosító (nem kötelező)</string>
     <string name="setup_stalker_device_id2_optional">Eszközazonosító 2 (nem kötelező)</string>
     <string name="setup_stalker_signature_optional">Aláírás (nem kötelező)</string>
+    <string name="setup_stalker_login_optional">Portál bejelentkezés (nem kötelező)</string>
+    <string name="setup_stalker_password_optional">Portál jelszó (nem kötelező)</string>
     <string name="setup_device_model_preset">Eszközmodell-előbeállítás (User-Agent)…</string>
     <string name="setup_testing">Tesztelés…</string>
     <string name="setup_test_connection">Kapcsolat tesztelése</string>

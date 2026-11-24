@@ -240,6 +240,8 @@
     <string name="setup_stalker_device_id_optional">ഉപകരണ ID (ഐച്ഛികം)</string>
     <string name="setup_stalker_device_id2_optional">ഉപകരണ ID2 (ഐച്ഛികം)</string>
     <string name="setup_stalker_signature_optional">ഒപ്പ് (ഐച്ഛികം)</string>
+    <string name="setup_stalker_login_optional">പോർട്ടൽ ലോഗിൻ (ഓപ്ഷണൽ)</string>
+    <string name="setup_stalker_password_optional">പോർട്ടൽ പാസ്‌വേഡ് (ഓപ്ഷണൽ)</string>
     <string name="companion_error_pair_failed">ഈ ഉപകരണവുമായി ജോടിയാക്കാൻ കഴിഞ്ഞില്ല.</string>
     <string name="local_sync_browser_title">SkMate IPTV ലോക്കൽ സമന്വയം</string>
     <string name="local_sync_browser_body">ഈ വിലാസം നിങ്ങളുടെ മറ്റ് ഉപകരണത്തിലെ SkMate IPTV ആപ്പിനുള്ളതാണ്. അവിടെ ലോക്കൽ സമന്വയം തുറന്ന് പട്ടികയിൽ നിന്ന് ഈ ഉപകരണം തിരഞ്ഞെടുക്കുക.</string>

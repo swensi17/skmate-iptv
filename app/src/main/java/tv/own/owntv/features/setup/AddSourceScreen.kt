@@ -120,6 +120,8 @@ fun AddSourceScreen(
         deviceId: String,
         deviceId2: String,
         signature: String,
+        login: String,
+        password: String,
         userAgent: String,
         referer: String,
         autoRefresh: PlaylistRefresh,
@@ -253,6 +255,7 @@ fun AddSourceScreen(
                 stalkerDeviceId = opt(stalkerDeviceId),
                 stalkerDeviceId2 = opt(stalkerDeviceId2),
                 stalkerSignature = opt(stalkerSignature),
+                username = opt(username), password = password.takeIf { it.isNotEmpty() },
                 userAgent = ua,
                 httpReferer = ref,
             )
@@ -480,7 +483,8 @@ fun AddSourceScreen(
             SourceKind.M3U -> onStartM3u(name, m3uUrl, userAgent, referer, epgUrl, autoRefresh, isDefault)
             SourceKind.STALKER -> onStartStalker?.invoke(
                 name, portalUrl, mac, stalkerSerialNumber, stalkerDeviceId, stalkerDeviceId2,
-                stalkerSignature, userAgent, referer, autoRefresh, isDefault, syncLive, syncMovies, syncSeries,
+                stalkerSignature, username, password, userAgent, referer, autoRefresh, isDefault,
+                syncLive, syncMovies, syncSeries,
             )
         }
     }
@@ -635,7 +639,13 @@ fun AddSourceScreen(
                     placeholder = stringResource(R.string.setup_mac_example),
                     about = if (mac.isNotBlank() && !macValid) stringResource(R.string.setup_mac_invalid) else null,
                 )
-                if (full) {
+                // A protected portal needs these to pass the very first check, so they are offered when
+                // adding too, not only when editing a source that could never have been saved without them.
+                field(stringResource(R.string.setup_stalker_login_optional), username, { username = it })
+                field(
+                    stringResource(R.string.setup_stalker_password_optional), password, { password = it },
+                    password = true,
+                )
                 StageSettingsHeading(stringResource(R.string.setup_stalker_advanced_identity), 5)
                 field(stringResource(R.string.setup_stalker_serial_number_optional), stalkerSerialNumber, { stalkerSerialNumber = it })
                 field(stringResource(R.string.setup_stalker_device_id_optional), stalkerDeviceId, { stalkerDeviceId = it })
@@ -651,7 +661,6 @@ fun AddSourceScreen(
                     modifier = toSubmit,
                     help = help(presetTitle, stringResource(R.string.setup_device_model_preset_title), openKeys),
                 )
-                }
             }
         }
 

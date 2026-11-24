@@ -243,6 +243,8 @@
     <string name="setup_stalker_device_id_optional">Device ID (opcional)</string>
     <string name="setup_stalker_device_id2_optional">Device ID2 (opcional)</string>
     <string name="setup_stalker_signature_optional">Firma (opcional)</string>
+    <string name="setup_stalker_login_optional">Usuario del portal (opcional)</string>
+    <string name="setup_stalker_password_optional">Contraseña del portal (opcional)</string>
     <string name="companion_error_pair_failed">No se ha podido vincular con este dispositivo.</string>
     <string name="local_sync_browser_title">Sincronización local de SkMate IPTV</string>
     <string name="local_sync_browser_body">Esta dirección es para la aplicación SkMate IPTV de tu otro dispositivo. Abre allí la Sincronización local y elige este dispositivo de la lista.</string>

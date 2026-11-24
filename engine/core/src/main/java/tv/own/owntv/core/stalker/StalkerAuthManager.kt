@@ -29,6 +29,13 @@ data class StalkerCredentials(
     val mac: String,
     val userAgent: String? = null,
     val deviceIdentity: StalkerDeviceIdentity = StalkerDeviceIdentity(),
+    /**
+     * Portal account for panels that lock the MAC behind a login (`do_auth`): Ministra's
+     * "login + password" mode, and many resellers. Null on the ordinary MAC-only portal, which then
+     * sends exactly the requests it always did.
+     */
+    val login: String? = null,
+    val password: String? = null,
 )
 
 /** One live portal session. Tokens live in memory only — never persisted. */
@@ -120,6 +127,13 @@ open class StalkerAuthManager(private val client: StalkerClient) {
     private suspend fun openSession(creds: StalkerCredentials): StalkerSession {
         val startedAt = SystemClock.elapsedRealtime()
         val handshake = client.resolveHandshake(creds.portalUrl, creds.mac, creds.userAgent)
+        // A login-protected portal signs the session in before it will answer get_profile.
+        creds.login?.takeIf { it.isNotBlank() }?.let { login ->
+            client.doAuth(
+                handshake.apiBase, creds.mac, handshake.token, creds.userAgent,
+                login, creds.password.orEmpty(), creds.deviceIdentity,
+            )
+        }
         val profile = client.getProfile(
             handshake.apiBase, creds.mac, handshake.token, creds.userAgent, creds.deviceIdentity,
         )

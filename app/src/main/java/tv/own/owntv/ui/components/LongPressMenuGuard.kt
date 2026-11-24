@@ -46,12 +46,15 @@ fun Modifier.longPressMenuGuard(): Modifier = composed {
         if (e.key == Key.DirectionCenter || e.key == Key.Enter || e.key == Key.NumPadEnter) {
             when (e.type) {
                 // Keep pushing the quiet window out while the key is still repeating.
-                KeyEventType.KeyDown -> if (!armed) lastOkDownAt = System.currentTimeMillis()
-                // A release that *does* arrive arms immediately — no need to wait out the timer.
-                KeyEventType.KeyUp -> armed = true
-                else -> Unit
+                KeyEventType.KeyDown -> {
+                    if (!armed) lastOkDownAt = System.currentTimeMillis()
+                    !armed // consume OK while the opening press may still be held
+                }
+                // A release that *does* arrive arms immediately, and is itself swallowed: it ends the press
+                // that opened the menu, so it must not choose the item under the cursor.
+                KeyEventType.KeyUp -> (!armed).also { armed = true }
+                else -> !armed
             }
-            !armed // consume OK while the opening press may still be held
         } else {
             false
         }

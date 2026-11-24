@@ -245,6 +245,8 @@
     <string name="setup_stalker_device_id_optional">Device ID (optional)</string>
     <string name="setup_stalker_device_id2_optional">Device ID2 (optional)</string>
     <string name="setup_stalker_signature_optional">Signature (optional)</string>
+    <string name="setup_stalker_login_optional">Portal login (optional)</string>
+    <string name="setup_stalker_password_optional">Portal password (optional)</string>
     <!-- Translators: Button label to open a device-model preset picker for the Stalker User-Agent. -->
     <string name="setup_device_model_preset">Device model preset (User-Agent)\u2026</string>
     <!-- Translators: Loading status shown while the source connection is being tested. -->

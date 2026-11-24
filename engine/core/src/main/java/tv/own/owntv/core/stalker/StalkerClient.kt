@@ -176,6 +176,25 @@ open class StalkerClient(okHttpClient: OkHttpClient) {
     }
 
     /**
+     * `?type=stb&action=do_auth` — signs a session in with the portal account's login and password,
+     * for panels that lock the MAC behind one. The portal answers `{"js":true}`; a wrong login is
+     * `{"js":false}`, which [parseEnvelope] already reports as a [StalkerAuthException].
+     */
+    open suspend fun doAuth(
+        apiBase: String,
+        mac: String,
+        token: String,
+        userAgent: String?,
+        login: String,
+        password: String,
+        identity: StalkerDeviceIdentity = StalkerDeviceIdentity(),
+    ) {
+        request(authUrl(apiBase, login, password, identity), mac, token, userAgent, booleanAnswer = true) { reader ->
+            if (!reader.nextBoolean()) throw StalkerAuthException("Portal refused the login or password")
+        }
+    }
+
+    /**
      * `?type=account_info&action=get_main_info` — subscription status/expiry.
      * Optional and portal-quirky (expiry is often surfaced oddly, e.g. in `phone`); callers must
      * treat a failure or an empty map as "no account info", never as an error.
@@ -346,7 +365,7 @@ open class StalkerClient(okHttpClient: OkHttpClient) {
      * Entries with no readable start/stop or no title are skipped rather than failing the crawl.
      */
     open suspend fun parseEpgInfoFile(file: File, onEntry: suspend (channelId: String, entry: ShortEpgEntry) -> Unit) {
-        file.inputStream().buffered().use { input -> parseEnvelope(input) { reader -> readEpgInfo(reader, onEntry) } }
+        file.inputStream().buffered().use { input -> parseEnvelope(input, booleanAnswer = false) { reader -> readEpgInfo(reader, onEntry) } }
     }
 
     private suspend fun readEpgInfo(reader: JsonReader, onEntry: suspend (String, ShortEpgEntry) -> Unit) {
@@ -749,7 +768,7 @@ open class StalkerClient(okHttpClient: OkHttpClient) {
     }
 
     private suspend fun <T> request(
-        url: String, mac: String, token: String?, userAgent: String?, parseJs: suspend (JsonReader) -> T,
+        url: String, mac: String, token: String?, userAgent: String?, booleanAnswer: Boolean = false, parseJs: suspend (JsonReader) -> T,
     ): T = withContext(Dispatchers.IO) {
         val httpRequest = portalRequest(url, mac, token, userAgent)
 
@@ -767,7 +786,7 @@ open class StalkerClient(okHttpClient: OkHttpClient) {
                 if (!response.isSuccessful) throw httpFailure(response.code, safeUrl)
                 val body = response.body
                 body.byteStream().use { input ->
-                    parseEnvelope(input, parseJs).also {
+                    parseEnvelope(input, booleanAnswer, parseJs).also {
                         Log.d(TAG, "GET done url=$safeUrl action=$action totalMs=${SystemClock.elapsedRealtime() - startedAt}")
                     }
                 }
@@ -790,7 +809,7 @@ open class StalkerClient(okHttpClient: OkHttpClient) {
      * whether the response parses, not this peek. The quote goes to the log, not into the exception:
      * an exception's message reaches the sync error and warning text the user reads.
      */
-    private suspend fun <T> parseEnvelope(input: InputStream, parseJs: suspend (JsonReader) -> T): T {
+    private suspend fun <T> parseEnvelope(input: InputStream, booleanAnswer: Boolean, parseJs: suspend (JsonReader) -> T): T {
         val peeking = HeadPeekingInputStream(input, RESPONSE_PEEK_BYTES)
         JsonReader(peeking.reader(Charsets.UTF_8)).use { reader ->
             reader.isLenient = true // some portals prefix/pad the JSON
@@ -806,6 +825,10 @@ open class StalkerClient(okHttpClient: OkHttpClient) {
                 if (reader.nextName() == "js") {
                     when (reader.peek()) {
                         JsonToken.BEGIN_OBJECT, JsonToken.BEGIN_ARRAY -> { result = parseJs(reader); found = true }
+                        // An action whose whole answer is yes or no (do_auth) reads the boolean itself.
+                        JsonToken.BOOLEAN -> if (booleanAnswer) { result = parseJs(reader); found = true } else {
+                            reader.skipValue(); throw StalkerAuthException("Portal returned an empty payload — token expired or MAC not authorized")
+                        }
                         // {"js":false} / {"js":null} / {"js":""} — token expired / MAC not authorized.
                         else -> { reader.skipValue(); throw StalkerAuthException("Portal returned an empty payload — token expired or MAC not authorized") }
                     }
@@ -918,6 +941,16 @@ open class StalkerClient(okHttpClient: OkHttpClient) {
             identity.deviceId?.takeIf { it.isNotBlank() }?.let { append("&device_id=${URLEncoder.encode(it, "UTF-8")}") }
             identity.deviceId2?.takeIf { it.isNotBlank() }?.let { append("&device_id2=${URLEncoder.encode(it, "UTF-8")}") }
             identity.signature?.takeIf { it.isNotBlank() }?.let { append("&signature=${URLEncoder.encode(it, "UTF-8")}") }
+            append("&JsHttpRequest=1-xml")
+        }
+
+        internal fun authUrl(apiBase: String, login: String, password: String, identity: StalkerDeviceIdentity): String = buildString {
+            append(apiBase)
+            append("?type=stb&action=do_auth")
+            append("&login=${URLEncoder.encode(login, "UTF-8")}")
+            append("&password=${URLEncoder.encode(password, "UTF-8")}")
+            identity.deviceId?.takeIf { it.isNotBlank() }?.let { append("&device_id=${URLEncoder.encode(it, "UTF-8")}") }
+            identity.deviceId2?.takeIf { it.isNotBlank() }?.let { append("&device_id2=${URLEncoder.encode(it, "UTF-8")}") }
             append("&JsHttpRequest=1-xml")
         }
 

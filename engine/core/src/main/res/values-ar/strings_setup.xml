@@ -252,6 +252,8 @@
     <string name="setup_stalker_device_id_optional">معرّف الجهاز (اختياري)</string>
     <string name="setup_stalker_device_id2_optional">معرّف الجهاز 2 (اختياري)</string>
     <string name="setup_stalker_signature_optional">التوقيع (اختياري)</string>
+    <string name="setup_stalker_login_optional">اسم مستخدم البوابة (اختياري)</string>
+    <string name="setup_stalker_password_optional">كلمة مرور البوابة (اختياري)</string>
     <string name="companion_error_pair_failed">تعذّر الاقتران بهذا الجهاز.</string>
     <string name="local_sync_browser_title">المزامنة المحلية في SkMate IPTV</string>
     <string name="local_sync_browser_body">هذا العنوان مخصص لتطبيق SkMate IPTV على جهازك الآخر. افتح المزامنة المحلية هناك واختر هذا الجهاز من القائمة.</string>

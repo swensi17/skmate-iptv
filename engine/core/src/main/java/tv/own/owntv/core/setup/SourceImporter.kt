@@ -185,6 +185,8 @@ class SourceImporter(
         series: SyncScopeChoice = SyncScopeChoice.Later,
         makeDefault: Boolean = false,
         httpReferer: String = "",
+        login: String = "",
+        password: String = "",
     ) {
         val canonicalMac = StalkerClient.canonicalizeMac(mac)
         if (canonicalMac == null) {
@@ -209,6 +211,8 @@ class SourceImporter(
                         deviceId2 = deviceId2.trim().takeIf { it.isNotBlank() },
                         signature = signature.trim().takeIf { it.isNotBlank() },
                     ),
+                    login = login.trim().takeIf { it.isNotBlank() },
+                    password = password.takeIf { it.isNotEmpty() },
                 ),
             )
             sourceRepository.addStalkerSource(
@@ -220,6 +224,8 @@ class SourceImporter(
                 userAgent.trim().takeIf { it.isNotBlank() },
                 syncLive = enabled.live, syncMovies = enabled.movies, syncSeries = enabled.series,
                 httpReferer = httpReferer.trim().takeIf { it.isNotBlank() },
+                login = login.trim().takeIf { it.isNotBlank() },
+                password = password.takeIf { it.isNotEmpty() },
             )
         }
     }

@@ -121,6 +121,8 @@
     <string name="setup_stalker_device_id_optional">Gailuaren IDa (aukerakoa)</string>
     <string name="setup_stalker_device_id2_optional">Gailuaren ID2 (aukerakoa)</string>
     <string name="setup_stalker_signature_optional">Sinadura (aukerakoa)</string>
+    <string name="setup_stalker_login_optional">Atariaren saioa (aukerakoa)</string>
+    <string name="setup_stalker_password_optional">Atariaren pasahitza (aukerakoa)</string>
     <string name="setup_device_model_preset">Gailu-ereduaren aurrezarpena (User-Agent)…</string>
     <string name="setup_testing">Probatzen…</string>
     <string name="setup_test_connection">Probatu konexioa</string>
