@@ -634,3 +634,25 @@ nav.rail.open ~ .content { transform: translateX(400px); }
 :root[data-motion-pref="auto"] .live .groups.out { animation-duration: 160ms !important; }
 /* The main menu is grey, not near black: the page's own panel grey, a little lighter than the page. */
 nav.rail { background: #2b2f33; }
+
+/* Adding a playlist: each value is a row (what it is · what is filled in), OK opens the entry panel. */
+.src-fields { display: flex; flex-direction: column; gap: 4px; margin: 16px 0 8px; max-width: 1200px; }
+.src-field { background: var(--control); }
+.src-value { font-size: 22px; font-weight: 600; color: var(--accent); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.srow:focus .src-value { color: var(--focus-text); }
+.src-actions { display: flex; gap: 12px; margin: 16px 0 8px; }
+.src-actions .btn.primary { min-width: 280px; }
+
+/* The entry panel, as in Lampa: from the left over a dimmed screen, one big field, Done and Cancel. */
+.entry-scrim { position: absolute; inset: 0; z-index: 20; background: rgba(0, 0, 0, .6); animation: fade var(--enter-ms) linear both; }
+.entry { position: absolute; left: 0; top: 0; bottom: 0; width: 1180px; padding: 0 96px; display: flex; flex-direction: column; justify-content: center;
+  background: var(--panel); box-shadow: 24px 0 64px rgba(0, 0, 0, .45); animation: from-left var(--enter-ms) cubic-bezier(.2, 0, 0, 1) both; }
+.entry-title { font-size: 48px; font-weight: 800; margin-bottom: 12px; }
+.entry-hint { font-size: 26px; color: var(--muted); margin-bottom: 40px; overflow-wrap: anywhere; }
+.entry-field { height: 96px; width: 100%; border: 0; border-radius: var(--radius); background: var(--control); color: var(--text);
+  font: 600 34px var(--font); padding: 0 32px; outline: none; box-shadow: inset 0 0 0 3px var(--dim); }
+.entry-field:focus { box-shadow: inset 0 0 0 4px var(--accent); }
+.entry-field::placeholder { color: var(--dim); }
+.entry-actions { display: flex; gap: 16px; margin-top: 32px; }
+.entry-actions .btn { height: 72px; min-width: 220px; font-size: 26px; }
+.entry-keys { margin-top: 40px; font-size: 22px; color: var(--dim); }
