@@ -48,6 +48,8 @@ interface Props {
   page: Page | null;
   onPage: (p: Page | null) => void;
   onClose: () => void;
+  /** One step back from an open section: to the menu, or wherever the section was opened from. */
+  onBack: () => void;
   settings: Settings;
   onChange: (s: Settings) => void;
   store: PlaylistStore;
@@ -100,7 +102,7 @@ export function SettingsSheet(p: Props) {
     <Drawer side="right" width={980} label={t("sheetTitle")} onClose={p.onClose} closing={!p.show}>
       {page === null ? (
         <>
-          <SheetHead title={t("sheetTitle")} />
+          <SheetHead title={t("sheetTitle")} onBack={p.onClose} />
           <div class="drawer-scroll">
             {MENU.map(([section, pages]) => (
               <div key={section}>
@@ -121,7 +123,7 @@ export function SettingsSheet(p: Props) {
         </>
       ) : (
         <>
-          <SheetHead title={t(META[page].title)} right={page === "about" ? __APP_VERSION__ : undefined} />
+          <SheetHead title={t(META[page].title)} right={page === "about" ? __APP_VERSION__ : undefined} onBack={p.onBack} />
           <div class="drawer-body drawer-scroll">
             {page === "player" ? <PlayerSettingRows settings={s} onChange={onChange} /> : null}
             {page === "look" ? (

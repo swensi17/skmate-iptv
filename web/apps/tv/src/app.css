@@ -184,6 +184,11 @@ img.logo { background: #fff; padding: 4px; }
 .drawer-title { font-size: 40px; font-weight: 700; margin: 0 0 28px 12px; }
 .drawer-head { display: flex; align-items: center; gap: 16px; margin-bottom: 28px; }
 .drawer-head .drawer-title { margin: 0; }
+/* The arrow before a sheet's title: one step back, as the remote's Back key. Focused like every other control. */
+.sheet-back { flex: none; width: 64px; height: 64px; display: flex; align-items: center; justify-content: center;
+  border: 0; border-radius: var(--radius); background: var(--control); color: var(--text); outline: none; cursor: pointer;
+  transition: background-color .12s linear, color .12s linear; }
+.sheet-back:focus { background: var(--focus-fill); color: var(--focus-text); }
 .drawer-back { width: 64px; height: 64px; border: 0; border-radius: var(--radius); background: none; color: var(--text); display: flex; align-items: center; justify-content: center; outline: none; cursor: pointer; }
 .drawer-back:focus { background: var(--focus-fill); color: var(--focus-text); }
 .drawer-body { display: flex; flex-direction: column; gap: 6px; overflow: hidden; }

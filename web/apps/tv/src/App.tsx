@@ -100,6 +100,17 @@ export function App() {
   // Updates wait for the picture to end: nothing interrupts a channel.
   const update = useUpdates(settings.autoUpdate, playing !== null);
   const [sheetPage, setSheetPage] = useState<Page | null>(null);
+  // Where an open settings section came from, so one step back returns there: the menu, the channel screen, or the
+  // playlist picker ("Manage playlists"), never somewhere the viewer has not been.
+  const [sheetFrom, setSheetFrom] = useState<"menu" | "screen" | "picker">("menu");
+  const openSheet = (page: Page | null, from: "menu" | "screen" | "picker") => {
+    setSheetFrom(from); setSheetPage(page); setSheet(true);
+  };
+  const sheetBack = () => {
+    if (!sheetPage || sheetFrom === "screen") { setSheet(false); return; }
+    if (sheetFrom === "picker") { setSheet(false); setSheetFrom("menu"); setPicking(true); return; }
+    setSheetPage(null);
+  };
   const pl = usePlaylists();
   const rem = useReminders();
   // The reminder whose moment has come first; asked about only in the "ask" mode, and never over the lock screen.
@@ -141,11 +152,11 @@ export function App() {
     if (picking) { setPicking(false); return true; }
     if (multiview) return true; // the multiview takes Back itself
     if (details) { setDetails(null); return true; }
-    if (sheet) { if (sheetPage) setSheetPage(null); else setSheet(false); return true; }
+    if (sheet) { sheetBack(); return true; }
     if (playing) { exitPlayer(); return true; }
     if (section !== "live") { setSection("live"); return true; }
     return false;
-  }), [unlocked, prompt, upcoming, pinAsk, deleting, resetting, qr, deletingProfile, picking, details, multiview, sheet, sheetPage, playing, section]);
+  }), [unlocked, prompt, upcoming, pinAsk, deleting, resetting, qr, deletingProfile, picking, details, multiview, sheet, sheetPage, sheetFrom, playing, section]);
 
   const openHere = (c: Channel, list: readonly Channel[]) => setPlaying({ list, index: Math.max(0, list.findIndex((x) => x.id === c.id)) });
   // A note at the top that goes by itself: a recording saved, an external player that did not start.
@@ -388,7 +399,7 @@ export function App() {
               <Icon name={icon} /><span class="rail-label">{t(label)}</span>
             </button>
           ))}
-          <button class="rail-item" data-focus="nav-settings" data-label={t("navSettings")} aria-label={t("navSettings")} aria-current={sheet} onClick={() => { setSheetPage(null); setSheet(true); }}>
+          <button class="rail-item" data-focus="nav-settings" data-label={t("navSettings")} aria-label={t("navSettings")} aria-current={sheet} onClick={() => openSheet(null, "menu")}>
             <Icon name="settings" /><span class="rail-label">{t("navSettings")}</span>
           </button>
           {full ? (
@@ -403,7 +414,7 @@ export function App() {
           <LiveView
             channels={channels} favorites={favorites} status={pl.status} settings={settings}
             onOpen={open} onFav={toggleFavorite}
-            onAddPlaylist={() => { setSheetPage("playlists"); setSheet(true); }} onDemo={pl.addDemo}
+            onAddPlaylist={() => openSheet("playlists", "screen")} onDemo={pl.addDemo}
             greeting={greeting} playlistName={pl.active?.name ?? null} onPickPlaylist={() => setPicking(true)}
             recents={recents} paused={false}
           />
@@ -425,7 +436,7 @@ export function App() {
       <Presence show={sheet}>
         {(out) => (
           <SettingsSheet
-            show={!out} page={sheetPage} onPage={setSheetPage} onClose={() => setSheet(false)}
+            show={!out} page={sheetPage} onPage={(pg) => { setSheetFrom("menu"); setSheetPage(pg); }} onClose={() => setSheet(false)} onBack={sheetBack}
             settings={settings} onChange={setSettings} store={pl.store} status={pl.status}
             onAddPlaylist={pl.add} onAddPlaylistFile={pl.addFile} onSelectPlaylist={pl.select} onEditPlaylist={pl.update} onAskDeletePlaylist={setDeleting}
             onAskReset={() => setResetting(true)}
@@ -441,7 +452,7 @@ export function App() {
       <Presence show={picking}>
         {(out) => (
           <PlaylistPicker store={pl.store} onSelect={pl.select} onClose={() => setPicking(false)} closing={out}
-            onManage={() => { setPicking(false); setSheetPage("playlists"); setSheet(true); }} />
+            onManage={() => { setPicking(false); openSheet("playlists", "picker"); }} />
         )}
       </Presence>
       {update.dialog ? (
