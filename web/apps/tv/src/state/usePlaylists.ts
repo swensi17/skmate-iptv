@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "preact/hooks";
 import { guidesInHeader, parseM3U, type Channel } from "@skmate/core";
 import { t, type Key } from "../i18n";
 import { cacheDrop, cacheGet, cachePut, fetchPlaylist, PlaylistError } from "./fetchPlaylist";
+import { playlistOpener } from "./guideTransport";
 import { fileDrop, fileGet, filePut, isLocal, localUrl, readPlaylistFile } from "./localFiles";
 import { demoText } from "./playlist";
 import { desktop } from "./desktop";
@@ -61,7 +62,7 @@ export function usePlaylists() {
     // A Stalker portal is read by the Windows app, which hands back an ordinary M3U on this computer.
     const stalker = isStalker(active.url);
     const address = stalker ? (desktop()?.stalkerPlaylist(active.url) ?? Promise.resolve(null)) : Promise.resolve(active.url);
-    address.then((u) => (u ? fetchPlaylist(u) : Promise.reject(new PlaylistError("network")))).then(
+    address.then((u) => (u ? fetchPlaylist(u, playlistOpener()) : Promise.reject(new PlaylistError("network")))).then(
       (text) => {
         if (!live) return;
         cachePut(active.id, text);
