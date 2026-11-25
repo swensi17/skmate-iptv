@@ -50,7 +50,7 @@ echo === 3/4 Подключаюсь к телевизору %TV%
 
 echo === 4/4 Ставлю и запускаю на телевизоре
 call "%TIZEN%" install -n "%WGT%" -s %TV%:26101 -- "%OUT%" || (echo [!] Установка не удалась & pause & exit /b 1)
-call "%TIZEN%" run -p SkMateIPT.SkMate -s %TV%:26101
+call "%TIZEN%" run -p SkMateIPTV.SkMate -s %TV%:26101
 
 echo.
 echo Готово. Приложение SkMate IPTV должно открыться на телевизоре.
