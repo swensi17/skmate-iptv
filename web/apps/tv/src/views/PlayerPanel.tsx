@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "preact/hooks";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "preact/hooks";
 import { groupsOf, type Channel } from "@skmate/core";
 import { Drawer, focusFirst, Icon, VirtualList, type IconName } from "@skmate/ui";
 import { t, type Key } from "../i18n";
@@ -9,6 +9,7 @@ import { ChannelRow } from "./ChannelRow";
 import { GroupIcon } from "./GroupIcon";
 import { PlayerSettingRows } from "./PlayerRows";
 import { Schedule } from "./Schedule";
+import "./player-wizard.css";
 import { SheetHead } from "./SheetHead";
 
 /** "menu" is the main menu; the others are the pages it opens, in the same sheet. */
@@ -51,6 +52,9 @@ const memory: { group: string | null; channel: string | null; playing: string | 
 const LIST_H = 940;
 /** A category or a menu line: plain text, closer together than a channel. */
 const GROUP_ROW = 64;
+/** The widths of the menu and the categories columns (player-wizard.css draws them the same). */
+const MENU_W = 100;
+const GROUPS_W = 380;
 
 /** The deepest layer of the player's menu: home first, then what was watched lately, then the other places of the app. */
 const MENU: Array<[string, IconName, Key, Go | { tab: PanelTab }]> = [
@@ -95,13 +99,28 @@ export function PlayerPanel(p: Props) {
   const showMenu = p.tab === "menu";
   const current = p.channels[p.index] ?? null;
   const [looking, setLooking] = useState<Channel | null>(null);
-  const width = !wide ? 980 : showMenu ? 1800 : showGroups ? 1700 : 1320;
+  // The day column narrows while the categories and the menu are open, so a strip of the picture always stays in view.
+  const width = !wide ? 980 : showMenu ? 1660 : showGroups ? 1560 : 1320;
   const listing = p.tab === "channels";
+  // A column opening or closing moves the list sideways at once (no width is animated: a TV relayouts it every
+  // frame); the list and the day then slide from where they were to where they are now, by transform only.
+  const tm = useRef<HTMLDivElement>(null);
+  const listX = (p.side === "left" ? 0 : 1920 - width) + (showMenu ? MENU_W : 0) + (showGroups ? GROUPS_W : 0);
+  const wasX = useRef(listX);
+  useLayoutEffect(() => {
+    const from = wasX.current - listX;
+    wasX.current = listX;
+    const box = tm.current;
+    if (from === 0 || !box || document.documentElement.getAttribute("data-motion") === "off") return;
+    box.querySelectorAll<HTMLElement>(".tm-list, .tm-sched").forEach((el) => {
+      el.animate?.([{ transform: `translateX(${from}px)` }, { transform: "translateX(0)" }], { duration: 240, easing: "cubic-bezier(.2, 0, 0, 1)" });
+    });
+  }, [listX]);
   return (
-    <Drawer side={p.side} width={width} label={t("playerMenu")} onClose={p.onClose} closing={p.closing} className={wide ? "tm-drawer" : undefined}>
+    <Drawer side={p.side} width={width} label={t("playerMenu")} onClose={p.onClose} closing={p.closing} className={wide ? "pp-drawer tm-drawer" : "pp-drawer"}>
       {wide ? null : <SheetHead title={t(TITLE[p.tab as Exclude<PanelTab, "menu">])} />}
       {wide ? (
-        <div class="tm">
+        <div class="tm" ref={tm}>
           <div class={`tm-col tm-menu${showMenu ? " open" : ""}`}>
             {showMenu ? (
               <div class="tm-inner tm-icons">

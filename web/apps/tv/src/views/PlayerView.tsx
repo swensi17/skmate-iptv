@@ -13,6 +13,7 @@ import { clock } from "../time";
 import { leftLabel } from "./Left";
 import { ChannelLogo } from "./ChannelLogo";
 import { PlayerPanel, type Go, type PanelTab } from "./PlayerPanel";
+import "./player-wizard.css";
 
 interface Props {
   channels: readonly Channel[];
@@ -345,7 +346,7 @@ export function PlayerView({ channels, catalog, index, favorites, recents, onPic
             {onNow ? <span class="pinfo-bar"><span style={{ width: `${Math.round(progress * 100)}%` }} /></span> : null}
             {archive ? <span>{elapsed(position)} / {elapsed(length)}</span> : onNow ? <span>{leftLabel(onNow.stop, guide.now)}</span> : null}
             {shifted ? <span class="pinfo-arch">{t("playerBehind", { t: elapsed(behind * 1000) })}</span> : null}
-            <b>{index + 1}</b><b>{channel.name}</b>
+            <b>{index + 1}</b><b class="pinfo-ch">{channel.name}</b>
           </div>
           {next ? <div class="pinfo-next">{clock(next.start)} – {clock(next.stop)}  {next.title}</div> : null}
           {via && !archive ? <div class="pinfo-next">{t("playerMirror", { name: via.name })}</div> : null}
