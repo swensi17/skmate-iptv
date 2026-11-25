@@ -702,3 +702,7 @@ nav.rail { background: #2b2f33; }
 .search-recent .recent { justify-content: center; }
 .filter.quiet { background: none; box-shadow: inset 0 0 0 2px var(--line); }
 .filter.quiet:focus { background: var(--focus-fill); box-shadow: none; }
+
+/* Search results start where the search field does: the number sits at the left edge, not right-aligned in a wide cell. */
+.search .row { padding-left: 24px; }
+.search .row .num { width: 52px; text-align: left; flex: none; }
