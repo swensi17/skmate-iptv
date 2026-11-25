@@ -24,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.drawBehind
@@ -382,24 +383,25 @@ fun StagePopupButton(
     // Denser (tighter padding + smaller icon) for space-constrained popups like the storage picker.
     compact: Boolean = false,
 ) {
-    val a = stageAccent
+    // One look in every popup, no accent colour: the main button white with dark text, the others grey; the
+    // focused one fully white and a little larger, so where focus is never depends on which button it is.
+    val light = tv.own.owntv.ui.theme.LocalStagePalette.current.isLight
     val shape = androidx.compose.foundation.shape.RoundedCornerShape(14.dp)
     StageSurface(
         onClick = onClick,
         onLongClick = onLongClick,
         radius = 14.dp,
         enabled = enabled,
+        focusStyle = StageFocus.NONE,
         modifier = modifier.then(if (enabled) Modifier else Modifier.alpha(0.45f)),
-        idle = Modifier.background(if (primary) a.accent.copy(alpha = 0.2f) else StageColors.Ink.copy(alpha = 0.08f), shape),
         contentAlignment = Alignment.Center,
     ) { focused ->
-        val content = when {
-            focused -> a.onAccent
-            primary -> a.accent
-            else -> StageColors.Text
-        }
+        val (fill, content) = popupButtonColors(light, primary, focused)
         Row(
-            modifier = Modifier.padding(horizontal = if (compact) 13.dp else 22.dp, vertical = if (compact) 6.dp else 12.dp),
+            modifier = Modifier
+                .graphicsLayer { val k = if (focused) FOCUSED_SCALE else 1f; scaleX = k; scaleY = k }
+                .background(fill, shape)
+                .padding(horizontal = if (compact) 13.dp else 22.dp, vertical = if (compact) 6.dp else 12.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(if (compact) 6.dp else 10.dp),
         ) {
@@ -416,6 +418,25 @@ fun StagePopupButton(
         }
     }
 }
+
+/** A popup button's fill and text: white (ink on a light page) when focused, a softer one for the main button. */
+@Composable
+private fun popupButtonColors(light: Boolean, primary: Boolean, focused: Boolean): Pair<Color, Color> {
+    val strong = if (light) PopupButtonInk else Color.White
+    val onStrong = if (light) Color.White else PopupButtonInk
+    return when {
+        focused -> strong to onStrong
+        primary -> strong.copy(alpha = PRIMARY_IDLE_ALPHA) to onStrong
+        else -> StageColors.Text.copy(alpha = SECONDARY_FILL_ALPHA) to StageColors.Text
+    }
+}
+
+/** The popup buttons' dark ink (the main button's text, or its fill on a light page). */
+private val PopupButtonInk = Color(POPUP_BUTTON_INK)
+private const val POPUP_BUTTON_INK = 0xFF16181B
+private const val PRIMARY_IDLE_ALPHA = 0.86f
+private const val SECONDARY_FILL_ALPHA = 0.12f
+private const val FOCUSED_SCALE = 1.06f
 
 /** A popup row is as tall and its title as large as a settings row in the sheet. */
 private const val OPTION_HEIGHT = 84

@@ -1038,4 +1038,10 @@
     <string name="welcome_telegram_ok">Got it, thanks</string>
     <!-- Translators: Second button of the Telegram note: it will not be shown again. -->
     <string name="welcome_telegram_never">Don\'t remind me</string>
+    <!-- Live › More: adult categories are closed behind the profile's PIN; these open or close them. -->
+    <string name="live_adult_open">Show adult channels</string>
+    <string name="live_adult_open_hint">Profile PIN or 0000</string>
+    <string name="live_adult_close">Hide adult channels</string>
+    <string name="live_adult_pin_title">PIN for adult channels</string>
+    <string name="live_adult_pin_wrong">Wrong PIN</string>
 </resources>

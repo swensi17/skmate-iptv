@@ -637,4 +637,9 @@
     <string name="welcome_telegram_body">Новости приложения, помощь и общение с другими зрителями. Задайте вопрос, расскажите об ошибке или предложите идею. Найдите нас в Telegram:</string>
     <string name="welcome_telegram_ok">Понял, спасибо</string>
     <string name="welcome_telegram_never">Больше не напоминать</string>
+    <string name="live_adult_open">Показать взрослые каналы</string>
+    <string name="live_adult_open_hint">PIN профиля или 0000</string>
+    <string name="live_adult_close">Скрыть взрослые каналы</string>
+    <string name="live_adult_pin_title">PIN для взрослых каналов</string>
+    <string name="live_adult_pin_wrong">Неверный PIN</string>
 </resources>

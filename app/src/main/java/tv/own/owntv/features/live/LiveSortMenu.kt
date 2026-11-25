@@ -70,7 +70,18 @@ internal fun LiveMoreTool(boxed: Boolean, modifier: Modifier = Modifier, onClick
 
 /** The list's extra actions: today only "Fix the guide", each with a line saying what it does. */
 @Composable
-internal fun LiveMoreMenu(x: Float, top: Dp, fixing: Boolean, onFixGuide: () -> Unit, onPick: (SmartPick) -> Unit, onCleanup: () -> Unit, onDismiss: () -> Unit) {
+internal fun LiveMoreMenu(
+    x: Float,
+    top: Dp,
+    fixing: Boolean,
+    onFixGuide: () -> Unit,
+    onPick: (SmartPick) -> Unit,
+    onCleanup: () -> Unit,
+    onDismiss: () -> Unit,
+    /** Adult categories: null when the lock is off; true while they are closed (the row opens them). */
+    adultLocked: Boolean? = null,
+    onAdult: () -> Unit = {},
+) {
     val focus = remember { FocusRequester() }
     LaunchedEffect(Unit) { runCatching { focus.requestFocus() } }
     GuideMenuHost(x = x, top = top, width = 760.mpx, onDismiss = onDismiss) {
@@ -93,6 +104,14 @@ internal fun LiveMoreMenu(x: Float, top: Dp, fixing: Boolean, onFixGuide: () -> 
                 text = stringResource(R.string.live_pick_now, stringResource(pickName(pick))),
                 icon = OwnTVIcon.LIVE_DOT,
                 onClick = { onPick(pick); onDismiss() },
+            )
+        }
+        adultLocked?.let { closed ->
+            StageMenuItem(
+                text = stringResource(if (closed) R.string.live_adult_open else R.string.live_adult_close),
+                icon = OwnTVIcon.EYE_OFF,
+                value = if (closed) stringResource(R.string.live_adult_open_hint) else null,
+                onClick = { onAdult(); onDismiss() },
             )
         }
     }

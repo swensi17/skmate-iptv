@@ -345,6 +345,7 @@ class SettingsRepository(private val context: Context, private val localeStore: 
         val THEME_MODE = stringPreferencesKey("theme_mode")
         val UI_ZOOM_PCT = intPreferencesKey("ui_zoom_percent")
         val TERMS_ACCEPTED = intPreferencesKey("terms_accepted_version")
+        val ADULT_LOCK = booleanPreferencesKey("adult_lock")
         val FONT_SIZE_PCT = intPreferencesKey("font_size_percent")
         val POPUP_FONT_SIZE_PCT = intPreferencesKey("popup_font_size_percent")
         val POPUP_SIZE_PCT = intPreferencesKey("popup_size_percent")
@@ -2305,6 +2306,13 @@ class SettingsRepository(private val context: Context, private val localeStore: 
         context.dataStore.edit { it[Keys.TERMS_ACCEPTED] = version }
     }
 
+    /** Adult categories closed behind the profile's PIN on every profile (on unless switched off). */
+    val adultLockEnabled: Flow<Boolean> = prefsFlow { it[Keys.ADULT_LOCK] ?: true }
+
+    suspend fun setAdultLock(on: Boolean) {
+        context.dataStore.edit { it[Keys.ADULT_LOCK] = on }
+    }
+
     /**
      * Playlists switched off without being removed: their channels, guide and films are kept and simply
      * not shown, as other players let a second playlist rest beside the first.
@@ -3253,7 +3261,7 @@ class SettingsRepository(private val context: Context, private val localeStore: 
             // The saved-copy length; the reader accepts only its own choices.
             Keys.TIMESHIFT_WINDOW_MINUTES)
         val bools = listOf(
-            Keys.GUIDE_SHOW_EMPTY, Keys.GUIDE_PREVIEW,
+            Keys.GUIDE_SHOW_EMPTY, Keys.GUIDE_PREVIEW, Keys.ADULT_LOCK,
             Keys.LIVE_PREVIEW, Keys.LIVE_PREVIEW_AUDIO, Keys.HERO_PREVIEW, Keys.PREFER_SDR, Keys.AUTO_FRAME_RATE, Keys.AFR_MATCH_RESOLUTION, Keys.AUTO_FRAME_RATE_PROMPTED, Keys.PLAYER_CLOCK, Keys.ANDROID_TV_HOME, Keys.HW_DECODING, Keys.SOFTWARE_DECODE_ABOVE_1080P,
             Keys.VOD_PREFER_EXO, Keys.MEASURED_STREAM_STATS, Keys.DETAILED_DIAGNOSTICS, Keys.DIRECT_TUNE, Keys.LIVE_LEFT_RIGHT_REWINDS, Keys.EXTERNAL_PLAYER,
             Keys.EXTERNAL_PLAYER_LIVE, Keys.EXTERNAL_PLAYER_MOVIES, Keys.EXTERNAL_PLAYER_SERIES, Keys.UPDATE_CHECK_ON_START, Keys.SURROUND_SOUND, Keys.AUTO_PLAY_NEXT, Keys.PROXY_ENABLED,

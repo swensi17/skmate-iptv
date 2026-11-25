@@ -523,6 +523,9 @@ fun LiveScreen(
     var categoriesOpen by remember { mutableStateOf(false) }
     var sortOpen by remember { mutableStateOf(false) }
     var moreOpen by remember { mutableStateOf(false) }
+    // Adult categories behind the PIN: the More menu's row opens this, a right PIN opens them for the run.
+    var adultPinOpen by remember { mutableStateOf(false) }
+    val adultLocked by tv.own.owntv.core.content.AdultLock.locked.collectAsStateWithLifecycle()
     val moreToolFocus = remember { FocusRequester() }
     val fixingGuide by vm.fixingGuide.collectAsStateWithLifecycle()
     val pickState by vm.pick.collectAsStateWithLifecycle()
@@ -1315,6 +1318,21 @@ fun LiveScreen(
             onPick = vm::loadPick,
             onCleanup = vm::checkDuplicates,
             onDismiss = { moreOpen = false; runCatching { moreToolFocus.requestFocus() } },
+            adultLocked = adultLocked.takeIf { tv.own.owntv.core.content.AdultLock.isEnabled },
+            onAdult = { if (adultLocked) adultPinOpen = true else vm.lockAdult() },
+        )
+    }
+    if (adultPinOpen) {
+        tv.own.owntv.features.profiles.PinDialog(
+            title = stringResource(R.string.live_adult_pin_title),
+            onSubmit = { pin ->
+                vm.unlockAdult(pin) { ok ->
+                    if (ok) adultPinOpen = false
+                    else multiviewToast.show(multiviewRes.getString(R.string.live_adult_pin_wrong))
+                }
+            },
+            onDismiss = { adultPinOpen = false },
+            compact = true,
         )
     }
     duplicates?.let { dupes ->

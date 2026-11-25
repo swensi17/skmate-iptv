@@ -1,5 +1,6 @@
 package tv.own.owntv.core.content
 
+import org.junit.After
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -57,9 +58,28 @@ class AdultCategoryClassifierTest {
     }
 
     @Test
-    fun `normal profile does not system-hide adult categories`() {
+    fun `normal profile shows adult categories when the lock is off`() {
         val adult = category(1, "Adults 18+")
+        AdultLock.setEnabled(false)
         assertTrue(AdultCategoryClassifier.hiddenCategoryIds(listOf(adult), emptySet(), false).isEmpty())
+    }
+
+    @Test
+    fun `normal profile hides adult categories until the PIN opens them`() {
+        val adult = category(1, "Adults 18+")
+        val safe = category(2, "Sports")
+        AdultLock.setEnabled(true)
+        assertTrue(AdultCategoryClassifier.hiddenCategoryIds(listOf(adult, safe), emptySet(), false) == setOf(1L))
+        AdultLock.unlock()
+        assertTrue(AdultCategoryClassifier.hiddenCategoryIds(listOf(adult, safe), emptySet(), false).isEmpty())
+        // A kids profile stays closed whatever the lock says.
+        assertTrue(AdultCategoryClassifier.hiddenCategoryIds(listOf(adult, safe), emptySet(), true) == setOf(1L))
+    }
+
+    @After
+    fun resetLock() {
+        AdultLock.setEnabled(true)
+        AdultLock.lock()
     }
 
     @Test

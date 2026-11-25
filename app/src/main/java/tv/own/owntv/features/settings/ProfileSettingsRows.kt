@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
+import kotlinx.coroutines.launch
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.focus.FocusRequester
@@ -114,6 +115,7 @@ internal fun ProfileSettingsRows() {
         help = help,
         modifier = Modifier.focusRequester(addFocus),
     )
+    adultLockRow(profiles.firstOrNull { it.id == activeProfileId })
 
     if (creating) {
         ProfileEditorDialog(
@@ -148,6 +150,43 @@ internal fun ProfileSettingsRows() {
                 confirmDelete = null
             },
             onDismiss = { confirmDelete = null },
+        )
+    }
+}
+
+/**
+ * Adult categories behind the PIN on every profile (on by default). Switching it off asks for the PIN as well,
+ * the profile's own or 0000, or a child would switch it off in one press.
+ */
+@Composable
+private fun adultLockRow(active: ProfileEntity?) {
+    val settings = org.koin.compose.koinInject<tv.own.owntv.core.settings.SettingsRepository>()
+    val on by settings.adultLockEnabled.collectAsStateWithLifecycle(initialValue = true)
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
+    var askPin by remember { mutableStateOf(false) }
+    val title = stringResource(R.string.settings_adult_lock)
+    StageSettingRow(
+        icon = OwnTVIcon.EYE_OFF,
+        title = title,
+        desc = stringResource(R.string.settings_adult_lock_line),
+        value = SettingValue.Switch(on),
+        onClick = { if (on) askPin = true else scope.launch { settings.setAdultLock(true) } },
+        help = SettingHelp(title, stringResource(R.string.settings_adult_lock_help)),
+    )
+    if (askPin) {
+        tv.own.owntv.features.profiles.PinDialog(
+            title = stringResource(R.string.live_adult_pin_title),
+            onSubmit = { pin ->
+                val stored = active?.pinHash
+                val ok = if (stored.isNullOrBlank()) pin == tv.own.owntv.core.content.AdultLock.DEFAULT_PIN
+                    else tv.own.owntv.core.util.Pin.verify(pin, stored)
+                if (ok) {
+                    askPin = false
+                    scope.launch { settings.setAdultLock(false) }
+                }
+            },
+            onDismiss = { askPin = false },
+            compact = true,
         )
     }
 }

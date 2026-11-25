@@ -3326,4 +3326,8 @@
     <string name="settings_sources_disabled">Off</string>
     <string name="help_q12">Turning a playlist off without removing it</string>
     <string name="help_a12">Settings → Channel sources → Playlists → choose the playlist → “Turn off, keep it”. Turn it back on in the same place.</string>
+    <!-- Settings › Profile: adult categories closed behind the PIN on every profile. -->
+    <string name="settings_adult_lock">Adult channels behind a PIN</string>
+    <string name="settings_adult_lock_line">18+ groups stay hidden until the profile PIN or 0000 is entered</string>
+    <string name="settings_adult_lock_help">Groups with adult content are hidden with their channels on every profile. Live channels › More › Show adult channels opens them until the app restarts. Switching this off also asks for the PIN.</string>
 </resources>

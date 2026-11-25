@@ -43,6 +43,9 @@ object AdultCategoryClassifier {
         }
     }
 
+    /** Whether a profile is kept away from adult categories now: a kids one always, any other while [AdultLock] is closed. */
+    fun hidesAdult(isKidsProfile: Boolean): Boolean = isKidsProfile || AdultLock.locked.value
+
     /** Category ids hidden by either profile customization or the kids-profile system policy. */
     fun hiddenCategoryIds(
         categories: List<CategoryEntity>,
@@ -51,7 +54,7 @@ object AdultCategoryClassifier {
     ): Set<Long> = categories.asSequence()
         .filter { category ->
             CustomizeKeys.category(category) in customizedHiddenKeys ||
-                (isKidsProfile && isAdult(category.name))
+                (hidesAdult(isKidsProfile) && isAdult(category.name))
         }
         .mapTo(linkedSetOf()) { it.id }
 
@@ -64,7 +67,7 @@ object AdultCategoryClassifier {
     ): Boolean {
         if (profileId < 0L) return false
         val profile = profileDao.getById(profileId) ?: return false
-        if (!profile.isKids) return true
+        if (!hidesAdult(profile.isKids)) return true
         val categoryName = categoryId?.let { categoryDao.getById(it)?.name }
         return !isAdult(categoryName)
     }

@@ -1926,4 +1926,7 @@
     <string name="settings_sources_disabled">Отключён</string>
     <string name="help_q12">Как отключить плейлист, не удаляя</string>
     <string name="help_a12">Настройки → Источники каналов → Плейлисты → выберите плейлист → «Отключить, не удаляя». Включается там же.</string>
+    <string name="settings_adult_lock">Взрослые каналы по PIN</string>
+    <string name="settings_adult_lock_line">Группы 18+ скрыты, пока не введён PIN профиля или 0000</string>
+    <string name="settings_adult_lock_help">Группы со взрослым содержимым скрыты вместе с каналами во всех профилях. «Каналы › Ещё › Показать взрослые каналы» открывает их до перезапуска приложения. Выключить это тоже можно только по PIN.</string>
 </resources>

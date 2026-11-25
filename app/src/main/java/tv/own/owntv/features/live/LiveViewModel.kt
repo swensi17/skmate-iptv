@@ -148,6 +148,23 @@ class LiveViewModel(
     private val _pick = MutableStateFlow<PickState?>(null)
     val pick: StateFlow<PickState?> = _pick.asStateFlow()
 
+    /**
+     * The PIN that opens adult categories: the profile's own, or [tv.own.owntv.core.content.AdultLock.DEFAULT_PIN]
+     * on a profile without one. Right, they open until the app restarts.
+     */
+    fun unlockAdult(pin: String, onResult: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            val profile = currentProfileId()?.let { profileDao.getById(it) }
+            val stored = profile?.pinHash
+            val ok = if (stored.isNullOrBlank()) pin == tv.own.owntv.core.content.AdultLock.DEFAULT_PIN
+                else tv.own.owntv.core.util.Pin.verify(pin, stored)
+            if (ok) tv.own.owntv.core.content.AdultLock.unlock()
+            onResult(ok)
+        }
+    }
+
+    fun lockAdult() = tv.own.owntv.core.content.AdultLock.lock()
+
     fun loadPick(pick: tv.own.owntv.core.content.SmartPick) {
         _pick.value = PickState(pick, null)
         viewModelScope.launch {
@@ -766,7 +783,11 @@ class LiveViewModel(
             if (c.profileId < 0) {
                 flowOf(emptySet())
             } else {
-                combine(categoryDao.observe(c.sourceIds, MediaType.LIVE), custom, profileDao.observeById(c.profileId)) { cats, cust, profile ->
+                combine(
+                    categoryDao.observe(c.sourceIds, MediaType.LIVE), custom, profileDao.observeById(c.profileId),
+                    // Opening or closing adult categories with the PIN reshapes every list at once.
+                    tv.own.owntv.core.content.AdultLock.locked,
+                ) { cats, cust, profile, _ ->
                     tv.own.owntv.core.content.AdultCategoryClassifier.hiddenCategoryIds(
                         cats,
                         cust.hiddenCategories,
@@ -797,14 +818,14 @@ class LiveViewModel(
                 // Catch-up sits between History and All, but ONLY when the provider actually advertises
                 // an archive — otherwise every user without catch-up gets a folder that can never fill.
                 channelDao.observeCatchupCount(c.sourceIds.ifEmpty { listOf(-1L) }).distinctUntilChanged(),
-                profileDao.observeById(c.profileId),
+                profileDao.observeById(c.profileId).combine(tv.own.owntv.core.content.AdultLock.locked) { p, _ -> p },
             ) { cats, cust, sort, catchupCount, profile ->
                 // A–Z also sorts the category folders (custom categories included); manually moved
                 // categories stay pinned first. Custom categories ride the SAME customization keys,
                 // so renames/hides/reorders apply to them with no extra code.
                 val folders = cats.railCategories(
                     cust,
-                    kids = profile?.isKids == true,
+                    kids = tv.own.owntv.core.content.AdultCategoryClassifier.hidesAdult(profile?.isKids == true),
                     alphaRest = sort == SettingsRepository.SortMode.ALPHA,
                 )
                 val multiSourceNames = c.sourceNames.takeIf { it.size > 1 }.orEmpty()

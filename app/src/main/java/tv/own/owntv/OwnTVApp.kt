@@ -143,6 +143,13 @@ class OwnTVApp : Application(), SingletonImageLoader.Factory, androidx.work.Conf
                 GlobalContext.get().get<tv.own.owntv.core.settings.SettingsRepository>().applyStageDefaults()
             }
         }
+        // Adult categories closed behind the PIN: the lock follows its setting for the whole run of the app.
+        appScope.launch {
+            runCatching {
+                GlobalContext.get().get<tv.own.owntv.core.settings.SettingsRepository>().adultLockEnabled
+                    .collect { tv.own.owntv.core.content.AdultLock.setEnabled(it) }
+            }
+        }
         // Sports: core decides from Auto rebuild whether the stored board is due ("on every app start",
         // or older than the chosen hours). It reads one small file and touches no database.
         appScope.launch {
