@@ -69,7 +69,7 @@ import tv.own.owntv.core.settings.SettingsRepository
 import tv.own.owntv.ui.components.BrowseMode
 import tv.own.owntv.ui.components.DayStepperDialog
 
-private enum class SourceKind { XTREAM, M3U, STALKER }
+internal enum class SourceKind { XTREAM, M3U, STALKER }
 
 /** UI state of the Xtream "Test HLS support" probe. Local to this screen — the probe is one short
  *  request and saves nothing unless the source already exists. */
@@ -132,6 +132,9 @@ fun AddSourceScreen(
     ) -> Unit)? = null,
 ) {
     val editing = initial != null
+    // A new source's form comes back as it was left after a failed import: retyping a long address on a
+    // remote to fix one letter was the worst part of a mistake.
+    val draft = if (editing) null else AddSourceDraft.last
     // Adding asks only what the source cannot work without; everything else keeps its default and is
     // changed later by editing the source in Settings, where the whole form is shown.
     val full = editing
@@ -140,19 +143,24 @@ fun AddSourceScreen(
             when (initial?.type) {
                 SourceType.M3U -> SourceKind.M3U
                 SourceType.STALKER -> SourceKind.STALKER
-                // A new source starts on M3U, the commonest kind of playlist.
-                null -> SourceKind.M3U
+                // A new source starts on M3U, the commonest kind of playlist (or where the last try left it).
+                null -> draft?.kind ?: SourceKind.M3U
                 else -> SourceKind.XTREAM
             },
         )
     }
-    var name by remember(initial) { mutableStateOf(initial?.name ?: "") }
-    var server by remember(initial) { mutableStateOf(if (initial != null && initial.type == SourceType.XTREAM) initial.url else "") }
-    var username by remember(initial) { mutableStateOf(initial?.username ?: "") }
-    var password by remember(initial) { mutableStateOf(initial?.password ?: "") }
-    var m3uUrl by remember(initial) { mutableStateOf(if (initial != null && initial.type == SourceType.M3U) initial.url else "") }
-    var portalUrl by remember(initial) { mutableStateOf(if (initial != null && initial.type == SourceType.STALKER) initial.url else "") }
-    var mac by remember(initial) { mutableStateOf(initial?.mac ?: "") }
+    var name by remember(initial) { mutableStateOf(initial?.name ?: draft?.name ?: "") }
+    var server by remember(initial) { mutableStateOf(initial.urlIf(SourceType.XTREAM) ?: draft?.server ?: "") }
+    var username by remember(initial) { mutableStateOf(initial?.username ?: draft?.username ?: "") }
+    var password by remember(initial) { mutableStateOf(initial?.password ?: draft?.password ?: "") }
+    var m3uUrl by remember(initial) { mutableStateOf(initial.urlIf(SourceType.M3U) ?: draft?.m3uUrl ?: "") }
+    var portalUrl by remember(initial) { mutableStateOf(initial.urlIf(SourceType.STALKER) ?: draft?.portalUrl ?: "") }
+    var mac by remember(initial) { mutableStateOf(initial?.mac ?: draft?.mac ?: "") }
+    if (!editing) {
+        androidx.compose.runtime.SideEffect {
+            AddSourceDraft.last = AddSourceDraft(kind, name, server, username, password, m3uUrl, portalUrl, mac)
+        }
+    }
     var stalkerSerialNumber by remember(initial) { mutableStateOf(initial?.stalkerSerialNumber ?: "") }
     var stalkerDeviceId by remember(initial) { mutableStateOf(initial?.stalkerDeviceId ?: "") }
     var stalkerDeviceId2 by remember(initial) { mutableStateOf(initial?.stalkerDeviceId2 ?: "") }
@@ -549,8 +557,9 @@ fun AddSourceScreen(
           Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(20.mpx)) {
             (errors + listOfNotNull(checkError)).forEach { error ->
                 Row(horizontalArrangement = Arrangement.spacedBy(10.mpx), verticalAlignment = Alignment.CenterVertically) {
-                    OwnTVIcon(OwnTVIcon.WARNING, StageColors.Danger, Modifier.size(24.mpx))
-                    Text(error, style = stageText(18, 600), color = StageColors.Danger)
+                    // Calm, as every other hint in the app: the line says what to fix, red only alarmed.
+                    OwnTVIcon(OwnTVIcon.INFO, StageColors.Muted, Modifier.size(24.mpx))
+                    Text(error, style = stageText(18, 600), color = StageColors.Text)
                 }
             }
             // The form's one button, under the rows; dim and out of the focus path until the form can be sent.
@@ -611,7 +620,20 @@ fun AddSourceScreen(
 
         when (kind) {
             SourceKind.XTREAM -> {
-                field(stringResource(R.string.setup_server_url), server, { server = it }, placeholder = stringResource(R.string.setup_server_example), keyboardType = KeyboardType.Uri, trailing = checkMark)
+                // A whole "M3U" link pasted here (get.php?username=…&password=…) is the account itself: it is
+                // split into server, user name and password, the way most people are handed it.
+                field(stringResource(R.string.setup_server_url), server, { typed ->
+                    val link = tv.own.owntv.core.parser.XtreamM3uLink.parse(typed)
+                    if (link == null) {
+                        server = typed
+                    } else {
+                        server = link.server
+                        username = link.username
+                        password = link.password
+                    }
+                }, placeholder = stringResource(R.string.setup_server_example), keyboardType = KeyboardType.Uri,
+                    trailing = checkMark,
+                )
                 field(stringResource(R.string.setup_username), username, { username = it })
                 field(stringResource(if (editing) R.string.setup_password_keep else R.string.setup_password), password, { password = it }, password = true)
             }
@@ -996,3 +1018,28 @@ private fun findPlaylistFiles(context: android.content.Context): List<java.io.Fi
 private const val MAX_LOCAL_PLAYLISTS = 8
 private const val LOCAL_SCAN_DEPTH = 3
 private val PLAYLIST_EXTENSIONS = setOf("m3u", "m3u8")
+
+/**
+ * What was typed into the add-a-source form last, kept for this run of the app until an import succeeds
+ * ([clear]), so the form a failed import goes back to is filled in as it was.
+ */
+internal data class AddSourceDraft(
+    val kind: SourceKind,
+    val name: String,
+    val server: String,
+    val username: String,
+    val password: String,
+    val m3uUrl: String,
+    val portalUrl: String,
+    val mac: String,
+) {
+    companion object {
+        @Volatile var last: AddSourceDraft? = null
+
+        fun clear() { last = null }
+    }
+}
+
+/** The source's address when it is of [type] — what the form's field for that type starts with. */
+private fun tv.own.owntv.core.database.entity.SourceEntity?.urlIf(type: SourceType): String? =
+    this?.takeIf { it.type == type }?.url

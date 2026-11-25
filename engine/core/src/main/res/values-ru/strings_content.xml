@@ -396,4 +396,5 @@
     <string name="content_channel_logo">Свой логотип</string>
     <string name="content_channel_logo_hint">Вставьте ссылку на PNG или JPG. Пусто — вернуть исходный</string>
     <string name="content_channel_logo_link">Ссылка на картинку</string>
+    <string name="content_epg_match_linked">Привязан</string>
 </resources>

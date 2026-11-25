@@ -511,7 +511,7 @@
         <item quantity="other">All <xliff:g id="count">%1$d</xliff:g> languages</item>
     </plurals>
     <!-- Translators: Text under the display size step's title. -->
-    <string name="setup_display_sub">How big the interface and its text are on this TV. The row below changes as you go.</string>
+    <string name="setup_display_sub">Pick a comfortable size: the screen changes as you go.</string>
     <!-- Translators: Phone version of setup_display_sub: first-run Display step, under the title. -->
     <string name="setup_display_sub_mobile">How big the interface and its text are on this phone. The row below changes as you go.</string>
     <!-- Translators: Line under UI zoom in setup. -->
@@ -548,7 +548,7 @@
     <string name="setup_remote_wifi">Connect to your own Wi-Fi: the phone must be on the same network as the TV</string>
     <string name="setup_remote_wifi_named">Connect to your own Wi-Fi: <xliff:g id="ssid">%1$s</xliff:g>. The phone must be on the same network as the TV</string>
     <string name="setup_remote_wifi_range">Connect to your own Wi-Fi: the phone must be on the <xliff:g id="range">%1$s</xliff:g> network, like the TV</string>
-    <string name="setup_files_hidden_grant_access">No access to files, allow it</string>
+    <string name="setup_files_hidden_grant_access">Open a file on this TV</string>
     <!-- Translators: A row in the add-playlist form when no playlist files were found on the device. -->
     <string name="setup_local_files_none">No playlist files on this TV</string>
     <!-- Translators: Hint under the row above. -->

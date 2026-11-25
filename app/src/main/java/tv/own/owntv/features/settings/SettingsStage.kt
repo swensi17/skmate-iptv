@@ -482,11 +482,14 @@ fun SettingsSheet(
     }
     androidx.compose.runtime.DisposableEffect(Unit) { onDispose { lastSheetGoneAt = android.os.SystemClock.uptimeMillis() } }
     val sheetFocus = remember { FocusRequester() }
-    var sheetHasFocus by remember { androidx.compose.runtime.mutableStateOf(true) }
+    // Not taken for granted: opened from the side menu, focus stayed on its gear and no line was lit.
+    var sheetHasFocus by remember { androidx.compose.runtime.mutableStateOf(false) }
+    var firstFocus by remember { androidx.compose.runtime.mutableStateOf(true) }
     val windowFocused = androidx.compose.ui.platform.LocalWindowInfo.current.isWindowFocused
     androidx.compose.runtime.LaunchedEffect(sheetHasFocus, windowFocused) {
         if (sheetHasFocus || !windowFocused) return@LaunchedEffect
-        kotlinx.coroutines.delay(700)
+        kotlinx.coroutines.delay(if (firstFocus) SHEET_FIRST_FOCUS_MS else SHEET_REFOCUS_MS)
+        firstFocus = false
         runCatching { sheetFocus.requestFocus() }
     }
     BoxWithConstraints(modifier.fillMaxSize()) {
@@ -634,7 +637,19 @@ private fun androidx.compose.foundation.layout.ColumnScope.SettingPanelEditor(ed
     val view = androidx.compose.ui.platform.LocalView.current
     androidx.compose.runtime.DisposableEffect(editor.owner) { onDispose { view.post { onClosed() } } }
     androidx.activity.compose.BackHandler { editor.onDismiss() }
-    if (help != null && help.title.isNotEmpty()) SettingPanelHeading(help.title)
+    val inSheet = tv.own.owntv.ui.theme.LocalInSettingsSheet.current
+    // In the sheet the setting's name heads its choices in plain words, not as a small caps label.
+    if (help != null && help.title.isNotEmpty()) {
+        if (inSheet) {
+            Text(
+                help.title, style = stageText(CHOICE_HEADING_SHEET, 700), color = StageColors.Muted,
+                maxLines = 2, overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.padding(start = 30.mpx, end = 30.mpx, top = 4.mpx),
+            )
+        } else {
+            SettingPanelHeading(help.title)
+        }
+    }
     // The sheet shows only the setting's name over its choices; the wide panel also explains it.
     if (!tv.own.owntv.ui.theme.LocalInSettingsSheet.current) {
         if (help != null) Text(help.text, style = stageText(17, 500).copy(lineHeight = 27.mpxSpLine()), color = PanelText, maxLines = 3, overflow = TextOverflow.Ellipsis)
@@ -649,6 +664,8 @@ private fun androidx.compose.foundation.layout.ColumnScope.SettingPanelEditor(ed
  */
 @Composable
 fun androidx.compose.foundation.layout.ColumnScope.PanelChoices(picker: PanelPicker, help: SettingHelp?, onDismiss: () -> Unit) {
+    // In the sheet a choice is as tall and as large as the settings rows it opened from.
+    val sheet = tv.own.owntv.ui.theme.LocalInSettingsSheet.current
     var query by remember { mutableStateOf("") }
     val shown = if (picker.searchable && query.isNotBlank()) {
         picker.options.filter { it.second.contains(query.trim(), ignoreCase = true) }
@@ -663,7 +680,7 @@ fun androidx.compose.foundation.layout.ColumnScope.PanelChoices(picker: PanelPic
         kotlinx.coroutines.delay(60)
         runCatching { (if (picker.searchable) search else first).requestFocus() }
     }
-    SettingPanelHeading(stringResource(R.string.settings_panel_choices))
+    if (!sheet) SettingPanelHeading(stringResource(R.string.settings_panel_choices))
     Column(
         Modifier.weight(1f, fill = false).trapAllFocusExit().focusGroup().onPreviewKeyEvent { e ->
             if (e.key == Key.DirectionLeft && e.type == KeyEventType.KeyDown) { onDismiss(); true } else false
@@ -685,16 +702,17 @@ fun androidx.compose.foundation.layout.ColumnScope.PanelChoices(picker: PanelPic
                     onClick = { picker.onSelect(value) },
                     radius = 14.mpx,
                     focusStyle = StageFocus.FX,
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 52.mpx).then(if (i == selIndex) Modifier.focusRequester(first) else Modifier),
+                    modifier = Modifier.fillMaxWidth().heightIn(min = choiceRowHeight(sheet))
+                        .then(if (i == selIndex) Modifier.focusRequester(first) else Modifier),
                 ) { focused ->
                     Row(
-                        Modifier.fillMaxWidth().padding(horizontal = 14.mpx, vertical = 8.mpx),
+                        Modifier.fillMaxWidth().padding(horizontal = choiceInset(sheet), vertical = 8.mpx),
                         horizontalArrangement = Arrangement.spacedBy(12.mpx),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Column(Modifier.weight(1f)) {
-                            Text(label, style = stageText(18, 600), color = if (on || focused) StageColors.Text else StageColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                            picker.descriptions[value]?.let { Text(it, style = stageText(14.5f, 500), color = StageColors.Muted, maxLines = 2, overflow = TextOverflow.Ellipsis) }
+                            choiceLabel(label, sheet, on || focused, focused)
+                            picker.descriptions[value]?.let { choiceDescription(it, sheet) }
                             picker.preview?.let { Box(Modifier.padding(top = 8.mpx)) { it(value) } }
                         }
                         if (label == recommended) StageTag(stringResource(R.string.settings_panel_recommended).uppercase())
@@ -1621,3 +1639,42 @@ private fun focusedBlue(focused: Boolean, content: @Composable () -> Unit) {
         content = content,
     )
 }
+
+/** A choice in the sheet's list, sized as the settings rows (92 high, 26 type) less a touch: it is one line. */
+private const val CHOICE_ROW_SHEET = 84
+private const val CHOICE_TEXT_SHEET = 24
+
+private const val SHEET_FIRST_FOCUS_MS = 250L
+private const val SHEET_REFOCUS_MS = 700L
+private const val CHOICE_HEADING_SHEET = 22
+private const val CHOICE_LINE_SHEET = 18f
+private const val CHOICE_LINE = 14.5f
+
+/** A choice's name: larger in the sheet; a name too long for the line scrolls while focused. */
+@Composable
+private fun choiceLabel(label: String, sheet: Boolean, bright: Boolean, focused: Boolean) {
+    Text(
+        label, style = stageText(if (sheet) CHOICE_TEXT_SHEET else CHOICE_TEXT, 600),
+        color = if (bright) StageColors.Text else StageColors.Muted,
+        maxLines = 1,
+        overflow = marqueeOverflow(focused),
+        modifier = Modifier.focusMarquee(focused),
+    )
+}
+
+private const val CHOICE_TEXT = 18
+
+/** A choice's explanation under its name: larger in the sheet, as the rows are. */
+@Composable
+private fun choiceDescription(text: String, sheet: Boolean) {
+    Text(
+        text, style = stageText(if (sheet) CHOICE_LINE_SHEET else CHOICE_LINE, 500), color = StageColors.Muted,
+        maxLines = 2, overflow = TextOverflow.Ellipsis,
+    )
+}
+
+private fun choiceRowHeight(sheet: Boolean) = (if (sheet) CHOICE_ROW_SHEET else CHOICE_ROW).mpx
+private fun choiceInset(sheet: Boolean) = (if (sheet) CHOICE_INSET_SHEET else CHOICE_INSET).mpx
+private const val CHOICE_ROW = 52
+private const val CHOICE_INSET_SHEET = 30
+private const val CHOICE_INSET = 14

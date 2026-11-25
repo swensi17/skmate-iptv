@@ -181,6 +181,7 @@ class SetupViewModel(
         val job = viewModelScope.launch {
             block()
             val done = importer.state.value as? SourceImporter.ImportState.Success ?: return@launch
+            AddSourceDraft.clear()
             val source = done.source ?: return@launch
             if (!importer.backgroundHandoff && epgRepository.guideUrl(source) != null) {
                 pendingEpgSource = source

@@ -219,7 +219,9 @@ private val SettingsCards = listOf(
     SettingsGroupCard(OwnTVIcon.PLAY_CIRCLE, R.string.settings_vp_cat_player, R.string.settings_card_player, 10, R.string.settings_short_player),
     SettingsGroupCard(OwnTVIcon.EXPAND, R.string.settings_vp_cat_picture, R.string.settings_card_picture, 9, R.string.settings_short_picture),
     SettingsGroupCard(OwnTVIcon.HEADPHONES, R.string.settings_group_sound_subtitles, R.string.settings_card_sound, 12, R.string.settings_short_sound),
-    SettingsGroupCard(OwnTVIcon.LIVE_TV, R.string.settings_live_tv, R.string.settings_card_live, 12, R.string.settings_short_player),
+    SettingsGroupCard(
+        OwnTVIcon.LIVE_TV, R.string.settings_live_tv, R.string.settings_card_live, 12, R.string.settings_short_live,
+    ),
     SettingsGroupCard(OwnTVIcon.REC, R.string.settings_group_watching_recording, R.string.settings_card_watching, 11, R.string.settings_short_watching),
     SettingsGroupCard(OwnTVIcon.INFO, R.string.settings_group_app, R.string.settings_card_app, 10, R.string.settings_short_app),
 )
@@ -305,8 +307,6 @@ private fun SettingsGroupList(entry: FocusRequester, onOpenGroup: (Int) -> Unit,
             verticalArrangement = Arrangement.spacedBy(0.mpx),
         ) {
             SettingsCards.forEachIndexed { index, card ->
-                // No Live TV group: its settings belong to the channels screen and its own menus.
-                if (card.nameRes == R.string.settings_live_tv) return@forEachIndexed
                 // Every Sound & subtitles row belonged to the old engines; with none left the group is not listed.
                 if (card.nameRes == R.string.settings_group_sound_subtitles) return@forEachIndexed
                 // One word each, as Android TV names its own settings; the page itself carries the full name.

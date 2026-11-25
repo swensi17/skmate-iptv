@@ -45,7 +45,7 @@
     <string name="search_go_to_channel">К каналу</string>
     <string name="search_go_to_movie">К фильму</string>
     <string name="search_clear_recent">Очистить недавние запросы</string>
-    <string name="search_field_hint">Каналы, фильмы и сериалы</string>
+    <string name="search_field_hint">Канал, передача или фильм</string>
     <string name="search_in_progress">Ищем каналы, передачи, фильмы и сериалы…</string>
     <string name="sports_board_search">Поиск по передачам и каналам</string>
     <string name="sports_board_all_countries">Все страны</string>
@@ -59,7 +59,7 @@
     <string name="sports_board_country_title">Страна</string>
     <string name="sports_board_sort_title_menu">Сортировка</string>
     <string name="search_caption_channels">Поиск по каналам</string>
-    <string name="search_caption_programs">Поиск по передачам</string>
+    <string name="search_caption_programs">Поиск</string>
     <string name="search_caption_guide">Поиск по телегиду</string>
     <string name="search_caption_movies">Поиск по фильмам</string>
     <string name="search_caption_series">Поиск по сериалам</string>

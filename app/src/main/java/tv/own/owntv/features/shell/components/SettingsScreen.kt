@@ -1350,7 +1350,10 @@ fun SettingsScreen(
     ) {
         StageSettingsPage(
             panel = panel,
-            group = if (searching) stringResource(R.string.common_nav_settings) else part?.title ?: stringResource(group.titleRes),
+            // The page is called what its line in the list says: "Description of films" opening "Content and
+            // metadata" read as the wrong page.
+            group = if (searching) stringResource(R.string.common_nav_settings) else part?.title
+                ?: stringResource(pageTitleRes(group)),
             parents = if (part != null) listOf(stringResource(group.titleRes)) else emptyList(),
             count = pageCount,
             searchQuery = searchQuery,
@@ -3233,3 +3236,7 @@ private fun SettingsPartBody(
         )
     }
 }
+
+/** A group's page title: in the side sheet, the same words as its line in the list. */
+private fun pageTitleRes(group: SettingsGroup): Int =
+    if (tv.own.owntv.features.settings.SettingsAsSidePanel) group.shortRes else group.titleRes

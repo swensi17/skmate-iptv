@@ -224,7 +224,7 @@ fun BackupScreen(
         val restoreRemoteFocus = remember { FocusRequester() }
         Column(Modifier.padding(top = 22.mpx), verticalArrangement = Arrangement.spacedBy(10.mpx)) {
             StageInfoCard(
-                title = stringResource(R.string.more_backup_file_tv),
+                title = stringResource(R.string.more_backup_save_here),
                 label = stringResource(R.string.more_backup_now),
                 body = stringResource(R.string.more_backup_now_body),
                 icon = OwnTVIcon.FOLDER,
@@ -232,14 +232,14 @@ fun BackupScreen(
                 onClick = { startExport(false, firstFocus) },
             )
             StageInfoCard(
-                title = stringResource(R.string.settings_backup_remote),
+                title = stringResource(R.string.more_backup_send_other),
                 label = stringResource(R.string.more_backup_now),
                 icon = OwnTVIcon.NETWORK,
                 modifier = Modifier.focusRequester(phoneFocus),
                 onClick = { startExport(true, phoneFocus) },
             )
             StageInfoCard(
-                title = stringResource(R.string.more_backup_file_tv),
+                title = stringResource(R.string.more_backup_restore_here),
                 label = stringResource(R.string.settings_backup_restore_action),
                 body = stringResource(R.string.more_restore_body),
                 icon = OwnTVIcon.REFRESH,
@@ -247,7 +247,7 @@ fun BackupScreen(
                 onClick = { if (!working) { dialogReturn = restoreBtnFocus; browser = BrowseMode.FILE; showBrowser = true } },
             )
             StageInfoCard(
-                title = stringResource(R.string.settings_backup_remote),
+                title = stringResource(R.string.more_backup_restore_other),
                 label = stringResource(R.string.settings_backup_restore_action),
                 icon = OwnTVIcon.NETWORK,
                 modifier = Modifier.focusRequester(restoreRemoteFocus),

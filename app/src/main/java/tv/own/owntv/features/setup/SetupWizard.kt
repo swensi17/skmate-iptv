@@ -440,11 +440,12 @@ private fun DisplaySizeStep(onNext: () -> Unit, onBack: () -> Unit) {
             onClick = { vm.setThemeMode(themes[(themeAt + 1) % themes.size]) },
             onStep = { dir -> vm.setThemeMode(themes[(themeAt + dir).coerceIn(0, themes.lastIndex)]) },
         )
-        // The sample, as a row like the others: the same type at the size it will really be.
+        // The sample, as a row like the others: the same type at the size it will really be. Said to be a
+        // sample: with a switch and "Now trending" it read as a setting nobody could explain.
         StageSettingRow(
             icon = OwnTVIcon.PLAY_CIRCLE,
-            title = stringResource(R.string.settings_panel_width_preview).lowercase().replaceFirstChar { it.titlecase() },
-            desc = stringResource(R.string.home_row_now_trending),
+            title = stringResource(R.string.setup_display_sample_title),
+            desc = stringResource(R.string.setup_display_sample_desc),
             value = SettingValue.Switch(preview),
             onClick = { preview = !preview },
         )

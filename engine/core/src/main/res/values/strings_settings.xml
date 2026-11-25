@@ -705,7 +705,7 @@
     <!-- Translators: One-line summary under the "Frame rate" section name. -->
     <string name="settings_vp_cat_frame_rate_summary">Match the screen to the video</string>
     <!-- Translators: Settings › Player: sub-heading above the buffer, network timeout and reconnect settings for films and episodes. -->
-    <string name="settings_vp_cat_streaming">Streaming</string>
+    <string name="settings_vp_cat_streaming">Films and archive</string>
     <!-- Translators: Settings › Live TV: sub-heading above live latency, pre-buffer and how long a channel may take to start. -->
     <string name="settings_vp_cat_live_tuning">Live tuning</string>
     <!-- Translators: Settings › Watching & recording: sub-heading above Multiview and the small floating player. -->
@@ -3158,11 +3158,11 @@
     <string name="settings_short_sources">Channel sources</string>
     <string name="settings_short_appearance">Theme colors</string>
     <string name="settings_short_layout">Screen layout</string>
-    <string name="settings_short_content">Media info</string>
+    <string name="settings_short_content">Categories</string>
     <string name="settings_short_player">Player options</string>
     <string name="settings_short_picture">Picture quality</string>
     <string name="settings_short_sound">Audio</string>
-    <string name="settings_short_watching">Recording</string>
+    <string name="settings_short_watching">Multiview</string>
     <string name="settings_short_app">General</string>
     <string name="settings_short_search">Search</string>
     <string name="settings_part_theme">Theme &amp; colours</string>
@@ -3290,4 +3290,35 @@
     <string name="settings_epg_catalog">Ready TV guides</string>
     <string name="settings_epg_catalog_description">Switch one on: channels it knows by name get programmes and logos. Updated daily.</string>
     <string name="settings_show_playlist">Show channels from</string>
+    <string name="settings_short_live">Live and buffer</string>
+    <string name="setup_display_sample_title">Sample row</string>
+    <string name="setup_display_sample_desc">This is how menus and settings will look</string>
+    <string name="more_backup_save_here">Save a copy on this TV</string>
+    <string name="more_backup_send_other">Send a copy to another device</string>
+    <string name="more_backup_restore_here">Restore from a file on this TV</string>
+    <string name="more_backup_restore_other">Restore from another device</string>
+    <string name="remote_setup_hint">Point your phone camera at the code or open the address in a browser. The phone and TV must be on the same Wi-Fi.</string>
+    <string name="help_title">How to use</string>
+    <string name="help_q1">How to add a playlist</string>
+    <string name="help_a1">Settings → Channel sources → Playlists → Add a source. Type an M3U link, Xtream details or a Stalker portal with the remote, or from your phone: “Remote” shows a QR code.</string>
+    <string name="help_q2">Watching and switching channels</string>
+    <string name="help_a2">OK on a channel opens it full screen. In the player ▲ ▼ switch channels, OK shows the programme, and ▼ after that opens the buttons: guide, channel list, audio, format.</string>
+    <string name="help_q3">Adding a channel to favourites</string>
+    <string name="help_a3">Hold OK on a channel and choose “Add to favourites”. In the player the “Favourite” button does the same. Favourites are the first category on the left.</string>
+    <string name="help_q4">Where is catch-up</string>
+    <string name="help_a4">Hold OK on a channel with catch-up and choose “Catch-up”, then a programme. Or pick a past programme in the guide and press “Watch from start”.</string>
+    <string name="help_q5">Recording a programme</string>
+    <string name="help_a5">Hold OK on a channel → “Record” or “Schedule recording”. While watching catch-up, the player’s “Record” button saves the whole programme.</string>
+    <string name="help_q6">No programme guide</string>
+    <string name="help_a6">Settings → Channel sources → EPG sources: turn on a ready guide such as TV Team. A channel without one can be linked by hand: hold OK → “Match EPG”.</string>
+    <string name="help_q7">Where to change the buffer</string>
+    <string name="help_a7">Settings → Live and buffer. If live TV stutters, choose “Stable”. The film and catch-up buffer is there too.</string>
+    <string name="help_q8">A channel starts by itself while scrolling</string>
+    <string name="help_a8">Settings → Live and buffer → turn off “Live preview”. Channels then start only on OK.</string>
+    <string name="help_q9">Sound but no picture</string>
+    <string name="help_a9">Update the app to the latest version. If it happens again, write to @skmatetv: your box, playlist and channel.</string>
+    <string name="help_q10">Updating the app</string>
+    <string name="help_a10">A new version installs over the old one, nothing to remove. Settings → General → Check for updates.</string>
+    <string name="help_q11">Moving everything to another TV</string>
+    <string name="help_a11">Settings → Backups → “Send a copy to another device”. On the other TV choose “Restore from another device”.</string>
 </resources>

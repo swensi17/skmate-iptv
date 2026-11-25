@@ -1426,11 +1426,17 @@ private fun ChannelContextMenu(
     LaunchedEffect(Unit) { runCatching { focus.requestFocus() } }
     androidx.activity.compose.BackHandler { onDismiss() }
     val catchupValue = channel.catchupDays.takeIf { it > 0 }?.let { pluralStringResource(R.plurals.settings_epg_guide_days_value, it, it) }
-    val matchValue = if (epgMatchManual) stringResource(R.string.settings_manual) else stringResource(R.string.settings_auto)
+    // Matched by name in the background or by hand, it is the same saved link: "Manual" on one nobody touched misled.
+    val matchValue = stringResource(if (epgMatchManual) R.string.content_epg_match_linked else R.string.settings_auto)
     val offsetValue = epgShiftMinutes?.let { liveEpgShiftLabel(it) } ?: stringResource(R.string.content_epg_offset_global_short)
     // Group ids = the four groups, in their order.
     val watch = 0; val chan = 1; val guide = 2; val organise = 3
     val actions = buildList {
+        // Favourites first: the action people come to this menu for, and "Record" on top was pressed by mistake.
+        val favLabel = stringResource(
+            if (isFavorite) R.string.content_remove_favourite else R.string.content_add_favourite,
+        )
+        add(MenuAction("favourite", favLabel, OwnTVIcon.FAVORITE, group = watch, onClick = onToggleFavorite))
         if (channel.catchup) add(MenuAction("catchup", stringResource(R.string.content_catchup), OwnTVIcon.REWIND, group = watch, onClick = onCatchup))
         // Record this channel from now. The guide's Record needs a programme, so a channel
         // the provider publishes no guide for can only be recorded from here. While it records, the
@@ -1443,7 +1449,6 @@ private fun ChannelContextMenu(
         // Always offered, regardless of the Live TV external-player default — this is the per-channel
         // escape hatch for a stream neither in-app engine can open (same as Movies/Series/Downloads).
         add(MenuAction("play_external", stringResource(R.string.content_play_external_short), OwnTVIcon.EXTERNAL, group = watch, onClick = onPlayExternal))
-        add(MenuAction("favourite", if (isFavorite) stringResource(R.string.content_remove_favourite) else stringResource(R.string.content_add_favourite), OwnTVIcon.FAVORITE, group = chan, onClick = onToggleFavorite))
         add(MenuAction("rename", stringResource(R.string.content_rename), OwnTVIcon.PENCIL, group = chan, onClick = onRename))
         val logoLabel = stringResource(R.string.content_channel_logo)
         add(MenuAction("logo", logoLabel, OwnTVIcon.IMAGE, group = chan, onClick = onChangeLogo))

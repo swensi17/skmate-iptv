@@ -1373,6 +1373,7 @@ class SettingsViewModel(
             importer.useProfile(pid)
             block()
             val done = importer.state.value as? SourceImporter.ImportState.Success ?: return@launch
+            tv.own.owntv.features.setup.AddSourceDraft.clear()
             Log.d(TAG, "runImport sync success sourceId=${done.source?.id} profile=$pid")
             // The playlist's guide is already downloading in the background (ImportFinalizer queued it), and the
             // channels say so while it comes in: nothing to ask, the screen just closes.

@@ -276,7 +276,7 @@
         <item quantity="many">Все <xliff:g id="count">%1$d</xliff:g> языков</item>
         <item quantity="other">Все <xliff:g id="count">%1$d</xliff:g> языков</item>
     </plurals>
-    <string name="setup_display_sub">Насколько крупно интерфейс и текст отображаются на этом телевизоре. Строка ниже меняется по ходу.</string>
+    <string name="setup_display_sub">Выберите удобный размер: экран меняется сразу.</string>
     <string name="setup_display_sub_mobile">Насколько крупно интерфейс и текст отображаются на этом телефоне. Строка ниже меняется по ходу.</string>
     <string name="setup_line_zoom">Всё на экране</string>
     <string name="setup_line_font">Только текст</string>
@@ -297,7 +297,7 @@
     <string name="setup_remote_wifi">Подключайтесь к своему Wi-Fi: телефон должен быть в той же сети, что и телевизор</string>
     <string name="setup_remote_wifi_named">Подключайтесь к своему Wi-Fi: <xliff:g id="ssid">%1$s</xliff:g>. Телефон должен быть в той же сети, что и телевизор</string>
     <string name="setup_remote_wifi_range">Подключайтесь к своему Wi-Fi: телефон должен быть в сети <xliff:g id="range">%1$s</xliff:g>, как и телевизор</string>
-    <string name="setup_files_hidden_grant_access">Файлы не видны, дайте доступ</string>
+    <string name="setup_files_hidden_grant_access">Открыть файл на телевизоре</string>
     <string name="setup_local_files_none">На телевизоре нет файлов плейлистов</string>
     <string name="setup_local_files_none_hint">Положите файл .m3u в Загрузки или на флешку</string>
     <string name="setup_author_playlist_line">Каналы от автора, обновляются сами</string>

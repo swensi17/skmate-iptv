@@ -2242,7 +2242,13 @@ class LiveViewModel(
     /** The rows the list last asked about, asked again when a guide download brings new data. */
     @Volatile private var lastNowPlayingRows: List<ChannelEntity> = emptyList()
 
+    /** When each "no guide" answer was learned, so it is asked again once the guide may have come in. */
+    private val nowPlayingNullAt = java.util.concurrent.ConcurrentHashMap<Long, Long>()
+    private val nullAskedAt: Map<Long, Long> get() = nowPlayingNullAt
+
     private fun publishNowPlaying(resolved: Map<Long, tv.own.owntv.core.parser.XtEpgEntry?>) {
+        val at = System.currentTimeMillis()
+        resolved.forEach { (id, p) -> if (p == null) nowPlayingNullAt[id] = at else nowPlayingNullAt.remove(id) }
         synchronized(nowPlayingCache) {
             nowPlayingCache.putAll(resolved)
             _nowPlaying.value = HashMap(nowPlayingCache)
@@ -2269,7 +2275,15 @@ class LiveViewModel(
         if (loaded.isEmpty()) return
         lastNowPlayingRows = loaded
         val known = cachedNowPlaying()
-        val missing = loaded.filter { it.id !in known }
+        val now = System.currentTimeMillis()
+        // Asked again: never asked; a programme that has ended; or "no guide" learned a while ago — the guide
+        // of a fresh playlist arrives a minute after its channels, and an answer cached before it stuck, so the
+        // channel list over the picture said "no guide" for channels the main list showed a programme for.
+        val missing = loaded.filter { ch ->
+            if (ch.id !in known) return@filter true
+            val p = known[ch.id]
+            if (p != null) p.stopMs <= now else now - (nullAskedAt[ch.id] ?: 0L) > NO_GUIDE_RECHECK_MS
+        }
         if (missing.isEmpty()) return
         nowPlayingJob?.cancel()
         nowPlayingJob = viewModelScope.launch {
@@ -2462,6 +2476,7 @@ class LiveViewModel(
         /** Resolved "now playing" titles kept at once. Big enough for a large category plus the
          *  overlays that share the map, small enough that it cannot grow with the catalogue. */
         const val MAX_NOW_PLAYING = 2_000
+        const val NO_GUIDE_RECHECK_MS = 60_000L
 
     }
 }

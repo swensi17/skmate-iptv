@@ -82,7 +82,16 @@ internal enum class VideoGroup(val titleRes: Int, val parts: List<Pair<Int, List
     ),
     PICTURE(R.string.settings_vp_cat_picture, listOf(R.string.settings_vp_cat_picture to listOf(SECTION_PICTURE), R.string.settings_vp_cat_frame_rate to listOf(SECTION_FRAME_RATE))),
     SOUND(R.string.settings_group_sound_subtitles, listOf(R.string.settings_vp_section_sound to listOf(SECTION_SOUND), R.string.settings_vp_cat_languages to listOf(SECTION_LANGUAGES))),
-    LIVE(R.string.settings_live_tv, listOf(R.string.settings_live_tv to listOf(SECTION_LIVE), R.string.settings_vp_cat_live_tuning to listOf(SECTION_LIVE_TUNING))),
+    // Live TV and every buffer in one place: "where is the buffer" was asked again and again while the
+    // films' and archive's buffer sat in a section no group listed at all.
+    LIVE(
+        R.string.settings_live_tv,
+        listOf(
+            R.string.settings_vp_cat_live_tuning to listOf(SECTION_LIVE_TUNING),
+            R.string.settings_vp_cat_streaming to listOf(SECTION_STREAMING),
+            R.string.settings_live_tv to listOf(SECTION_LIVE),
+        ),
+    ),
     WATCHING(R.string.settings_group_watching_recording, listOf(R.string.settings_vp_cat_resume to listOf(SECTION_RESUME), R.string.settings_vp_cat_multiview to listOf(SECTION_MULTIVIEW))),
     DIAGNOSTICS(R.string.settings_group_app, listOf(R.string.settings_diagnostics to listOf(SECTION_DIAGNOSTICS))),
 }
@@ -158,11 +167,13 @@ internal val SUBTITLE_APPEARANCE_SEARCH_ROWS: List<Int> = listOf(
 
 /** Rows of Movies and Series playback, which this app no longer has: never drawn, never pinned. */
 private val RemovedVideoRows = setOf(
-    "vp_vod_engine", "vp_vod_engine_sources", "vp_reset_pins", "vp_reset_live_pins", "vp_live_engine_sources", "vp_vod_buffer", "vp_vod_timeout", "vp_vod_reconnects", "vp_resume", "vp_autoplay",
+    "vp_vod_engine", "vp_vod_engine_sources", "vp_reset_pins", "vp_reset_live_pins", "vp_live_engine_sources", "vp_vod_timeout", "vp_vod_reconnects", "vp_resume", "vp_autoplay",
     // Live plays on the one libVLC engine: there is no engine to pick, and these were ExoPlayer's or mpv's own
     // knobs, which that engine does not read. Shown, they would change nothing.
     "vp_live_engine", "vp_hw", "vp_sw_above_1080p", "vp_hdr", "vp_max_quality", "vp_tunneled",
-    "vp_live_latency", "vp_latency_sources", "vp_preroll", "vp_preroll_sources",
+    // Not the live buffer: libVLC reads it as its network cache (LivePreviewEngine.cachingMs), and the archive's
+    // buffer (vp_vod_buffer) is mpv's film cache, which an archive programme plays through.
+    "vp_preroll", "vp_preroll_sources",
     "vp_timeshift", "vp_timeshift_window", "vp_timeshift_resume", "vp_live_left_right", "vp_seek_step", "vp_rewind_step",
     "vp_volume", "vp_reset_volume", "vp_surround", "vp_passthrough", "vp_ffmpeg_audio", "vp_night_mode", "vp_volume_leveling",
     "vp_audio_sync", "vp_output_audio_delay", "vp_reset_audio_delay", "vp_audio_lang", "vp_sub_lang", "vp_sub_style",
@@ -2015,8 +2026,15 @@ private enum class Dialog { NONE, LIVE_ENGINE, LIVE_ENGINE_SOURCES, LIVE_ENGINE_
 
 /** "Auto" for 0, else seconds ("60s") — the film buffer and network timeout choices. */
 @Composable
-private fun vodAutoOrSeconds(secs: Int): String =
-    if (secs <= 0) stringResource(R.string.settings_vod_network_auto) else stringResource(R.string.settings_live_buffer_seconds, secs)
+private fun vodAutoOrSeconds(secs: Int): String = when {
+    secs <= 0 -> stringResource(R.string.settings_vod_network_auto)
+    // Whole minutes as minutes: "300 s" had to be worked out.
+    secs >= SECS_PER_MINUTE && secs % SECS_PER_MINUTE == 0 ->
+        stringResource(R.string.player_duration_minutes, secs / SECS_PER_MINUTE)
+    else -> stringResource(R.string.settings_live_buffer_seconds, secs)
+}
+
+private const val SECS_PER_MINUTE = 60
 
 /** "Auto" for 0, else the picture height ("1080p") — Maximum video quality. */
 @Composable

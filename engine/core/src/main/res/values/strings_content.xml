@@ -683,4 +683,5 @@
     <string name="content_channel_logo">Channel logo</string>
     <string name="content_channel_logo_hint">Paste a link to a PNG or JPG. Leave empty to restore the original</string>
     <string name="content_channel_logo_link">Image link</string>
+    <string name="content_epg_match_linked">Linked</string>
 </resources>

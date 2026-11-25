@@ -172,8 +172,15 @@ internal fun ProgrammeStripCanvas(
             // Text starts at the visible part of a cell that began before the timeline's left edge.
             val tx = maxOf(x, 0f)
             val textW = (x + w - tx - 28 * px).toInt()
-            // A sliver of a programme says nothing readable: in the TV-box look it stays an empty cell.
-            if (textW <= (if (tvBox) 44 * px else 4f)) return@forEachIndexed
+            // A sliver of a programme says nothing readable. A run of them (ten-minute local news) drawn empty
+            // read as a broken row, so each carries a small dot: a short programme, focus it to read it.
+            if (textW <= (if (tvBox) 44 * px else 4f)) {
+                if (tvBox && w > 8 * px) {
+                    val dot = dimColor.copy(alpha = SHORT_DOT_ALPHA * fade)
+                    drawCircle(dot, SHORT_DOT_RADIUS * px, Offset(x + w / 2f, h / 2f))
+                }
+                return@forEachIndexed
+            }
             val onFocus = if (tvBox) textColor else a.onAccent
             val titleColor = if (focused) onFocus else textColor.copy(alpha = fade)
             val smallColor = if (focused) (if (tvBox) dimColor else Color.Black.copy(alpha = 0.6f)) else dimColor.copy(alpha = fade)
@@ -397,3 +404,7 @@ internal fun CatchupPlayerChooser(
 
 /** The dark text the light focus bar carries, as everywhere else on the TV. */
 private val BarInk = Color(0xFF16181D)
+
+/** The dot in a programme too short to name. */
+private const val SHORT_DOT_ALPHA = 0.7f
+private const val SHORT_DOT_RADIUS = 2.5f

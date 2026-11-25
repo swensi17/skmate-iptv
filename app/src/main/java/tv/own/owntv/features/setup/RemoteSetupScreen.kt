@@ -89,8 +89,12 @@ fun RemoteSetupScreen(
                 maxLines = 1,
                 overflow = Ellipsis,
             )
-            // Just the QR, the address and the PIN; a line only when something is wrong.
-            RemoteCompact(state, Modifier.padding(top = 28.mpx))
+            // What to do with the code, in one line: without it the QR and the six digits meant nothing to a newcomer.
+            Text(
+                stringResource(R.string.remote_setup_hint), style = stageText(18, 500), color = StageColors.Muted,
+                maxLines = 3, overflow = Ellipsis, modifier = Modifier.padding(top = 10.mpx),
+            )
+            RemoteCompact(state, Modifier.padding(top = 24.mpx))
             val problem = when (state) {
                 is CompanionServerState.Failed -> state.failure.displayText()
                 CompanionServerState.Locked -> companionLockedText()

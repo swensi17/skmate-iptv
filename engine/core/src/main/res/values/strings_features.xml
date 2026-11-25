@@ -93,7 +93,7 @@
     <!-- Translators: Button under the recent searches list that deletes them all. -->
     <string name="search_clear_recent">Clear recent searches</string>
     <!-- Translators: Placeholder in the empty search field. -->
-    <string name="search_field_hint">Channels, movies and series</string>
+    <string name="search_field_hint">Channel, programme or film</string>
     <string name="search_in_progress">Searching channels, programs, movies and series…</string>
     <string name="sports_board_search">Search programmes and channels</string>
     <string name="sports_board_all_countries">All countries</string>
@@ -107,7 +107,7 @@
     <string name="sports_board_country_title">Country</string>
     <string name="sports_board_sort_title_menu">Sort</string>
     <string name="search_caption_channels">Search channels</string>
-    <string name="search_caption_programs">Search TV programs</string>
+    <string name="search_caption_programs">Search</string>
     <string name="search_caption_guide">Search the TV guide</string>
     <string name="search_caption_movies">Search movies</string>
     <string name="search_caption_series">Search series</string>
