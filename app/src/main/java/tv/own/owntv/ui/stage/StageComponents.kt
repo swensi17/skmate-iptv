@@ -695,11 +695,22 @@ fun StageMenu(modifier: Modifier = Modifier, content: @Composable ColumnScope.()
             .heightIn(max = (screenHeight - MenuScreenMargin).coerceAtLeast(MenuMinHeight))
             // TV-box look: a solid card, never see-through.
             .then(if (tv.own.owntv.features.shell.TvBoxNav) Modifier.solidCard(StageRadii.Menu) else Modifier.stageGlass(StageRadii.Menu, overContent = true))
-            .padding(start = 16.mpx, end = 16.mpx, top = 22.mpx, bottom = 16.mpx),
+            .padding(start = MENU_SIDE_PADDING.mpx, end = MENU_SIDE_PADDING.mpx, top = 22.mpx, bottom = 16.mpx),
     ) {
-        Column(Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState()), content = content)
+        // Items reach past the side padding to the card's edges, their text on the heading's line.
+        androidx.compose.runtime.CompositionLocalProvider(LocalSheetEditorInset provides MENU_SIDE_PADDING.mpx) {
+            Column(Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState()), content = content)
+        }
     }
 }
+
+/** A row's text inset: the settings rows' when it reaches the card's edges ([sheetBleed]), else [own]. */
+@Composable
+fun sheetRowInset(own: androidx.compose.ui.unit.Dp): androidx.compose.ui.unit.Dp =
+    if (LocalSheetEditorInset.current > 0.mpx || LocalEdgeToEdgeRows.current) SHEET_TEXT_INSET.mpx else own
+
+/** A menu card's side padding; its heading and items' text start [SHEET_TEXT_INSET] in from the card's edge. */
+private const val MENU_SIDE_PADDING = 16
 
 /** What a menu leaves free above and below it, and the least height it keeps on a very small window. */
 private val MenuScreenMargin = 64.dp
@@ -709,7 +720,7 @@ private val MenuMinHeight = 240.dp
 @Composable
 fun StageMenuHeader(title: String, subtitle: String?, leading: (@Composable () -> Unit)? = null) {
     Row(
-        Modifier.padding(start = 12.mpx, end = 12.mpx, bottom = 12.mpx),
+        Modifier.padding(start = SHEET_TEXT_INSET.mpx - MENU_SIDE_PADDING.mpx, end = 12.mpx, bottom = 12.mpx),
         horizontalArrangement = Arrangement.spacedBy(14.mpx),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -737,7 +748,14 @@ fun StageGroupLabel(text: String, sheet: Boolean = false) {
         color = StageColors.Dim,
         maxLines = 1, overflow = TextOverflow.Ellipsis,
         modifier = if (sheet) {
-            Modifier.padding(start = 16.mpx, end = 16.mpx, top = 14.mpx, bottom = 6.mpx)
+            // On the rows' text line when they reach the edges ([sheetBleed]).
+            val bleed = LocalSheetEditorInset.current
+            val start = when {
+                bleed > 0.mpx -> SHEET_TEXT_INSET.mpx - bleed
+                LocalEdgeToEdgeRows.current -> SHEET_TEXT_INSET.mpx
+                else -> 16.mpx
+            }
+            Modifier.padding(start = start, end = 16.mpx, top = 14.mpx, bottom = 6.mpx)
         } else {
             Modifier.padding(start = 14.mpx, end = 14.mpx, top = 12.mpx, bottom = 5.mpx)
         },
@@ -765,20 +783,28 @@ fun StageMenuItem(
     // TV-box look: taller rows, each closed off by a hairline under it.
     val tvBox = tv.own.owntv.features.shell.TvBoxNav
     val line = StageColors.Text.copy(alpha = 0.08f)
+    // In a menu card the row reaches its edges, the text on the heading's line.
+    val inset = sheetRowInset(14.mpx)
     StageSurface(
         onClick = onClick,
         radius = StageRadii.MenuItem,
-        modifier = modifier.fillMaxWidth().height(if (tvBox) MENU_ROW_TV_BOX.mpx else 50.mpx).alpha(if (enabled) 1f else 0.45f)
+        modifier = modifier.sheetBleed().fillMaxWidth().height(if (tvBox) MENU_ROW_TV_BOX.mpx else 50.mpx)
+            .alpha(if (enabled) 1f else 0.45f)
             .then(
                 if (tvBox) Modifier.drawBehind {
                     val h = 1.mpx.toPx()
-                    drawRect(line, topLeft = androidx.compose.ui.geometry.Offset(14.mpx.toPx(), drawContext.size.height - h), size = androidx.compose.ui.geometry.Size(drawContext.size.width - 28.mpx.toPx(), h))
+                    val x = inset.toPx()
+                    drawRect(
+                        line,
+                        topLeft = androidx.compose.ui.geometry.Offset(x, drawContext.size.height - h),
+                        size = androidx.compose.ui.geometry.Size(drawContext.size.width - x * 2, h),
+                    )
                 } else Modifier,
             ),
         enabled = enabled,
     ) { focused ->
         Row(
-            Modifier.fillMaxWidth().padding(horizontal = 14.mpx),
+            Modifier.fillMaxWidth().padding(horizontal = inset),
             horizontalArrangement = Arrangement.spacedBy(14.mpx),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -829,7 +855,7 @@ fun StageSheetItem(
         radius = StageRadii.SheetItem,
         // Category rows: softly rounded corners, not a pill.
         pill = false,
-        modifier = modifier.fillMaxWidth().then(if (maxLines > 1) Modifier.heightIn(min = 56.mpx) else Modifier.height(56.mpx))
+        modifier = modifier.sheetBleed().fillMaxWidth().then(if (maxLines > 1) Modifier.heightIn(min = 56.mpx) else Modifier.height(56.mpx))
             // TV-box look: a hairline under each row.
             .then(if (tv.own.owntv.features.shell.TvBoxNav) Modifier.drawBehind {
                 val h = 1.mpx.toPx()
@@ -837,7 +863,8 @@ fun StageSheetItem(
             } else Modifier),
     ) { focused ->
         Row(
-            Modifier.fillMaxWidth().padding(horizontal = 16.mpx, vertical = if (maxLines > 1) 8.mpx else 0.mpx),
+            Modifier.fillMaxWidth()
+                .padding(horizontal = sheetRowInset(16.mpx), vertical = if (maxLines > 1) 8.mpx else 0.mpx),
             horizontalArrangement = Arrangement.spacedBy(14.mpx),
             verticalAlignment = Alignment.CenterVertically,
         ) {

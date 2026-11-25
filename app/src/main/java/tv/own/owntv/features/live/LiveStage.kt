@@ -690,6 +690,15 @@ internal fun LiveCategories(
         stepMs = tv.own.owntv.ui.components.DwellTiming.StepMs,
         onFire = { dwellIndex?.let(onSelect) },
     )
+    // The TV-box strip: rows from edge to edge with the text 30 in, as in Settings; the search field keeps room.
+    val edgeRows = sheet && tv.own.owntv.features.shell.TvBoxNav
+    // Room for the 2 px outer focus ring, which the list would otherwise clip; none where rows span the strip.
+    val listSide = if (edgeRows) 0.mpx else 4.mpx
+    val searchSide = when {
+        edgeRows -> EDGE_SEARCH_SIDE.mpx
+        sheet -> 8.mpx
+        else -> 0.mpx
+    }
     androidx.compose.runtime.CompositionLocalProvider(tv.own.owntv.ui.stage.LocalWhiteFocus provides (sheet && tv.own.owntv.features.shell.TvBoxNav)) {
     Column(
         modifier
@@ -698,7 +707,7 @@ internal fun LiveCategories(
                     // TV-box style: a full-height strip of the screen's own grey, not a floating card.
                     sheet && tv.own.owntv.features.shell.TvBoxNav -> Modifier.background(if (tv.own.owntv.ui.theme.LocalStagePalette.current.isLight) tv.own.owntv.features.shell.components.TvBoxPanelLight else androidx.compose.ui.graphics.Color(0xFF232629))
                         // The page's own colour, set off from the screen by a hairline on its open side.
-                        .drawBehind { drawRect(androidx.compose.ui.graphics.Color(0x14000000), topLeft = androidx.compose.ui.geometry.Offset(drawContext.size.width - 1.mpx.toPx(), 0f), size = androidx.compose.ui.geometry.Size(1.mpx.toPx(), drawContext.size.height)) }.padding(horizontal = 16.mpx, vertical = 30.mpx)
+                        .drawBehind { drawRect(androidx.compose.ui.graphics.Color(0x14000000), topLeft = androidx.compose.ui.geometry.Offset(drawContext.size.width - 1.mpx.toPx(), 0f), size = androidx.compose.ui.geometry.Size(1.mpx.toPx(), drawContext.size.height)) }.padding(vertical = 30.mpx)
                     sheet -> Modifier.stageGlass(StageRadii.Sheet, overContent = true).padding(horizontal = 16.mpx, vertical = 26.mpx)
                     else -> Modifier
                 },
@@ -706,7 +715,10 @@ internal fun LiveCategories(
     ) {
         if (sheet) {
             Row(
-                Modifier.fillMaxWidth().padding(start = 14.mpx, end = 14.mpx, bottom = 16.mpx),
+                Modifier.fillMaxWidth().padding(
+                    start = if (edgeRows) tv.own.owntv.ui.stage.SHEET_TEXT_INSET.mpx else 14.mpx,
+                    end = 14.mpx, bottom = 16.mpx,
+                ),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -714,8 +726,12 @@ internal fun LiveCategories(
                 if (!tv.own.owntv.features.shell.TvBoxNav) Text(sheetHint, style = stageText(17, 400), color = StageColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(start = 16.mpx))
             }
         }
-        // Edge-only scrolling, as the channel list (no double step on ▼).
-        androidx.compose.runtime.CompositionLocalProvider(androidx.compose.foundation.gestures.LocalBringIntoViewSpec provides edgeScrollSpec) {
+        // Edge-only scrolling, as the channel list (no double step on ▼). The TV-box strip has no side padding:
+        // its rows span it from edge to edge, as the settings rows do.
+        androidx.compose.runtime.CompositionLocalProvider(
+            androidx.compose.foundation.gestures.LocalBringIntoViewSpec provides edgeScrollSpec,
+            tv.own.owntv.ui.stage.LocalEdgeToEdgeRows provides edgeRows,
+        ) {
         LazyColumn(
             state = listState,
             modifier = Modifier
@@ -738,8 +754,7 @@ internal fun LiveCategories(
                 }
                 .trapVerticalFocusExit()
                 .focusGroup(),
-            // Room for the 2 px outer focus ring, which the list would otherwise clip.
-            contentPadding = PaddingValues(start = 4.mpx, end = 4.mpx, top = 4.mpx, bottom = 8.mpx),
+            contentPadding = PaddingValues(start = listSide, end = listSide, top = 4.mpx, bottom = 8.mpx),
         ) {
             // TV-box look: a search field only where there are enough groups to need one.
             if (!tv.own.owntv.features.shell.TvBoxNav || entries.size > CategorySearchMin || query.isNotEmpty()) item(key = "__search__") {
@@ -750,7 +765,7 @@ internal fun LiveCategories(
                     onEditingChange = onSearchEditingChange,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(start = if (sheet) 8.mpx else 0.mpx, end = if (sheet) 8.mpx else 0.mpx, bottom = if (sheet) 14.mpx else 16.mpx)
+                        .padding(horizontal = searchSide, vertical = 0.mpx).padding(bottom = if (sheet) 14.mpx else 16.mpx)
                         .focusRequester(searchFocus)
                         .then(if (query.isEmpty()) rightKey else Modifier),
                     height = if (sheet) 54.mpx else 48.mpx,
@@ -982,3 +997,6 @@ private fun rowName(text: String, size: Int, focused: Boolean) {
         maxLines = 1, overflow = marqueeOverflow(focused), modifier = Modifier.focusMarquee(focused),
     )
 }
+
+/** The search field's side room on the TV-box strip, where the strip itself has none. */
+private const val EDGE_SEARCH_SIDE = 28

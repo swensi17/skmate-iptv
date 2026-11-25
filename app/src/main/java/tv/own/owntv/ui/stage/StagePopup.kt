@@ -24,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.focus.focusRequester
@@ -102,14 +103,19 @@ fun StagePopup(
                     .pointerInput(Unit) { detectTapGestures { } }
                     .then(if (scroll) Modifier.verticalScroll(rememberScrollState()) else Modifier)
                     // Close to the sides, so the rows get the width; the heading lines up with their text.
-                    .padding(horizontal = 12.mpx, vertical = 30.mpx),
+                    .padding(horizontal = POPUP_SIDE_PADDING.mpx, vertical = 30.mpx),
             ) {
                 // A column, not a box: the heading is several lines stacked one under another.
                 Column(Modifier.padding(horizontal = 18.mpx)) {
                     StagePopupHeading(title, eyebrow, eyebrowAccent, eyebrowIcon, body)
                 }
-                // Text given no style of its own reads as the popup's body text.
-                androidx.tv.material3.ProvideTextStyle(stageText(19, 500)) { content() }
+                // Text given no style of its own reads as the popup's body text. Rows reach past the side padding
+                // to the card's edges, their text on the heading's line, as in the settings sheet.
+                androidx.compose.runtime.CompositionLocalProvider(
+                    LocalSheetEditorInset provides POPUP_SIDE_PADDING.mpx,
+                ) {
+                    androidx.tv.material3.ProvideTextStyle(stageText(19, 500)) { content() }
+                }
                 if (buttons != null) {
                     Row(
                         Modifier.fillMaxWidth().padding(top = 24.mpx, start = 18.mpx, end = 18.mpx),
@@ -200,6 +206,37 @@ private fun StagePopupHeading(title: String?, eyebrow: String?, accent: Boolean,
 }
 
 /**
+ * The side padding of the settings sheet's editor, or of a popup, around a list of choices: such a row reaches
+ * past it with [sheetBleed], so its focus bar runs from edge to edge as the sheet's own rows do. Zero elsewhere.
+ */
+val LocalSheetEditorInset = androidx.compose.runtime.compositionLocalOf { 0.mpx }
+
+/** Past the sheet editor's side padding ([LocalSheetEditorInset]); unchanged anywhere else. */
+@Composable
+fun Modifier.sheetBleed(): Modifier {
+    val inset = LocalSheetEditorInset.current
+    if (inset <= 0.mpx) return this
+    return layout { measurable, constraints ->
+        val extra = (inset * 2).roundToPx()
+        val wide = constraints.maxWidth + extra
+        val placeable = measurable.measure(constraints.copy(minWidth = wide, maxWidth = wide))
+        layout(constraints.maxWidth, placeable.height) { placeable.place(-extra / 2, 0) }
+    }
+}
+
+/**
+ * The rows already span their panel from edge to edge (a strip flush with the screen's edge, where reaching
+ * past a padding would put them off screen): their text starts [SHEET_TEXT_INSET] in, as the settings rows'.
+ */
+val LocalEdgeToEdgeRows = androidx.compose.runtime.compositionLocalOf { false }
+
+/** Where a row's text starts from the sheet's edge once it reaches it: the settings rows' inset. */
+const val SHEET_TEXT_INSET = 30
+
+/** A popup's side padding; its heading starts [SHEET_TEXT_INSET] in, on its rows' line. */
+private const val POPUP_SIDE_PADDING = 12
+
+/**
  * `.opt`: a popup row — [leading] (a radio, a check or an icon), a 25/600 title over an optional 19 px
  * muted line, then an optional accent [value] with ›; 96 high with a line, 84 without, as tall as a
  * settings row; focused = FX, and a title too long for the row scrolls while focused.
@@ -221,10 +258,11 @@ fun StagePopupOption(
     trailing: (@Composable RowScope.(focused: Boolean) -> Unit)? = null,
 ) {
     val a = stageAccent
+    val bled = LocalSheetEditorInset.current > 0.mpx
     StageSurface(
         onClick = onClick,
         radius = 18.mpx,
-        modifier = modifier.fillMaxWidth()
+        modifier = modifier.sheetBleed().fillMaxWidth()
             .heightIn(min = if (subtitle != null) OPTION_LINED_HEIGHT.mpx else OPTION_HEIGHT.mpx)
             .alpha(if (enabled) 1f else 0.45f),
         focusStyle = StageFocus.FX,
@@ -232,7 +270,7 @@ fun StagePopupOption(
         onLongClick = onLongClick,
     ) { focused ->
         Row(
-            Modifier.fillMaxWidth().padding(horizontal = 24.mpx, vertical = 10.mpx),
+            Modifier.fillMaxWidth().padding(horizontal = if (bled) SHEET_TEXT_INSET.mpx else 24.mpx, vertical = 10.mpx),
             horizontalArrangement = Arrangement.spacedBy(18.mpx),
             verticalAlignment = Alignment.CenterVertically,
         ) {

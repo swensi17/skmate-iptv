@@ -71,6 +71,7 @@ import tv.own.owntv.ui.stage.StageKeyHints
 import tv.own.owntv.ui.stage.StageSearchField
 import tv.own.owntv.ui.stage.StageStepper
 import tv.own.owntv.ui.stage.StageSurface
+import tv.own.owntv.ui.stage.sheetBleed
 import tv.own.owntv.ui.stage.StageFocus
 import tv.own.owntv.ui.stage.StageSwitch
 import tv.own.owntv.ui.stage.StageTag
@@ -434,9 +435,17 @@ private fun SettingsSidePage(
                         .background(sheetFill())
                         .focusGroup()
                         .verticalScroll(androidx.compose.foundation.rememberScrollState())
-                        .padding(start = 24.mpx, end = 24.mpx, top = 20.mpx, bottom = 40.mpx),
+                        .padding(start = SheetEditorInset, end = SheetEditorInset, top = 20.mpx, bottom = 40.mpx),
                 ) {
-                    if (current != null && editor != null) SettingPanelEditor(current, panel.help, onClosed = { panel.opener?.let { r -> runCatching { r.requestFocus() } } })
+                    // Lists of choices reach past this padding to the sheet's edges, as the sheet's own rows do.
+                    CompositionLocalProvider(tv.own.owntv.ui.stage.LocalSheetEditorInset provides SheetEditorInset) {
+                        if (current != null && editor != null) {
+                            SettingPanelEditor(
+                                current, panel.help,
+                                onClosed = { panel.opener?.let { r -> runCatching { r.requestFocus() } } },
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -566,6 +575,9 @@ private fun sheetHeaderFill(): Color = if (tv.own.owntv.ui.theme.LocalStagePalet
 /** A third of the screen, but never so narrow that a row's title and value do not fit. */
 private val SideMinWidth = 600.mpx
 
+/** The sheet editor's side padding: steppers and fields keep it, lists of choices reach past it. */
+private val SheetEditorInset = 24.mpx
+
 /** Room each side of the sheet's rows for their focus card. */
 private val SideFocusInset = 0.mpx
 private val SideHeader = 132.mpx
@@ -644,7 +656,12 @@ private fun androidx.compose.foundation.layout.ColumnScope.SettingPanelEditor(ed
             Text(
                 help.title, style = stageText(CHOICE_HEADING_SHEET, 700), color = StageColors.Muted,
                 maxLines = 2, overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.padding(start = 30.mpx, end = 30.mpx, top = 4.mpx),
+                // On the line the choices' text starts on, which reaches past the editor's padding.
+                modifier = Modifier.padding(
+                    start = tv.own.owntv.ui.stage.SHEET_TEXT_INSET.mpx - SheetEditorInset,
+                    end = tv.own.owntv.ui.stage.SHEET_TEXT_INSET.mpx - SheetEditorInset,
+                    top = 4.mpx,
+                ),
             )
         } else {
             SettingPanelHeading(help.title)
@@ -694,7 +711,11 @@ fun androidx.compose.foundation.layout.ColumnScope.PanelChoices(picker: PanelPic
                 modifier = Modifier.fillMaxWidth().padding(bottom = 10.mpx).focusRequester(search),
             )
         }
-        androidx.compose.foundation.lazy.LazyColumn(Modifier.weight(1f, fill = false), state = list, verticalArrangement = Arrangement.spacedBy(2.mpx)) {
+        androidx.compose.foundation.lazy.LazyColumn(
+            Modifier.weight(1f, fill = false), state = list,
+            // In the sheet the rows touch, as the sheet's own rows do.
+            verticalArrangement = Arrangement.spacedBy(choiceGap(sheet)),
+        ) {
             items(shown.size, key = { shown[it].first }) { i ->
                 val (value, label) = shown[i]
                 val on = value == picker.selected
@@ -702,7 +723,7 @@ fun androidx.compose.foundation.layout.ColumnScope.PanelChoices(picker: PanelPic
                     onClick = { picker.onSelect(value) },
                     radius = 14.mpx,
                     focusStyle = StageFocus.FX,
-                    modifier = Modifier.fillMaxWidth().heightIn(min = choiceRowHeight(sheet))
+                    modifier = Modifier.sheetBleed().fillMaxWidth().heightIn(min = choiceRowHeight(sheet))
                         .then(if (i == selIndex) Modifier.focusRequester(first) else Modifier),
                 ) { focused ->
                     Row(
@@ -1675,6 +1696,9 @@ private fun choiceDescription(text: String, sheet: Boolean) {
 
 private fun choiceRowHeight(sheet: Boolean) = (if (sheet) CHOICE_ROW_SHEET else CHOICE_ROW).mpx
 private fun choiceInset(sheet: Boolean) = (if (sheet) CHOICE_INSET_SHEET else CHOICE_INSET).mpx
+
+/** In the sheet the choices touch, as the sheet's own rows do; in a panel they keep a hairline apart. */
+private fun choiceGap(sheet: Boolean) = (if (sheet) 0 else 2).mpx
 private const val CHOICE_ROW = 52
 private const val CHOICE_INSET_SHEET = 30
 private const val CHOICE_INSET = 14
