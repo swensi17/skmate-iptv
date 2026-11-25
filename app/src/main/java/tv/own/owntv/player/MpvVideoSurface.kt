@@ -70,6 +70,9 @@ private class MpvSurfaceView(context: Context, private val player: OwnTVPlayer) 
     }
 }
 
+/** The [MpvVideoSurface]s composed for each player, oldest first; only the last one has a video view. */
+private val mpvSurfaceOwners = androidx.compose.runtime.mutableStateMapOf<OwnTVPlayer, List<Any>>()
+
 /** The surfaces alive for each player, oldest first: the picture falls back to the one still shown. */
 private val liveSurfaces = mutableMapOf<OwnTVPlayer, MutableList<android.view.Surface>>()
 
@@ -122,7 +125,19 @@ fun MpvVideoSurface(
                 if (player.hasAttachedSurface) return@LaunchedEffect
             }
         }
-        androidx.compose.runtime.key(surfaceResetToken) {
+        // One video view per player, the newest: the channel list's preview stays composed under the full-screen
+        // player, and a TV box has one hardware video plane — the second SurfaceView got the sound and no picture
+        // (an archive opened from the list played black on full screen). The covered view is dropped and built
+        // again when it is on top, as the live engine's surfaces already are.
+        val owner = androidx.compose.runtime.remember { Any() }
+        androidx.compose.runtime.DisposableEffect(player) {
+            mpvSurfaceOwners[player] = mpvSurfaceOwners[player].orEmpty() + owner
+            onDispose {
+                val rest = mpvSurfaceOwners[player].orEmpty() - owner
+                if (rest.isEmpty()) mpvSurfaceOwners.remove(player) else mpvSurfaceOwners[player] = rest
+            }
+        }
+        if (mpvSurfaceOwners[player]?.lastOrNull() === owner) androidx.compose.runtime.key(surfaceResetToken) {
             AndroidView(
                 modifier = viewModifier,
                 factory = { ctx -> MpvSurfaceView(ctx, player) },
