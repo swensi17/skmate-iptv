@@ -225,7 +225,8 @@ fun TvBoxChannelPanel(
                 LazyColumn(
                     state = listState,
                     modifier = Modifier.fillMaxWidth().weight(1f).padding(top = 14.mpx),
-                    contentPadding = PaddingValues(start = 12.mpx, end = 12.mpx, bottom = 24.mpx),
+                    // The rows span the column from edge to edge, as every list does; their content keeps its place.
+                    contentPadding = PaddingValues(bottom = 24.mpx),
                     verticalArrangement = Arrangement.spacedBy(4.mpx),
                 ) {
                     itemsIndexed(channels, key = { _, ch -> ch.id }) { index, ch ->
@@ -329,7 +330,7 @@ private fun ChannelLine(
             .background(if (focused) c.focus else Color.Transparent, tv.own.owntv.ui.stage.FocusBarShape)
             .onFocusChanged { if (it.isFocused) onFocus() }
             .clickable(interactionSource = interaction, indication = null, onClick = onClick)
-            .padding(horizontal = 16.mpx),
+            .padding(horizontal = CHANNEL_LINE_INSET.mpx),
         horizontalArrangement = Arrangement.spacedBy(16.mpx),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -404,3 +405,6 @@ private const val ScheduleSettleMs = 250L
 private const val HEADER_SETTLE_MS = 120L
 private const val NOW_TICK_MS = 30_000L
 private const val MaxScheduleRows = 14
+
+/** Where a channel row's content starts: on the panel title's line, the row itself reaching the edges. */
+private const val CHANNEL_LINE_INSET = 28

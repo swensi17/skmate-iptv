@@ -652,9 +652,9 @@
     <file name="app/src/main/java/tv/own/owntv/features/shell/components/TvBoxChannelPanel.kt">
         <error line="123" column="9" source="standard:property-naming" />
         <error line="124" column="9" source="standard:property-naming" />
-        <error line="392" column="1" source="standard:spacing-between-declarations-with-comments" />
-        <error line="403" column="19" source="standard:property-naming" />
-        <error line="406" column="19" source="standard:property-naming" />
+        <error line="393" column="1" source="standard:spacing-between-declarations-with-comments" />
+        <error line="404" column="19" source="standard:property-naming" />
+        <error line="407" column="19" source="standard:property-naming" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/shell/components/TvBoxPlayerInfo.kt">
         <error line="204" column="19" source="standard:property-naming" />
