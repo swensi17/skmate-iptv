@@ -187,7 +187,7 @@ export const sv: Record<keyof typeof en, string> = {
   mvAudioTile: "Ljudet ligger på den här rutan",
   mvSoundOnly: "Endast ljud",
   mvShowPicture: "Visa bilden",
-  mvSoundOnlyNote: "Endast ljud — använder ändå en av leverantörens strömmar",
+  mvSoundOnlyNote: "Endast ljud, använder ändå en av leverantörens strömmar",
   mvErrorChannel: "Det gick inte att spela upp den här kanalen.",
   mvClose: "Stäng",
   setMultiview: "Multivy",

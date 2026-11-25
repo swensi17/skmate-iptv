@@ -187,7 +187,7 @@ export const nb: Record<keyof typeof en, string> = {
   mvAudioTile: "Lyden er på denne ruten",
   mvSoundOnly: "Bare lyd",
   mvShowPicture: "Vis bildet",
-  mvSoundOnlyNote: "Bare lyd — bruker fortsatt en av leverandørens strømmer",
+  mvSoundOnlyNote: "Bare lyd, bruker fortsatt en av leverandørens strømmer",
   mvErrorChannel: "Kunne ikke spille av denne kanalen.",
   mvClose: "Lukk",
   setMultiview: "Multivisning",
