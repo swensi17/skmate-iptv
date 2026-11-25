@@ -790,7 +790,7 @@
         <item quantity="one"><xliff:g id="count">%1$d</xliff:g> csatornán érhető el visszanézés.</item>
         <item quantity="other"><xliff:g id="count">%1$d</xliff:g> csatornán érhető el visszanézés.</item>
     </plurals>
-    <string name="settings_epg_sources_error">⚠ <xliff:g id="error">%1$s</xliff:g></string>
+    <string name="settings_epg_sources_error"><xliff:g id="error">%1$s</xliff:g></string>
     <string name="settings_epg_sources_auto_refresh_title">Automatikus frissítés</string>
     <string name="settings_epg_sources_auto_refresh_description">Ki, induláskor, vagy ha az adatok elavultak</string>
     <string name="settings_epg_sources_not_synced">Még nincs szinkronizálva</string>

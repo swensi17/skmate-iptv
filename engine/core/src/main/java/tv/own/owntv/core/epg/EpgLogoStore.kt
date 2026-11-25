@@ -37,6 +37,10 @@ object EpgLogoStore {
     var icons by mutableStateOf<Map<String, String>>(emptyMap())
         internal set
 
+    /** Every connected guide's logos, for channels the playlist gave none (normalized id → URL). */
+    var guideIcons by mutableStateOf<Map<String, String>>(emptyMap())
+        internal set
+
     /** The active profile's Live TV matches; empty until [start] has read them. */
     internal var matches by mutableStateOf(EpgMatchResolver(emptyMap()))
 
@@ -61,6 +65,9 @@ object EpgLogoStore {
             }
         }
         scope.launch {
+            epgDao.observeAllChannelIcons().collectLatest { rows -> guideIcons = rows.associate { it.epgChannelId to it.iconUrl } }
+        }
+        scope.launch {
             settings.activeProfileId
                 .flatMapLatest { profileId -> customize.observe(profileId, MediaType.LIVE) }
                 .collectLatest {
@@ -83,6 +90,16 @@ object EpgLogoStore {
         sources.forEach { settings.setEpgUseLogos(it, true) }
     }
 
+    /** A guide's logo for [channel] when the playlist has none: whatever guide it is matched to. */
+    fun guideIconFor(channel: ChannelEntity): String? {
+        if (guideIcons.isEmpty()) return null
+        matches.epgIdFor(channel)?.let { id -> guideIcons[id.trim().lowercase()]?.let { return it } }
+        return channel.epgChannelId?.takeIf { it.isNotBlank() }?.let { guideIcons[it.trim().lowercase()] }
+    }
+
+    /** The logo a guide channel itself carries (Match EPG lists them), from any connected guide. */
+    fun iconForGuideId(epgChannelId: String): String? = epgChannelId.trim().lowercase().let { id -> icons[id] ?: guideIcons[id] }
+
     /** The feed icon for [channel], or null when there is none / no feed has logos enabled. */
     fun iconFor(channel: ChannelEntity): String? {
         if (custom.isNotEmpty()) custom[tv.own.owntv.core.customize.CustomizeKeys.channel(channel)]?.let { return it }
@@ -96,9 +113,10 @@ object EpgLogoStore {
 
 /**
  * The logo to show for this channel: the user's own one when set, then the EPG feed's icon when "Use this guide's channel logos" is on and the feed has
- * one — for the guide channel it is matched to, else its own id — otherwise the provider's own logo. Use
+ * one — for the guide channel it is matched to, else its own id — otherwise the provider's own logo, and
+ * for a channel the provider gave none, the logo of the guide channel it is matched to. Use
  * this everywhere a channel logo is displayed or handed to the player — `logoUrl` alone always means
  * "what the playlist said".
  */
 val ChannelEntity.displayLogoUrl: String?
-    get() = EpgLogoStore.iconFor(this) ?: logoUrl
+    get() = EpgLogoStore.iconFor(this) ?: logoUrl?.takeIf { it.isNotBlank() } ?: EpgLogoStore.guideIconFor(this)

@@ -767,7 +767,7 @@
         <item quantity="many">Telewizja wstecz jest dostępna na <xliff:g id="count">%1$d</xliff:g> kanałach.</item>
         <item quantity="other">Telewizja wstecz jest dostępna na <xliff:g id="count">%1$d</xliff:g> kanałach.</item>
     </plurals>
-    <string name="settings_epg_sources_error">⚠ <xliff:g id="error">%1$s</xliff:g></string>
+    <string name="settings_epg_sources_error"><xliff:g id="error">%1$s</xliff:g></string>
     <string name="settings_epg_sources_auto_refresh_title">Automatyczne odświeżanie</string>
     <string name="settings_epg_sources_auto_refresh_description">Wyłączone, przy uruchomieniu lub gdy dane są nieaktualne</string>
     <string name="settings_epg_sources_not_synced">Jeszcze nie zsynchronizowano</string>

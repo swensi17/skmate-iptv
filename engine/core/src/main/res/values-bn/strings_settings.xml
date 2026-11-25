@@ -751,7 +751,7 @@
         <item quantity="one"><xliff:g id="count">%1$d</xliff:g>টি চ্যানেলে ক্যাচ-আপ পাওয়া যায়।</item>
         <item quantity="other"><xliff:g id="count">%1$d</xliff:g>টি চ্যানেলে ক্যাচ-আপ পাওয়া যায়।</item>
     </plurals>
-    <string name="settings_epg_sources_error">⚠ <xliff:g id="error">%1$s</xliff:g></string>
+    <string name="settings_epg_sources_error"><xliff:g id="error">%1$s</xliff:g></string>
     <string name="settings_epg_sources_auto_refresh_title">স্বয়ংক্রিয় রিফ্রেশ</string>
     <string name="settings_epg_sources_auto_refresh_description">বন্ধ, অ্যাপ চালুর সময় অথবা ডেটা পুরোনো হলে</string>
     <string name="settings_epg_sources_not_synced">এখনো সিঙ্ক করা হয়নি</string>

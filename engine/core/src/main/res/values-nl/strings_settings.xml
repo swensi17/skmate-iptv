@@ -751,7 +751,7 @@
         <item quantity="one">Terugkijken is beschikbaar op <xliff:g id="count">%1$d</xliff:g> zender.</item>
         <item quantity="other">Terugkijken is beschikbaar op <xliff:g id="count">%1$d</xliff:g> zenders.</item>
     </plurals>
-    <string name="settings_epg_sources_error">⚠ <xliff:g id="error">%1$s</xliff:g></string>
+    <string name="settings_epg_sources_error"><xliff:g id="error">%1$s</xliff:g></string>
     <string name="settings_epg_sources_auto_refresh_title">Automatisch vernieuwen</string>
     <string name="settings_epg_sources_auto_refresh_description">Uit, bij opstarten of wanneer gegevens verouderd zijn</string>
     <string name="settings_epg_sources_not_synced">Nog niet gesynchroniseerd</string>

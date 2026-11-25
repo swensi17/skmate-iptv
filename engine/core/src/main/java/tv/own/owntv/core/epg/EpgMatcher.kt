@@ -60,7 +60,60 @@ object EpgMatcher {
     private val NUMBER_WORDS = mapOf(
         "one" to "1", "two" to "2", "three" to "3", "four" to "4", "five" to "5",
         "six" to "6", "seven" to "7", "eight" to "8", "nine" to "9", "ten" to "10",
+        "eins" to "1", "zwei" to "2", "drei" to "3",
     )
+
+    /** Cyrillic letters that look like Latin ones, and back: guides type "РБК НD" and "Культуpa". */
+    private const val CYRILLIC_LOOKALIKES = "аеорсхукнмтві"
+    private const val LATIN_LOOKALIKES = "aeopcxykhmtbi"
+
+    /** A word typed in two alphabets, written in the one its letters can all be read in (most of them, if both). */
+    private fun oneScript(word: String): String {
+        val cyr = word.filter { it in '\u0400'..'\u04FF' }
+        val lat = word.filter { it in 'a'..'z' }
+        if (cyr.isEmpty() || lat.isEmpty()) return word
+        val toLatin = cyr.all { it in CYRILLIC_LOOKALIKES }
+        val toCyrillic = lat.all { it in LATIN_LOOKALIKES }
+        val (from, to) = when {
+            toLatin && (!toCyrillic || lat.length > cyr.length) -> CYRILLIC_LOOKALIKES to LATIN_LOOKALIKES
+            toCyrillic -> LATIN_LOOKALIKES to CYRILLIC_LOOKALIKES
+            else -> return word
+        }
+        return String(CharArray(word.length) { i -> word[i].let { c -> from.indexOf(c).takeIf { it >= 0 }?.let(to::get) ?: c } })
+    }
+
+    /** A frame rate written after the quality tag ("РБК HD 50"): not a channel number. */
+    private val FRAME_RATES = setOf("25", "30", "50", "60")
+    private val QUALITY = setOf("hd", "fhd", "uhd", "sd", "4k", "hq", "fullhd")
+
+    /**
+     * "5 канал" is "Пятый канал" in another feed, and guides drop the word "канал" as often as they keep
+     * it ("Первый HD"). So a number before "канал" becomes its ordinal and a trailing "канал" goes. The
+     * ordinal stays a word: as a digit, "Пятый канал" would read as "Channel 5".
+     */
+    private val RU_ORDINALS = mapOf(
+        "1" to "первый", "2" to "второй", "3" to "третий", "4" to "четвертый", "5" to "пятый",
+        "6" to "шестой", "7" to "седьмой", "8" to "восьмой", "9" to "девятый", "10" to "десятый",
+    )
+    private const val RU_CHANNEL = "канал"
+
+    /**
+     * A time-zone copy of a channel: "НТВ +2", "Россия 24 +3 (Омск)". The shift is not part of the
+     * name (a "+2" read as a channel number kept "НТВ +8" from ever matching "НТВ"), so it is taken
+     * off and compared on its own — the same shift wins, the plain channel is the fallback.
+     */
+    private val TZ_SHIFT = Regex("(?<![\\p{L}\\p{N}])[+\u2212-](\\d{1,2})(?![\\p{N}])")
+
+    /** The time-zone shift written in [raw] ("+2" → 2), 0 when there is none. */
+    fun tzShift(raw: String): Int = TZ_SHIFT.findAll(raw).lastOrNull()?.let { m ->
+        val n = m.groupValues[1].toInt()
+        if (n > MAX_TZ_SHIFT) 0 else if (m.value.first() == '+') n else -n
+    } ?: 0
+
+    private const val MAX_TZ_SHIFT = 12
+
+    /** Taken off a score when the two time-zone shifts differ, so the same shift is preferred. */
+    private const val TZ_MISMATCH_PENALTY = 0.03
 
     private val BRACKETS = Regex("[\\[(\\{][^\\])}]*[\\])}]")
     private val SEPARATORS = Regex("[._\\-:|/+]")
@@ -102,12 +155,16 @@ object EpgMatcher {
         // and is dropped as NOISE below, and halfwidth katakana returns to its normal form.
         // Compose (NFKC), not decompose (NFKD): decomposing would leave combining marks that
         // NON_ALNUM turns into spaces, splitting "Чайка" into two tokens and degrading "ﾊﾟ" to "ハ".
-        var s = java.text.Normalizer.normalize(raw, java.text.Normalizer.Form.NFKC).lowercase()
+        var s = java.text.Normalizer.normalize(raw, java.text.Normalizer.Form.NFKC).lowercase().replace('ё', 'е')
         s = s.replace(BRACKETS, " ")
+        s = s.replace(TZ_SHIFT, " ")
         s = s.replace(SEPARATORS, " ")
         s = s.replace(NON_ALNUM, " ")
-        val tokens = s.split(SPACES).filter { it.isNotBlank() && it !in NOISE }
+        val words = s.split(SPACES).filter { it.isNotBlank() }.map(::oneScript)
+        val tokens = words.filterIndexed { i, t -> t !in NOISE && !(t in FRAME_RATES && i > 0 && words[i - 1] in QUALITY) }
             .map { NUMBER_WORDS[it] ?: it }.toMutableList()
+        for (i in 0 until tokens.size - 1) if (tokens[i + 1] == RU_CHANNEL) RU_ORDINALS[tokens[i]]?.let { tokens[i] = it }
+        if (tokens.size > 1 && tokens.last() == RU_CHANNEL && tokens[tokens.size - 2].any { it.isLetter() }) tokens.removeAt(tokens.size - 1)
         // Drop a country/region tag at either end — but only if a wordy token remains, so channels
         // that ARE a country plus a number ("France 24", "France 2") keep their name.
         fun canDropCountryAt(index: Int) = tokens.size > 1 && tokens[index] in COUNTRY &&
@@ -122,6 +179,9 @@ object EpgMatcher {
     // \p{N}, not \d: NON_ALNUM keeps digits of every script, so the guard below has to see them too.
     // Java's \d is ASCII-only, which would let "قناة ٢" and "قناة ٣" look like the same channel.
     private val DIGIT_RUN = Regex("\\p{N}+")
+
+    /** Two names that differ only in spacing: sure enough to link on its own. */
+    private const val SPACING_ONLY = 0.97
 
     /** Different channel numbers ("MTV 2" vs "MTV 3") can never even reach review. */
     private const val DIGIT_MISMATCH_CAP = 0.60
@@ -155,6 +215,8 @@ object EpgMatcher {
     ): Double {
         if (a.isEmpty() || b.isEmpty()) return 0.0
         if (a == b) return 1.0
+        // "TF1 Series" and "TF 1 Series": the same name, spaced differently.
+        if (a.length > 3 && a.replace(" ", "") == b.replace(" ", "")) return SPACING_ONLY
         var score = maxOf(jaroWinkler(a, b), tokenDice(ta, tb))
         if (da != db) {
             val cap = if (da.isNotEmpty() && db.isNotEmpty()) DIGIT_MISMATCH_CAP else DIGIT_MISSING_CAP
@@ -257,6 +319,7 @@ object EpgMatcher {
         internal val normIdDigits: List<String> = digitRuns(normId),
         internal val normNameTokens: Set<String> = tokens(normName),
         internal val normIdTokens: Set<String> = tokens(normId),
+        internal val shift: Int = 0,
     )
 
     /** The chosen guide channel for a source channel, with the confidence that picked it. */
@@ -266,7 +329,7 @@ object EpgMatcher {
     fun prepare(candidates: List<Candidate>): List<Prepared> = candidates.map {
         val normName = it.displayName?.let(::normalizeForEpg) ?: ""
         val normId = normalizeForEpg(it.epgChannelId)
-        Prepared(it.epgChannelId, it.displayName, normName, normId, digitRuns(normName), digitRuns(normId))
+        Prepared(it.epgChannelId, it.displayName, normName, normId, digitRuns(normName), digitRuns(normId), shift = tzShift(it.displayName ?: it.epgChannelId))
     }
 
     /**
@@ -289,11 +352,12 @@ object EpgMatcher {
         if (target.isEmpty()) return null
         val targetDigits = digitRuns(target)
         val targetTokens = tokens(target)
+        val targetShift = tzShift(channelName)
         var best: Result? = null
         for (c in candidates) {
             val byName = scoreNormalized(target, c.normName, targetDigits, c.normNameDigits, targetTokens, c.normNameTokens)
             val byId = scoreNormalized(target, c.normId, targetDigits, c.normIdDigits, targetTokens, c.normIdTokens)
-            val score = maxOf(byName, byId)
+            val score = maxOf(byName, byId) - if (c.shift != targetShift) TZ_MISMATCH_PENALTY else 0.0
             if (score >= minScore && (best == null || score > best.score)) {
                 best = Result(c.epgChannelId, c.displayName, score)
                 if (score == 1.0) break // perfect match — can't beat it

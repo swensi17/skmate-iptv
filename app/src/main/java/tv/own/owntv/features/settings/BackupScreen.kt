@@ -2,7 +2,6 @@ package tv.own.owntv.features.settings
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -41,7 +40,6 @@ import tv.own.owntv.ui.components.OwnTVIcon
 import tv.own.owntv.ui.components.OwnTVSpinner
 import tv.own.owntv.ui.components.StorageBrowser
 import java.io.File
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -179,19 +177,13 @@ fun BackupScreen(
             Modifier
                 .padding(top = 26.mpx)
                 .fillMaxWidth()
-                .then(
-                    if (last == null) {
-                        Modifier
-                            .background(StageColors.Warn.copy(alpha = 0.1f), cardShape)
-                            .border(1.5.mpx, StageColors.Warn.copy(alpha = 0.35f), cardShape)
-                    } else Modifier.background(StageColors.Ink.copy(alpha = 0.05f), cardShape),
-                )
+                .background(StageColors.Ink.copy(alpha = 0.05f), cardShape)
                 .padding(24.mpx),
             horizontalArrangement = Arrangement.spacedBy(20.mpx),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             if (last == null) {
-                OwnTVIcon(OwnTVIcon.WARNING, StageColors.Warn, Modifier.size(40.mpx))
+                OwnTVIcon(OwnTVIcon.BACKUP, StageColors.Muted, Modifier.size(40.mpx))
                 Column {
                     Text(stringResource(R.string.more_backup_never_title), style = stageText(24, 800), color = StageColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     Text(
@@ -661,7 +653,7 @@ internal fun SectionPickerDialog(
             Text(
                 stringResource(R.string.settings_backup_no_sources_warning),
                 style = stageText(17, 600),
-                color = StageColors.Warn,
+                color = StageColors.Muted,
                 modifier = Modifier.padding(top = 10.mpx),
             )
         }

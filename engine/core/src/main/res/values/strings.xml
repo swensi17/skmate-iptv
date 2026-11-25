@@ -103,9 +103,9 @@
     <!-- Translators: Error message when the server interrupts the download during sync. -->
     <string name="sync_error_interrupted">The download stopped</string>
     <!-- Translators: Error message when the Stalker portal rejects the MAC address. Suggests checking MAC and date/time. -->
-    <string name="sync_error_mac">The portal refused the MAC address or the plan expired</string>
+    <string name="sync_error_mac">MAC refused or plan expired</string>
     <!-- Translators: Error message when the MAC address format is invalid. "AA:BB:CC:DD:EE:FF" is an example format. -->
-    <string name="sync_error_invalid_mac">Invalid MAC address \u2014 use AA:BB:CC:DD:EE:FF</string>
+    <string name="sync_error_invalid_mac">MAC as AA:BB:CC:DD:EE:FF</string>
     <!-- Translators: Separator between sync count segments. The middle dot (·) is surrounded by spaces. -->
     <string name="sync_counts_separator">"  ·  "</string>
     <!-- Translators: Status text when sync completes successfully. -->
@@ -246,13 +246,13 @@
     <!-- Translators: Generic server error during sync. -->
     <string name="sync_error_server">Server error</string>
     <!-- Translators: Error when the SSL/TLS connection to the server fails. -->
-    <string name="sync_error_secure">Secure connection failed (certificate)</string>
+    <string name="sync_error_secure">Server certificate error</string>
     <!-- Translators: Error when the guide data from the server is malformed. -->
     <string name="sync_error_malformed_guide">The guide has a format error</string>
     <!-- Translators: shown on a guide source that fetched successfully but contained no programmes at all - usually the provider has not published this week's guide yet. -->
     <string name="sync_error_guide_empty">The guide is empty for now</string>
     <!-- Translators: shown on a guide source that fetched successfully and has programmes, but none of its channels is one of the playlist's channels, so nothing was kept. "TV Guide" and "Auto-match EPG" are the screen and button names used elsewhere in the app. -->
-    <string name="sync_error_guide_no_matching_channels">Channels didn\'t match, use “Fix guide”</string>
+    <string name="sync_error_guide_no_matching_channels">No channels matched</string>
 
     <!-- Translators: Label above the number field in a minutes input dialog, e.g. the recording start-early and run-over times. -->
     <string name="common_minutes">Minutes</string>

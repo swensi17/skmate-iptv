@@ -50,8 +50,8 @@
     <string name="sync_error_unreachable">Сервер не отвечает</string>
     <string name="sync_error_connection">Сервер недоступен</string>
     <string name="sync_error_interrupted">Загрузка прервалась</string>
-    <string name="sync_error_mac">Портал не принял MAC-адрес или подписка истекла</string>
-    <string name="sync_error_invalid_mac">Недопустимый MAC-адрес — используйте формат AA:BB:CC:DD:EE:FF</string>
+    <string name="sync_error_mac">MAC не принят или подписка кончилась</string>
+    <string name="sync_error_invalid_mac">MAC в формате AA:BB:CC:DD:EE:FF</string>
     <string name="sync_counts_separator">"  ·  "</string>
     <string name="sync_counts_success">Синхронизация успешно завершена</string>
     <string name="sync_counts_synced"><xliff:g id="counts">%1$s</xliff:g> синхронизировано</string>
@@ -136,10 +136,10 @@
     <string name="sync_error_auth">Неверный логин или пароль</string>
     <string name="sync_error_not_found">По ссылке ничего нет (404)</string>
     <string name="sync_error_server">Ошибка на сервере</string>
-    <string name="sync_error_secure">Не удалось защищённое соединение (сертификат)</string>
+    <string name="sync_error_secure">Ошибка сертификата сервера</string>
     <string name="sync_error_malformed_guide">Телегид с ошибкой формата</string>
     <string name="sync_error_guide_empty">Телегид пока пуст</string>
-    <string name="sync_error_guide_no_matching_channels">Каналы не совпали, нажмите «Починить телегид»</string>
+    <string name="sync_error_guide_no_matching_channels">Каналы не совпали</string>
     <string name="common_minutes">Минуты</string>
     <string name="common_size_mb"><xliff:g id="size">%1$s</xliff:g> МБ</string>
     <string name="common_size_gb"><xliff:g id="size">%1$s</xliff:g> ГБ</string>

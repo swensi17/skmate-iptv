@@ -751,7 +751,7 @@
         <item quantity="one">Tv-arkiv är tillgängligt på <xliff:g id="count">%1$d</xliff:g> kanal.</item>
         <item quantity="other">Tv-arkiv är tillgängligt på <xliff:g id="count">%1$d</xliff:g> kanaler.</item>
     </plurals>
-    <string name="settings_epg_sources_error">⚠ <xliff:g id="error">%1$s</xliff:g></string>
+    <string name="settings_epg_sources_error"><xliff:g id="error">%1$s</xliff:g></string>
     <string name="settings_epg_sources_auto_refresh_title">Automatisk uppdatering</string>
     <string name="settings_epg_sources_auto_refresh_description">Av, vid start eller när data är inaktuella</string>
     <string name="settings_epg_sources_not_synced">Inte synkroniserad ännu</string>

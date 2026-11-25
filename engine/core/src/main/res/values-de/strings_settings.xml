@@ -751,7 +751,7 @@
         <item quantity="one">Catch-up ist auf <xliff:g id="count">%1$d</xliff:g> Sender verfügbar.</item>
         <item quantity="other">Catch-up ist auf <xliff:g id="count">%1$d</xliff:g> Sendern verfügbar.</item>
     </plurals>
-    <string name="settings_epg_sources_error">⚠ <xliff:g id="error">%1$s</xliff:g></string>
+    <string name="settings_epg_sources_error"><xliff:g id="error">%1$s</xliff:g></string>
     <string name="settings_epg_sources_auto_refresh_title">Automatische Aktualisierung</string>
     <string name="settings_epg_sources_auto_refresh_description">Aus, beim App-Start oder wenn die Daten veraltet sind</string>
     <string name="settings_epg_sources_not_synced">Noch nicht synchronisiert</string>

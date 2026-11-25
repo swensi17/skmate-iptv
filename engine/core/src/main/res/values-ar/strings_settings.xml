@@ -783,7 +783,7 @@
         <item quantity="many">تتوفر مشاهدة البث الفائت على <xliff:g id="count">%1$d</xliff:g> قناةً.</item>
         <item quantity="other">تتوفر مشاهدة البث الفائت على <xliff:g id="count">%1$d</xliff:g> قناة.</item>
     </plurals>
-    <string name="settings_epg_sources_error">⚠ <xliff:g id="error">%1$s</xliff:g></string>
+    <string name="settings_epg_sources_error"><xliff:g id="error">%1$s</xliff:g></string>
     <string name="settings_epg_sources_auto_refresh_title">التحديث التلقائي</string>
     <string name="settings_epg_sources_auto_refresh_description">متوقف، أو عند بدء التشغيل، أو عندما تصبح البيانات قديمة</string>
     <string name="settings_epg_sources_not_synced">لم تتم المزامنة بعد</string>

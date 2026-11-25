@@ -767,7 +767,7 @@
         <item quantity="many">TV archiv je k dispozici na <xliff:g id="count">%1$d</xliff:g> kanálech.</item>
         <item quantity="other">TV archiv je k dispozici na <xliff:g id="count">%1$d</xliff:g> kanálech.</item>
     </plurals>
-    <string name="settings_epg_sources_error">⚠ <xliff:g id="error">%1$s</xliff:g></string>
+    <string name="settings_epg_sources_error"><xliff:g id="error">%1$s</xliff:g></string>
     <string name="settings_epg_sources_auto_refresh_title">Automatická aktualizace</string>
     <string name="settings_epg_sources_auto_refresh_description">Vypnuto, při spuštění nebo při zastaralých datech</string>
     <string name="settings_epg_sources_not_synced">Zatím nesynchronizováno</string>

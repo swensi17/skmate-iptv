@@ -63,6 +63,8 @@ import tv.own.owntv.ui.brand.SkMateBlue
 import tv.own.owntv.ui.components.ChannelLogoTile
 import tv.own.owntv.ui.components.GuideStatusText
 import tv.own.owntv.ui.components.OwnTVIcon
+import tv.own.owntv.ui.components.focusMarquee
+import tv.own.owntv.ui.components.marqueeOverflow
 import tv.own.owntv.ui.format.rememberSystemTimeFormatter
 import tv.own.owntv.ui.theme.mpx
 import tv.own.owntv.ui.theme.stageText
@@ -333,10 +335,16 @@ private fun ChannelLine(
             Row(horizontalArrangement = Arrangement.spacedBy(10.mpx)) {
                 channel.number?.let { Text(it.toString(), style = stageText(20, 700), color = soft, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) }
                 // The channel being watched: its name in brand blue, nothing else.
-                Text(channel.name, style = stageText(20, 700), color = if (playing) SkMateBlue else ink, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(
+                    channel.name, style = stageText(20, 700), color = if (playing) SkMateBlue else ink,
+                    maxLines = 1, overflow = marqueeOverflow(focused), modifier = Modifier.focusMarquee(focused),
+                )
             }
             if (now != null) {
-                Text(now.title, style = stageText(16, 500), color = soft, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(
+                    now.title, style = stageText(16, 500), color = soft,
+                    maxLines = 1, overflow = marqueeOverflow(focused), modifier = Modifier.focusMarquee(focused),
+                )
                 // The same thin line as the channels list: blue, the whole width, running out as the programme does.
                 tv.own.owntv.ui.stage.StageProgress(((nowMs - now.startMs).toFloat() / (now.stopMs - now.startMs).coerceAtLeast(1)).coerceIn(0f, 1f), Modifier.fillMaxWidth(), flat = true)
             } else {

@@ -138,13 +138,13 @@
     <string name="update_now">Обновить сейчас</string>
     <string name="update_try_again">Попробовать ещё раз</string>
     <string name="update_failed_check">Не удалось проверить наличие обновлений.</string>
-    <string name="update_failed_check_http">При проверке сервер обновлений вернул ошибку HTTP <xliff:g id="code">%1$s</xliff:g>.</string>
+    <string name="update_failed_check_http">Проверка обновления не удалась (<xliff:g id="code">%1$s</xliff:g>)</string>
     <string name="update_no_compatible_apk">В выпуске не найден пакет обновления для этого устройства.</string>
     <string name="update_invalid_release_response">Сервер обновлений вернул недопустимое описание выпуска.</string>
     <string name="update_failed_download">Не удалось загрузить обновление из-за сбоя сетевого запроса.</string>
-    <string name="update_failed_download_http">При загрузке обновления получена ошибка HTTP <xliff:g id="code">%1$s</xliff:g>.</string>
+    <string name="update_failed_download_http">Загрузка не удалась (<xliff:g id="code">%1$s</xliff:g>)</string>
     <string name="update_empty_download">Сервер обновлений вернул пустой файл APK.</string>
-    <string name="update_install_failed">Системному установщику не удалось открыть загруженное обновление.</string>
+    <string name="update_install_failed">Установщик не открыл файл</string>
     <string name="update_not_enough_space">Недостаточно свободного места для обновления. Освободите около <xliff:g id="size">%1$s</xliff:g> и повторите попытку.</string>
     <string name="update_damaged_download">Обновление скачалось не полностью. Проверьте подключение и повторите попытку.</string>
     <string name="update_install_rejected">Системный установщик отклонил обновление: <xliff:g id="reason">%1$s</xliff:g></string>
@@ -174,7 +174,7 @@
     <string name="settings_trending_status_metadata_disabled">Для раздела «Сейчас в тренде» нужны метаданные TMDB. Выберите «Только TMDB» или «Провайдер + TMDB».</string>
     <string name="settings_trending_status_no_vod">Раздел «Сейчас в тренде» скрыт, поскольку у этого провайдера не включены фильмы или сериалы.</string>
     <string name="settings_trending_status_no_matches">Раздел «Сейчас в тренде» скрыт, поскольку названия провайдера не совпали с трендами.</string>
-    <string name="settings_trending_status_failed">Не удалось обновить раздел «Сейчас в тренде». Попробуйте снова синхронизировать данные провайдера.</string>
+    <string name="settings_trending_status_failed">Тренды не обновились</string>
     <string name="settings_trending_status_waiting">Завершите синхронизацию с провайдером, чтобы сформировать раздел «Сейчас в тренде».</string>
     <plurals name="settings_trending_status_below_threshold">
         <item quantity="one">Раздел «Сейчас в тренде» скрыт, поскольку совпало только <xliff:g id="count">%1$d</xliff:g> название провайдера. Требуется не менее 4.</item>
@@ -262,7 +262,7 @@
         <item quantity="other"><xliff:g id="count">%1$d</xliff:g> минут</item>
     </plurals>
     <string name="recording_failed_encrypted">Этот канал зашифрован, запись невозможна</string>
-    <string name="recording_failed_drm">Этот канал защищён технологией DRM, поэтому его можно смотреть, но нельзя записывать. Защиту устанавливает ваш провайдер, а не SkMate IPTV.</string>
+    <string name="recording_failed_drm">Канал защищён, запись недоступна</string>
     <string name="recording_failed_metered">Не записано через мобильный интернет</string>
     <string name="recording_card_empty_title">Записей пока нет</string>
     <string name="recording_card_body">Выберите передачу в телегиде и нажмите «Записать» или удерживайте канал и запланируйте время. Запись появится здесь, даже пока вы смотрите что-то другое.</string>

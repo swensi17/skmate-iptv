@@ -195,6 +195,7 @@
 1	core/src/main/java/tv/own/owntv/core/database/entity/UserDataEntities.kt	custom_category_members
 1	core/src/main/java/tv/own/owntv/core/database/entity/UserDataEntities.kt	itemId
 2	core/src/main/java/tv/own/owntv/core/database/entity/UserDataEntities.kt	mediaType
+4	core/src/main/java/tv/own/owntv/core/epg/EpgMatcher.kt	\0
 1	core/src/main/java/tv/own/owntv/core/live/LiveSort.kt	,
 1	core/src/main/java/tv/own/owntv/core/live/LiveSort.kt	?
 1	core/src/main/java/tv/own/owntv/core/live/LiveSort.kt	WHERE c.categoryId IN (${folderGroup.joinToString(",") { "?" }})

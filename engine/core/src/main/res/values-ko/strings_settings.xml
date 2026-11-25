@@ -743,7 +743,7 @@
     <plurals name="settings_epg_sources_catchup">
         <item quantity="other"><xliff:g id="count">%1$d</xliff:g>개 채널에서 다시보기를 이용할 수 있습니다.</item>
     </plurals>
-    <string name="settings_epg_sources_error">⚠ <xliff:g id="error">%1$s</xliff:g></string>
+    <string name="settings_epg_sources_error"><xliff:g id="error">%1$s</xliff:g></string>
     <string name="settings_epg_sources_auto_refresh_title">자동 새로 고침</string>
     <string name="settings_epg_sources_auto_refresh_description">꺼짐, 앱 시작 시 또는 데이터가 오래되었을 때</string>
     <string name="settings_epg_sources_not_synced">아직 동기화되지 않음</string>

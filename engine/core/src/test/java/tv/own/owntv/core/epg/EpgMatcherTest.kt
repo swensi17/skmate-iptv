@@ -30,7 +30,7 @@ class EpgMatcherTest {
         // Stripping non-Latin letters leaves an empty string, and bestEpgMatch bails out on an empty
         // target — so every channel in these scripts silently failed to match any guide entry.
         assertEquals("кинопремьера", EpgMatcher.normalizeForEpg("КИНОПРЕМЬЕРА HD"))
-        assertEquals("первый канал", EpgMatcher.normalizeForEpg("Первый канал"))
+        assertEquals("первый", EpgMatcher.normalizeForEpg("Первый канал"))
         assertEquals("ут 1", EpgMatcher.normalizeForEpg("УТ-1 HD"))
         assertEquals("ερτ 1", EpgMatcher.normalizeForEpg("ΕΡΤ 1"))
         assertEquals("中央电视台", EpgMatcher.normalizeForEpg("中央电视台 4K"))
@@ -41,7 +41,7 @@ class EpgMatcherTest {
         // A mid-word mark must not split the word in two: compatibility folding has to recompose,
         // or "Чайка" becomes two tokens and stops matching itself.
         assertEquals("чайка", EpgMatcher.normalizeForEpg("Чайка"))
-        assertEquals("ёж тв", EpgMatcher.normalizeForEpg("Ёж ТВ"))
+        assertEquals("еж тв", EpgMatcher.normalizeForEpg("Ёж ТВ"))
         assertEquals("télé", EpgMatcher.normalizeForEpg("Télé"))
         // Halfwidth katakana must keep its voiced sound: パ (pa) must not degrade to ハ (ha).
         assertEquals("スカパー", EpgMatcher.normalizeForEpg("ｽｶﾊﾟｰ"))
@@ -223,5 +223,28 @@ class EpgMatcherTest {
         // the entire guide — it falls back to a plain substring.
         assertTrue(EpgMatcher.matchesSearch("HD", "Sky Sports HD", "sky.sports.uk"))
         assertFalse(EpgMatcher.matchesSearch("HD", "BBC One", "bbc.one.uk"))
+    }
+
+    private fun pick(name: String, vararg guide: String): String? =
+        EpgMatcher.bestEpgMatch(name, guide.map { EpgMatcher.Candidate(it, it) })
+            ?.takeIf { it.score >= EpgMatcher.AUTO_THRESHOLD }?.epgChannelId
+
+    @Test
+    fun `a time-zone copy links to the same shift first, then to the plain channel`() {
+        assertEquals("НТВ +2", pick("НТВ +2", "НТВ HD", "НТВ +2"))
+        assertEquals("НТВ HD", pick("НТВ +8", "НТВ HD"))
+        assertEquals("Россия 24", pick("Россия 24 +3 (Омск)", "Россия 24", "Россия Культура"))
+        // The shift is not a channel number: "Первый канал +7" is never "Пятый Канал +7".
+        assertEquals("Первый HD", pick("Первый канал +7 (Владивосток)", "Пятый Канал +7", "Первый HD"))
+    }
+
+    @Test
+    fun `russian channel words, frame rates, spacing and mixed alphabets`() {
+        assertEquals("Пятый Канал HD", pick("5 канал", "Пятый Канал HD"))
+        assertEquals("РБК НD", pick("РБК HD 50", "РБК НD"))
+        assertEquals("FR: TF 1 Series Films HD", pick("TF1 Series Films HD FR", "FR: TF 1 Series Films HD"))
+        assertEquals("Kabel 1 Doku HD", pick("Kabel Eins Doku HD DE", "Kabel 1 Doku HD"))
+        assertEquals("Россия Культуpa", pick("Россия Культура", "Россия Культуpa"))
+        assertEquals("Ёлки", pick("Елки", "Ёлки"))
     }
 }

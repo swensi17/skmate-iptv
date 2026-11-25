@@ -37,6 +37,8 @@ import androidx.tv.material3.Text
 import tv.own.owntv.ui.components.LocalTvImeMetrics
 import tv.own.owntv.ui.components.OwnTVIcon
 import tv.own.owntv.ui.components.OwnTVPopup
+import tv.own.owntv.ui.components.focusMarquee
+import tv.own.owntv.ui.components.marqueeOverflow
 import tv.own.owntv.ui.components.trapAllFocusExit
 import tv.own.owntv.ui.theme.StageColors
 import tv.own.owntv.ui.theme.mpx
@@ -99,9 +101,12 @@ fun StagePopup(
                     // Taps on the panel itself stay on it instead of reaching the closing backdrop.
                     .pointerInput(Unit) { detectTapGestures { } }
                     .then(if (scroll) Modifier.verticalScroll(rememberScrollState()) else Modifier)
-                    .padding(30.mpx),
+                    // Close to the sides, so the rows get the width; the heading lines up with their text.
+                    .padding(horizontal = 12.mpx, vertical = 30.mpx),
             ) {
-                StagePopupHeading(title, eyebrow, eyebrowAccent, eyebrowIcon, body)
+                Box(Modifier.padding(horizontal = 18.mpx)) {
+                    StagePopupHeading(title, eyebrow, eyebrowAccent, eyebrowIcon, body)
+                }
                 // Text given no style of its own reads as the popup's body text.
                 androidx.tv.material3.ProvideTextStyle(stageText(19, 500)) { content() }
                 if (buttons != null) {
@@ -194,8 +199,9 @@ private fun StagePopupHeading(title: String?, eyebrow: String?, accent: Boolean,
 }
 
 /**
- * `.opt`: a popup row — [leading] (a radio, a check or an icon), a 21/600 title over an optional 15 px
- * muted line, then an optional accent [value] with ›; 76 high with a line, 62 without; focused = FX.
+ * `.opt`: a popup row — [leading] (a radio, a check or an icon), a 25/600 title over an optional 19 px
+ * muted line, then an optional accent [value] with ›; 96 high with a line, 84 without, as tall as a
+ * settings row; focused = FX, and a title too long for the row scrolls while focused.
  */
 @Composable
 fun StagePopupOption(
@@ -217,29 +223,35 @@ fun StagePopupOption(
     StageSurface(
         onClick = onClick,
         radius = 18.mpx,
-        modifier = modifier.fillMaxWidth().heightIn(min = if (subtitle != null) 76.mpx else 62.mpx).alpha(if (enabled) 1f else 0.45f),
+        modifier = modifier.fillMaxWidth()
+            .heightIn(min = if (subtitle != null) OPTION_LINED_HEIGHT.mpx else OPTION_HEIGHT.mpx)
+            .alpha(if (enabled) 1f else 0.45f),
         focusStyle = StageFocus.FX,
         enabled = enabled,
         onLongClick = onLongClick,
     ) { focused ->
         Row(
-            Modifier.fillMaxWidth().padding(horizontal = 22.mpx, vertical = 10.mpx),
+            Modifier.fillMaxWidth().padding(horizontal = 24.mpx, vertical = 10.mpx),
             horizontalArrangement = Arrangement.spacedBy(18.mpx),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             leading?.invoke(this, focused)
             Column(Modifier.weight(1f)) {
                 Text(
-                    title, style = stageText(21, 600),
+                    title, style = stageText(OPTION_TITLE_SIZE, 600),
                     color = when {
                         danger -> StageColors.Danger
                         chosen && !focused -> a.accent
                         else -> StageColors.Text
                     },
-                    maxLines = 1, overflow = TextOverflow.Ellipsis,
+                    maxLines = 1, overflow = marqueeOverflow(focused),
+                    modifier = Modifier.focusMarquee(focused),
                 )
                 if (subtitle != null) {
-                    Text(subtitle, style = stageText(15, 500), color = StageColors.Muted, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                    Text(
+                        subtitle, style = stageText(OPTION_LINE_SIZE, 500), color = StageColors.Muted,
+                        maxLines = 2, overflow = TextOverflow.Ellipsis,
+                    )
                 }
             }
             if (value != null) {
@@ -361,3 +373,9 @@ fun StagePopupButton(
         }
     }
 }
+
+/** A popup row is as tall and its title as large as a settings row in the sheet. */
+private const val OPTION_HEIGHT = 84
+private const val OPTION_LINED_HEIGHT = 96
+private const val OPTION_TITLE_SIZE = 25
+private const val OPTION_LINE_SIZE = 19

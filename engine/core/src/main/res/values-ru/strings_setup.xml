@@ -117,7 +117,7 @@
     <string name="setup_password_keep">Пароль (оставьте пустым, чтобы сохранить текущий)</string>
     <string name="setup_playlist_url_local_file">URL-адрес плейлиста или локальный файл</string>
     <string name="setup_playlist_example">http://…/плейлист.m3u</string>
-    <string name="setup_playlist_file_unavailable">Не удалось открыть файл плейлиста. Выберите его снова: возможно, он был перемещён.</string>
+    <string name="setup_playlist_file_unavailable">Файл не найден, выберите снова</string>
     <string name="setup_playlist_path_unsupported">Этот путь к локальному плейлисту не поддерживается.</string>
     <string name="setup_local_file_choose">Выбрать локальный файл .m3u / .m3u8…</string>
     <string name="setup_local_file_prefix">Локальный файл: <xliff:g id="name">%1$s</xliff:g></string>
@@ -206,8 +206,8 @@
     <string name="companion_playlist_file">Или загрузите файл плейлиста</string>
     <string name="companion_playlist_url_or_file">Введите URL плейлиста или выберите файл.</string>
     <string name="companion_sending">Отправка…</string>
-    <string name="companion_upload_failed">Не удалось загрузить файл (HTTP <xliff:g id="status">%1$d</xliff:g>). Проверьте PIN и повторите попытку.</string>
-    <string name="companion_could_not_reach">Не удалось подключиться к телевизору. Оставайтесь в той же сети Wi-Fi и повторите попытку.</string>
+    <string name="companion_upload_failed">Не загрузилось (<xliff:g id="status">%1$d</xliff:g>), проверьте PIN</string>
+    <string name="companion_could_not_reach">Телевизор не найден в сети</string>
     <string name="companion_could_not_read">Не удалось прочитать этот файл.</string>
     <string name="companion_image_page_title">SkMate IPTV — фоновое изображение</string>
     <string name="companion_image_heading">Отправка фонового изображения</string>
@@ -239,7 +239,7 @@
     <string name="setup_hls_test_support">Проверить поддержку HLS</string>
     <string name="setup_hls_testing">Проверка HLS…</string>
     <string name="setup_hls_test_failed">Тест не удался: <xliff:g id="reason">%1$s</xliff:g></string>
-    <string name="setup_hls_test_provider_unreachable">Не удалось связаться с провайдером — проверьте URL сервера, имя пользователя и пароль.</string>
+    <string name="setup_hls_test_provider_unreachable">Провайдер не отвечает</string>
     <string name="setup_hls_test_works">✓ HLS работает — ваш провайдер вернул плейлист.</string>
     <string name="setup_hls_test_works_unadvertised">✓ HLS работает — ваш провайдер вернул плейлист, хотя и не сообщает о поддержке HLS.</string>
     <string name="setup_hls_test_busy">Не удалось завершить — на данный момент у аккаунта исчерпаны подключения (HTTP <xliff:g id="status">%1$d</xliff:g>). Остановите всё остальное, что транслируется, и повторите тест.</string>

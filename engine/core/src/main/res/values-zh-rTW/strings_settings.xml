@@ -743,7 +743,7 @@
     <plurals name="settings_epg_sources_catchup">
         <item quantity="other">有 <xliff:g id="count">%1$d</xliff:g> 個頻道可使用回看。</item>
     </plurals>
-    <string name="settings_epg_sources_error">⚠ <xliff:g id="error">%1$s</xliff:g></string>
+    <string name="settings_epg_sources_error"><xliff:g id="error">%1$s</xliff:g></string>
     <string name="settings_epg_sources_auto_refresh_title">自動更新</string>
     <string name="settings_epg_sources_auto_refresh_description">關閉、啟動時更新，或資料過期時更新</string>
     <string name="settings_epg_sources_not_synced">尚未同步</string>

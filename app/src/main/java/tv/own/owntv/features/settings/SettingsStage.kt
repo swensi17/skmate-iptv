@@ -1,5 +1,7 @@
 package tv.own.owntv.features.settings
 
+import tv.own.owntv.ui.components.focusMarquee
+import tv.own.owntv.ui.components.marqueeOverflow
 import tv.own.owntv.ui.theme.stageTone
 import tv.own.owntv.ui.theme.LocalStagePalette
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -398,7 +400,8 @@ private fun SettingsSidePage(
         // The search page (no path above its title) is the field and its results; group pages need no field.
         if (search != null && parent == null) Box(Modifier.padding(start = 24.mpx, end = 24.mpx, bottom = 8.mpx)) { search() }
         Box(Modifier.weight(1f).fillMaxWidth()) {
-            if (list != null) list(Modifier.fillMaxSize().padding(horizontal = 12.mpx))
+            // A page drawn as a list (EPG sources, playlists) has the same rows as every other page in the sheet.
+            if (list != null) CompositionLocalProvider(LocalSettingsSide provides true) { list(Modifier.fillMaxSize()) }
             else CompositionLocalProvider(LocalBringIntoViewSpec provides edgeScrollSpec, LocalSettingsSide provides true) {
                 Column(
                     Modifier
@@ -933,7 +936,14 @@ fun StageSettingRow(
             OwnTVIcon(icon, StageColors.Muted, Modifier.size(if (side) 38.mpx else 36.mpx))
             Column(Modifier.weight(1f)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(10.mpx), verticalAlignment = Alignment.CenterVertically) {
-                    Text(title, style = stageText(if (side) 26 else 21, if (side) 600 else 700), color = if (enabled) StageColors.Text else StageColors.Dim, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
+                    Text(
+                        title,
+                        style = stageText(if (side) 26 else 21, if (side) 600 else 700),
+                        color = if (enabled) StageColors.Text else StageColors.Dim,
+                        maxLines = 1,
+                        overflow = marqueeOverflow(focused),
+                        modifier = Modifier.weight(1f, fill = false).focusMarquee(focused),
+                    )
                     if (pinned) Box(Modifier.size(7.mpx).background(a.accent, CircleShape))
                 }
                 if (side) {
@@ -942,8 +952,8 @@ fun StageSettingRow(
                     if (!line.isNullOrBlank()) Text(
                         line, style = stageText(if (side) 20 else 16, 500),
                         color = if (focused) FocusedDesc else StageColors.Muted,
-                        maxLines = 1, overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.padding(top = 3.mpx),
+                        maxLines = 1, overflow = marqueeOverflow(focused),
+                        modifier = Modifier.padding(top = 3.mpx).focusMarquee(focused),
                     )
                 } else if (!desc.isNullOrBlank()) {
                     Text(
@@ -1383,7 +1393,7 @@ fun StageFieldRow(
         highlighted = editing,
         modifier = modifier
             .fillMaxWidth()
-            .height(90.mpx)
+            .then(if (LocalSettingsSide.current) Modifier.heightIn(min = 92.mpx) else Modifier.height(90.mpx))
             .focusRequester(rowFocus)
             .then(
                 if (password) Modifier.onPreviewKeyEvent { e ->
@@ -1417,17 +1427,27 @@ fun StageFieldRow(
         )
         if ((focused || editing) && panel != null && help != null) androidx.compose.runtime.SideEffect { panel.help = help.copy(hints = hints) }
         val lit = focused || editing
+        // In the sheet a field is drawn like the rows beside it: same inset, icon and type.
+        val side = LocalSettingsSide.current
+        val labelStyle = stageText(if (side) 26 else 21, if (side) 600 else 700)
+        val lineStyle = stageText(if (side) 20 else 19, 500)
         Row(
-            Modifier.fillMaxWidth().padding(horizontal = 22.mpx),
+            Modifier.fillMaxWidth().padding(horizontal = if (side) 30.mpx else 22.mpx),
             horizontalArrangement = Arrangement.spacedBy(18.mpx),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            OwnTVIcon(icon, StageColors.Muted, Modifier.size(32.mpx))
+            OwnTVIcon(icon, StageColors.Muted, Modifier.size(if (side) 38.mpx else 32.mpx))
             Column(Modifier.weight(1f)) {
-                Text(label, style = stageText(21, 700), color = StageColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(
+                    label, style = labelStyle, color = StageColors.Text,
+                    maxLines = 1, overflow = TextOverflow.Ellipsis,
+                )
                 Box(Modifier.padding(top = 3.mpx)) {
                     if (value.isEmpty() && !editing) {
-                        Text(placeholder, style = stageText(19, 500), color = StageColors.Dim, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text(
+                            placeholder, style = lineStyle, color = StageColors.Dim,
+                            maxLines = 1, overflow = TextOverflow.Ellipsis,
+                        )
                     }
                     androidx.compose.foundation.text.BasicTextField(
                         value = value,
@@ -1445,7 +1465,10 @@ fun StageFieldRow(
                                 } else false
                             },
                         // The typed text a size up from a row's line, so a field reads as something to fill in.
-                        textStyle = stageText(19, 600).copy(color = if (focused || editing) FocusedDesc else StageColors.Text),
+                        textStyle = lineStyle.copy(
+                            fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold,
+                            color = if (focused || editing) FocusedDesc else StageColors.Text,
+                        ),
                         singleLine = true,
                         cursorBrush = androidx.compose.ui.graphics.SolidColor(a.accent),
                         // A password row gets the password keyboard: the text one auto-corrects and

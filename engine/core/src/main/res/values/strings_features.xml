@@ -214,7 +214,7 @@
     <string name="settings_trending_status_metadata_disabled">Now Trending needs TMDB metadata. Choose TMDB only or Provider + TMDB.</string>
     <string name="settings_trending_status_no_vod">Now Trending is hidden because this provider has no Movies or Series enabled.</string>
     <string name="settings_trending_status_no_matches">Now Trending is hidden because no provider titles matched.</string>
-    <string name="settings_trending_status_failed">Now Trending could not be refreshed. Try syncing the provider again.</string>
+    <string name="settings_trending_status_failed">Trending didn\'t refresh</string>
     <string name="settings_trending_status_waiting">Complete a provider sync to build Now Trending.</string>
     <plurals name="settings_trending_status_below_threshold">
         <item quantity="one">Now Trending is hidden because only <xliff:g id="count">%1$d</xliff:g> provider title matched. At least 4 are needed.</item>
@@ -289,7 +289,7 @@
     <!-- Translators: Error when the update check fails due to a network issue. -->
     <string name="update_failed_check">Couldn\'t check for updates.</string>
     <!-- Translators: Error when the update server returns an HTTP error. "code" is the HTTP status code such as 404. Keep this as a full sentence. -->
-    <string name="update_failed_check_http">The update server returned HTTP <xliff:g id="code">%1$s</xliff:g> while checking.</string>
+    <string name="update_failed_check_http">Update check failed (<xliff:g id="code">%1$s</xliff:g>)</string>
     <!-- Translators: Error when no compatible APK is found in the release for this device. -->
     <string name="update_no_compatible_apk">No update package for this device was found in the release.</string>
     <!-- Translators: Error when the update server returns an invalid release description. -->
@@ -297,11 +297,11 @@
     <!-- Translators: Error when the update download fails due to a network error. -->
     <string name="update_failed_download">Couldn\'t download the update because the network request failed.</string>
     <!-- Translators: Error when the update download returns an HTTP error. "code" is the HTTP status code such as 503. Keep the punctuation. -->
-    <string name="update_failed_download_http">The update download returned HTTP <xliff:g id="code">%1$s</xliff:g>.</string>
+    <string name="update_failed_download_http">Download failed (<xliff:g id="code">%1$s</xliff:g>)</string>
     <!-- Translators: Error when the update server returns an empty APK file. -->
     <string name="update_empty_download">The update server returned an empty APK.</string>
     <!-- Translators: Error when the system installer cannot open the downloaded update. -->
-    <string name="update_install_failed">The downloaded update could not be opened by the system installer.</string>
+    <string name="update_install_failed">Installer couldn\'t open the file</string>
     <!-- Translators: Error when there is not enough free storage to download the update. "size" is a formatted size such as "114 MB". -->
     <string name="update_not_enough_space">Not enough free storage for the update. Free up about <xliff:g id="size">%1$s</xliff:g> and try again.</string>
     <!-- Translators: Error when the downloaded update file is incomplete or corrupted. -->
@@ -417,7 +417,7 @@
     <!-- Translators: Shown on a recording that was refused because the channel is delivered as encrypted HLS, which the recorder cannot turn into a playable file. -->
     <string name="recording_failed_encrypted">This channel is scrambled and cannot be recorded</string>
     <!-- Translators: Shown on a recording that was refused because the channel declares DRM (Widevine/ClearKey). The second sentence exists so the user understands this is the provider's protection rather than a fault in the app, and does not report it as a bug. Keep both sentences. -->
-    <string name="recording_failed_drm">This channel is DRM-protected, so it can be watched but not recorded. The protection comes from your provider, not from SkMate IPTV.</string>
+    <string name="recording_failed_drm">Protected channel, can\'t record</string>
     <!-- Translators: Shown on a recording that was skipped because the device was on a metered (mobile data) connection and the user has turned off recording over mobile data. -->
     <string name="recording_failed_metered">Not recorded on mobile data</string>
     <!-- Translators: Downloads screen, Recordings card: nothing has been recorded so far. -->

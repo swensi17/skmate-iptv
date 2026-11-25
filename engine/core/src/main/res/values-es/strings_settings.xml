@@ -759,7 +759,7 @@
         <item quantity="many">La reproducción en diferido está disponible en <xliff:g id="count">%1$d</xliff:g> canales.</item>
         <item quantity="other">La reproducción en diferido está disponible en <xliff:g id="count">%1$d</xliff:g> canales.</item>
     </plurals>
-    <string name="settings_epg_sources_error">⚠ <xliff:g id="error">%1$s</xliff:g></string>
+    <string name="settings_epg_sources_error"><xliff:g id="error">%1$s</xliff:g></string>
     <string name="settings_epg_sources_auto_refresh_title">Actualización automática</string>
     <string name="settings_epg_sources_auto_refresh_description">Desactivada, al iniciar o cuando los datos estén obsoletos</string>
     <string name="settings_epg_sources_not_synced">Aún no se ha sincronizado</string>

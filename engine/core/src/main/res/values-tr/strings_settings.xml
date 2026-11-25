@@ -751,7 +751,7 @@
         <item quantity="one"><xliff:g id="count">%1$d</xliff:g> kanalda geri izleme kullanılabilir.</item>
         <item quantity="other"><xliff:g id="count">%1$d</xliff:g> kanalda geri izleme kullanılabilir.</item>
     </plurals>
-    <string name="settings_epg_sources_error">⚠ <xliff:g id="error">%1$s</xliff:g></string>
+    <string name="settings_epg_sources_error"><xliff:g id="error">%1$s</xliff:g></string>
     <string name="settings_epg_sources_auto_refresh_title">Otomatik yenileme</string>
     <string name="settings_epg_sources_auto_refresh_description">Kapalı, başlangıçta veya veriler eskidiğinde</string>
     <string name="settings_epg_sources_not_synced">Henüz eşitlenmedi</string>

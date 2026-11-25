@@ -1,6 +1,8 @@
 package tv.own.owntv.features.live
 
 import tv.own.owntv.ui.components.GuideStatusText
+import tv.own.owntv.ui.components.focusMarquee
+import tv.own.owntv.ui.components.marqueeOverflow
 import tv.own.owntv.ui.theme.stageTone
 import tv.own.owntv.ui.theme.stageShadow
 import androidx.compose.foundation.background
@@ -185,7 +187,7 @@ internal fun LiveStageRow(
             }
             LivePlate(channel.displayLogoUrl, 76.mpx, 54.mpx)
             Column(Modifier.weight(1f)) {
-                Text(name.name, style = stageText(if (tvBox) 23 else 22, 700), color = if (focused) StageColors.FxText else StageColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                rowName(name.name, if (tvBox) 23 else 22, focused)
                 val title = now?.title ?: nowTitle
                 if (title != null) {
                     val left = now?.let { timeLeftText(minutesLeft(it)) }
@@ -196,7 +198,7 @@ internal fun LiveStageRow(
                             if (left != null) withStyle(SpanStyle(color = (if (focused) StageColors.FxLine else StageColors.Muted).copy(alpha = 0.6f))) { append(" · $left") }
                         },
                         style = stageText(if (tvBox) 18 else 17, 400), color = if (focused) StageColors.FxLine else StageColors.Muted,
-                        maxLines = 1, overflow = TextOverflow.Ellipsis,
+                        maxLines = 1, overflow = marqueeOverflow(focused), modifier = Modifier.focusMarquee(focused),
                     )
                 }
                 if (now != null) RowProgress(now, focused, tvBox, lite)
@@ -970,3 +972,13 @@ private fun RowProgress(now: XtEpgEntry, focused: Boolean, tvBox: Boolean, lite:
 
 /** The flat progress bar's height ([StageProgress]), kept as room on rows that do not draw it. */
 private const val ROW_PROGRESS_HEIGHT = 4
+
+/** A channel's name in its row: one line, scrolling to its end while the row has focus. */
+@Composable
+private fun rowName(text: String, size: Int, focused: Boolean) {
+    val color = if (focused) StageColors.FxText else StageColors.Text
+    Text(
+        text, style = stageText(size, 700), color = color,
+        maxLines = 1, overflow = marqueeOverflow(focused), modifier = Modifier.focusMarquee(focused),
+    )
+}

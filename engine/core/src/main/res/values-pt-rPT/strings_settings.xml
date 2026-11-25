@@ -759,7 +759,7 @@
         <item quantity="many">Há programas em diferido disponíveis em <xliff:g id="count">%1$d</xliff:g> canais.</item>
         <item quantity="other">Há programas em diferido disponíveis em <xliff:g id="count">%1$d</xliff:g> canais.</item>
     </plurals>
-    <string name="settings_epg_sources_error">⚠ <xliff:g id="error">%1$s</xliff:g></string>
+    <string name="settings_epg_sources_error"><xliff:g id="error">%1$s</xliff:g></string>
     <string name="settings_epg_sources_auto_refresh_title">Atualização automática</string>
     <string name="settings_epg_sources_auto_refresh_description">Desativada, ao iniciar ou quando os dados estiverem desatualizados</string>
     <string name="settings_epg_sources_not_synced">Ainda não sincronizada</string>

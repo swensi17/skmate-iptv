@@ -48,6 +48,7 @@ private class MpvSurfaceView(context: Context, private val player: OwnTVPlayer) 
     }
 
     override fun surfaceCreated(holder: SurfaceHolder) {
+        liveSurfaces.getOrPut(player) { mutableListOf() } += holder.surface
         player.attachSurface(holder.surface)
         if (pendingFps > 0f) applyVideoFrameRate(pendingFps) // re-assert after a surface recreate
     }
@@ -57,9 +58,20 @@ private class MpvSurfaceView(context: Context, private val player: OwnTVPlayer) 
     }
 
     override fun surfaceDestroyed(holder: SurfaceHolder) {
-        player.detachSurface()
+        val rest = liveSurfaces[player]?.apply { remove(holder.surface) }.orEmpty()
+        // The preview stays composed under the full-screen player, so two views can hold the same
+        // player. Only the one the picture is going to may let go of it: the preview closing a beat
+        // after the full-screen view took over left the archive with sound and a black screen.
+        if (player.attachedSurfaceIs(holder.surface)) {
+            player.detachSurface()
+            rest.lastOrNull { it.isValid }?.let(player::attachSurface)
+        }
+        if (rest.isEmpty()) liveSurfaces.remove(player)
     }
 }
+
+/** The surfaces alive for each player, oldest first: the picture falls back to the one still shown. */
+private val liveSurfaces = mutableMapOf<OwnTVPlayer, MutableList<android.view.Surface>>()
 
 /**
  * Hosts the mpv video output (a [SurfaceView]) in Compose.

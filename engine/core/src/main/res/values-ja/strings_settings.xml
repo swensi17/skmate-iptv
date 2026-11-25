@@ -743,7 +743,7 @@
     <plurals name="settings_epg_sources_catchup">
         <item quantity="other"><xliff:g id="count">%1$d</xliff:g>チャンネルで見逃し配信を利用できます。</item>
     </plurals>
-    <string name="settings_epg_sources_error">⚠ <xliff:g id="error">%1$s</xliff:g></string>
+    <string name="settings_epg_sources_error"><xliff:g id="error">%1$s</xliff:g></string>
     <string name="settings_epg_sources_auto_refresh_title">自動更新</string>
     <string name="settings_epg_sources_auto_refresh_description">オフ、起動時、またはデータが古い場合</string>
     <string name="settings_epg_sources_not_synced">まだ同期されていません</string>

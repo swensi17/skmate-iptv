@@ -215,7 +215,7 @@
     <!-- Translators: Placeholder example in the M3U playlist URL field. The ellipsis indicates a truncated URL. -->
     <string name="setup_playlist_example">http://\u2026/playlist.m3u</string>
     <!-- Translators: Error text when a local M3U playlist file cannot be opened. -->
-    <string name="setup_playlist_file_unavailable">Couldn\'t open the playlist file. Pick it again; it may have moved.</string>
+    <string name="setup_playlist_file_unavailable">File not found, pick it again</string>
     <!-- Translators: Error text when a local playlist path uses an unsupported URI scheme. -->
     <string name="setup_playlist_path_unsupported">This local playlist path is not supported.</string>
     <!-- Translators: Button label in the M3U source form to open the storage browser for a local playlist file. -->
@@ -390,9 +390,9 @@
     <!-- Translators: Loading status shown on the companion page while a file is being uploaded to the TV. -->
     <string name="companion_sending">Sending\u2026</string>
     <!-- Translators: Error shown in the companion browser page when an upload to the TV fails. "status" is a numeric HTTP response such as 403. -->
-    <string name="companion_upload_failed">Upload failed (HTTP <xliff:g id="status">%1$d</xliff:g>). Check the PIN and try again.</string>
+    <string name="companion_upload_failed">Upload failed (<xliff:g id="status">%1$d</xliff:g>), check the PIN</string>
     <!-- Translators: Error text on the companion page when the TV cannot be reached over the network. -->
-    <string name="companion_could_not_reach">Could not reach the TV. Stay on the same Wi-Fi and try again.</string>
+    <string name="companion_could_not_reach">TV not found on the network</string>
     <!-- Translators: Error text on the companion page when the selected file cannot be read. -->
     <string name="companion_could_not_read">Could not read that file.</string>
     <!-- Translators: Page title in the companion browser tab for the background image upload page. "SkMate IPTV" is a brand name. -->
@@ -461,7 +461,7 @@
     <!-- Translators: Generic HLS test failure. The placeholder is a raw system or provider error and must remain unchanged. -->
     <string name="setup_hls_test_failed">Test failed: <xliff:g id="reason">%1$s</xliff:g></string>
     <!-- Translators: HLS test failure shown when the provider account details could not be fetched. -->
-    <string name="setup_hls_test_provider_unreachable">Couldn’t reach the provider — check the server URL, username and password.</string>
+    <string name="setup_hls_test_provider_unreachable">Provider not answering</string>
     <!-- Translators: Successful HLS test. Keep the check mark and HLS unchanged. -->
     <string name="setup_hls_test_works">✓ HLS works — your provider returned a playlist.</string>
     <!-- Translators: Successful HLS test when the provider serves HLS without advertising it. Keep the check mark and HLS unchanged. -->

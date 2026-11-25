@@ -77,7 +77,7 @@ internal fun EpgRow(
     StageSettingRow(
         icon = OwnTVIcon.EPG,
         title = source.name,
-        // A failed guide shows its error in red on the right, so the line under the name is its address.
+        // A failed guide shows its error, short and quiet, on the right; the line under the name is its address.
         desc = if (failed) subtitle else status,
         value = when {
             failed -> SettingValue.Custom {
@@ -85,7 +85,9 @@ internal fun EpgRow(
                 Text(
                     status,
                     style = tv.own.owntv.ui.theme.stageText(ERROR_TEXT_SIZE, ERROR_TEXT_WEIGHT),
-                    color = tv.own.owntv.ui.theme.StageColors.Danger,
+                    color = tv.own.owntv.ui.theme.StageColors.Muted,
+                    maxLines = 1,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
                     modifier = Modifier.widthIn(max = ERROR_MAX_WIDTH.mpx),
                 )
             }
@@ -103,7 +105,11 @@ internal fun EpgRow(
                 stringResource(R.string.common_back) to stringResource(R.string.common_nav_settings),
             ),
             extra = {
-                Text(status, style = tv.own.owntv.ui.theme.stageText(17, 500), color = if (failed) tv.own.owntv.ui.theme.StageColors.Danger else tv.own.owntv.ui.theme.StageColors.Muted)
+                Text(
+                    status,
+                    style = tv.own.owntv.ui.theme.stageText(17, 500),
+                    color = tv.own.owntv.ui.theme.StageColors.Muted,
+                )
                 priority?.let { Text(it, style = tv.own.owntv.ui.theme.stageText(17, 500), color = tv.own.owntv.ui.theme.StageColors.Muted) }
                 if (actions.isNotEmpty()) StageActionColumn(actions, back, actionsFocus)
             },

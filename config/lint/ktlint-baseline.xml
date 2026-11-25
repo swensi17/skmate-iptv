@@ -152,18 +152,18 @@
         <error line="336" column="5" source="standard:spacing-between-declarations-with-comments" />
         <error line="440" column="5" source="standard:spacing-between-declarations-with-comments" />
         <error line="533" column="5" source="standard:spacing-between-declarations-with-comments" />
-        <error line="1757" column="19" source="standard:property-naming" />
-        <error line="1760" column="19" source="standard:property-naming" />
-        <error line="1761" column="19" source="standard:property-naming" />
-        <error line="1764" column="19" source="standard:property-naming" />
+        <error line="1770" column="19" source="standard:property-naming" />
+        <error line="1773" column="19" source="standard:property-naming" />
+        <error line="1774" column="19" source="standard:property-naming" />
+        <error line="1777" column="19" source="standard:property-naming" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/live/LiveStage.kt">
         <error line="3" column="1" source="standard:import-ordering" />
-        <error line="171" column="23" source="standard:wrapping" />
-        <error line="174" column="31" source="standard:wrapping" />
-        <error line="947" column="19" source="standard:property-naming" />
-        <error line="950" column="19" source="standard:property-naming" />
-        <error line="953" column="19" source="standard:property-naming" />
+        <error line="173" column="23" source="standard:wrapping" />
+        <error line="176" column="31" source="standard:wrapping" />
+        <error line="949" column="19" source="standard:property-naming" />
+        <error line="952" column="19" source="standard:property-naming" />
+        <error line="955" column="19" source="standard:property-naming" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/live/LiveViewModel.kt">
         <error line="5" column="1" source="standard:import-ordering" />
@@ -370,8 +370,7 @@
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/settings/BackupScreen.kt">
         <error line="3" column="1" source="standard:import-ordering" />
-        <error line="44" column="1" source="standard:import-ordering" />
-        <error line="397" column="1" source="standard:no-consecutive-blank-lines" />
+        <error line="389" column="1" source="standard:no-consecutive-blank-lines" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/settings/BackupViewModel.kt">
         <error line="3" column="1" source="standard:import-ordering" />
@@ -464,24 +463,19 @@
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/settings/SettingsStage.kt">
         <error line="3" column="1" source="standard:import-ordering" />
-        <error line="94" column="5" source="standard:spacing-between-declarations-with-comments" />
         <error line="96" column="5" source="standard:spacing-between-declarations-with-comments" />
         <error line="98" column="5" source="standard:spacing-between-declarations-with-comments" />
         <error line="100" column="5" source="standard:spacing-between-declarations-with-comments" />
         <error line="102" column="5" source="standard:spacing-between-declarations-with-comments" />
         <error line="104" column="5" source="standard:spacing-between-declarations-with-comments" />
         <error line="106" column="5" source="standard:spacing-between-declarations-with-comments" />
-        <error line="155" column="5" source="standard:spacing-between-declarations-with-comments" />
-        <error line="269" column="43" source="standard:wrapping" />
-        <error line="281" column="17" source="standard:wrapping" />
-        <error line="376" column="11" source="standard:property-naming" />
-        <error line="566" column="1" source="standard:kdoc" />
-        <error line="567" column="1" source="standard:spacing-between-declarations-with-comments" />
+        <error line="108" column="5" source="standard:spacing-between-declarations-with-comments" />
+        <error line="157" column="5" source="standard:spacing-between-declarations-with-comments" />
+        <error line="271" column="43" source="standard:wrapping" />
+        <error line="283" column="17" source="standard:wrapping" />
+        <error line="378" column="11" source="standard:property-naming" />
+        <error line="569" column="1" source="standard:kdoc" />
         <error line="570" column="1" source="standard:spacing-between-declarations-with-comments" />
-        <error line="593" column="22" source="standard:wrapping" />
-        <error line="595" column="50" source="standard:wrapping" />
-        <error line="1348" column="1" source="standard:spacing-between-declarations-with-annotations" />
-        <error line="1348" column="29" source="standard:annotation" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/settings/SettingsViewModel.kt">
         <error line="5" column="1" source="standard:import-ordering" />
@@ -664,11 +658,11 @@
         <error line="407" column="1" source="standard:no-consecutive-blank-lines" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/shell/components/TvBoxChannelPanel.kt">
-        <error line="118" column="9" source="standard:property-naming" />
-        <error line="119" column="9" source="standard:property-naming" />
-        <error line="381" column="1" source="standard:spacing-between-declarations-with-comments" />
-        <error line="392" column="19" source="standard:property-naming" />
-        <error line="395" column="19" source="standard:property-naming" />
+        <error line="120" column="9" source="standard:property-naming" />
+        <error line="121" column="9" source="standard:property-naming" />
+        <error line="389" column="1" source="standard:spacing-between-declarations-with-comments" />
+        <error line="400" column="19" source="standard:property-naming" />
+        <error line="403" column="19" source="standard:property-naming" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/shell/components/TvBoxPlayerInfo.kt">
         <error line="149" column="19" source="standard:property-naming" />
@@ -1098,4 +1092,5 @@
     <file name="app/src/test/java/tv/own/owntv/ui/format/TimeFormatTest.kt">
         <error line="3" column="1" source="standard:import-ordering" />
     </file>
+
 </baseline>

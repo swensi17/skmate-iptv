@@ -849,7 +849,7 @@
         <item quantity="one">Berrikustea <xliff:g id="count">%1$d</xliff:g> kanalean dago erabilgarri.</item>
         <item quantity="other">Berrikustea <xliff:g id="count">%1$d</xliff:g> kanaletan dago erabilgarri.</item>
     </plurals>
-    <string name="settings_epg_sources_error">⚠ <xliff:g id="error">%1$s</xliff:g></string>
+    <string name="settings_epg_sources_error"><xliff:g id="error">%1$s</xliff:g></string>
     <string name="settings_epg_sources_auto_refresh_title">Freskatze automatikoa</string>
     <string name="settings_epg_sources_auto_refresh_description">Desaktibatuta, abiatzean, edo datuak zaharkituta daudenean</string>
     <string name="settings_epg_sources_not_synced">Oraindik ez da sinkronizatu</string>

@@ -4236,6 +4236,9 @@ class OwnTVPlayer(
         detachSurface()
     }
 
+    /** True when [surface] is the one the picture is drawn into now. */
+    fun attachedSurfaceIs(surface: Surface): Boolean = attachedSurface === surface
+
     fun detachSurface() {
         assertMainThread("detachSurface")
         surfaceAttached = false

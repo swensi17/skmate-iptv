@@ -141,7 +141,7 @@
     <string name="settings_metadata_key_received">Ключ TMDB получен</string>
     <string name="settings_tmdb_api_key">Ключ API TMDB (v3)</string>
     <string name="settings_metadata_empty_title">Введите название для поиска.</string>
-    <string name="settings_metadata_server_unavailable">Не удалось связаться с сервером метаданных — проверьте сеть, ключ и URL.</string>
+    <string name="settings_metadata_server_unavailable">Сервер метаданных не отвечает</string>
     <string name="settings_metadata_no_match">В TMDB нет совпадений для «<xliff:g id="query">%1$s</xliff:g>».</string>
     <string name="settings_metadata_lookup_failed">Не удалось выполнить поиск.</string>
     <string name="settings_metadata_match_result"><xliff:g id="title">%1$s</xliff:g><xliff:g id="year">%2$s</xliff:g> · tmdb #<xliff:g id="id">%3$d</xliff:g></string>
@@ -769,7 +769,7 @@
         <item quantity="many">Архив доступен на <xliff:g id="count">%1$d</xliff:g> каналах.</item>
         <item quantity="other">Архив доступен на <xliff:g id="count">%1$d</xliff:g> каналах.</item>
     </plurals>
-    <string name="settings_epg_sources_error">⚠ <xliff:g id="error">%1$s</xliff:g></string>
+    <string name="settings_epg_sources_error"><xliff:g id="error">%1$s</xliff:g></string>
     <string name="settings_epg_sources_auto_refresh_title">Автоматическое обновление</string>
     <string name="settings_epg_sources_auto_refresh_description">Отключено, при запуске или при устаревании данных</string>
     <string name="settings_epg_sources_not_synced">Ещё не синхронизировано</string>
@@ -1088,7 +1088,7 @@
     <string name="settings_language_contribution_copy">Скопировать ссылку</string>
     <string name="settings_language_contribution_copied">Ссылка скопирована</string>
     <string name="settings_language_contribution_open_failed">Не удалось открыть ссылку. Скопируйте её.</string>
-    <string name="settings_language_contribution_copy_failed">Не удалось скопировать ссылку. Прочитайте или введите URL, указанный выше.</string>
+    <string name="settings_language_contribution_copy_failed">Ссылка не скопирована</string>
     <string name="settings_auto_frame_rate_warning_suffix">Не рекомендуется на этом телевизоре: на Android ниже 12 частота не может меняться плавно.</string>
     <string name="settings_auto_frame_rate_warning_title">Не рекомендуется на этом телевизоре</string>
     <string name="settings_auto_frame_rate_warning_title_mobile">Не рекомендуется на этом устройстве</string>
@@ -1222,9 +1222,9 @@
     <string name="local_sync_received_items">Полученные элементы: <xliff:g id="count">%1$d</xliff:g></string>
     <string name="local_sync_sent">Ваши данные отправлены</string>
     <string name="local_sync_failed">Синхронизация не удалась</string>
-    <string name="local_sync_error_unreachable">Не удалось связаться с этим устройством. Откройте на нём SkMate IPTV → Ещё → Локальная синхронизация и включите режим синхронизации. Оба устройства должны быть в одной сети Wi-Fi.</string>
-    <string name="local_sync_error_unauthorized">Другое устройство отказало. Возможно, PIN-код неверен или это устройство было забыто.</string>
-    <string name="local_sync_error_bad_payload">Не удалось прочитать полученные данные. Если вы использовали пароль, проверьте, что он одинаков на обоих устройствах.</string>
+    <string name="local_sync_error_unreachable">Устройство не найдено, включите на нём синхронизацию</string>
+    <string name="local_sync_error_unauthorized">Неверный PIN</string>
+    <string name="local_sync_error_bad_payload">Данные не прочитаны, проверьте пароль</string>
     <string name="local_sync_error_unknown">Что-то пошло не так. Попробуйте ещё раз.</string>
     <string name="local_sync_mode">Режим синхронизации</string>
     <string name="local_sync_connect">Подключиться</string>
@@ -1886,7 +1886,7 @@
     <string name="settings_tg_remote_unlink_body">Телевизор перестанет отвечать боту, пока вы не подключите его снова.</string>
     <string name="settings_tg_own_remove_body">Токен удалится с телевизора, бот остановится.</string>
     <string name="settings_search_keywords_tg_remote">телеграм бот пульт управление токен телефон qr код</string>
-    <string name="tg_bot_code_expired">Код устарел или привязка закрыта. Откройте на телевизоре Настройки → Telegram и получите новый код</string>
+    <string name="tg_bot_code_expired">Код устарел, получите новый</string>
     <string name="settings_epg_catalog">Готовые телегиды</string>
     <string name="settings_epg_catalog_description">Включите любой: каналы, которые он знает по названию, получат передачи и логотипы. Обновляется раз в сутки.</string>
 </resources>

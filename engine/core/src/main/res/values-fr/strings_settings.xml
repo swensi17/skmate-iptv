@@ -759,7 +759,7 @@
         <item quantity="many">Le rattrapage est disponible sur <xliff:g id="count">%1$d</xliff:g> chaînes.</item>
         <item quantity="other">Le rattrapage est disponible sur <xliff:g id="count">%1$d</xliff:g> chaînes.</item>
     </plurals>
-    <string name="settings_epg_sources_error">⚠ <xliff:g id="error">%1$s</xliff:g></string>
+    <string name="settings_epg_sources_error"><xliff:g id="error">%1$s</xliff:g></string>
     <string name="settings_epg_sources_auto_refresh_title">Actualisation automatique</string>
     <string name="settings_epg_sources_auto_refresh_description">Désactivée, au démarrage ou lorsque les données sont obsolètes</string>
     <string name="settings_epg_sources_not_synced">Pas encore synchronisée</string>

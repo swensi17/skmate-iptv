@@ -161,7 +161,7 @@
     <!-- Translators: Empty-state message when a season has no episodes. -->
     <string name="content_no_episodes">No episodes available.</string>
     <!-- Translators: Shown instead of "No episodes available." when the provider refused or failed the request for a show's episode list. "reason" is technical and untranslated, e.g. HTTP 407 or SocketTimeoutException. -->
-    <string name="content_episodes_load_failed">Could not load the episodes from the provider (<xliff:g id="reason">%1$s</xliff:g>).</string>
+    <string name="content_episodes_load_failed">Episodes didn\'t load (<xliff:g id="reason">%1$s</xliff:g>)</string>
     <!-- Translators: Empty-state message when a movie search returns no results. "query" is the user\'s search text. -->
     <string name="content_no_movies_found">No movies found for \u201c<xliff:g id="query">%1$s</xliff:g>\u201d</string>
     <!-- Translators: Plural category count label in the category browser. "category" is the category name; "count" is the number of movies. -->
@@ -267,7 +267,7 @@
     <!-- Translators: Instructional text in the channel preview panel on the Live TV screen. -->
     <string name="content_preview_select_channel">Select a channel to preview it here.</string>
     <!-- Translators: Banner shown when the device is offline. -->
-    <string name="content_offline_banner">You\'re offline \u2014 playback and updates won\'t work until you reconnect.</string>
+    <string name="content_offline_banner">No internet</string>
     <!-- Translators: StorageBrowser dialog title for selecting a local subtitle file. -->
     <string name="content_subtitle_select_file">Select local subtitle file</string>
     <!-- Translators: Error when a local subtitle file cannot be loaded. -->
@@ -309,7 +309,7 @@
     <!-- Translators: Label for a download folder the user picked with the system folder picker, shown above the folder's own name. -->
     <string name="content_storage_chosen_folder">Chosen folder</string>
     <!-- Translators: Shown when the folder the user had chosen for downloads can no longer be written to, because the permission was withdrawn or the storage was removed. -->
-    <string name="content_storage_folder_lost">That folder is no longer available. Choose it again, or pick another.</string>
+    <string name="content_storage_folder_lost">Folder unavailable</string>
     <!-- Translators: Shown on the Downloads screen while the folder the user chose for downloads is missing (a USB stick removed, or its permission withdrawn). Downloads go to the app's own folder until it is back; the choice itself is kept. -->
     <string name="content_storage_folder_fallback">Your download folder isn\'t available right now, so downloads are being saved to SkMate IPTV\'s own folder until it\'s back.</string>
     <!-- Translators: Status text for a download that is queued and waiting to start. -->

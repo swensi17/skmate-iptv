@@ -7,6 +7,7 @@ import tv.own.owntv.core.database.dao.ChannelDao
 import tv.own.owntv.core.database.dao.EpgDao
 import tv.own.owntv.core.database.dao.ProfileDao
 import tv.own.owntv.core.database.dao.SourceDao
+import tv.own.owntv.core.database.entity.matchName
 import tv.own.owntv.core.model.MediaType
 import tv.own.owntv.core.repository.EpgRepository
 import tv.own.owntv.core.settings.SettingsRepository
@@ -62,14 +63,41 @@ class GuideAutoLink(
         // The download kept only programmes of channels linked at that moment; fill the new links from
         // the guide file it left in the cache (no network).
         epgRepository.storeProgrammesForIdsFromCache(matches.values.toSet())
-        Log.i(TAG, "linked ${matches.size} channels by name (review left: ${outcome.review.size})")
+        val relinked = relinkEmpty(pid, playlistIds, matches)
+        Log.i(TAG, "linked ${matches.size} channels by name, $relinked moved off empty guide entries (review left: ${outcome.review.size})")
         matches.size
     }.getOrElse {
         Log.w(TAG, "auto-link failed", it)
         0
     }
 
+    /**
+     * A guide can list a channel it gives no schedule ("НТВ (+2)" beside a full "НТВ"). Which entries are
+     * empty is only known once the programmes are in, so a channel linked to one is linked again, to the
+     * best entry that has programmes, and that entry's programmes are filled the same way.
+     */
+    private suspend fun relinkEmpty(pid: Long, playlistIds: List<Long>, linked: Map<String, String>): Int {
+        val candidates = GuideCandidates(epgDao).all()
+        val withProgrammes = candidates.filter { it.hasProgrammes }
+        val full = withProgrammes.mapTo(HashSet()) { it.epgChannelId.trim().lowercase() }
+        val emptyKeys = linked.filterValues { it !in full }.keys
+        if (emptyKeys.isEmpty() || withProgrammes.isEmpty()) return 0
+        val prepared = EpgMatcher.prepare(withProgrammes.map { EpgMatcher.Candidate(it.epgChannelId, it.displayName) })
+        val moved = channelDao.allForSources(playlistIds, MAX_RELINK_SCAN)
+            .filter { tv.own.owntv.core.customize.CustomizeKeys.channel(it) in emptyKeys }
+            .mapNotNull { ch ->
+                val best = EpgMatcher.bestEpgMatchPrepared(ch.matchName, prepared) ?: return@mapNotNull null
+                if (best.score < EpgMatcher.AUTO_THRESHOLD) return@mapNotNull null
+                tv.own.owntv.core.customize.CustomizeKeys.channel(ch) to best.epgChannelId.trim().lowercase()
+            }.toMap()
+        if (moved.isEmpty()) return 0
+        customize.update(pid, MediaType.LIVE) { it.copy(epgMatches = it.epgMatches + moved) }
+        epgRepository.storeProgrammesForIdsFromCache(moved.values.toSet())
+        return moved.size
+    }
+
     private companion object {
+        const val MAX_RELINK_SCAN = 20_000
         const val TAG = "GuideAutoLink"
     }
 }

@@ -285,7 +285,7 @@
     <!-- Translators: Error when no title is entered for TMDB lookup. -->
     <string name="settings_metadata_empty_title">Enter a title to look up.</string>
     <!-- Translators: Error when the TMDB server cannot be reached. -->
-    <string name="settings_metadata_server_unavailable">Couldn\'t reach the metadata server — check network / key / URL.</string>
+    <string name="settings_metadata_server_unavailable">Metadata server not answering</string>
     <!-- Translators: Error when TMDB returns no match. 'query' is the searched title. -->
     <string name="settings_metadata_no_match">No TMDB match for \"<xliff:g id="query">%1$s</xliff:g>\".</string>
     <!-- Translators: Generic TMDB lookup failure. -->
@@ -1532,7 +1532,7 @@
         <item quantity="other">Catch-up is available on <xliff:g id="count">%1$d</xliff:g> channels.</item>
     </plurals>
     <!-- Translators: Error display for EPG source operations. 'error' is the error message. -->
-    <string name="settings_epg_sources_error">⚠ <xliff:g id="error">%1$s</xliff:g></string>
+    <string name="settings_epg_sources_error"><xliff:g id="error">%1$s</xliff:g></string>
     <!-- Translators: Setting label for EPG auto-refresh. -->
     <string name="settings_epg_sources_auto_refresh_title">Auto refresh</string>
     <!-- Translators: Description of the EPG auto-refresh setting. -->
@@ -2074,7 +2074,7 @@
     <!-- Translators: Error shown when no app can open the translation project link. -->
     <string name="settings_language_contribution_open_failed">The link could not be opened. Copy it instead.</string>
     <!-- Translators: Error shown if copying the translation project URL fails. -->
-    <string name="settings_language_contribution_copy_failed">The link could not be copied. Read or type the URL shown above.</string>
+    <string name="settings_language_contribution_copy_failed">Link not copied</string>
     <string name="settings_ambient_glow">Ambient glow</string>
     <string name="settings_ambient_glow_description">Adds setup-style radiance to the solid interface</string>
     <string name="settings_ambient_glow_dialog_description">Adds a soft accent aura to the non-glass interface. Slow pulse gently breathes when animations are enabled.</string>
@@ -2220,11 +2220,11 @@
     <!-- Translators: Title of the sheet shown when a sync failed. -->
     <string name="local_sync_failed">Sync failed</string>
     <!-- Translators: Failure reason: the other device did not answer. -->
-    <string name="local_sync_error_unreachable">This device could not be reached. On it, open SkMate IPTV → More → Local sync and turn Sync mode on. Both devices must be on the same Wi-Fi.</string>
+    <string name="local_sync_error_unreachable">Device not found, turn on sync there</string>
     <!-- Translators: Failure reason: wrong PIN, or the pairing was removed on the other device. -->
-    <string name="local_sync_error_unauthorized">The other device refused. The PIN may be wrong, or it may have forgotten this device.</string>
+    <string name="local_sync_error_unauthorized">Wrong PIN</string>
     <!-- Translators: Failure reason: what arrived could not be read. -->
-    <string name="local_sync_error_bad_payload">What arrived could not be read. If you used a password, check it is the same on both devices.</string>
+    <string name="local_sync_error_bad_payload">Couldn\'t read data, check the password</string>
     <!-- Translators: Failure reason: anything else. -->
     <string name="local_sync_error_unknown">Something went wrong. Try again.</string>
     <!-- Translators: Switch. While it is on, this device is visible to your other devices and accepts a sync. -->
@@ -3286,7 +3286,7 @@
     <string name="settings_tg_remote_unlink_body">The TV will stop answering the bot until you link it again.</string>
     <string name="settings_tg_own_remove_body">The token is deleted from this TV and the bot stops.</string>
     <string name="settings_search_keywords_tg_remote">telegram bot remote control token phone qr code</string>
-    <string name="tg_bot_code_expired">This code has expired or pairing is closed. Open Settings → Telegram on the TV for a new code</string>
+    <string name="tg_bot_code_expired">Code expired, get a new one</string>
     <string name="settings_epg_catalog">Ready TV guides</string>
     <string name="settings_epg_catalog_description">Switch one on: channels it knows by name get programmes and logos. Updated daily.</string>
 </resources>

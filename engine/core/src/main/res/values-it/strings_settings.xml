@@ -759,7 +759,7 @@
         <item quantity="many">La visione in differita è disponibile su <xliff:g id="count">%1$d</xliff:g> canali.</item>
         <item quantity="other">La visione in differita è disponibile su <xliff:g id="count">%1$d</xliff:g> canali.</item>
     </plurals>
-    <string name="settings_epg_sources_error">⚠ <xliff:g id="error">%1$s</xliff:g></string>
+    <string name="settings_epg_sources_error"><xliff:g id="error">%1$s</xliff:g></string>
     <string name="settings_epg_sources_auto_refresh_title">Aggiornamento automatico</string>
     <string name="settings_epg_sources_auto_refresh_description">Disattivato, all\'avvio o quando i dati non sono aggiornati</string>
     <string name="settings_epg_sources_not_synced">Non ancora sincronizzata</string>

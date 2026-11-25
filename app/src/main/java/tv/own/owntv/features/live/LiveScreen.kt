@@ -1655,6 +1655,19 @@ internal fun EpgMatchDialog(
                                 value = epg.epgChannelId.takeIf { epg.displayName != null },
                                 checked = epg.epgChannelId == currentMatch,
                                 onClick = { onPick(epg.epgChannelId) },
+                                // The guide channel's own logo, so the right one is picked by sight.
+                                leading = {
+                                    tv.own.owntv.ui.components.ChannelLogoTile(
+                                        logoUrl = tv.own.owntv.core.epg.EpgLogoStore.iconForGuideId(epg.epgChannelId),
+                                        modifier = Modifier.size(width = 56.mpx, height = 40.mpx),
+                                    ) {
+                                        tv.own.owntv.ui.components.OwnTVIcon(
+                                            tv.own.owntv.ui.components.OwnTVIcon.LIVE_TV,
+                                            tint = tv.own.owntv.ui.theme.StageColors.Dim,
+                                            modifier = Modifier.size(28.mpx),
+                                        )
+                                    }
+                                },
                                 modifier = if (epg == list.first()) Modifier.focusRequester(firstItemFocus) else Modifier,
                             )
                         }
