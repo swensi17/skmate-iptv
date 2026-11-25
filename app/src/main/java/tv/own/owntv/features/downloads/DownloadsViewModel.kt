@@ -2,6 +2,7 @@
 
 package tv.own.owntv.features.downloads
 
+import tv.own.owntv.core.content.AdultCategoryClassifier
 import tv.own.owntv.core.storage.missingFiles
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -77,8 +78,10 @@ class DownloadsViewModel(
                 customize.observe(pid, MediaType.SERIES),
                 profileDao.observeById(pid),
             ) { list, custMovie, custSeries, profile ->
-                if (custMovie.hiddenItems.isEmpty() && custSeries.hiddenItems.isEmpty() && profile?.isKids != true) list
-                else list.filterNot { isHidden(it, custMovie, custSeries, profile?.isKids == true) }
+                // Adult ones stay out for a kids profile, and for any profile while the adult lock is closed.
+                val hideAdult = AdultCategoryClassifier.hidesAdult(profile?.isKids == true)
+                if (custMovie.hiddenItems.isEmpty() && custSeries.hiddenItems.isEmpty() && !hideAdult) list
+                else list.filterNot { isHidden(it, custMovie, custSeries, hideAdult) }
                 }
             }
         }
@@ -92,13 +95,13 @@ class DownloadsViewModel(
     ): Boolean = when (d.mediaType) {
         MediaType.MOVIE -> movieDao.getById(d.itemId)?.let { movie ->
             CustomizeKeys.movie(movie) in custMovie.hiddenItems ||
-                (isKidsProfile && tv.own.owntv.core.content.AdultCategoryClassifier.isAdult(movie.categoryId?.let { categoryDao.getById(it)?.name }))
+                (isKidsProfile && AdultCategoryClassifier.isAdult(categoryName(movie.categoryId)))
         } ?: isKidsProfile
         MediaType.EPISODE -> seriesDao.getEpisodeById(d.itemId)
             ?.let { ep -> seriesDao.getSeriesById(ep.seriesId) }
             ?.let { series ->
                 CustomizeKeys.series(series) in custSeries.hiddenItems ||
-                    (isKidsProfile && tv.own.owntv.core.content.AdultCategoryClassifier.isAdult(series.categoryId?.let { categoryDao.getById(it)?.name }))
+                    (isKidsProfile && AdultCategoryClassifier.isAdult(categoryName(series.categoryId)))
             } ?: isKidsProfile
         else -> false
     }
@@ -215,11 +218,11 @@ class DownloadsViewModel(
      */
     private suspend fun isDownloadAllowed(download: DownloadEntity, profileId: Long): Boolean = when (download.mediaType) {
         MediaType.MOVIE -> movieDao.getById(download.itemId)?.let {
-            tv.own.owntv.core.content.AdultCategoryClassifier.allows(profileId, it.categoryId, profileDao, categoryDao)
+            AdultCategoryClassifier.allows(profileId, it.categoryId, profileDao, categoryDao)
         } ?: (profileDao.getById(profileId)?.let { !it.isKids } ?: false)
         MediaType.EPISODE -> seriesDao.getEpisodeById(download.itemId)
             ?.let { seriesDao.getSeriesById(it.seriesId) }
-            ?.let { tv.own.owntv.core.content.AdultCategoryClassifier.allows(profileId, it.categoryId, profileDao, categoryDao) }
+            ?.let { AdultCategoryClassifier.allows(profileId, it.categoryId, profileDao, categoryDao) }
             ?: (profileDao.getById(profileId)?.let { !it.isKids } ?: false)
         else -> true
     }
@@ -249,6 +252,8 @@ class DownloadsViewModel(
     fun pause(download: DownloadEntity) = downloadManager.pause(download)
     fun resume(download: DownloadEntity) = downloadManager.resume(download)
     fun delete(download: DownloadEntity) = downloadManager.delete(download)
+
+    private suspend fun categoryName(id: Long?): String? = id?.let { categoryDao.getById(it)?.name }
 }
 
 /** See [DownloadsViewModel.details]. */

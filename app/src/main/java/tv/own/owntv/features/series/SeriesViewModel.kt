@@ -492,7 +492,7 @@ class SeriesViewModel(
                 // so renames/hides/reorders apply to them with no extra code.
                 val folders = cats.railCategories(
                     cust,
-                    kids = profile?.isKids == true,
+                    kids = tv.own.owntv.core.content.AdultCategoryClassifier.hidesAdult(profile?.isKids == true),
                     alphaRest = sort == SettingsRepository.SortMode.ALPHA,
                 )
                 val multiSourceNames = c.sourceNames.takeIf { it.size > 1 }.orEmpty()

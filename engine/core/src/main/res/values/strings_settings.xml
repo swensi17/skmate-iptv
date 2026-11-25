@@ -3162,7 +3162,7 @@
     <string name="settings_short_player">Player options</string>
     <string name="settings_short_picture">Picture quality</string>
     <string name="settings_short_sound">Audio</string>
-    <string name="settings_short_watching">Multiview</string>
+    <string name="settings_short_watching">Multiview &amp; recording</string>
     <string name="settings_short_app">General</string>
     <string name="settings_short_search">Search</string>
     <string name="settings_part_theme">Theme &amp; colours</string>

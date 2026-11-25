@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import tv.own.owntv.core.content.AdultCategoryClassifier
 import tv.own.owntv.core.customize.BulkRenameSession
 import tv.own.owntv.core.customize.MoveKind
 import tv.own.owntv.core.customize.SpanSelector
@@ -145,11 +146,11 @@ class CustomizeViewModel(
                     // Provider folders + the user's custom combined categories in ONE list, so
                     // hide/rename/reorder apply uniformly (their keys share the CustomizeKeys
                     // namespace). Custom rows carry categoryId = null and no provider name.
-                    val visibleCustomCategories = if (profile?.isKids == true) {
-                        cust.customCategories.filterNot { tv.own.owntv.core.content.AdultCategoryClassifier.isAdult(it.name) }
+                    val visibleCustomCategories = if (AdultCategoryClassifier.hidesAdult(profile?.isKids == true)) {
+                        cust.customCategories.filterNot { AdultCategoryClassifier.isAdult(it.name) }
                     } else cust.customCategories
-                    val visibleProviderCategories = if (profile?.isKids == true) {
-                        cats.filterNot { tv.own.owntv.core.content.AdultCategoryClassifier.isAdult(it.name) }
+                    val visibleProviderCategories = if (AdultCategoryClassifier.hidesAdult(profile?.isKids == true)) {
+                        cats.filterNot { AdultCategoryClassifier.isAdult(it.name) }
                     } else cats
                     val entries = visibleCustomCategories.map { cc ->
                         CustomizeCatRow(

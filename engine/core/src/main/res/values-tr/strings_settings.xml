@@ -1684,7 +1684,7 @@
     <string name="settings_short_player">Oynatıcı seçenekleri</string>
     <string name="settings_short_picture">Görüntü kalitesi</string>
     <string name="settings_short_sound">Ses</string>
-    <string name="settings_short_watching">Çoklu izleme</string>
+    <string name="settings_short_watching">Çoklu izleme ve kayıt</string>
     <string name="settings_short_app">Genel</string>
     <string name="settings_short_search">Arama</string>
     <string name="settings_part_theme">Tema &amp; renkler</string>

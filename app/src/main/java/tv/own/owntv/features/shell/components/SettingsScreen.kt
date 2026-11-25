@@ -1384,6 +1384,10 @@ fun SettingsScreen(
                         openMiniPlayer = openMiniPlayer,
                         focusRowKey = videoRowKey,
                     )
+                    // Watching & recording: the recording settings after the watching ones ("Record" in the player).
+                    if (group == SettingsGroup.WATCHING) {
+                        tv.own.owntv.features.settings.RecordingSettingsRows(pageScroll)
+                    }
                 }
                 group == SettingsGroup.PROFILE -> tv.own.owntv.features.settings.ProfileSettingsRows()
                 // Only Quick can be empty, and only because the user emptied it.
