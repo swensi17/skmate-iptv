@@ -5,10 +5,12 @@ import { t } from "../i18n";
 import type { VodKind, VodSource } from "../state/library";
 import type { Progress } from "../state/progress";
 import { hueOf, monogram } from "../text";
+import { LoadingState } from "./Spinner";
+import "./screens.css";
 
 const PER_ROW = 5;
-const ROW_H = 430;
-const GRID_H = 860;
+/** One row of posters (the card's size is in screens.css): two whole rows fit under the toolbar, one under "Continue watching". */
+const ROW_H = 428;
 const TYPING_PAUSE_MS = 180;
 
 type Sort = "provider" | "az" | "added" | "rating";
@@ -90,10 +92,10 @@ export function VodView(p: {
       <div class="vod-columns">
         <div class="vod-cats" role="list">
           <button class="row vod-cat" data-focus="vod-cat-all" aria-pressed={cat === null} onClick={() => setCat(null)}>
-            {t(p.kind === "movie" ? "vodAllMovies" : "vodAllSeries")}
+            <span class="grow">{t(p.kind === "movie" ? "vodAllMovies" : "vodAllSeries")}</span>
           </button>
           {cats.map((c) => (
-            <button class="row vod-cat" key={c.id} data-focus={`vod-cat-${c.id}`} aria-pressed={cat === c.id} onClick={() => setCat(c.id)}>{c.name}</button>
+            <button class="row vod-cat" key={c.id} data-focus={`vod-cat-${c.id}`} aria-pressed={cat === c.id} onClick={() => setCat(c.id)}><span class="grow">{c.name}</span></button>
           ))}
         </div>
         <div class="vod-main">
@@ -119,12 +121,15 @@ export function VodView(p: {
             </div>
           ) : null}
           {items === null ? (
-            <div class="list-head">{t("playlistLoading")}</div>
+            <LoadingState class="vod-state" title={t("playlistLoading")} />
           ) : rows.length === 0 ? (
-            <div class="list-head">{error ? t("playlistErrNetwork") : empty}</div>
+            <div class="empty-idle state vod-state">
+              <div class="empty-title">{error ? t("playlistErrNetwork") : empty}</div>
+              {error ? <div class="empty-hint">{error}</div> : null}
+            </div>
           ) : (
             <VirtualList
-              key={`${p.kind}|${cat}|${settled}|${sort}`} items={rows} rowHeight={ROW_H} height={resume.length > 0 ? GRID_H - 330 : GRID_H} pageSize={2}
+              key={`${p.kind}|${cat}|${settled}|${sort}`} items={rows} rowHeight={ROW_H} height={resume.length > 0 ? ROW_H : 2 * ROW_H} pageSize={2}
               idOf={(r) => `vod-row-${r[0]?.id ?? ""}`}
               renderRow={(r) => (
                 <div class="poster-row">

@@ -446,7 +446,7 @@ html[data-rtl] #app * { unicode-bidi: plaintext; }
 .vod-cats { flex: none; width: 360px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; padding-right: 8px; }
 .vod-cat { height: 68px; font-size: 24px; }
 .vod-cat .grow, .vod-cat { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.vod-cat[aria-pressed="true"] { box-shadow: inset 4px 0 0 var(--accent); }
+.vod-cat[aria-pressed="true"] { background: rgba(255, 255, 255, .08); } /* the chosen category: a plain lighter row, as in the main menu */
 .vod-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 16px; }
 .vod-main .toolbar { flex-wrap: wrap; }
 .poster-row { display: flex; gap: 24px; height: 430px; padding: 6px 4px; }

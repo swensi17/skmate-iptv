@@ -1,0 +1,87 @@
+/* Guide, Sport, Films and Series, the film card and Profiles: layout fixes on top of app.css. Colours come only from the
+   theme variables; only transform and opacity move. Selectors carry the screen's class so they win over app.css. */
+
+/* ===== Loading and empty states: one look everywhere (title, a quieter line, maybe a button), fading in. ===== */
+.state { animation: state-in 220ms cubic-bezier(.2, 0, 0, 1) both; }
+@keyframes state-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+:root[data-motion="off"] .state { animation: none; }
+.state .empty-hint { max-width: 960px; margin: 0; line-height: 1.4; overflow-wrap: anywhere; }
+.state .empty-actions { margin-top: 20px; }
+.state-spin { width: 64px; height: 64px; margin-bottom: 8px; flex: none; }
+/* The spinner's ticks follow the text colour, so they show on the light theme too (app.css paints them white). */
+.state-spin .ticks rect, .vd-loading-spin .ticks rect { fill: var(--text); }
+
+/* ===== Guide ===== */
+/* The rows sit 76 px apart (the list's step): the name and the programmes are 70 px tall with a 6 px gap between rows,
+   instead of 76 px boxes in an 84 px row that touched the row below. */
+.screen.guide .grow-row { height: 76px; }
+.screen.guide .gname, .screen.guide .gline { top: 3px; height: 70px; }
+.screen.guide .block { height: 70px; }
+/* A long channel name takes two lines at most, never three over the next row. */
+.screen.guide .gname .nm { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.2; min-width: 0; overflow-wrap: anywhere; }
+/* The date and time over the scale in plain text, not blue. */
+.screen.guide .gs-now { color: var(--text); }
+/* The buttons keep their place; the refresh progress text is cut rather than pushing the channel name away. */
+.screen.guide .gtop-bar .toolbar { flex: none; }
+.screen.guide .gtop-chan { flex: 1; }
+.screen.guide .gtop-group { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.gtop-sync { max-width: 340px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+/* The waiting and empty states fill the place of the grid, in its middle. */
+.screen.guide .guide-empty { height: 640px; display: flex; align-items: center; justify-content: center; }
+.screen.guide .guide-empty .empty-idle { height: auto; }
+
+/* ===== Sport: the title and the search on one line, as on the channels screen; the list shows whole rows. ===== */
+.screen-top { display: flex; align-items: center; justify-content: space-between; gap: 24px; height: 110px; flex: none; }
+.screen-top h2 { margin: 0; line-height: 1.1; }
+.screen.sport { display: flex; flex-direction: column; }
+.screen.sport .filters { flex: none; }
+.screen.sport .empty-idle { height: 560px; }
+
+/* ===== Films and series ===== */
+.screen.vod h2 { margin-bottom: 20px; }
+.screen.vod .vod-columns { height: 948px; }
+.screen.vod .vod-cats { scrollbar-width: none; padding-bottom: 24px; }
+.screen.vod .vod-cats::-webkit-scrollbar { display: none; }
+.screen.vod .vod-cat { flex: none; }
+.screen.vod .vod-cat .grow { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.screen.vod .vod-main .toolbar { flex: none; }
+/* A card of fixed size: poster 200×300, two lines of title, one of year and rating. 416 px in a 428 px row, so the
+   focused card never covers the row below (it used to be ~435 px in a 430 px row). */
+.screen.vod .poster-row { height: 428px; padding: 6px 4px; }
+.screen.vod .poster-row .poster { width: 216px; height: 416px; overflow: hidden; }
+.screen.vod .poster-row .poster-img { width: 200px; height: 300px; }
+.screen.vod .poster-meta { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-height: 24px; }
+.screen.vod .vod-continue { flex: none; }
+.screen.vod .vod-strip .poster { flex: none; }
+.screen.vod .vod-strip .poster-name { -webkit-line-clamp: 1; }
+.vod-state.empty-idle { height: auto; flex: 1; min-height: 0; padding-bottom: 80px; }
+.vod-state .empty-title { font-size: 34px; }
+/* Progress on a poster and on an episode: the text colour, not blue; dark on the focused (white) card. */
+.poster-bar span, .vd-ep-bar span { background: var(--text); opacity: .8; }
+.poster:focus .poster-bar span, .row:focus .vd-ep-bar span { background: var(--focus-text); opacity: 1; }
+
+/* ===== The film card ===== */
+.dialog.vod-details { max-height: 1000px; }
+/* Nothing above the episodes is squeezed: only the episode list gives way, and it scrolls. */
+.vod-details .vd-body > * { flex-shrink: 0; }
+.vod-details .vd-body > .vd-episodes { flex: 1 1 auto; min-height: 0; scrollbar-width: none; padding-bottom: 8px; }
+.vod-details .vd-episodes::-webkit-scrollbar { display: none; }
+.vod-details .vd-title { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
+.vod-details .vd-plot { -webkit-line-clamp: 5; }
+.vod-details .vd-actions .btn { display: inline-flex; align-items: center; justify-content: center; }
+.vod-details .vd-episode .grow { min-width: 0; }
+.vod-details .vd-episode .sub { flex: none; }
+.vd-loading { display: flex; align-items: center; gap: 16px; height: 56px; font-size: 24px; font-weight: 600; color: var(--muted); }
+.vd-loading-spin { width: 36px; height: 36px; flex: none; }
+.vd-note { font-size: 24px; color: var(--muted); margin: 0; }
+.vd-note.status { margin: 0; }
+
+/* ===== Profiles (in the settings sheet): the same rows and buttons as the playlists. ===== */
+.pf-hint { margin: 0 8px 20px; }
+.pf-panel .pf-caption { margin-top: 32px; }
+.pf-panel .pf-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pf-panel .pl-row .srow-text { min-width: 0; }
+.pf-panel .srow:not(.pl-row) .srow-title { white-space: nowrap; }
+.pf-panel > .srow { flex-shrink: 0; }
+.pf-panel > .srow + .srow { margin-top: 2px; }
+.pf-panel .pf-add { margin-top: 0; }

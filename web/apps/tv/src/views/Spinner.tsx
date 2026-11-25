@@ -1,3 +1,5 @@
+import "./screens.css";
+
 /** The loading spinner of an iPhone: twelve ticks round a circle, each fading after the one before. Sized by its parent. */
 export function Ticks() {
   return (
@@ -12,4 +14,18 @@ export function Ticks() {
 /** A spinner in the middle of the player or the preview; [on] fades it in (see `.spinner` in app.css). */
 export function Spinner(p: { class?: string; label?: string }) {
   return <div class={`spinner ${p.class ?? ""}`.trim()} role="status" aria-label={p.label}><Ticks /></div>;
+}
+
+/**
+ * Something is on its way (the guide, a list of films): the spinner, a title and an optional quieter line, in the middle
+ * of the free space, with a short fade (see `.state` in screens.css).
+ */
+export function LoadingState(p: { title: string; hint?: string; class?: string }) {
+  return (
+    <div class={`empty-idle state ${p.class ?? ""}`.trim()} role="status" aria-live="polite">
+      <div class="state-spin"><Ticks /></div>
+      <div class="empty-title">{p.title}</div>
+      {p.hint ? <div class="empty-hint">{p.hint}</div> : null}
+    </div>
+  );
 }

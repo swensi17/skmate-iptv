@@ -6,6 +6,8 @@ import type { VodSource } from "../state/library";
 import type { Progress } from "../state/progress";
 import { clockOf } from "./VodPlayer";
 import { Poster } from "./VodView";
+import { Ticks } from "./Spinner";
+import "./screens.css";
 
 export const episodeLabel = (e: Episode): string => t("vodSE", { s: e.season, e: e.episode });
 const seasonName = (s: number): string => (s === 0 ? t("vodSpecials") : t("vodSeason", { n: s }));
@@ -57,9 +59,9 @@ export function VodDetails(p: {
           <div class="vd-title">{p.item.name}</div>
           {meta ? <div class="vd-meta">{meta}</div> : null}
           {p.item.plot ? <div class="vd-plot">{p.item.plot}</div> : null}
-          <div class="vd-actions">
-            {movie || nextUp ? (
-              resumable ? (
+          {movie || nextUp ? (
+            <div class="vd-actions">
+              {resumable ? (
                 <>
                   <button class="btn" data-focus="vd-play" onClick={() => play(resumable.positionMs)}>
                     {movie ? t("vodResume") : t("vodResumeEpisode", { name: episodeLabel(nextUp as Episode) })} · {clockOf(resumable.positionMs)}
@@ -70,13 +72,13 @@ export function VodDetails(p: {
                 <button class="btn" data-focus="vd-play" onClick={() => play(0)}>
                   {movie ? t("vodPlay") : t("vodPlayEpisode", { name: episodeLabel(nextUp as Episode) })}
                 </button>
-              )
-            ) : null}
-          </div>
+              )}
+            </div>
+          ) : null}
           {p.kind === "series" ? (
-            episodes === null ? <div class="list-head">{t("playlistLoading")}</div>
-            : failed ? <div class="status error">{t("vodEpisodesFailed", { error: failed })}</div>
-            : episodes.length === 0 ? <div class="list-head">{t("vodNoEpisodes")}</div>
+            episodes === null ? <div class="vd-loading" role="status"><span class="vd-loading-spin"><Ticks /></span>{t("playlistLoading")}</div>
+            : failed ? <div class="status error vd-note">{t("vodEpisodesFailed", { error: failed })}</div>
+            : episodes.length === 0 ? <div class="vd-note">{t("vodNoEpisodes")}</div>
             : (
               <>
                 <div class="filters vd-seasons">

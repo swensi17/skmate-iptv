@@ -9,8 +9,10 @@ import { UiContext } from "../state/UiContext";
 import { ChannelSearch } from "../state/channelSearch";
 import { GuideContext } from "../state/GuideContext";
 import { ChannelRow } from "./ChannelRow";
+import "./screens.css";
 
-const HEIGHT = 780;
+/** The room under the title row and the filters; the list shows only whole rows of it, so the last one is never cut. */
+const ROOM = 816;
 const TYPING_PAUSE_MS = 180;
 
 interface Props {
@@ -23,6 +25,7 @@ interface Props {
 /** Sport from the channel names: filters by kind of sport on top, a search of its own, the list below. */
 export function SportView({ channels, favorites, onOpen, onFav }: Props) {
   const ROW = useContext(UiContext).rowH;
+  const height = Math.max(ROW, Math.floor(ROOM / ROW) * ROW);
   const { list, kinds } = useMemo(() => sportSummary(channels), [channels]);
   const [kind, setKind] = useState<SportKind | "all">("all");
   const [query, setQuery] = useState("");
@@ -36,10 +39,12 @@ export function SportView({ channels, favorites, onOpen, onFav }: Props) {
 
   return (
     <div class="screen sport">
-      <h2>{t("navSport")}</h2>
-      <div class="toolbar">
-        <input class="field small" data-focus="sport-search" value={query} placeholder={t("filterSearch")}
-          onInput={(e) => setQuery((e.currentTarget as HTMLInputElement).value)} />
+      <div class="screen-top">
+        <h2>{t("navSport")}</h2>
+        <div class="toolbar">
+          <input class="field small" data-focus="sport-search" value={query} placeholder={t("filterSearch")}
+            onInput={(e) => setQuery((e.currentTarget as HTMLInputElement).value)} />
+        </div>
       </div>
       <div class="filters">
         <button class="filter" data-focus="sport-all" aria-pressed={kind === "all"} onClick={() => setKind("all")}>
@@ -52,10 +57,12 @@ export function SportView({ channels, favorites, onOpen, onFav }: Props) {
         ))}
       </div>
       {shown.length === 0 ? (
-        <div class="list-head">{t("sportEmpty")}</div>
+        <div class="empty-idle state">
+          <div class="empty-title">{list.length === 0 ? t("sportEmpty") : t("searchNothing", { q: settled.trim() })}</div>
+        </div>
       ) : (
         <VirtualList
-          key={`${kind}|${settled}`} items={shown} rowHeight={ROW} height={HEIGHT} pageSize={9}
+          key={`${kind}|${settled}`} items={shown} rowHeight={ROW} height={height} pageSize={9}
           idOf={(c) => `ch-${c.id}`}
           renderRow={(c, i) => <ChannelRow channel={c} index={i} favorite={favorites.has(channelKey(c))} onOpen={(ch) => onOpen(ch, shown)} onFav={onFav} />}
         />

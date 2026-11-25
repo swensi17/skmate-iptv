@@ -84,7 +84,7 @@ export function SettingsSheet(p: Props) {
   // A section opens on its first control; back on the menu, the focus is on the section just left.
   const left = useRef<Page | null>(null);
   useEffect(() => {
-    if (p.show) focusFirst(document, page ? FIRST[page] : `sheet-${left.current ?? "player"}`);
+    if (p.show) focusFirst(document, page === "profiles" ? `pf-${p.book.activeId}` : page ? FIRST[page] : `sheet-${left.current ?? "player"}`);
     if (page) left.current = page;
   }, [page, p.show]);
 

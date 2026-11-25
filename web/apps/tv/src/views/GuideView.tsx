@@ -10,6 +10,8 @@ import type { Settings } from "../state/settings";
 import { ChannelLogo } from "./ChannelLogo";
 import { PreviewVideo } from "./PreviewPane";
 import { leftLabel } from "./Left";
+import { LoadingState } from "./Spinner";
+import "./screens.css";
 import { capitalize } from "../text";
 import type { Programme } from "@skmate/epg";
 
@@ -53,7 +55,21 @@ export function GuideView({ settings, channels, favorites, status, onRefresh, on
     return () => clearTimeout(id);
   }, [focused?.id]);
 
-  useEffect(() => { focusFirst(document, rows[0] ? `pg-${rows[0].id}-name` : "guide-refresh"); }, [rows.length === 0]);
+  // The grid of a long playlist takes a while to lay out on a TV: the screen first shows that the guide is coming, and
+  // the grid is built a frame later, so the wait is never an empty grey page.
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    let timer = 0;
+    const frame = requestAnimationFrame(() => { timer = window.setTimeout(() => setReady(true), 0); });
+    return () => { cancelAnimationFrame(frame); clearTimeout(timer); };
+  }, []);
+
+  const syncing = status.kind === "syncing";
+  const grid = ready && rows.length > 0;
+  const loading = !grid && (!ready || syncing);
+  useEffect(() => {
+    focusFirst(document, grid && rows[0] ? `pg-${rows[0].id}-name` : loading ? "guide-now" : "guide-empty-refresh");
+  }, [grid, loading]);
   void favorites;
 
   const x = (ms: number) => ((ms - from) / SPAN_MS) * TIMELINE_W;
@@ -61,7 +77,6 @@ export function GuideView({ settings, channels, favorites, status, onRefresh, on
   const marks: number[] = [];
   for (let m = from; m < from + SPAN_MS; m += 30 * 60_000) marks.push(m);
 
-  const empty = rows.length === 0;
   const shown = sel?.programme ?? (focused ? data.nowNext(focused.id, now).now : null);
   const total = shown ? shown.stop - shown.start : 0;
   const done = shown && total > 0 ? Math.min(1, Math.max(0, (now - shown.start) / total)) : 0;
@@ -80,7 +95,7 @@ export function GuideView({ settings, channels, favorites, status, onRefresh, on
               <button class="btn tool" data-focus="guide-now" onClick={() => setFrom(floorHalfHour(Date.now() - 30 * 60_000))}>{t("guideNow")}</button>
               <button class="btn tool" data-focus="guide-fwd" onClick={() => setFrom((f) => f + SHIFT_MS)}>{t("guideForward")}</button>
               <button class="btn tool" data-focus="guide-refresh" onClick={onRefresh} aria-label={t("guideRefresh")}>
-                <Icon name="refresh" size={26} />{status.kind === "syncing" ? ` ${status.text}` : ""}
+                <Icon name="refresh" size={26} />{syncing && grid ? <span class="gtop-sync">{status.text}</span> : null}
               </button>
             </div>
           </div>
@@ -94,14 +109,23 @@ export function GuideView({ settings, channels, favorites, status, onRefresh, on
               </div>
               <div class="gtop-desc">{shown.desc ?? ""}</div>
             </>
-          ) : <div class="gtop-title dim">{t("scheduleNone")}</div>}
+          ) : loading ? null : <div class="gtop-title dim">{t("scheduleNone")}</div>}
         </div>
       </div>
 
-      {empty ? (
-        <div class="empty guide-empty">
-          <div class="empty-title">{status.kind === "syncing" ? t("guideLoading") : t("guideEmptyTitle")}</div>
-          <div class="empty-hint">{status.kind === "syncing" ? status.text : t("guideEmptyHint")}</div>
+      {loading ? (
+        <div class="guide-empty">
+          <LoadingState title={t("guideLoading")} hint={syncing && status.text !== t("guideLoading") ? status.text : undefined} />
+        </div>
+      ) : !grid ? (
+        <div class="guide-empty">
+          <div class="empty-idle state">
+            <div class="empty-title">{t("guideEmptyTitle")}</div>
+            <div class="empty-hint">{t("guideEmptyHint")}</div>
+            <div class="empty-actions">
+              <button class="btn" data-focus="guide-empty-refresh" onClick={onRefresh}>{t("guideRefresh")}</button>
+            </div>
+          </div>
         </div>
       ) : (
         <>
