@@ -5904,16 +5904,20 @@
 1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	:http-referrer=$it
 1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	:http-user-agent=$agent
 1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	:network-caching=$caching
-1	technical	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	Referer
+3	protocol	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	Referer
 1	technical	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	STEREO
 2	technical	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	UNUSED_PARAMETER
+1	protocol	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	User-Agent
 1	technical	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	VLC/3.0.20 LibVLC/3.0.20
 1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	abandon: $reason
 1	technical	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	end of stream
 1	technical	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	error
 1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	first frame after ${SystemClock.elapsedRealtime() - openedAt}ms
 1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	gave up after $reconnects reconnects ($why)
+1	protocol	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	http error
+1	protocol	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	http error ${c.responseCode}
 1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	memory pressure: the preview lets go
+1	protocol	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	network timeout
 1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	open timeout
 1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	open timing: queue ${startedAt - queuedAt}ms, stop+set ${mediaSetAt - startedAt}ms,
 1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	picture ready after ${SystemClock.elapsedRealtime() - openedAt}ms
@@ -5921,10 +5925,12 @@
 1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	play ${SystemClock.elapsedRealtime() - mediaSetAt}ms
 1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	play() engine=$engineId url=${HttpClient.redactUrl(url)} muted=$muted
 1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	preview: control step failed (${t.javaClass.simpleName}: ${t.message})
+1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	probe after give-up: $raw
 1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	reconnect $reconnects/$MAX_RECONNECTS after $why
 1	technical	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	stop() — intentional
 4	technical	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	unused
 2	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	vlc-control
+1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	vlc-probe
 1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	vlc-reap
 1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	wedged player shut down
 1	empty	player-core/src/main/java/tv/own/owntv/player/LiveStreamQuirks.kt	\0

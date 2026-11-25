@@ -526,6 +526,7 @@ class LivePreviewEngine(
             // A server that never answered leaves libVLC's input thread holding the player's lock, and every
             // later call on it (the next channel's open included) would queue behind. Start over on a new player.
             if (why == OPEN_TIMEOUT_WHY) replaceWedgedPlayer()
+            probeWhy(url)
             return
         }
         reconnects++
@@ -540,6 +541,36 @@ class LivePreviewEngine(
             val fresh = runCatching { kotlinx.coroutines.runBlocking { provider.freshUrl() } }.getOrNull()
             if (fresh != null && fresh != url) main.post { if (currentUrl == url) currentUrl = fresh }
         }.start()
+    }
+
+    /**
+     * libVLC says only "error" when it gives up, and the screen said "connection lost" over a channel the provider
+     * answers with 404 or 403. One short request to the same address with the same headers says what really
+     * happened: the status, or that the server cannot be reached. The answer replaces the bare reason while the
+     * error is still that channel's.
+     */
+    private fun probeWhy(url: String) {
+        val agent = userAgent ?: DEFAULT_UA
+        val referer = headerValue("Referer")
+        Thread({
+            val raw = runCatching {
+                val c = java.net.URL(url).openConnection() as java.net.HttpURLConnection
+                try {
+                    c.connectTimeout = PROBE_TIMEOUT_MS; c.readTimeout = PROBE_TIMEOUT_MS
+                    c.setRequestProperty("User-Agent", agent)
+                    referer?.let { c.setRequestProperty("Referer", it) }
+                    "http error ${c.responseCode}"
+                } finally { c.disconnect() }
+            }.getOrElse { "network timeout" }
+            val reason = PlayerErrors.classify(raw)
+                ?: if (raw.removePrefix("http error ").toIntOrNull()?.let { it >= HTTP_SERVER_ERROR } == true) {
+                    PlayerFailureReason.NETWORK
+                } else {
+                    null
+                }
+            LiveDiagnosticsLog.event("probe after give-up: $raw")
+            main.post { if (gaveUp && currentUrl == url && reason != null) _errorInfo.value = ErrorInfo(reason, null, raw) }
+        }, "vlc-probe").start()
     }
 
     /**
@@ -664,6 +695,9 @@ class LivePreviewEngine(
         internal const val HEALTHY_MS = 60_000L
         internal const val DEATH_VERDICT_MS = 30_000L
         private const val DEFAULT_UA = "VLC/3.0.20 LibVLC/3.0.20"
+        /** The give-up probe's connect and read limits, and where a status starts meaning "the server failed". */
+        private const val PROBE_TIMEOUT_MS = 4_000
+        private const val HTTP_SERVER_ERROR = 500
         /** The cache behind the picture when the latency setting says nothing: enough for a slow segment. */
         private const val DEFAULT_CACHE_MS = 1_000
         private const val LOW_SPEC_CACHE_MS = 3_000

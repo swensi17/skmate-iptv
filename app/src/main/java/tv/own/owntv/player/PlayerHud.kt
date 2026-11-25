@@ -1069,7 +1069,8 @@ fun PlayerHud(
                     style = tv.own.owntv.ui.theme.stageText(40, 700), color = Color.White, textAlign = TextAlign.Center,
                 )
                 Spacer(Modifier.height(10.dp))
-                failure?.let {
+                // "Connection lost" is the engine's guess; once the reason is known (a 404) it says that instead.
+                failure?.takeUnless { it == PlaybackFailure.LostConnection && errorInfo?.reason != null }?.let {
                     Text(it.displayText(), style = tv.own.owntv.ui.theme.stageText(25, 400), color = Color.White.copy(alpha = 0.7f), textAlign = TextAlign.Center)
                 }
                 errorInfo?.let { info ->
