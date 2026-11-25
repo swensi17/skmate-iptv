@@ -739,3 +739,11 @@ nav.rail { background: #2b2f33; }
 /* A rising sheet is below the screen for a moment: paint containment clips it to its layer, so it never makes the stage
    taller and focusing a control in it cannot scroll the stage. */
 .sheet-scrim, .entry-scrim { contain: paint; }
+
+/* The bands beside the 16:9 stage (a wider laptop window) are covered by a sheet too: this layer sits behind the stage
+   on the whole window and moves with the sheet, same curve and time. */
+.sheet-wings { position: fixed; inset: 0; z-index: -1; background: var(--panel); pointer-events: none; will-change: transform;
+  animation: from-bottom 300ms cubic-bezier(.2, 0, 0, 1) both; }
+.sheet-wings.out { animation: to-bottom 220ms cubic-bezier(.4, 0, 1, 1) both; }
+:root[data-motion-pref="auto"] .sheet-wings { animation-duration: 300ms !important; }
+:root[data-motion-pref="auto"] .sheet-wings.out { animation-duration: 220ms !important; }
