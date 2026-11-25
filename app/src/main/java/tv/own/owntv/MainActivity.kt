@@ -501,6 +501,18 @@ open class MainActivity : ComponentActivity() {
                     // trigger the single documented Activity.recreate() across a script-family switch.
                     // Same-script switches apply instantly here. See docs/internationalization.md 0b.
                     tv.own.owntv.core.i18n.LocalizedContent(localeStore) {
+                    // The terms of use come first, once: nothing else is composed (nothing plays behind them)
+                    // until they are accepted; declining closes the app. Blank for the moment the answer is read.
+                    val termsAccepted by viewModel.termsAccepted.collectAsStateWithLifecycle()
+                    if (termsAccepted != true) {
+                        if (termsAccepted == false) {
+                            tv.own.owntv.features.setup.termsOfUseScreen(
+                                onAccept = viewModel::acceptTerms,
+                                onDecline = { finishAffinity() },
+                            )
+                        }
+                        return@LocalizedContent
+                    }
                     Box(
                         modifier = Modifier.fillMaxSize()
                             // Solid base color first (fallback if no image / image fails to load).

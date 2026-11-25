@@ -108,6 +108,9 @@ fun TvBoxChannelPanel(
     onPreview: ((ChannelEntity) -> Unit)? = null,
     /** Room on the left for the categories column; the panel moves right by it. */
     inset: Dp = 0.mpx,
+    /** The side menu's push: the panel is moved by it from outside; the picture's window narrows by it to stay
+     *  on screen, as the picture does. */
+    menuShift: Dp = 0.mpx,
     /** False while the categories beside it have focus: the panel shows, but takes no keys or focus. */
     active: Boolean = true,
     /** The picture is opening a channel: a spinner in the middle of the picture's window. */
@@ -173,7 +176,7 @@ fun TvBoxChannelPanel(
     androidx.compose.foundation.layout.BoxWithConstraints(modifier.fillMaxSize()) {
         val screenW = maxWidth
         // Dark over everything but the picture's corner, which stays a clear window onto the video.
-        val dockW = TvBoxDock.width(screenW, inset)
+        val dockW = TvBoxDock.width(screenW, inset + menuShift)
         Box(
             Modifier.fillMaxSize()
                 .graphicsLayer { compositingStrategy = androidx.compose.ui.graphics.CompositingStrategy.Offscreen }
@@ -246,7 +249,7 @@ fun TvBoxChannelPanel(
         Column(
             Modifier.padding(
                 start = (TvBoxDock.Left + inset).coerceAtLeast(0.mpx),
-                top = TvBoxDock.Top + TvBoxDock.height(screenW, inset) + 24.mpx,
+                top = TvBoxDock.Top + TvBoxDock.height(screenW, inset + menuShift) + 24.mpx,
             )
                 .width(dockW).fillMaxHeight(),
         ) {

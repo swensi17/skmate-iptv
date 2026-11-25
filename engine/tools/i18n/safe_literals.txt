@@ -3354,6 +3354,7 @@
 1	preference-key	core/src/main/java/tv/own/owntv/core/settings/SettingsRepository.kt	sub_search_langs
 1	preference-key	core/src/main/java/tv/own/owntv/core/settings/SettingsRepository.kt	surround_mode
 1	preference-key	core/src/main/java/tv/own/owntv/core/settings/SettingsRepository.kt	surround_sound
+1	preference-key	core/src/main/java/tv/own/owntv/core/settings/SettingsRepository.kt	terms_accepted_version
 1	preference-key	core/src/main/java/tv/own/owntv/core/settings/SettingsRepository.kt	theme_mode
 1	preference-key	core/src/main/java/tv/own/owntv/core/settings/SettingsRepository.kt	timeshift_enabled
 1	preference-key	core/src/main/java/tv/own/owntv/core/settings/SettingsRepository.kt	timeshift_resume_mode

@@ -1,21 +1,15 @@
 package tv.own.owntv.features.settings
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -27,7 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.tv.material3.Text
@@ -39,6 +33,7 @@ import tv.own.owntv.ui.components.OwnTVIcon
 import tv.own.owntv.ui.theme.StageColors
 import tv.own.owntv.ui.theme.mpx
 import tv.own.owntv.ui.theme.stageText
+import androidx.compose.ui.text.style.TextOverflow
 import tv.own.owntv.ui.stage.StageTag
 import androidx.compose.ui.res.pluralStringResource
 
@@ -130,10 +125,11 @@ private fun FirstRunLanguagePopup(
             viewModel.setLocale(tag)
             close()
         }
+        // Rows from edge to edge with the settings sheet's focus bar, as the settings lists are.
+        androidx.compose.runtime.CompositionLocalProvider(tv.own.owntv.ui.theme.LocalInSettingsSheet provides true) {
         LazyColumn(
             state = listState,
-            modifier = Modifier.fillMaxWidth().weight(1f, fill = false),
-            verticalArrangement = Arrangement.spacedBy(4.mpx),
+            modifier = Modifier.panelBleed().weight(1f, fill = false),
         ) {
             item(key = SupportedLocales.SYSTEM_DEFAULT_TAG) {
                 SidePanelLanguageRow(
@@ -155,8 +151,21 @@ private fun FirstRunLanguagePopup(
                 )
             }
         }
+        }
     }
 }
+
+/** Past the side panel's own side padding, so a row's focus bar runs from edge to edge. */
+private fun Modifier.panelBleed(): Modifier = layout { measurable, constraints ->
+    val extra = (PANEL_PADDING * 2).mpx.roundToPx()
+    val wide = constraints.maxWidth + extra
+    val placeable = measurable.measure(constraints.copy(minWidth = wide, maxWidth = wide))
+    layout(constraints.maxWidth, placeable.height) { placeable.place(-extra / 2, 0) }
+}
+
+/** The side panel's padding, and where its title starts inside it: a row's text lines up with the title. */
+private const val PANEL_PADDING = 28
+private const val LIST_TEXT_START = 50
 
 /**
  * Settings › App › Language: System default, then every language A–Z by English name, each
@@ -256,8 +265,8 @@ private fun LanguageStageRow(
 }
 
 /**
- * A row of the side panel's language list: a round highlight while focused, and the language in use
- * filled SkMate blue with a white check on the right.
+ * A row of the side panel's language list, as a settings list row: edge to edge, no gaps, the focus bar
+ * across the line, and a check on the right of the language in use.
  */
 @Composable
 private fun SidePanelLanguageRow(
@@ -267,33 +276,28 @@ private fun SidePanelLanguageRow(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val shape = RoundedCornerShape(16.mpx)
     tv.own.owntv.ui.stage.StageSurface(
         onClick = onClick,
-        radius = 16.mpx,
-        focusStyle = tv.own.owntv.ui.stage.StageFocus.NONE,
-        modifier = modifier.fillMaxWidth().height(76.mpx),
+        radius = 0.mpx,
+        focusStyle = tv.own.owntv.ui.stage.StageFocus.FX,
+        modifier = modifier.fillMaxWidth(),
     ) { focused ->
-        val fill = when {
-            selected -> tv.own.owntv.ui.brand.SkMateBlue
-            focused -> StageColors.Text.copy(alpha = 0.07f)
-            else -> Color.Transparent
-        }
-        Box(
-            Modifier.matchParentSize().then(
-                if (selected && focused) Modifier.border(3.mpx, tv.own.owntv.ui.brand.SkMateBlue.copy(alpha = 0.35f), shape) else Modifier,
-            ).padding(if (selected && focused) 5.mpx else 0.mpx).background(fill, shape),
-        )
         Row(
-            Modifier.fillMaxWidth().padding(horizontal = 28.mpx),
-            horizontalArrangement = Arrangement.spacedBy(16.mpx),
+            Modifier.fillMaxWidth().padding(horizontal = LIST_TEXT_START.mpx, vertical = 12.mpx),
+            horizontalArrangement = Arrangement.spacedBy(12.mpx),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(Modifier.weight(1f)) {
-                Text(endonym, style = stageText(22, 700), color = if (selected) Color.White else StageColors.Text, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
-                Text(englishName, style = stageText(15, 500), color = if (selected) Color.White.copy(alpha = 0.8f) else StageColors.Muted, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                Text(
+                    endonym, style = stageText(22, 700), color = StageColors.Text,
+                    maxLines = 1, overflow = TextOverflow.Ellipsis,
+                )
+                Text(
+                    englishName, style = stageText(15, 500), color = StageColors.Muted,
+                    maxLines = 1, overflow = TextOverflow.Ellipsis,
+                )
             }
-            if (selected) OwnTVIcon(OwnTVIcon.CHECK, Color.White, Modifier.size(26.mpx))
+            tv.own.owntv.ui.stage.StagePopupRadio(on = selected, focused = focused)
         }
     }
 }
@@ -304,7 +308,7 @@ private const val FirstRunLanguage = "ru"
 private const val ENGLISH = "en"
 
 /** The device's first language when the app has it (region first, then the language alone); else Russian. */
-private fun firstRunLanguage(): String {
+internal fun firstRunLanguage(): String {
     val device = android.content.res.Resources.getSystem().configuration.locales[0]?.takeIf { it.language != ENGLISH }
     return device?.let { d ->
         SupportedLocales.canonicalTag(d.toLanguageTag())?.takeIf { it.isNotEmpty() }

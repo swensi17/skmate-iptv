@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
@@ -45,9 +46,10 @@ import tv.own.owntv.ui.theme.stageText
 @Composable
 fun TvBoxPlayerInfo(channel: ChannelEntity?, nowNext: EpgNowNext?, chips: List<String>, offsetSec: Int?, now: Long) {
     val formatTime = rememberSystemTimeFormatter()
-    val current = nowNext?.now?.takeIf { now < it.stopMs }
-    val next = nowNext?.next
+    // The moment on screen: the clock, less how far behind live the archive is.
     val watching = now - (offsetSec ?: 0) * 1000L
+    val current = nowNext?.now?.takeIf { watching < it.stopMs }
+    val next = nowNext?.next
     Column(verticalArrangement = Arrangement.spacedBy(18.mpx)) {
         Row(horizontalArrangement = Arrangement.spacedBy(24.mpx), verticalAlignment = Alignment.CenterVertically) {
             ChannelLogoTile(
@@ -69,7 +71,7 @@ fun TvBoxPlayerInfo(channel: ChannelEntity?, nowNext: EpgNowNext?, chips: List<S
                     if (current != null) {
                         Text(range(formatTime, current), style = stageText(20, 500), color = Soft, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                         MiniBar(((watching - current.startMs).toFloat() / (current.stopMs - current.startMs).coerceAtLeast(1)).coerceIn(0f, 1f))
-                        val left = ((current.stopMs - now) / 60_000L).toInt().coerceAtLeast(0)
+                        val left = ((current.stopMs - watching) / 60_000L).toInt().coerceAtLeast(0)
                         Text(stringResource(R.string.player_duration_minutes, left), style = stageText(20, 500), color = Soft, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                     }
                     if (channel != null) {
@@ -88,11 +90,17 @@ fun TvBoxPlayerInfo(channel: ChannelEntity?, nowNext: EpgNowNext?, chips: List<S
                 }
             }
         }
-        Timeline(
-            progress = current?.let { ((watching - it.startMs).toFloat() / (it.stopMs - it.startMs).coerceAtLeast(1)).coerceIn(0f, 1f) } ?: 1f,
-            behind = (offsetSec ?: 0) > 0,
-            seeking = tv.own.owntv.player.LocalTvBoxSeeking.current,
-        )
+        val progress = current?.let {
+            ((watching - it.startMs).toFloat() / (it.stopMs - it.startMs).coerceAtLeast(1)).coerceIn(0f, 1f)
+        } ?: 1f
+        Box(Modifier.fillMaxWidth()) {
+            Timeline(
+                progress = progress,
+                behind = (offsetSec ?: 0) > 0,
+                seeking = tv.own.owntv.player.LocalTvBoxSeeking.current,
+            )
+            tv.own.owntv.player.LocalTvBoxSeekRun.current?.let { moved -> seekCounter(progress, moved, watching) }
+        }
     }
 }
 
@@ -143,6 +151,53 @@ private fun Timeline(progress: Float, behind: Boolean, seeking: Boolean) {
         },
     )
 }
+
+/**
+ * Over the dot while ◀ ▶ move through the archive: how far the presses have gone ("−1:20", "+0:30") and the
+ * moment they land on, to the second. It sits above the line and takes no room, so nothing moves under it.
+ */
+@Composable
+private fun seekCounter(progress: Float, movedSec: Int, atMs: Long) {
+    val clock = remember { java.time.format.DateTimeFormatter.ofLocalizedTime(java.time.format.FormatStyle.MEDIUM) }
+    val at = remember(atMs / MS_PER_SEC) {
+        java.time.Instant.ofEpochMilli(atMs).atZone(java.time.ZoneId.systemDefault()).format(clock)
+    }
+    val label = stringResource(R.string.player_seek_counter, signedDuration(movedSec), at)
+    androidx.compose.ui.layout.Layout(
+        content = {
+            Text(
+                label, style = stageText(COUNTER_TEXT, COUNTER_WEIGHT), color = Color.Black, maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.background(Color.White, RoundedCornerShape(10.mpx))
+                    .padding(horizontal = 14.mpx, vertical = 6.mpx),
+            )
+        },
+        modifier = Modifier.fillMaxWidth(),
+    ) { measurables, constraints ->
+        val pill = measurables.first().measure(constraints.copy(minWidth = 0, minHeight = 0))
+        val room = (constraints.maxWidth - pill.width).coerceAtLeast(0)
+        val x = (constraints.maxWidth * progress - pill.width / 2f).toInt().coerceIn(0, room)
+        layout(constraints.maxWidth, 0) { pill.place(x, -pill.height - COUNTER_GAP.mpx.roundToPx()) }
+    }
+}
+
+/** "−1:20", "+0:30", "−1:02:05": minus is back in time. */
+private fun signedDuration(sec: Int): String {
+    val a = kotlin.math.abs(sec)
+    val sign = if (sec < 0) "\u2212" else "+"
+    val h = a / SEC_PER_HOUR
+    val m = a % SEC_PER_HOUR / SEC_PER_MIN
+    val s = a % SEC_PER_MIN
+    return if (h > 0) String.format(java.util.Locale.ROOT, "%s%d:%02d:%02d", sign, h, m, s)
+    else String.format(java.util.Locale.ROOT, "%s%d:%02d", sign, m, s)
+}
+
+private const val COUNTER_GAP = 10
+private const val COUNTER_TEXT = 22
+private const val COUNTER_WEIGHT = 700
+private const val MS_PER_SEC = 1000L
+private const val SEC_PER_MIN = 60
+private const val SEC_PER_HOUR = 3600
 
 private val Soft = Color.White.copy(alpha = 0.8f)
 private val Faint = Color.White.copy(alpha = 0.62f)

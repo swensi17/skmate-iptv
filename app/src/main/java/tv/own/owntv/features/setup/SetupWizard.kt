@@ -132,7 +132,11 @@ fun Onboarding(firstRun: Boolean, onDone: (Long?) -> Unit, onCancel: () -> Unit,
             Step.WELCOME -> WelcomeStep(onNext = { step = Step.DISPLAY_SIZE })
             // Before the disclaimer, which is the first screen with a paragraph of real text on it:
             // if the interface is too small to read, that is the screen it first hurts on.
-            Step.DISPLAY_SIZE -> DisplaySizeStep(onNext = { step = Step.DISCLAIMER }, onBack = { step = Step.WELCOME })
+            // The disclaimer step is now part of the terms of use, accepted before the wizard opens.
+            Step.DISPLAY_SIZE -> DisplaySizeStep(
+                onNext = { step = Step.SETUP_CHOICE },
+                onBack = { step = Step.WELCOME },
+            )
             Step.DISCLAIMER -> WizardFrame(
                 step = WizardStep.DISPLAY,
                 title = stringResource(R.string.setup_before_you_start),
@@ -148,7 +152,7 @@ fun Onboarding(firstRun: Boolean, onDone: (Long?) -> Unit, onCancel: () -> Unit,
                     step = WizardStep.PROFILE,
                     title = stringResource(R.string.setup_set_up_owntv),
                     sub = stringResource(R.string.setup_setup_choice_description),
-                    back = WizardAction(stringResource(R.string.common_back), { step = Step.DISCLAIMER }),
+                    back = WizardAction(stringResource(R.string.common_back), { step = Step.DISPLAY_SIZE }),
                     next = null,
                 ) {
                     WizardCards(

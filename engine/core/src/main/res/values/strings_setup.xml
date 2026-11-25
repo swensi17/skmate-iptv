@@ -556,4 +556,25 @@
     <!-- Translators: First-run card for the author's playlist. -->
     <string name="setup_author_playlist_line">Channels from the author, updated by themselves</string>
     <string name="setup_guide_attached">A TV guide is connected. You can add another one</string>
+    <string name="terms_title">Terms of use</string>
+    <string name="terms_intro">These terms are an agreement between you and the developer of SkMate IPTV. By using the app you accept them. If you do not agree, do not use the app.</string>
+    <string name="terms_h_player">A player only</string>
+    <string name="terms_player">SkMate IPTV is a media player. The app does not provide, host or distribute channels, playlists, films or any other content, nor grant access to any. To watch anything you add your own sources. The app is free and sells no content subscriptions.</string>
+    <string name="terms_h_content">Your responsibility for content</string>
+    <string name="terms_content">You alone are responsible for what you add to the app. Add only sources you have the right to use, and follow the laws of your country, including copyright law. Do not use the app to watch, record or distribute content unlawfully. The developer does not check or control the sources you add.</string>
+    <string name="terms_h_data">Your data</string>
+    <string name="terms_data">Playlists, favourites, history and settings are kept on this device. The app collects no personal data and shows no ads. It uses the network only to work: your sources and guides, GitHub for updates, and weather and film description services when they are on.</string>
+    <string name="terms_h_warranty">No warranty</string>
+    <string name="terms_warranty">The app is provided “as is”. The developer does not promise that it will work without errors or interruptions, on every device or with every source.</string>
+    <string name="terms_h_liability">Limitation of liability</string>
+    <string name="terms_liability">To the extent the law allows, the developer is not liable for direct or indirect damage from using the app or being unable to use it, including for the content and availability of sources you add.</string>
+    <string name="terms_h_license">Open source</string>
+    <string name="terms_license">The source code of SkMate IPTV is open and licensed under the GNU GPL version 3. The licence sets out your rights to the code; these terms cover using the app.</string>
+    <string name="terms_h_changes">Changes</string>
+    <string name="terms_changes">These terms may change. If the changes are material, the app shows the new version and asks you to accept it again.</string>
+    <string name="terms_h_contact">Contact</string>
+    <string name="terms_contact">Questions and bug reports: chat t.me/skmatetv and github.com/swensi17/skmate-iptv.</string>
+    <string name="terms_confirm">By pressing Accept you confirm that you have read these terms and agree to them.</string>
+    <string name="terms_accept">Accept</string>
+    <string name="terms_decline">Decline and exit</string>
 </resources>

@@ -182,6 +182,15 @@ class ShellViewModel(
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
+    /** Whether this device has accepted the current terms of use; null until read. */
+    val termsAccepted: StateFlow<Boolean?> = settings.termsAcceptedVersion
+        .map { it >= tv.own.owntv.features.setup.TERMS_VERSION }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    fun acceptTerms() {
+        viewModelScope.launch { settings.acceptTerms(tv.own.owntv.features.setup.TERMS_VERSION) }
+    }
+
     /** The active profile's playlists, for the top-bar quick switcher (empty when the profile has none). */
     val playlists: StateFlow<List<tv.own.owntv.core.database.entity.SourceEntity>> = settings.activeProfileId
         .flatMapLatest { pid -> if (pid < 0) flowOf(emptyList()) else sourceRepository.observeSources(pid) }

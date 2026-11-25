@@ -46,6 +46,8 @@ internal fun TvBoxPlayerPanels(
     railCounts: Map<LiveKey, Int>,
     categoriesOpen: Boolean,
     inset: Dp,
+    /** The open side menu's push: the panels move by it, and the picture's window narrows by it. */
+    menuShift: Dp,
     categoriesWidth: Dp,
     dockProgress: () -> Float,
     onClose: () -> Unit,
@@ -76,7 +78,7 @@ internal fun TvBoxPlayerPanels(
                 if (startChannel == null) startChannel = previewChannel
                 liveVm.ensurePlaying(ch)
             }.takeIf { previewOn },
-            inset = inset,
+            inset = inset, menuShift = menuShift,
             active = !categoriesOpen,
             loading = loading,
             dockProgress = dockProgress,
@@ -182,7 +184,7 @@ internal fun rememberVideoDock(
     besideCategories: Boolean,
     progress: androidx.compose.animation.core.Animatable<Float, androidx.compose.animation.core.AnimationVector1D>,
     inset: androidx.compose.animation.core.Animatable<Dp, androidx.compose.animation.core.AnimationVector1D>,
-    /** The side menu's push: the docked picture moves aside with the panels. */
+    /** The side menu's push (eased): the docked picture moves aside with the panels and narrows. */
     menuShift: () -> Dp = { Dp(0f) },
 ): Modifier {
     val spec = androidx.compose.animation.core.tween<Float>(DockAnimMs, easing = androidx.compose.animation.core.FastOutSlowInEasing)
@@ -203,6 +205,8 @@ internal fun rememberVideoDock(
         } else {
             fun lerp(a: Float, b: Float) = a + (b - a) * t
             val dock = tv.own.owntv.features.shell.components.TvBoxDock
+            // The menu pushes the panels aside: the picture narrows to stay on screen, and the panel's window
+            // narrows with it (TvBoxChannelPanel's menuShift), so the two never part.
             val dockW = dock.width(w.toDp(), inset.value + menuShift())
             val dw = lerp(w.toFloat(), dockW.toPx()).roundToInt().coerceAtLeast(1)
             val dh = lerp(h.toFloat(), (dockW * 9f / 16f).toPx()).roundToInt().coerceAtLeast(1)

@@ -35,4 +35,6 @@
     <string name="settings_audio_output_bluetooth" translatable="false">Bluetooth</string>
     <!-- The delay row's value, "Bluetooth · 150 ms": the output's name and its delay, already formatted. -->
     <string name="settings_output_audio_delay_value" translatable="false">%1$s · %2$s</string>
+    <!-- The archive seek counter over the timeline: how far the presses moved ("−1:20") and the moment they land on. -->
+    <string name="player_seek_counter" translatable="false">%1$s · %2$s</string>
 </resources>

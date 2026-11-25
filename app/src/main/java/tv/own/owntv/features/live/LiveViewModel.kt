@@ -548,6 +548,9 @@ class LiveViewModel(
         },
         loadArchive = ::loadArchiveStream,
         onLiveEdge = { goToLive() },
+        // ◀ ▶ step through the archive 10 s at a time: wait for the run of presses to rest before opening the
+        // archive at its end, so a run of taps opens one stream, not one per tap.
+        coalesceMs = ARCHIVE_SEEK_SETTLE_MS,
         // A channel without catch-up rewinds into its own saved copy. Forwarded, because the
         // controller is built further down.
         local = object : LiveTimeshift.Local {
@@ -2484,3 +2487,6 @@ class LiveViewModel(
 }
 
 private const val MS_PER_SECOND = 1_000L
+
+/** How long ◀ ▶ in the archive rest before the archive opens at where they stopped. */
+private const val ARCHIVE_SEEK_SETTLE_MS = 800L

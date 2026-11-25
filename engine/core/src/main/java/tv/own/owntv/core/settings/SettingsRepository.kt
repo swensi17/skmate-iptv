@@ -344,6 +344,7 @@ class SettingsRepository(private val context: Context, private val localeStore: 
     internal object Keys {
         val THEME_MODE = stringPreferencesKey("theme_mode")
         val UI_ZOOM_PCT = intPreferencesKey("ui_zoom_percent")
+        val TERMS_ACCEPTED = intPreferencesKey("terms_accepted_version")
         val FONT_SIZE_PCT = intPreferencesKey("font_size_percent")
         val POPUP_FONT_SIZE_PCT = intPreferencesKey("popup_font_size_percent")
         val POPUP_SIZE_PCT = intPreferencesKey("popup_size_percent")
@@ -2295,6 +2296,13 @@ class SettingsRepository(private val context: Context, private val localeStore: 
         parseRefreshMap(raw)
             .filterValues { it.toBoolean() }
             .keys.mapNotNullTo(LinkedHashSet()) { it.toLongOrNull() }
+    }
+
+    /** The version of the terms of use this device accepted; 0 when none yet. Kept through app updates. */
+    val termsAcceptedVersion: Flow<Int> = prefsFlow { it[Keys.TERMS_ACCEPTED] ?: 0 }
+
+    suspend fun acceptTerms(version: Int) {
+        context.dataStore.edit { it[Keys.TERMS_ACCEPTED] = version }
     }
 
     /**

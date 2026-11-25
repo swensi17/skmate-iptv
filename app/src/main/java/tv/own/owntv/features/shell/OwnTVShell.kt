@@ -1877,7 +1877,7 @@ fun OwnTVShell(
             val docked = TvBoxNav && isFull && zapSource == MainSection.LIVE_TV && (showChannelList || showHistoryList)
             val videoDock = rememberVideoDock(
                 docked, docked && showCategoryBrowser, playerDock, panelInset,
-            ) { menuPushTarget }
+            ) { menuPush }
             // "Promote Preview": a Live channel playing on ExoPlayer renders the ExoPlayer surface — in BOTH
             // full-screen AND the docked mini-player (same call site = the surface persists across dock/
             // expand, so playback never blips). Everything else (mpv) renders mpv's surface.
@@ -2113,14 +2113,14 @@ fun OwnTVShell(
                         tvBoxInfo = if (TvBoxNav && !catchupActive) { chips, offset ->
                             val epg by liveVm.nowNext.collectAsStateWithLifecycle()
                             val archiveEpg by liveVm.archiveNowNext.collectAsStateWithLifecycle()
-                            val watching by liveVm.watchingWallMs.collectAsStateWithLifecycle()
                             val clock by produceState(System.currentTimeMillis()) { while (true) { kotlinx.coroutines.delay(1_000); value = System.currentTimeMillis() } }
                             // In the archive: the programme being watched and its progress at the watched moment. The
                             // live one shown here read as "it went back to live" and the bar as a broken seek.
+                            // The moment itself is the clock less the offset (the info works it out): passing the
+                            // watched instant as the clock took the offset off twice, the dot twice as far back.
                             val inArchive = offset != null && archiveEpg != null
                             tv.own.owntv.features.shell.components.TvBoxPlayerInfo(
-                                previewChannel, if (inArchive) archiveEpg else epg, chips, offset,
-                                if (inArchive) watching ?: clock else clock,
+                                previewChannel, if (inArchive) archiveEpg else epg, chips, offset, clock,
                             )
                         } else null,
                         onOpenGuide = if (TvBoxNav && (isTunedLive || (isLiveStream && !catchupActive))) { { showGuideOverlay = true } } else null,
@@ -2245,6 +2245,7 @@ fun OwnTVShell(
                             railCounts = browserRailCounts,
                             categoriesOpen = showCategoryBrowser,
                             inset = panelInset.value,
+                            menuShift = menuPush,
                             categoriesWidth = CategoriesColumnWidth,
                             dockProgress = { playerDock.value },
                             onClose = { showChannelList = false },

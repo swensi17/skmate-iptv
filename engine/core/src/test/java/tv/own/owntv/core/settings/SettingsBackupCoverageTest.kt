@@ -35,6 +35,8 @@ class SettingsBackupCoverageTest {
         "last_live_channel",
         // Playlists switched off, by this device's playlist ids: another device numbers its playlists anew.
         "playlist_hidden",
+        // This device's acceptance of the terms: a restored device is asked itself.
+        "terms_accepted_version",
         // Backed up in their own BackupManager blocks, remapped to this device's playlists / EPG sources.
         "playlist_auto_refresh", "epg_auto_refresh", "epg_use_logos", "refresh_source_ids",
         // Exported only in their portable forms (backupLastCategoryKeys).

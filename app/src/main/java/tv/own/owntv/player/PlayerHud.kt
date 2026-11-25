@@ -22,6 +22,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
@@ -312,6 +313,30 @@ fun PlayerHud(
     // Between the info and the tiles: the timeline itself, where ◀ ▶ rewind. Only ▼ goes there, so ◀ ▶ on
     // a channel just opened never move the picture back by surprise.
     var tvSeek by remember { mutableStateOf(false) }
+    // A run of ◀ ▶ presses in the archive: the seconds its presses moved (+ toward live), and when the last one
+    // came. The timeline shows that total over the dot ("−1:20 · 13:42:10") until the run has rested a moment.
+    // Counted from the presses, not from the offset: the archive opening mid-run corrects the offset by the
+    // seconds it really starts at, and that showed as presses never made.
+    var seekRunMoved by remember { mutableStateOf<Int?>(null) }
+    var seekRunAt by remember { mutableLongStateOf(0L) }
+    LaunchedEffect(seekRunAt) {
+        if (seekRunMoved != null) {
+            kotlinx.coroutines.delay(SEEK_RUN_SHOW_MS)
+            seekRunMoved = null
+        }
+    }
+    // One step back (or toward live) in the archive: 10 s a press, growing while the key is held.
+    val scrubArchive: (Boolean, Int) -> Unit = { back, repeat ->
+        val at = android.os.SystemClock.uptimeMillis()
+        val moved = seekRunMoved?.takeIf { at - seekRunAt <= SEEK_RUN_SHOW_MS } ?: 0
+        seekRunAt = at
+        val step = archiveSeekStepSec(repeat)
+        // From the live edge the archive is never asked for less than its minimum (see LiveTimeshift.archiveFloor).
+        val fromLive = back && timeshiftOffset() == null
+        val applied = if (fromLive) maxOf(step, tv.own.owntv.core.live.CatchupJumps.MIN_OFFSET_SEC) else step
+        seekRunMoved = moved + if (back) -applied else applied
+        onScrubLive?.invoke(if (back) step else -step)
+    }
     val tvActionFocus = remember { FocusRequester() }
     LaunchedEffect(controlsVisible) { if (!controlsVisible) { tvActions = false; tvSeek = false } }
     var showInfo by remember { mutableStateOf(false) } // stream technical-info overlay
@@ -713,7 +738,7 @@ fun PlayerHud(
                 // "seeking does not work in the archive" was the complaint.
                 tvLive && error == null && !tvActions && onScrubLive != null && timeshiftOffset() != null &&
                     (e.key == Key.DirectionLeft || e.key == Key.DirectionRight) -> {
-                    onScrubLive(if (e.key == Key.DirectionLeft) LIVE_SCRUB_STEP_SEC else -LIVE_SCRUB_STEP_SEC)
+                    scrubArchive(e.key == Key.DirectionLeft, e.nativeKeyEvent.repeatCount)
                     controlsVisible = true
                     tvSeek = true
                     wakeTick++
@@ -723,7 +748,7 @@ fun PlayerHud(
                 // instead of rewinding into nothing and looking dead.
                 tvLive && error == null && controlsVisible && !tvActions && tvSeek && onScrubLive != null && liveProgrammes.isNotEmpty() &&
                     (e.key == Key.DirectionLeft || e.key == Key.DirectionRight) -> {
-                    onScrubLive(if (e.key == Key.DirectionLeft) LIVE_SCRUB_STEP_SEC else -LIVE_SCRUB_STEP_SEC)
+                    scrubArchive(e.key == Key.DirectionLeft, e.nativeKeyEvent.repeatCount)
                     wakeTick++
                     true
                 }
@@ -749,7 +774,7 @@ fun PlayerHud(
                     (if (onScrubLive != null && liveProgrammes.isNotEmpty()) liveLeftRightRewinds else !isLive && duration > 0L) -> {
                     val back = e.key == Key.DirectionLeft
                     if (onScrubLive != null && liveProgrammes.isNotEmpty()) {
-                        onScrubLive(if (back) LIVE_SCRUB_STEP_SEC else -LIVE_SCRUB_STEP_SEC)
+                        scrubArchive(back, e.nativeKeyEvent.repeatCount)
                     } else {
                         val step = player.seekStepMs.value
                         player.seekBy(if (back) -step else step)
@@ -847,7 +872,11 @@ fun PlayerHud(
                 Modifier.align(Alignment.BottomStart).fillMaxWidth().padding(start = 44.dp, end = 44.dp, bottom = 36.dp),
                 verticalArrangement = Arrangement.spacedBy(22.dp),
             ) {
-                androidx.compose.runtime.CompositionLocalProvider(LocalTvBoxSeeking provides tvSeek) {
+                androidx.compose.runtime.CompositionLocalProvider(
+                    LocalTvBoxSeeking provides tvSeek,
+                    // Seconds the run has moved, + toward live: the counter over the dot.
+                    LocalTvBoxSeekRun provides seekRunMoved,
+                ) {
                     tvBoxInfo!!(streamChips.ifEmpty { listOfNotNull(videoRes) }, timeshiftOffset())
                 }
                 if (tvActions) {
@@ -1252,6 +1281,31 @@ private fun runLiveKey(action: LiveKeyAction, firstPress: Boolean, jobs: Map<Liv
 
 /** TV-box live: whether ▼ has put the viewer on the timeline, where ◀ ▶ rewind; the info draws it raised. */
 val LocalTvBoxSeeking = androidx.compose.runtime.compositionLocalOf { false }
+
+/** The archive seek run in progress: seconds moved so far (+ toward live), or null when none is. */
+val LocalTvBoxSeekRun = androidx.compose.runtime.compositionLocalOf<Int?> { null }
+
+/**
+ * One ◀ ▶ step in the archive: 10 s a press, so a scene can be found to the second; held, the steps grow
+ * (30 s, a minute, five) so an hour is still a few seconds away. [repeat] is the key's auto-repeat count.
+ */
+internal fun archiveSeekStepSec(repeat: Int): Int = when {
+    repeat < SEEK_HOLD_30S -> SEEK_STEP_TAP
+    repeat < SEEK_HOLD_1M -> SEEK_STEP_30S
+    repeat < SEEK_HOLD_5M -> SEEK_STEP_1M
+    else -> SEEK_STEP_5M
+}
+
+private const val SEEK_STEP_TAP = 10
+private const val SEEK_STEP_30S = 30
+private const val SEEK_STEP_1M = 60
+private const val SEEK_STEP_5M = 300
+
+/** How long the run's counter stays after the last press; a press later than that starts a new run. */
+private const val SEEK_RUN_SHOW_MS = 1_500L
+private const val SEEK_HOLD_30S = 8
+private const val SEEK_HOLD_1M = 20
+private const val SEEK_HOLD_5M = 40
 
 /** TV-box live: how long the timeline or the tiles stay up after the last key. */
 private const val TV_BOX_BUSY_HIDE_MS = 8_000L
