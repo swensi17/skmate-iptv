@@ -20,13 +20,33 @@ export function stageOffset(width: number, height: number): { left: number; top:
 
 /** Keeps `--stage-scale` and the box position on the root in step with the window; returns the function that stops it. */
 export function fitStage(root: HTMLElement = document.documentElement, win: Window = window): () => void {
+  let lastW = -1;
+  let lastH = -1;
+  const typing = () => {
+    const el = win.document.activeElement;
+    return el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement;
+  };
   const apply = () => {
-    const { left, top } = stageOffset(win.innerWidth, win.innerHeight);
-    root.style.setProperty("--stage-scale", String(fitScale(win.innerWidth, win.innerHeight)));
+    const w = win.innerWidth;
+    const h = win.innerHeight;
+    // A TV's on-screen keyboard makes the window shorter while a field is being typed in. Refitting then would shrink
+    // the whole interface away from the viewer; the keyboard only covers the bottom, so the stage stays as it was
+    // (the entry panel keeps its field near the top for this reason) and is fitted again once the keyboard is gone.
+    if (typing() && w === lastW && h < lastH) return;
+    lastW = w;
+    lastH = h;
+    const { left, top } = stageOffset(w, h);
+    root.style.setProperty("--stage-scale", String(fitScale(w, h)));
     root.style.setProperty("--stage-left", `${left}px`);
     root.style.setProperty("--stage-top", `${top}px`);
   };
   apply();
+  // Leaving a field may come with the keyboard closing and no resize at all: fit again then.
+  const onBlur = () => setTimeout(apply, 0);
   win.addEventListener("resize", apply);
-  return () => win.removeEventListener("resize", apply);
+  win.document.addEventListener("focusout", onBlur);
+  return () => {
+    win.removeEventListener("resize", apply);
+    win.document.removeEventListener("focusout", onBlur);
+  };
 }

@@ -104,12 +104,9 @@ export function Wizard({ settings, hasProfile, onPreview, onFinish, onCancel }: 
     <div class="wizard" data-modal ref={root}>
       <div class="wz-top">
         <img class="wz-logo" src={logo} alt="skmate" />
-        {/* Where the viewer is: "Step 2 of 5" in words, then the steps as numbers (done, this one, still ahead). */}
+        {/* Where the viewer is, once and in words: "Шаг 2 из 5". Numbered circles beside it said the same twice. */}
         <div class="wz-progress">
           <span class="wz-count">{t("wzStepOf", { n: at + 1, total: steps.length })}</span>
-          <div class="wz-steps" aria-hidden="true">
-            {steps.map((_, i) => <span key={i} class={`wz-dot${i === at ? " on" : i < at ? " done" : ""}`}>{i + 1}</span>)}
-          </div>
         </div>
       </div>
 
