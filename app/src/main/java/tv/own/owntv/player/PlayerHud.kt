@@ -853,6 +853,14 @@ fun PlayerHud(
                                     if (favorite) OwnTVIcon.FAVORITE else OwnTVIcon.STAR, it, active = favorite,
                                 )
                             },
+                            onRecordThis?.let {
+                                TvBoxAction(
+                                    stringResource(
+                                        if (recordingThis) R.string.recording_stop else R.string.recording_record,
+                                    ),
+                                    OwnTVIcon.REC, it, active = recordingThis,
+                                )
+                            },
                             TvBoxAction(stringResource(R.string.player_tool_audio), OwnTVIcon.AUDIO, { dialog = HudDialog.AUDIO }).takeIf { audioCount > 1 },
                             TvBoxAction(stringResource(R.string.player_tool_subtitles), OwnTVIcon.SUBTITLE, { dialog = HudDialog.SUBS }).takeIf { subCount > 0 },
                             TvBoxAction(stringResource(R.string.player_tool_aspect), OwnTVIcon.ASPECT, { dialog = HudDialog.ZOOM }),

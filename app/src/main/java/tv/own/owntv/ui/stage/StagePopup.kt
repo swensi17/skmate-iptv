@@ -104,14 +104,15 @@ fun StagePopup(
                     // Close to the sides, so the rows get the width; the heading lines up with their text.
                     .padding(horizontal = 12.mpx, vertical = 30.mpx),
             ) {
-                Box(Modifier.padding(horizontal = 18.mpx)) {
+                // A column, not a box: the heading is several lines stacked one under another.
+                Column(Modifier.padding(horizontal = 18.mpx)) {
                     StagePopupHeading(title, eyebrow, eyebrowAccent, eyebrowIcon, body)
                 }
                 // Text given no style of its own reads as the popup's body text.
                 androidx.tv.material3.ProvideTextStyle(stageText(19, 500)) { content() }
                 if (buttons != null) {
                     Row(
-                        Modifier.fillMaxWidth().padding(top = 24.mpx),
+                        Modifier.fillMaxWidth().padding(top = 24.mpx, start = 18.mpx, end = 18.mpx),
                         horizontalArrangement = Arrangement.spacedBy(14.mpx, Alignment.End),
                         verticalAlignment = Alignment.CenterVertically,
                         content = buttons,
@@ -255,7 +256,11 @@ fun StagePopupOption(
                 }
             }
             if (value != null) {
-                Text("$value ›", style = stageText(18, 700), color = a.accent, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                val valueColor = if (focused) tv.own.owntv.ui.brand.SkMateBlue else a.accent
+                Text(
+                    "$value ›", style = stageText(18, 700), color = valueColor,
+                    maxLines = 1, overflow = TextOverflow.Ellipsis,
+                )
             }
             trailing?.invoke(this, focused)
         }

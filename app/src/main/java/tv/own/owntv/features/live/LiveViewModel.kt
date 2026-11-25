@@ -302,6 +302,31 @@ class LiveViewModel(
         }
     }
 
+    /** The archive programme on screen that was sent to Downloads (its start), so the button says so. */
+    private val _archiveSaved = MutableStateFlow<Long?>(null)
+    val archiveSaved: StateFlow<Long?> = _archiveSaved.asStateFlow()
+
+    /**
+     * Save the archive programme on screen to Downloads: the one replayed from the guide, or the one the
+     * live rewind is in. It is fetched from the provider's archive as a whole, start to end, whatever
+     * part of it is being watched; a second press does nothing more.
+     */
+    fun recordArchiveOnScreen() {
+        val ch = _previewChannel.value ?: return
+        viewModelScope.launch {
+            val pid = currentProfileId() ?: return@launch
+            val watching = timeshift.watchingWallMs.value
+            val programme = (if (_catchupActive.value) playingCatchupProgramme else null)
+                ?: watching?.let { at -> catchupProgrammes(ch).firstOrNull { at in it.startMs until it.stopMs } }
+                ?: return@launch
+            if (_archiveSaved.value == programme.startMs) return@launch
+            val source = withContext(Dispatchers.IO) { sourceDao.getById(ch.sourceId) } ?: return@launch
+            val tz = settings.resolveCatchupTimeZone(source)
+            val saved = recordings.recordFromArchive(pid, ch, programme, source, tz, xtreamClient)
+            if (saved == null) _catchupUnavailable.tryEmit(Unit) else _archiveSaved.value = programme.startMs
+        }
+    }
+
     /**
      * Record this channel from now, whether or not it is the one on screen.
      *

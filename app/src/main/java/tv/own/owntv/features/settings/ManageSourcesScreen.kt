@@ -1,7 +1,8 @@
 package tv.own.owntv.features.settings
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.widthIn
-import tv.own.owntv.ui.stage.stageGlass
+import tv.own.owntv.ui.stage.solidCard
 import tv.own.owntv.ui.theme.stageAccent
 import tv.own.owntv.ui.theme.stageText
 import tv.own.owntv.ui.theme.StageColors
@@ -71,6 +72,7 @@ fun ManageSourcesScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
     val progress by vm.progress.collectAsStateWithLifecycle()
     val playlistAutoRefresh by vm.playlistAutoRefresh.collectAsStateWithLifecycle()
     val defaultId by vm.defaultSourceId.collectAsStateWithLifecycle()
+    var showPlaylistChoice by remember { androidx.compose.runtime.mutableStateOf(false) }
     val sourceExpiry by vm.sourceExpiry.collectAsStateWithLifecycle()
     val sourceTest by vm.sourceTest.collectAsStateWithLifecycle()
     val deletingIds by vm.deletingSourceIds.collectAsStateWithLifecycle()
@@ -236,9 +238,14 @@ fun ManageSourcesScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
                         color = StageColors.Text,
                     )
                     Spacer(Modifier.height(9.mpx))
-                    Text(display?.primaryText() ?: stringResource(R.string.settings_sources_preparing), style = stageText(30, 800), color = stageAccent.accent)
-                    Spacer(Modifier.height(6.mpx))
-                    Text(display?.detailText() ?: stringResource(R.string.settings_sources_preparing), style = stageText(18, 400), color = StageColors.Muted)
+                    val primary = display?.primaryText() ?: stringResource(R.string.settings_sources_preparing)
+                    val detail = display?.detailText()
+                    Text(primary, style = stageText(30, 800), color = stageAccent.accent)
+                    // The second line only when it says something the first does not.
+                    if (!detail.isNullOrBlank() && detail != primary) {
+                        Spacer(Modifier.height(6.mpx))
+                        Text(detail, style = stageText(18, 400), color = StageColors.Muted)
+                    }
                     Spacer(Modifier.height(30.mpx))
                     tv.own.owntv.ui.stage.StageButton(stringResource(R.string.common_cancel), onClick = { showAdd = false; vm.cancelImport() })
                 }
@@ -288,6 +295,27 @@ fun ManageSourcesScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
                 handleBack = false,
             ) {
                 if (sources.isEmpty()) StageSettingsNote(stringResource(R.string.settings_sources_empty), null)
+                // Which playlist the channels come from: all of them, or one — switched here, nothing deleted.
+                if (sources.size > 1) {
+                    val allLabel = stringResource(R.string.content_all_playlists)
+                    val showTitle = stringResource(R.string.settings_show_playlist)
+                    StageSettingRow(
+                        icon = tv.own.owntv.ui.components.OwnTVIcon.LIST,
+                        title = showTitle,
+                        desc = null,
+                        value = SettingValue.Choice(sources.firstOrNull { it.id == defaultId }?.name ?: allLabel),
+                        onClick = { showPlaylistChoice = true },
+                    )
+                    if (showPlaylistChoice) {
+                        PickerDialog(
+                            title = showTitle,
+                            options = listOf("-1" to allLabel) + sources.map { it.id.toString() to it.name },
+                            selected = (sources.firstOrNull { it.id == defaultId }?.id ?: -1L).toString(),
+                            onSelect = { vm.setDefaultSource(it.toLong()); showPlaylistChoice = false },
+                            onDismiss = { showPlaylistChoice = false },
+                        )
+                    }
+                }
                 sources.forEachIndexed { index, source ->
                     val isDefault = source.id == defaultId
                     val counts by remember(source.id) { vm.contentCounts(source.id) }.collectAsStateWithLifecycle(null)
@@ -543,12 +571,18 @@ private fun CatalogSyncState.Syncing.countsLabel(sourceType: SourceType, stored:
 
 @Composable
 private fun CenterStatus(content: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit) {
-    Box(Modifier.padding(top = tv.own.owntv.features.shell.components.StageContentTop).fillMaxSize(), contentAlignment = Alignment.Center) {
-        Column(
-            Modifier.widthIn(max = 1000.mpx).stageGlass(30.mpx).padding(horizontal = 60.mpx, vertical = 48.mpx),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            content = content,
-        )
+    // A solid card in the middle of the whole screen, over a dimmed backdrop: drawn as glass inside the
+    // settings sheet it showed the screen behind straight through.
+    tv.own.owntv.ui.components.OwnTVPopup(onDismissRequest = {}, stageLayout = true) {
+        Box(Modifier.fillMaxSize().background(StageColors.Scrim), contentAlignment = Alignment.Center) {
+            Column(
+                Modifier.widthIn(min = 640.mpx, max = 1000.mpx)
+                    .solidCard(30.mpx)
+                    .padding(horizontal = 60.mpx, vertical = 48.mpx),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                content = content,
+            )
+        }
     }
 }
 

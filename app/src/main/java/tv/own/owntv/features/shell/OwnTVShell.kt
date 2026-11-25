@@ -291,6 +291,7 @@ fun OwnTVShell(
     // A catch-up archive programme is playing (Guide "Watch from start" or the Live TV catch-up picker)
     // rather than the live stream — the HUD swaps live-only controls for the VOD ones.
     val catchupActive by liveVm.catchupActive.collectAsStateWithLifecycle()
+    val archiveSaved by liveVm.archiveSaved.collectAsStateWithLifecycle()
     val vodExoActive by player.exoActiveState.collectAsStateWithLifecycle()
     // Auto frame rate: only ever applied to the FULL-SCREEN surface (never the mini-player or the
     // in-pane Live preview) — see FrameRateController.
@@ -1993,6 +1994,7 @@ fun OwnTVShell(
                 // position on the other engine) rather than Live TV's compatibility toggle, which would
                 // re-tune the live stream and jump the user to the current programme.
                 val isTunedLive = isLiveChannel && !catchupActive
+                val onArchive = catchupActive || timeshiftOffsetState.value != null
                 // Sports Hub: the extras exist only while the playing channel is one of the match's.
                 val sportsPlayback = koinInject<tv.own.owntv.features.sports.SportsPlayback>()
                 val sportsSession by sportsPlayback.session.collectAsStateWithLifecycle()
@@ -2044,10 +2046,15 @@ fun OwnTVShell(
                         // channel: there is nothing to record off a film that is already a file.
                         // The engine does not come into it. Recording fetches the channel itself rather
                         // than copying the open stream, so it works the same whichever engine is playing.
-                        onRecordThis = previewChannel
-                            ?.takeIf { recordWatchingEnabled && isTunedLive }
-                            ?.let { channel -> { liveVm.togglePlayerRecording(channel) } },
-                        recordingThis = playerRecording != null,
+                        // On an archive programme (replayed, or the rewind inside one) the same button saves that
+                        // programme from the provider's archive, whatever the live-recording setting says.
+                        onRecordThis = when {
+                            previewChannel?.catchup == true && onArchive -> liveVm::recordArchiveOnScreen
+                            else -> previewChannel
+                                ?.takeIf { recordWatchingEnabled && isTunedLive }
+                                ?.let { channel -> { liveVm.togglePlayerRecording(channel) } }
+                        },
+                        recordingThis = if (onArchive) archiveSaved != null else playerRecording != null,
                         onOpenHistoryList = if (isTunedLive) { { showHistoryList = true } } else null,
                         onRewindLive = if (isTunedLive && canRewindLive) liveVm::rewindLive else null,
                         onForwardLive = if (isTunedLive) liveVm::forwardLive else null,

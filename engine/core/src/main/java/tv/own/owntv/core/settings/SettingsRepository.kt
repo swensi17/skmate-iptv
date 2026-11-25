@@ -2648,7 +2648,7 @@ class SettingsRepository(private val context: Context, private val localeStore: 
     }
 
     /** The choices for films' buffer (seconds; 0 = Auto, the device tier). */
-    val vodBufferChoicesSecs: List<Int> = listOf(0, 30, 60, 120, 300)
+    val vodBufferChoicesSecs: List<Int> = listOf(0, 10, 20, 30, 60, 120, 300)
 
     /** How far ahead a film is loaded, in seconds; 0 = Auto (the device tier, as before). The
      *  memory ceiling is the tier's either way, so this is "up to". */

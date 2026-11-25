@@ -441,7 +441,7 @@
     <string name="settings_reset_saved_audio_delay_confirm_description">Каждый канал, фильм и серия вернутся к синхронизации звука выше. Сохранённые масштаб и громкость останутся. Отдельное значение всегда можно задать заново из плеера.</string>
     <string name="settings_seek_step">Шаг перемотки</string>
     <string name="settings_seek_step_description">На сколько перематывают назад и вперёд в фильме или серии.</string>
-    <string name="settings_vod_buffer">Буфер фильмов</string>
+    <string name="settings_vod_buffer">Буфер фильмов и архива</string>
     <string name="settings_vod_buffer_description">Насколько заранее загружаются фильмы, эпизоды и архив. «Авто» выбирает подходящее для этого устройства. Длинный буфер лучше переживает плохое соединение; предел по-прежнему задаёт память устройства, поэтому фильм с высоким битрейтом может уместить меньше выбранного.</string>
     <string name="settings_vod_network_timeout">Тайм-аут сети</string>
     <string name="settings_vod_network_timeout_description">Сколько фильмы, эпизоды и архив ждут молчащий сервер, прежде чем соединение считается потерянным. «Авто» оставляет собственное ожидание каждого плеера: 60 секунд в mpv, 20 в ExoPlayer.</string>
@@ -672,7 +672,7 @@
     <string name="settings_sources_empty">Источников пока нет. Добавьте источник M3U или Xtream.</string>
     <string name="settings_sources_add">Добавить источник</string>
     <string name="settings_sources_import_failed">Не удалось выполнить импорт</string>
-    <string name="settings_sources_importing">Импорт каталога…</string>
+    <string name="settings_sources_importing">Загрузка плейлиста…</string>
     <string name="settings_sources_preparing">Подготовка каталога</string>
     <string name="settings_sources_deleting">УДАЛЕНИЕ…</string>
     <string name="settings_sources_resync">Повторная синхронизация</string>
@@ -1889,4 +1889,5 @@
     <string name="tg_bot_code_expired">Код устарел, получите новый</string>
     <string name="settings_epg_catalog">Готовые телегиды</string>
     <string name="settings_epg_catalog_description">Включите любой: каналы, которые он знает по названию, получат передачи и логотипы. Обновляется раз в сутки.</string>
+    <string name="settings_show_playlist">Показывать каналы</string>
 </resources>

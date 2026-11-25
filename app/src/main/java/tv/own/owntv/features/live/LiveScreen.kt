@@ -1467,14 +1467,15 @@ private fun ChannelContextMenu(
         stringResource(R.string.content_menu_group_organise),
     ).map { it.uppercase(androidx.compose.ui.text.intl.Locale.current.platformLocale) }
     tv.own.owntv.ui.components.OwnTVPopup(onDismissRequest = onDismiss, stageLayout = true) {
-        BoxWithConstraints(
+        // In the middle of the screen, like every other popup.
+        androidx.compose.foundation.layout.Box(
             Modifier.fillMaxSize().background(tv.own.owntv.ui.theme.StageColors.Scrim).longPressMenuGuard(),
+            contentAlignment = Alignment.Center,
         ) {
-            val w = maxWidth
             tv.own.owntv.ui.stage.StageMenu(
                 Modifier
-                    .padding(start = w * (930f / 1920f), top = 118.mpx, bottom = 24.mpx)
-                    .width(540.mpx)
+                    .padding(vertical = 40.mpx)
+                    .width(640.mpx)
                     .verticalScroll(rememberScrollState())
                     .trapAllFocusExit()
                     .focusGroup(),

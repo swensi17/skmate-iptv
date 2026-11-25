@@ -1374,12 +1374,8 @@ class SettingsViewModel(
             block()
             val done = importer.state.value as? SourceImporter.ImportState.Success ?: return@launch
             Log.d(TAG, "runImport sync success sourceId=${done.source?.id} profile=$pid")
-            done.source?.let { synced ->
-                if (epgRepository.guideUrl(synced) != null) {
-                    pendingEpgSource = synced
-                    _epgSync.value = EpgSyncUi.Ask(synced.name)
-                }
-            }
+            // The playlist's guide is already downloading in the background (ImportFinalizer queued it), and the
+            // channels say so while it comes in: nothing to ask, the screen just closes.
             runCatching { refreshActiveTvHome(allowBrowsableRequest = true) }
         }
         importJob = job

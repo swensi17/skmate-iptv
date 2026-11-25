@@ -964,7 +964,9 @@ fun StageSettingRow(
                     )
                 }
             }
-            if (value != null && (!side || sideKeepsValue(value))) SettingValueView(value, onStep)
+            if (value != null && (!side || sideKeepsValue(value))) {
+                focusedBlue(focused) { SettingValueView(value, onStep) }
+            }
         }
     }
 }
@@ -1489,7 +1491,15 @@ fun StageFieldRow(
                 Text("▶ " + stringResource(if (shown) R.string.common_hide else R.string.common_show), style = stageText(18, 700), color = StageColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
             trailing?.invoke()
-            if (lit && !editing) Text(stringResource(R.string.common_edit), style = stageText(18, 700), color = a.accent, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            // Brand blue on the white focus plate, everywhere: a theme's white accent vanished there.
+            if (lit && !editing) {
+                Text(
+                    stringResource(R.string.common_edit),
+                    style = stageText(18, 700),
+                    color = tv.own.owntv.ui.brand.SkMateBlue,
+                    maxLines = 1, overflow = TextOverflow.Ellipsis,
+                )
+            }
         }
     }
 }
@@ -1599,4 +1609,15 @@ fun StageInfoCard(
             modifier = modifier.fillMaxWidth(),
         ) { _ -> content() }
     }
+}
+
+/** On the white focus plate a row's value is brand blue, whatever the theme's accent. */
+@Composable
+private fun focusedBlue(focused: Boolean, content: @Composable () -> Unit) {
+    if (!focused) return content()
+    val a = stageAccent
+    androidx.compose.runtime.CompositionLocalProvider(
+        tv.own.owntv.ui.theme.LocalStageAccentOverride provides a.copy(accent = tv.own.owntv.ui.brand.SkMateBlue),
+        content = content,
+    )
 }

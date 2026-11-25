@@ -23,3 +23,4 @@ fun Modifier.focusMarquee(focused: Boolean): Modifier =
 fun marqueeOverflow(focused: Boolean): TextOverflow = if (focused) TextOverflow.Clip else TextOverflow.Ellipsis
 
 private const val MARQUEE_DELAY_MS = 900
+

@@ -3,6 +3,7 @@ package tv.own.owntv.ui.stage
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.input.pointer.pointerInput
+import tv.own.owntv.ui.components.focusMarquee
 import tv.own.owntv.ui.theme.stageTone
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
@@ -767,7 +768,7 @@ fun StageMenuItem(
     StageSurface(
         onClick = onClick,
         radius = StageRadii.MenuItem,
-        modifier = modifier.fillMaxWidth().height(if (tvBox) 60.mpx else 50.mpx).alpha(if (enabled) 1f else 0.45f)
+        modifier = modifier.fillMaxWidth().height(if (tvBox) MENU_ROW_TV_BOX.mpx else 50.mpx).alpha(if (enabled) 1f else 0.45f)
             .then(
                 if (tvBox) Modifier.drawBehind {
                     val h = 1.mpx.toPx()
@@ -782,11 +783,22 @@ fun StageMenuItem(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             val on = if (focused) tv.own.owntv.ui.theme.stageAccent.onAccent else null
-            if (icon != null) StageIcon(icon, on ?: StageColors.Muted, if (tvBox) 24.mpx else 21.mpx, iconFilled)
+            if (icon != null) StageIcon(icon, on ?: StageColors.Muted, if (tvBox) 28.mpx else 21.mpx, iconFilled)
             leading?.invoke()
-            Text(text, style = stageText(if (tvBox) 21 else 19, 600), color = on ?: StageColors.MenuItemText, maxLines = 1,
-                overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
-            if (value != null) Text(value, style = stageText(15, 700), color = on ?: StageColors.Dim, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(
+                text, style = stageText(if (tvBox) MENU_TEXT_TV_BOX else 19, 600),
+                color = on ?: StageColors.MenuItemText, maxLines = 1,
+                overflow = tv.own.owntv.ui.components.marqueeOverflow(focused),
+                modifier = Modifier.weight(1f).focusMarquee(focused),
+            )
+            // The value in brand blue on the focus plate, as in Settings.
+            if (value != null) {
+                Text(
+                    value, style = stageText(if (tvBox) 17 else 15, 700),
+                    color = menuValueColor(focused),
+                    maxLines = 1, overflow = TextOverflow.Ellipsis,
+                )
+            }
             if (checked) StageIcon(OwnTVIcon.CHECK, on ?: a.accent, 22.mpx)
         }
     }
@@ -1351,3 +1363,10 @@ private fun segShape(r: Int) = androidx.compose.foundation.shape.RoundedCornerSh
 
 /** Above this an accent is too pale for text on the light focus bar. */
 private const val PALE_ACCENT_LUMINANCE = 0.6f
+
+/** A menu row on a TV box is as tall, and its text as large, as a popup row. */
+private const val MENU_ROW_TV_BOX = 76
+private const val MENU_TEXT_TV_BOX = 23
+
+@Composable
+private fun menuValueColor(focused: Boolean): Color = if (focused) tv.own.owntv.ui.brand.SkMateBlue else StageColors.Dim
