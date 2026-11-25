@@ -40,7 +40,7 @@ const MENU: Array<[Key, Page[]]> = [
 ];
 
 const FIRST: Record<Page, string> = {
-  player: "s-engine", look: "s-theme", playlists: "pl-url", epg: "s-epgauto", profiles: "pf-name", system: "s-lang", backup: "bk-save", about: "about-t.me/skmatetv",
+  player: "s-engine", look: "s-theme", playlists: "pl-f-url", epg: "s-epgauto", profiles: "pf-name", system: "s-lang", backup: "bk-save", about: "about-t.me/skmatetv",
 };
 
 interface Props {

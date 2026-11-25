@@ -455,4 +455,8 @@ export const fr: Record<keyof typeof en, string> = {
   entEmpty: "Not set",
   entTypeHere: "Type here…",
   entKeys: "OK on the remote: done · Back: cancel",
+  plYours: "Your playlists",
+  plDemoSub: "Test channels to try the app",
+  plFileSub: "A file from this device",
+  plPickHint: "OK: watch this playlist",
 };
