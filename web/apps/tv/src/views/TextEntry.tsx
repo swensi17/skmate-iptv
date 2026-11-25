@@ -4,7 +4,7 @@ import { isBack } from "@skmate/ui";
 import { t } from "../i18n";
 
 /**
- * Typing one value with a remote, as in Lampa: a panel slides in from the left over a dimmed screen, with what to
+ * Typing one value with a remote: a sheet rises from the bottom over the whole screen, with what to
  * type, an example, one big field (the TV's keyboard opens on it), Done and Cancel. OK in the field is Done, Back
  * is Cancel. The rest of the app does not see these keys while the panel is open, so Back never closes the
  * settings behind it.
@@ -16,6 +16,8 @@ export function TextEntry(p: {
   type?: "text" | "password";
   onDone: (value: string) => void;
   onCancel: () => void;
+  /** Going down again (see `Presence`): it no longer takes keys. */
+  closing?: boolean;
 }) {
   const [value, setValue] = useState(p.value);
   const input = useRef<HTMLInputElement>(null);
@@ -29,6 +31,7 @@ export function TextEntry(p: {
   // Back and a right click belong to this panel while it is open: caught before the app's own handler.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if (p.closing) return;
       const typing = document.activeElement instanceof HTMLInputElement;
       if (isBack(e) && !(typing && e.key === "Backspace")) { e.preventDefault(); e.stopImmediatePropagation(); p.onCancel(); }
     };
@@ -39,11 +42,12 @@ export function TextEntry(p: {
       document.removeEventListener("keydown", onKey, true);
       document.removeEventListener("contextmenu", onContext, true);
     };
-  }, [p.onCancel]);
+  }, [p.onCancel, p.closing]);
 
   return createPortal(
-    <div class="entry-scrim" onClick={(e) => { if (e.target === e.currentTarget) p.onCancel(); }}>
-      <div class="entry" role="dialog" aria-label={p.title} data-modal>
+    <div class={`entry-scrim${p.closing ? " closing" : ""}`} onClick={(e) => { if (e.target === e.currentTarget) p.onCancel(); }}>
+      <div class={`entry${p.closing ? " out" : ""}`} role="dialog" aria-label={p.title} data-modal={p.closing ? undefined : ""}>
+        <div class="entry-col">
         <div class="entry-title">{p.title}</div>
         <div class="entry-hint">{p.hint}</div>
         <input
@@ -57,6 +61,7 @@ export function TextEntry(p: {
           <button class="btn" data-focus="entry-cancel" onClick={p.onCancel}>{t("confirmCancel")}</button>
         </div>
         <div class="entry-keys">{t("entKeys")}</div>
+        </div>
       </div>
     </div>,
     document.getElementById("app") ?? document.body, // inside the scaled stage, above the settings sheet

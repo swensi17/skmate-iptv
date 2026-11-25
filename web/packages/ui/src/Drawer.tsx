@@ -5,10 +5,14 @@ import type { ComponentChildren } from "preact";
  * `Presence`). By default it is a dialog for the remote: focus stays inside it (`data-modal`), Back or a click outside
  * closes it. With [modal] false the remote may leave it for what is outside (the player's bar below it), and
  * [bottomGap] keeps that much of the screen's bottom free.
+ *
+ * `side="bottom"` is a sheet: it rises from the bottom over the whole screen and goes down again the same way, its
+ * content in one centred column (`.sheet-col`) so text has room. Sheets stack: a section opened from a sheet is
+ * another sheet on top, and Back lowers only that one. Only a transform moves, so it is cheap on a TV.
  */
 export function Drawer(p: {
-  side: "left" | "right";
-  width: number;
+  side: "left" | "right" | "bottom";
+  width?: number;
   label: string;
   onClose: () => void;
   closing?: boolean;
@@ -19,14 +23,15 @@ export function Drawer(p: {
   children: ComponentChildren;
 }) {
   const modal = p.modal ?? true;
+  const sheet = p.side === "bottom";
+  const size = sheet ? {} : { width: `${p.width ?? 760}px`, ...(p.bottomGap ? { height: `calc(100% - ${p.bottomGap}px)` } : {}) };
   return (
-    <div class={`scrim drawer-scrim${p.closing ? " closing" : ""}${modal ? "" : " open-ended"}`} data-modal={modal && !p.closing ? "" : undefined} onClick={p.onClose}>
+    <div class={`scrim drawer-scrim${sheet ? " sheet-scrim" : ""}${p.closing ? " closing" : ""}${modal ? "" : " open-ended"}`} data-modal={modal && !p.closing ? "" : undefined} onClick={p.onClose}>
       <aside
         class={`drawer drawer-${p.side}${p.closing ? " out" : ""}${p.className ? ` ${p.className}` : ""}`}
-        style={{ width: `${p.width}px`, ...(p.bottomGap ? { height: `calc(100% - ${p.bottomGap}px)` } : {}) }}
-        role="dialog" aria-label={p.label} onClick={(e) => e.stopPropagation()}
+        style={size} role="dialog" aria-label={p.label} onClick={(e) => e.stopPropagation()}
       >
-        {p.children}
+        {sheet ? <div class="sheet-col">{p.children}</div> : p.children}
       </aside>
     </div>
   );

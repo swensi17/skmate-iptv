@@ -652,7 +652,7 @@ nav.rail { background: #2b2f33; }
 .src-actions .btn.primary { min-width: 280px; }
 
 /* The entry panel, as in Lampa: from the left over a dimmed screen, one big field, Done and Cancel. */
-.entry-scrim { position: absolute; inset: 0; z-index: 20; background: rgba(0, 0, 0, .6); animation: fade var(--enter-ms) linear both; }
+.entry-scrim { position: absolute; inset: 0; z-index: 20; background: none; animation: fade var(--enter-ms) linear both; }
 .entry { position: absolute; left: 0; top: 0; bottom: 0; width: 1180px; padding: 0 96px; display: flex; flex-direction: column; justify-content: center;
   background: var(--panel); box-shadow: 24px 0 64px rgba(0, 0, 0, .45); animation: from-left var(--enter-ms) cubic-bezier(.2, 0, 0, 1) both; }
 .entry-title { font-size: 48px; font-weight: 800; margin-bottom: 12px; }
@@ -702,3 +702,40 @@ nav.rail { background: #2b2f33; }
 /* "In use" on a playlist row: plain grey text on the right, as in the other lists. */
 .srow .sub { flex: none; color: var(--muted); font-size: 22px; font-weight: 500; }
 .srow:focus .sub { color: var(--focus-text); opacity: .7; }
+
+/* ===== Sheets from the bottom (settings, its sections, the playlist picker, typing a value) =====
+   A sheet covers the whole screen and holds one centred column, so rows can be wide and text large. It rises from the
+   bottom and goes down the same way; only a transform moves. Sections stack: each one is another sheet on top. */
+.sheet-scrim { background: none; } /* the sheet is opaque and covers the screen: a dim layer over a playing video only cost frames */
+.drawer.drawer-bottom { width: 100%; height: 100%; margin: 0; padding: 0; border-radius: 0; box-shadow: none;
+  align-items: center; animation: from-bottom 300ms cubic-bezier(.2, 0, 0, 1) both; }
+.drawer.drawer-bottom.out { animation: to-bottom 220ms cubic-bezier(.4, 0, 1, 1) both; }
+@keyframes from-bottom { from { transform: translateY(100%); } to { transform: none; } }
+@keyframes to-bottom { to { transform: translateY(100%); } }
+:root[data-motion-pref="auto"] .drawer.drawer-bottom { animation-duration: 300ms !important; }
+:root[data-motion-pref="auto"] .drawer.drawer-bottom.out { animation-duration: 220ms !important; }
+.sheet-col { width: 1240px; max-width: calc(100% - 160px); height: 100%; display: flex; flex-direction: column; padding-top: 56px; min-height: 0; }
+.drawer-bottom .drawer-head { margin-bottom: 24px; }
+.drawer-bottom .drawer-title { font-size: 44px; }
+.drawer-bottom .drawer-body, .drawer-bottom .drawer-scroll { flex: 1; min-height: 0; }
+/* Larger rows: the column is wide, nothing needs to be squeezed. */
+.drawer-bottom .menu-row { height: 96px; font-size: 30px; padding: 0 24px; }
+.drawer-bottom .menu-row.two { height: 104px; }
+.drawer-bottom .srow { min-height: 100px; padding: 16px 24px; }
+.drawer-bottom .srow-title { font-size: 30px; }
+.drawer-bottom .srow-hint { font-size: 22px; }
+.drawer-bottom .chip { height: 52px; padding: 0 22px; font-size: 22px; }
+.drawer-bottom .caption { font-size: 19px; margin: 24px 8px 8px; }
+.drawer-bottom .row { height: 96px; font-size: 30px; }
+
+/* Typing a value: the same kind of sheet, its content in the middle of the screen. */
+.entry { left: 0; right: 0; width: auto; padding: 0; display: flex; justify-content: center; align-items: center; box-shadow: none;
+  animation: from-bottom 300ms cubic-bezier(.2, 0, 0, 1) both; }
+.entry.out { animation: to-bottom 220ms cubic-bezier(.4, 0, 1, 1) both; }
+.entry-scrim.closing { animation: fade-out 220ms linear both; }
+:root[data-motion-pref="auto"] .entry { animation-duration: 300ms !important; }
+:root[data-motion-pref="auto"] .entry.out { animation-duration: 220ms !important; }
+.entry-col { width: 1100px; max-width: calc(100% - 160px); display: flex; flex-direction: column; }
+/* A rising sheet is below the screen for a moment: paint containment clips it to its layer, so it never makes the stage
+   taller and focusing a control in it cannot scroll the stage. */
+.sheet-scrim, .entry-scrim { contain: paint; }

@@ -138,6 +138,15 @@ export function App() {
     return () => document.removeEventListener("mousemove", onMove);
   }, []);
   useEffect(() => { saveFavorites(favorites); }, [favorites]);
+  // The stage never scrolls. A sheet that is still rising sits below the screen, and focusing a control in it makes the
+  // browser scroll the stage to show it, which would leave the whole screen shifted once the sheet is up.
+  useEffect(() => {
+    const stage = document.getElementById("app");
+    if (!stage) return;
+    const pin = () => { if (stage.scrollTop || stage.scrollLeft) { stage.scrollTop = 0; stage.scrollLeft = 0; } };
+    stage.addEventListener("scroll", pin, { passive: true });
+    return () => stage.removeEventListener("scroll", pin);
+  }, []);
 
   // Back: dialog → closes, player → list, any section but the first → the first, in the first → leave the app to the TV.
   useEffect(() => installDpad(() => {

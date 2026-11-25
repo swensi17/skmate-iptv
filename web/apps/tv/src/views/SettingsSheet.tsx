@@ -1,5 +1,5 @@
-import { useEffect } from "preact/hooks";
-import { Drawer, focusFirst, Icon, type IconName } from "@skmate/ui";
+import { useEffect, useRef } from "preact/hooks";
+import { Drawer, focusFirst, Icon, Presence, type IconName } from "@skmate/ui";
 import type { GuideData, SourceOutcome } from "@skmate/epg";
 import { t, type Key } from "../i18n";
 import type { PlaylistEntry, PlaylistStore } from "../state/playlists";
@@ -77,11 +77,16 @@ interface Props {
   update: { state: UpdateState; check: () => void; install: () => void };
 }
 
-/** Settings as a sheet from the right edge: a menu of sections, each opening its rows in the same sheet. */
+/** Settings as a sheet from the bottom: a menu of sections, each opening its rows in a sheet of its own on top. */
 export function SettingsSheet(p: Props) {
   const { settings: s, onChange, page } = p;
   const set = <K extends keyof Settings>(k: K) => (v: Settings[K]) => onChange({ ...s, [k]: v });
-  useEffect(() => { if (p.show) focusFirst(document, page ? FIRST[page] : "sheet-player"); }, [page, p.show]);
+  // A section opens on its first control; back on the menu, the focus is on the section just left.
+  const left = useRef<Page | null>(null);
+  useEffect(() => {
+    if (p.show) focusFirst(document, page ? FIRST[page] : `sheet-${left.current ?? "player"}`);
+    if (page) left.current = page;
+  }, [page, p.show]);
 
   const engine = { auto: t("engAuto"), native: t("engNative"), hls: t("engHls"), mpegts: t("engMpegts") }[s.engine];
   const density = { 72: t("rowCompact"), 84: t("rowNormal"), 96: t("rowLarge") }[s.rowSize];
@@ -98,9 +103,53 @@ export function SettingsSheet(p: Props) {
     about: `${t("aboutLicense")}`,
   };
 
+  // One page of settings, as its own sheet on top of the menu.
+  const pageSheet = (pg: Page) => (
+        <>
+          <SheetHead title={t(META[pg].title)} right={pg === "about" ? __APP_VERSION__ : undefined} onBack={p.onBack} />
+          <div class="drawer-body drawer-scroll">
+            {pg === "player" ? <PlayerSettingRows settings={s} onChange={onChange} /> : null}
+            {pg === "look" ? (
+              <>
+                <SettingRow id="s-theme" title="settingsTheme" hint="settingsThemeHint" value={s.theme} onPick={set("theme")}
+                  options={[{ value: "system", label: t("themeSystem") }, { value: "dark", label: t("themeDark") }, { value: "light", label: t("themeLight") }]} />
+                <SettingRow id="s-motion" title="settingsMotion" hint="settingsMotionHint" value={s.motion} onPick={set("motion")}
+                  options={[{ value: "auto", label: t("motionAuto") }, { value: "on", label: t("motionOn") }, { value: "off", label: t("motionOff") }]} />
+                <SettingRow id="s-rows" title="setRowSize" hint="setRowSizeHint" value={s.rowSize} onPick={set("rowSize")}
+                  options={[{ value: 72, label: t("rowCompact") }, { value: 84, label: t("rowNormal") }, { value: 96, label: t("rowLarge") }]} />
+                <SettingRow id="s-scale" title="setUiScale" hint="setUiScaleHint" value={s.uiScale} onPick={set("uiScale")}
+                  options={[80, 90, 100].map((n) => ({ value: n as Settings["uiScale"], label: t("percent", { n }) }))} />
+                <SettingRow id="s-logos" title="setShowLogos" hint="setShowLogosHint" value={s.showLogos} onPick={set("showLogos")}
+                  options={[{ value: false, label: t("off") }, { value: true, label: t("on") }]} />
+                <SettingRow id="s-numbers" title="setShowNumbers" hint="setShowNumbersHint" value={s.showNumbers} onPick={set("showNumbers")}
+                  options={[{ value: false, label: t("off") }, { value: true, label: t("on") }]} />
+                <SettingRow id="s-program" title="setShowProgram" hint="setShowProgramHint" value={s.showProgram} onPick={set("showProgram")}
+                  options={[{ value: false, label: t("off") }, { value: true, label: t("on") }]} />
+              </>
+            ) : null}
+            {pg === "playlists" ? (
+              <PlaylistsPanel store={p.store} status={p.status} onAdd={p.onAddPlaylist} onAddFile={p.onAddPlaylistFile} onSelect={p.onSelectPlaylist} onEdit={p.onEditPlaylist} onAskDelete={p.onAskDeletePlaylist} />
+            ) : null}
+            {pg === "epg" ? (
+              <EpgPanel settings={s} onChange={onChange} data={p.guide.data} status={p.guide.status} outcomes={p.guide.outcomes}
+                channelCount={p.channelCount} active={p.active} headerGuides={p.headerGuides} onRefresh={p.guide.onRefresh} onClear={p.guide.onClear} />
+            ) : null}
+            {pg === "profiles" ? (
+              <ProfilesPanel book={p.book} onSwitch={p.onSwitchProfile} onAdd={p.onAddProfile} onAskDelete={p.onAskDeleteProfile}
+                onSetPin={p.onSetPin} onRemovePin={p.onRemovePin} onToggleKids={p.onToggleKids} />
+            ) : null}
+            {pg === "system" ? <SystemPanel settings={s} onChange={onChange} onQr={p.onQr} onReset={p.onAskReset} onRedo={p.onRedoWizard} update={p.update} /> : null}
+            {pg === "backup" ? <BackupPanel /> : null}
+            {pg === "about" ? <AboutPanel onQr={p.onQr} /> : null}
+          </div>
+        </>
+  );
+
+  // The menu is a sheet from the bottom; a section opened from it is another sheet rising over it, and Back lowers only
+  // that one, so the menu is there again under it.
   return (
-    <Drawer side="right" width={980} label={t("sheetTitle")} onClose={p.onClose} closing={!p.show}>
-      {page === null ? (
+    <>
+      <Drawer side="bottom" label={t("sheetTitle")} onClose={p.onClose} closing={!p.show}>
         <>
           <SheetHead title={t("sheetTitle")} onBack={p.onClose} />
           <div class="drawer-scroll">
@@ -121,46 +170,14 @@ export function SettingsSheet(p: Props) {
             ))}
           </div>
         </>
-      ) : (
-        <>
-          <SheetHead title={t(META[page].title)} right={page === "about" ? __APP_VERSION__ : undefined} onBack={p.onBack} />
-          <div class="drawer-body drawer-scroll">
-            {page === "player" ? <PlayerSettingRows settings={s} onChange={onChange} /> : null}
-            {page === "look" ? (
-              <>
-                <SettingRow id="s-theme" title="settingsTheme" hint="settingsThemeHint" value={s.theme} onPick={set("theme")}
-                  options={[{ value: "system", label: t("themeSystem") }, { value: "dark", label: t("themeDark") }, { value: "light", label: t("themeLight") }]} />
-                <SettingRow id="s-motion" title="settingsMotion" hint="settingsMotionHint" value={s.motion} onPick={set("motion")}
-                  options={[{ value: "auto", label: t("motionAuto") }, { value: "on", label: t("motionOn") }, { value: "off", label: t("motionOff") }]} />
-                <SettingRow id="s-rows" title="setRowSize" hint="setRowSizeHint" value={s.rowSize} onPick={set("rowSize")}
-                  options={[{ value: 72, label: t("rowCompact") }, { value: 84, label: t("rowNormal") }, { value: 96, label: t("rowLarge") }]} />
-                <SettingRow id="s-scale" title="setUiScale" hint="setUiScaleHint" value={s.uiScale} onPick={set("uiScale")}
-                  options={[80, 90, 100].map((n) => ({ value: n as Settings["uiScale"], label: t("percent", { n }) }))} />
-                <SettingRow id="s-logos" title="setShowLogos" hint="setShowLogosHint" value={s.showLogos} onPick={set("showLogos")}
-                  options={[{ value: false, label: t("off") }, { value: true, label: t("on") }]} />
-                <SettingRow id="s-numbers" title="setShowNumbers" hint="setShowNumbersHint" value={s.showNumbers} onPick={set("showNumbers")}
-                  options={[{ value: false, label: t("off") }, { value: true, label: t("on") }]} />
-                <SettingRow id="s-program" title="setShowProgram" hint="setShowProgramHint" value={s.showProgram} onPick={set("showProgram")}
-                  options={[{ value: false, label: t("off") }, { value: true, label: t("on") }]} />
-              </>
-            ) : null}
-            {page === "playlists" ? (
-              <PlaylistsPanel store={p.store} status={p.status} onAdd={p.onAddPlaylist} onAddFile={p.onAddPlaylistFile} onSelect={p.onSelectPlaylist} onEdit={p.onEditPlaylist} onAskDelete={p.onAskDeletePlaylist} />
-            ) : null}
-            {page === "epg" ? (
-              <EpgPanel settings={s} onChange={onChange} data={p.guide.data} status={p.guide.status} outcomes={p.guide.outcomes}
-                channelCount={p.channelCount} active={p.active} headerGuides={p.headerGuides} onRefresh={p.guide.onRefresh} onClear={p.guide.onClear} />
-            ) : null}
-            {page === "profiles" ? (
-              <ProfilesPanel book={p.book} onSwitch={p.onSwitchProfile} onAdd={p.onAddProfile} onAskDelete={p.onAskDeleteProfile}
-                onSetPin={p.onSetPin} onRemovePin={p.onRemovePin} onToggleKids={p.onToggleKids} />
-            ) : null}
-            {page === "system" ? <SystemPanel settings={s} onChange={onChange} onQr={p.onQr} onReset={p.onAskReset} onRedo={p.onRedoWizard} update={p.update} /> : null}
-            {page === "backup" ? <BackupPanel /> : null}
-            {page === "about" ? <AboutPanel onQr={p.onQr} /> : null}
-          </div>
-        </>
-      )}
-    </Drawer>
+      </Drawer>
+      <Presence show={p.show && page !== null}>
+        {(out) => (
+          <Drawer side="bottom" label={page ? t(META[page].title) : t("sheetTitle")} onClose={p.onBack} closing={out}>
+            {page ? pageSheet(page) : null}
+          </Drawer>
+        )}
+      </Presence>
+    </>
   );
 }

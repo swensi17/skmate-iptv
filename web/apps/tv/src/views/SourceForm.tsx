@@ -1,5 +1,5 @@
 import { useRef, useState } from "preact/hooks";
-import { focusFirst, Icon } from "@skmate/ui";
+import { focusFirst, Icon, Presence } from "@skmate/ui";
 import { detectPlatform } from "../platform";
 import { t, type Key } from "../i18n";
 import { desktop } from "../state/desktop";
@@ -119,10 +119,12 @@ export function SourceForm(p: {
         ) : null}
       </div>
       {error ? <div class="status error">{error}</div> : null}
-      {editing ? (
-        <TextEntry title={t(FIELDS[editing].title)} hint={t(FIELDS[editing].hint)} value={v[editing]}
-          type={FIELDS[editing].secret ? "password" : "text"} onDone={(x) => typed(editing, x)} onCancel={cancel} />
-      ) : null}
+      <Presence show={editing !== null}>
+        {(out) => editing ? (
+          <TextEntry title={t(FIELDS[editing].title)} hint={t(FIELDS[editing].hint)} value={v[editing]} closing={out}
+            type={FIELDS[editing].secret ? "password" : "text"} onDone={(x) => typed(editing, x)} onCancel={cancel} />
+        ) : null}
+      </Presence>
     </div>
   );
 }
