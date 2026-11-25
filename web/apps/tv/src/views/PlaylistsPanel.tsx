@@ -54,17 +54,16 @@ export function PlaylistsPanel(p: Props) {
               return (
                 <div class="pl-item" key={pl.id}>
                   <button class="srow pl-row" data-focus={`pl-${pl.id}`} aria-pressed={active} onClick={() => p.onSelect(pl.id)}>
-                    <span class="pl-mark" aria-hidden="true">{active ? <Icon name="check" size={28} /> : null}</span>
                     <span class="srow-text">
                       <span class="srow-title">{pl.name}</span>
                       <span class="srow-hint">{sourceOf(pl.url)}</span>
                     </span>
-                    {active ? <span class="pl-badge">{t("playlistActive")}</span> : null}
+                    {active ? <span class="sub">{t("playlistActive")}</span> : null}
                   </button>
                   <button class="icon-btn" data-focus={`pl-edit-${pl.id}`} aria-label={t("playlistEdit")} title={t("playlistEdit")} onClick={() => setEditing(pl.id)}>
                     <Icon name="edit" size={30} />
                   </button>
-                  <button class="icon-btn danger" data-focus={`pl-del-${pl.id}`} aria-label={t("playlistDelete")} title={t("playlistDelete")} onClick={() => p.onAskDelete(pl.id)}>
+                  <button class="icon-btn" data-focus={`pl-del-${pl.id}`} aria-label={t("playlistDelete")} title={t("playlistDelete")} onClick={() => p.onAskDelete(pl.id)}>
                     <Icon name="trash" size={30} />
                   </button>
                 </div>
@@ -78,7 +77,7 @@ export function PlaylistsPanel(p: Props) {
       {editing !== null && p.store.list.some((x) => x.id === editing) ? (
         <EditPlaylist entry={p.store.list.find((x) => x.id === editing)!} onSave={(name, url) => p.onEdit(editing, name, url)} onClose={() => setEditing(null)} />
       ) : null}
-      <div class="caption pl-add-caption"><Icon name="plus" size={18} /> {t("emptyAdd")}</div>
+      <div class="caption pl-add-caption">{t("emptyAdd")}</div>
       <SourceForm idPrefix="pl" onSubmit={p.onAdd} onFile={p.onAddFile} busy={p.status.kind === "loading"} />
       {desktop() ? (
         <button class="srow" data-focus="pl-remote" onClick={() => { setRemoteError(null); setRemote(true); }}>

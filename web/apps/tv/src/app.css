@@ -391,8 +391,8 @@ img.logo { object-fit: contain; background: #fff; padding: 4px; border-radius: v
 .chips-wrap { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-bottom: 22px; }
 .wz-q { margin: 6px 12px 4px; font-size: 26px; font-weight: 700; }
 .wz-actions { display: flex; gap: 16px; margin-top: 34px; }
-.btn.primary { background: var(--accent); color: #0d1b2a; }
-.btn.primary:focus { background: var(--focus-fill); color: var(--focus-text); box-shadow: 0 0 0 4px var(--accent); }
+.btn.primary { background: var(--control); color: var(--text); }
+.btn.primary:focus { background: var(--focus-fill); color: var(--focus-text); }
 .wz-hints { padding-bottom: 36px; font-size: 20px; color: var(--dim); }
 
 /* Player menu: categories in a narrow column, channels beside them, the bar still visible below. */
@@ -646,7 +646,7 @@ nav.rail { background: #2b2f33; }
 /* Adding a playlist: each value is a row (what it is · what is filled in), OK opens the entry panel. */
 .src-fields { display: flex; flex-direction: column; gap: 4px; margin: 16px 0 8px; max-width: 1200px; }
 .src-field { background: var(--control); }
-.src-value { font-size: 22px; font-weight: 600; color: var(--accent); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.src-value { font-size: 22px; font-weight: 600; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .srow:focus .src-value { color: var(--focus-text); }
 .src-actions { display: flex; gap: 12px; margin: 16px 0 8px; }
 .src-actions .btn.primary { min-width: 280px; }
@@ -659,7 +659,7 @@ nav.rail { background: #2b2f33; }
 .entry-hint { font-size: 26px; color: var(--muted); margin-bottom: 40px; overflow-wrap: anywhere; }
 .entry-field { height: 96px; width: 100%; border: 0; border-radius: var(--radius); background: var(--control); color: var(--text);
   font: 600 34px var(--font); padding: 0 32px; outline: none; box-shadow: inset 0 0 0 3px var(--dim); }
-.entry-field:focus { box-shadow: inset 0 0 0 4px var(--accent); }
+.entry-field:focus { box-shadow: inset 0 0 0 3px var(--focus-fill); }
 .entry-field::placeholder { color: var(--dim); }
 .entry-actions { display: flex; gap: 16px; margin-top: 32px; }
 .entry-actions .btn { height: 72px; min-width: 220px; font-size: 26px; }
@@ -671,16 +671,9 @@ nav.rail { background: #2b2f33; }
 .pl-list { display: flex; flex-direction: column; gap: 6px; }
 .pl-item { display: flex; gap: 8px; align-items: stretch; }
 .pl-row { flex: 1; background: var(--control); }
-.pl-row[aria-pressed="true"] { box-shadow: inset 4px 0 0 var(--accent); }
-.pl-row:focus[aria-pressed="true"] { box-shadow: none; }
-.pl-mark { width: 32px; flex: none; display: flex; justify-content: center; color: var(--accent); }
-.pl-row:focus .pl-mark { color: var(--focus-text); }
-.pl-badge { flex: none; font-size: 18px; font-weight: 700; padding: 6px 12px; border-radius: var(--radius); background: rgba(74, 168, 255, .16); color: var(--accent); }
-.pl-row:focus .pl-badge { background: rgba(0, 0, 0, .1); color: var(--focus-text); }
 .icon-btn { flex: none; width: 88px; display: flex; align-items: center; justify-content: center; border: 0; border-radius: var(--radius);
   background: var(--control); color: var(--muted); outline: none; cursor: pointer; transition: background-color .12s linear, color .12s linear; }
 .icon-btn:focus { background: var(--focus-fill); color: var(--focus-text); }
-.icon-btn.danger:focus { background: var(--danger); color: #121212; }
 .pl-error { margin: 10px 4px 0; }
 .pl-add-caption { display: flex; align-items: center; gap: 8px; margin-top: 36px; }
 
@@ -706,3 +699,6 @@ nav.rail { background: #2b2f33; }
 /* Search results start where the search field does: the number sits at the left edge, not right-aligned in a wide cell. */
 .search .row { padding-left: 24px; }
 .search .row .num { width: 52px; text-align: left; flex: none; }
+/* "In use" on a playlist row: plain grey text on the right, as in the other lists. */
+.srow .sub { flex: none; color: var(--muted); font-size: 22px; font-weight: 500; }
+.srow:focus .sub { color: var(--focus-text); opacity: .7; }
