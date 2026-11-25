@@ -315,4 +315,7 @@
     <string name="player_trailer_blocked_title">Bu fragman SkMate IPTV’de oynatılamıyor</string>
     <string name="player_trailer_blocked_body">Sahibi yalnızca YouTube’da oynatılmasına izin veriyor.</string>
     <string name="player_trailer_open_youtube">YouTube’da aç</string>
+    <string name="player_error_title_signal">Kanal yanıt vermiyor</string>
+    <string name="player_error_title_internet">İnternet yok</string>
+    <string name="player_error_title_device">Bu video gösterilemiyor</string>
 </resources>

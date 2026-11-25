@@ -51,7 +51,9 @@ fun UpdateStatusToast(onDone: () -> Unit, onViewChangelog: () -> Unit, modifier:
                 if (s.retryInfo == null) { manager.reset(); onDone() } else { delay(120); runCatching { focus.requestFocus() } }
             is UpdateManager.State.Available -> if (auto) manager.download() else { delay(120); runCatching { focus.requestFocus() } }
             is UpdateManager.State.Ready ->
-                if (auto && UpdatePrefs.mayInstallNow()) manager.installReady()
+                // On its own only when the install may go ahead; asking for the permission is left to the Install
+                // press, never Settings opening in the middle of a programme.
+                if (auto && UpdatePrefs.mayInstallNow() && manager.canInstallPackages()) manager.installReady()
                 else { delay(120); runCatching { focus.requestFocus() } }
             UpdateManager.State.Idle -> onDone()
             else -> Unit

@@ -112,6 +112,8 @@ open class MainActivity : ComponentActivity() {
         resumed = this
         // The author's playlist is kept current while the screen is on (see AuthorPlaylistWatcher).
         runCatching { authorWatcher.start() }
+        // Back from Settings with "Install unknown apps" switched on: the update that asked for it goes on.
+        runCatching { updates.onAppResumed() }
     }
 
     override fun onPause() {
@@ -180,6 +182,7 @@ open class MainActivity : ComponentActivity() {
     private var contentReady = false
 
     private val authorWatcher: tv.own.owntv.features.remote.AuthorPlaylistWatcher by inject()
+    private val updates: tv.own.owntv.core.update.UpdateManager by inject()
     private val player: tv.own.owntv.player.OwnTVPlayer by inject()
     private val previewEngine: tv.own.owntv.player.LivePreviewEngine by inject()
     private val heroPreviewEngine: tv.own.owntv.player.HeroPreviewEngine by inject()

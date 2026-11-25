@@ -81,14 +81,15 @@ fun FirstRunLanguageSelector(modifier: Modifier = Modifier) {
 
 /**
  * The welcome screen's language control: a round globe button beside Get started that opens the
- * language list. A first run that still follows the device starts in Russian.
+ * language list. A first run starts in the TV's own language when the app has it (a Turkish TV in Turkish,
+ * issue #9), and in Russian on an English or unsupported one — boxes are sold set to English.
  */
 @Composable
 fun FirstRunLanguageGlobe(modifier: Modifier = Modifier) {
     val viewModel: LanguageSettingsViewModel = koinViewModel()
     val currentTag by viewModel.currentTag.collectAsStateWithLifecycle()
     LaunchedEffect(Unit) {
-        if (currentTag == SupportedLocales.SYSTEM_DEFAULT_TAG) viewModel.setLocale(FirstRunLanguage)
+        if (currentTag == SupportedLocales.SYSTEM_DEFAULT_TAG) viewModel.setLocale(firstRunLanguage())
     }
     var showPicker by remember { mutableStateOf(false) }
     tv.own.owntv.ui.stage.StageSurface(
@@ -300,3 +301,13 @@ private fun SidePanelLanguageRow(
 /** The language a first run starts in while it still follows the device. */
 @Suppress("ktlint:standard:property-naming")
 private const val FirstRunLanguage = "ru"
+private const val ENGLISH = "en"
+
+/** The device's first language when the app has it (region first, then the language alone); else Russian. */
+private fun firstRunLanguage(): String {
+    val device = android.content.res.Resources.getSystem().configuration.locales[0]?.takeIf { it.language != ENGLISH }
+    return device?.let { d ->
+        SupportedLocales.canonicalTag(d.toLanguageTag())?.takeIf { it.isNotEmpty() }
+            ?: SupportedLocales.canonicalTag(d.language)?.takeIf { it.isNotEmpty() }
+    } ?: FirstRunLanguage
+}

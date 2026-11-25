@@ -526,4 +526,67 @@
     <string name="sports_broadcasts_find_first">Bu maçı veren rehber kanallarını görmek için Kanalları bul’u kullan.</string>
     <string name="sports_broadcasts_none">Yok</string>
     <string name="sports_move_instructions">▲/▼ seç · OK al veya bırak · Bitince Kaydet</string>
+    <string name="profiles_avatar_own_picture_sub">Avatar yerine fotoğraf: bu TV\'den veya telefonunuzdan gönderilen.</string>
+    <string name="search_in_progress">Kanallar, programlar, filmler ve diziler aranıyor…</string>
+    <string name="sports_board_search">Program ve kanal ara</string>
+    <string name="sports_board_all_countries">Tüm ülkeler</string>
+    <string name="sports_board_sort_time">Başlama saatine göre</string>
+    <string name="sports_board_sort_title">Ada göre A–Z</string>
+    <string name="sports_board_sort_channel">Kanala göre A–Z</string>
+    <string name="sports_board_looking">Kanallarınızda spor aranıyor…</string>
+    <string name="sports_board_nothing_filtered">Bu filtrelere uyan bir şey yok.</string>
+    <string name="sports_board_sort_relevance">En uygun</string>
+    <string name="sports_board_more">Daha fazla</string>
+    <string name="sports_board_country_title">Ülke</string>
+    <string name="sports_board_sort_title_menu">Sırala</string>
+    <string name="search_caption_channels">Kanal ara</string>
+    <string name="search_caption_programs">Ara</string>
+    <string name="search_caption_guide">TV rehberinde ara</string>
+    <string name="search_caption_movies">Film ara</string>
+    <string name="search_caption_series">Dizi ara</string>
+    <string name="search_caption_layout">Her klavye düzeni</string>
+    <string name="update_install">Yükle</string>
+    <string name="update_downloaded">Güncelleme indirildi</string>
+    <string name="update_background">Arka planda iniyor: izlemeye devam edin, hazır olunca haber vereceğiz.</string>
+    <string name="update_conflict">Bu güncelleme yüklü uygulamaya uymuyor (farklı imza veya daha eski sürüm). Bunun yerine sürüm sayfasından yükleyin.</string>
+    <string name="live_screen_title">Kanallarınız</string>
+    <string name="live_sort_title">Kanalları sırala</string>
+    <string name="live_sort_alpha_desc">Z–A</string>
+    <string name="live_sort_alpha_desc_hint">Z\'den A\'ya</string>
+    <string name="live_sort_alpha_hint">A\'dan Z\'ye</string>
+    <string name="live_sort_number">Numaraya göre</string>
+    <string name="live_sort_number_hint">Kumanda tuşları gibi: 1, 2, 3…</string>
+    <string name="live_sort_recent">Son izlenenler</string>
+    <string name="live_sort_recent_hint">En son izlenen önce</string>
+    <string name="live_more_title">Daha fazla</string>
+    <string name="live_fix_guide">Rehberi düzelt</string>
+    <string name="live_fix_guide_hint">Yayın akışı olmayan kanallar için</string>
+    <string name="live_fix_guide_running">Rehber eşleştiriliyor…</string>
+    <string name="live_fix_guide_none">Yeni eşleşme yok: rehber zaten eşleşmiş veya henüz indirilmemiş</string>
+    <string name="live_pick_now">Şimdi yayında: <xliff:g id="what">%1$s</xliff:g></string>
+    <string name="live_pick_sport">spor</string>
+    <string name="live_pick_movies">film</string>
+    <string name="live_pick_news">haber</string>
+    <string name="live_pick_kids">çocuk</string>
+    <string name="live_pick_hint">Şu anda bunu gösteren kanallar</string>
+    <string name="live_pick_loading">Rehberde aranıyor…</string>
+    <string name="live_pick_empty">Henüz bir şey yok. “Rehberi düzelt” seçeneğini deneyin</string>
+    <string name="live_mirror_switched">Kanalın bir kopyasına geçildi: <xliff:g id="name">%1$s</xliff:g></string>
+    <string name="live_weak_network">Zayıf ağ: görüntü bozulmasın diye <xliff:g id="secs">%1$d</xliff:g> sn arabellek eklendi</string>
+    <string name="live_cleanup">Tekrarları gizle</string>
+    <string name="live_cleanup_hint">Aynı bağlantı iki kez listelenmiş</string>
+    <string name="live_cleanup_title">Tekrarları gizle: <xliff:g id="count">%1$d</xliff:g></string>
+    <string name="live_cleanup_body">Bu kanallar listedeki diğerleriyle aynı bağlantıdan açılıyor. İlki kalır, diğerleri gizlenir. Onları kanal listesi ayarlarından geri getirebilirsiniz.</string>
+    <string name="live_cleanup_confirm">Gizle</string>
+    <string name="live_cleanup_none">Listede tekrar yok</string>
+    <string name="live_cleanup_done">Gizlenen tekrarlar: <xliff:g id="count">%1$d</xliff:g></string>
+    <string name="live_no_playlist">Bu profile bağlı oynatma listesi yok. Ayarlar\'dan bir tane ekleyin</string>
+    <string name="welcome_telegram_title">Telegram sohbetimiz</string>
+    <string name="welcome_telegram_body">Uygulama haberleri, yardım ve diğer izleyicilerle sohbet. Soru sorun, hata bildirin veya fikir önerin. Bizi Telegram\'da bulun:</string>
+    <string name="welcome_telegram_ok">Anladım, teşekkürler</string>
+    <string name="welcome_telegram_never">Bir daha hatırlatma</string>
+    <plurals name="live_fix_guide_done">
+<item quantity="one"><xliff:g id="count">%1$d</xliff:g> kanal için yayın akışı bulundu</item>
+        <item quantity="other"><xliff:g id="count">%1$d</xliff:g> kanal için yayın akışı bulundu</item>
+    </plurals>
 </resources>

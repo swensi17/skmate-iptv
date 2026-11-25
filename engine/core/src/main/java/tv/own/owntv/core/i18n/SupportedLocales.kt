@@ -354,7 +354,7 @@ object SupportedLocales {
             tier = 1,
             packaged = true,
             pickerVisible = true,
-            coverage = 92,
+            coverage = 100,
         ),
         SupportedLocale(
             id = "ml",

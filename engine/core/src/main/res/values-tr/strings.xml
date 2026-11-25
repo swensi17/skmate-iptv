@@ -177,4 +177,6 @@
     <string name="shell_now_playing_audio">Ses</string>
     <string name="common_weather_degrees_city"><xliff:g id="temperature">%1$d</xliff:g>° <xliff:g id="city">%2$s</xliff:g></string>
     <string name="common_dismiss">Kapat</string>
+    <string name="shell_press_back_again">Çıkmak için tekrar Geri tuşuna basın</string>
+    <string name="update_preparing">Kurulum hazırlanıyor… <xliff:g id="percent">%1$d</xliff:g>%%</string>
 </resources>

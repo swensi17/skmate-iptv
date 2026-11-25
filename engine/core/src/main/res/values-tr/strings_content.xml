@@ -361,4 +361,12 @@
     <string name="content_season_specials">Özel bölümler</string>
     <string name="content_poster_size">Afiş boyutu</string>
     <string name="content_vod_more_in"><xliff:g id="category">%1$s</xliff:g> kategorisinde daha fazlası</string>
+    <string name="content_no_guide">Bu kanal için TV rehberi yok</string>
+    <string name="content_no_guide_short">TV rehberi yok</string>
+    <string name="content_guide_loading">TV rehberi yükleniyor…</string>
+    <string name="content_preview_pick_channel">Burada önizlemek için bir kanal seçin</string>
+    <string name="content_channel_logo">Kanal logosu</string>
+    <string name="content_channel_logo_hint">PNG veya JPG bağlantısı yapıştırın. Orijinali geri yüklemek için boş bırakın</string>
+    <string name="content_channel_logo_link">Görsel bağlantısı</string>
+    <string name="content_epg_match_linked">Bağlandı</string>
 </resources>

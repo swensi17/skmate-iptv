@@ -263,6 +263,18 @@ class UpdateManager(
         // One press is enough: further presses while the file is handed over are ignored, where each one
         // used to start another install of its own and the system prompt came only after the third.
         val info = (_state.value as? State.Ready)?.info ?: return
+        // Android 8+: without "Install unknown apps" for this app the system installer only says it is blocked,
+        // sends the viewer to Settings and closes, and the update had to be started again — so it felt like the
+        // switch never stuck. Asked first, here, for this app directly; on the way back it goes on by itself
+        // (onAppResumed), as F-Droid and the TV players that update themselves do.
+        if (!canInstallPackages()) {
+            waitingForPermission = info
+            if (!openInstallPermissionSettings()) {
+                waitingForPermission = null
+                _state.value = State.Failed(Failure.Install, retryInfo = info)
+            }
+            return
+        }
         _state.value = State.Installing(info, 0)
         scope.launch {
             runCatching {
@@ -364,6 +376,10 @@ class UpdateManager(
         if (!sameSigner(apk)) throw ConflictException("signed with another key")
     }
 
+    @Suppress("DEPRECATION")
+    private fun legacyCerts(info: android.content.pm.PackageInfo?): Set<String> =
+        info?.signatures?.map { it.toCharsString() }?.toSet().orEmpty()
+
     /** Whether [apk] is signed by the same key as the installed app (an update from another build would be refused). */
     @Suppress("DEPRECATION")
     private fun sameSigner(apk: File): Boolean {
@@ -378,10 +394,18 @@ class UpdateManager(
             } else {
                 i.signatures?.map { it.toCharsString() }?.toSet().orEmpty()
             }
-        val theirs = certs(archive)
-        val ours = certs(mine)
+        // Android 9 reads no signing certificates from a package file (signingInfo comes back null for
+        // getPackageArchiveInfo there, fixed in 10): a good update was refused as "another key" on every
+        // Android 9 TV (issue #10). The older field is still filled there; and when neither says anything the
+        // file is not refused here — the system installer compares the keys itself and says so if they differ.
+        val theirs = certs(archive).ifEmpty { legacyCerts(pm.getPackageArchiveInfo(apk.absolutePath, android.content.pm.PackageManager.GET_SIGNATURES)) }
+        val ours = certs(mine).ifEmpty { legacyCerts(pm.getPackageInfo(context.packageName, android.content.pm.PackageManager.GET_SIGNATURES)) }
+        if (theirs.isEmpty() || ours.isEmpty()) {
+            Log.w(TAG, "signing certificates unreadable here (sdk ${android.os.Build.VERSION.SDK_INT}); the installer will check")
+            return true
+        }
         // A key rotation keeps the old certificate in the history: any shared certificate is the same signer.
-        return theirs.isNotEmpty() && ours.isNotEmpty() && theirs.any { it in ours }
+        return theirs.any { it in ours }
     }
 
     /**
@@ -477,6 +501,33 @@ class UpdateManager(
                 }
             }
         }
+    }
+
+    /** An update that is waiting for "Install unknown apps" to be switched on in Settings. */
+    @Volatile private var waitingForPermission: UpdateInfo? = null
+
+    /** Whether this app may hand a package to the system installer (always true before Android 8). */
+    fun canInstallPackages(): Boolean =
+        android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.O || context.packageManager.canRequestPackageInstalls()
+
+    /** Settings → "Install unknown apps", opened on this app's own switch. False where the TV has no such screen. */
+    private fun openInstallPermissionSettings(): Boolean {
+        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.O) return false
+        val own = Intent(android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, android.net.Uri.parse("package:" + context.packageName))
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        // Some TV builds only have the list of all apps, not one app's page.
+        val list = Intent(android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        return listOf(own, list).any { intent -> runCatching { context.startActivity(intent) }.isSuccess }
+    }
+
+    /**
+     * The app is on screen again. An update that sent the viewer to Settings for the permission installs now
+     * if it was switched on; if not, it simply waits as Ready for the next press.
+     */
+    fun onAppResumed() {
+        val info = waitingForPermission ?: return
+        waitingForPermission = null
+        if (canInstallPackages() && (_state.value as? State.Ready)?.info == info) installReady()
     }
 
     /** Retries the failed phase without losing a successfully resolved release asset. */

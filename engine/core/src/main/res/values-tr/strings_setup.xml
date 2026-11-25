@@ -271,4 +271,27 @@
     <string name="setup_importing_title"><xliff:g id="name">%1$s</xliff:g> içe aktarılıyor</string>
     <string name="setup_add_guide">TV rehberi ekle</string>
     <string name="setup_add_guide_line">Yeni kurulumda henüz rehber yok</string>
+    <string name="setup_guest_profile">Misafir</string>
+    <string name="setup_guest_profile_n">Misafir <xliff:g id="number">%1$d</xliff:g></string>
+    <string name="setup_from_device_line">Bu TV\'de kayıtlı bir fotoğraf seçin</string>
+    <string name="setup_from_phone_line">Telefonunuzdan Wi-Fi üzerinden fotoğraf gönderin</string>
+    <string name="setup_error_address_scheme">Adres http:// veya https:// ile başlamalı</string>
+    <string name="setup_error_portal_address">Portal adresini kontrol edin, ör. http://server:port/c/</string>
+    <string name="setup_error_mac">MAC adresi: <xliff:g id="hint">%1$s</xliff:g></string>
+    <string name="setup_error_unreachable">Sunucu yanıt vermiyor</string>
+    <string name="setup_error_not_playlist">Bağlantı bir oynatma listesi değil</string>
+    <string name="setup_error_denied">Sunucu erişimi reddediyor, User-Agent veya VPN ayarını kontrol edin</string>
+    <string name="setup_error_login">Kullanıcı adı veya şifre yanlış</string>
+    <string name="setup_error_expired">Bu aboneliğin süresi doldu</string>
+    <string name="setup_welcome_short">Hoş geldiniz!</string>
+    <string name="setup_line_theme">Arayüz renkleri</string>
+    <string name="setup_avatar_line">Beğendiğinizi seçin</string>
+    <string name="setup_remote_wifi">Kendi Wi-Fi ağınıza bağlanın: telefon TV ile aynı ağda olmalı</string>
+    <string name="setup_remote_wifi_named">Kendi Wi-Fi ağınıza bağlanın: <xliff:g id="ssid">%1$s</xliff:g>. Telefon TV ile aynı ağda olmalı</string>
+    <string name="setup_remote_wifi_range">Kendi Wi-Fi ağınıza bağlanın: telefon da TV gibi <xliff:g id="range">%1$s</xliff:g> ağında olmalı</string>
+    <string name="setup_files_hidden_grant_access">Bu TV\'de bir dosya açın</string>
+    <string name="setup_local_files_none">Bu TV\'de oynatma listesi dosyası yok</string>
+    <string name="setup_local_files_none_hint">İndirilenler klasörüne veya bir USB belleğe .m3u dosyası koyun</string>
+    <string name="setup_author_playlist_line">Yazarın kanalları, kendiliğinden güncellenir</string>
+    <string name="setup_guide_attached">Bir TV rehberi bağlı. Başka bir tane ekleyebilirsiniz</string>
 </resources>

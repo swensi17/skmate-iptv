@@ -431,6 +431,7 @@
 1	empty	app/src/main/java/tv/own/owntv/features/settings/HomeSettingsScreen.kt	\0
 1	technical	app/src/main/java/tv/own/owntv/features/settings/HomeSettingsScreen.kt	▲ ▼
 1	technical	app/src/main/java/tv/own/owntv/features/settings/HomeSettingsScreen.kt	▶
+1	locale	app/src/main/java/tv/own/owntv/features/settings/LanguageSettingsScreen.kt	en
 1	technical	app/src/main/java/tv/own/owntv/features/settings/LanguageSettingsScreen.kt	ru
 4	empty	app/src/main/java/tv/own/owntv/features/settings/LocalSyncScreen.kt	\0
 1	url	app/src/main/java/tv/own/owntv/features/settings/LocalSyncScreen.kt	http://
