@@ -13,6 +13,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.background
 import androidx.compose.runtime.Composable
@@ -420,6 +423,8 @@ fun AddSourceScreen(
             errorMac.takeIf { mac.isNotBlank() && !macValid },
         )
     }
+    // The portal's two fields say what is wrong right under themselves, not at the foot of a long form.
+    val inlineErrors = if (kind == SourceKind.STALKER) setOf(errorPortal, errorMac) else emptySet()
     // The source is checked on its own once the address (and the login) look complete: a short pause
     // after the last keystroke, then the same request "Test connection" makes. A green check in the
     // address field means it answered; otherwise the reason shows in red under the form, and import
@@ -556,7 +561,7 @@ fun AddSourceScreen(
         rowsFocus = firstFocus,
         footer = {
           Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(20.mpx)) {
-            (errors + listOfNotNull(checkError)).forEach { error ->
+            (errors.filterNot { it in inlineErrors } + listOfNotNull(checkError)).forEach { error ->
                 Row(horizontalArrangement = Arrangement.spacedBy(10.mpx), verticalAlignment = Alignment.CenterVertically) {
                     // Calm, as every other hint in the app: the line says what to fix, red only alarmed.
                     OwnTVIcon(OwnTVIcon.INFO, StageColors.Muted, Modifier.size(24.mpx))
@@ -657,11 +662,13 @@ fun AddSourceScreen(
             }
             SourceKind.STALKER -> {
                 field(stringResource(R.string.setup_portal_url), portalUrl, { portalUrl = it }, placeholder = stringResource(R.string.setup_portal_example), keyboardType = KeyboardType.Uri, trailing = checkMark)
+                fieldError(errorPortal.takeIf { it in errors })
                 field(
                     stringResource(R.string.setup_mac_address), mac, { mac = it },
                     placeholder = stringResource(R.string.setup_mac_example),
                     about = if (mac.isNotBlank() && !macValid) stringResource(R.string.setup_mac_invalid) else null,
                 )
+                fieldError(stringResource(R.string.setup_mac_invalid).takeIf { errorMac in errors })
                 // A protected portal needs these to pass the very first check, so they are offered when
                 // adding too, not only when editing a source that could never have been saved without them.
                 field(stringResource(R.string.setup_stalker_login_optional), username, { username = it })
@@ -1044,3 +1051,23 @@ internal data class AddSourceDraft(
 /** The source's address when it is of [type] — what the form's field for that type starts with. */
 private fun tv.own.owntv.core.database.entity.SourceEntity?.urlIf(type: SourceType): String? =
     this?.takeIf { it.type == type }?.url
+
+/** What is wrong with the field just above, on its text's line: an alert mark and the reason. */
+@Composable
+private fun fieldError(text: String?) {
+    if (text == null) return
+    Row(
+        Modifier.fillMaxWidth().padding(start = FIELD_ERROR_START.mpx, end = 24.mpx, bottom = 10.mpx),
+        horizontalArrangement = Arrangement.spacedBy(10.mpx),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        OwnTVIcon(OwnTVIcon.INFO, StageColors.Danger, Modifier.size(22.mpx))
+        Text(
+            text, style = stageText(18, 600), color = StageColors.Danger,
+            maxLines = 2, overflow = TextOverflow.Ellipsis,
+        )
+    }
+}
+
+/** Where a form row's text starts (after its icon): the error under it lines up with it. */
+private const val FIELD_ERROR_START = 78
