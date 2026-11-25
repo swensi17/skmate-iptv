@@ -11,7 +11,9 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
@@ -267,8 +269,14 @@ fun EpgScreen(
     fun showTime(t: Long) {
         scrollPx = (pxAt(t) - timelinePx * 3f / 8f).toInt().coerceIn(0, maxScroll())
     }
+    // The grid is drawn only once it stands on now: its first frame, before this runs, showed the start of the
+    // archive (a week back) and its date for a moment.
+    var positioned by remember { mutableStateOf(false) }
     LaunchedEffect(state.windowStart, timelinePx, state.channels.isNotEmpty()) {
-        if (timelinePx > 0 && state.channels.isNotEmpty()) showTime(System.currentTimeMillis())
+        if (timelinePx > 0 && state.channels.isNotEmpty()) {
+            showTime(System.currentTimeMillis())
+            positioned = true
+        }
     }
 
     // --- Rows, focus and the cursor ------------------------------------------------------------------
@@ -572,7 +580,11 @@ fun EpgScreen(
         }
 
         // The grid: ruler at 518, rows from 566.
-        Box(Modifier.fillMaxWidth().weight(1f).padding(top = if (tv.own.owntv.features.shell.TvBoxNav) 30.mpx else 18.mpx)) {
+        Box(
+            Modifier.fillMaxWidth().weight(1f)
+                .padding(top = if (tv.own.owntv.features.shell.TvBoxNav) 30.mpx else 18.mpx)
+                .graphicsLayer { alpha = if (positioned || state.channels.isEmpty()) 1f else 0f },
+        ) {
             when {
                 state.loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { OwnTVSpinner(sizeDp = 44) }
                 // No EPG feed added yet → a guide it can't fill. Point the user to EPG Sources.
@@ -906,6 +918,13 @@ private fun GuideRow(
                 .focusable()
                 .then(if (rowSelected) Modifier.stageFocusLook(tv.own.owntv.ui.stage.StageFocus.FX, 14.mpx) else Modifier),
         ) {
+            // While the row is read, a quiet bar where its programmes go, so the grid never opens on empty rows.
+            if (programmes == null) {
+                Box(
+                    Modifier.fillMaxSize().padding(vertical = GUIDE_SKELETON_PAD.mpx)
+                        .background(StageColors.Text.copy(alpha = GUIDE_SKELETON_ALPHA), RoundedCornerShape(10.mpx)),
+                )
+            }
             programmes?.let { progs ->
                 val catchupIds = remember(progs, channel, now) { progs.filter { vm.canCatchup(channel, it, now) }.mapTo(HashSet()) { it.id } }
                 ProgrammeStripCanvas(
@@ -966,3 +985,7 @@ private fun GuideKeyHints(cellMode: Boolean) {
     }
     tv.own.owntv.ui.stage.StageKeyHints(hints)
 }
+
+/** The bar a guide row shows while its programmes are read. */
+private const val GUIDE_SKELETON_PAD = 6
+private const val GUIDE_SKELETON_ALPHA = 0.05f

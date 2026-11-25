@@ -5928,7 +5928,7 @@
 1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	probe after give-up: $raw
 1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	reconnect $reconnects/$MAX_RECONNECTS after $why
 1	technical	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	stop() — intentional
-4	technical	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	unused
+3	technical	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	unused
 2	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	vlc-control
 1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	vlc-probe
 1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	vlc-reap

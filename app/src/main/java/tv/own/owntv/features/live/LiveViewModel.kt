@@ -27,6 +27,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filterNotNull
@@ -656,6 +657,38 @@ class LiveViewModel(
                 if (!rows.isNullOrEmpty()) ensureNowPlaying(rows)
             }
             .launchIn(viewModelScope)
+        // A guide arriving for the first time (a new playlist) takes a minute or two, and its programmes are
+        // written in batches as it downloads. While it does, the rows still saying "loading the guide" are read
+        // again every few seconds, so channels fill in as their programmes arrive instead of all at the end.
+        val activity = org.koin.java.KoinJavaComponent.get<tv.own.owntv.core.sync.EpgActivityTracker>(
+            tv.own.owntv.core.sync.EpgActivityTracker::class.java,
+        )
+        viewModelScope.launch {
+            activity.active
+                .map { it.isNotEmpty() }
+                .distinctUntilChanged()
+                .collectLatest { syncing ->
+                    while (syncing) {
+                        delay(GUIDE_PROGRESS_MS)
+                        refreshRowsWithoutGuide()
+                    }
+                }
+        }
+    }
+
+    /** The rows on screen with no programme yet, read again (the guide is still arriving). */
+    private fun refreshRowsWithoutGuide() {
+        @Suppress("USELESS_CAST")
+        val rows = lastNowPlayingRows as List<ChannelEntity>? ?: return
+        val known = cachedNowPlaying()
+        val waiting = rows.filter { known[it.id] == null }
+        if (waiting.isEmpty()) return
+        epgReader.clearCache()
+        // Not through nowPlayingJob: a scroll's own read in flight must not be cancelled by this one.
+        viewModelScope.launch {
+            val found = runCatching { nowPlayingFor(waiting) }.getOrDefault(emptyMap())
+            if (found.isNotEmpty()) publishNowPlaying(found)
+        }
     }
 
     /** Global guide shift (minutes); a per-channel override in [custom] wins over it. Changing it
@@ -2483,6 +2516,8 @@ class LiveViewModel(
         const val MAX_NOW_PLAYING = 2_000
         const val NO_GUIDE_RECHECK_MS = 60_000L
 
+        /** While a guide is arriving, how often the rows still without a programme are read again. */
+        const val GUIDE_PROGRESS_MS = 8_000L
     }
 }
 

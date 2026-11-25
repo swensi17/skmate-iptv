@@ -41,7 +41,7 @@ class LivePreviewEngine(
     @Suppress("unused") private val diagnostics: PlayerDiagnostics,
     settings: tv.own.owntv.core.settings.SettingsRepository,
     @Suppress("unused") connectivity: tv.own.owntv.core.network.ConnectivityObserver,
-    @Suppress("unused") private val playbackPrefs: tv.own.owntv.core.player.PlaybackPrefsStore,
+    private val playbackPrefs: tv.own.owntv.core.player.PlaybackPrefsStore,
 ) : PlaybackEngine {
 
     enum class State { IDLE, LOADING, PLAYING, ERROR }
@@ -266,6 +266,7 @@ class LivePreviewEngine(
         this.headers = httpHeaders
         this.liveBufferOverride = liveBufferOverride
         _currentMeta.value = meta
+        recallAudio(meta.trackKey ?: meta.contentKey)
         hasPlayed = false; gaveUp = false; reconnects = 0
         softwareTried = url in SOFTWARE_URLS || url in softwareMemory
         open(url)
@@ -433,6 +434,7 @@ class LivePreviewEngine(
         audioTracks = p.audioTracks?.filter { it.id >= 0 }?.map { TrackOption(it.name ?: "", it.id, it.id == p.audioTrack) } ?: emptyList()
         textTracks = p.spuTracks?.filter { it.id >= 0 }?.map { TrackOption(it.name ?: "", it.id, it.id == p.spuTrack) } ?: emptyList()
         _audioCount.value = audioTracks.size
+        applyRememberedAudio(p)
         _subCount.value = textTracks.size
     }
 
@@ -682,7 +684,48 @@ class LivePreviewEngine(
     }
     override fun toggleMute() = setMuted(!muted)
     override fun retry() { currentUrl?.let { reconnects = 0; gaveUp = false; open(it) } }
-    override fun selectAudio(id: Int) { player?.let { p -> ctlPost { p.audioTrack = id; readTracksNow(p) } } }
+    override fun selectAudio(id: Int) {
+        rememberAudio(audioTracks.firstOrNull { it.mpvId == id }?.label)
+        player?.let { p -> ctlPost { p.audioTrack = id; readTracksNow(p) } }
+    }
+
+    /**
+     * The sound track a channel was last switched to, by its name ("Track 2 - [English]"): a channel opened
+     * again starts on it, as films and series do on the other engine. Applied once per open, when the stream's
+     * tracks are known; a pick by the viewer in the meantime wins.
+     */
+    @Volatile private var audioKey: String? = null
+    @Volatile private var rememberedAudio: String? = null
+    @Volatile private var audioRecalled = true
+
+    private fun recallAudio(key: String?) {
+        audioKey = key; rememberedAudio = null; audioRecalled = key == null
+        if (key == null) return
+        settingsScope.launch {
+            val name = playbackPrefs.tracksFor(key)?.first
+            main.post {
+                if (audioKey != key) return@post
+                rememberedAudio = name
+                if (name == null) audioRecalled = true else player?.let { readTracks() }
+            }
+        }
+    }
+
+    private fun rememberAudio(name: String?) {
+        val key = audioKey ?: return
+        audioRecalled = true
+        if (name.isNullOrBlank()) return
+        settingsScope.launch { playbackPrefs.rememberAudioLang(key, name) }
+    }
+
+    /** On the control thread, with the tracks just read: switch to the remembered one if it is there. */
+    private fun applyRememberedAudio(p: MediaPlayer) {
+        val name = rememberedAudio ?: return
+        if (audioRecalled || audioTracks.size < 2) return
+        audioRecalled = true
+        val track = audioTracks.firstOrNull { it.label == name } ?: audioTracks.firstOrNull { it.label.equals(name, true) }
+        if (track != null && !track.selected) { p.audioTrack = track.mpvId; readTracksNow(p) }
+    }
     override fun selectSubtitle(id: Int) { player?.let { p -> ctlPost { p.spuTrack = id; readTracksNow(p) } } }
     override fun disableSubtitles() { player?.let { p -> ctlPost { p.spuTrack = -1; readTracksNow(p) } } }
     override fun audioTracks(): List<TrackOption> = audioTracks
