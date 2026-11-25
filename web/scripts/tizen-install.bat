@@ -49,8 +49,12 @@ echo === 3/4 Подключаюсь к телевизору %TV%
 "%SDB%" devices
 
 echo === 4/4 Ставлю и запускаю на телевизоре
-call "%TIZEN%" install -n "%WGT%" -s %TV%:26101 -- "%OUT%" || (echo [!] Установка не удалась & pause & exit /b 1)
-call "%TIZEN%" run -p SkMateIPTV.SkMate -s %TV%:26101
+rem The TV's own installer (vd_appinstall) says why it fails; "tizen install" failed on this TV where it worked.
+"%SDB%" -s %TV%:26101 push "%OUT%\%WGT%" /home/owner/share/tmp/sdk_tools/tmp/skmate.wgt || (echo [!] Не удалось передать файл & pause & exit /b 1)
+"%SDB%" -s %TV%:26101 shell 0 vd_appinstall SkMateIPTV.SkMate /home/owner/share/tmp/sdk_tools/tmp/skmate.wgt > "%OUT%\install.log" 2>&1
+type "%OUT%\install.log"
+findstr /c:"install completed" "%OUT%\install.log" >nul || (echo [!] Установка не удалась, причина выше & pause & exit /b 1)
+"%SDB%" -s %TV%:26101 shell 0 was_execute SkMateIPTV.SkMate
 
 echo.
 echo Готово. Приложение SkMate IPTV должно открыться на телевизоре.
