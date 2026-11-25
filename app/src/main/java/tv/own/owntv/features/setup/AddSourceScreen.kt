@@ -156,11 +156,7 @@ fun AddSourceScreen(
     var m3uUrl by remember(initial) { mutableStateOf(initial.urlIf(SourceType.M3U) ?: draft?.m3uUrl ?: "") }
     var portalUrl by remember(initial) { mutableStateOf(initial.urlIf(SourceType.STALKER) ?: draft?.portalUrl ?: "") }
     var mac by remember(initial) { mutableStateOf(initial?.mac ?: draft?.mac ?: "") }
-    if (!editing) {
-        androidx.compose.runtime.SideEffect {
-            AddSourceDraft.last = AddSourceDraft(kind, name, server, username, password, m3uUrl, portalUrl, mac)
-        }
-    }
+
     var stalkerSerialNumber by remember(initial) { mutableStateOf(initial?.stalkerSerialNumber ?: "") }
     var stalkerDeviceId by remember(initial) { mutableStateOf(initial?.stalkerDeviceId ?: "") }
     var stalkerDeviceId2 by remember(initial) { mutableStateOf(initial?.stalkerDeviceId2 ?: "") }
@@ -486,6 +482,9 @@ fun AddSourceScreen(
     // Every field is a row (label + value or placeholder, OK = keyboard); Start import sits in the
     // panel, reached with ▶ from any row.
     val submit = {
+        // Kept only for this try: a failed import brings the form back filled in; a success, or leaving the
+        // form, forgets it — the password is never held for a later form or another profile.
+        if (!editing) AddSourceDraft.last = AddSourceDraft(kind, name, server, username, password, m3uUrl, portalUrl, mac)
         when (kind) {
             SourceKind.XTREAM -> onStartXtream(name, server, username, password, userAgent, referer, epgUrl, autoRefresh, syncLive, syncMovies, syncSeries, isDefault, preferHls)
             SourceKind.M3U -> onStartM3u(name, m3uUrl, userAgent, referer, epgUrl, autoRefresh, isDefault)
@@ -551,7 +550,7 @@ fun AddSourceScreen(
     StageFormPage(
         parents = listOf(parent),
         title = pageTitle,
-        onBack = onBack,
+        onBack = { AddSourceDraft.clear(); onBack() },
         rowsFocus = firstFocus,
         footer = {
           Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(20.mpx)) {
