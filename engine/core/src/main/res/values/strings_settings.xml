@@ -3306,7 +3306,7 @@
     <string name="help_q3">Adding a channel to favourites</string>
     <string name="help_a3">Hold OK on a channel and choose “Add to favourites”. In the player the “Favourite” button does the same. Favourites are the first category on the left.</string>
     <string name="help_q4">Where is catch-up</string>
-    <string name="help_a4">Hold OK on a channel with catch-up and choose “Catch-up”, then a programme. Or pick a past programme in the guide and press “Watch from start”.</string>
+    <string name="help_a4">Hold OK on a channel with catch-up and choose “Catch-up”, then a programme. Or pick a past programme in the guide and press “Watch from start”. In catch-up ◀ ▶ move through it.</string>
     <string name="help_q5">Recording a programme</string>
     <string name="help_a5">Hold OK on a channel → “Record” or “Schedule recording”. While watching catch-up, the player’s “Record” button saves the whole programme.</string>
     <string name="help_q6">No programme guide</string>
@@ -3321,4 +3321,9 @@
     <string name="help_a10">A new version installs over the old one, nothing to remove. Settings → General → Check for updates.</string>
     <string name="help_q11">Moving everything to another TV</string>
     <string name="help_a11">Settings → Backups → “Send a copy to another device”. On the other TV choose “Restore from another device”.</string>
+    <string name="settings_sources_disable">Turn off, keep it</string>
+    <string name="settings_sources_enable">Turn on</string>
+    <string name="settings_sources_disabled">Off</string>
+    <string name="help_q12">Turning a playlist off without removing it</string>
+    <string name="help_a12">Settings → Channel sources → Playlists → choose the playlist → “Turn off, keep it”. Turn it back on in the same place.</string>
 </resources>

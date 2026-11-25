@@ -58,5 +58,7 @@ class M3uExtGrpTest {
                 "#EXTINF:0 tvg-rec=\"3\" catchup-days=\"7\",C\nhttp://h/c\n",
         )
         assertEquals(listOf(3, null, 7), e.map { it.catchupDays })
+        // tvg-rec alone is the `shift` archive (?utc=…&lutc=…); without it there is no archive.
+        assertEquals(listOf("shift", null, "shift"), e.map { it.catchup })
     }
 }

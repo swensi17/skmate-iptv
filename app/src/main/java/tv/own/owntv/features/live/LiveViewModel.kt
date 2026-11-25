@@ -538,10 +538,13 @@ class LiveViewModel(
     // in [LiveTimeshift]. This view model keeps only what opening a stream needs.
     private val timeshift = LiveTimeshift(
         scope = viewModelScope,
+        // A rewind into the provider's archive plays on the live engine (see loadArchiveStream); everything else
+        // the counters follow is mpv's.
         playback = object : LiveTimeshift.Playback {
-            override val positionMs: Long get() = player.position.value
-            override val hasError: Boolean get() = player.error.value != null
-            override val hasActiveStream: Boolean get() = player.hasActiveStream
+            override val positionMs: Long get() = if (archiveOnLive) live.archivePositionMs() else player.position.value
+            override val hasError: Boolean
+                get() = (if (archiveOnLive) previewEngine.error.value else player.error.value) != null
+            override val hasActiveStream: Boolean get() = if (archiveOnLive) true else player.hasActiveStream
         },
         loadArchive = ::loadArchiveStream,
         onLiveEdge = { goToLive() },
@@ -2136,7 +2139,13 @@ class LiveViewModel(
 
     /** Drop every trace of a live rewind. Anything that puts the channel back on a real-time stream has
      *  to call this — see [LiveTimeshift.clear]. */
-    private fun clearTimeshift() { timeshift.clear() }
+    private fun clearTimeshift() {
+        archiveOnLive = false
+        timeshift.clear()
+    }
+
+    /** A rewind into the provider's archive is playing on the live engine, not on mpv. */
+    @Volatile private var archiveOnLive = false
 
     /** Jump back to the real-time live edge (back on the fast ExoPlayer engine). */
     fun goToLive() {
@@ -2152,7 +2161,7 @@ class LiveViewModel(
      * archive URL can be built, or when the user reached the live edge while it was being resolved.
      */
     private suspend fun loadArchiveStream(ch: ChannelEntity, startMs: Long, offsetSec: Int): Long? {
-        val (archive, sourceUa) = withContext(Dispatchers.IO) {
+        val (archive, _) = withContext(Dispatchers.IO) {
             val source = sourceDao.getById(ch.sourceId) ?: return@withContext null
             val tz = settings.resolveCatchupTimeZone(source)
             archiveUrls.forTimeshift(ch, source, startMs, offsetSec, tz)?.let { it to source.userAgent }
@@ -2166,18 +2175,11 @@ class LiveViewModel(
         // Keep the rewind instant semantic. The player HUD formats it with the current
         // localized context, so an in-session locale switch updates an already-visible subtitle.
         _previewChannel.value = ch
-        clearLiveOnExo() // archive plays as a VOD-style mpv stream, not the live ExoPlayer channel
-        player.play(
-            url = archive.url,
-            title = ch.name,
-            logoUrl = ch.displayLogoUrl,
-            isArchive = true,
-            userAgent = sourceUa,
-            httpHeaders = headersFor(ch),
-            rewindStartMs = archive.startMs,
-            contentKey = tv.own.owntv.core.player.catchupPinKey(ch),
-            reconnectProvider = archive.reconnect,
-        )
+        // On the live engine, the one that draws the live picture on this box: on mpv's direct decoder output
+        // several boxes played the archive with sound and no picture (TCL Android 11, Tanix TX5, Slimbox).
+        val source = withContext(Dispatchers.IO) { sourceDao.getById(ch.sourceId) }
+        archiveOnLive = true
+        live.playArchiveOnLive(ch, archive.url, source)
         return archive.startMs
     }
 

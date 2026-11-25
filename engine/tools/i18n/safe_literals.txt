@@ -2529,7 +2529,7 @@
 1	protocol	core/src/main/java/tv/own/owntv/core/parser/M3uParser.kt	referer
 1	protocol	core/src/main/java/tv/own/owntv/core/parser/M3uParser.kt	referrer
 2	protocol	core/src/main/java/tv/own/owntv/core/parser/M3uParser.kt	series
-1	protocol	core/src/main/java/tv/own/owntv/core/parser/M3uParser.kt	shift
+2	protocol	core/src/main/java/tv/own/owntv/core/parser/M3uParser.kt	shift
 1	protocol	core/src/main/java/tv/own/owntv/core/parser/M3uParser.kt	timeshift
 1	protocol	core/src/main/java/tv/own/owntv/core/parser/M3uParser.kt	totalMs=${now - startedAt}
 1	protocol	core/src/main/java/tv/own/owntv/core/parser/M3uParser.kt	totalParseOrReadMs=${metrics.parseOrReadMs} totalCallbackMs=${metrics.callbackMs}
@@ -2537,7 +2537,7 @@
 1	protocol	core/src/main/java/tv/own/owntv/core/parser/M3uParser.kt	tvg-id
 1	protocol	core/src/main/java/tv/own/owntv/core/parser/M3uParser.kt	tvg-logo
 3	protocol	core/src/main/java/tv/own/owntv/core/parser/M3uParser.kt	tvg-name
-1	protocol	core/src/main/java/tv/own/owntv/core/parser/M3uParser.kt	tvg-rec
+2	protocol	core/src/main/java/tv/own/owntv/core/parser/M3uParser.kt	tvg-rec
 1	protocol	core/src/main/java/tv/own/owntv/core/parser/M3uParser.kt	tvg-type
 1	protocol	core/src/main/java/tv/own/owntv/core/parser/M3uParser.kt	type
 1	protocol	core/src/main/java/tv/own/owntv/core/parser/M3uParser.kt	url-tvg
@@ -3285,6 +3285,7 @@
 1	preference-key	core/src/main/java/tv/own/owntv/core/settings/SettingsRepository.kt	player_clock_size
 1	preference-key	core/src/main/java/tv/own/owntv/core/settings/SettingsRepository.kt	player_clock_weight
 1	preference-key	core/src/main/java/tv/own/owntv/core/settings/SettingsRepository.kt	playlist_auto_refresh
+1	preference-key	core/src/main/java/tv/own/owntv/core/settings/SettingsRepository.kt	playlist_hidden
 1	preference-key	core/src/main/java/tv/own/owntv/core/settings/SettingsRepository.kt	popup_font_family
 1	preference-key	core/src/main/java/tv/own/owntv/core/settings/SettingsRepository.kt	popup_font_size_percent
 1	preference-key	core/src/main/java/tv/own/owntv/core/settings/SettingsRepository.kt	popup_size_percent

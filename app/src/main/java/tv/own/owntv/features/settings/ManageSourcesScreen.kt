@@ -72,6 +72,7 @@ fun ManageSourcesScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
     val progress by vm.progress.collectAsStateWithLifecycle()
     val playlistAutoRefresh by vm.playlistAutoRefresh.collectAsStateWithLifecycle()
     val defaultId by vm.defaultSourceId.collectAsStateWithLifecycle()
+    val hiddenIds by vm.hiddenSourceIds.collectAsStateWithLifecycle()
     var showPlaylistChoice by remember { androidx.compose.runtime.mutableStateOf(false) }
     val sourceExpiry by vm.sourceExpiry.collectAsStateWithLifecycle()
     val sourceTest by vm.sourceTest.collectAsStateWithLifecycle()
@@ -329,6 +330,8 @@ fun ManageSourcesScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
                         source = source,
                         autoRefresh = playlistAutoRefresh[source.id] ?: PlaylistRefresh.OFF,
                         isDefault = isDefault,
+                        hidden = source.id in hiddenIds,
+                        onToggleHidden = { vm.setSourceHidden(source.id, source.id !in hiddenIds) },
                         expiry = sourceExpiry[source.id],
                         counts = counts,
                         syncState = syncState,
@@ -434,6 +437,8 @@ private fun SourceRow(
     source: SourceEntity,
     autoRefresh: PlaylistRefresh,
     isDefault: Boolean,
+    hidden: Boolean,
+    onToggleHidden: () -> Unit,
     expiry: String?,
     counts: SyncCounts?,
     syncState: CatalogSyncState,
@@ -473,11 +478,18 @@ private fun SourceRow(
         isDeleting -> stringResource(R.string.settings_sources_deleting)
         activeSync != null -> resyncProgressPercent(activeSync.baseItemCount, activeSync.totalProcessed)
             ?.let { stringResource(R.string.sync_progress_percent, it) } ?: stringResource(R.string.sync_progress_syncing)
+        hidden -> stringResource(R.string.settings_sources_disabled)
         isDefault -> stringResource(R.string.settings_sources_default)
         else -> null
     }
     val back = rowFocus ?: remember { FocusRequester() }
     val actions = if (isDeleting) emptyList() else listOf(
+        // Off without deleting, first: what someone with two playlists comes here for.
+        StageAction(
+            if (hidden) OwnTVIcon.PLAYLIST else OwnTVIcon.EYE_OFF,
+            stringResource(if (hidden) R.string.settings_sources_enable else R.string.settings_sources_disable),
+            onToggleHidden,
+        ),
         StageAction(OwnTVIcon.PENCIL, stringResource(R.string.settings_sources_edit), onEdit),
         // "Info", not "Test": the expensive measurement lives behind Re-test inside the popup.
         StageAction(OwnTVIcon.INFO, stringResource(R.string.settings_sources_info), onTest),

@@ -2112,8 +2112,16 @@ fun OwnTVShell(
                         liveChannel = isTunedLive,
                         tvBoxInfo = if (TvBoxNav && !catchupActive) { chips, offset ->
                             val epg by liveVm.nowNext.collectAsStateWithLifecycle()
+                            val archiveEpg by liveVm.archiveNowNext.collectAsStateWithLifecycle()
+                            val watching by liveVm.watchingWallMs.collectAsStateWithLifecycle()
                             val clock by produceState(System.currentTimeMillis()) { while (true) { kotlinx.coroutines.delay(1_000); value = System.currentTimeMillis() } }
-                            tv.own.owntv.features.shell.components.TvBoxPlayerInfo(previewChannel, epg, chips, offset, clock)
+                            // In the archive: the programme being watched and its progress at the watched moment. The
+                            // live one shown here read as "it went back to live" and the bar as a broken seek.
+                            val inArchive = offset != null && archiveEpg != null
+                            tv.own.owntv.features.shell.components.TvBoxPlayerInfo(
+                                previewChannel, if (inArchive) archiveEpg else epg, chips, offset,
+                                if (inArchive) watching ?: clock else clock,
+                            )
                         } else null,
                         onOpenGuide = if (TvBoxNav && (isTunedLive || (isLiveStream && !catchupActive))) { { showGuideOverlay = true } } else null,
                         // The zap banner's now/next. Collected inside the slot, so only the banner redraws.

@@ -251,6 +251,14 @@ class SettingsViewModel(
     val defaultSourceId: StateFlow<Long> = settings.defaultSourceId
         .stateIn(viewModelScope, SharingStarted.Eagerly, -1L)
 
+    /** Playlists switched off (kept, not shown). */
+    val hiddenSourceIds: StateFlow<Set<Long>> = settings.hiddenSourceIds
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptySet())
+
+    fun setSourceHidden(id: Long, hidden: Boolean) {
+        viewModelScope.launch { settings.setSourceHidden(id, hidden) }
+    }
+
     fun setDefaultSource(id: Long) {
         viewModelScope.launch { settings.setDefaultSource(id) }
     }

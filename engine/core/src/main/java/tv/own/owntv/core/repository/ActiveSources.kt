@@ -49,7 +49,9 @@ fun activeProfileSources(
             if (pid < 0) {
                 flowOf(ActiveProfileSources(pid, emptyList()))
             } else {
-                combine(sourceDao.observeForProfile(pid), settings.defaultSourceId) { srcs, defaultId ->
+                combine(sourceDao.observeForProfile(pid), settings.defaultSourceId, settings.hiddenSourceIds) { all, defaultId, hidden ->
+                    // A playlist switched off is not shown at all, whichever is chosen to show.
+                    val srcs = all.filter { it.id !in hidden }
                     val filtered = if (defaultId > 0 && srcs.any { it.id == defaultId }) {
                         srcs.filter { it.id == defaultId }
                     } else {
@@ -92,7 +94,8 @@ suspend fun activeSourceIds(
     profileId: Long,
     section: MediaType? = null,
 ): List<Long> {
-    val all = sourceDao.observeForProfile(profileId).first()
+    val hidden = settings.hiddenSourceIds.first()
+    val all = sourceDao.observeForProfile(profileId).first().filter { it.id !in hidden }
     val defaultId = settings.defaultSourceId.first()
     val filtered = if (defaultId > 0 && all.any { it.id == defaultId }) {
         all.filter { it.id == defaultId }

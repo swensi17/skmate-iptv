@@ -128,7 +128,10 @@ class M3uParser {
                         tvgChno = attrs.attr("tvg-chno")?.toIntOrNull(),
                         type = attrs.attr("type"),
                         tvgType = attrs.attr("tvg-type"),
-                        catchup = catchup ?: timeshiftDays?.let { "shift" },
+                        // `tvg-rec="N"` alone (no catchup type) is N days of archive in the `shift` convention
+                        // (?utc=…&lutc=…), as the players that set it read it; it used to mean no archive at all.
+                        catchup = catchup ?: timeshiftDays?.let { "shift" }
+                            ?: attrs.attr("tvg-rec")?.toIntOrNull()?.takeIf { it > 0 }?.let { "shift" },
                         catchupSource = attrs.attr("catchup-source"),
                         catchupDays = attrs.attr("catchup-days")?.toIntOrNull() ?: timeshiftDays
                             ?: attrs.attr("tvg-rec")?.toIntOrNull()?.takeIf { it > 0 },

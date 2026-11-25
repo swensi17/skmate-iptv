@@ -709,6 +709,16 @@ fun PlayerHud(
                     wakeTick++
                     true
                 }
+                // In the archive ◀ ▶ always move through it, shown or hidden: they opened the channel lists there, and
+                // "seeking does not work in the archive" was the complaint.
+                tvLive && error == null && !tvActions && onScrubLive != null && timeshiftOffset() != null &&
+                    (e.key == Key.DirectionLeft || e.key == Key.DirectionRight) -> {
+                    onScrubLive(if (e.key == Key.DirectionLeft) LIVE_SCRUB_STEP_SEC else -LIVE_SCRUB_STEP_SEC)
+                    controlsVisible = true
+                    tvSeek = true
+                    wakeTick++
+                    true
+                }
                 // A channel with no programme data has nothing to scrub: ◀ ▶ then fall through to the lists below,
                 // instead of rewinding into nothing and looking dead.
                 tvLive && error == null && controlsVisible && !tvActions && tvSeek && onScrubLive != null && liveProgrammes.isNotEmpty() &&

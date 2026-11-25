@@ -364,6 +364,7 @@ class SettingsRepository(private val context: Context, private val localeStore: 
         val EPG_AUTO_REFRESH = stringPreferencesKey("epg_auto_refresh")
         // Per-EPG-source: use that feed's own <icon src> channel logos instead of the playlist's.
         val EPG_USE_LOGOS = stringPreferencesKey("epg_use_logos")
+        val HIDDEN_SOURCES = stringPreferencesKey("playlist_hidden")
         val M3U_VOD_RESORT_CHECKED = booleanPreferencesKey("m3u_vod_resort_checked")
         val REFRESH_MIGRATED = booleanPreferencesKey("refresh_migration_done")
         val EPG_REFILL_CHECKED = booleanPreferencesKey("epg_refill_checked")
@@ -2294,6 +2295,22 @@ class SettingsRepository(private val context: Context, private val localeStore: 
         parseRefreshMap(raw)
             .filterValues { it.toBoolean() }
             .keys.mapNotNullTo(LinkedHashSet()) { it.toLongOrNull() }
+    }
+
+    /**
+     * Playlists switched off without being removed: their channels, guide and films are kept and simply
+     * not shown, as other players let a second playlist rest beside the first.
+     */
+    val hiddenSourceIds: Flow<Set<Long>> = parsedFlow(Keys.HIDDEN_SOURCES) { raw ->
+        parseRefreshMap(raw)
+            .filterValues { it.toBoolean() }
+            .keys.mapNotNullTo(LinkedHashSet()) { it.toLongOrNull() }
+    }
+
+    suspend fun setSourceHidden(sourceId: Long, hidden: Boolean) {
+        context.dataStore.edit { prefs ->
+            prefs[Keys.HIDDEN_SOURCES] = writeRefreshMap(readRefreshMap(prefs[Keys.HIDDEN_SOURCES]), sourceId, hidden.toString())
+        }
     }
 
     suspend fun setEpgUseLogos(sourceId: Long, enabled: Boolean) {

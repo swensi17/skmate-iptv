@@ -593,6 +593,31 @@ class LiveTuneController(
      * Open [channel] on ExoPlayer and watch it. If ExoPlayer already holds this channel — the preview
      * the user just pressed OK on — it is promoted (unmuted) instead of rebuilt.
      */
+    /**
+     * Play an archive address (a catch-up programme, a rewind into the provider's archive) on the live engine —
+     * the one that already draws the live picture on this box. On mpv's direct decoder output, several boxes
+     * (TCL Android 11, Tanix TX5, Slimbox) played the archive with sound and a black screen, while the same
+     * channel live played fine; the archive is only another address to the same engine.
+     */
+    fun playArchiveOnLive(channel: ChannelEntity, url: String, source: SourceEntity?) {
+        parkTimeshift()
+        cancelLadderJobs()
+        mpvOutcomeJob?.cancel()
+        previewJob?.cancel()
+        exoResolveJob?.cancel()
+        exoWatchJob?.cancel()
+        exoStalkerCmd = null
+        setReconnect(null, null)
+        current = null // no live watchdog: an archive that buffers is not a dead channel
+        _previewOnMpv.value = null
+        engines.mpvStop() // mpv lets go of the connection and the decoder first
+        _liveOnExo.value = true
+        engines.exoPlay(url, muted = false, request(channel, source))
+    }
+
+    /** Where the archive on the live engine is, from its start: what the rewind counters add to the start time. */
+    fun archivePositionMs(): Long = engines.positionMs(onExo = true)
+
     private suspend fun startOnExo(channel: ChannelEntity, source: SourceEntity?, resolved: String? = null) {
         mpvOutcomeJob?.cancel() // ExoPlayer owns the channel now
         _liveOnExo.value = true
