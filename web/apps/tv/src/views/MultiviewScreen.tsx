@@ -77,7 +77,7 @@ function Tile(p: TileProps) {
         <Picture key={p.channel.url} channel={p.channel} audible={p.audible} hidden={p.soundOnly} settings={p.settings}
           onState={(st, r) => { setState(st); retry.current = r; }} />
       ) : null}
-      {p.channel === null ? <span class="mv-empty"><Icon name="chevron" size={40} />{t("mvAddChannel")}</span> : null}
+      {p.channel === null ? <span class="mv-empty"><Icon name="plus" size={40} />{t("mvAddChannel")}</span> : null}
       {message ? <span class="mv-note" onClick={failed ? () => retry.current() : undefined}>{message}</span> : null}
       {p.channel ? (
         <span class="mv-caption">

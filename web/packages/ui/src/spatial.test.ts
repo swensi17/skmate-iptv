@@ -23,3 +23,27 @@ describe("nextFocus", () => {
     expect(nextFocus([], null, "down")).toBeNull();
   });
 });
+
+// The playlist form in a settings sheet: rows above, two small tabs, a wide field under them.
+const form: Box[] = [
+  { id: "row", x: 340, y: 308, w: 1048, h: 105 },
+  { id: "edit", x: 1396, y: 308, w: 88, h: 105 },
+  { id: "m3u", x: 348, y: 479, w: 193, h: 56 },
+  { id: "xtream", x: 549, y: 479, w: 204, h: 56 },
+  { id: "field", x: 340, y: 573, w: 1100, h: 105 },
+];
+
+describe("nextFocus on a form", () => {
+  it("goes down from a wide row to the small tab right under it, not past it", () => {
+    expect(nextFocus(form, "row", "down")).toBe("m3u");
+    expect(nextFocus(form, "field", "up")).toBe("m3u");
+  });
+  it("moves between the tabs of one line", () => {
+    expect(nextFocus(form, "m3u", "right")).toBe("xtream");
+    expect(nextFocus(form, "xtream", "left")).toBe("m3u");
+  });
+  it("never leaps sideways to a far box on another line", () => {
+    expect(nextFocus(form, "field", "right")).toBeNull();
+    expect(nextFocus(form, "xtream", "right")).toBeNull();
+  });
+});

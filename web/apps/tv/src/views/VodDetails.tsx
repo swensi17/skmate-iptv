@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "preact/hooks";
 import { canResume, isWatched, seasonsOf, type Episode, type Movie, type Show } from "@skmate/core";
-import { focusFirst } from "@skmate/ui";
+import { focusFirst, useReturnFocus } from "@skmate/ui";
 import { t } from "../i18n";
 import type { VodSource } from "../state/library";
 import type { Progress } from "../state/progress";
@@ -35,6 +35,7 @@ export function VodDetails(p: {
       (e: unknown) => { setEpisodes([]); setFailed(String(e instanceof Error ? e.message : e)); },
     );
   }, [p.item.id]);
+  const root = useReturnFocus();
   useEffect(() => { focusFirst(document, "vd-play"); }, [p.item.id, episodes === null]);
 
   const seasons = useMemo(() => (episodes ? seasonsOf(episodes) : []), [episodes]);
@@ -52,7 +53,7 @@ export function VodDetails(p: {
   const meta = [p.item.year, p.item.rating ? t("vodRating", { r: p.item.rating.toFixed(1) }) : null].filter(Boolean).join(" · ");
 
   return (
-    <div class="scrim" data-modal onClick={p.onClose}>
+    <div class="scrim" data-modal ref={root} onClick={p.onClose}>
       <div class="dialog vod-details" role="dialog" aria-label={p.item.name} onClick={(e) => e.stopPropagation()}>
         <div class="vd-poster"><Poster src={p.item.poster} name={p.item.name} /></div>
         <div class="vd-body">

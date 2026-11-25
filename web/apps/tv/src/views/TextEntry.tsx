@@ -1,6 +1,6 @@
 import { createPortal } from "preact/compat";
 import { useEffect, useRef, useState } from "preact/hooks";
-import { isBack } from "@skmate/ui";
+import { isBack, SheetWings, sheetTravel } from "@skmate/ui";
 import { t } from "../i18n";
 
 /**
@@ -22,6 +22,8 @@ export function TextEntry(p: {
   const [value, setValue] = useState(p.value);
   const input = useRef<HTMLInputElement>(null);
   const done = () => p.onDone(value.trim());
+  // The same rise as the settings sheets: the whole window, the bands beside the stage included (see Drawer).
+  const [travel] = useState(sheetTravel);
 
   useEffect(() => {
     const el = input.current;
@@ -45,8 +47,10 @@ export function TextEntry(p: {
   }, [p.onCancel, p.closing]);
 
   return createPortal(
+    <>
+    <SheetWings closing={p.closing} />
     <div class={`entry-scrim${p.closing ? " closing" : ""}`} onClick={(e) => { if (e.target === e.currentTarget) p.onCancel(); }}>
-      <div class={`entry${p.closing ? " out" : ""}`} role="dialog" aria-label={p.title} data-modal={p.closing ? undefined : ""}>
+      <div class={`entry${travel ? " far" : ""}${p.closing ? " out" : ""}`} style={travel ? { "--travel": `${travel}px` } : undefined} role="dialog" aria-label={p.title} data-modal={p.closing ? undefined : ""}>
         <div class="entry-col">
         <div class="entry-title">{p.title}</div>
         <div class="entry-hint">{p.hint}</div>
@@ -63,7 +67,8 @@ export function TextEntry(p: {
         <div class="entry-keys">{t("entKeys")}</div>
         </div>
       </div>
-    </div>,
+    </div>
+    </>,
     document.getElementById("app") ?? document.body, // inside the scaled stage, above the settings sheet
   );
 }

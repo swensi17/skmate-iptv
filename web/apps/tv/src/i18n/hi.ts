@@ -260,6 +260,7 @@ export const hi: Record<keyof typeof en, string> = {
   profileActive: "अभी",
   profileSwitch: "बदलें",
   profileAdd: "प्रोफ़ाइल जोड़ें",
+  profileOthers: "अन्य प्रोफ़ाइल",
   setReminders: "कार्यक्रम रिमाइंडर",
   setRemindersHint: "रिमाइंडर वाला कार्यक्रम शुरू होने पर क्या हो",
   setReminderAsk: "पूछें",

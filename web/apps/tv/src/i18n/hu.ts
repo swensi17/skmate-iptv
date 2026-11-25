@@ -260,6 +260,7 @@ export const hu: Record<keyof typeof en, string> = {
   profileActive: "Aktív",
   profileSwitch: "Váltás",
   profileAdd: "Profil hozzáadása",
+  profileOthers: "További profilok",
   setReminders: "Műsoremlékeztetők",
   setRemindersHint: "Mi történjen, amikor egy emlékeztetős műsor kezdődik",
   setReminderAsk: "Kérdezzen",

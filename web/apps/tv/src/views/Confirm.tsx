@@ -1,12 +1,13 @@
 import { useEffect } from "preact/hooks";
-import { focusFirst } from "@skmate/ui";
+import { focusFirst, useReturnFocus } from "@skmate/ui";
 import { t } from "../i18n";
 
 /** A question before something is lost. Focus starts on Cancel, so a stray OK never deletes. */
 export function Confirm(props: { title: string; body: string; confirm: string; cancel?: string; onConfirm: () => void; onCancel: () => void }) {
+  const root = useReturnFocus();
   useEffect(() => { focusFirst(document, "confirm-cancel"); }, []);
   return (
-    <div class="scrim" data-modal>
+    <div class="scrim" data-modal ref={root}>
       <div class="dialog" role="alertdialog" aria-label={props.title}>
         <div class="dialog-title">{props.title}</div>
         <div class="dialog-body">{props.body}</div>

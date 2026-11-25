@@ -107,3 +107,7 @@
 /* Recently watched, favourites, player settings: the same rows as elsewhere, the empty line in the quiet colour. */
 .pp-drawer > .list-head { padding: 0 12px; }
 .pp-drawer .sc-card .bar { background: var(--line); }
+
+/* The wide panel keeps its text inside the title-safe area: a margin above the titles, beside the numbers, and under
+   the lists (they show whole rows only, see PlayerPanel). */
+.pp-drawer.tm-drawer .tm { padding: 40px 0 0 24px; }

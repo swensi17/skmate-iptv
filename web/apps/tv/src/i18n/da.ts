@@ -260,6 +260,7 @@ export const da: Record<keyof typeof en, string> = {
   profileActive: "Nu",
   profileSwitch: "Skift",
   profileAdd: "Tilføj profil",
+  profileOthers: "Andre profiler",
   setReminders: "Programpåmindelser",
   setRemindersHint: "Hvad der sker, når et program med påmindelse snart starter",
   setReminderAsk: "Spørg",

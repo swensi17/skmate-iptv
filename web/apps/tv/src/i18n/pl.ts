@@ -260,6 +260,7 @@ export const pl: Record<keyof typeof en, string> = {
   profileActive: "Teraz",
   profileSwitch: "Przełącz",
   profileAdd: "Dodaj profil",
+  profileOthers: "Inne profile",
   setReminders: "Przypomnienia o audycjach",
   setRemindersHint: "Co się dzieje, gdy audycja z przypomnieniem zaraz się zacznie",
   setReminderAsk: "Pytaj",

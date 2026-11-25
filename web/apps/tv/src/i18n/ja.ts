@@ -260,6 +260,7 @@ export const ja: Record<keyof typeof en, string> = {
   profileActive: "使用中",
   profileSwitch: "切り替え",
   profileAdd: "プロフィールを追加",
+  profileOthers: "ほかのプロフィール",
   setReminders: "番組リマインダー",
   setRemindersHint: "リマインダーを設定した番組が始まるときの動作",
   setReminderAsk: "確認する",

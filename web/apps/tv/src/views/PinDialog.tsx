@@ -1,6 +1,6 @@
 import { useEffect, useState } from "preact/hooks";
 import { validPin } from "@skmate/core";
-import { focusFirst } from "@skmate/ui";
+import { focusFirst, useReturnFocus } from "@skmate/ui";
 import { t } from "../i18n";
 
 const MAX_DIGITS = 6;
@@ -21,6 +21,7 @@ export function PinDialog(props: {
 }) {
   const [pin, setPin] = useState("");
   const [wrong, setWrong] = useState(false);
+  const root = useReturnFocus();
   useEffect(() => { focusFirst(document, "pin-1"); }, []);
 
   const submit = (value: string) => {
@@ -47,7 +48,7 @@ export function PinDialog(props: {
   }, [pin]);
 
   return (
-    <div class="scrim" data-modal>
+    <div class="scrim" data-modal ref={root}>
       <div class="dialog pin-dialog" role="dialog" aria-label={props.title}>
         <div class="dialog-title">{props.title}</div>
         <div class="dialog-body">{wrong ? t("pinWrong") : props.hint ?? t("pinDigits")}</div>

@@ -91,3 +91,10 @@ export function setKids(book: ProfileBook, id: string, kids: boolean): ProfileBo
     return kids ? { ...rest, kids: true } : rest;
   }) };
 }
+
+/** [id] under another name; an empty name changes nothing. */
+export function renameProfile(book: ProfileBook, id: string, name: string): ProfileBook {
+  const trimmed = name.trim();
+  if (trimmed === "") return book;
+  return { ...book, profiles: book.profiles.map((p) => (p.id === id ? { ...p, name: trimmed } : p)) };
+}

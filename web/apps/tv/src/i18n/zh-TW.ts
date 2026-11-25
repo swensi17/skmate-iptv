@@ -260,6 +260,7 @@ export const zhTW: Record<keyof typeof en, string> = {
   profileActive: "目前",
   profileSwitch: "切換",
   profileAdd: "新增使用者檔案",
+  profileOthers: "其他使用者檔案",
   setReminders: "節目提醒",
   setRemindersHint: "設有提醒的節目即將開始時要怎麼做",
   setReminderAsk: "詢問",

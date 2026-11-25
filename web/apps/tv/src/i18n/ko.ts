@@ -260,6 +260,7 @@ export const ko: Record<keyof typeof en, string> = {
   profileActive: "사용 중",
   profileSwitch: "전환",
   profileAdd: "프로필 추가",
+  profileOthers: "다른 프로필",
   setReminders: "프로그램 알림",
   setRemindersHint: "알림을 설정한 프로그램이 곧 시작할 때의 동작",
   setReminderAsk: "묻기",

@@ -1,6 +1,6 @@
 import { createPortal } from "preact/compat";
 import { useEffect, useRef, useState } from "preact/hooks";
-import { focusFirst, Qr } from "@skmate/ui";
+import { focusFirst, Qr, useOwnBack, useReturnFocus } from "@skmate/ui";
 import { t } from "../i18n";
 import { desktop, type CompanionEvent } from "../state/desktop";
 import { SheetHead } from "./SheetHead";
@@ -42,12 +42,14 @@ export function LinkDialog(p: { mode: "add" | "sync"; title: string; hints: stri
     const off = app.onCompanion((e) => { if (e.kind === "locked") setFailed(true); else onEvent.current(e); });
     return () => { live = false; off(); void app.stopCompanion(); };
   }, [round]);
+  const root = useReturnFocus();
+  useOwnBack(root, p.onClose);
   useEffect(() => { focusFirst(document, failed ? "link-retry" : "link-done"); }, [failed, link === null]);
   const url = link?.urls[0];
   // Over the whole window, not inside the settings sheet it was opened from (the sheet is a frame of its own). Only
   // the Windows app shows this, and there the page is sized by Electron's zoom, not by scaling #app.
   return createPortal(
-    <div class="scrim" data-modal onClick={p.onClose}>
+    <div class="scrim" data-modal ref={root} onClick={p.onClose}>
       <div class="dialog qr link" role="dialog" aria-label={p.title} onClick={(e) => e.stopPropagation()}>
         <SheetHead title={p.title} />
         {failed ? (

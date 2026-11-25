@@ -73,7 +73,8 @@ export function SearchView({ channels, favorites, onOpen, onArchive, onUpcoming,
   }, [channelHits, programmeHits, filter]);
   const playable = useMemo(() => hits.map((h) => h.channel).filter((c, i, all) => all.findIndex((x) => x.id === c.id) === i), [hits]);
 
-  useEffect(() => { focusFirst(document, "search-input"); }, []);
+  // The filters first, not the field: a focused field opens the TV keyboard before the viewer asked for it.
+  useEffect(() => { focusFirst(document, "sf-all"); }, []);
   useEffect(() => { const id = setTimeout(() => setSettled(query), TYPING_PAUSE_MS); return () => clearTimeout(id); }, [query]);
 
   const remember = () => { const next = pushQuery(recent, q); setRecent(next); saveQueries(next); };
@@ -143,7 +144,7 @@ export function SearchView({ channels, favorites, onOpen, onArchive, onUpcoming,
           <div class="list-head">{t("searchCount", { c: filter === "shows" ? 0 : channelHits.length, p: filter === "channels" ? 0 : programmeHits.length })}</div>
           <VirtualList
             key={`${q}|${filter}|${ROW}`}
-            items={hits} rowHeight={ROW} height={HEIGHT} pageSize={8}
+            items={hits} rowHeight={ROW} height={Math.floor(HEIGHT / ROW) * ROW} pageSize={8}
             idOf={(h, i) => (h.k === "c" ? `ch-${h.channel.id}` : `pr-${h.channel.id}-${h.programme.start}-${i}`)}
             renderRow={(h, i) => h.k === "c"
               ? <ChannelRow channel={h.channel} index={i} favorite={favorites.has(channelKey(h.channel))} onOpen={open} onFav={onFav} />

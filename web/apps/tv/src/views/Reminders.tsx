@@ -1,7 +1,7 @@
 import { useEffect } from "preact/hooks";
 import type { Channel, Reminder } from "@skmate/core";
 import type { Programme } from "@skmate/epg";
-import { focusFirst, Icon } from "@skmate/ui";
+import { focusFirst, Icon, useReturnFocus } from "@skmate/ui";
 import { t } from "../i18n";
 import { clock } from "../time";
 
@@ -15,9 +15,10 @@ export function ProgrammeDialog(p: {
   onCancelRemind: () => void;
   onClose: () => void;
 }) {
+  const root = useReturnFocus();
   useEffect(() => { focusFirst(document, "pd-remind"); }, []);
   return (
-    <div class="scrim" data-modal>
+    <div class="scrim" data-modal ref={root}>
       <div class="dialog" role="dialog" aria-label={p.programme.title}>
         <div class="dialog-title">{p.programme.title}</div>
         <div class="dialog-body">{t("remindStartsAt", { channel: p.channel.name, time: clock(p.programme.start) })}</div>
@@ -35,11 +36,12 @@ export function ProgrammeDialog(p: {
 
 /** The start-time prompt, over any screen and the player too, as on Android: Watch switches, Close lets it be. */
 export function ReminderPrompt(p: { reminder: Reminder; now: number; onWatch: () => void; onClose: () => void }) {
+  const root = useReturnFocus();
   useEffect(() => { focusFirst(document, "rp-watch"); }, [p.reminder.start, p.reminder.channel]);
   const r = p.reminder;
   const line = r.start <= p.now ? t("remindOnNow", { channel: r.channelName }) : t("remindStartsAt", { channel: r.channelName, time: clock(r.start) });
   return (
-    <div class="scrim" data-modal>
+    <div class="scrim" data-modal ref={root}>
       <div class="dialog" role="alertdialog" aria-label={t("remindSoon")}>
         <div class="dialog-title"><Icon name="bell" size={36} /> {t("remindSoon")}</div>
         <div class="dialog-body"><b class="rp-title">{r.title}</b><br />{line}</div>

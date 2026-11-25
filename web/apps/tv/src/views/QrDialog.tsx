@@ -1,13 +1,14 @@
 import { useEffect } from "preact/hooks";
-import { focusFirst, Qr } from "@skmate/ui";
+import { focusFirst, Qr, useReturnFocus } from "@skmate/ui";
 import { t } from "../i18n";
 import { SheetHead } from "./SheetHead";
 
 /** The address of a link as a QR code: a TV has no browser to open it in, a phone does. "Готово" closes it. */
 export function QrDialog({ name, address, onClose }: { name: string; address: string; onClose: () => void }) {
+  const root = useReturnFocus();
   useEffect(() => { focusFirst(document, "qr-done"); }, []);
   return (
-    <div class="scrim" data-modal onClick={onClose}>
+    <div class="scrim" data-modal ref={root} onClick={onClose}>
       <div class="dialog qr" role="dialog" aria-label={name} onClick={(e) => e.stopPropagation()}>
         <SheetHead title={name} />
         <div class="qr-code"><Qr text={`https://${address}`} size={360} /></div>

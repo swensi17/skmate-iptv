@@ -29,6 +29,13 @@ type Sort = "provider" | "az" | "za";
 
 interface GroupItem { key: string; label: string; count: number }
 
+/**
+ * The channel screen goes away while a channel plays full screen. What the viewer had chosen (the category, the sort,
+ * the filter and the channel the cursor was on) waits here, so Back from the player lands on that same row instead of
+ * the top of "All channels". A profile switch reloads the page, which starts this afresh.
+ */
+const memory: { group: string; sort: Sort; query: string; channel: string | null } = { group: ALL, sort: "provider", query: "", channel: null };
+
 interface Props {
   channels: Channel[];
   favorites: ReadonlySet<string>;
@@ -50,10 +57,13 @@ export function LiveView(p: Props) {
   const ROW = useContext(UiContext).rowH;
   const groups = useMemo(() => groupsOf(p.channels), [p.channels]);
   const favs = useMemo(() => p.channels.filter((c) => p.favorites.has(channelKey(c))), [p.channels, p.favorites]);
-  const [group, setGroup] = useState<string>(ALL);
-  const [sort, setSort] = useState<Sort>("provider");
-  const [query, setQuery] = useState("");
-  const [settled, setSettled] = useState("");
+  const [group, setGroupState] = useState<string>(memory.group);
+  const [sort, setSortState] = useState<Sort>(memory.sort);
+  const [query, setQueryState] = useState(memory.query);
+  const [settled, setSettled] = useState(memory.query);
+  const setGroup = (g: string) => { memory.group = g; memory.channel = null; setGroupState(g); };
+  const setSort = (v: Sort) => { memory.sort = v; memory.channel = null; setSortState(v); };
+  const setQuery = (q: string) => { memory.query = q; memory.channel = null; setQueryState(q); };
   // The categories are out of the way while you browse the channels: Left brings them in, Right sends them off.
   const [catsOpen, setCatsOpen] = useState(false);
   const [focused, setFocused] = useState<Channel | null>(null);
@@ -80,7 +90,12 @@ export function LiveView(p: Props) {
       .map((g, i) => ({ g, i })).sort((a, b) => interestRank(a.g.label, p.settings.interests) - interestRank(b.g.label, p.settings.interests) || a.i - b.i).map((x) => x.g),
   ], [p.channels, favs.length, p.recents.length, archive.length, groups, p.settings.interests]);
 
-  useEffect(() => { focusFirst(document, shown[0] ? `ch-${shown[0].id}` : "empty-add"); }, [group, p.channels.length === 0]);
+  // The row the cursor was on before a channel was opened, while it is still in the list; else the first.
+  const back = memory.channel !== null ? shown.findIndex((c) => c.id === memory.channel) : -1;
+  useEffect(() => {
+    const id = back >= 0 ? memory.channel : shown[0]?.id;
+    focusFirst(document, id ? `ch-${id}` : "empty-add");
+  }, [group, p.channels.length === 0]);
   useEffect(() => { if (group === FAV && favs.length === 0) setGroup(ALL); }, [favs.length]);
   useEffect(() => { const id = setTimeout(() => setSettled(query), TYPING_PAUSE_MS); return () => clearTimeout(id); }, [query]);
   useEffect(() => () => clearTimeout(timer.current), []);
@@ -91,22 +106,25 @@ export function LiveView(p: Props) {
       e.stopPropagation();
       e.preventDefault();
       setCatsOpen(false);
-      focusFirst(document, shown[0] ? `ch-${shown[0].id}` : undefined);
+      focusList();
     };
     document.addEventListener("keydown", onKey, true); // before the app's own Back
     return () => document.removeEventListener("keydown", onKey, true);
   }, [catsOpen, shown]);
+  /** Back to the channels: the row the cursor was on (it is still drawn), else the first. */
+  const focusList = () => { const c = shown.find((x) => x.id === memory.channel) ?? shown[0]; focusFirst(document, c ? `ch-${c.id}` : undefined); };
   const openCats = () => {
     setCatsOpen(true);
     setTimeout(() => focusFirst(document, `g:${group}`), 60); // once the column has come in
   };
   const closeCats = () => {
     setCatsOpen(false);
-    focusFirst(document, shown[0] ? `ch-${shown[0].id}` : undefined);
+    focusList();
   };
 
   // The preview follows the cursor only after it has rested on a channel: listing fast must not open a stream per row.
   const onFocusChannel = (c: Channel) => {
+    memory.channel = c.id;
     setFocused(c);
     clearTimeout(timer.current);
     timer.current = setTimeout(() => setDwelled(c), DWELL_MS);
@@ -157,12 +175,12 @@ export function LiveView(p: Props) {
             <aside class={`groups${out ? " out" : ""}`} onKeyDown={(e) => {
               if (e.key === "ArrowRight" || e.keyCode === 39) { e.stopPropagation(); e.preventDefault(); closeCats(); }
             }}>
-              <div class="gr-head"><span class="grow">{p.playlistName ?? t("noPlaylist")}</span><Icon name="chevron" size={28} /></div>
+              <div class="gr-head"><span class="grow">{p.playlistName ?? t("noPlaylist")}</span></div>
               <VirtualList
                 items={groupItems} rowHeight={GROUP_ROW} height={LIST_HEIGHT - 72}
                 idOf={(g) => `g:${g.key}`}
                 renderRow={(g) => (
-                  <button class="row gr" data-focus={`g:${g.key}`} onClick={() => { setGroup(g.key); setCatsOpen(false); }} aria-pressed={group === g.key}>
+                  <button class="row gr" data-focus={`g:${g.key}`} onClick={() => { if (g.key === group) closeCats(); else { setGroup(g.key); setCatsOpen(false); } }} aria-pressed={group === g.key}>
                     <GroupIcon id={g.key} />
                     <span class="grow">{g.label}</span>
                     <span class="sub">{g.count}</span>
@@ -178,7 +196,7 @@ export function LiveView(p: Props) {
           <div class="list-head">{t("channelsCount", { n: shown.length })}{group === ARCHIVE ? ` · ${t("archiveHint")}` : ""}</div>
           <VirtualList
             key={`${group}|${settled}|${sort}|${ROW}`}
-            items={shown} rowHeight={ROW} height={LIST_HEIGHT - 56} pageSize={9}
+            items={shown} rowHeight={ROW} height={Math.floor((LIST_HEIGHT - 56) / ROW) * ROW} pageSize={9} initialIndex={Math.max(0, back)}
             idOf={(c) => `ch-${c.id}`}
             renderRow={(c, i) => (
               <ChannelRow channel={c} index={i} favorite={p.favorites.has(channelKey(c))}

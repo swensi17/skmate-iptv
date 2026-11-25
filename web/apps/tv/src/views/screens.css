@@ -77,7 +77,7 @@
 .vd-note.status { margin: 0; }
 
 /* ===== Profiles (in the settings sheet): the same rows and buttons as the playlists. ===== */
-.pf-hint { margin: 0 8px 20px; }
+.pf-hint { margin: 12px 8px 0; }
 .pf-panel .pf-caption { margin-top: 32px; }
 .pf-panel .pf-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pf-panel .pl-row .srow-text { min-width: 0; }
@@ -85,3 +85,9 @@
 .pf-panel > .srow { flex-shrink: 0; }
 .pf-panel > .srow + .srow { margin-top: 2px; }
 .pf-panel .pf-add { margin-top: 0; }
+/* The guest's name is not a button (a guest has no name to change): the same row, not focusable, no pointer. */
+.pf-panel .pf-static { cursor: default; background: var(--control); }
+.pf-panel .pf-first { margin-top: 0; }
+
+/* The playlist picker: the playlist in use is a plain lighter row, as a chosen item is everywhere else. */
+.drawer-bottom .row[aria-pressed="true"]:not(:focus) { background: var(--selected); }

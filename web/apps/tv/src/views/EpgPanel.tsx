@@ -1,4 +1,5 @@
 import { useState } from "preact/hooks";
+import { focusFirst, Icon } from "@skmate/ui";
 import type { GuideData, SourceOutcome } from "@skmate/epg";
 import { guidesForPlaylist } from "@skmate/epg";
 import { t } from "../i18n";
@@ -8,6 +9,7 @@ import type { Settings } from "../state/settings";
 import type { GuideStatus } from "../state/useGuide";
 import { clock } from "../time";
 import { onOff, SettingRow } from "./SettingRow";
+import { EntryRow } from "./EntryRow";
 
 interface Props {
   settings: Settings;
@@ -25,20 +27,24 @@ interface Props {
 /** Settings of the guide: the automatic sources, the user's own, how often, what is loaded now. */
 export function EpgPanel(p: Props) {
   const { settings: s } = p;
-  const [url, setUrl] = useState("");
   const [error, setError] = useState<string | null>(null);
   const autoGuides = s.epgAuto && p.active ? guidesForPlaylist(p.active.name, p.active.url, p.headerGuides) : [];
 
-  const add = () => {
+  const add = (url: string) => {
+    if (url.trim() === "") return;
     const clean = normalizeUrl(url);
     if (!clean) { setError(t("epgBadUrl")); return; }
     setError(null);
     if (!s.epgSources.some((x) => x.url === clean)) {
       p.onChange({ ...s, epgSources: [...s.epgSources, { id: `own:${clean}`, name: clean.replace(/^https?:\/\//, "").split("/")[0] ?? clean, url: clean }] });
     }
-    setUrl("");
   };
-  const remove = (id: string) => p.onChange({ ...s, epgSources: s.epgSources.filter((x) => x.id !== id) });
+  // The focus stays in the list: on the next source's row, or on the "add" row when none is left.
+  const remove = (id: string) => {
+    const rest = s.epgSources.filter((x) => x.id !== id);
+    p.onChange({ ...s, epgSources: rest });
+    setTimeout(() => focusFirst(document, rest[0] ? `epg-${rest[0].id}` : "epg-url"), 0);
+  };
   const outcomeOf = (u: string) => p.outcomes.find((o) => o.source.url === u);
   const line = (o: SourceOutcome | undefined) =>
     o ? (o.ok ? t("epgOk", { linked: o.linked, n: o.programmes }) : t("epgFailed", { err: o.error ?? "" })) : "";
@@ -61,26 +67,27 @@ export function EpgPanel(p: Props) {
           <span class="srow-hint">{line(outcomeOf(g.url))}</span>
         </div>
       ))}
-      {s.epgSources.map((x) => (
-        <div class="playlist" key={x.id}>
-          <button class="row" data-focus={`epg-${x.id}`} onClick={() => remove(x.id)}>
-            <span class="grow two"><span class="nm">{x.name}</span><span class="prog">{x.url.replace(/^https?:\/\//, "")}</span></span>
-            <span class="sub">{line(outcomeOf(x.url)) || t("playlistDelete")}</span>
-          </button>
-        </div>
-      ))}
-      <div class="add">
-        <input class="field" data-focus="epg-url" value={url} placeholder={t("epgAddPlaceholder")}
-          onInput={(e) => setUrl((e.currentTarget as HTMLInputElement).value)} onKeyDown={(e) => { if (e.key === "Enter") add(); }} />
-        <button class="btn" data-focus="epg-add" onClick={add}>{t("epgAdd")}</button>
+      {/* A source of one's own: what it is and how it loaded; deleting it is the bin beside it, never OK on the row. */}
+      <div class="pl-list">
+        {s.epgSources.map((x) => (
+          <div class="pl-item" key={x.id}>
+            <div class="srow pl-row" tabIndex={0} data-focus={`epg-${x.id}`}>
+              <span class="srow-text">
+                <span class="srow-title">{x.name}</span>
+                <span class="srow-hint">{line(outcomeOf(x.url)) || x.url.replace(/^https?:\/\//, "")}</span>
+              </span>
+            </div>
+            <button class="icon-btn" data-focus={`epg-del-${x.id}`} aria-label={t("playlistDelete")} title={t("playlistDelete")} onClick={() => remove(x.id)}>
+              <Icon name="trash" size={30} />
+            </button>
+          </div>
+        ))}
       </div>
+      <EntryRow id="epg-url" title={t("epgAdd")} value="" placeholder={t("epgAddPlaceholder")} entryTitle={t("epgSources")}
+        entryHint={t("epgAddPlaceholder")} fresh onDone={add} />
       {error ? <div class="status error">{error}</div> : null}
-
-      <div class="add" style={{ marginTop: 8 }}>
-        <input class="field" data-focus="epg-proxy" value={s.proxy} placeholder={t("proxyPlaceholder")}
-          onInput={(e) => p.onChange({ ...s, proxy: (e.currentTarget as HTMLInputElement).value.trim() })} />
-      </div>
-      <div class="srow-hint" style={{ margin: "0 12px 12px" }}>{t("setProxy")}. {t("setProxyHint")}</div>
+      <EntryRow id="epg-proxy" title={t("setProxy")} value={s.proxy} placeholder={t("setProxyHint")} entryHint={`${t("setProxyHint")}. ${t("proxyPlaceholder")}`}
+        onDone={(v) => p.onChange({ ...s, proxy: v.trim() })} />
 
       <button class="srow" data-focus="epg-refresh" onClick={p.onRefresh}>
         <span class="srow-text">

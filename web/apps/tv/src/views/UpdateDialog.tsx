@@ -1,13 +1,14 @@
 import { useEffect } from "preact/hooks";
-import { focusFirst } from "@skmate/ui";
+import { focusFirst, useReturnFocus } from "@skmate/ui";
 import { t } from "../i18n";
 import type { Release } from "../state/updates";
 
 /** A new version is out: install it now, or leave it until the next start. Focus starts on Install. */
 export function UpdateDialog(p: { release: Release; installing: boolean; onInstall: () => void; onLater: () => void }) {
+  const root = useReturnFocus();
   useEffect(() => { focusFirst(document, "update-ok"); }, []);
   return (
-    <div class="scrim" data-modal>
+    <div class="scrim" data-modal ref={root}>
       <div class="dialog" role="alertdialog" aria-label={t("updateTitle")}>
         <div class="dialog-title">{t("updateTitle")}</div>
         <div class="dialog-body">

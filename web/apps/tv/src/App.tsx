@@ -15,7 +15,7 @@ import { useUpdates } from "./state/useUpdates";
 import { useReminders } from "./state/useReminders";
 import { ProgrammeDialog, ReminderNote, ReminderPrompt } from "./views/Reminders";
 import { desktop, useFullScreen, useRecordingEnd } from "./state/desktop";
-import { addProfile, firstBook, loadBook, purgeProfile, removeProfile, saveBook, setKids, setPinHash, switchProfile, type ProfileBook } from "./state/scope";
+import { addProfile, firstBook, loadBook, purgeProfile, removeProfile, renameProfile, saveBook, setKids, setPinHash, switchProfile, type ProfileBook } from "./state/scope";
 import { usePlaylists } from "./state/usePlaylists";
 import { Confirm } from "./views/Confirm";
 import { PinDialog } from "./views/PinDialog";
@@ -317,11 +317,17 @@ export function App() {
   const addOne = (name: string) => { if (!book) return; const b = addProfile(book, name); saveBook(b); setBook(b); };
   const doomedProfile = book && deletingProfile ? book.profiles.find((x) => x.id === deletingProfile) : undefined;
   const greeting = !me ? "" : me.guest ? t("greetingGuest") : t("greeting", { name: me.name });
+  // The control last focused on the page, so Right from the menu (or its icon of the open place) returns exactly there.
+  const lastContent = useRef<string | null>(null);
+  const backToContent = () => {
+    const all = Array.from(document.querySelectorAll<HTMLElement>(".content [data-focus]"));
+    // Never a text field first: it would open the TV's keyboard.
+    (all.find((e) => e.dataset.focus === lastContent.current) ?? all.find((e) => !(e instanceof HTMLInputElement)))?.focus();
+  };
   /** The rail: another place opens; the one already open sends the focus into its content (so the icon always does something). */
   const goTo = (id: Section) => {
     if (id !== section) { setSection(id); return; }
-    const first = document.querySelector<HTMLElement>(".content [data-focus]");
-    first?.focus();
+    backToContent();
   };
   const toggleFavorite = (c: Channel) => setFavorites((f) => toggle(f, channelKey(c)));
   const doomed = deleting ? pl.store.list.find((p) => p.id === deleting) : undefined;
@@ -399,6 +405,12 @@ export function App() {
       <nav
         class={`rail${railOpen ? " open" : ""}`} data-collapsed={railOpen ? undefined : ""}
         onFocusIn={() => setRailOpen(true)}
+        onKeyDown={(e) => {
+          // Right leaves the menu for the page, back to where the viewer was, whatever lies beside the item.
+          if (e.key !== "ArrowRight" && e.keyCode !== 39) return;
+          e.preventDefault(); e.stopPropagation();
+          backToContent();
+        }}
         onFocusOut={(e) => { if (!(e.currentTarget as HTMLElement).contains(e.relatedTarget as Node | null)) setRailOpen(false); }}
       >
         <div class="rail-brand"><img class="rail-logo" src={skLogo} alt="" /><span class="rail-word">mate</span></div>
@@ -418,7 +430,7 @@ export function App() {
           ) : null}
         </div>
       </nav>
-      <main class="content">
+      <main class="content" onFocusIn={(e) => { const id = (e.target as HTMLElement).dataset?.focus; if (id) lastContent.current = id; }}>
         {section === "live" ? (
           <LiveView
             channels={channels} favorites={favorites} status={pl.status} settings={settings}
@@ -451,7 +463,8 @@ export function App() {
             onAskReset={() => setResetting(true)}
             guide={{ data: guide.data, status: guide.status, outcomes: guide.outcomes, onRefresh: () => void guide.sync(), onClear: guide.clear }}
             channelCount={pl.channels.length} active={pl.active} headerGuides={pl.headerGuides}
-            book={book ?? firstBook("", true)} onSwitchProfile={switchTo} onAddProfile={addOne} onAskDeleteProfile={askDeleteProfile}
+            book={book ?? firstBook("", true)} onSwitchProfile={switchTo} onAddProfile={addOne}
+            onRenameProfile={(name) => { if (book) updateBook(renameProfile(book, book.activeId, name)); }} onAskDeleteProfile={askDeleteProfile}
             onSetPin={askNewPin} onRemovePin={removePin} onToggleKids={toggleKids}
             onQr={(name, address) => setQr({ name, address })}
             update={update} onRedoWizard={() => { setSheet(false); setRedo(true); }}
@@ -502,7 +515,7 @@ export function App() {
       {/* A fresh dialog for every question: the digits of "New PIN" must not carry over into "Repeat the PIN". */}
       {pinAsk ? <PinDialog key={pinAsk.title} title={pinAsk.title} hint={pinAsk.hint} check={pinAsk.check} onDone={pinAsk.onDone} onCancel={() => setPinAsk(null)} /> : null}
       {book === null || redo ? (
-        <Wizard settings={settings} hasProfile={book !== null} onPreview={setSettings} onFinish={finishWizard} onCancel={redo ? () => setRedo(false) : undefined} />
+        <Wizard settings={settings} hasProfile={book !== null} onPreview={setSettings} onFinish={(r) => { finishWizard(r); setTimeout(backToContent, 0); }} onCancel={redo ? () => { setRedo(false); setTimeout(backToContent, 0); } : undefined} />
       ) : null}
       {resetting ? (
         <Confirm

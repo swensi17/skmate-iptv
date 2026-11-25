@@ -72,6 +72,9 @@ function memoryIndex(list: readonly Channel[], group: string | null, playing: nu
   return at >= 0 ? at : group === null ? playing : 0;
 }
 
+/** The room for a list in the wide panel: the screen less the title-safe margins (40 px top and bottom) and the list title. */
+const PANEL_ROOM = 1080 - 40 - 56 - 40;
+
 /** The player's side sheet. Left leads channels → categories → menu; Right brings recently watched; the bar brings the settings. */
 export function PlayerPanel(p: Props) {
   // A category picked in the first tab narrows the channels tab; until then it shows what is being watched.
@@ -138,7 +141,7 @@ export function PlayerPanel(p: Props) {
               <div class="tm-inner">
                 <div class="tm-head">{t("panelGroups")}</div>
                 <VirtualList
-                  key="groups" items={rows} rowHeight={GROUP_ROW} height={1080 - 56 - 16} pageSize={8} autofocus={p.tab === "groups"}
+                  key="groups" items={rows} rowHeight={GROUP_ROW} height={Math.floor(PANEL_ROOM / GROUP_ROW) * GROUP_ROW} pageSize={8} autofocus={p.tab === "groups"}
                   initialIndex={Math.max(0, rows.findIndex((r) => r.key === (group ?? "~all")))}
                   idOf={(g) => `pg:${g.key}`}
                   renderRow={(g) => (
@@ -153,7 +156,7 @@ export function PlayerPanel(p: Props) {
           <div class="tm-list">
             <div class="tm-head">{group === null || group === "~all" ? t("allChannelsShort") : group === "~fav" ? t("favorites") : capitalize(group)}</div>
             <VirtualList
-              key={`channels|${group}|${listing}`} items={list} rowHeight={ROW} height={1080 - 56 - 16} pageSize={9} autofocus={listing}
+              key={`channels|${group}|${listing}`} items={list} rowHeight={ROW} height={Math.floor(PANEL_ROOM / ROW) * ROW} pageSize={9} autofocus={listing}
               initialIndex={memoryIndex(list, group, p.index)}
               idOf={(c) => `pc-${c.id}`}
               renderRow={(c, i) => (

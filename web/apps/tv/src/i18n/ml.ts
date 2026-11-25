@@ -260,6 +260,7 @@ export const ml: Record<keyof typeof en, string> = {
   profileActive: "ഇപ്പോൾ",
   profileSwitch: "മാറുക",
   profileAdd: "പ്രൊഫൈൽ ചേർക്കുക",
+  profileOthers: "മറ്റ് പ്രൊഫൈലുകൾ",
   setReminders: "പരിപാടി ഓർമ്മപ്പെടുത്തലുകൾ",
   setRemindersHint: "ഓർമ്മപ്പെടുത്തലുള്ള പരിപാടി തുടങ്ങാറാകുമ്പോൾ എന്ത് സംഭവിക്കണം",
   setReminderAsk: "ചോദിക്കുക",

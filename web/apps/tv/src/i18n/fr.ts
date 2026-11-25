@@ -260,6 +260,7 @@ export const fr: Record<keyof typeof en, string> = {
   profileActive: "Actif",
   profileSwitch: "Changer",
   profileAdd: "Ajouter un profil",
+  profileOthers: "Autres profils",
   setReminders: "Rappels",
   setRemindersHint: "Ce qui se passe quand un programme avec rappel va commencer",
   setReminderAsk: "Demander",

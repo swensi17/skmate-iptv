@@ -260,6 +260,7 @@ export const cs: Record<keyof typeof en, string> = {
   profileActive: "Aktivní",
   profileSwitch: "Přepnout",
   profileAdd: "Přidat profil",
+  profileOthers: "Další profily",
   setReminders: "Připomínky pořadů",
   setRemindersHint: "Co se stane, když má začít pořad s připomínkou",
   setReminderAsk: "Zeptat se",

@@ -47,7 +47,7 @@ export function PlaylistsPanel(p: Props) {
     <div class="setting pl-panel">
       {p.store.list.length > 0 ? (
         <>
-          <div class="caption">{t("plYours")} <span>{p.store.list.length}</span></div>
+          <div class="caption">{t("plYours")}</div>
           <div class="pl-list">
             {p.store.list.map((pl) => {
               const active = p.store.activeId === pl.id;

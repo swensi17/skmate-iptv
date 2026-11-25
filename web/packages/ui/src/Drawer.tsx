@@ -1,5 +1,7 @@
 import type { ComponentChildren } from "preact";
 import { createPortal } from "preact/compat";
+import { useState } from "preact/hooks";
+import { useReturnFocus } from "./returnFocus";
 
 /**
  * A panel that slides in from an edge over a dimmed screen, and slides out again when [closing] is set (see
@@ -27,6 +29,27 @@ function wingsHost(): HTMLElement | null {
   return host;
 }
 
+/**
+ * How far a sheet travels, in stage pixels: the window's whole height. The stage is scaled and centred, so when the
+ * window is not 16:9 (or the interface is zoomed out) there are bands around it; travelling the window's height, the
+ * sheet and its full-window layer (`SheetWings`, which travels 100% of the window) move as one rigid piece. Null when
+ * there are no bands (a TV at 100 %): the plain 100% keyframes are exact there and need no variable.
+ */
+export function sheetTravel(): number | null {
+  if (typeof document === "undefined") return null;
+  const stage = document.getElementById("app");
+  const h = stage ? stage.getBoundingClientRect().height : 0;
+  if (!h) return null;
+  const travel = (window.innerHeight * 1080) / h;
+  return travel > 1081 ? Math.ceil(travel) : null;
+}
+
+/** The full-window layer behind the stage that covers the bands beside it while a sheet is up (see `Drawer`). */
+export function SheetWings(p: { closing?: boolean }) {
+  const host = wingsHost();
+  return host ? createPortal(<div class={`sheet-wings${p.closing ? " out" : ""}`} aria-hidden="true" />, host) : null;
+}
+
 export function Drawer(p: {
   side: "left" | "right" | "bottom";
   width?: number;
@@ -37,21 +60,25 @@ export function Drawer(p: {
   bottomGap?: number;
   /** An extra class for the panel itself. */
   className?: string;
+  /** On closing, the focus goes back to the control that opened the panel (see `useReturnFocus`). */
+  returnFocus?: boolean;
   children: ComponentChildren;
 }) {
   const modal = p.modal ?? true;
+  const root = useReturnFocus<HTMLElement>(!!p.closing, !!p.returnFocus);
   const sheet = p.side === "bottom";
-  const size = sheet ? {} : { width: `${p.width ?? 760}px`, ...(p.bottomGap ? { height: `calc(100% - ${p.bottomGap}px)` } : {}) };
+  // Measured once, as it opens: the window does not change size while a sheet moves.
+  const [travel] = useState(() => (sheet ? sheetTravel() : null));
+  const size = sheet ? (travel ? { "--travel": `${travel}px` } : {}) : { width: `${p.width ?? 760}px`, ...(p.bottomGap ? { height: `calc(100% - ${p.bottomGap}px)` } : {}) };
   // The stage keeps 16:9, so a wider or taller window shows bands beside it. A sheet also covers those: a layer of the
   // same colour on the whole window rises and falls with it (behind the stage, so only the bands show it).
-  const host = sheet ? wingsHost() : null;
-  const wings = host ? createPortal(<div class={`sheet-wings${p.closing ? " out" : ""}`} aria-hidden="true" />, host) : null;
   return (
     <>
-    {wings}
+    {sheet ? <SheetWings closing={p.closing} /> : null}
     <div class={`scrim drawer-scrim${sheet ? " sheet-scrim" : ""}${p.closing ? " closing" : ""}${modal ? "" : " open-ended"}`} data-modal={modal && !p.closing ? "" : undefined} onClick={p.onClose}>
       <aside
-        class={`drawer drawer-${p.side}${p.closing ? " out" : ""}${p.className ? ` ${p.className}` : ""}`}
+        ref={root}
+        class={`drawer drawer-${p.side}${travel ? " far" : ""}${p.closing ? " out" : ""}${p.className ? ` ${p.className}` : ""}`}
         style={size} role="dialog" aria-label={p.label} onClick={(e) => e.stopPropagation()}
       >
         {sheet ? <div class="sheet-col">{p.children}</div> : p.children}

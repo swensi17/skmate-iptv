@@ -67,6 +67,7 @@ interface Props {
   book: ProfileBook;
   onSwitchProfile: (id: string) => void;
   onAddProfile: (name: string) => void;
+  onRenameProfile: (name: string) => void;
   onAskDeleteProfile: (id: string) => void;
   /** The active profile's lock and kids setting. */
   onSetPin: () => void;
@@ -84,7 +85,9 @@ export function SettingsSheet(p: Props) {
   // A section opens on its first control; back on the menu, the focus is on the section just left.
   const left = useRef<Page | null>(null);
   useEffect(() => {
-    if (p.show) focusFirst(document, page === "profiles" ? `pf-${p.book.activeId}` : page ? FIRST[page] : `sheet-${left.current ?? "player"}`);
+    if (p.show) focusFirst(document, page === "profiles" ? (me?.guest ? "pf-kids" : `pf-${p.book.activeId}`)
+      : page === "playlists" && p.store.activeId ? `pl-${p.store.activeId}` // the playlist in use first; the form is under the list
+      : page ? FIRST[page] : `sheet-${left.current ?? "player"}`);
     if (page) left.current = page;
   }, [page, p.show]);
 
@@ -135,7 +138,7 @@ export function SettingsSheet(p: Props) {
                 channelCount={p.channelCount} active={p.active} headerGuides={p.headerGuides} onRefresh={p.guide.onRefresh} onClear={p.guide.onClear} />
             ) : null}
             {pg === "profiles" ? (
-              <ProfilesPanel book={p.book} onSwitch={p.onSwitchProfile} onAdd={p.onAddProfile} onAskDelete={p.onAskDeleteProfile}
+              <ProfilesPanel book={p.book} onSwitch={p.onSwitchProfile} onAdd={p.onAddProfile} onRename={p.onRenameProfile} onAskDelete={p.onAskDeleteProfile}
                 onSetPin={p.onSetPin} onRemovePin={p.onRemovePin} onToggleKids={p.onToggleKids} />
             ) : null}
             {pg === "system" ? <SystemPanel settings={s} onChange={onChange} onQr={p.onQr} onReset={p.onAskReset} onRedo={p.onRedoWizard} update={p.update} /> : null}
@@ -149,13 +152,13 @@ export function SettingsSheet(p: Props) {
   // that one, so the menu is there again under it.
   return (
     <>
-      <Drawer side="bottom" label={t("sheetTitle")} onClose={p.onClose} closing={!p.show}>
+      <Drawer side="bottom" label={t("sheetTitle")} onClose={p.onClose} closing={!p.show} returnFocus>
         <>
           <SheetHead title={t("sheetTitle")} />
           <div class="drawer-scroll">
             {MENU.map(([section, pages]) => (
               <div key={section}>
-                <div class="caption">{t(section)} <span>{pages.length}</span></div>
+                <div class="caption">{t(section)}</div>
                 {pages.map((id) => (
                   <button class="menu-row two" key={id} data-focus={`sheet-${id}`} onClick={() => p.onPage(id)}>
                     <Icon name={META[id].icon} size={40} />

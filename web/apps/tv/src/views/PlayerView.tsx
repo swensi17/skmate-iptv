@@ -392,9 +392,9 @@ export function PlayerView({ channels, catalog, index, favorites, recents, onPic
         <div class="player-bar">
           {archive || shifted ? <Tile id="pl-live" icon="live_tv" label="playerLive" onClick={toLive} /> : null}
           {archive ? null : <Tile id="pl-prev" icon="skip_previous" label="playerPrev" onClick={() => onStep(-1)} />}
-          <Tile id="pl-back" icon="chevron_left" label="playerBack30" onClick={() => seek(-SEEK_MS)} />
+          <Tile id="pl-back" icon="rewind" label="playerBack30" onClick={() => seek(-SEEK_MS)} />
           <Tile id="pl-play" icon={paused ? "play" : "pause"} label={paused ? "playerPlay" : "playerPause"} onClick={playPause} />
-          {archive || shifted ? <Tile id="pl-fwd" icon="chevron" label="playerFwd30" onClick={() => seek(SEEK_MS)} /> : null}
+          {archive || shifted ? <Tile id="pl-fwd" icon="fast_forward" label="playerFwd30" onClick={() => seek(SEEK_MS)} /> : null}
           {archive ? null : <Tile id="pl-next" icon="skip_next" label="playerNext" onClick={() => onStep(1)} />}
           {startOver && live.now ? <Tile id="pl-start" icon="history" label="playerStartOver" onClick={() => onArchive(live.now as Programme, startOver)} /> : null}
           <Tile id="pl-fav" icon={favorite ? "favorite" : "star"} label="playerFavorite" onClick={() => onFav(channel)} />

@@ -260,6 +260,7 @@ export const zhCN: Record<keyof typeof en, string> = {
   profileActive: "当前",
   profileSwitch: "切换",
   profileAdd: "添加用户档案",
+  profileOthers: "其他用户档案",
   setReminders: "节目提醒",
   setRemindersHint: "设有提醒的节目即将开始时如何处理",
   setReminderAsk: "询问",

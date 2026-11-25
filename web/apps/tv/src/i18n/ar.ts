@@ -260,6 +260,7 @@ export const ar: Record<keyof typeof en, string> = {
   profileActive: "الحالي",
   profileSwitch: "تبديل",
   profileAdd: "إضافة ملف شخصي",
+  profileOthers: "ملفات شخصية أخرى",
   setReminders: "تذكيرات البرامج",
   setRemindersHint: "ماذا يحدث عندما يوشك برنامج عليه تذكير أن يبدأ",
   setReminderAsk: "اسأل",

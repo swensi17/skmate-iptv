@@ -1,4 +1,4 @@
-import { useEffect, useState } from "preact/hooks";
+import { useEffect, useRef, useState } from "preact/hooks";
 import { focusFirst, isBack } from "@skmate/ui";
 import { applyLanguage, t, type Key } from "../i18n";
 import { LANGUAGES } from "../i18n/languages";
@@ -7,6 +7,7 @@ import { SourceForm } from "./SourceForm";
 import { readPlaylistFile } from "../state/localFiles";
 import type { Settings } from "../state/settings";
 import { SettingRow } from "./SettingRow";
+import { EntryRow } from "./EntryRow";
 import "./player-wizard.css";
 
 export interface WizardResult {
@@ -63,6 +64,9 @@ export function Wizard({ settings, hasProfile, onPreview, onFinish, onCancel }: 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (!isBack(e)) return;
+      // A panel open over the setup (typing a value) takes Back first: one step back at a time.
+      const modals = document.querySelectorAll("[data-modal]");
+      if (modals[modals.length - 1] !== root.current) return;
       e.stopPropagation();
       e.preventDefault();
       if (at > 0) go(-1); else onCancel?.();
@@ -70,7 +74,15 @@ export function Wizard({ settings, hasProfile, onPreview, onFinish, onCancel }: 
     document.addEventListener("keydown", onKey, true);
     return () => document.removeEventListener("keydown", onKey, true);
   }, [at]);
+  // Closed (a redo from the settings): the focus goes to the screen under it, never nowhere.
+  useEffect(() => () => {
+    setTimeout(() => {
+      if (document.activeElement && document.activeElement !== document.body) return;
+      document.querySelector<HTMLElement>(".content [data-focus]:not(input)")?.focus();
+    }, 0);
+  }, []);
 
+  const root = useRef<HTMLDivElement>(null);
   const finish = () => {
     onFinish({
       name: guest || hasProfile ? null : name.trim(),
@@ -89,7 +101,7 @@ export function Wizard({ settings, hasProfile, onPreview, onFinish, onCancel }: 
   };
 
   return (
-    <div class="wizard" data-modal>
+    <div class="wizard" data-modal ref={root}>
       <div class="wz-top">
         <img class="wz-logo" src={logo} alt="skmate" />
         {/* Where the viewer is: "Step 2 of 5" in words, then the steps as numbers (done, this one, still ahead). */}
@@ -124,9 +136,8 @@ export function Wizard({ settings, hasProfile, onPreview, onFinish, onCancel }: 
               ) : null}
 
               {step === "profile" ? (
-                <input class="field" data-focus="wz-name" value={name} placeholder={t("welcomeName")}
-                  onInput={(e) => { setName((e.currentTarget as HTMLInputElement).value); setGuest(false); }}
-                  onKeyDown={(e) => { if (e.key === "Enter" && name.trim() !== "") go(1); }} />
+                <EntryRow id="wz-name" title={t("welcomeName")} value={name} entryHint={t("wzProfileSub")}
+                  onDone={(v) => { setName(v); setGuest(false); if (v.trim() !== "") setTimeout(() => focusFirst(document, "wz-next"), 0); }} />
               ) : null}
 
               {step === "playlist" ? (
@@ -150,7 +161,7 @@ export function Wizard({ settings, hasProfile, onPreview, onFinish, onCancel }: 
             {step === "profile" ? (
               <>
                 <button class="btn" data-focus="wz-guest" onClick={() => { setGuest(true); go(1); }}>{t("welcomeGuest")}</button>
-                <button class="btn primary" data-focus="wz-next" onClick={() => { if (name.trim() !== "") { setGuest(false); go(1); } }}>{t("wzNext")}</button>
+                <button class="btn primary" data-focus="wz-next" onClick={() => { if (name.trim() !== "") { setGuest(false); go(1); } else focusFirst(document, "wz-name"); }}>{t("wzNext")}</button>
               </>
             ) : null}
             {step === "playlist" ? (

@@ -8,7 +8,7 @@ import type { PlaylistStore } from "../state/playlists";
 export function PlaylistPicker(p: { store: PlaylistStore; onSelect: (id: string) => void; onManage: () => void; onClose: () => void; closing?: boolean }) {
   useEffect(() => { focusFirst(document, `pk-${p.store.activeId ?? p.store.list[0]?.id ?? "manage"}`); }, []);
   return (
-    <Drawer side="bottom" label={t("playlistPickerTitle")} onClose={p.onClose} closing={p.closing}>
+    <Drawer side="bottom" label={t("playlistPickerTitle")} onClose={p.onClose} closing={p.closing} returnFocus>
       <SheetHead title={t("playlistPickerTitle")} />
       <div class="drawer-body">
         {p.store.list.map((pl) => (

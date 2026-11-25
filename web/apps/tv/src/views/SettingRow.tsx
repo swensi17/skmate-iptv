@@ -45,7 +45,6 @@ export function SettingRow<T>(p: Props<T>) {
         <span class="srow-title">{t(p.title)}</span>
         {p.hint ? <span class="srow-hint">{t(p.hint)}</span> : null}
       </span>
-      <span class="srow-arrow" aria-hidden="true">‹</span>
       <span class="chips">
         {(p.compact ? p.options.filter((o) => o.value === p.value) : p.options).map((o) => (
           <span
@@ -56,7 +55,6 @@ export function SettingRow<T>(p: Props<T>) {
           </span>
         ))}
       </span>
-      <span class="srow-arrow" aria-hidden="true">›</span>
     </button>
   );
 }

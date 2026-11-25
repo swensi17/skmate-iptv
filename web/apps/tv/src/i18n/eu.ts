@@ -260,6 +260,7 @@ export const eu: Record<keyof typeof en, string> = {
   profileActive: "Orain",
   profileSwitch: "Aldatu",
   profileAdd: "Gehitu profila",
+  profileOthers: "Beste profilak",
   setReminders: "Saioen oroigarriak",
   setRemindersHint: "Zer gertatzen den oroigarria duen saio bat hastear dagoenean",
   setReminderAsk: "Galdetu",

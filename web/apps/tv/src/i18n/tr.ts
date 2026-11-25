@@ -260,6 +260,7 @@ export const tr: Record<keyof typeof en, string> = {
   profileActive: "Etkin",
   profileSwitch: "Geç",
   profileAdd: "Profil ekle",
+  profileOthers: "Diğer profiller",
   setReminders: "Program hatırlatıcıları",
   setRemindersHint: "Hatırlatıcılı bir program başlamak üzereyken ne olacağı",
   setReminderAsk: "Sor",

@@ -260,6 +260,7 @@ export const nl: Record<keyof typeof en, string> = {
   profileActive: "Nu",
   profileSwitch: "Wisselen",
   profileAdd: "Profiel toevoegen",
+  profileOthers: "Andere profielen",
   setReminders: "Programmaherinneringen",
   setRemindersHint: "Wat er gebeurt als een programma met herinnering bijna begint",
   setReminderAsk: "Vragen",

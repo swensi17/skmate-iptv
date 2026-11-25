@@ -260,6 +260,7 @@ export const sv: Record<keyof typeof en, string> = {
   profileActive: "Nu",
   profileSwitch: "Byt",
   profileAdd: "Lägg till profil",
+  profileOthers: "Andra profiler",
   setReminders: "Programpåminnelser",
   setRemindersHint: "Vad som händer när ett program med påminnelse snart börjar",
   setReminderAsk: "Fråga",
