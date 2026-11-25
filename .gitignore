@@ -61,3 +61,4 @@ replay_pid*.log
 # Internal agent notes and spec: kept local, never committed
 AGENTS.md
 docs/SPEC.md
+.tools/
