@@ -21,7 +21,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.layout.layout
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.tv.material3.Text
@@ -125,11 +124,9 @@ private fun FirstRunLanguagePopup(
             viewModel.setLocale(tag)
             close()
         }
-        // Rows from edge to edge with the settings sheet's focus bar, as the settings lists are.
-        androidx.compose.runtime.CompositionLocalProvider(tv.own.owntv.ui.theme.LocalInSettingsSheet provides true) {
         LazyColumn(
             state = listState,
-            modifier = Modifier.panelBleed().weight(1f, fill = false),
+            modifier = Modifier.fillMaxWidth().weight(1f, fill = false),
         ) {
             item(key = SupportedLocales.SYSTEM_DEFAULT_TAG) {
                 SidePanelLanguageRow(
@@ -151,21 +148,8 @@ private fun FirstRunLanguagePopup(
                 )
             }
         }
-        }
     }
 }
-
-/** Past the side panel's own side padding, so a row's focus bar runs from edge to edge. */
-private fun Modifier.panelBleed(): Modifier = layout { measurable, constraints ->
-    val extra = (PANEL_PADDING * 2).mpx.roundToPx()
-    val wide = constraints.maxWidth + extra
-    val placeable = measurable.measure(constraints.copy(minWidth = wide, maxWidth = wide))
-    layout(constraints.maxWidth, placeable.height) { placeable.place(-extra / 2, 0) }
-}
-
-/** The side panel's padding, and where its title starts inside it: a row's text lines up with the title. */
-private const val PANEL_PADDING = 28
-private const val LIST_TEXT_START = 50
 
 /**
  * Settings › App › Language: System default, then every language A–Z by English name, each
@@ -283,7 +267,7 @@ private fun SidePanelLanguageRow(
         modifier = modifier.fillMaxWidth(),
     ) { focused ->
         Row(
-            Modifier.fillMaxWidth().padding(horizontal = LIST_TEXT_START.mpx, vertical = 12.mpx),
+            Modifier.fillMaxWidth().padding(horizontal = tv.own.owntv.ui.stage.SIDE_PANEL_INSET.mpx, vertical = 12.mpx),
             horizontalArrangement = Arrangement.spacedBy(12.mpx),
             verticalAlignment = Alignment.CenterVertically,
         ) {

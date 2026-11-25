@@ -106,26 +106,45 @@ fun StageSidePanel(
                         .fillMaxHeight()
                         .background(if (tv.own.owntv.ui.theme.LocalStagePalette.current.isLight) Color.White else PanelFill)
                         .pointerInput(Unit) { detectTapGestures { } }
-                        .padding(horizontal = 28.mpx, vertical = 48.mpx),
+                        .padding(vertical = 48.mpx),
                 ) {
-                    Text(title, style = stageText(34, 800), color = StageColors.Text, modifier = Modifier.padding(start = 22.mpx, bottom = if (subtitle == null) 24.mpx else 8.mpx))
-                    if (subtitle != null) {
-                        Text(subtitle, style = stageText(17, 500), color = StageColors.Muted, modifier = Modifier.padding(start = 22.mpx, end = 22.mpx, bottom = 28.mpx))
-                    }
-                    content(close)
+                    // As the settings sheet: rows from edge to edge with its focus bar, text and title on one line.
+                    sidePanelHeader(title, subtitle)
+                    androidx.compose.runtime.CompositionLocalProvider(
+                        tv.own.owntv.ui.theme.LocalInSettingsSheet provides true,
+                    ) { content(close) }
                 }
             }
         }
     }
 }
 
+/** The panel's title and the line under it, where its rows' text starts. */
+@Composable
+private fun sidePanelHeader(title: String, subtitle: String?) {
+    Text(
+        title, style = stageText(34, 800), color = StageColors.Text,
+        modifier = Modifier.padding(horizontal = SIDE_PANEL_INSET.mpx)
+            .padding(bottom = if (subtitle == null) 24.mpx else 8.mpx),
+    )
+    if (subtitle != null) {
+        Text(
+            subtitle, style = stageText(17, 500), color = StageColors.Muted,
+            modifier = Modifier.padding(horizontal = SIDE_PANEL_INSET.mpx).padding(bottom = 28.mpx),
+        )
+    }
+}
+
 private const val PanelMs = 240
+
+/** Where text starts in a side panel, title and rows alike: the settings sheet's inset. */
+const val SIDE_PANEL_INSET = 30
 private val PanelFill = Color(0xFF1E2228)
 private val PanelScrim = Color(0x8C000000)
 
 /**
- * One choice in a [StageSidePanel]: icon, title and a line under it, a round light highlight while
- * focused; [danger] colours the title and icon red (Remove).
+ * One choice in a [StageSidePanel]: icon, title and a line under it, the settings sheet's focus bar from edge to
+ * edge; [danger] colours the title and icon red (Remove).
  */
 @Composable
 fun StageSidePanelOption(
@@ -136,17 +155,15 @@ fun StageSidePanelOption(
     subtitle: String? = null,
     danger: Boolean = false,
 ) {
-    val shape = androidx.compose.foundation.shape.RoundedCornerShape(16.mpx)
     StageSurface(
         onClick = onClick,
-        radius = 16.mpx,
-        focusStyle = StageFocus.NONE,
+        radius = 0.mpx,
+        focusStyle = StageFocus.FX,
         modifier = modifier.fillMaxWidth().heightIn(min = 76.mpx),
-    ) { focused ->
-        if (focused) Box(Modifier.matchParentSize().background(StageColors.Text.copy(alpha = 0.07f), shape))
+    ) {
         val tint = if (danger) StageColors.Danger else StageColors.Text
         Row(
-            Modifier.fillMaxWidth().padding(horizontal = 26.mpx, vertical = 12.mpx),
+            Modifier.fillMaxWidth().padding(horizontal = SIDE_PANEL_INSET.mpx, vertical = 12.mpx),
             horizontalArrangement = Arrangement.spacedBy(18.mpx),
             verticalAlignment = Alignment.CenterVertically,
         ) {

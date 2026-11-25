@@ -1002,7 +1002,7 @@
     </file>
     <file name="app/src/main/java/tv/own/owntv/ui/stage/StageSidePanel.kt">
         <error line="3" column="1" source="standard:import-ordering" />
-        <error line="122" column="19" source="standard:property-naming" />
+        <error line="138" column="19" source="standard:property-naming" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/ui/theme/Animations.kt">
         <error line="26" column="36" source="standard:annotation" />
