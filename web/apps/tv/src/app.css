@@ -691,3 +691,14 @@ nav.rail { background: #2b2f33; }
 .drawer-body > .srow + .srow, .drawer-scroll > .srow + .srow { margin-top: 2px; }
 .srow-hint { line-height: 1.35; }
 .srow .chips { flex: none; }
+
+/* Search before anything is typed: the welcome in the middle of the free space, the recent queries under it. */
+.search .search-idle { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 48px; min-height: 640px; padding-top: 0; }
+.search-welcome { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 14px; max-width: 900px; }
+.search-welcome-icon { width: 112px; height: 112px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  background: var(--control); color: var(--muted); margin-bottom: 8px; }
+.search-recent { display: flex; flex-direction: column; align-items: center; max-width: 1300px; }
+.search-recent .caption { margin: 0 0 10px; }
+.search-recent .recent { justify-content: center; }
+.filter.quiet { background: none; box-shadow: inset 0 0 0 2px var(--line); }
+.filter.quiet:focus { background: var(--focus-fill); box-shadow: none; }

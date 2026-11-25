@@ -34,6 +34,8 @@ interface Props {
 
 /** A TV is slow: the search waits for a short pause in typing instead of running on every key. */
 const TYPING_PAUSE_MS = 180;
+/** How long a query that found something must stay before it joins the recent ones. */
+const REMEMBER_AFTER_MS = 2500;
 const HEIGHT = 700;
 
 /**
@@ -75,6 +77,13 @@ export function SearchView({ channels, favorites, onOpen, onArchive, onUpcoming,
   useEffect(() => { const id = setTimeout(() => setSettled(query), TYPING_PAUSE_MS); return () => clearTimeout(id); }, [query]);
 
   const remember = () => { const next = pushQuery(recent, q); setRecent(next); saveQueries(next); };
+  // A query that found something is remembered once the viewer stops typing for a while, not only when a result is
+  // opened: "Lord of the Rings" looked up and left should still be there next time.
+  useEffect(() => {
+    if (q.length < 2 || hits.length === 0) return;
+    const id = setTimeout(remember, REMEMBER_AFTER_MS);
+    return () => clearTimeout(id);
+  }, [q, hits.length > 0]);
   const open = (c: Channel) => { remember(); onOpen(c, playable); };
   // A programme that has ended plays from its recording (only those the channel keeps are found at all).
   const openProgramme = (c: Channel, p: Programme) => {
@@ -101,24 +110,28 @@ export function SearchView({ channels, favorites, onOpen, onArchive, onUpcoming,
       </div>
 
       {q === "" ? (
+        // Before anything is typed: what can be found, in the middle, and under it the last queries, as in Lampa.
         <div class="search-idle">
+          <div class="search-welcome">
+            <span class="search-welcome-icon"><Icon name="search" size={56} /></span>
+            <div class="empty-title">{t("searchIdleTitle")}</div>
+            <div class="empty-hint">{t("searchIdleBody")}</div>
+          </div>
           {recent.length > 0 ? (
-            <>
+            <div class="search-recent">
               <div class="caption">{t("searchRecent")}</div>
               <div class="recent">
                 {recent.map((r) => (
-                  <button class="filter" key={r} data-focus={`rq-${r}`} onClick={() => { setQuery(r); setSettled(r); }}>{r}</button>
+                  <button class="filter" key={r} data-focus={`rq-${r}`} onClick={() => { setQuery(r); setSettled(r); }}>
+                    <Icon name="history" size={22} />{r}
+                  </button>
                 ))}
-                <button class="filter" data-focus="rq-clear" onClick={() => { setRecent([]); saveQueries([]); }}>{t("searchClear")}</button>
+                <button class="filter quiet" data-focus="rq-clear" onClick={() => { setRecent([]); saveQueries([]); }}>
+                  <Icon name="trash" size={22} />{t("searchClear")}
+                </button>
               </div>
-            </>
-          ) : (
-            <div class="empty-idle">
-              <div class="empty-title">{t("searchIdleTitle")}</div>
-              <div class="empty-hint">{t("searchIdleBody")}</div>
             </div>
-          )}
-          <div class="srow-hint" style={{ margin: "24px 12px" }}>{t("searchCaption")}</div>
+          ) : null}
         </div>
       ) : hits.length === 0 ? (
         <div class="empty-idle">
