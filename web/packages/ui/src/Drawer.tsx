@@ -11,6 +11,22 @@ import { createPortal } from "preact/compat";
  * content in one centred column (`.sheet-col`) so text has room. Sheets stack: a section opened from a sheet is
  * another sheet on top, and Back lowers only that one. Only a transform moves, so it is cheap on a TV.
  */
+/**
+ * Where the full-window layers of sheets go: a fixed box right before the stage (#app) in the page, so it paints over
+ * the page background but under the stage. (A negative z-index would put it under the body background.)
+ */
+function wingsHost(): HTMLElement | null {
+  if (typeof document === "undefined") return null;
+  let host = document.getElementById("sheet-wings-host");
+  if (!host) {
+    host = document.createElement("div");
+    host.id = "sheet-wings-host";
+    const stage = document.getElementById("app");
+    document.body.insertBefore(host, stage ?? document.body.firstChild);
+  }
+  return host;
+}
+
 export function Drawer(p: {
   side: "left" | "right" | "bottom";
   width?: number;
@@ -28,9 +44,8 @@ export function Drawer(p: {
   const size = sheet ? {} : { width: `${p.width ?? 760}px`, ...(p.bottomGap ? { height: `calc(100% - ${p.bottomGap}px)` } : {}) };
   // The stage keeps 16:9, so a wider or taller window shows bands beside it. A sheet also covers those: a layer of the
   // same colour on the whole window rises and falls with it (behind the stage, so only the bands show it).
-  const wings = sheet && typeof document !== "undefined"
-    ? createPortal(<div class={`sheet-wings${p.closing ? " out" : ""}`} aria-hidden="true" />, document.body)
-    : null;
+  const host = sheet ? wingsHost() : null;
+  const wings = host ? createPortal(<div class={`sheet-wings${p.closing ? " out" : ""}`} aria-hidden="true" />, host) : null;
   return (
     <>
     {wings}

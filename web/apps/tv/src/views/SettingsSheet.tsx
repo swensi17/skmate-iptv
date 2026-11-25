@@ -106,7 +106,7 @@ export function SettingsSheet(p: Props) {
   // One page of settings, as its own sheet on top of the menu.
   const pageSheet = (pg: Page) => (
         <>
-          <SheetHead title={t(META[pg].title)} right={pg === "about" ? __APP_VERSION__ : undefined} onBack={p.onBack} />
+          <SheetHead title={t(META[pg].title)} right={pg === "about" ? __APP_VERSION__ : undefined} />
           <div class="drawer-body drawer-scroll">
             {pg === "player" ? <PlayerSettingRows settings={s} onChange={onChange} /> : null}
             {pg === "look" ? (
@@ -151,7 +151,7 @@ export function SettingsSheet(p: Props) {
     <>
       <Drawer side="bottom" label={t("sheetTitle")} onClose={p.onClose} closing={!p.show}>
         <>
-          <SheetHead title={t("sheetTitle")} onBack={p.onClose} />
+          <SheetHead title={t("sheetTitle")} />
           <div class="drawer-scroll">
             {MENU.map(([section, pages]) => (
               <div key={section}>
@@ -163,7 +163,6 @@ export function SettingsSheet(p: Props) {
                       <span class="mr-title">{t(META[id].title)}</span>
                       <span class="mr-sub">{subtitle[id]}</span>
                     </span>
-                    <Icon name="chevron" size={28} />
                   </button>
                 ))}
               </div>

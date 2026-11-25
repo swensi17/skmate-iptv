@@ -102,7 +102,6 @@ export function SourceForm(p: {
               <span class="srow-title">{t(FIELDS[id].title)}</span>
               <span class={v[id] ? "src-value" : "srow-hint"}>{v[id] ? shown(id) : t("entEmpty")}</span>
             </span>
-            <Icon name="chevron" size={28} />
           </button>
         ))}
       </div>

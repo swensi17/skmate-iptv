@@ -9,7 +9,7 @@ export function PlaylistPicker(p: { store: PlaylistStore; onSelect: (id: string)
   useEffect(() => { focusFirst(document, `pk-${p.store.activeId ?? p.store.list[0]?.id ?? "manage"}`); }, []);
   return (
     <Drawer side="bottom" label={t("playlistPickerTitle")} onClose={p.onClose} closing={p.closing}>
-      <SheetHead title={t("playlistPickerTitle")} onBack={p.onClose} />
+      <SheetHead title={t("playlistPickerTitle")} />
       <div class="drawer-body">
         {p.store.list.map((pl) => (
           <button class="row" key={pl.id} data-focus={`pk-${pl.id}`} aria-pressed={p.store.activeId === pl.id}
