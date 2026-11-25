@@ -484,7 +484,9 @@ fun AddSourceScreen(
     val submit = {
         // Kept only for this try: a failed import brings the form back filled in; a success, or leaving the
         // form, forgets it — the password is never held for a later form or another profile.
-        if (!editing) AddSourceDraft.last = AddSourceDraft(kind, name, server, username, password, m3uUrl, portalUrl, mac)
+        if (!editing) {
+            AddSourceDraft.last = AddSourceDraft(kind, name, server, username, password, m3uUrl, portalUrl, mac)
+        }
         when (kind) {
             SourceKind.XTREAM -> onStartXtream(name, server, username, password, userAgent, referer, epgUrl, autoRefresh, syncLive, syncMovies, syncSeries, isDefault, preferHls)
             SourceKind.M3U -> onStartM3u(name, m3uUrl, userAgent, referer, epgUrl, autoRefresh, isDefault)
