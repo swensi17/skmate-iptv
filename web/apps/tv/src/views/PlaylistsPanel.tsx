@@ -1,6 +1,5 @@
-import { createPortal } from "preact/compat";
 import { useEffect, useRef, useState } from "preact/hooks";
-import { Drawer, focusFirst, Presence, useOwnBack } from "@skmate/ui";
+import { Drawer, focusFirst, Popup, Presence, useOwnBack } from "@skmate/ui";
 import { t } from "../i18n";
 import { desktop, type CompanionPayload } from "../state/desktop";
 import { isLocal } from "../state/localFiles";
@@ -8,6 +7,7 @@ import { stalkerSource, xtreamUrl, type PlaylistStore } from "../state/playlists
 import type { Status } from "../state/usePlaylists";
 import { EditPlaylist } from "./EditPlaylist";
 import { LinkDialog } from "./LinkDialog";
+import { ChoiceList, EditorLayer, SIcon, SNote, SRow, useSheet, useSheetBack, OverSheet } from "./SettingsKit";
 import { SourceForm } from "./SourceForm";
 
 interface Props {
@@ -38,24 +38,46 @@ function AddSheet(p: { closing: boolean; busy: boolean; onAdd: (link: string) =>
   const root = useRef<HTMLDivElement>(null);
   useOwnBack(root, p.onClose);
   useEffect(() => { focusFirst(document, "pl-kind-m3u"); }, []);
-  return createPortal(
-    <div ref={root}>
-      <Drawer variant="sheet" instant title={t("emptyAdd")} label={t("emptyAdd")} onClose={p.onClose} closing={p.closing} returnFocus>
-        <div class="st-sheet-body setting">
-          <SourceForm idPrefix="pl" busy={p.busy}
-            onSubmit={(link) => { const err = p.onAdd(link); if (!err) p.onClose(); return err; }}
-            onFile={async (name, text) => { const err = await p.onAddFile(name, text); if (!err) p.onClose(); return err; }} />
-        </div>
-      </Drawer>
-    </div>,
-    document.getElementById("app") ?? document.body, // inside the scaled stage, above the settings sheet
+  return (
+    <OverSheet app>
+      <div ref={root}>
+        <Drawer variant="sheet" instant title={t("sa_settings_sources_add")} label={t("sa_settings_sources_add")} onClose={p.onClose} closing={p.closing} returnFocus>
+          <div class="st-sheet-body setting">
+            <SourceForm idPrefix="pl" busy={p.busy}
+              onSubmit={(link) => { const err = p.onAdd(link); if (!err) p.onClose(); return err; }}
+              onFile={async (name, text) => { const err = await p.onAddFile(name, text); if (!err) p.onClose(); return err; }} />
+          </div>
+        </Drawer>
+      </div>
+    </OverSheet>
+  );
+}
+
+/** `RowActionsPopup` (SettingsStage.kt): StagePopup 600 wide, the item's name as its title, one option per action. */
+function ActionsPopup(p: { title: string; actions: Array<{ icon: string; text: string; danger?: boolean; run: () => void }>; onClose: () => void }) {
+  const root = useRef<HTMLDivElement>(null);
+  useOwnBack(root, p.onClose);
+  useEffect(() => { setTimeout(() => focusFirst(document, "act-0"), 0); }, []);
+  return (
+    <OverSheet app>
+      <div ref={root}>
+        <Popup title={p.title} width={600} onClose={p.onClose} returnFocus>
+          {p.actions.map((a, i) => (
+            <button key={a.text} class={`st-focusable st-option${a.danger ? " danger" : ""}`} data-focus={`act-${i}`} onClick={() => { p.onClose(); a.run(); }}>
+              <span class={`st-option-lead${a.danger ? " set-danger" : ""}`}><SIcon name={a.icon} size={28} /></span>
+              <span class="st-option-body"><span class="st-option-title">{a.text}</span></span>
+            </button>
+          ))}
+        </Popup>
+      </div>
+    </OverSheet>
   );
 }
 
 /**
- * The playlists, as in TiviMate: the list first (the one in use is lighter and says so; OK on another one switches to
- * it), each with "Edit" and "Delete" in words beside it; whether the one in use is loading or failed is said in its own
- * row. Under the list, one row opens adding one (a link, an Xtream login or a file) in a sheet of its own.
+ * Плейлисты (ManageSourcesScreen.kt in the sheet): "Показывать плейлист" when there are several, one row per playlist
+ * (its source and channels under the name, "По умолчанию" on the one in use; OK opens its actions), then "Добавить
+ * плейлист". The web app has no "all playlists at once", nor off / info / re-sync / clean names: Edit and Delete only.
  */
 export function PlaylistsPanel(p: Props) {
   // A playlist from a phone, as on Android: the phone opens this computer's address and sends the form (Windows app).
@@ -63,6 +85,11 @@ export function PlaylistsPanel(p: Props) {
   const [remote, setRemote] = useState(false);
   const [remoteError, setRemoteError] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
+  const [actions, setActions] = useState<string | null>(null);
+  const [choosing, setChoosing] = useState(false);
+  const sheet = useSheet();
+  const back = (id: string) => sheet.focus(id);
+  useSheetBack(choosing, () => { setChoosing(false); back("pl-show"); });
   const take = async (x: CompanionPayload) => {
     let err: string | null;
     if (x.type === "m3u" && x.playlistContent.trim()) err = await p.onAddFile(x.playlistFileName || x.name || "playlist.m3u", x.playlistContent);
@@ -75,73 +102,65 @@ export function PlaylistsPanel(p: Props) {
     if (!err) setRemote(false);
   };
 
-  // A playlist was added: the focus goes to it (it is the one in use now, its row says it is loading). One was deleted:
-  // the focus goes to the one in use, or to the form when the list is empty.
+  // A playlist was added: the focus goes to it. One was deleted: to the one in use, or to "Add" when none is left.
   const count = useRef(p.store.list.length);
   useEffect(() => {
     const before = count.current;
     count.current = p.store.list.length;
     if (before === p.store.list.length) return;
     const id = p.store.activeId ?? p.store.list[0]?.id;
-    setTimeout(() => focusFirst(document, id ? `pl-${id}` : "pl-add-open"), 0);
+    back(id ? `pl-${id}` : "pl-add-open");
   }, [p.store.list.length]);
 
-  const statusOf = (id: string, url: string) => {
-    if (p.store.activeId !== id) return { text: sourceOf(url), error: false };
-    if (p.status.kind === "loading") return { text: t("playlistLoading"), error: false };
-    if (p.status.kind === "error") return { text: p.status.message, error: true };
+  const lineOf = (id: string, url: string): { text: string; error?: boolean } => {
     const where = sourceOf(url);
-    return { text: p.channelCount > 0 ? [where, t("channelsN", { n: p.channelCount })].filter(Boolean).join(" · ") : where, error: false };
+    if (p.store.activeId !== id) return { text: where };
+    if (p.status.kind === "loading") return { text: t("playlistLoading") };
+    if (p.status.kind === "error") return { text: p.status.message, error: true };
+    return { text: t("sa_settings_sources_default") };
   };
+  const active = p.store.list.find((x) => x.id === p.store.activeId) ?? null;
+  const acting = p.store.list.find((x) => x.id === actions) ?? null;
 
   return (
-    <div class="setting pl-panel">
-      <div class="caption">{t("plYours")}</div>
-      {p.store.list.length > 0 ? (
-        <>
-          <div class="set-note">{t("plPickHint")}</div>
-          <div class="pl-list">
-            {p.store.list.map((pl) => {
-              const active = p.store.activeId === pl.id;
-              const st = statusOf(pl.id, pl.url);
-              return (
-                <div class="pl-item" key={pl.id}>
-                  <button class="srow pl-row" data-focus={`pl-${pl.id}`} aria-pressed={active} onClick={() => p.onSelect(pl.id)}>
-                    <span class="srow-text">
-                      <span class="srow-title pl-name">{pl.name}</span>
-                      <span class={`srow-hint${st.error ? " pl-bad" : ""}`}>{st.text}</span>
-                    </span>
-                    {active ? <span class="sub">{t("playlistActive")}</span> : null}
-                  </button>
-                  <button class="btn pl-act" data-focus={`pl-edit-${pl.id}`} onClick={() => setEditing(pl.id)}>{t("playlistEdit")}</button>
-                  <button class="btn pl-act" data-focus={`pl-del-${pl.id}`} onClick={() => p.onAskDelete(pl.id)}>{t("playlistDelete")}</button>
-                </div>
-              );
-            })}
-          </div>
-        </>
-      ) : (
-        <div class="set-note">{t("plEmpty")}</div>
-      )}
-      {editing !== null && p.store.list.some((x) => x.id === editing) ? (
-        <EditPlaylist entry={p.store.list.find((x) => x.id === editing)!} onSave={(name, url) => p.onEdit(editing, name, url)} onClose={() => setEditing(null)} />
+    <div class="pl-panel">
+      {p.store.list.length === 0 ? <SNote title={t("sa_settings_sources_empty")} /> : null}
+      {p.store.list.length > 1 ? (
+        <SRow id="pl-show" icon="LIST" title={t("sa_settings_show_playlist")} line={active?.name ?? ""} marked={choosing} onOk={() => setChoosing(true)} />
       ) : null}
-      <button class="srow pl-add-open" data-focus="pl-add-open" onClick={() => setAdding(true)}>
-        <span class="srow-text">
-          <span class="srow-title">{t("emptyAdd")}</span>
-          <span class="srow-hint">{t("plAddHint")}</span>
-        </span>
-      </button>
+      {p.store.list.map((pl) => {
+        const st = lineOf(pl.id, pl.url);
+        return (
+          <SRow key={pl.id} id={`pl-${pl.id}`} icon="PLAYLIST" title={pl.name} line={st.text} className={st.error ? "pl-bad" : undefined}
+            onOk={() => setActions(pl.id)} />
+        );
+      })}
+      <SRow id="pl-add-open" icon="ADD" title={t("sa_settings_sources_add")} onOk={() => setAdding(true)} />
+      {desktop() ? (
+        <SRow id="pl-remote" icon="PHONE" title={t("fromPhone")} line={t("fromPhoneWifi")} onOk={() => { setRemoteError(null); setRemote(true); }} />
+      ) : null}
+      {choosing ? (
+        <EditorLayer title={t("sa_settings_show_playlist")}>
+          <ChoiceList value={p.store.activeId} options={p.store.list.map((x) => ({ value: x.id as string | null, label: x.name }))}
+            onPick={(id) => { if (id) p.onSelect(id); setChoosing(false); back("pl-show"); }} onClose={() => { setChoosing(false); back("pl-show"); }} />
+        </EditorLayer>
+      ) : null}
+      {acting ? (
+        <ActionsPopup title={acting.name} onClose={() => setActions(null)} actions={[
+          ...(p.store.activeId !== acting.id ? [{ icon: "PLAYLIST", text: t("sa_settings_show_playlist"), run: () => p.onSelect(acting.id) }] : []),
+          { icon: "PENCIL", text: t("sa_settings_sources_edit"), run: () => setEditing(acting.id) },
+          { icon: "TRASH", text: t("sa_settings_sources_delete"), danger: true, run: () => p.onAskDelete(acting.id) },
+        ]} />
+      ) : null}
+      {editing !== null && p.store.list.some((x) => x.id === editing) ? (
+        <EditPlaylist entry={p.store.list.find((x) => x.id === editing)!} onSave={(name, url) => p.onEdit(editing, name, url)}
+          onClose={() => { const id = editing; setEditing(null); back(`pl-${id}`); }} />
+      ) : null}
       <Presence show={adding}>
         {(out) => (
           <AddSheet closing={out} busy={p.status.kind === "loading"} onAdd={p.onAdd} onAddFile={p.onAddFile} onClose={() => setAdding(false)} />
         )}
       </Presence>
-      {desktop() ? (
-        <button class="srow" data-focus="pl-remote" onClick={() => { setRemoteError(null); setRemote(true); }}>
-          <span class="srow-text"><span class="srow-title">{t("fromPhone")}</span><span class="srow-hint">{t("fromPhoneWifi")}</span></span>
-        </button>
-      ) : null}
       {remote ? (
         <LinkDialog mode="add" title={t("fromPhone")} hints={[t("fromPhoneHint")]} onClose={() => setRemote(false)}
           onEvent={(e) => { if (e.kind === "payload") void take(e.payload); }}>

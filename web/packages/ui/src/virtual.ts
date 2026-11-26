@@ -8,10 +8,14 @@ export function visibleWindow(top: number, viewport: number, rowHeight: number, 
   return { first, last };
 }
 
-/** The scroll position that brings row [index] fully into view with the least movement. */
-export function revealTop(top: number, index: number, rowHeight: number, viewport: number, count: number): number {
-  const rowTop = index * rowHeight;
-  const rowBottom = rowTop + rowHeight;
+/**
+ * The scroll position that brings row [index] fully into view with the least movement. [room] keeps that many rows of
+ * space ahead of it as well (Android's edge scroll keeps one), so the next row is already on screen.
+ */
+export function revealTop(top: number, index: number, rowHeight: number, viewport: number, count: number, room = 0): number {
+  const ahead = Math.max(0, Math.min(room * rowHeight, (viewport - rowHeight) / 2));
+  const rowTop = index * rowHeight - ahead;
+  const rowBottom = (index + 1) * rowHeight + ahead;
   let next = top;
   if (rowTop < top) next = rowTop;
   else if (rowBottom > top + viewport) next = rowBottom - viewport;

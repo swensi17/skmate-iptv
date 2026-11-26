@@ -1,6 +1,5 @@
-import { createPortal } from "preact/compat";
-import { useRef, useState } from "preact/hooks";
-import { focusFirst, useOwnBack } from "@skmate/ui";
+import { useEffect, useRef, useState } from "preact/hooks";
+import { focusFirst, Popup, Presence, Toggle, useOwnBack } from "@skmate/ui";
 import type { GuideData, SourceOutcome } from "@skmate/epg";
 import { guidesForPlaylist } from "@skmate/epg";
 import { t } from "../i18n";
@@ -9,9 +8,9 @@ import { normalizeUrl } from "../state/playlists";
 import type { Settings } from "../state/settings";
 import type { GuideStatus } from "../state/useGuide";
 import { clock } from "../time";
-import { onOff, SettingRow } from "./SettingRow";
-import { EntryRow } from "./EntryRow";
 import { Confirm } from "./Confirm";
+import { SHeading, SIcon, SNote, SRow, useSheet, OverSheet } from "./SettingsKit";
+import { TextEntry } from "./TextEntry";
 
 interface Props {
   settings: Settings;
@@ -45,118 +44,124 @@ export function guideLine(data: GuideData, channelCount: number): string {
   return data.updatedAt === 0 ? t("epgNever") : t("epgUpdated", { when: when(data.updatedAt), linked: data.linked, total: channelCount });
 }
 
-/**
- * How one source did at the last update. The per-source results live only until the app restarts: with a guide
- * already loaded and no result yet, nothing is said rather than a guess.
- */
-function outcomeLine(o: SourceOutcome | undefined, loaded: boolean): string {
-  if (!o) return loaded ? "" : t("epgSrcWaiting");
-  if (!o.ok) return t("epgSrcFailed", { err: o.error ?? "" });
-  return o.linked > 0 ? t("epgSrcOk", { linked: o.linked }) : t("epgSrcNone");
+/** The public guides Android offers as one switch each (EpgCatalog.kt). */
+export const EPG_CATALOG: Array<{ name: string; url: string }> = [
+  { name: "TV Team", url: "http://epg.team/tvteam.xml.gz" },
+  { name: "it999 RU (epg.one)", url: "http://epg.it999.ru/ru2.xml.gz" },
+  { name: "it999 Edem", url: "http://epg.it999.ru/edem.xml.gz" },
+  { name: "epg.one", url: "http://epg.one/epg.xml.gz" },
+];
+
+/** How many guides feed the channels now: those the playlist names (when automatic) and the viewer's own. */
+export function epgSourceCount(s: Settings, active: PlaylistEntry | null, headerGuides: string[]): number {
+  const auto = s.epgAuto && active ? guidesForPlaylist(active.name, active.url, headerGuides) : [];
+  return auto.length + s.epgSources.length;
 }
 
 const bare = (url: string) => url.replace(/^https?:\/\//, "");
 
-/** "Delete this source?" over the settings, as for a playlist; Back answers "Cancel" and leaves the section open. */
-function AskDelete(p: { name: string; onYes: () => void; onNo: () => void }) {
+/** `RowActionsPopup`: the guide's name and its actions. */
+function Actions(p: { title: string; actions: Array<{ icon: string; text: string; danger?: boolean; run: () => void }>; onClose: () => void }) {
   const root = useRef<HTMLDivElement>(null);
-  useOwnBack(root, p.onNo);
-  return createPortal(
-    <div ref={root}>
-      <Confirm title={t("epgDeleteTitle")} body={p.name} confirm={t("playlistDelete")} onConfirm={p.onYes} onCancel={p.onNo} />
-    </div>,
-    document.getElementById("app") ?? document.body, // inside the scaled stage, above the settings sheet
+  useOwnBack(root, p.onClose);
+  useEffect(() => { setTimeout(() => focusFirst(document, "eact-0"), 0); }, []);
+  return (
+    <OverSheet app>
+      <div ref={root}>
+        <Popup title={p.title} width={600} onClose={p.onClose} returnFocus>
+          {p.actions.map((a, i) => (
+            <button key={a.text} class={`st-focusable st-option${a.danger ? " danger" : ""}`} data-focus={`eact-${i}`} onClick={() => { p.onClose(); a.run(); }}>
+              <span class={`st-option-lead${a.danger ? " set-danger" : ""}`}><SIcon name={a.icon} size={28} /></span>
+              <span class="st-option-body"><span class="st-option-title">{a.text}</span></span>
+            </button>
+          ))}
+        </Popup>
+      </div>
+    </OverSheet>
   );
 }
 
 /**
- * The guide, in the order a viewer needs it: what it is and how it is now (with "Update now"), where it comes from
- * (the sources the playlist names, then the viewer's own, each with how it did), the reminders, and last what only
- * matters when something does not work (how often, the proxy, clearing).
+ * Источники EPG (EpgSourcesScreen.kt in the sheet): one row per guide — the ones the playlist names, then the viewer's
+ * own — with how it did under the name (OK: Обновить / Изменить / Удалить), the catalogue of public guides as one switch
+ * each, and "Добавить EPG".
  */
 export function EpgPanel(p: Props) {
   const { settings: s } = p;
+  const sheet = useSheet();
   const [error, setError] = useState<string | null>(null);
+  const [acting, setActing] = useState<{ id: string; name: string; url: string; own: boolean } | null>(null);
+  const [typing, setTyping] = useState<{ id: string | null; url: string } | null>(null);
   const [asking, setAsking] = useState<string | null>(null);
-  const doomed = s.epgSources.find((x) => x.id === asking);
-  const autoGuides = p.active ? guidesForPlaylist(p.active.name, p.active.url, p.headerGuides) : [];
+  const autoGuides = s.epgAuto && p.active ? guidesForPlaylist(p.active.name, p.active.url, p.headerGuides) : [];
   const syncing = p.status.kind === "syncing";
+  const doomed = s.epgSources.find((x) => x.id === asking);
 
-  const add = (url: string) => {
-    if (url.trim() === "") return;
+  const lineOf = (url: string): { text: string; error?: boolean } => {
+    if (syncing) return { text: t("sa_settings_epg_sources_syncing_label") };
+    const o = p.outcomes.find((x) => x.source.url === url);
+    if (!o) return { text: p.data.updatedAt > 0 ? guideLine(p.data, p.channelCount) : t("sa_settings_epg_sources_not_synced") };
+    if (!o.ok) return { text: bare(url), error: true };
+    return { text: o.linked > 0 ? t("epgSrcOk", { linked: o.linked }) : t("epgSrcNone") };
+  };
+  const errorOf = (url: string) => p.outcomes.find((x) => x.source.url === url && !x.ok)?.error ?? null;
+
+  const save = (id: string | null, url: string) => {
     const clean = normalizeUrl(url);
     if (!clean) { setError(t("epgBadUrl")); return; }
     setError(null);
-    if (!s.epgSources.some((x) => x.url === clean)) {
-      p.onChange({ ...s, epgSources: [...s.epgSources, { id: `own:${clean}`, name: bare(clean).split("/")[0] ?? clean, url: clean }] });
-    }
+    const rest = s.epgSources.filter((x) => x.id !== id && x.url !== clean);
+    p.onChange({ ...s, epgSources: [...rest, { id: `own:${clean}`, name: bare(clean).split("/")[0] ?? clean, url: clean }] });
+    setTimeout(() => sheet.focus(`epg-own:${clean}`), 0);
   };
-  // The focus stays in the list: on the next source's "Delete", or on "Add a source" when none is left.
   const remove = (id: string) => {
     const rest = s.epgSources.filter((x) => x.id !== id);
     p.onChange({ ...s, epgSources: rest });
-    setTimeout(() => focusFirst(document, rest[0] ? `epg-del-${rest[0].id}` : "epg-url"), 0);
+    setTimeout(() => sheet.focus(rest[0] ? `epg-${rest[0].id}` : "epg-add"), 0);
   };
-  const outcomeOf = (u: string) => outcomeLine(p.outcomes.find((o) => o.source.url === u), p.data.updatedAt > 0);
+  const toggleCatalog = (url: string, name: string) => {
+    const on = s.epgSources.some((x) => x.url === url);
+    p.onChange({ ...s, epgSources: on ? s.epgSources.filter((x) => x.url !== url) : [...s.epgSources, { id: `own:${url}`, name, url }] });
+  };
+  const row = (id: string, name: string, url: string, own: boolean) => {
+    const st = lineOf(url);
+    const err = errorOf(url);
+    return (
+      <SRow key={id} id={`epg-${id}`} icon="EPG" title={name} line={st.text}
+        end={err ? <span class="set-err-end">{err}</span> : undefined}
+        onOk={() => setActing({ id, name, url, own })} />
+    );
+  };
 
   return (
-    <div class="setting epg-panel">
-      <div class="set-intro">{t("epgIntro")}</div>
-      <button class="srow" data-focus="epg-refresh" onClick={p.onRefresh} aria-busy={syncing}>
-        <span class="srow-text">
-          <span class="srow-title">{syncing ? t("epgRefreshing") : t("epgRefreshNow")}</span>
-          <span class="srow-hint">{p.status.kind === "syncing" ? p.status.text : guideLine(p.data, p.channelCount)}</span>
-        </span>
-      </button>
-
-      <div class="caption">{t("epgAutoCaption")}</div>
-      <SettingRow id="s-epgauto" title="setEpgAuto" hint="setEpgAutoHint" value={s.epgAuto} onPick={(v) => p.onChange({ ...s, epgAuto: v })} options={onOff()} />
-      {s.epgAuto ? autoGuides.map((g) => (
-        // Read only: there is nothing to change about a source the playlist names, the row only says how it did.
-        <div class="irow src-info" key={g.url} tabIndex={0} data-focus={`epg-auto-${g.url}`}>
-          <span class="srow-text">
-            <span class="irow-title">{g.name}</span>
-            <span class="srow-hint">{bare(g.url)}</span>
-          </span>
-          <span class="irow-value">{outcomeOf(g.url)}</span>
-        </div>
-      )) : <div class="set-note">{t("epgAutoOff")}</div>}
-
-      <div class="caption">{t("epgSources")}</div>
-      <div class="set-note">{t("epgOwnHint")}</div>
-      <div class="pl-list">
-        {s.epgSources.map((x) => (
-          <div class="pl-item" key={x.id}>
-            <div class="srow pl-row" tabIndex={0} data-focus={`epg-${x.id}`}>
-              <span class="srow-text">
-                <span class="srow-title">{x.name}</span>
-                <span class="srow-hint">{bare(x.url)}</span>
-                {outcomeOf(x.url) ? <span class="srow-hint">{outcomeOf(x.url)}</span> : null}
-              </span>
-            </div>
-            <button class="btn pl-act" data-focus={`epg-del-${x.id}`} onClick={() => setAsking(x.id)}>{t("playlistDelete")}</button>
-          </div>
-        ))}
-      </div>
-      <EntryRow id="epg-url" title={t("epgOwnAdd")} value="" placeholder={t("epgAddPlaceholder")} entryTitle={t("epgLinkTitle")}
-        entryHint={t("epgLinkHint")} fresh onDone={add} />
-      {error ? <div class="status error set-error">{error}</div> : null}
-
-      <div class="caption">{t("capReminders")}</div>
-      <SettingRow id="s-remmode" title="setReminders" hint="setRemindersHint" value={s.reminderMode} onPick={(v) => p.onChange({ ...s, reminderMode: v })}
-        options={[{ value: "ask" as const, label: t("setReminderAsk") }, { value: "switch" as const, label: t("setReminderSwitch") }, { value: "notify" as const, label: t("setReminderNotify") }]} />
-      <SettingRow id="s-remlead" title="setReminderLead" hint="setReminderLeadHint" value={s.reminderLead} onPick={(v) => p.onChange({ ...s, reminderLead: v })}
-        options={[{ value: 0 as const, label: t("setReminderAtStart") }, { value: 1 as const, label: t("minBefore", { n: 1 }) }, { value: 5 as const, label: t("minBefore", { n: 5 }) }]} />
-
-      <div class="caption">{t("capAdvanced")}</div>
-      <SettingRow id="s-epgevery" title="setEpgEvery" hint="setEpgEveryHint" value={s.epgEvery} onPick={(v) => p.onChange({ ...s, epgEvery: v })}
-        options={[6, 12, 24].map((n) => ({ value: n as Settings["epgEvery"], label: t("hours", { n }) }))} />
-      <EntryRow id="epg-proxy" title={t("setProxy")} value={s.proxy} placeholder={t("proxyEmpty")} entryHint={t("proxyEntryHint")}
-        onDone={(v) => p.onChange({ ...s, proxy: v.trim() })} />
-      {doomed ? <AskDelete name={doomed.url} onYes={() => { setAsking(null); remove(doomed.id); }} onNo={() => setAsking(null)} /> : null}
-      <button class="srow" data-focus="epg-clear" onClick={p.onClear}>
-        <span class="srow-text"><span class="srow-title">{t("epgClear")}</span><span class="srow-hint">{t("epgClearHint")}</span></span>
-      </button>
+    <div class="epg-panel">
+      {autoGuides.length + s.epgSources.length === 0 ? <SNote title={t("sa_settings_epg_sources_empty")} /> : null}
+      {autoGuides.map((g) => row(`auto:${g.url}`, g.name, g.url, false))}
+      {s.epgSources.map((x) => row(x.id, x.name, x.url, true))}
+      <SHeading text={t("sa_settings_epg_catalog")} />
+      <SNote title="" body={t("sa_settings_epg_catalog_description")} />
+      {EPG_CATALOG.map((g) => (
+        <SRow key={g.url} id={`epgc-${g.url}`} icon="EPG" title={g.name} end={<Toggle on={s.epgSources.some((x) => x.url === g.url)} />}
+          onOk={() => toggleCatalog(g.url, g.name)} />
+      ))}
+      <SRow id="epg-add" icon="ADD" title={t("sa_content_epg_add")} line={error ?? undefined} className={error ? "pl-bad" : undefined} onOk={() => setTyping({ id: null, url: "" })} />
+      {acting ? (
+        <Actions title={acting.name} onClose={() => setActing(null)} actions={[
+          { icon: "REFRESH", text: t("sa_settings_sources_resync"), run: p.onRefresh },
+          ...(acting.own ? [
+            { icon: "PENCIL", text: t("sa_common_edit"), run: () => setTyping({ id: acting.id, url: acting.url }) },
+            { icon: "TRASH", text: t("sa_common_delete"), danger: true, run: () => setAsking(acting.id) },
+          ] : []),
+        ]} />
+      ) : null}
+      <Presence show={typing !== null}>
+        {(out) => (
+          <TextEntry title={t("sa_content_epg_add")} hint={t("epgLinkHint")} value={typing?.url ?? ""} closing={out}
+            onCancel={() => { const back = typing?.id ? `epg-${typing.id}` : "epg-add"; setTyping(null); setTimeout(() => sheet.focus(back), 0); }}
+            onDone={(v) => { const id = typing?.id ?? null; setTyping(null); if (v.trim()) save(id, v); else setTimeout(() => sheet.focus("epg-add"), 0); }} />
+        )}
+      </Presence>
+      {doomed ? <Confirm title={t("epgDeleteTitle")} body={doomed.url} confirm={t("sa_common_delete")} onConfirm={() => { setAsking(null); remove(doomed.id); }} onCancel={() => setAsking(null)} /> : null}
     </div>
   );
 }

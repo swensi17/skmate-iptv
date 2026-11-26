@@ -62,3 +62,148 @@
 /* "Add a playlist": a row like the playlists above it, a step below them. */
 .pl-panel .pl-add-open { margin-top: 16px; background: var(--control); }
 .pl-panel .pl-add-open:focus { background: var(--focus-fill); }
+
+/* ===================================================================================================================
+ * The Android settings sheet (SettingsStage.kt side mode, MorePages.kt, BackupScreen.kt, HelpPage.kt, AboutPage):
+ * SettingsKit / SettingsSheet. Sizes are Android mpx = px of the 1728x972 stage. Margins, not flex gap (Chromium 63).
+ * =================================================================================================================== */
+
+/* The rows area and the editor drawn over it (SettingsSidePage: the choices open in the same sheet, under the title). */
+.set-body-wrap { position: relative; flex: 1 1 0%; min-height: 0; display: flex; flex-direction: column; }
+.set-body-wrap > .st-sheet-body { position: relative; flex: 1 1 0%; }
+.st-sheet-body.flush { padding: 8px 0 24px; }
+.set-slot { position: absolute; left: 0; top: 0; right: 0; bottom: 0; pointer-events: none; }
+.set-slot:empty { display: none; }
+.set-slot > * { pointer-events: auto; }
+.set-editor { position: absolute; left: 0; top: 0; right: 0; bottom: 0; z-index: 2; overflow-x: hidden; overflow-y: auto; scrollbar-width: none;
+  padding: 20px 24px 40px; background: var(--st-sheet-fill); }
+.set-editor::-webkit-scrollbar { display: none; }
+.set-editor-title { padding: 4px 30px 0; margin-bottom: 12px; font-size: 22px; font-weight: 700; line-height: 1.3; color: var(--st-muted);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.set-editor-sub { padding: 0 30px 10px; font-size: 18px; font-weight: 600; color: var(--st-dim); }
+
+/* A row: the title line (with the pin dot) and the line under it; text that does not fit scrolls while focused. */
+.set-title-line { display: flex; align-items: center; min-width: 0; }
+.set-title-line > .st-setting-title { flex: 0 1 auto; min-width: 0; }
+.set-pin { flex: none; width: 7px; height: 7px; margin-left: 10px; border-radius: 50%; background: var(--st-accent); }
+.set-mq { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.set-mq.run { text-overflow: clip; }
+.set-mq.run > .set-mq-in { display: inline-block; will-change: transform; }
+.set-row.off .st-setting-value { color: var(--st-dim); }
+.set-row.pl-bad:not(:focus) .st-setting-value { color: var(--st-danger); }
+.set-tags { display: flex; align-items: center; }
+.set-tags > * + * { margin-left: 8px; }
+.set-tag-blue { --tag-color: var(--st-blue); }
+.set-chev-icon { display: flex; color: var(--st-muted); }
+.set-swatch-end { display: flex; align-items: center; }
+.set-swatch { flex: none; display: block; width: 26px; height: 26px; border-radius: 50%; margin-left: 6px; margin-right: 10px; }
+.set-swatch.sm { width: 22px; height: 22px; }
+.set-swatch.sq { width: 30px; height: 30px; border-radius: 9px; }
+.set-hex { font-size: 18px; font-weight: 700; white-space: nowrap; }
+.set-hex.blue { color: var(--st-accent); }
+.set-chev { margin-left: 10px; font-size: 26px; line-height: 1; color: var(--st-muted); }
+.set-err-end { display: block; max-width: 420px; font-size: 17px; font-weight: 600; color: var(--st-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.set-sep { height: 1px; margin: 10px 24px; background: rgba(var(--st-ink-rgb), 0.12); }
+.set-version { font-size: 32px; font-weight: 800; color: var(--st-muted); white-space: nowrap; }
+
+/* A choice list in the sheet (PanelChoices): rows 84 high, 30 inside, 24/600; the tick of the chosen one. */
+.set-choices { display: block; }
+.set-choice { display: flex; align-items: center; width: 100%; min-height: 84px; padding: 8px 30px; margin-bottom: 2px; background: none; color: var(--st-text); }
+.set-choice.off { opacity: 0.45; }
+.set-choice-body { flex: 1 1 0%; min-width: 0; }
+.set-choice-label { font-size: 24px; font-weight: 600; color: var(--st-muted); }
+.set-choice.on .set-choice-label, .set-choice:focus .set-choice-label, .set-choice-label.on { color: var(--st-text); }
+.set-choice-desc { display: block; font-size: 18px; font-weight: 500; color: var(--st-muted);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.set-choice-value { flex: none; margin-left: 12px; font-size: 18px; font-weight: 700; color: var(--st-accent); white-space: nowrap; }
+.set-choice > .st-switch { margin-left: 12px; }
+.set-rec { flex: none; margin-left: 12px; }
+.set-tick { flex: none; display: flex; width: 24px; height: 24px; margin-left: 12px; color: var(--st-accent); }
+
+/* The big stepper (PanelStepper): one 84-high surface, value between two chevrons. */
+.set-bigstep { display: flex; align-items: center; width: 100%; height: 84px; padding: 0 22px; background: none; color: var(--st-text); }
+.set-bigstep-chev { flex: none; display: flex; color: var(--st-muted); }
+.set-bigstep-chev.left { transform: rotate(180deg); }
+.set-bigstep-value { flex: 1 1 0%; min-width: 0; text-align: center; font-size: 36px; font-weight: 800; color: var(--st-accent); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.set-step-preview { display: flex; justify-content: center; margin-bottom: 18px; }
+.set-choices + .set-bigstep { margin-top: 16px; }
+
+/* Mini player editor: caps labels and the position pills (StageMenuChoice: 46 high, radius 13). */
+.set-label { padding: 18px 8px 6px; font-size: 14px; font-weight: 800; letter-spacing: 0.12em; color: var(--st-dim); }
+.set-mini > .set-label:first-child { padding-top: 0; }
+.set-pills { display: flex; flex-wrap: wrap; padding-top: 2px; }
+.set-pill { flex: none; height: 46px; padding: 0 18px; margin: 0 8px 8px 0; border-radius: 13px; background: var(--st-control); color: var(--st-muted);
+  font-size: 17px; font-weight: 700; white-space: nowrap; }
+.set-pill.on:not(:focus) { background: rgba(0, 134, 252, 0.18); box-shadow: inset 0 0 0 1.5px rgba(0, 134, 252, 0.6); color: var(--st-blue); }
+
+/* An empty page's note (StageSettingsNote). */
+.set-note-box { padding: 16px 22px; }
+.set-note-title { font-size: 21px; font-weight: 700; color: var(--st-text); }
+.set-note-title:empty { display: none; }
+.set-note-body { margin-top: 6px; font-size: 17px; font-weight: 500; line-height: 1.4; color: var(--st-muted); }
+.set-note-title:empty + .set-note-body { margin-top: 0; }
+
+/* Info cards (StageInfoCard): radius 16, 24/20 inside, icon 34, title 26/800, label 15/700, body 20/500. */
+.set-pad { padding: 0 18px; }
+.set-cards { margin-top: 22px; }
+.set-card { display: flex; align-items: center; width: 100%; padding: 20px 24px; margin-bottom: 10px; border-radius: 16px; background: var(--st-control); color: var(--st-text); text-align: left; }
+.set-card.plain { margin-bottom: 0; }
+.set-card.plain:not(:focus) { background: none; }
+.set-card-icon { flex: none; display: flex; margin-right: 20px; color: var(--st-text); }
+.set-card-icon.muted { color: var(--st-muted); }
+.set-card-text { flex: 1 1 0%; min-width: 0; display: block; }
+.set-card-title { display: block; font-size: 26px; font-weight: 800; line-height: 1.25; color: var(--st-text);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.set-card-label { display: block; margin-top: 4px; font-size: 15px; font-weight: 700; color: var(--st-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.set-card-body { display: block; margin-top: 4px; font-size: 20px; font-weight: 500; line-height: 1.4; color: var(--st-muted);
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.set-mark { flex: none; display: flex; width: 44px; height: 44px; margin-right: 20px; }
+.set-mark > svg, .set-mark > img { width: 44px; height: 44px; }
+
+/* Backup's status card (not focusable): ink 5%, radius 26, 24 inside, icon 40. */
+.set-status-card { display: flex; align-items: center; margin-top: 26px; padding: 24px; border-radius: 26px; background: rgba(var(--st-ink-rgb), 0.05); }
+.set-status-title { display: block; font-size: 24px; font-weight: 800; color: var(--st-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.set-status-body { display: block; margin-top: 4px; font-size: 17px; font-weight: 500; line-height: 1.4; color: var(--st-muted); }
+.set-status { margin: 16px 8px 0; font-size: 17px; font-weight: 500; line-height: 1.4; color: var(--st-muted); }
+.set-status.error { color: var(--st-danger); }
+.set-status.ok { color: var(--st-blue); }
+.set-desc { margin-top: 10px; font-size: 18px; font-weight: 500; line-height: 1.45; color: var(--st-muted); }
+
+/* How to use: questions as focusable cards, a line between them. */
+.set-help-list { padding-bottom: 16px; }
+.set-help { display: block; padding: 20px 24px; border-radius: 16px; outline: none; }
+.set-help-q { font-size: 26px; font-weight: 800; line-height: 1.3; color: var(--st-text); }
+.set-help-a { margin-top: 4px; font-size: 20px; font-weight: 500; line-height: 1.4; color: var(--st-muted); }
+.st-focusable:focus .set-help-a { color: var(--st-fx-line); }
+.set-divider { height: 1px; margin: 0 30px; background: rgba(var(--st-ink-rgb), 0.12); }
+.set-divider.inset24 { margin: 0 24px; }
+
+/* About. */
+.set-thanks { display: flex; align-items: center; padding: 0 24px; }
+.set-thanks-title { font-size: 30px; font-weight: 800; color: var(--st-text); }
+.set-heart { flex: none; display: flex; margin-left: 12px; color: var(--st-danger); }
+.set-thanks-body { padding: 8px 24px 14px; font-size: 19px; font-weight: 500; line-height: 1.4; color: var(--st-muted); }
+.set-disclaimer { padding: 18px 24px 0; font-size: 17px; font-weight: 500; line-height: 1.4; color: var(--st-muted); }
+.st-focusable:focus .set-card-body { color: var(--st-fx-line); }
+
+/* Telegram remote: the pairing card. */
+.set-tg-card { display: flex; flex-direction: column; align-items: center; padding: 8px 24px 12px; text-align: center; }
+.set-tg-qr { display: flex; align-items: center; justify-content: center; width: 300px; height: 300px; border-radius: 20px; background: rgba(var(--st-ink-rgb), 0.06); color: var(--st-dim); }
+.set-tg-state { margin-top: 14px; font-size: 24px; font-weight: 800; color: var(--st-text); }
+.set-tg-hint { margin-top: 8px; font-size: 18px; font-weight: 500; line-height: 1.4; color: var(--st-muted); }
+
+/* Popups opened from the sheet. */
+.set-qr { display: flex; flex-direction: column; align-items: center; padding: 0 18px; }
+.set-qr-box { padding: 12px; border-radius: 16px; background: #ffffff; line-height: 0; }
+.set-qr-addr { margin-top: 16px; font-size: 22px; font-weight: 700; color: var(--st-text); }
+.set-danger { color: var(--st-danger); }
+.st-focusable:focus .set-danger { color: var(--st-danger); }
+.set-popup-row { width: 100%; }
+.st-popup .st-option > .st-switch { margin-left: 18px; }
+.set-update { padding: 0 18px; }
+.set-update-version { font-size: 19px; font-weight: 600; color: var(--st-text); }
+.set-update-notes { font-size: 17px; font-weight: 400; line-height: 1.5; color: var(--st-muted); white-space: pre-line; max-height: 420px; overflow: hidden; }
+.set-update-busy { display: flex; align-items: center; padding: 0 18px; font-size: 18px; color: var(--st-muted); }
+.set-update-busy > * + * { margin-left: 14px; }
+.set-update-text { padding: 0 18px; font-size: 18px; line-height: 1.45; color: var(--st-muted); }
+.set-update-text.error { color: var(--st-danger); }

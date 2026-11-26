@@ -1,0 +1,96 @@
+/*
+ * The TV Guide in the Android TV-box look (features/epg/EpgScreen.kt, GuideStage.kt, GuideCore.kt). Sizes are Android
+ * mpx = px of the 1728×972 stage; `fx(n)` positions are n × 0.9 (n of 1920 of the stage). Only transform and opacity
+ * move; margins, not flex gap (Chromium 63).
+ */
+
+/* The whole stage, whatever padding the content area has. Enter: PanelEnter(fromY = 24 dp, startAlpha = 0.7), 260 ms. */
+.screen.gd { position: absolute; left: 0; top: 0; width: 1728px; height: 972px; padding: 0; overflow: hidden;
+  font-family: var(--st-font); color: var(--st-text); animation: gd-enter 260ms var(--st-ease) both; }
+@keyframes gd-enter { from { opacity: 0.7; transform: translateY(43px); } to { opacity: 1; transform: none; } }
+
+/* ===== Top: the video (640×360, radius 28) and the programme under the cursor ===== */
+.gd-video { position: absolute; left: 57.6px; top: 44px; width: 640px; height: 360px; border-radius: 28px; background: #000; overflow: hidden;
+  /* Android: black 55 %, blur 80, 30 down; smaller here, an old TV pays for a large blur. */
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.45); }
+.gd-video .gd-logo { position: absolute; left: 220px; top: 80px; width: 200px; height: 200px; display: flex; align-items: center; justify-content: center; color: var(--st-dim); }
+.gd-video .gd-logo img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.gd-video video { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; }
+.gd-shade { position: absolute; left: 0; top: 0; right: 0; bottom: 0; border-radius: 28px; pointer-events: none;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0) 58%, rgba(0, 0, 0, 0.72) 100%); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08); }
+.gd-cap { position: absolute; left: 22px; right: 22px; bottom: 18px; font-size: 19px; font-weight: 700; line-height: 24px; color: #ffffff;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gd-cap > span { color: #a9adb2; font-weight: 600; }
+
+.gd-block { position: absolute; left: 743.6px; top: 120px; width: 926.8px; contain: layout; }
+.gd-eyebrow { display: flex; align-items: center; height: 23px; font-size: 18px; font-weight: 700; letter-spacing: 0.02em; color: var(--st-accent); white-space: nowrap; }
+.gd-eyebrow > svg { flex: none; width: 18px; height: 18px; margin-right: 10px; }
+.gd-eyebrow > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.gd-title { margin: 10px 0 6px; font-size: 60px; font-weight: 800; letter-spacing: -1.5px; line-height: 76px; color: var(--st-text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gd-details { font-size: 19px; line-height: 24px; color: var(--st-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* Exactly two lines are kept for it, empty or not (minLines = 2). */
+.gd-syn { max-width: 1000px; height: 57px; margin-top: 12px; font-size: 19px; line-height: 28.5px; color: #ccd6d2; overflow: hidden;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow-wrap: break-word; }
+:root[data-theme="light"] .gd-syn { color: var(--st-body); }
+
+/* ===== The grid: day, ruler (y 434), rows from 482 ===== */
+.gd-day { position: absolute; left: 59.2px; top: 434px; width: 242.4px; font-size: 19px; font-weight: 700; line-height: 24px; color: var(--st-blue);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gd-ruler { position: absolute; left: 309.6px; top: 434px; width: 1360.8px; height: 40px; }
+.gd-mark { position: absolute; left: 0; top: 4px; font-size: 17px; font-weight: 700; line-height: 22px; color: var(--st-muted);
+  font-variant-numeric: tabular-nums; white-space: nowrap; }
+.gd-chip { position: absolute; left: 0; top: 0; padding: 3px 9px; border-radius: 8px; background: var(--st-blue); color: #ffffff;
+  font-size: 15px; font-weight: 800; line-height: 19px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.gd-nowline { position: absolute; left: 0; top: 472px; bottom: 0; width: 3px; border-radius: 1.5px; background: var(--st-blue);
+  box-shadow: 0 0 14px var(--st-blue); pointer-events: none; z-index: 2; }
+
+.gd-labels { position: absolute; left: 43.2px; top: 482px; width: 266.4px; height: 490px; overflow: hidden; contain: strict; }
+.gd-plane { position: absolute; left: 0; top: 0; width: 0; height: 0; will-change: transform; }
+.gd-label { position: absolute; left: 0; width: 266.4px; height: 56px; display: flex; align-items: center; padding-left: 8px; cursor: pointer; }
+.gd-num { flex: none; margin-right: 10px; font-size: 17px; font-weight: 700; color: var(--st-dim); font-variant-numeric: tabular-nums;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gd-plate { flex: none; width: 58px; height: 40px; margin-right: 10px; border-radius: 10px; overflow: hidden; background: var(--st-control);
+  display: flex; align-items: center; justify-content: center; color: var(--st-dim); }
+.gd-plate img { width: 100%; height: 100%; object-fit: contain; }
+.gd-name { flex: 1 1 0%; min-width: 0; font-size: 17px; font-weight: 700; color: var(--st-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gd-label > svg { flex: none; width: 20px; height: 20px; margin: 0 8px 0 10px; color: var(--st-dim); }
+.gd-label.sel .gd-num, .gd-label.sel .gd-name, .gd-label.sel > svg { color: var(--st-blue); }
+
+/* The strips: 40 wider than the timeline, as Android clips them. The element itself holds the focus of the grid. */
+.gd-view { position: absolute; left: 309.6px; top: 482px; width: 1400.8px; height: 490px; overflow: hidden; outline: none; contain: strict; }
+.gd-row { position: absolute; left: 0; width: 0; height: 56px; }
+/* Row stage: the light bar on the whole programme area (stageFocusLook FX), cells redrawn dark on it. */
+.gd-bar { position: absolute; top: 0; height: 56px; border-radius: 4px; background: var(--st-focus-fill); }
+.gd-cell { position: absolute; top: 0; height: 56px; border-radius: 4px; overflow: hidden; background: rgba(var(--st-ink-rgb), 0.035); cursor: pointer; }
+.gd-cell.now { background: rgba(var(--st-ink-rgb), 0.06); }
+.gd-cell.past { background: rgba(var(--st-ink-rgb), 0.0175); }
+.gd-cell.cur { background: rgba(0, 134, 252, 0.16); }
+.gd-cell.empty { background: rgba(var(--st-ink-rgb), 0.03); }
+.gd-in { position: absolute; left: 0; top: 8px; right: 14px; padding-left: 14px; }
+.gd-t { font-size: 18px; font-weight: 700; line-height: 23px; color: var(--st-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gd-s { display: flex; align-items: center; margin-top: 3px; height: 18px; font-size: 14px; line-height: 18px; color: var(--st-dim);
+  font-variant-numeric: tabular-nums; white-space: nowrap; }
+.gd-s > svg { flex: none; width: 14px; height: 14px; margin-right: 8px; color: var(--st-accent); }
+.gd-s > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.gd-cell.past .gd-in { opacity: 0.5; }
+.gd-dot { position: absolute; left: 50%; top: 50%; width: 5px; height: 5px; margin: -2.5px 0 0 -2.5px; border-radius: 50%; background: var(--st-dim); opacity: 0.7; }
+.gd-cell.past .gd-dot { opacity: 0.35; }
+.gd-none { position: absolute; left: 14px; top: 0; bottom: 0; display: flex; align-items: center; font-size: 14px; color: var(--st-dim); white-space: nowrap; }
+.gd-cell.gap .gd-none { color: var(--st-text); }
+.gd-row.lit .gd-cell { background: rgba(0, 0, 0, 0.035); }
+.gd-row.lit .gd-cell.now { background: rgba(0, 0, 0, 0.06); }
+.gd-row.lit .gd-cell.past { background: rgba(0, 0, 0, 0.0175); }
+.gd-row.lit .gd-cell.empty { background: rgba(0, 0, 0, 0.03); }
+.gd-row.lit .gd-t { color: #16181d; }
+.gd-row.lit .gd-s, .gd-row.lit .gd-none { color: rgba(22, 24, 29, 0.62); }
+.gd-row.lit .gd-dot { background: rgba(22, 24, 29, 0.62); }
+
+/* ===== Loading and empty (in the grid's place, 80 above its centre) ===== */
+.gd-state { position: absolute; left: 0; right: 0; top: 434px; bottom: 80px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+.gd-spin { display: block; width: 44px; height: 44px; }
+.gd-spin .ticks rect { fill: var(--st-text); }
+.gd-state-hint { margin-top: 14px; max-width: 900px; font-size: 17px; color: var(--st-muted); }
+.gd-state-title { max-width: 900px; font-size: 24px; font-weight: 700; color: var(--st-text); }
+.gd-state-body { max-width: 900px; margin-top: 8px; font-size: 19px; color: var(--st-muted); }
+.gd-state-act { margin-top: 24px; }

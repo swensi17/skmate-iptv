@@ -5,6 +5,7 @@ import { t } from "../i18n";
 import { GuideContext } from "../state/GuideContext";
 import { capitalize } from "../text";
 import { leftLabel } from "./Left";
+import { ChannelLogo } from "./ChannelLogo";
 
 const clock = (ms: number) => new Date(ms).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false });
 
@@ -84,5 +85,53 @@ export function Schedule({ channel, onWatch, onArchive, onUpcoming }: {
         </>
       )}
     </div>
+  );
+}
+
+/**
+ * The block under the docked picture in the player's channel panel (TvBoxChannelPanel.kt:248-304): the focused
+ * channel (logo, number, name) and its day — the programme before, the one on air, then what comes — at most 14 rows
+ * of 50. It only shows: OK in the panel watches the channel. It follows the focus once it rests (120 ms for the
+ * header, 250 ms for the day), so a held key does not lay out every row it passes.
+ */
+export function PanelSchedule({ channel, number, now }: { channel: Channel | null; number: number | null; now: number }) {
+  const { data } = useContext(GuideContext);
+  const [head, setHead] = useState<{ c: Channel; n: number | null } | null>(channel ? { c: channel, n: number } : null);
+  const [day, setDay] = useState<Channel | null>(channel);
+  useEffect(() => {
+    if (!channel) return;
+    const a = setTimeout(() => setHead({ c: channel, n: number }), head ? 120 : 0);
+    const b = setTimeout(() => setDay(channel), 250);
+    return () => { clearTimeout(a); clearTimeout(b); };
+  }, [channel?.id]);
+  if (!head) return null;
+  const items = day ? data.of(day.id) : [];
+  const at = items.findIndex((x) => x.stop > now);
+  const from = at < 0 ? -1 : Math.max(0, at - 1);
+  const shown = from < 0 || day?.id !== head.c.id ? [] : items.slice(from, from + 14);
+  return (
+    <>
+      <div class="tp-head">
+        <span class="tp-row-logo"><ChannelLogo channel={head.c} /></span>
+        {head.n !== null ? <span class="n">{head.n}</span> : null}
+        <span class="t">{head.c.name}</span>
+      </div>
+      {day?.id === head.c.id && shown.length === 0 ? <div class="tp-none">{t("tbNoGuideShort")}</div> : (
+        <div class="tp-day">
+          {shown.map((x) => {
+            const on = x.start <= now && now < x.stop;
+            const past = x.stop <= now;
+            return (
+              <div class={`tp-p${on ? " on" : past ? " past" : ""}`} key={x.start}>
+                <span class="tp-p-time">{t("tbRange", { a: clock(x.start), b: clock(x.stop) })}</span>
+                <span class="tp-p-title">{x.title}</span>
+                {on ? <span class="tp-p-bar"><i style={{ width: `${Math.round(Math.min(1, (now - x.start) / Math.max(1, x.stop - x.start)) * 100)}%` }} /></span> : null}
+                {on ? <span class="tp-p-left">{t("tbTimeLeft", { t: t("tbMinutes", { n: Math.max(0, Math.floor((x.stop - now) / 60_000)) }) })}</span> : null}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </>
   );
 }

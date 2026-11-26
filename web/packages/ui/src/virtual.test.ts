@@ -23,6 +23,11 @@ describe("revealTop", () => {
     expect(revealTop(0, 10, 84, 840, 100)).toBe(84);
     expect(revealTop(840, 5, 84, 840, 100)).toBe(420);
   });
+  it("keeps a row of room ahead when asked (Android's edge scroll)", () => {
+    expect(revealTop(0, 9, 100, 786, 1370, 1)).toBe(314); // row 9 ends at 1000, one row of room: 1100 minus the view
+    expect(revealTop(500, 5, 100, 786, 1370, 1)).toBe(400); // row 5 starts at 500, one row of room above it
+    expect(revealTop(0, 3, 100, 786, 1370, 1)).toBe(0); // already in view with room
+  });
   it("stays inside the list", () => {
     expect(revealTop(0, 99, 84, 840, 100)).toBe(100 * 84 - 840);
     expect(revealTop(0, 0, 84, 840, 3)).toBe(0);

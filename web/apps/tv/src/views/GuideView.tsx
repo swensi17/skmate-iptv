@@ -1,28 +1,55 @@
-import { useContext, useEffect, useMemo, useState } from "preact/hooks";
+import { memo } from "preact/compat";
+import { useContext, useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { hasArchive, type Channel } from "@skmate/core";
-import { focusFirst, Icon, VirtualList } from "@skmate/ui";
+import type { GuideData, Programme } from "@skmate/epg";
+import { Button, focusFirst, focusWithoutScroll, Icon, isBack, Menu, MenuItem, useOwnBack } from "@skmate/ui";
 import { t } from "../i18n";
 import { channelKey } from "../state/favorites";
 import { GuideContext } from "../state/GuideContext";
 import type { GuideStatus } from "../state/useGuide";
-import { clock, floorHalfHour } from "../time";
 import type { Settings } from "../state/settings";
-import { ChannelLogo } from "./ChannelLogo";
+import {
+  cellsIn, cursorStep, followCursor, gapAround, guideWindow, programmeAt, pxAt, ROW_GAP, ROW_STEP, SLOT_MIN, stepScroll, timeAt,
+} from "../state/guideGrid";
+import { clock } from "../time";
 import { PreviewVideo } from "./PreviewPane";
-import { leftLabel } from "./Left";
-import { LoadingState } from "./Spinner";
-import "./screens.css";
-import { capitalize } from "../text";
-import type { Programme } from "@skmate/epg";
+import { Ticks } from "./Spinner";
+import "./guide.css";
 
-const ROW = 76;
-const LIST_HEIGHT = 608; // from under the time scale to the foot of the screen
-const NAME_W = 380;
-const TIMELINE_W = 1400;
-const PREVIEW_DWELL_MS = 700;
-const SPAN_MS = 3 * 3_600_000;
-const SHIFT_MS = 3 * 3_600_000;
-const MIN_TEXT_W = 90;
+/*
+ * The TV Guide, ported 1:1 from the Android app's TV-box look (features/epg/EpgScreen.kt, GuideStage.kt, GuideCore.kt):
+ * the video top left (640×360) and the programme under the cursor beside it; the day and the ruler with the blue "now"
+ * chip and line; slim rows of channel labels and programme cells. No control line, no key hints (TvBoxNav).
+ *
+ * Each row's programmes are one focus target with a time cursor, as on Android: row stage (the light bar on the row,
+ * ▲ ▼ rows, ◀ leaves for the menu, ▶ or OK enter the row) and cell stage (◀ ▶ programme by programme, OK watches, Back
+ * returns to row stage). Holding OK opens the programme menu.
+ *
+ * Fast on a 2019 TV: only the rows in view exist, and only the cells near the view; the strips and the labels sit on
+ * planes moved by `transform`, so a scroll is one style change; a row repaints only when its own props change.
+ */
+
+/** The stage is 1728 mpx wide; `fx(n)` = n of 1920 of its width, as Android's `fx`. */
+const W = 1728;
+const fx = (n: number) => (W * n) / 1920;
+const LABEL_W = (W * 296) / 1920;
+const LEFT = fx(48);
+const GX = LEFT + LABEL_W;
+const TIMELINE_W = W - fx(48) - LABEL_W - fx(64);
+const GRID_TOP = 44 + 360 + 30;
+const ROWS_TOP = GRID_TOP + 48;
+const VIEW_H = 972 - ROWS_TOP;
+/** Android clips the strip 40 past its right edge, so the last cell runs a little under the screen's margin. */
+const CLIP_EXTRA = 40;
+/** Cells are kept this far beyond the view, so a step of the cursor rarely has to build new ones. */
+const OVERSCAN_X = 220;
+const PREVIEW_DELAY_MS = 700;
+const HOLD_MS = 500;
+const MENU_RETURN_MS = 60;
+const MINUTE = 60_000;
+
+/** The row the viewer last watched from, so the guide reopens on it (Android: `lastTunedChannelId`). */
+let lastTuned: string | null = null;
 
 interface Props {
   settings: Settings;
@@ -33,157 +60,478 @@ interface Props {
   onOpen: (c: Channel, list: readonly Channel[]) => void;
   /** A past programme on a channel that keeps a recording of it. */
   onArchive: (c: Channel, p: Programme, list: readonly Channel[]) => void;
-  /** A programme still to come: watch the channel or be reminded (see Reminders.tsx). */
+  /** A programme still to come: the app's own "watch or be reminded" dialog (used when [onRemind] is not given). */
   onUpcoming: (c: Channel, p: Programme, list: readonly Channel[]) => void;
   /** Whether a reminder is set for that programme (a bell on it). */
   reminded: (c: Channel, p: Programme) => boolean;
+  /** Remind me / cancel the reminder of a programme still to come (the programme menu). */
+  onRemind?: (c: Channel, p: Programme) => void;
+  /** Add or remove the channel from favourites (the programme menu). */
+  onFav?: (c: Channel) => void;
 }
 
-/** The guide: channels down the side, three hours of programmes across, the one in focus described below. */
-export function GuideView({ settings, channels, favorites, status, onRefresh, onOpen, onArchive, onUpcoming, reminded }: Props) {
+type MenuFor = { channel: Channel; programme: Programme | null } | null;
+
+export function GuideView(p: Props) {
+  const { settings, channels, favorites, status } = p;
   const { data, now } = useContext(GuideContext);
-  const [from, setFrom] = useState(() => floorHalfHour(Date.now() - 30 * 60_000));
-  const [sel, setSel] = useState<{ channel: Channel; programme: Programme } | null>(null);
   const rows = useMemo(() => channels.filter((c) => data.of(c.id).length > 0), [channels, data]);
+  const numberOf = useMemo(() => { const m = new Map<string, number>(); channels.forEach((c, i) => m.set(c.id, i + 1)); return m; }, [channels]);
+  const numW = Math.max(38, String(channels.length).length * 11);
+  const halfHour = Math.floor(now / (30 * MINUTE));
+  const win = useMemo(() => {
+    let last = 0;
+    for (const c of rows) { const l = data.of(c.id); const s = l.length ? (l[l.length - 1] as Programme).stop : 0; if (s > last) last = s; }
+    return guideWindow(now, last);
+  }, [rows, data, halfHour]);
+  const maxX = Math.max(0, Math.round(pxAt(win.end, win.start) - TIMELINE_W));
+  const maxY = Math.max(0, rows.length * ROW_STEP - ROW_GAP + 24 - VIEW_H);
 
-  // The picture of the channel under the cursor starts only when the cursor has rested, so walking down the rows opens nothing.
-  const [watching, setWatching] = useState<Channel | null>(null);
-  const focused = sel?.channel ?? rows[0] ?? null;
-  useEffect(() => {
-    if (!focused) return;
-    const id = setTimeout(() => setWatching(focused), PREVIEW_DWELL_MS);
-    return () => clearTimeout(id);
-  }, [focused?.id]);
+  // --- Focus, cursor and the two scrolls (refs mirror them, so a held key counts from where the last press went) ---
+  const startRow = Math.max(0, lastTuned ? rows.findIndex((c) => c.id === lastTuned) : 0);
+  const [row, setRow] = useState(startRow);
+  const [cellMode, setCellMode] = useState(false);
+  const [gridFocused, setGridFocused] = useState(false);
+  const [cursor, setCursor] = useState(0);
+  const [scrollX, setScrollX] = useState(0);
+  const [scrollY, setScrollY] = useState(() => stepScroll(startRow, 0, VIEW_H, maxY));
+  const [menu, setMenu] = useState<MenuFor>(null);
+  const [tick, setTick] = useState(0);
+  const st = useRef({ row, cursor, scrollX, scrollY, cellMode });
+  st.current = { row, cursor, scrollX, scrollY, cellMode };
+  const view = useRef<HTMLDivElement>(null);
+  const okDown = useRef(false);
+  const holdTimer = useRef(0);
+  const holdGuard = useRef(false);
 
-  // The grid of a long playlist takes a while to lay out on a TV: the screen first shows that the guide is coming, and
-  // the grid is built a frame later, so the wait is never an empty grey page.
+  // The time a programme is shown 3/8 of the way across, as the Android guide opens: room on both sides of "now".
+  useEffect(() => { setScrollX(Math.round(Math.min(maxX, Math.max(0, pxAt(Date.now(), win.start) - (TIMELINE_W * 3) / 8)))); }, [win.start, rows.length > 0]);
+  // Fewer rows (a new playlist): the focus stays on one that exists.
+  useEffect(() => { if (row > rows.length - 1) { setRow(Math.max(0, rows.length - 1)); setScrollY(0); } }, [rows.length]);
+
+  // The grid of a long playlist takes a while to lay out on a TV: the screen first shows that the guide is coming,
+  // and the grid is built a frame later, so the wait is never an empty grey page.
   const [ready, setReady] = useState(false);
   useEffect(() => {
     let timer = 0;
     const frame = requestAnimationFrame(() => { timer = window.setTimeout(() => setReady(true), 0); });
     return () => { cancelAnimationFrame(frame); clearTimeout(timer); };
   }, []);
-
   const syncing = status.kind === "syncing";
   const grid = ready && rows.length > 0;
   const loading = !grid && (!ready || syncing);
   useEffect(() => {
-    focusFirst(document, grid && rows[0] ? `pg-${rows[0].id}-name` : loading ? "guide-now" : "guide-empty-refresh");
+    // The state follows the focus call itself too: a window that is not focused yet (a TV app still starting) sends no focus event.
+    if (grid && view.current) { focusWithoutScroll(view.current); if (document.activeElement === view.current) setGridFocused(true); }
+    else if (!loading) focusFirst(document, "guide-empty-refresh");
   }, [grid, loading]);
-  void favorites;
 
-  const x = (ms: number) => ((ms - from) / SPAN_MS) * TIMELINE_W;
-  const nowX = x(now);
-  const marks: number[] = [];
-  for (let m = from; m < from + SPAN_MS; m += 30 * 60_000) marks.push(m);
+  // --- The preview: it stays on its channel while the guide is browsed; OK brings a row's channel into it, and it
+  // plays 700 ms later. One decoder on a TV: this is the only <video> of the screen, released when it goes. ---
+  const effPreview = settings.preview;
+  const [preview, setPreview] = useState<Channel | null>(null);
+  const [playing, setPlaying] = useState<Channel | null>(null);
+  useEffect(() => {
+    setPlaying(null);
+    if (!preview || !effPreview) return;
+    const id = setTimeout(() => setPlaying(preview), PREVIEW_DELAY_MS);
+    return () => clearTimeout(id);
+  }, [preview?.id, effPreview]);
+  const previewNeeds = (c: Channel) => effPreview && preview?.id !== c.id;
 
-  const shown = sel?.programme ?? (focused ? data.nowNext(focused.id, now).now : null);
-  const total = shown ? shown.stop - shown.start : 0;
-  const done = shown && total > 0 ? Math.min(1, Math.max(0, (now - shown.start) / total)) : 0;
-  const live = shown !== null && shown.start <= now && now < shown.stop;
+  const listOf = (i: number): readonly Programme[] => { const c = rows[i]; return c ? data.of(c.id) : []; };
+  const cursorOr = (c: number) => (c >= win.start && c < win.end ? c : Date.now());
+
+  // --- Moving ---
+  const showCursor = (c: number) => {
+    setCursor(c);
+    setScrollX(followCursor(pxAt(c, win.start), st.current.scrollX, TIMELINE_W, maxX));
+  };
+  const stepRow = (to: number) => {
+    st.current.row = to;
+    setRow(to);
+    const y = stepScroll(to, st.current.scrollY, VIEW_H, maxY);
+    st.current.scrollY = y;
+    setScrollY(y);
+  };
+  const enterCell = (i: number) => {
+    const c = rows[i];
+    showCursor(Date.now());
+    setCellMode(true);
+    if (c && previewNeeds(c)) setPreview(c);
+  };
+  const watch = (c: Channel) => { lastTuned = c.id; p.onOpen(c, rows); };
+  const ok = (i: number) => {
+    const c = rows[i];
+    if (!c) return;
+    if (previewNeeds(c)) { setPreview(c); return; }
+    const prog = programmeAt(listOf(i), st.current.cursor);
+    const at = Date.now();
+    if (prog && prog.stop <= at && hasArchive(c, prog.start, prog.stop, at)) { lastTuned = c.id; p.onArchive(c, prog, rows); }
+    else watch(c);
+  };
+  const openMenu = () => {
+    const c = rows[st.current.row];
+    if (!c) return;
+    setMenu({ channel: c, programme: programmeAt(listOf(st.current.row), st.current.cursor || Date.now()) });
+  };
+  const closeMenu = () => {
+    setMenu(null);
+    setTick((n) => n + 1);
+    setTimeout(() => { if (view.current) { focusWithoutScroll(view.current); if (document.activeElement === view.current) setGridFocused(true); } }, MENU_RETURN_MS);
+  };
+
+  const onKeyDown = (e: KeyboardEvent) => {
+    const k = e.key;
+    const code = e.keyCode;
+    const consume = () => { e.preventDefault(); e.stopPropagation(); };
+    const s = st.current;
+    if (k === "Enter" || code === 13) {
+      consume();
+      // Held: the programme menu, on the remote's own repeat (Android: the second KeyDown of a held OK) or after
+      // HOLD_MS on a TV that does not repeat. The rest of the hold is swallowed (holdGuard).
+      const hold = () => { clearTimeout(holdTimer.current); if (!okDown.current) return; okDown.current = false; holdGuard.current = true; openMenu(); };
+      if (e.repeat) { hold(); return; }
+      if (okDown.current) return;
+      okDown.current = true;
+      clearTimeout(holdTimer.current);
+      holdTimer.current = window.setTimeout(hold, HOLD_MS);
+      return;
+    }
+    if (k === "ContextMenu" || code === 93) { consume(); openMenu(); return; }
+    if (k === "ArrowLeft" || code === 37) {
+      if (!s.cellMode) return; // row stage: the side menu, through the app's own arrows
+      consume();
+      showCursor(cursorStep(listOf(s.row), cursorOr(s.cursor), -1, win.start, win.end));
+      return;
+    }
+    if (k === "ArrowRight" || code === 39) {
+      consume();
+      if (!s.cellMode) enterCell(s.row);
+      else showCursor(cursorStep(listOf(s.row), cursorOr(s.cursor), +1, win.start, win.end));
+      return;
+    }
+    if (k === "ArrowUp" || code === 38) {
+      if (s.row === 0) return; // up to whatever is above (nothing, in the guide)
+      consume();
+      setCellMode(false);
+      stepRow(s.row - 1);
+      return;
+    }
+    if (k === "ArrowDown" || code === 40) {
+      consume();
+      if (s.row < rows.length - 1) { setCellMode(false); stepRow(s.row + 1); }
+    }
+  };
+  const onKeyUp = (e: KeyboardEvent) => {
+    if (!(e.key === "Enter" || e.keyCode === 13) || !okDown.current) return;
+    e.preventDefault();
+    okDown.current = false;
+    clearTimeout(holdTimer.current);
+    if (st.current.cellMode) ok(st.current.row); else enterCell(st.current.row);
+  };
+
+  // Back in a row's programmes returns to the row; and the rest of a held OK must not press the menu's first item.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (holdGuard.current && (e.key === "Enter" || e.keyCode === 13)) { e.preventDefault(); e.stopImmediatePropagation(); return; }
+      if (!isBack(e) || !st.current.cellMode || document.querySelector("[data-modal]")) return;
+      if (document.activeElement !== view.current) return;
+      e.preventDefault(); e.stopImmediatePropagation();
+      setCellMode(false);
+    };
+    const onUp = (e: KeyboardEvent) => { if (e.key === "Enter" || e.keyCode === 13) holdGuard.current = false; };
+    document.addEventListener("keydown", onKey, true);
+    document.addEventListener("keyup", onUp, true);
+    return () => { document.removeEventListener("keydown", onKey, true); document.removeEventListener("keyup", onUp, true); clearTimeout(holdTimer.current); };
+  }, []);
+
+  // The rows get callbacks that never change, so `memo` skips every row whose own props did not move.
+  const latest = useRef({ reminded: p.reminded, clickCell: (_i: number, _p: Programme | null, _at: number) => {} });
+  const stable = useMemo(() => ({
+    reminded: (c: Channel, pr: Programme) => latest.current.reminded(c, pr),
+    onCell: (i: number, pr: Programme | null, at: number) => latest.current.clickCell(i, pr, at),
+  }), []);
+
+  // A pointer: a cell takes the cursor (and a second click on it is OK); a channel's label watches it.
+  const clickCell = (i: number, prog: Programme | null, at: number) => {
+    if (view.current && document.activeElement !== view.current) focusWithoutScroll(view.current);
+    const sameRow = st.current.row === i && st.current.cellMode;
+    const t0 = prog ? Math.max(prog.start, win.start) : at;
+    if (sameRow && prog && programmeAt(listOf(i), st.current.cursor) === prog) { ok(i); return; }
+    stepRow(i);
+    setCellMode(true);
+    showCursor(t0);
+  };
+  latest.current = { reminded: p.reminded, clickCell };
+
+  // --- What the top shows: the programme under the cursor on the focused row (Android: `selected`) ---
+  const topChannel = rows[Math.min(row, rows.length - 1)] ?? null;
+  const topList = topChannel ? data.of(topChannel.id) : [];
+  const shown = topChannel ? programmeAt(topList, cursor > 0 ? cursor : now) : null;
+  const videoChannel = effPreview && preview ? preview : topChannel;
+  const videoNow = videoChannel ? programmeAt(data.of(videoChannel.id), now) : null;
+  const dayAt = timeAt(scrollX + (TIMELINE_W * 3) / 8, win.start);
+
+  // --- Rows and cells in view ---
+  const first = Math.max(0, Math.floor(scrollY / ROW_STEP) - 1);
+  const last = Math.min(rows.length - 1, Math.floor((scrollY + VIEW_H) / ROW_STEP) + 1);
+  const shownRows: number[] = [];
+  for (let i = first; i <= last; i++) shownRows.push(i);
+  const nowX = pxAt(now, win.start) - scrollX;
+  const lit = gridFocused && !cellMode;
+
   return (
-    <div class="screen guide">
-      <div class="gtop">
-        <div class="gtop-video">
-          {watching && settings.preview ? <PreviewVideo key={watching.url} channel={watching} settings={settings} /> : <div class="preview-empty"><Icon name="live_tv" size={72} /></div>}
-        </div>
-        <div class="gtop-info">
-          <div class="gtop-bar">
-            <div class="gtop-chan">{focused ? <span class="gtop-name">{focused.name}</span> : null}{focused?.group ? <span class="gtop-group">{capitalize(focused.group)}</span> : null}</div>
-            <div class="toolbar">
-              <button class="btn tool" data-focus="guide-back" onClick={() => setFrom((f) => f - SHIFT_MS)}>{t("guideBack")}</button>
-              <button class="btn tool" data-focus="guide-now" onClick={() => setFrom(floorHalfHour(Date.now() - 30 * 60_000))}>{t("guideNow")}</button>
-              <button class="btn tool" data-focus="guide-fwd" onClick={() => setFrom((f) => f + SHIFT_MS)}>{t("guideForward")}</button>
-              <button class="btn tool" data-focus="guide-refresh" onClick={onRefresh} aria-label={t("guideRefresh")}>
-                <Icon name="refresh" size={26} />{syncing && grid ? <span class="gtop-sync">{status.text}</span> : null}
-              </button>
-            </div>
+    <div class="screen gd">
+      <div class="gd-video">
+        {videoChannel ? <span class="gd-logo"><Logo channel={videoChannel} data={data} size={48} /></span> : null}
+        {playing && effPreview ? <PreviewVideo key={playing.url} channel={playing} settings={settings} /> : null}
+        <span class="gd-shade" />
+        {videoChannel ? (
+          <div class="gd-cap">
+            {numberOf.get(videoChannel.id) ?? ""} · {videoChannel.name}
+            {videoNow && now < videoNow.stop ? <span> · {videoNow.title}</span> : null}
           </div>
-          {shown ? (
-            <>
-              <div class="gtop-title">{shown.title}</div>
-              <div class="gtop-time">
-                {clock(shown.start)} – {clock(shown.stop)}
-                {live ? <><span class="bar gtop-prog"><span class="bar-fill" style={{ width: `${Math.round(done * 100)}%` }} /></span>{leftLabel(shown.stop, now)}</> : null}
-                {sel && hasArchive(sel.channel, shown.start, shown.stop, now) ? <span class="gtop-arch"><Icon name="history" size={22} /></span> : null}
-              </div>
-              <div class="gtop-desc">{shown.desc ?? ""}</div>
-            </>
-          ) : loading ? null : <div class="gtop-title dim">{t("scheduleNone")}</div>}
-        </div>
+        ) : null}
       </div>
 
+      {topChannel ? (
+        <div class="gd-block">
+          {shown ? <div class="gd-eyebrow"><Icon name="clock" size={18} /><span>{eyebrow(shown, topChannel.name, now)}</span></div> : null}
+          <div class="gd-title">{shown?.title ?? topChannel.name}</div>
+          {shown ? null : <div class="gd-details">{t("gssNoProgramme")}</div>}
+          <div class="gd-syn">{shown?.desc ?? ""}</div>
+        </div>
+      ) : null}
+
       {loading ? (
-        <div class="guide-empty">
-          <LoadingState title={t("guideLoading")} hint={syncing && status.text !== t("guideLoading") ? status.text : undefined} />
+        <div class="gd-state" role="status" aria-label={t("guideLoading")}>
+          <span class="gd-spin"><Ticks /></span>
+          {syncing && status.text !== t("guideLoading") ? <div class="gd-state-hint">{status.text}</div> : null}
         </div>
       ) : !grid ? (
-        <div class="guide-empty">
-          <div class="empty-idle state">
-            <div class="empty-title">{t("guideEmptyTitle")}</div>
-            <div class="empty-hint">{t("guideEmptyHint")}</div>
-            <div class="empty-actions">
-              <button class="btn" data-focus="guide-empty-refresh" onClick={onRefresh}>{t("guideRefresh")}</button>
-            </div>
-          </div>
+        <div class="gd-state">
+          <div class="gd-state-title">{t("gssNoGuide")}</div>
+          <div class="gd-state-body">{t("guideEmptyHint")}</div>
+          <div class="gd-state-act"><Button small id="guide-empty-refresh" icon="refresh" text={t("guideRefresh")} onClick={p.onRefresh} /></div>
         </div>
       ) : (
         <>
-          <div class="guide-scale" style={{ paddingLeft: `${NAME_W}px`, width: `${NAME_W + TIMELINE_W}px` }}>
-            <span class="gs-now">{new Date(now).toLocaleString([], { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", hour12: false })}</span>
-            {marks.map((m) => <span class="mark" key={m} style={{ left: `${NAME_W + x(m)}px` }}>{clock(m)}</span>)}
-          </div>
-          <div class="guide-body" style={{ width: `${NAME_W + TIMELINE_W}px` }}>
-            <VirtualList
-              items={rows} rowHeight={ROW} height={LIST_HEIGHT} pageSize={8}
-              idOf={(c) => `pg-${c.id}`}
-              renderRow={(c, i) => {
-                // The day of the channel cut to the window; what the guide does not cover is a quiet "no guide" cell, as on a box.
-                const items = data.of(c.id).filter((p) => p.stop > from && p.start < from + SPAN_MS);
-                const gaps: Array<[number, number]> = [];
-                let at = from;
-                for (const p of items) { if (p.start > at) gaps.push([at, p.start]); at = Math.max(at, p.stop); }
-                if (at < from + SPAN_MS) gaps.push([at, from + SPAN_MS]);
+          <div class="gd-day">{dayLabel(dayAt)}</div>
+          <Ruler start={win.start} end={win.end} now={now} scrollX={scrollX} />
+          <div class="gd-labels">
+            <div class="gd-plane" style={{ transform: `translate3d(0,${-scrollY}px,0)` }}>
+              {shownRows.map((i) => {
+                const c = rows[i] as Channel;
                 return (
-                <div class="grow-row">
-                  <button class="gname" data-focus={`pg-${c.id}-name`} style={{ width: `${NAME_W - 12}px` }} onClick={() => onOpen(c, rows)}>
-                    <span class="gnum">{i + 1}</span>
-                    <ChannelLogo channel={c} />
-                    <span class="grow nm">{c.name}</span>
-                  </button>
-                  <div class="gline" style={{ left: `${NAME_W}px`, width: `${TIMELINE_W}px` }}>
-                    {gaps.map(([g0, g1]) => (
-                      <div class="block gap" key={`g${g0}`} style={{ left: `${Math.max(0, x(g0))}px`, width: `${Math.max(8, Math.min(TIMELINE_W, x(g1)) - Math.max(0, x(g0)) - 4)}px` }}>
-                        <span class="block-t">{t("scheduleNone")}</span>
-                      </div>
-                    ))}
-                    {items.map((p) => {
-                      const left = Math.max(0, x(p.start));
-                      const width = Math.min(TIMELINE_W, x(p.stop)) - left - 4;
-                      const isLive = p.start <= now && now < p.stop;
-                      const recorded = hasArchive(c, p.start, p.stop, now);
-                      const upcoming = p.start > now;
-                      return (
-                        <button
-                          class={`block${isLive ? " onair" : ""}${recorded ? " arch" : ""}${upcoming && reminded(c, p) ? " rem" : ""}`} key={p.start} data-focus={`pg-${c.id}-${p.start}`}
-                          style={{ left: `${left}px`, width: `${Math.max(8, width)}px` }}
-                          onFocus={() => setSel({ channel: c, programme: p })}
-                          onClick={() => (recorded ? onArchive(c, p, rows) : upcoming ? onUpcoming(c, p, rows) : onOpen(c, rows))}
-                        >
-                          {upcoming && reminded(c, p) ? <span class="bell"><Icon name="bell" size={20} /></span> : null}
-                          {width >= MIN_TEXT_W ? <span class="block-t">{p.title}</span> : null}
-                        </button>
-                      );
-                    })}
+                  <div class={`gd-label${gridFocused && i === row ? " sel" : ""}`} key={c.id} style={{ top: `${i * ROW_STEP}px` }} onClick={() => watch(c)}>
+                    <span class="gd-num" style={{ width: `${numW}px` }}>{numberOf.get(c.id) ?? ""}</span>
+                    <span class="gd-plate"><Logo channel={c} data={data} size={31} /></span>
+                    <span class="gd-name">{c.name}</span>
+                    {(c.catchupDays ?? 0) > 0 ? <Icon name="rewind" size={20} /> : null}
                   </div>
-                </div>
                 );
-              }}
-            />
-            {nowX >= 0 && nowX <= TIMELINE_W ? <div class="nowline" style={{ left: `${NAME_W + nowX}px`, height: `${LIST_HEIGHT}px` }} /> : null}
+              })}
+            </div>
           </div>
+          <div
+            class="gd-view" ref={view} tabIndex={-1} data-focus="guide-grid" aria-label={t("navGuide")}
+            onKeyDown={onKeyDown} onKeyUp={onKeyUp}
+            onFocus={() => {
+              setGridFocused(true);
+              if (st.current.cursor < win.start || st.current.cursor >= win.end) setCursor(Date.now());
+            }}
+            onBlur={() => { setGridFocused(false); okDown.current = false; if (!menu) setCellMode(false); }}
+          >
+            <div class="gd-plane" style={{ transform: `translate3d(${-scrollX}px,${-scrollY}px,0)` }}>
+              {shownRows.map((i) => {
+                const c = rows[i] as Channel;
+                const sel = i === row;
+                return (
+                  <Strip
+                    key={c.id} index={i} channel={c} list={data.of(c.id)} ws={win.start} we={win.end} now={now} scrollX={scrollX}
+                    lit={sel && lit} cursor={sel && cellMode ? cursor : -1} tick={tick}
+                    reminded={stable.reminded} onCell={stable.onCell}
+                  />
+                );
+              })}
+            </div>
+          </div>
+          {nowX >= 0 && nowX <= TIMELINE_W ? <div class="gd-nowline" style={{ transform: `translate3d(${GX - 1.5 + nowX}px,0,0)` }} /> : null}
         </>
       )}
+
+      {menu ? (
+        <GuideMenu
+          menu={menu} number={numberOf.get(menu.channel.id)} now={now}
+          favorite={favorites.has(channelKey(menu.channel))} reminded={menu.programme ? p.reminded(menu.channel, menu.programme) : false}
+          lead={settings.reminderLead}
+          onWatch={() => { closeMenu(); watch(menu.channel); }}
+          onFromStart={menu.programme && hasArchive(menu.channel, menu.programme.start, menu.programme.stop, Date.now())
+            ? () => { const m = menu; closeMenu(); lastTuned = m.channel.id; p.onArchive(m.channel, m.programme as Programme, rows); } : null}
+          onRemind={menu.programme && menu.programme.start > Date.now()
+            ? () => { const m = menu; closeMenu(); if (p.onRemind) p.onRemind(m.channel, m.programme as Programme); else p.onUpcoming(m.channel, m.programme as Programme, rows); } : null}
+          onFav={p.onFav ? () => { const m = menu; closeMenu(); p.onFav?.(m.channel); } : null}
+          onClose={closeMenu}
+        />
+      ) : null}
+    </div>
+  );
+}
+
+/** "Live now · 12:15 – 14:45 · 150 min · Channel", "Starts in 58 min · …", or the times alone once it has been on. */
+function eyebrow(p: Programme, channelName: string, now: number): string {
+  const range = t("gssTimeRange", { a: clock(p.start), b: clock(p.stop) });
+  const lead = p.start > now ? t("gssStartsIn", { d: duration(Math.floor((p.start - now + 59_999) / MINUTE)) }) : p.stop > now ? t("gssLiveNow") : null;
+  const len = Math.floor((p.stop - p.start) / MINUTE);
+  return [lead, range, len > 0 ? t("gssMinutes", { n: len }) : null, channelName].filter((x): x is string => !!x).join(" · ");
+}
+
+/** "58 min", "1 h 05 min" (Android `durationText`). */
+function duration(min: number): string {
+  return min >= 60 ? t("gssHoursMinutes", { h: Math.floor(min / 60), m: String(min % 60).padStart(2, "0") }) : t("gssMinutes", { n: min });
+}
+
+/** The day at the 3/8 mark: "ср, 25 нояб." (Android `EEEdMMM`, the app's language). */
+function dayLabel(ms: number): string {
+  const lang = (typeof document !== "undefined" && document.documentElement.lang) || undefined;
+  try { return new Date(ms).toLocaleDateString(lang, { weekday: "short", day: "numeric", month: "short" }); } catch { return new Date(ms).toDateString(); }
+}
+
+/** A channel's logo on its plate, or the TV mark (Android `LivePlate`'s placeholder). */
+function Logo({ channel, data, size }: { channel: Channel; data: GuideData; size: number }) {
+  const [broken, setBroken] = useState<string | null>(null);
+  const src = channel.logo ?? data.logoOf(channel.id);
+  if (src && broken !== src) return <img src={src} alt="" decoding="async" onError={() => setBroken(src)} />;
+  return <Icon name="live_tv" size={size} />;
+}
+
+/** The ruler: a time every half hour (none within 12 minutes of now) and the blue chip on the now-line. */
+function Ruler({ start, end, now, scrollX }: { start: number; end: number; now: number; scrollX: number }) {
+  const slot = SLOT_MIN * MINUTE;
+  const from = timeAt(scrollX - 80, start);
+  const to = timeAt(scrollX + TIMELINE_W, start);
+  const marks: number[] = [];
+  for (let m = Math.ceil(Math.max(start, from) / slot) * slot; m < end && m <= to; m += slot) if (Math.abs(m - now) > 12 * MINUTE) marks.push(m);
+  const chipX = pxAt(now, start) - scrollX - 34;
+  return (
+    <div class="gd-ruler">
+      {marks.map((m) => <span class="gd-mark" key={m} style={{ transform: `translate3d(${pxAt(m, start) - scrollX}px,0,0)` }}>{clock(m)}</span>)}
+      {now >= start && now <= end && chipX > -80 && chipX < TIMELINE_W ? <span class="gd-chip" style={{ transform: `translate3d(${chipX}px,0,0)` }}>{clock(now)}</span> : null}
+    </div>
+  );
+}
+
+interface StripProps {
+  index: number; channel: Channel; list: readonly Programme[]; ws: number; we: number; now: number; scrollX: number;
+  /** Row stage on this row: the light bar, dark text. */
+  lit: boolean;
+  /** The cursor, only on the focused row in cell stage (−1 elsewhere, so a cursor move repaints one row). */
+  cursor: number;
+  tick: number;
+  reminded: (c: Channel, p: Programme) => boolean;
+  onCell: (i: number, p: Programme | null, at: number) => void;
+}
+
+/** One channel's programmes as TV-box cells (`ProgrammeStripCanvas`, TvBoxNav branch). */
+const Strip = memo(function Strip({ index, channel, list, ws, we, now, scrollX, lit, cursor, reminded, onCell }: StripProps) {
+  const cells = cellsIn(list, ws, we, scrollX - OVERSCAN_X, scrollX + TIMELINE_W + OVERSCAN_X);
+  const top = index * ROW_STEP;
+  const focusOn = cursor >= 0 ? programmeAt(list, cursor) : null;
+  let gap: [number, number] | null = null;
+  if (cursor >= 0 && focusOn === null) {
+    const [g0, g1] = gapAround(list, cursor, ws, we);
+    const x0 = Math.max(scrollX, pxAt(g0, ws) + 3);
+    const x1 = Math.min(scrollX + TIMELINE_W, pxAt(g1, ws) - 3);
+    if (x1 > x0) gap = [x0, x1];
+  }
+  const inView = cells.some((c) => c.x + c.w > scrollX && c.x < scrollX + TIMELINE_W);
+  return (
+    <div class={`gd-row${lit ? " lit" : ""}`} style={{ top: `${top}px` }}>
+      {lit ? <div class="gd-bar" style={{ left: `${scrollX}px`, width: `${TIMELINE_W}px` }} /> : null}
+      {gap ? (
+        <div class="gd-cell cur gap" style={{ left: `${gap[0]}px`, width: `${gap[1] - gap[0]}px` }}><span class="gd-none">{t("gssNoProgramme")}</span></div>
+      ) : null}
+      {!inView && !gap ? (
+        <div class="gd-cell empty" style={{ left: `${scrollX + 3}px`, width: `${TIMELINE_W - 6}px` }} onClick={() => onCell(index, null, timeAt(scrollX, ws))}>
+          <span class="gd-none">{t("gssNoProgramme")}</span>
+        </div>
+      ) : null}
+      {cells.map(({ p, x, w }) => {
+        const focused = focusOn === p;
+        const isNow = p.start <= now && now < p.stop;
+        const past = !focused && p.stop <= now;
+        const vx = x - scrollX;
+        const tx = Math.max(vx, 0);
+        const textW = vx + w - tx - 28;
+        const bell = p.start > now && reminded(channel, p);
+        const arch = hasArchive(channel, p.start, p.stop, now);
+        return (
+          <div
+            key={p.start} class={`gd-cell${focused ? " cur" : isNow ? " now" : ""}${past ? " past" : ""}`}
+            style={{ left: `${x}px`, width: `${w}px` }} onClick={() => onCell(index, p, p.start)}
+          >
+            {textW > 44 ? (
+              <div class="gd-in" style={tx > vx ? { paddingLeft: `${14 + tx - vx}px` } : undefined}>
+                <div class="gd-t">{p.title}</div>
+                <div class="gd-s">
+                  {bell ? <Icon name="bell" size={14} /> : null}
+                  {arch ? <Icon name="rewind" size={14} /> : null}
+                  <span>{t("gssTimeRange", { a: clock(p.start), b: clock(p.stop) })}</span>
+                </div>
+              </div>
+            ) : w > 8 ? <i class="gd-dot" /> : null}
+          </div>
+        );
+      })}
+    </div>
+  );
+});
+
+/**
+ * Hold OK on the grid: the programme menu (`GuideProgrammeMenu`, TV-box: centred, 560 wide), or the channel's when
+ * nothing is on at the cursor (`GuideChannelMenu`). Recording and the EPG matching items are not in the web app.
+ */
+function GuideMenu(p: {
+  menu: { channel: Channel; programme: Programme | null }; number: number | undefined; now: number; favorite: boolean; reminded: boolean;
+  lead: number;
+  onWatch: () => void; onFromStart: (() => void) | null; onRemind: (() => void) | null; onFav: (() => void) | null; onClose: () => void;
+}) {
+  const wrap = useRef<HTMLDivElement>(null);
+  useOwnBack(wrap, p.onClose);
+  const { channel, programme } = p.menu;
+  const name = [p.number, channel.name].filter((x) => x !== undefined && x !== "").join(" ");
+  useEffect(() => { focusFirst(wrap.current ?? document, programme && p.onRemind ? "gm-remind" : "gm-watch"); }, []);
+  const lead = p.lead === 0 ? t("gssRemindAtStart") : t("gssRemindBefore", { d: t("gssMinutes", { n: p.lead }) });
+  const upper = (s: string) => s.toLocaleUpperCase();
+  return (
+    <div ref={wrap}>
+      <Menu
+        width={560} onClose={p.onClose}
+        title={programme ? programme.title : name.replace(" ", " · ")}
+        subtitle={programme ? `${t("gssTimeRange", { a: clock(programme.start), b: clock(programme.stop) })} · ${name}` : t("gssNoProgramme")}
+      >
+        {programme ? (
+          <>
+            <div class="st-menu-group">{upper(t("gssGroupNew"))}</div>
+            <MenuItem id="gm-remind" icon="bell" text={t(p.reminded ? "gssReminderSet" : "gssRemindMe")} value={p.reminded ? undefined : lead}
+              checked={p.reminded} disabled={!p.onRemind} onClick={() => p.onRemind?.()} />
+          </>
+        ) : null}
+        <div class="st-menu-group">{upper(t("gssGroupWatch"))}</div>
+        <MenuItem id="gm-watch" icon="live_tv" text={t("gssWatchChannel")} onClick={p.onWatch} />
+        {programme ? (
+          <MenuItem id="gm-start" icon="rewind" text={t("gssWatchStart")} disabled={!p.onFromStart}
+            value={!p.onFromStart && programme.start > p.now ? t("gssAfterTime", { t: clock(programme.start) }) : undefined}
+            onClick={() => p.onFromStart?.()} />
+        ) : null}
+        {p.onFav ? (
+          <>
+            <div class="st-menu-group">{upper(t("gssGroupChannel"))}</div>
+            <MenuItem id="gm-fav" icon="favorite" text={t(p.favorite ? "gssRemoveFav" : "gssAddFav")} onClick={() => p.onFav?.()} />
+          </>
+        ) : null}
+      </Menu>
     </div>
   );
 }

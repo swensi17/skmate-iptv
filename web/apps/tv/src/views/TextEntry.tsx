@@ -1,6 +1,6 @@
-import { createPortal } from "preact/compat";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { Button, Icon, isBack, Popup } from "@skmate/ui";
+import { OverSheet } from "./SettingsKit";
 import { t } from "../i18n";
 
 /**
@@ -52,30 +52,31 @@ export function TextEntry(p: {
     };
   }, [p.onCancel, p.closing]);
 
-  return createPortal(
-    <Popup top width={820} title={p.title} body={p.hint || undefined} onClose={p.onCancel} closing={p.closing}
-      buttons={(
-        <>
-          <Button small id="entry-cancel" text={t("confirmCancel")} onClick={p.onCancel} />
-          <Button small id="entry-done" text={t("done")} onClick={done} />
-        </>
-      )}>
-      {/* The row is drawn focused while its field holds the focus (Android: highlighted while editing). */}
-      <label class={`st-field entry-row${typing ? " st-focusable st-lit" : ""}`}>
-        <span class="st-setting-icon"><Icon name="edit" size={32} /></span>
-        <span class="st-setting-body">
-          {p.label ? <span class="st-setting-title">{p.label}</span> : null}
-          <input
-            ref={input} class={`st-field-input${p.label ? "" : " solo"}`} data-focus="entry-field" value={value} placeholder={t("entTypeHere")}
-            type={p.type ?? "text"} autocomplete="off" spellcheck={false} autocapitalize="off"
-            onFocus={() => setTyping(true)} onBlur={() => setTyping(false)}
-            onInput={(e) => { const v = (e.currentTarget as HTMLInputElement).value; setValue(v); p.onInput?.(v); }}
-            onKeyDown={(e) => { if (e.key === "Enter" || e.keyCode === 13) { e.preventDefault(); done(); } }}
-          />
-        </span>
-      </label>
-      {p.note !== undefined ? <div class="entry-note" role="status">{p.note}</div> : null}
-    </Popup>,
-    document.getElementById("app") ?? document.body, // inside the scaled stage, above the settings sheet
+  return (
+    <OverSheet app>
+      <Popup top width={820} title={p.title} body={p.hint || undefined} onClose={p.onCancel} closing={p.closing}
+        buttons={(
+          <>
+            <Button small id="entry-cancel" text={t("confirmCancel")} onClick={p.onCancel} />
+            <Button small id="entry-done" text={t("done")} onClick={done} />
+          </>
+        )}>
+        {/* The row is drawn focused while its field holds the focus (Android: highlighted while editing). */}
+        <label class={`st-field entry-row${typing ? " st-focusable st-lit" : ""}`}>
+          <span class="st-setting-icon"><Icon name="edit" size={32} /></span>
+          <span class="st-setting-body">
+            {p.label ? <span class="st-setting-title">{p.label}</span> : null}
+            <input
+              ref={input} class={`st-field-input${p.label ? "" : " solo"}`} data-focus="entry-field" value={value} placeholder={t("entTypeHere")}
+              type={p.type ?? "text"} autocomplete="off" spellcheck={false} autocapitalize="off"
+              onFocus={() => setTyping(true)} onBlur={() => setTyping(false)}
+              onInput={(e) => { const v = (e.currentTarget as HTMLInputElement).value; setValue(v); p.onInput?.(v); }}
+              onKeyDown={(e) => { if (e.key === "Enter" || e.keyCode === 13) { e.preventDefault(); done(); } }}
+            />
+          </span>
+        </label>
+        {p.note !== undefined ? <div class="entry-note" role="status">{p.note}</div> : null}
+      </Popup>
+    </OverSheet>
   );
 }

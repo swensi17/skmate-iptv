@@ -11,31 +11,54 @@
 /* The spinner's ticks follow the text colour, so they show on the light theme too (app.css paints them white). */
 .state-spin .ticks rect, .vd-loading-spin .ticks rect { fill: var(--text); }
 
-/* ===== Guide ===== */
-/* The rows sit 76 px apart (the list's step): the name and the programmes are 70 px tall with a 6 px gap between rows,
-   instead of 76 px boxes in an 84 px row that touched the row below. */
-.screen.guide .grow-row { height: 76px; }
-.screen.guide .gname, .screen.guide .gline { top: 3px; height: 70px; }
-.screen.guide .block { height: 70px; }
-/* A long channel name takes two lines at most, never three over the next row. */
-.screen.guide .gname .nm { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.2; min-width: 0; overflow-wrap: anywhere; }
-/* The date and time over the scale in plain text, not blue. */
-.screen.guide .gs-now { color: var(--text); }
-/* The buttons keep their place; the refresh progress text is cut rather than pushing the channel name away. */
-.screen.guide .gtop-bar .toolbar { flex: none; }
-.screen.guide .gtop-chan { flex: 1; }
-.screen.guide .gtop-group { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
-.gtop-sync { max-width: 340px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
-/* The waiting and empty states fill the place of the grid, in its middle. */
-.screen.guide .guide-empty { height: 640px; display: flex; align-items: center; justify-content: center; }
-.screen.guide .guide-empty .empty-idle { height: auto; }
+/* ===== Sport (Android TV-box Sports board, features/sports/SportsBoard.kt). Stage 1728×972: the board is 1560/1920 of
+   the width, so 162 on each side; mpx = px. Margins, not flex gap (Chromium 63). ===== */
+.screen.sp { position: absolute; left: 0; top: 0; width: 1728px; height: 972px; padding: 0; display: flex; flex-direction: column;
+  font-family: var(--st-font); color: var(--st-text); }
+.sp-head { flex: none; padding: 36px 162px 0; }
+.sp-title { font-size: 46px; font-weight: 800; letter-spacing: -1px; line-height: 58px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sp-count { color: var(--st-accent); font-variant-numeric: tabular-nums; }
+.sp-search { display: flex; align-items: center; margin-top: 10px; }
+.sp-search > * + * { margin-left: 12px; }
+.sp-tool { max-width: 360px; }
+.sp-tool > svg { color: var(--st-muted); }
+.sp-tool .st-tool-value { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.sp-down { flex: none; display: inline-flex; color: var(--st-muted); transform: rotate(90deg); }
+.sp-tool:focus > svg, .sp-tool:focus .sp-down { color: #121212; }
+.sp-tabs { display: flex; margin-top: 14px; }
+.sp-tabs > * + * { margin-left: 8px; }
+/* StageTab(centered): a 1.5 outline, radius 4; the chosen one in the accent; focused = the plate, no outline. */
+.sp-tab { flex: 1 1 0%; min-width: 0; display: flex; align-items: baseline; justify-content: center; padding: 12px 14px; border-radius: 4px;
+  background: none; box-shadow: inset 0 0 0 1.5px rgba(110, 115, 120, 0.45); white-space: nowrap; }
+.sp-tab.on { box-shadow: inset 0 0 0 1.5px var(--st-accent); }
+.sp-tab:focus { box-shadow: none; }
+.sp-tab-l { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-size: 20px; font-weight: 700; line-height: 25px; color: var(--st-muted); }
+.sp-tab.on .sp-tab-l { color: var(--st-text); }
+.sp-tab-n { flex: 0 1000 auto; min-width: 0; overflow: hidden; margin-left: 8px; font-size: 19px; font-weight: 700; color: var(--st-text); opacity: 0.9; font-variant-numeric: tabular-nums; }
+.sp-tab:focus .sp-tab-l, .sp-tab:focus .sp-tab-n { color: #121212; opacity: 1; }
+/* Two columns, 20 apart, 10 between rows; the list scrolls under the header that stays. */
+.sp-grid { flex: 1 1 0%; min-height: 0; overflow-x: hidden; overflow-y: auto; display: flex; flex-wrap: wrap; align-content: flex-start;
+  padding: 14px 162px 110px; scrollbar-width: none; }
+.sp-grid::-webkit-scrollbar { display: none; }
+.sp-card { display: flex; align-items: center; width: calc((100% - 20px) / 2); height: 96px; margin-bottom: 10px; padding: 0 18px;
+  background: none; color: var(--st-text); }
+.sp-card:nth-child(even) { margin-left: 20px; }
+.sp-logo { flex: none; width: 78px; height: 48px; margin-right: 18px; border-radius: 10px; overflow: hidden; background: var(--st-still-back);
+  display: flex; align-items: center; justify-content: center; color: var(--st-muted); }
+.sp-logo img { width: 100%; height: 100%; object-fit: contain; }
+.sp-body { flex: 1 1 0%; min-width: 0; display: block; }
+.sp-l1 { display: block; font-size: 20px; font-weight: 700; line-height: 25px; color: var(--st-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sp-l2 { display: block; font-size: 18px; line-height: 23px; color: var(--st-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sp-body > .st-progress { margin-top: 7px; }
+.sp-empty { width: 100%; padding-top: 90px; text-align: center; font-size: 22px; font-weight: 600; color: var(--st-muted); }
 
-/* ===== Sport: the title and the search on one line, as on the channels screen; the list shows whole rows. ===== */
-.screen-top { display: flex; align-items: center; justify-content: space-between; gap: 24px; height: 110px; flex: none; }
-.screen-top h2 { margin: 0; line-height: 1.1; }
-.screen.sport { display: flex; flex-direction: column; }
-.screen.sport .filters { flex: none; }
-.screen.sport .empty-idle { height: 560px; }
+/* ===== The search field of Sport and Search (StageSearchField, TV-box): see SearchField.tsx ===== */
+.ss-field { flex: 1 1 0%; min-width: 0; width: 100%; border: 0; font-family: var(--st-font); text-align: left; cursor: pointer; }
+.ss-field > span { flex: 1 1 0%; min-width: 0; font-size: 18px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ss-ph { font-weight: 400; color: var(--st-dim); }
+.ss-q { font-weight: 500; color: var(--st-text); }
+.ss-field:focus .ss-ph, .ss-field.st-lit .ss-ph { color: rgba(18, 18, 18, 0.6); }
+.ss-field:focus .ss-q, .ss-field.st-lit .ss-q { color: #121212; }
 
 /* ===== Films and series ===== */
 .screen.vod h2 { margin-bottom: 20px; }
@@ -110,17 +133,91 @@
 .screen.vod .vod-main .search-box { height: 56px; width: 340px; }
 .screen.vod .vod-main .search-reset { height: 56px; }
 
-/* The Search screen: the large box at the top left, the filters under it, then the results or the recent queries. */
-.search-entry.wide { align-self: flex-start; }
-.search-entry.wide .search-box { width: 1000px; height: 80px; font-size: 28px; }
-.search-entry.wide .search-reset { height: 80px; font-size: 24px; }
-.screen.search .search-idle.start { display: block; min-height: 0; padding-top: 16px; }
-.screen.search .search-idle.start .search-recent { display: block; max-width: 1500px; }
-.screen.search .search-idle.start .caption { margin: 0 0 12px 4px; }
-.screen.search .search-idle.start .recent { justify-content: flex-start; }
-.search-tip { margin: 40px 4px 0; max-width: 1000px; }
-.search-tip-title { font-size: 30px; font-weight: 700; }
-.search-tip-body { margin-top: 8px; font-size: 24px; line-height: 1.4; color: var(--muted); }
+/* ===== Search (Android TV-box Search, features/search/SearchScreen.kt). Stage 1728×972: list x fx(64) = 57.6, list
+   width fx(846) = 761.4, centred x 483.3, panel x fx(944) = 849.6, panel width fx(912) = 820.8; mpx = px. ===== */
+.screen.sr { position: absolute; left: 0; top: 0; width: 1728px; height: 972px; padding: 0; font-family: var(--st-font); color: var(--st-text); }
+/* Before anything is typed: the rolling caption over the field, both in the middle of the screen. */
+.sr-caption { position: absolute; left: 483.3px; top: 322px; width: 761.4px; height: 64px; overflow: hidden; }
+.sr-cap { position: absolute; left: 0; right: 0; top: 0; height: 64px; line-height: 64px; text-align: center; font-size: 40px; font-weight: 800;
+  letter-spacing: -1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sr-cap.in { animation: sr-cap-in 420ms var(--st-ease) both; }
+.sr-cap.out { animation: sr-cap-out 420ms var(--st-ease) both; }
+@keyframes sr-cap-in { from { opacity: 0; transform: translateY(32px); } to { opacity: 1; transform: none; } }
+@keyframes sr-cap-out { 0% { opacity: 1; transform: none; } 66% { opacity: 0; } 100% { opacity: 0; transform: translateY(-32px); } }
+/* The field waits in the middle (x 483.3, top 404) and rises to the results' place (x 57.6, top 118) over 360 ms. */
+.sr-field { position: absolute; left: 57.6px; top: 118px; width: 761.4px; transform: translate3d(425.7px, 286px, 0);
+  transition: transform 360ms var(--st-ease); }
+.screen.sr.results .sr-field { transform: none; }
+.sr-field .ss-field { width: 100%; }
+.sr-head { position: absolute; left: 75.6px; top: 52px; width: 743.4px; display: flex; align-items: flex-end; font-size: 46px; font-weight: 800;
+  letter-spacing: -1px; line-height: 58px; white-space: nowrap; overflow: hidden; }
+.sr-count { margin-left: 20px; color: var(--st-accent); font-variant-numeric: tabular-nums; }
+.sr-recent { position: absolute; left: 483.3px; top: 476px; width: 761.4px; }
+.sr-group { padding: 8px 0 6px 20px; font-size: 12.5px; font-weight: 800; letter-spacing: 0.13em; color: var(--st-dim);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sr-rq { display: flex; align-items: center; width: 100%; height: 56px; margin-bottom: 6px; padding: 0 12px; background: none; color: #cdd7d3; }
+:root[data-theme="light"] .sr-rq { color: var(--st-item); }
+.sr-rq-plate { flex: none; width: 58px; height: 40px; margin-right: 14px; border-radius: 10px; overflow: hidden; display: flex;
+  align-items: center; justify-content: center; color: var(--st-muted); }
+.sr-rq-plate img { width: 100%; height: 100%; object-fit: contain; }
+.sr-rq-t { min-width: 0; font-size: 19px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sr-clear { margin-top: 4px; }
+/* Searching: the kind buttons (each as wide as its words), the grouped list, the panel on the right. */
+.sr-kinds { position: absolute; left: 57.6px; top: 192px; width: 761.4px; display: flex; }
+.sr-kinds > * + * { margin-left: 8px; }
+.sr-list { position: absolute; left: 57.6px; top: 252px; width: 761.4px; height: 640px; overflow-x: hidden; overflow-y: auto; scrollbar-width: none; }
+.sr-list::-webkit-scrollbar { display: none; }
+.sr-list .sr-group { padding: 18px 0 8px 20px; }
+.sr-list .sr-group.first { padding-top: 0; }
+.sr-row { display: flex; align-items: center; width: 100%; height: 84px; margin-bottom: 8px; padding: 0 18px; background: none; color: var(--st-text); }
+.sr-plate { flex: none; width: 76px; height: 54px; margin-right: 18px; border-radius: 12px; overflow: hidden; background: var(--st-control);
+  display: flex; align-items: center; justify-content: center; color: var(--st-dim); }
+.sr-plate img { width: 100%; height: 100%; object-fit: contain; }
+.sr-poster { flex: none; width: 50px; height: 74px; margin-right: 18px; border-radius: 8px; overflow: hidden; background: rgba(var(--st-ink-rgb), 0.06);
+  display: flex; align-items: center; justify-content: center; color: var(--st-dim); }
+.sr-poster img { width: 100%; height: 100%; object-fit: cover; }
+.sr-row-b { flex: 1 1 0%; min-width: 0; }
+.sr-row-t { display: block; font-size: 21px; font-weight: 700; line-height: 26px; color: var(--st-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sr-row-l { display: block; margin-top: 4px; font-size: 16px; line-height: 20px; color: var(--st-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sr-all { margin: 2px 0 8px; }
+.sr-none { position: absolute; left: 57.6px; top: 300px; width: 761.4px; }
+.sr-none-t { font-size: 30px; font-weight: 800; line-height: 38px; max-height: 76px; overflow: hidden; overflow-wrap: break-word; }
+.sr-none-b { margin-top: 10px; font-size: 19px; line-height: 29.45px; color: var(--st-muted); }
+.sr-busy { position: absolute; left: 57.6px; top: 270px; width: 761.4px; text-align: center; font-size: 22px; font-weight: 600; color: var(--st-muted); }
+.sr-sweep { position: relative; display: block; width: 320px; height: 4px; margin: 18px auto 0; border-radius: 2px; overflow: hidden; background: var(--st-dim); }
+.sr-sweep > i { position: absolute; left: 0; top: 0; width: 30%; height: 100%; border-radius: 2px; background: var(--st-muted); animation: sr-sweep 1100ms linear infinite; }
+@keyframes sr-sweep { from { transform: translateX(-100%); } to { transform: translateX(334%); } }
+/* The panel: Live TV's preview pane (LiveStagePane) or the poster panel, in one frame 16:9, radius 28. */
+.sr-panel { position: absolute; left: 849.6px; top: 120px; width: 820.8px; }
+.sr-frame { position: relative; width: 820.8px; height: 461.7px; border-radius: 28px; overflow: hidden; background: #000; box-shadow: 0 14px 40px rgba(0, 0, 0, 0.45); }
+.sr-frame-logo { position: absolute; left: 50%; top: 50%; width: 288px; height: 288px; margin: -144px 0 0 -144px; display: flex; align-items: center;
+  justify-content: center; color: var(--st-dim); }
+.sr-frame-logo img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.sr-frame video { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; }
+.sr-shade { position: absolute; left: 0; top: 0; right: 0; bottom: 0; border-radius: 28px; pointer-events: none;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0) 58%, rgba(0, 0, 0, 0.72) 100%); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08); }
+.sr-chan { position: absolute; left: 26px; right: 26px; bottom: 22px; display: flex; align-items: center; }
+.sr-chan-plate { flex: none; width: 64px; height: 46px; margin-right: 14px; border-radius: 12px; overflow: hidden; background: rgba(255, 255, 255, 0.06);
+  display: flex; align-items: center; justify-content: center; color: #6e7378; }
+.sr-chan-plate img { width: 100%; height: 100%; object-fit: contain; }
+.sr-chan-t { min-width: 0; }
+.sr-chan-n { display: block; font-size: 15px; font-weight: 600; color: #cfd8d4; }
+.sr-chan-name { display: block; font-size: 22px; font-weight: 700; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sr-poster-big { position: absolute; right: 40px; top: 36px; height: calc(100% - 72px); border-radius: 14px; }
+.sr-vod-title { position: absolute; left: 26px; right: 26px; bottom: 20px; font-size: 44px; font-weight: 800; letter-spacing: -1px; color: #ffffff;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sr-info { padding: 34px 4px 0; }
+.sr-info-t { font-size: 42px; font-weight: 800; letter-spacing: -0.5px; line-height: 52px; max-height: 104px; overflow: hidden;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.sr-info-d { padding: 8px 0 16px; font-size: 19px; color: var(--st-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sr-info-p { display: flex; align-items: center; }
+.sr-info-p > .st-progress { flex: 1 1 0%; }
+.sr-info-p > span:last-child { flex: none; margin-left: 16px; font-size: 17px; color: var(--st-muted); font-variant-numeric: tabular-nums; }
+.sr-info-s { padding-top: 18px; font-size: 19px; line-height: 29.45px; max-height: 136px; overflow: hidden; color: #ccd6d2;
+  display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; }
+.sr-info-s.vod { max-height: 106px; -webkit-line-clamp: 3; }
+:root[data-theme="light"] .sr-info-s { color: var(--st-body); }
+
 /* The entry popup of a search: how many the query finds, live, under the field (inset as the field's text). */
 .entry-note { margin-top: 10px; padding: 0 22px 0 72px; min-height: 28px; font-size: 18px; font-weight: 600; color: var(--st-muted); }
 /* The channels screen: the sort is one row under the categories, saying the order in use; OK steps to the next. */

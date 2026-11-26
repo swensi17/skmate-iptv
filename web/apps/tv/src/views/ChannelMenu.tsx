@@ -74,9 +74,10 @@ export function ChannelMenu(p: {
           <span class="st-menu-lead"><ChannelLogo channel={p.channel} /></span>
           <span class="st-menu-title ch-menu-name">{p.channel.name}</span>
         </div>
-        {/* TODO(i18n): "Убрать из избранного" has no key yet; a favourite shows "Избранное" with the line lit. */}
+        {/* LiveScreen.kt ChannelContextMenu: the WATCH group, favourite first («Добавить в избранное» / «Удалить из избранного»). */}
+        <div class="st-menu-group">{t("homeMenuWatch").toUpperCase()}</div>
         <button class="st-focusable st-menu-item" data-focus="cm-fav" aria-pressed={p.favorite} onClick={p.onFav}>
-          <Icon name="star" size={28} /><span class="st-menu-item-text">{t(p.favorite ? "favorites" : "playerFavorite")}</span>
+          <Icon name="favorite" size={28} /><span class="st-menu-item-text">{t(p.favorite ? "homeRemoveFavourite" : "homeAddFavourite")}</span>
         </button>
         <button class="st-focusable st-menu-item" data-focus="cm-watch" onClick={p.onWatch}>
           <Icon name="play" size={28} /><span class="st-menu-item-text">{t("remindWatch")}</span>

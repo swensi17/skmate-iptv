@@ -6,7 +6,8 @@ import { GuideContext } from "../state/GuideContext";
 import { UiContext } from "../state/UiContext";
 import { ChannelLogo } from "./ChannelLogo";
 import { ChannelMenu, ChannelSchedule } from "./ChannelMenu";
-import { leftLabel } from "./Left";
+import { daysText, leftLabel, timeLeftText } from "./Left";
+import { StageIcon } from "./GroupIcon";
 import "./channel.css";
 
 /** Yellow on webOS (405) and on Tizen (12 once registered); `y` on a keyboard. */
@@ -33,6 +34,16 @@ export function ChannelRow(props: {
   playing?: boolean;
   /** "Programme" in the menu: a list with a day column beside it shows it there; without this, a sheet opens. */
   onSchedule?: (c: Channel) => void;
+  /**
+   * "live": Android's channel row of the channels screen (LiveStage.kt LiveStageRow, TV-box look): 92 high, the
+   * number from the left, the logo plate, the name and "programme · time left", the progress bar on the focused row,
+   * the blue archive tag in the top-right corner, the playing mark and the heart at the end.
+   */
+  variant?: "live";
+  /** The channel's number in the playlist (the "live" row shows it; others show their place in the list). */
+  number?: number;
+  /** "live": this channel is in the preview beside the list (the blue pause mark). */
+  previewing?: boolean;
 }) {
   const { channel } = props;
   const { data, now } = useContext(GuideContext);
@@ -41,6 +52,8 @@ export function ChannelRow(props: {
 
   // OK is taken on its release: a short press opens the channel, a long one (the timer fires first) the menu.
   const [layer, setLayer] = useState<null | "menu" | "schedule">(null);
+  // The "live" row: drawn as focused (its progress bar, the scrolling lines) only while it has focus.
+  const [lit, setLit] = useState(false);
   const press = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cancel = () => { if (press.current !== null) clearTimeout(press.current); press.current = null; };
   useEffect(() => cancel, []);
@@ -62,6 +75,61 @@ export function ChannelRow(props: {
     cancel();
     if (pending) props.onOpen(channel);
   };
+
+  const layers = (
+    <>
+      <Presence show={layer === "menu"}>
+        {(out) => (
+          <ChannelMenu
+            channel={channel} favorite={props.favorite} closing={out} onClose={() => close()}
+            onFav={() => { props.onFav(channel); close(); }}
+            onWatch={() => { close(false); props.onOpen(channel); }}
+            onSchedule={() => {
+              if (props.onSchedule) { close(false); props.onSchedule(channel); } else setLayer("schedule");
+            }}
+          />
+        )}
+      </Presence>
+      <Presence show={layer === "schedule"}>
+        {(out) => (
+          <ChannelSchedule channel={channel} closing={out} onClose={() => close()} onWatch={() => { close(false); props.onOpen(channel); }} />
+        )}
+      </Presence>
+    </>
+  );
+
+  if (props.variant === "live") {
+    const left = on ? timeLeftText(on.stop, now) : "";
+    return (
+      <>
+        <button
+          class="st-focusable lrow" data-focus={`ch-${channel.id}`}
+          onClick={() => props.onOpen(channel)}
+          onFocus={() => { setLit(true); props.onFocus?.(channel); }}
+          onBlur={() => { setLit(false); cancel(); }}
+          onKeyDown={onKeyDown as unknown as (e: Event) => void}
+          onKeyUp={onKeyUp as unknown as (e: Event) => void}
+          onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); setLayer("menu"); }}
+        >
+          {ui.numbers ? <span class="lrow-num">{props.number ?? props.index + 1}</span> : null}
+          <ChannelLogo channel={channel} tile />
+          <span class="lrow-text">
+            <Marquee class="lrow-name" text={channel.name} on={lit} />
+            {on ? <Marquee class="lrow-prog" text={on.title} tail={left ? ` · ${left}` : ""} on={lit} /> : null}
+            {on ? <span class="lrow-bar">{lit ? <i style={{ width: `${(progress * 100).toFixed(1)}%` }} /> : null}</span> : null}
+          </span>
+          {props.previewing || props.favorite ? (
+            <span class="lrow-end">
+              {props.previewing ? <span class="lrow-playing"><StageIcon name="pause_fill" size={30} /></span> : null}
+              {props.favorite ? <span class="lrow-fav"><StageIcon name="favorite_fill" size={22} /></span> : null}
+            </span>
+          ) : null}
+          {channel.catchupDays ? <span class="st-archive corner">{daysText(channel.catchupDays)}</span> : null}
+        </button>
+        {layers}
+      </>
+    );
+  }
 
   return (
     <>
@@ -96,23 +164,52 @@ export function ChannelRow(props: {
           </span>
         ) : null}
       </button>
-      <Presence show={layer === "menu"}>
-        {(out) => (
-          <ChannelMenu
-            channel={channel} favorite={props.favorite} closing={out} onClose={() => close()}
-            onFav={() => { props.onFav(channel); close(); }}
-            onWatch={() => { close(false); props.onOpen(channel); }}
-            onSchedule={() => {
-              if (props.onSchedule) { close(false); props.onSchedule(channel); } else setLayer("schedule");
-            }}
-          />
-        )}
-      </Presence>
-      <Presence show={layer === "schedule"}>
-        {(out) => (
-          <ChannelSchedule channel={channel} closing={out} onClose={() => close()} onWatch={() => { close(false); props.onOpen(channel); }} />
-        )}
-      </Presence>
+      {layers}
     </>
+  );
+}
+
+/** Android's basicMarquee speed (MarqueeDefaults.Velocity, 30 dp/s = 54 design px/s) and FocusMarquee's delays. */
+const MARQUEE_PX_S = 54;
+const MARQUEE_DELAY_MS = 900;
+
+/**
+ * One line of a focused row (ui/components/FocusMarquee.kt): cut with "…" at rest; while [on], a line that does not fit
+ * scrolls to its end after 900 ms, the text repeated a third of the box apart, and again after each 900 ms pause.
+ * Only a transform moves (the Web Animations API, Chromium 36+). [tail] is drawn in the same line at 60% (the time left).
+ */
+function Marquee(p: { class: string; text: string; tail?: string; on: boolean }) {
+  const box = useRef<HTMLSpanElement>(null);
+  const [run, setRun] = useState<number | null>(null); // the gap between the copies, once the line is known not to fit
+  useEffect(() => {
+    setRun(null);
+    if (!p.on) return;
+    const id = setTimeout(() => {
+      const el = box.current;
+      if (el && el.scrollWidth > el.clientWidth + 1) setRun(Math.round(el.clientWidth / 3));
+    }, MARQUEE_DELAY_MS);
+    return () => clearTimeout(id);
+  }, [p.on, p.text, p.tail]);
+  const inner = useRef<HTMLSpanElement>(null);
+  useEffect(() => {
+    const el = inner.current;
+    if (run === null || !el || typeof el.animate !== "function") return;
+    const first = el.firstElementChild as HTMLElement | null;
+    const d = (first?.offsetWidth ?? 0) + run;
+    const move = (d / MARQUEE_PX_S) * 1000;
+    const total = move + MARQUEE_DELAY_MS;
+    const anim = el.animate(
+      [{ transform: "translateX(0)" }, { transform: `translateX(${-d}px)`, offset: move / total }, { transform: `translateX(${-d}px)` }],
+      { duration: total, iterations: Infinity, easing: "linear" },
+    );
+    return () => anim.cancel();
+  }, [run]);
+  const content = <>{p.text}{p.tail ? <span class="mq-tail">{p.tail}</span> : null}</>;
+  return (
+    <span class={`${p.class}${run !== null ? " mq-run" : ""}`} ref={box}>
+      {run === null ? content : (
+        <span class="mq-in" ref={inner}><span class="mq-copy">{content}</span><span class="mq-copy" style={{ marginLeft: `${run}px` }}>{content}</span></span>
+      )}
+    </span>
   );
 }

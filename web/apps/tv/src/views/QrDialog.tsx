@@ -1,22 +1,23 @@
 import { useEffect } from "preact/hooks";
-import { focusFirst, Qr, useReturnFocus } from "@skmate/ui";
+import { Button, focusFirst, Popup, Qr } from "@skmate/ui";
+import { OverSheet } from "./SettingsKit";
 import { t } from "../i18n";
-import { SheetHead } from "./SheetHead";
 
-/** The address of a link as a QR code: a TV has no browser to open it in, a phone does. "Готово" closes it. */
+/**
+ * A link as a QR code (MorePages.kt AboutPage's popup): StagePopup 640 wide, the name as its title, "scan it with
+ * your phone" under it, the code on a white 300 box, the address 22/700 under it, and OK. A TV has no browser for it.
+ */
 export function QrDialog({ name, address, onClose }: { name: string; address: string; onClose: () => void }) {
-  const root = useReturnFocus();
-  useEffect(() => { focusFirst(document, "qr-done"); }, []);
+  useEffect(() => { setTimeout(() => focusFirst(document, "qr-done"), 0); }, []);
   return (
-    <div class="scrim" data-modal ref={root} onClick={onClose}>
-      <div class="dialog qr" role="dialog" aria-label={name} onClick={(e) => e.stopPropagation()}>
-        <SheetHead title={name} />
-        <div class="qr-code"><Qr text={`https://${address}`} size={360} /></div>
-        <div class="dialog-body" style={{ textAlign: "center", marginBottom: 24 }}>{address}<br />{t("qrScan")}</div>
-        <div class="dialog-actions" style={{ justifyContent: "center" }}>
-          <button class="btn" data-focus="qr-done" onClick={onClose}>{t("done")}</button>
+    <OverSheet>
+      <Popup title={name} body={t("sa_about_social_qr_body")} width={640} onClose={onClose} returnFocus
+        buttons={<Button small id="qr-done" text={t("sa_common_ok")} onClick={onClose} />}>
+        <div class="set-qr">
+          <div class="set-qr-box"><Qr text={`https://${address}`} size={276} /></div>
+          <div class="set-qr-addr">{address}</div>
         </div>
-      </div>
-    </div>
+      </Popup>
+    </OverSheet>
   );
 }

@@ -1,0 +1,321 @@
+/*
+ * The player and its overlays, ported 1:1 from the Android TV app (TV-box look; docs/android-design-spec.md §2d):
+ *   A/player/PlayerHud.kt, TvBoxLiveHud.kt, PlayerHudChrome.kt, PlayerHudControls.kt, PlayerClock.kt, RecordingBadge.kt
+ *   A/features/shell/components/TvBoxPlayerInfo.kt, TvBoxChannelPanel.kt, CategoryBrowserOverlay.kt, StageRail.kt
+ *   A/features/multiview/MultiviewScreen.kt, A/ui/stage/ErrorIllustration.kt
+ * Sizes are Android mpx written as px on the 1728×972 stage; parts Android writes in dp are dp × 1.8 (noted).
+ * The player is always dark. Rules for 2019 TVs (Chromium 53/63): only transform and opacity move, no blur, no flex
+ * `gap` (margins), no `inset`, no `aspect-ratio`, rgba() instead of 8-digit hex. The <video> itself is never
+ * transformed or animated: a TV draws it on a hardware plane behind the page.
+ */
+
+.player.pv { overflow: hidden; font-family: var(--st-font, inherit); }
+.pv-video { position: absolute; left: 0; top: 0; width: 100%; height: 100%; background: #000; }
+
+/* ---------- TV-box live HUD (PlayerHud.kt:857-917, TvBoxPlayerInfo.kt) ---------- */
+
+.tb-hud { position: absolute; left: 0; right: 0; bottom: 0; top: 0; z-index: 4; pointer-events: none;
+  animation: tb-in 220ms cubic-bezier(.4, 0, .2, 1) both; }
+.tb-hud.out { animation: tb-out 220ms cubic-bezier(.4, 0, .2, 1) both; }
+/* Fade + a slide of 1/6 of its height from below (the info column is about 300 high). */
+@keyframes tb-in { from { opacity: 0; transform: translateY(50px); } to { opacity: 1; transform: none; } }
+@keyframes tb-out { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(50px); } }
+/* 420 dp (756) under the info, 560 dp (1008) with the tiles: clear, then #B3000000 at .35 by the middle, then full. */
+.tb-shade { position: absolute; left: 0; right: 0; bottom: 0; height: 756px;
+  background: linear-gradient(rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, .245) 50%, rgba(0, 0, 0, .7) 100%); }
+.tb-hud.tiles .tb-shade { height: 1008px; }
+/* Padding 44 dp (79) at the sides, 36 dp (65) at the bottom, 22 dp (40) between the info and the tiles. */
+.tb-col { position: absolute; left: 79px; right: 79px; bottom: 65px; }
+.tb-col > .tb-tiles { margin-top: 40px; }
+
+.tb-row { display: flex; align-items: center; }
+.tb-logo { flex: none; width: 132px; height: 132px; padding: 6px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; }
+.tb-logo .logo { width: 100%; height: 100%; object-fit: contain; border-radius: 0; background: none; font-size: 40px; }
+.tb-text { flex: 1 1 0%; min-width: 0; margin-left: 24px; }
+.tb-title { font-size: 34px; font-weight: 700; line-height: 1.25; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tb-line { display: flex; align-items: center; margin-top: 8px; font-size: 20px; font-weight: 500; line-height: 1.3; color: rgba(255, 255, 255, .8); white-space: nowrap; min-width: 0; }
+.tb-line > * { flex: none; }
+.tb-line > * + * { margin-left: 16px; }
+.tb-line .tb-ch { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-weight: 700; color: #fff; }
+.tb-line .tb-num { margin-right: 8px; }
+.tb-next { color: rgba(255, 255, 255, .62); }
+.tb-next .tb-next-title { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.tb-mini { position: relative; width: 64px; height: 4px; border-radius: 2px; background: rgba(255, 255, 255, .3); overflow: hidden; }
+.tb-mini i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 2px; background: #fff; }
+/* A stream fact ("FHD", "HLS"): 14/700 caps in a thin outlined box. */
+.tb-chip { padding: 2px 7px; border: 1px solid rgba(255, 255, 255, .45); border-radius: 5px; font-size: 14px; font-weight: 700; line-height: 1.3; color: rgba(255, 255, 255, .85); text-transform: uppercase; }
+
+/* The timeline: 24 high, track 4 (8 on the step), blue fill, the watched moment as a dot (7 / 12 radius, halo +5). */
+.tb-time { position: relative; height: 24px; margin-top: 18px; }
+.tb-track { position: absolute; left: 0; right: 0; top: 10px; height: 4px; border-radius: 2px; background: rgba(255, 255, 255, .25); }
+.tb-track i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 2px; background: #0086fc; }
+.tb-dot { position: absolute; top: 12px; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%; background: #fff; }
+.tb-dot.behind { background: #0086fc; }
+.tb-time.seeking .tb-track { top: 8px; height: 8px; border-radius: 4px; background: rgba(255, 255, 255, .35); }
+.tb-time.seeking .tb-dot { width: 24px; height: 24px; margin: -12px 0 0 -12px; background: #fff; box-shadow: 0 0 0 5px rgba(0, 134, 252, .45); }
+/* "−1:20 · 13:42:10" over the dot while ◀ ▶ move: a white pill 10 above the line, taking no room. */
+.tb-counter { position: absolute; bottom: 34px; padding: 6px 14px; border-radius: 10px; background: #fff; color: #000; font-size: 22px; font-weight: 700; line-height: 1.3; white-space: nowrap; }
+
+/* The tile row (TvBoxLiveHud.kt): spread evenly, a 64 disc (white on focus) over an 18 px caption. */
+.tb-tiles { display: flex; align-items: flex-start; pointer-events: auto; }
+.tb-tile { flex: 1 1 0%; min-width: 0; display: flex; flex-direction: column; align-items: center; padding: 0; border: 0; background: none; outline: none; font-family: inherit; cursor: pointer; color: rgba(255, 255, 255, .86); }
+.tb-disc { width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.tb-tile-label { max-width: 100%; margin-top: 10px; padding: 0 4px; box-sizing: border-box; font-size: 18px; font-weight: 500; line-height: 1.3; color: rgba(255, 255, 255, .78); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tb-tile.active { color: #0086fc; }
+.tb-tile:focus .tb-disc { background: #fff; color: #16181d; }
+.tb-tile:focus .tb-tile-label { font-weight: 700; color: #fff; }
+
+/* Paused: one calm mark, 96 dp (173) on #66000000, the 44 dp (79) glyph. */
+.pv-paused { position: absolute; left: 50%; top: 50%; z-index: 3; width: 173px; height: 173px; margin: -86px 0 0 -86px; border-radius: 50%; background: rgba(0, 0, 0, .4); display: flex; align-items: center; justify-content: center; color: #fff; animation: st-fade-in 160ms linear both; }
+
+/* Opening: a quiet white spinner, 48 dp (86); the classic HUD's is 56 dp (101). The line after 10 s of a stall. */
+.pv-loading { position: absolute; left: 50%; top: 50%; z-index: 3; width: 0; height: 0; pointer-events: none; }
+.pv-loading .spinner { position: absolute; left: -43px; top: -43px; width: 86px; height: 86px; margin: 0; }
+.pv-loading .spinner .ticks rect { fill: rgba(255, 255, 255, .9); }
+.pv-loading.classic .spinner { left: -50px; top: -50px; width: 101px; height: 101px; }
+.pv-reconnect { position: absolute; left: -605px; width: 1210px; top: 64px; text-align: center; font-size: 25px; font-weight: 400; line-height: 1.4; color: rgba(255, 255, 255, .85); }
+
+/* ---------- Direct tune and the channel card (PlayerHudChrome.kt:176-275), top-start ---------- */
+
+.pv-osd { position: absolute; left: 50px; top: 50px; z-index: 6; }
+.pv-osd.raised { top: 166px; }
+.pv-card { position: relative; min-width: 266px; max-width: 612px; box-sizing: border-box; padding: 22px 36px 27px 29px; border-radius: 25px; background: rgba(0, 0, 0, .55); color: #fff; overflow: hidden; }
+.pv-card-label { font-size: 20px; font-weight: 700; letter-spacing: 3.6px; color: #f2f0ed; }
+.pv-card-digits { display: flex; align-items: flex-end; font-size: 43px; font-weight: 700; letter-spacing: 5.4px; line-height: 1.2; }
+.pv-caret { width: 5px; height: 40px; margin: 0 0 7px 7px; border-radius: 3px; background: #f2f0ed; animation: pv-caret 600ms linear infinite alternate; }
+@keyframes pv-caret { from { opacity: 1; } to { opacity: 0; } }
+.pv-card-error { font-size: 22px; font-weight: 700; color: #ff8a80; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pv-card-bar { position: absolute; left: 0; right: 0; bottom: 0; height: 5px; background: rgba(255, 255, 255, .08); }
+.pv-card-bar i { position: absolute; left: 0; top: 0; bottom: 0; width: 100%; background: #f2f0ed; transform-origin: 0 50%; animation: pv-drain 2000ms linear both; }
+@keyframes pv-drain { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+/* The channel a number found: logo 44 dp (79) radius 10 dp (18) on #004F46, name 25/500, "#N" 20/500 at .5. */
+.pv-tuned { display: flex; align-items: center; max-width: 612px; padding: 25px; border-radius: 25px; background: rgba(0, 0, 0, .55); color: #fff; }
+.pv-tuned-logo { flex: none; width: 79px; height: 79px; border-radius: 18px; background: #004f46; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+.pv-tuned-logo .logo { width: 100%; height: 100%; object-fit: contain; border-radius: 0; font-size: 22px; }
+.pv-tuned-text { min-width: 0; margin-left: 22px; }
+.pv-tuned-name { font-size: 25px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pv-tuned-sub { font-size: 20px; font-weight: 500; color: rgba(255, 255, 255, .5); }
+
+/* REC (RecordingBadge.kt): top-end, 18 dp / 22 dp in, radius 6 dp, an 8 dp pulsing #EF4444 dot. */
+.pv-rec { position: absolute; top: 32px; right: 40px; z-index: 7; display: flex; align-items: center; padding: 7px 16px; border-radius: 11px; background: rgba(0, 0, 0, .55); color: #fff; font-size: 22px; font-weight: 700; letter-spacing: 1px; }
+.pv-rec span { width: 14px; height: 14px; margin-right: 10px; border-radius: 50%; background: #ef4444; animation: pv-caret 900ms linear infinite alternate; }
+
+/* ---------- Error screen (PlayerHud.kt:1041-1121, ErrorIllustration.kt) ---------- */
+
+.pv-error { position: absolute; left: 0; top: 0; right: 0; bottom: 0; z-index: 8; background: #0b0f14; display: flex; align-items: center; justify-content: center; }
+.pv-error-col { width: 70%; display: flex; flex-direction: column; align-items: center; text-align: center; }
+.pv-error-art { width: 342px; height: 342px; }
+.pv-error-title { margin-top: 47px; font-size: 40px; font-weight: 700; line-height: 1.25; color: #fff; }
+.pv-error-text { margin-top: 18px; font-size: 25px; font-weight: 400; line-height: 1.4; color: rgba(255, 255, 255, .7); }
+/* ErrorButton: radius 4, white .14 idle, white focused; 23/700; padding 30 dp × 15 dp. */
+.pv-error-btn { margin-top: 32px; padding: 27px 54px; border: 0; border-radius: 4px; background: rgba(255, 255, 255, .14); color: #fff; font-family: inherit; font-size: 23px; font-weight: 700; outline: none; cursor: pointer; }
+.pv-error-btn:focus { background: #fff; color: #0b0f14; }
+/* Behind an open panel only a quiet mark: the 96 dp (173) picture at .6. */
+.pv-error.quiet { z-index: 1; }
+.pv-error.quiet .pv-error-art { width: 173px; height: 173px; opacity: .6; }
+
+/* ---------- Classic HUD: catch-up programmes and films (PlayerHud.kt:919-1006, PlayerHudChrome.kt) ---------- */
+
+.ch-hud { position: absolute; left: 0; top: 0; right: 0; bottom: 0; z-index: 4; animation: st-fade-in 220ms linear both; }
+.ch-hud.out { animation: st-fade-out 220ms linear both; }
+.ch-top-shade { position: absolute; left: 0; right: 0; top: 0; height: 378px; pointer-events: none;
+  background: linear-gradient(rgba(0, 0, 0, .72) 0%, rgba(0, 0, 0, .68) 50%, rgba(0, 0, 0, 0) 100%); }
+.ch-bottom-shade { position: absolute; left: 0; right: 0; bottom: 0; height: 468px; pointer-events: none;
+  background: linear-gradient(rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, .68) 45%, rgba(0, 0, 0, .78) 100%); }
+
+/* Top bar: padding 20 dp (36); back 40 dp (72); logo 46 dp (83); chips 22/700 at .5; title 32/600. */
+.ch-top { position: absolute; left: 36px; right: 36px; top: 36px; display: flex; align-items: flex-start; }
+.ch-half { flex: 1 1 0%; min-width: 0; display: flex; align-items: center; }
+.ch-half.end { justify-content: flex-end; align-items: flex-start; }
+.ch-logo { flex: none; width: 83px; height: 83px; margin-left: 25px; border-radius: 18px; background: #004f46; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+.ch-logo .logo { width: 100%; height: 100%; object-fit: contain; border-radius: 0; font-size: 22px; }
+.ch-titles { flex: 1 1 0%; min-width: 0; margin-left: 25px; }
+.ch-chips { display: flex; align-items: center; font-size: 22px; font-weight: 700; color: rgba(255, 255, 255, .5); white-space: nowrap; }
+.ch-chips i { width: 5px; height: 5px; margin: 0 14px; border-radius: 50%; background: rgba(255, 255, 255, .3); }
+.ch-title { margin-top: 4px; font-size: 32px; font-weight: 600; line-height: 1.3; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ch-title .ch-num { margin-right: 18px; color: rgba(255, 255, 255, .45); }
+.ch-sub { font-size: 22px; font-weight: 700; color: rgba(255, 255, 255, .45); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Round buttons (CircleButton): ink .10 idle, the primary white .95 with a dark glyph; focus = accent fill + white ring. */
+.ch-circle { flex: none; display: flex; align-items: center; justify-content: center; padding: 0; border: 0; border-radius: 50%; background: rgba(255, 255, 255, .1); color: #fff; outline: none; cursor: pointer; }
+.ch-circle.primary { background: rgba(255, 255, 255, .95); color: #0e1513; }
+.ch-circle:focus { background: #f2f0ed; color: #121212; box-shadow: 0 0 0 3px #fff; }
+.ch-circle.s40 { width: 72px; height: 72px; }
+.ch-circle.s44 { width: 79px; height: 79px; }
+.ch-circle.s64 { width: 115px; height: 115px; }
+
+/* The clock (PlayerClock.kt): radius 10 dp, black .38, 1 dp white .10 rim, padding 14 × 8 dp. */
+.ch-clock { flex: none; display: flex; align-items: stretch; margin: 0 36px; padding: 14px 25px; border-radius: 18px; background: rgba(0, 0, 0, .38); box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .1); color: #fff; }
+.ch-clock-col { display: flex; flex-direction: column; align-items: center; }
+.ch-clock-col + .ch-clock-col { margin-left: 25px; padding-left: 25px; border-left: 2px solid rgba(255, 255, 255, .18); }
+.ch-clock-label, .ch-clock-date { font-size: 20px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: rgba(255, 255, 255, .45); }
+.ch-clock-time { font-size: 43px; font-weight: 600; line-height: 1.2; font-feature-settings: "tnum"; }
+.ch-clock-col.archive .ch-clock-label, .ch-clock-col.archive .ch-clock-time { color: #f2f0ed; }
+.ch-clock-col.archive .ch-clock-date { color: rgba(242, 240, 237, .7); }
+
+/* The guide card at the right (LiveEpgCard.kt): the archive variant on a faint accent plate, the live one under it. */
+.ch-epg { display: flex; flex-direction: column; align-items: flex-end; }
+.ch-epg-card { max-width: 540px; padding: 11px 18px; border-radius: 14px; text-align: right; }
+.ch-epg-card.archive { background: rgba(242, 240, 237, .09); box-shadow: inset 0 0 0 2px rgba(242, 240, 237, .45); }
+.ch-epg-card.dim { margin-top: 13px; opacity: .55; }
+.ch-epg-label { font-size: 20px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #f2f0ed; }
+.ch-epg-title { font-size: 25px; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ch-epg-time { font-size: 20px; font-weight: 500; color: rgba(255, 255, 255, .5); }
+
+/* Transport capsule: radius 44 dp, black .55, 1 dp white .10 rim, padding 10 × 8 dp, 10 dp between buttons. */
+.ch-transport { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; }
+.ch-capsule { display: flex; align-items: center; padding: 14px 18px; border-radius: 79px; background: rgba(0, 0, 0, .55); box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .1); }
+.ch-capsule > * + * { margin-left: 18px; }
+.ch-behind { margin-bottom: 22px; font-size: 25px; font-weight: 600; color: #f2f0ed; }
+
+/* The dock: padding 28 dp × 20 dp (50 × 36). Band A the seek bar with its time caps, band B the two tool clusters. */
+.ch-dock { position: absolute; left: 50px; right: 50px; bottom: 36px; padding: 7px 11px; }
+.ch-band-a { display: flex; align-items: center; margin-bottom: 18px; }
+.ch-cap { flex: none; width: 115px; font-size: 22px; font-weight: 700; color: #fff; font-feature-settings: "tnum"; }
+.ch-cap.end { text-align: right; }
+.ch-seek { position: relative; flex: 1 1 0%; height: 43px; margin: 0 22px; padding: 0; border: 0; background: none; outline: none; cursor: pointer; }
+.ch-seek-track { position: absolute; left: 0; right: 0; top: 18px; height: 7px; border-radius: 4px; background: rgba(255, 255, 255, .22); }
+.ch-seek-track i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 4px; background: #f2f0ed; }
+.ch-seek:focus .ch-seek-track { top: 16px; height: 11px; border-radius: 6px; background: rgba(255, 255, 255, .4); }
+.ch-head { position: absolute; top: 21px; width: 47px; height: 47px; margin: -23px 0 0 -23px; border-radius: 50%; background: rgba(242, 240, 237, .22); display: none; }
+.ch-head i { position: absolute; left: 11px; top: 11px; width: 25px; height: 25px; border-radius: 50%; background: #f2f0ed; }
+.ch-seek:focus .ch-head { display: block; }
+.ch-bubble { position: absolute; bottom: 58px; padding: 5px 14px; border-radius: 14px; background: rgba(0, 0, 0, .9); color: #fff; font-size: 22px; font-weight: 700; white-space: nowrap; display: none; }
+.ch-seek:focus .ch-bubble { display: block; }
+.ch-badge { flex: none; display: flex; align-items: center; padding: 5px 16px; border-radius: 13px; background: rgba(220, 50, 50, .85); color: #fff; font-size: 20px; font-weight: 700; }
+.ch-badge.behind { background: rgba(232, 163, 61, .85); }
+.ch-band-b { display: flex; align-items: center; }
+.ch-cluster { display: flex; align-items: center; }
+.ch-cluster > * + * { margin-left: 7px; }
+.ch-spacer { flex: 1 1 0%; }
+/* ToolTile: 104 dp (187) wide, min 74 dp (133), radius 14 dp; glyph 26 dp (47) in a 28 dp box; caption 19. */
+.ch-tool { width: 187px; min-height: 133px; padding: 14px 11px; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 0; border-radius: 25px; background: none; color: rgba(255, 255, 255, .8); font-family: inherit; outline: none; cursor: pointer; }
+.ch-tool-glyph { height: 50px; display: flex; align-items: center; justify-content: center; }
+.ch-tool-label { max-width: 100%; margin-top: 11px; font-size: 19px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ch-tool.active { color: #f2f0ed; }
+.ch-tool:focus { background: rgba(242, 240, 237, .14); box-shadow: inset 0 0 0 3px #f2f0ed; color: #fff; }
+.ch-tool:focus .ch-tool-label { font-weight: 700; }
+/* Go live (GoLivePill): 108 dp wide, min 44 dp, red .85, 25/600. */
+.ch-golive { flex: none; width: 194px; min-height: 79px; display: flex; align-items: center; justify-content: center; border: 0; border-radius: 22px; background: rgba(220, 50, 50, .85); color: #fff; font-family: inherit; font-size: 25px; font-weight: 600; outline: none; cursor: pointer; }
+.ch-golive i { width: 16px; height: 16px; margin-right: 9px; border-radius: 50%; background: #fff; }
+.ch-golive:focus { background: #fff; color: #121212; }
+.ch-golive:focus i { background: #dc3232; }
+
+/* Next episode (NextEpisodeCard): bottom-end 28 dp / 120 dp, max 360 dp, radius 16 dp, padding 18 × 14 dp. */
+.ch-next { position: absolute; right: 50px; bottom: 216px; z-index: 6; max-width: 648px; padding: 25px 32px; border-radius: 29px; background: rgba(0, 0, 0, .55); color: #fff; }
+.ch-next-title { font-size: 25px; font-weight: 600; }
+.ch-next-sub { margin-top: 7px; font-size: 25px; font-weight: 500; color: rgba(255, 255, 255, .7); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ch-next-actions { display: flex; margin-top: 22px; }
+.ch-next-actions > * + * { margin-left: 18px; }
+
+/* ---------- The panels over the picture (TvBoxChannelPanel.kt, TvBoxPlayerPanels.kt) ---------- */
+
+.tp { position: absolute; left: 0; top: 0; right: 0; bottom: 0; z-index: 10; overflow: hidden; color: #fff; }
+.tp-in { position: absolute; left: 0; top: 0; right: 0; bottom: 0; animation: tp-enter 260ms cubic-bezier(.4, 0, .2, 1) both; }
+.tp-in.from-right { animation-name: tp-enter-right; }
+.tp.out .tp-in { animation: st-fade-out 160ms linear both; }
+/* PanelEnter(±48 dp = 86) + slideInFromLeft (a quarter of the panel's width), as one motion. */
+@keyframes tp-enter { from { opacity: 0; transform: translateX(-160px); } to { opacity: 1; transform: none; } }
+@keyframes tp-enter-right { from { opacity: 0; transform: translateX(86px); } to { opacity: 1; transform: none; } }
+/* The side menu's push (84, 300 ms) moves the whole group. */
+.tp-group { position: absolute; left: 0; top: 0; right: 0; bottom: 0; transition: transform 300ms cubic-bezier(.4, 0, .2, 1); }
+.tp-group.menu { transform: translateX(84px); }
+/* Dark glass over everything but the picture's corner: a clear box at the dock rect whose spread shadow is the fill. */
+.tp-hole { position: absolute; left: 680px; top: 36px; border-radius: 14px; box-shadow: 0 0 0 3000px rgba(35, 38, 41, .95); }
+.tp-shift { transition: transform 220ms cubic-bezier(.4, 0, .2, 1); }
+.tp-spin { position: absolute; left: 680px; top: 36px; display: flex; align-items: center; justify-content: center; pointer-events: none; }
+.tp-spin .spinner { position: relative; left: auto; top: auto; width: 79px; height: 79px; margin: 0; opacity: 1; }
+.tp-spin .spinner .ticks rect { fill: rgba(255, 255, 255, .9); }
+
+/* The channel column: 640 wide, 36 from the top, title 24/700 at 28 in. */
+.tp-list { position: absolute; left: 0; top: 0; bottom: 0; width: 640px; padding-top: 36px; box-sizing: border-box; }
+.tp-title { padding: 0 28px; font-size: 24px; font-weight: 700; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tp-rows { margin-top: 14px; padding: 0 12px; }
+.tp-rows .vlist { overflow: hidden; }
+/* A row: 92 high (4 between), padding 16, logo 72×52, focus the dark bar #3A3F45 with white text. */
+.tp-row { display: flex; align-items: center; width: 100%; height: 92px; padding: 0 16px; box-sizing: border-box; border: 0; border-radius: 4px; background: none; color: #fff; font-family: inherit; text-align: left; outline: none; cursor: pointer; }
+.tp-row:focus { background: #3a3f45; }
+.tp-row-logo { flex: none; width: 72px; height: 52px; display: flex; align-items: center; justify-content: center; }
+.tp-row-logo .logo { width: 100%; height: 100%; object-fit: contain; border-radius: 0; background: none; font-size: 18px; }
+.tp-row-text { flex: 1 1 0%; min-width: 0; margin-left: 16px; }
+.tp-row-name { display: flex; font-size: 20px; font-weight: 700; line-height: 1.3; white-space: nowrap; }
+.tp-row-name .n { flex: none; margin-right: 10px; color: rgba(255, 255, 255, .55); }
+.tp-row:focus .tp-row-name .n { color: rgba(255, 255, 255, .62); }
+.tp-row-name .t { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.tp-row.playing .tp-row-name .t { color: #0086fc; }
+.tp-row-prog { margin-top: 5px; font-size: 16px; font-weight: 500; line-height: 1.3; color: rgba(255, 255, 255, .55); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tp-row:focus .tp-row-prog { color: rgba(255, 255, 255, .62); }
+.tp-row-bar { position: relative; height: 4px; margin-top: 5px; border-radius: 2px; background: rgba(255, 255, 255, .16); overflow: hidden; }
+.tp-row-bar i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 2px; background: #fff; }
+.tp-row-end { flex: none; margin-left: 16px; display: flex; align-items: center; color: #0086fc; font-size: 15px; font-weight: 500; }
+.tp-row-end.time { color: rgba(255, 255, 255, .55); }
+/* The 3-2-1 ring: 32, a 2.5 px blue arc over a .2 track, the digit 15/800. */
+.tp-ring { position: relative; width: 32px; height: 32px; }
+.tp-ring svg { position: absolute; left: 0; top: 0; width: 32px; height: 32px; transform: rotate(-90deg); }
+.tp-ring b { position: absolute; left: 0; top: 0; width: 32px; line-height: 32px; text-align: center; font-size: 15px; font-weight: 800; color: #0086fc; }
+
+/* Under the picture: the focused channel (logo 68×48, number and name 24/700) and its day, rows 50 high. */
+.tp-under { position: absolute; left: 680px; }
+.tp-head { display: flex; align-items: center; font-size: 24px; font-weight: 700; white-space: nowrap; }
+.tp-head .tp-row-logo { width: 68px; height: 48px; }
+.tp-head .n { margin-left: 16px; color: rgba(255, 255, 255, .8); }
+.tp-head .t { min-width: 0; margin-left: 16px; overflow: hidden; text-overflow: ellipsis; }
+.tp-day { margin-top: 14px; }
+.tp-none { margin-top: 22px; font-size: 21px; font-weight: 500; color: rgba(255, 255, 255, .55); }
+.tp-p { display: flex; align-items: center; height: 50px; font-size: 21px; white-space: nowrap; }
+.tp-p > * + * { margin-left: 20px; }
+.tp-p-time { flex: none; font-weight: 600; color: rgba(255, 255, 255, .8); font-feature-settings: "tnum"; }
+.tp-p-title { flex: 1 1 0%; min-width: 0; font-weight: 500; overflow: hidden; text-overflow: ellipsis; }
+.tp-p.past .tp-p-time, .tp-p.past .tp-p-title { color: rgba(255, 255, 255, .55); }
+.tp-p.on .tp-p-time, .tp-p.on .tp-p-title { color: #0086fc; }
+.tp-p.on .tp-p-title { font-weight: 700; }
+.tp-p-bar { flex: none; position: relative; width: 240px; height: 6px; border-radius: 3px; background: rgba(255, 255, 255, .22); overflow: hidden; }
+.tp-p-bar i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 3px; background: #fff; }
+.tp-p-left { flex: none; font-size: 19px; font-weight: 600; color: rgba(255, 255, 255, .8); }
+
+/* The categories column: 440 at the left edge, #232629, a hairline on its right, padding 16 × 30, title 26/800. */
+.tp-cats { position: absolute; left: 0; top: 0; bottom: 0; width: 440px; padding: 30px 16px 0; box-sizing: border-box; background: #232629; box-shadow: inset -1px 0 0 rgba(0, 0, 0, .08);
+  animation: tp-cats-in 240ms cubic-bezier(.4, 0, .2, 1) both; }
+@keyframes tp-cats-in { from { opacity: 0; transform: translateX(-110px); } to { opacity: 1; transform: none; } }
+.tp-cats-title { padding: 0 14px 16px; font-size: 26px; font-weight: 800; line-height: 1.3; }
+.tp-cats .st-sheet-item { border-radius: 16px; font-family: inherit; color: var(--st-item, #d7dade); font-size: 20px; font-weight: 600; text-align: left; border: 0; cursor: pointer; }
+.tp-cats .st-sheet-item .tp-ring { margin-left: 14px; }
+
+/* The side menu over the picture (StageRail.kt, TV-box strip): 84 wide, #232629, 58 items with 32 icons, 6 apart. */
+.tp-rail { position: absolute; left: 0; top: 0; bottom: 0; width: 84px; z-index: 2; padding: 48px 0; box-sizing: border-box; background: #232629; box-shadow: inset -1px 0 0 rgba(255, 255, 255, .1);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; animation: tp-rail-in 300ms cubic-bezier(.4, 0, .2, 1) both; }
+@keyframes tp-rail-in { from { transform: translateX(-84px); } to { transform: none; } }
+.tp-rail > * + * { margin-top: 6px; }
+.tp-rail-item { width: 58px; height: 58px; padding: 0; border: 0; border-radius: 4px; background: none; color: #a9adb2; display: flex; align-items: center; justify-content: center; outline: none; cursor: pointer; }
+.tp-rail-item.sel { background: rgba(241, 242, 243, .06); color: #f1f2f3; }
+.tp-rail-item:focus { background: #e0e2e4; color: #121212; }
+
+/* ---------- Multiview (MultiviewScreen.kt): 6 dp gaps, tiles radius 10 dp, the focused one ringed 3 dp in the accent ---------- */
+
+.multiview.mv { padding: 11px; gap: 0; background: #000; }
+.multiview.mv > .mv-row + .mv-row { margin-top: 11px; }
+.multiview.mv .mv-row { gap: 0; }
+.multiview.mv .mv-row > * + * { margin-left: 11px; }
+.multiview.mv .mv-tile { border: 2px solid rgba(255, 255, 255, .08); border-radius: 18px; background: rgba(255, 255, 255, .04); }
+.multiview.mv .mv-tile:focus, .multiview.mv .mv-tile.on:focus { border: 5px solid #f2f0ed; }
+.multiview.mv .mv-video { left: 0; top: 0; }
+.multiview.mv .mv-empty, .multiview.mv .mv-note { gap: 0; padding: 0 43px; font-size: 25px; font-weight: 400; color: #a9adb2; background: none; }
+.multiview.mv .mv-empty { font-weight: 500; }
+.multiview.mv .mv-empty svg { margin-bottom: 14px; }
+.multiview.mv .mv-caption { left: 18px; bottom: 18px; gap: 0; padding: 9px 18px; border-radius: 14px; background: rgba(0, 0, 0, .55); font-size: 25px; font-weight: 600; }
+.multiview.mv .mv-caption > * + * { margin-left: 11px; }
+.multiview.mv .mv-caption svg { color: #f2f0ed; }
+.multiview.mv .mv-spin { left: 50%; top: 50%; width: 79px; height: 79px; margin: -40px 0 0 -40px; }
+
+/* The first picture comes out of black: 250 ms after it plays, over 320 ms (OwnTVShell.kt:1900-1925). */
+.pv-cover { position: absolute; left: 0; top: 0; right: 0; bottom: 0; z-index: 1; background: #000; pointer-events: none; }
+.pv-cover.off { opacity: 0; transition: opacity 320ms cubic-bezier(.4, 0, .2, 1) 250ms; }
+.ch-chips > span { display: flex; align-items: center; }
+.tp-row-text, .tp-row-prog, .tp-row-bar { display: block; }
+.tp .vrow::after { display: none; }
+.tp .vrow > .tp-row { height: 92px; }
+
+/* The player is a layer of its own (z-index), so a dialog of the app over the playing picture (a reminder, a programme
+   to come) covers the HUD too, with no dimming layer over the video. Edges spelled out: no `inset` on Chromium 63. */
+.player { left: 0; top: 0; right: 0; bottom: 0; z-index: 0; }
+.player ~ .scrim:not(.sheet-scrim) { background: none; left: 0; top: 0; right: 0; bottom: 0; }

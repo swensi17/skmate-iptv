@@ -14,6 +14,8 @@ export interface VirtualListProps<T> {
   autofocus?: boolean;
   /** How many rows PageUp / PageDown / channel +/- jump. */
   pageSize?: number;
+  /** Rows of room kept ahead of the focused row while scrolling (Android's edgeScrollSpec keeps 1). Default 0. */
+  room?: number;
 }
 
 const PAGE_UP = [33, 427]; // PageUp, webOS channel up
@@ -38,14 +40,14 @@ export function VirtualList<T>(p: VirtualListProps<T>) {
     if (item === undefined) { setWanted(null); return; }
     const el = box.current?.querySelector<HTMLElement>(`[data-index="${wanted}"]`);
     if (el) { el.querySelector<HTMLElement>("[data-focus]")?.focus(); setWanted(null); if (heading.current === wanted) heading.current = null; }
-    else setTop((t) => revealTop(t, wanted, p.rowHeight, p.height, p.items.length));
+    else setTop((t) => revealTop(t, wanted, p.rowHeight, p.height, p.items.length, p.room));
   }, [wanted, win.first, win.last, p.items]);
 
   const onFocusIn = (e: FocusEvent) => {
     const row = (e.target as HTMLElement).closest<HTMLElement>("[data-index]");
     if (!row) return;
     const index = Number(row.dataset.index);
-    setTop((t) => revealTop(t, index, p.rowHeight, p.height, p.items.length));
+    setTop((t) => revealTop(t, index, p.rowHeight, p.height, p.items.length, p.room));
   };
 
   const onKeyDown = (e: KeyboardEvent) => {

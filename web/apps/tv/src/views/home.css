@@ -1,0 +1,225 @@
+/*
+ * The channels screen ("Ваши каналы"), the side menu and the clock: Android's TV-box look, 1:1 in design px (= mpx) on
+ * the 1728×972 stage. Sources: features/live/LiveScreen.kt (layout), LiveStage.kt (header, row, stage, categories),
+ * features/shell/components/StageRail.kt (menu), StageStatus.kt (clock), ui/stage/* (focus, tools, search).
+ * Horizontal positions are Android's fx() fractions of the screen: fx(n) = 1728·n/1920 (margin fx(28) = 25.2,
+ * preview fx(912) = 820.8, gap fx(34) = 30.6, list 826.2, categories fx(450) = 405, title fx(48) = 43.2).
+ *
+ * Old TVs (Chromium 53-63): margins instead of flex gap; only transform and opacity animate; no blur, no big shadows.
+ */
+
+/* ===== Shell: the page, the menu's push, the clock ===== */
+main.content.home-on { padding: 0; }
+main.content { transition: transform 300ms var(--st-ease); }
+main.content.menu-pushed { transform: translateX(84px); }
+:root[data-motion="off"] main.content { transition: none; }
+
+/* --- The side menu (StageRail.kt, TV-box strip) --- */
+nav.tb-rail {
+  position: absolute; left: 0; top: 0; bottom: 0; z-index: 6; width: 84px;
+  display: flex; flex-direction: column; align-items: center; padding: 48px 0;
+  background: var(--st-page); box-shadow: inset -1px 0 0 rgba(var(--st-ink-rgb), 0.10);
+  transform: translateX(-84px); opacity: 0;
+  transition: transform 300ms var(--st-ease), opacity 300ms var(--st-ease);
+  will-change: transform;
+}
+:root[data-theme="light"] nav.tb-rail { background: #eff2f5; }
+nav.tb-rail.open { transform: none; opacity: 1; }
+:root[data-motion="off"] nav.tb-rail { transition: none; }
+.tb-rail-logo { flex: none; height: 30px; width: auto; cursor: pointer; }
+.tb-rail-mid { flex: 1 1 0%; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 6px 0; }
+.tb-rail-mid > * + * { margin-top: 6px; }
+button.tb-rail-item { width: 58px; height: 58px; padding: 0; display: flex; align-items: center; justify-content: center; flex: none;
+  border-radius: var(--st-r-focus); background: none; color: var(--st-muted); }
+button.tb-rail-item.active { background: rgba(241, 242, 243, 0.06); color: var(--st-text); }
+:root[data-theme="light"] button.tb-rail-item.active { background: rgba(18, 18, 18, 0.06); }
+button.tb-rail-item:focus { background: var(--st-focus-fill); color: #121212; }
+/* The profile: 46, the initial on the orange gradient; focus = the poster ring and a 1.08 lift (StageFocus.POSTER). */
+button.tb-rail-avatar { flex: none; width: 46px; height: 46px; margin-top: 4px; padding: 0; border: 0; border-radius: 50%; outline: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, #ffb35c, #ff5f7a); color: #2a0d12; font: 800 20px var(--st-font);
+  transition: transform var(--st-lift-ms) var(--st-ease); transform-origin: 50% 40%; }
+button.tb-rail-avatar:focus { transform: scale(1.08); box-shadow: 0 0 0 3px var(--st-page), 0 0 0 6px var(--st-accent); }
+
+/* --- The clock, date and weather (StageStatus.kt StageClock, TV-box): 64 from the right, 34 from the top --- */
+.home-status { position: absolute; top: 34px; right: 64px; z-index: 5; display: flex; align-items: center; pointer-events: none;
+  color: var(--st-text); font-family: var(--st-font); text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6); }
+:root[data-theme="light"] .home-status { text-shadow: none; }
+.home-status-icon { flex: none; width: 42px; height: 42px; margin-right: 12px; }
+.home-status-lines { display: flex; flex-direction: column; align-items: flex-start; }
+.home-status-sub { font-size: 19px; font-weight: 600; color: var(--st-muted); white-space: pre; line-height: normal; }
+.home-status-time { margin-left: 18px; font-size: 40px; font-weight: 700; letter-spacing: -0.5px; line-height: 40px;
+  font-variant-numeric: tabular-nums; white-space: pre; }
+.home-status-sub > span, .home-status-time > span { display: inline-block; }
+/* RollingText: a changed character slides up into place and fades in, 420 ms. */
+.home-status .roll { animation: home-roll 420ms var(--st-ease) both; }
+@keyframes home-roll { from { transform: translateY(70%); opacity: 0; } to { transform: none; opacity: 1; } }
+.toast.home-exit-toast { font-size: 22px; }
+
+/* ===== The channels screen ===== */
+.screen.home { position: relative; height: 100%; overflow: hidden; animation: none; color: var(--st-text); font-family: var(--st-font); }
+.home-side { position: absolute; left: 0; top: 0; right: 0; bottom: 0; transition: transform 280ms var(--st-ease); }
+.home-side.pushed { transform: translateX(405px); }
+:root[data-motion="off"] .home-side { transition: none; }
+
+/* "Ваши каналы" 46/800, level with the clock (LiveStage.kt LiveHeader, LiveScreen.kt: x fx(48), top 28). */
+.home-title { position: absolute; left: 43.2px; top: 28px; width: 808.2px; margin: 0; font-size: 46px; font-weight: 800; letter-spacing: -1px;
+  line-height: normal; color: var(--st-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* The list column: the toolbar at 118, the rows from 186 to the bottom. */
+.home-list { position: absolute; left: 25.2px; top: 118px; width: 826.2px; bottom: 0; }
+.home-tools { display: flex; align-items: center; height: 48px; padding: 0 4px; }
+.home-tools > * + * { margin-left: 8px; }
+.home-tools .search-entry { flex: 1 1 0%; min-width: 0; }
+.home-tools .search-entry > * + * { margin-left: 8px; }
+/* StageSearchField (TV-box): a 48-high grey slab, 4 corners; chosen = white with a faint shadow (LocalWhiteFocus). */
+.home .search-box { flex: 1 1 0%; width: auto; min-width: 0; height: 48px; padding: 0 18px; border-radius: 4px;
+  background: var(--st-control-solid); color: var(--st-dim); font: 400 18px var(--st-font); transition: none; }
+.home .search-box svg { width: 20px; height: 20px; margin-right: 12px; color: var(--st-dim); }
+.home .search-box .search-q { font-weight: 500; color: var(--st-text); }
+.home .search-box:focus { background: #ffffff; color: rgba(18, 18, 18, 0.6); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2); }
+.home .search-box:focus svg, .home .search-box:focus .search-q { color: #121212; }
+.home .search-entry .search-reset { height: 48px; margin-left: 8px; padding: 0 16px; border-radius: 4px; background: var(--st-control-solid);
+  color: var(--st-muted); font: 700 18px var(--st-font); }
+.home .search-entry .search-reset:focus { background: var(--st-focus-fill); color: #121212; }
+/* StageTool boxed: 48 high, 16 in, 20 icon, 18/700; the icon and text muted, the value (the sort) in text colour. */
+button.home-tool { height: 48px; padding: 0 16px; font-family: var(--st-font); }
+button.home-tool > .st-icon { flex: none; }
+button.home-tool > .st-icon + span { margin-left: 9px; }
+button.home-tool:focus { background-color: var(--st-focus-fill); background-image: linear-gradient(rgba(18, 18, 18, 0.09), rgba(18, 18, 18, 0.09)); color: #121212; }
+button.home-tool:focus .st-tool-value { color: #121212; }
+
+.home-rows { position: absolute; left: 0; right: 0; top: 68px; bottom: 0; animation: home-rise 240ms var(--st-ease) both; }
+/* A category's rows rise softly into place (LiveScreen.kt ListFadeMs 240, ListRisePx 14 dp). */
+@keyframes home-rise { from { opacity: 0; transform: translateY(25px); } to { opacity: 1; transform: none; } }
+
+/* --- The channel row (LiveStage.kt LiveStageRow, TV-box): 92 high, 20 in, 18 between the parts --- */
+button.lrow { position: relative; display: flex; align-items: center; width: 100%; height: 92px; padding: 0 20px; border: 0;
+  background: none; color: var(--st-text); font-family: var(--st-font); text-align: left; cursor: pointer; }
+.lrow > * { flex: none; }
+.lrow-num { width: 50px; margin-right: 18px; font-size: 20px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--st-dim);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lrow:focus .lrow-num { color: var(--st-fx-line); }
+.lrow > .logo-tile { width: 76px; height: 54px; margin-right: 18px; }
+.lrow-text { flex: 1 1 0%; min-width: 0; display: flex; flex-direction: column; }
+.lrow-name, .lrow-prog { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lrow-name { font-size: 23px; font-weight: 700; color: var(--st-text); }
+.lrow-prog { margin-top: 2px; font-size: 18px; font-weight: 400; color: var(--st-muted); }
+.lrow:focus .lrow-prog { color: var(--st-fx-line); }
+.mq-tail { opacity: 0.6; }
+.mq-run { text-overflow: clip; }
+.mq-in { display: inline-block; white-space: nowrap; will-change: transform; }
+.mq-copy { display: inline-block; }
+/* The progress: 4 high, the text's ink on ink 16%. A weak TV draws it only on the focused row (the room is kept). */
+.lrow-bar { display: block; height: 4px; margin-top: 8px; border-radius: 2px; overflow: hidden; }
+.lrow:focus .lrow-bar { background: rgba(var(--st-ink-rgb), 0.16); }
+.lrow-bar > i { display: block; height: 100%; border-radius: 2px; background: rgb(var(--st-ink-rgb)); }
+.lrow-end { display: flex; align-items: center; margin-left: 18px; }
+.lrow-end > * + * { margin-left: 8px; }
+.lrow-playing { display: flex; padding-left: 6px; color: var(--st-blue); }
+.lrow-fav { display: flex; color: var(--st-accent); }
+
+/* The logo plate (LivePlate): the logo as it is, contained; a grey plate with the TV glyph when there is none. */
+.logo-tile { position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; border-radius: var(--st-r-plate); }
+.logo-tile > img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.logo-tile.loading { background: rgba(241, 242, 243, 0.06); }
+.logo-tile.none { background: rgba(var(--st-ink-rgb), 0.06); color: var(--st-dim); }
+.logo-tile.none > svg { width: 78%; height: 78%; }
+
+/* --- Empty and loading list --- */
+.home-empty { position: absolute; left: 0; top: 0; right: 0; bottom: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  color: var(--st-dim); }
+.home-empty-text { margin-top: 14px; padding: 0 40px; font-size: 22px; font-weight: 600; color: var(--st-muted); text-align: center; }
+.home-skel-row { display: flex; align-items: center; height: 84px; padding: 0 20px; }
+.home-skel-row > * + * { margin-left: 18px; }
+.home-skel i { display: block; background: rgba(241, 242, 243, 0.075); }
+:root[data-theme="light"] .home-skel i, :root[data-theme="light"] .hp-skel i { background: rgba(18, 18, 18, 0.075); }
+
+/* --- The stage (LiveStage.kt LiveStagePane): x 882, top 120, 820.8 wide --- */
+.hp-pane { position: absolute; left: 882px; top: 120px; width: 820.8px; }
+.hp-card { position: relative; width: 100%; height: 461.7px; border-radius: 28px; overflow: hidden; background: #000;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35); }
+:root[data-theme="light"] .hp-card { box-shadow: 0 16px 40px rgba(0, 0, 0, 0.08); }
+.hp-card.empty { background: #1e2125; }
+:root[data-theme="light"] .hp-card.empty { background: #edeef0; }
+.hp-ring { position: absolute; left: 0; top: 0; right: 0; bottom: 0; border-radius: 28px; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08); pointer-events: none; }
+.hp-logo { position: absolute; left: 50%; top: 50%; width: 288px; height: 288px; margin: -144px 0 0 -144px; }
+.hp-logo > .logo-tile { width: 100%; height: 100%; border-radius: 0; }
+.hp-logo > .logo-tile.none, .hp-logo > .logo-tile.loading { background: none; }
+.hp-logo > .logo-tile.none > svg { width: 84px; height: 84px; }
+.hp-card video.hp-video { position: absolute; left: 0; top: 0; width: 100%; height: 100%; opacity: 0; transition: opacity 260ms var(--st-ease); }
+.hp-card video.hp-video.on { opacity: 1; }
+.hp-skeleton { position: absolute; left: 0; top: 0; right: 0; bottom: 0; background: #1a1c1f; transition: opacity 260ms var(--st-ease); }
+.hp-skeleton.gone { opacity: 0; }
+.hp-card .spinner.hp-spin { width: 65px; height: 65px; margin: -32.5px 0 0 -32.5px; opacity: 0.85; }
+.hp-shade { position: absolute; left: 0; top: 0; right: 0; bottom: 0; background: linear-gradient(to bottom, rgba(0, 0, 0, 0) 58%, rgba(0, 0, 0, 0.72) 100%); }
+.hp-facts { position: absolute; left: 20px; top: 18px; display: flex; }
+.hp-fact { padding: 3px 8px; border: 1px solid rgba(255, 255, 255, 0.7); border-radius: 5px; background: rgba(0, 0, 0, 0.18);
+  font-size: 14px; font-weight: 700; line-height: normal; color: rgba(255, 255, 255, 0.92); text-transform: uppercase; white-space: nowrap; }
+.hp-chan { position: absolute; left: 26px; bottom: 22px; right: 26px; display: flex; align-items: center; }
+.hp-chan > .logo-tile { flex: none; width: 64px; height: 46px; margin-right: 14px; }
+.hp-chan-text { min-width: 0; }
+.hp-chan-num { font-size: 15px; font-weight: 600; color: #cfd8d4; line-height: normal; }
+.hp-chan-name { font-size: 22px; font-weight: 700; color: #ffffff; line-height: normal; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hp-pick { position: absolute; left: 0; top: 0; right: 0; bottom: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--st-dim); }
+.hp-pick-text { margin-top: 12px; font-size: 19px; font-weight: 600; color: var(--st-muted); }
+
+.hp-info { padding: 34px 4px 0; }
+.hp-title { font-size: 42px; font-weight: 800; letter-spacing: -0.5px; line-height: normal; color: var(--st-text);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.hp-details { padding: 8px 0 16px; font-size: 19px; color: var(--st-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hp-progress { display: flex; align-items: center; }
+.hp-progress > .st-progress { flex: 1 1 0%; }
+.hp-left { flex: none; margin-left: 16px; font-size: 17px; color: var(--st-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.hp-desc { padding-top: 18px; font-size: 19px; line-height: 1.55; color: #ccd6d2;
+  display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+:root[data-theme="light"] .hp-desc { color: var(--st-body); }
+/* Next and later: one line each, 20 px; next with the accent time and full-colour title, the rest muted. Max 240 high. */
+.hp-sched { margin: 18px 12px 0 -12px; max-height: 240px; overflow: hidden; }
+.hp-sched > * + * { margin-top: 2px; }
+button.hp-sched-item { display: block; width: 100%; padding: 6px 12px; border: 0; background: none; font: 400 20px var(--st-font);
+  color: var(--st-muted); text-align: left; white-space: pre; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
+button.hp-sched-item > b { font-weight: 700; font-variant-numeric: tabular-nums; }
+button.hp-sched-item.next { color: var(--st-text); }
+button.hp-sched-item.next > b { color: var(--st-accent); }
+button.hp-sched-item:focus, button.hp-sched-item:focus > b { color: #121212; }
+.hp-skel > * + * { margin-top: 14px; }
+.hp-skel i { display: block; background: rgba(241, 242, 243, 0.08); }
+.hp-skel.none i { background: rgba(241, 242, 243, 0.06); }
+.hp-noguide { font-size: 22px; font-weight: 700; color: var(--st-muted); }
+
+/* --- The categories (LiveStage.kt LiveCategories, sheet, TV-box): 405 wide, full height, the page's grey --- */
+.home-cats { position: absolute; left: 0; top: 0; bottom: 0; z-index: 3; width: 405px; display: flex; flex-direction: column; padding: 30px 16px;
+  background: var(--st-page); box-shadow: inset -1px 0 0 rgba(0, 0, 0, 0.08); will-change: transform;
+  animation: home-cats-in 280ms var(--st-ease) both; }
+:root[data-theme="light"] .home-cats { background: #eff2f5; }
+.home-cats.out { animation: home-cats-out 240ms var(--st-ease) both; }
+@keyframes home-cats-in { from { transform: translateX(-100%); } to { transform: none; } }
+@keyframes home-cats-out { from { transform: none; } to { transform: translateX(-100%); } }
+.home-cats-title { flex: none; padding: 0 14px 16px; font-size: 26px; font-weight: 800; color: var(--st-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.home-cats-list { flex: 1 1 0%; min-height: 0; padding: 4px 4px 8px; overflow-x: hidden; overflow-y: auto; scrollbar-width: none; }
+.home-cats-list::-webkit-scrollbar { display: none; }
+.home-cats-search { padding: 0 8px 14px; }
+.home-cats-search .search-entry { width: 100%; }
+.home-cats-search .search-box { height: 54px; padding: 0 16px; }
+.home-cats-head { padding: 14px 16px 6px; font-size: 13px; font-weight: 800; letter-spacing: 0.12em; color: var(--st-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+button.home-cat { position: relative; display: flex; align-items: center; width: 100%; min-height: 56px; padding: 8px 16px; border: 0; background: none;
+  font: 600 20px var(--st-font); color: var(--st-item); text-align: left; cursor: pointer; }
+button.home-cat::after { content: ""; position: absolute; left: 16px; right: 16px; bottom: 0; height: 1px; background: rgba(0, 0, 0, 0.07); pointer-events: none; }
+button.home-cat > .st-icon { flex: none; margin-right: 14px; color: var(--st-muted); }
+.home-cat-name { flex: 1 1 0%; min-width: 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; word-break: break-word; }
+.home-cat-count { flex: none; margin-left: 14px; font-size: 16px; font-weight: 600; color: var(--st-dim); }
+button.home-cat.sel:not(:focus), button.home-cat.sel:not(:focus) > .st-icon { color: var(--st-accent); }
+button.home-cat:focus, button.home-cat:focus > .st-icon, button.home-cat:focus .home-cat-count { color: #121212; }
+/* The 3-2-1 before a category opens by itself (CountdownRing.kt): 30, a blue arc filling clockwise over 3 s. */
+.home-countdown { position: relative; flex: none; width: 30px; height: 30px; margin-left: 14px; }
+.home-countdown > svg { display: block; }
+.home-countdown-arc { stroke-dasharray: 86.4; stroke-dashoffset: 86.4; animation: home-countdown 3000ms linear forwards; }
+@keyframes home-countdown { to { stroke-dashoffset: 0; } }
+.home-countdown > b { position: absolute; left: 0; top: 0; width: 30px; line-height: 30px; text-align: center; font-size: 15px; font-weight: 800; color: #0086fc; }
+
+/* The toolbar menus (GuideMenuHost): the shared StageMenu card, centred. */
+.home-menu .st-menu-item > .st-icon { flex: none; width: 28px; height: 28px; margin-right: 14px; color: var(--st-muted); }
+.home-menu .st-menu-item:focus > .st-icon { color: #121212; }
+/* No hairline between the rows: Android leaves it out on a weak TV (DevicePerf.lite), as the reference screenshots show. */
+.home-rows .vrow::after { display: none; }

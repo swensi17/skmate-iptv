@@ -4,13 +4,23 @@ import {
   addTile, BACKGROUND_TILE_HEIGHT, canAddTile, clear, connectionBudget, fill, focus as focusTile, giveSound, groupsOf, LONG_PRESS_MS, rowsOf,
   silenceFailed, type Channel, type Grid, type Refusal,
 } from "@skmate/core";
-import { focusFirst, Icon, isBack, VirtualList } from "@skmate/ui";
+import { focusFirst, Icon, isBack, Menu, MenuItem, VirtualList, type IconName } from "@skmate/ui";
 import { t } from "../i18n";
 import { channelKey } from "../state/favorites";
 import type { Settings } from "../state/settings";
 import { UiContext } from "../state/UiContext";
 import { usePlayback } from "../state/usePlayback";
+import { detectPlatform } from "../platform";
 import { ChannelRow } from "./ChannelRow";
+import "./player.css";
+
+/**
+ * How many pictures this TV can decode at once. A Samsung Tizen TV gives a web app one hardware decoder (measured on a
+ * Tizen 5 set): a second <video> would leave a black tile, or take the picture from the first. Android says this in the
+ * tile ("This TV can't take another channel", multiview_decoder_exhausted), and so does this grid, without opening
+ * the stream. Elsewhere the count is not known; a tile that cannot start says why after its engines give up.
+ */
+const DECODERS = detectPlatform() === "tizen" ? 1 : Infinity;
 
 const tileId = (i: number) => `mv-${i}`;
 
@@ -21,6 +31,8 @@ interface TileProps {
   focused: boolean;
   soundOnly: boolean;
   refusal: string | null;
+  /** The TV has no decoder left for this tile: it says so and opens nothing. */
+  noDecoder: boolean;
   settings: Settings;
   /** Reports a tile that cannot play, so the sound moves off it. */
   onFailed: (index: number, failed: boolean) => void;
@@ -46,7 +58,7 @@ function Tile(p: TileProps) {
   const timer = useRef<ReturnType<typeof setTimeout>>();
   const retry = useRef<() => void>(() => undefined);
   const [state, setState] = useState<"loading" | "playing" | "failed">("loading");
-  const live = p.channel !== null && p.refusal === null;
+  const live = p.channel !== null && p.refusal === null && !p.noDecoder;
   const failed = live && state === "failed";
   useEffect(() => { p.onFailed(p.index, failed); }, [failed]);
   useEffect(() => { if (!live) setState("loading"); }, [live]);
@@ -65,7 +77,7 @@ function Tile(p: TileProps) {
     clearTimeout(timer.current);
     if (down.current !== null) { down.current = null; p.onOk(p.index); }
   };
-  const message = p.refusal ?? (failed ? t("mvErrorChannel") : p.soundOnly && live ? t("mvSoundOnlyNote") : null);
+  const message = p.refusal ?? (p.noDecoder && p.channel ? t("tbMvDecoder") : null) ?? (failed ? t("mvErrorChannel") : p.soundOnly && live ? t("mvSoundOnlyNote") : null);
   return (
     <button
       class={`mv-tile${p.focused ? " on" : ""}`} data-focus={tileId(p.index)} aria-label={p.channel?.name ?? t("mvAddChannel")}
@@ -77,12 +89,12 @@ function Tile(p: TileProps) {
         <Picture key={p.channel.url} channel={p.channel} audible={p.audible} hidden={p.soundOnly} settings={p.settings}
           onState={(st, r) => { setState(st); retry.current = r; }} />
       ) : null}
-      {p.channel === null ? <span class="mv-empty"><Icon name="plus" size={40} />{t("mvAddChannel")}</span> : null}
+      {p.channel === null ? <span class="mv-empty"><Icon name="plus" size={50} />{t("mvAddChannel")}</span> : null}
       {message ? <span class="mv-note" onClick={failed ? () => retry.current() : undefined}>{message}</span> : null}
       {p.channel ? (
         <span class="mv-caption">
+          {p.audible ? <span aria-label={t("mvAudioTile")}><Icon name="volume_high" size={25} /></span> : null}
           <span class="mv-name">{p.channel.name}</span>
-          {p.audible ? <span aria-label={t("mvAudioTile")}><Icon name="volume_high" size={22} /></span> : null}
         </span>
       ) : null}
       {state === "loading" && live ? <Spinner class="mv-spin on" /> : null}
@@ -197,32 +209,34 @@ export function MultiviewScreen(p: {
   }, [menu, picking]);
 
   const channel = menu !== null ? grid.tiles[menu] ?? null : null;
-  const items: Array<[string, () => void]> = [];
+  const items: Array<[string, IconName, () => void]> = [];
   if (menu !== null) {
-    items.push([t("mvTileChange"), () => { setPicking(menu); setMenu(null); }]);
-    if (canAddTile(grid, p.maxTiles)) items.push([t("mvAddChannel"), () => { const g = addTile(grid, p.maxTiles); setGrid(g); setPicking(g.tiles.length - 1); setMenu(null); }]);
+    items.push([t("mvTileChange"), "live_tv", () => { setPicking(menu); setMenu(null); }]);
+    if (canAddTile(grid, p.maxTiles)) items.push([t("mvAddChannel"), "plus", () => { const g = addTile(grid, p.maxTiles); setGrid(g); setPicking(g.tiles.length - 1); setMenu(null); }]);
     if (channel) {
       const m = menu;
-      items.push([t("mvTileFullscreen"), () => p.onFullscreen(channel)]);
-      items.push([t("mvAudioTile"), () => { setGrid((g) => giveSound(g, m, failed)); setMenu(null); }]);
-      items.push([soundOnly.has(m) ? t("mvShowPicture") : t("mvSoundOnly"), () => {
+      items.push([t("mvTileFullscreen"), "fullscreen", () => p.onFullscreen(channel)]);
+      items.push([t("mvAudioTile"), "volume_high", () => { setGrid((g) => giveSound(g, m, failed)); setMenu(null); }]);
+      items.push([soundOnly.has(m) ? t("mvShowPicture") : t("mvSoundOnly"), "volume_high", () => {
         setSoundOnly((cur) => setIn(cur, m, !cur.has(m)));
         setGrid((g) => giveSound(g, m, failed));
         setMenu(null);
       }]);
-      items.push([t("mvTileRemove"), () => { remove(m); setMenu(null); }]);
+      items.push([t("mvTileRemove"), "close", () => { remove(m); setMenu(null); }]);
     }
-    items.push([t("mvClose"), () => setMenu(null)]);
+    items.push([t("mvClose"), "close", () => setMenu(null)]);
   }
 
+  /** The tile's place among those that would decode a picture, in grid order. */
+  const decoderRank = (i: number) => grid.tiles.slice(0, i).filter((c, j) => c !== null && !refused.has(j)).length;
   return (
-    <div class="multiview">
+    <div class="multiview mv">
       {rowsOf(grid.tiles.length).map((row) => (
         <div class="mv-row" key={row[0]}>
           {row.map((i) => (
             <Tile
               key={i} index={i} channel={grid.tiles[i] ?? null} audible={grid.audible === i} focused={grid.focused === i}
-              soundOnly={soundOnly.has(i)} refusal={refused.get(i) ?? null} settings={p.settings}
+              soundOnly={soundOnly.has(i)} refusal={refused.get(i) ?? null} noDecoder={decoderRank(i) >= DECODERS} settings={p.settings}
               onFailed={onFailed} onOk={onOk} onMenu={(n) => { setGrid((g) => focusTile(g, n)); setMenu(n); }}
             />
           ))}
@@ -230,13 +244,11 @@ export function MultiviewScreen(p: {
         </div>
       ))}
       {menu !== null ? (
-        <div class="scrim" data-modal onClick={() => setMenu(null)}>
-          <div class="dialog mv-menu" role="menu" onClick={(e) => e.stopPropagation()}>
-            {items.map(([label, run], i) => (
-              <button class="row" key={label} role="menuitem" data-focus={i === 0 ? "mv-menu-first" : `mv-menu-${i}`} onClick={run}>{label}</button>
-            ))}
-          </div>
-        </div>
+        <Menu width={560} label={channel?.name ?? t("mvAddChannel")} onClose={() => setMenu(null)}>
+          {items.map(([label, icon, run], i) => (
+            <MenuItem key={label} id={i === 0 ? "mv-menu-first" : `mv-menu-${i}`} icon={icon} text={label} onClick={run} />
+          ))}
+        </Menu>
       ) : null}
       {picking !== null ? (
         <Picker channels={p.catalog} favorites={p.favorites} onClose={() => { const i = picking; setPicking(null); setTimeout(() => focusFirst(document, tileId(i)), 30); }}

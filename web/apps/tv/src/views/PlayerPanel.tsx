@@ -1,212 +1,259 @@
-import { useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "preact/hooks";
+import { useContext, useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { groupsOf, type Channel } from "@skmate/core";
-import type { Programme } from "@skmate/epg";
-import { Drawer, focusFirst, Icon, VirtualList, type IconName } from "@skmate/ui";
+import { focusFirst, Icon, isBack, VirtualList, type IconName } from "@skmate/ui";
 import { t, type Key } from "../i18n";
 import { channelKey } from "../state/favorites";
-import type { Settings } from "../state/settings";
+import { GuideContext } from "../state/GuideContext";
 import { UiContext } from "../state/UiContext";
 import { capitalize } from "../text";
-import { ChannelRow } from "./ChannelRow";
-import { GroupIcon } from "./GroupIcon";
-import { PlayerSettingRows } from "./PlayerRows";
-import { Schedule } from "./Schedule";
-import "./player-wizard.css";
-import { SheetHead } from "./SheetHead";
+import { ChannelLogo } from "./ChannelLogo";
+import { CountdownRing, useDwell, useTick } from "./PlayerChrome";
+import { PanelSchedule } from "./Schedule";
+import { Ticks } from "./Spinner";
+import "./player.css";
 
-/** "menu" is the main menu; the others are the pages it opens, in the same sheet. */
-export type PanelTab = "menu" | "groups" | "channels" | "recent" | "favorites" | "settings";
+/** The two panels over the picture: ◀ the channels of the playing category, ▶ the recently watched. */
+export type PanelTab = "channels" | "history";
+/** Places of the app the side menu over the picture leads to. */
 export type Go = "live" | "guide" | "sport" | "search";
 
-const TITLE: Record<Exclude<PanelTab, "menu">, Key> = {
-  groups: "panelGroups", channels: "panelChannels", recent: "panelRecent", favorites: "favorites", settings: "panelSettings",
-};
+/** Stage geometry (1728×972 mpx) of TvBoxDock (TvBoxChannelPanel.kt:76-87) and the columns beside it. */
+const STAGE_W = 1728;
+const DOCK_LEFT = 680;
+const DOCK_TOP = 36;
+const CATS_W = 440;
+const MENU_W = 84;
+/** A channel row is 92 high with 4 between; the list fills the column under its title (36 + 31 + 14 above, 24 below). */
+const ROW = 96;
+const LIST_H = Math.floor((972 - 36 - 31 - 14 - 24) / ROW) * ROW;
+const CAT_ROW = 56;
+const CATS_H = Math.floor((972 - 30 - 50) / CAT_ROW) * CAT_ROW;
+/** DwellTiming: a channel rests 1.5 s before 3-2-1, a category 7 s. */
+const CHANNEL_QUIET_MS = 1500;
+const CATEGORY_QUIET_MS = 7000;
 
-interface Props {
-  /** The edge it came from: Left brings it from the left, Right from the right. */
-  side: "left" | "right";
-  tab: PanelTab;
-  onTab: (t: PanelTab) => void;
-  closing: boolean;
-  onClose: () => void;
-  /** The list the viewer is stepping through now. */
-  channels: readonly Channel[];
-  catalog: readonly Channel[];
-  index: number;
-  recents: readonly Channel[];
-  favorites: ReadonlySet<string>;
-  onPick: (c: Channel, list: readonly Channel[]) => void;
-  onFav: (c: Channel) => void;
-  settings: Settings;
-  onChangeSettings: (s: Settings) => void;
-  /** Leave the player for a place of the app. */
-  onGo: (to: Go) => void;
-  /** OK on a past programme in the day column (one with a recording). */
-  onArchive: (c: Channel, p: Programme, list: readonly Channel[]) => void;
-  /** OK on a programme still to come in the day column. */
-  onUpcoming: (c: Channel, p: Programme, list: readonly Channel[]) => void;
+export interface DockRect { x: number; y: number; w: number; h: number }
+
+/** The picture's corner while the panel is open: right of the list (and of the categories), 36 from the top. */
+export function dockRect(inset: number, menu: number): DockRect {
+  const w = Math.max(0, STAGE_W - DOCK_LEFT - inset - menu - 36);
+  return { x: DOCK_LEFT + inset + menu, y: DOCK_TOP, w, h: Math.round((w * 9) / 16) };
 }
 
-/**
- * Where the viewer was in the channel panel: the category and the channel under the cursor. Reopening the panel (or coming
- * back from the categories) lands there, until the picture moves to another channel by other means.
- */
-const memory: { group: string | null; channel: string | null; playing: string | null } = { group: null, channel: null, playing: null };
-/** From under the title to the foot of the panel (1080 high), so the list fills it and no gap is left below. */
-const LIST_H = 940;
-/** A category or a menu line: plain text, closer together than a channel. */
-const GROUP_ROW = 64;
-/** The widths of the menu and the categories columns (player-wizard.css draws them the same). */
-const MENU_W = 100;
-const GROUPS_W = 380;
+/** The category the panel was last on: reopening it lands there while the picture still plays from it. */
+const memory: { key: string | null } = { key: null };
 
-/** The deepest layer of the player's menu: home first, then what was watched lately, then the other places of the app. */
-const MENU: Array<[string, IconName, Key, Go | { tab: PanelTab }]> = [
-  ["home", "home", "menuHome", "live"],
-  ["recent", "history", "panelRecent", { tab: "recent" }],
-  ["guide", "epg", "navGuide", "guide"],
+interface CatItem { key: string; label: string; count: number; channels: readonly Channel[] }
+
+/** The side menu over the picture (StageRail.kt, TV-box): Home, Sport, Guide, Search, and the gear. */
+const RAIL: Array<[string, IconName, Key, Go | "home" | "settings"]> = [
+  ["home", "home", "tbNavHome", "home"],
   ["sport", "sports", "navSport", "sport"],
+  ["guide", "epg", "navGuide", "guide"],
   ["search", "search", "navSearch", "search"],
-  ["settings", "settings", "panelSettings", { tab: "settings" }],
+  ["more", "settings", "tbNavMore", "settings"],
 ];
 
-/** The row to start on: where the viewer was, else the channel on the screen (in its own list), else the top. */
-function memoryIndex(list: readonly Channel[], group: string | null, playing: number): number {
-  const at = memory.channel === null ? -1 : list.findIndex((c) => c.id === memory.channel);
-  return at >= 0 ? at : group === null ? playing : 0;
-}
+/**
+ * The TV-box player's panel (TvBoxChannelPanel.kt + TvBoxPlayerPanels.kt): dark glass over everything but the
+ * picture's corner, the channel list on the left, under the picture the focused channel and its day. ◀ in the
+ * channels opens the categories beside them (◀ again the side menu); ▶ walks back. OK watches; resting on a row
+ * plays it in the corner after 3-2-1 (the live preview setting); Back closes, back to the channel that was on.
+ * [onDock] tells the player where the picture goes, so it is laid out there once (never animated: a TV's hardware
+ * video plane does not follow a transform).
+ */
+export function PlayerPanel(p: {
+  kind: PanelTab;
+  closing: boolean;
+  /** The list the player steps through now, the playing channel in it. */
+  channels: readonly Channel[];
+  catalog: readonly Channel[];
+  playing: Channel;
+  recents: readonly Channel[];
+  favorites: ReadonlySet<string>;
+  /** "Live preview": a channel the focus rests on plays in the corner. */
+  preview: boolean;
+  /** The picture is opening a channel: a spinner in its window. */
+  loading: boolean;
+  /** OK on a channel: it plays and the panel closes. */
+  onPick: (c: Channel, list: readonly Channel[]) => void;
+  /** The 3-2-1 on a row ran out: it plays in the corner, the panel stays. */
+  onPreview: (c: Channel, list: readonly Channel[]) => void;
+  /** Back: the panel closes. */
+  onDismiss: () => void;
+  onGo: (to: Go) => void;
+  onSettings: () => void;
+  onDock: (rect: DockRect | null) => void;
+}) {
+  const ui = useContext(UiContext);
+  const { data } = useContext(GuideContext);
+  const now = useTick(30_000);
+  const history = p.kind === "history";
 
-/** The room for a list in the wide panel: the screen less the title-safe margins (40 px top and bottom) and the list title. */
-const PANEL_ROOM = 1080 - 40 - 56 - 40;
+  // The categories (LiveCategories): Favourites, Recently watched, Catch-up, All channels, then the provider's groups.
+  const cats = useMemo<CatItem[]>(() => {
+    const favs = p.catalog.filter((c) => p.favorites.has(channelKey(c)));
+    const archive = p.catalog.filter((c) => (c.catchupDays ?? 0) > 0);
+    return [
+      ...(favs.length > 0 ? [{ key: "~fav", label: t("favorites"), count: favs.length, channels: favs }] : []),
+      ...(p.recents.length > 0 ? [{ key: "~recent", label: t("groupRecent"), count: p.recents.length, channels: p.recents }] : []),
+      ...(archive.length > 0 ? [{ key: "~archive", label: t("groupArchive"), count: archive.length, channels: archive }] : []),
+      { key: "~all", label: t("allChannels"), count: p.catalog.length, channels: p.catalog },
+      ...groupsOf(p.catalog).map((g) => ({ key: g.name, label: capitalize(g.name) || "—", count: g.channels.length, channels: g.channels })),
+    ];
+  }, [p.catalog, p.favorites, p.recents]);
+  // The category the playing list is: the one picked here last, else the playing channel's own group, else all.
+  const initialKey = useMemo(() => {
+    const has = (key: string | null) => key !== null && cats.some((c) => c.key === key && c.channels.some((x) => x.id === p.playing.id));
+    if (has(memory.key)) return memory.key as string;
+    if (p.channels.length === p.catalog.length) return "~all";
+    return has(p.playing.group) ? p.playing.group : "~all";
+  }, []);
+  const [catKey, setCatKey] = useState<string>(initialKey);
+  const [list, setList] = useState<readonly Channel[]>(history ? p.recents : p.channels);
+  const title = history ? t("tbRecent") : cats.find((c) => c.key === catKey)?.label ?? t("tbChannels");
 
-/** The player's side sheet. Left leads channels → categories → menu; Right brings recently watched; the bar brings the settings. */
-export function PlayerPanel(p: Props) {
-  // A category picked in the first tab narrows the channels tab; until then it shows what is being watched.
-  const playingId = p.channels[p.index]?.id ?? null;
-  if (memory.playing !== playingId) { memory.group = null; memory.channel = null; memory.playing = playingId; } // another channel is on: start from it
-  const [group, setGroupState] = useState<string | null>(memory.group);
-  const setGroup = (g: string | null) => { memory.group = g; memory.channel = null; setGroupState(g); };
-  // The lists focus their own current row; the menu and the settings page start at their first row.
-  // Rows as tall as the "Row size" setting draws them (the CSS takes the same value), so they never overlap or part.
-  const ROW = useContext(UiContext).rowH;
-  useEffect(() => { if (p.tab === "menu") focusFirst(document, "pm-home"); else if (p.tab === "settings") focusFirst(document, "s-engine"); }, [p.tab]);
-  const groups = useMemo(() => groupsOf(p.catalog), [p.catalog]);
-  const favs = useMemo(() => p.catalog.filter((c) => p.favorites.has(channelKey(c))), [p.catalog, p.favorites]);
-  const list: readonly Channel[] = group === null ? p.channels
-    : group === "~all" ? p.catalog
-    : group === "~fav" ? favs
-    : groups.find((g) => g.name === group)?.channels ?? p.channels;
-  const rows = useMemo(() => [
-    { key: "~all", label: t("allChannelsShort"), count: p.catalog.length },
-    ...(favs.length > 0 ? [{ key: "~fav", label: t("favorites"), count: favs.length }] : []),
-    ...groups.map((g) => ({ key: g.name, label: capitalize(g.name), count: g.channels.length })),
-  ], [p.catalog.length, favs.length, groups]);
+  const [catsOpen, setCatsOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const inset = catsOpen ? CATS_W : 0;
+  const menu = menuOpen ? MENU_W : 0;
+  const dock = dockRect(inset, 0); // the group is pushed by the menu as a whole (tp-group), the picture with it
+  useEffect(() => { p.onDock(dockRect(inset, menu)); }, [inset, menu]);
+  useEffect(() => () => p.onDock(null), []);
 
-  // Channels, categories and the menu are one panel: Left opens the next column on the left, Right closes it again.
-  const wide = p.tab === "channels" || p.tab === "groups" || p.tab === "menu";
-  const showGroups = p.tab === "groups" || p.tab === "menu";
-  const showMenu = p.tab === "menu";
-  const current = p.channels[p.index] ?? null;
-  // Right, then OK: back to the channel watched before this one (the list starts with the one on screen once it has
-  // been on for a moment), as the "previous channel" key of a set-top box.
-  const recentStart = Math.max(0, p.recents.findIndex((c) => c.id !== current?.id));
-  const [looking, setLooking] = useState<Channel | null>(null);
-  /** Into the day column beside the list ("Programme" in a channel's menu, or Right): the programme on air first. */
-  const focusDay = () => (document.querySelector<HTMLElement>(".tm-sched .sc-now") ?? document.querySelector<HTMLElement>(".tm-sched .sc-row[data-focus]"))?.focus();
-  // The day column narrows while the categories and the menu are open, so a strip of the picture always stays in view.
-  const width = !wide ? 980 : showMenu ? 1660 : showGroups ? 1560 : 1320;
-  const listing = p.tab === "channels";
-  // A column opening or closing moves the list sideways at once (no width is animated: a TV relayouts it every
-  // frame); the list and the day then slide from where they were to where they are now, by transform only.
-  const tm = useRef<HTMLDivElement>(null);
-  const listX = (p.side === "left" ? 0 : 1920 - width) + (showMenu ? MENU_W : 0) + (showGroups ? GROUPS_W : 0);
-  const wasX = useRef(listX);
-  useLayoutEffect(() => {
-    const from = wasX.current - listX;
-    wasX.current = listX;
-    const box = tm.current;
-    if (from === 0 || !box || document.documentElement.getAttribute("data-motion") === "off") return;
-    box.querySelectorAll<HTMLElement>(".tm-list, .tm-sched").forEach((el) => {
-      el.animate?.([{ transform: `translateX(${from}px)` }, { transform: "translateX(0)" }], { duration: 240, easing: "cubic-bezier(.2, 0, 0, 1)" });
-    });
-  }, [listX]);
+  // Focus is kept by channel: on opening, and back from the categories, the playing one.
+  const [focused, setFocused] = useState<Channel | null>(p.playing);
+  const start = Math.max(0, list.findIndex((c) => c.id === p.playing.id));
+  const listActive = !catsOpen && !menuOpen;
+  const dwell = useDwell(focused?.id ?? null, !history && p.preview && listActive && !!focused && focused.id !== p.playing.id,
+    CHANNEL_QUIET_MS, () => { if (focused) p.onPreview(focused, list); });
+
+  // Categories: the playing list's category focused first; resting 7 s on another opens it after 3-2-1.
+  const [catFocus, setCatFocus] = useState<string | null>(null);
+  const pickCat = (key: string) => {
+    const item = cats.find((c) => c.key === key);
+    if (!item) return;
+    memory.key = key;
+    setCatKey(key);
+    setList(item.channels);
+    setFocused(item.channels.find((c) => c.id === p.playing.id) ?? item.channels[0] ?? null);
+    setCatsOpen(false);
+  };
+  const catDwell = useDwell(catFocus, catsOpen && !menuOpen && catFocus !== null && catFocus !== catKey, CATEGORY_QUIET_MS, () => { if (catFocus) pickCat(catFocus); });
+
+  const focusRail = () => setTimeout(() => focusFirst(document, "pr-home"), 30);
+  const focusCats = () => setTimeout(() => focusFirst(document, `pg:${catKey}`), 30);
+  useEffect(() => { if (menuOpen) focusRail(); }, [menuOpen]);
+
+  // The panel's own keys, after the player's (which leaves them alone while a panel is open).
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const left = e.key === "ArrowLeft" || e.keyCode === 37;
+      const right = e.key === "ArrowRight" || e.keyCode === 39;
+      const back = isBack(e);
+      if (!left && !right && !back) return;
+      e.stopPropagation();
+      e.preventDefault();
+      if (menuOpen) {
+        if (left) return; // the menu is the deepest layer
+        setMenuOpen(false); // ▶ or Back: to the screen's entry, the categories when they are open
+        if (catsOpen) focusCats();
+        return;
+      }
+      if (catsOpen) {
+        if (left) { setMenuOpen(true); return; }
+        setCatsOpen(false); // ▶ or Back: the channels again, on the playing one
+        setFocused(list.find((c) => c.id === p.playing.id) ?? focused);
+        return;
+      }
+      if (back) { p.onDismiss(); return; }
+      if (left) { if (history) p.onDismiss(); else { setCatFocus(catKey); setCatsOpen(true); } }
+      // ▶ in the list: consumed, it leads nowhere
+    };
+    document.addEventListener("keydown", onKey, true);
+    return () => document.removeEventListener("keydown", onKey, true);
+  }, [menuOpen, catsOpen, history, catKey, list, focused, p.playing.id]);
+
+  const rail = (go: Go | "home" | "settings") => {
+    if (go === "home") { setMenuOpen(false); p.onDismiss(); return; } // Home is the picture itself
+    if (go === "settings") { p.onSettings(); return; }
+    p.onGo(go);
+  };
+
+  const under = { left: `${dock.x}px`, top: `${dock.y + dock.h + 24}px`, width: `${dock.w}px` };
+  const listIndex = (c: Channel) => list.findIndex((x) => x.id === c.id);
   return (
-    <Drawer side={p.side} width={width} label={t("playerMenu")} onClose={p.onClose} closing={p.closing} className={wide ? "pp-drawer tm-drawer" : "pp-drawer"}>
-      {wide ? null : <SheetHead title={t(TITLE[p.tab as Exclude<PanelTab, "menu">])} />}
-      {wide ? (
-        <div class="tm" ref={tm}>
-          <div class={`tm-col tm-menu${showMenu ? " open" : ""}`}>
-            {showMenu ? (
-              <div class="tm-inner tm-icons">
-                {MENU.map(([id, icon, label, act]) => (
-                  <button class="rail-item" key={id} data-focus={`pm-${id}`} data-label={t(label)} aria-label={t(label)}
-                    onClick={() => (typeof act === "string" ? p.onGo(act) : p.onTab(act.tab))}>
-                    <Icon name={icon} size={40} />
-                  </button>
-                ))}
-              </div>
-            ) : null}
-          </div>
-          <div class={`tm-col tm-groups${showGroups ? " open" : ""}`}>
-            {showGroups ? (
-              <div class="tm-inner">
-                <div class="tm-head">{t("panelGroups")}</div>
+    <div class={`tp${p.closing ? " out" : ""}`} role="dialog" aria-label={title}>
+      {menuOpen ? (
+        <nav class="tp-rail" aria-label={t("playerMenu")}>
+          {RAIL.map(([id, icon, label, go]) => (
+            <button key={id} class={`tp-rail-item${id === "home" ? " sel" : ""}`} data-focus={`pr-${id}`} aria-label={t(label)} onClick={() => rail(go)}>
+              <Icon name={icon} size={32} />
+            </button>
+          ))}
+        </nav>
+      ) : null}
+      <div class={`tp-group${menuOpen ? " menu" : ""}`}>
+        <div class={`tp-in${history ? " from-right" : ""}`}>
+          <div class="tp-hole" style={{ left: `${dock.x}px`, width: `${dock.w}px`, height: `${dock.h}px` }} />
+          {p.loading ? <div class="tp-spin" style={{ left: `${dock.x}px`, width: `${dock.w}px`, height: `${dock.h}px` }}><div class="spinner"><Ticks /></div></div> : null}
+          <div class="tp-list tp-shift" style={{ transform: `translateX(${inset}px)` }}>
+            <div class="tp-title">{title}</div>
+            <div class="tp-rows">
+              {list.length === 0 ? <div class="tp-none">{t("recentEmpty")}</div> : (
                 <VirtualList
-                  key="groups" items={rows} rowHeight={GROUP_ROW} height={Math.floor(PANEL_ROOM / GROUP_ROW) * GROUP_ROW} pageSize={8} autofocus={p.tab === "groups"}
-                  initialIndex={Math.max(0, rows.findIndex((r) => r.key === (group ?? "~all")))}
-                  idOf={(g) => `pg:${g.key}`}
-                  renderRow={(g) => (
-                    <button class="row gr" data-focus={`pg:${g.key}`} onClick={() => { setGroup(g.key); p.onTab("channels"); }} aria-pressed={group === g.key}>
-                      <GroupIcon id={g.key} /><span class="grow">{g.label}</span><span class="sub">{g.count}</span>
-                    </button>
-                  )}
+                  key={`${p.kind}|${catKey}|${listActive}`} items={list} rowHeight={ROW} height={LIST_H} pageSize={9} autofocus={listActive}
+                  initialIndex={Math.max(0, focused ? list.findIndex((c) => c.id === focused.id) : start)}
+                  idOf={(c) => `pc-${c.id}`}
+                  renderRow={(c, i) => {
+                    const on = ui.program ? data.nowNext(c.id, now) : { now: null, progress: 0 };
+                    const playing = c.id === p.playing.id;
+                    const counting = !playing && dwell.n > 0 && focused?.id === c.id;
+                    return (
+                      <button class={`tp-row${playing ? " playing" : ""}`} data-focus={`pc-${c.id}`} onFocus={() => setFocused(c)} onClick={() => p.onPick(c, list)}>
+                        {ui.logos ? <span class="tp-row-logo"><ChannelLogo channel={c} /></span> : null}
+                        <span class="tp-row-text">
+                          <span class="tp-row-name">{ui.numbers ? <span class="n">{i + 1}</span> : null}<span class="t">{c.name}</span></span>
+                          {on.now ? (
+                            <>
+                              <span class="tp-row-prog">{on.now.title}</span>
+                              <span class="tp-row-bar"><i style={{ width: `${Math.round(on.progress * 100)}%` }} /></span>
+                            </>
+                          ) : <span class="tp-row-prog">{t("tbNoGuideShort")}</span>}
+                        </span>
+                        {counting ? <span class="tp-row-end"><CountdownRing n={dwell.n} totalMs={3000} startedAt={dwell.startedAt} /></span>
+                          : playing ? <span class="tp-row-end" aria-label={t("tbLive")}><Icon name="pause" size={30} /></span> : null}
+                      </button>
+                    );
+                  }}
                 />
-              </div>
-            ) : null}
+              )}
+            </div>
           </div>
-          <div class="tm-list">
-            <div class="tm-head">{group === null || group === "~all" ? t("allChannelsShort") : group === "~fav" ? t("favorites") : capitalize(group)}</div>
+          <div class="tp-under" style={under}>
+            <PanelSchedule channel={focused} number={focused && ui.numbers && listIndex(focused) >= 0 ? listIndex(focused) + 1 : null} now={now} />
+          </div>
+        </div>
+        {catsOpen ? (
+          <div class="tp-cats">
+            <div class="tp-cats-title">{t("tbCategories")}</div>
             <VirtualList
-              key={`channels|${group}|${listing}|${ROW}`} items={list} rowHeight={ROW} height={Math.floor(PANEL_ROOM / ROW) * ROW} pageSize={9} autofocus={listing}
-              initialIndex={memoryIndex(list, group, p.index)}
-              idOf={(c) => `pc-${c.id}`}
-              renderRow={(c, i) => (
-                <ChannelRow channel={c} index={i} favorite={p.favorites.has(channelKey(c))} playing={c.id === current?.id}
-                  onOpen={() => p.onPick(c, list)} onFav={p.onFav} onFocus={(ch) => { memory.channel = ch.id; setLooking(ch); }}
-                  onSchedule={(ch) => { setLooking(ch); setTimeout(focusDay, 30); }} />
+              key="cats" items={cats} rowHeight={CAT_ROW} height={CATS_H} pageSize={10} autofocus={!menuOpen}
+              initialIndex={Math.max(0, cats.findIndex((c) => c.key === catKey))}
+              idOf={(c) => `pg:${c.key}`}
+              renderRow={(c) => (
+                <button class={`st-focusable st-sheet-item${c.key === catKey ? " sel" : ""}`} data-focus={`pg:${c.key}`}
+                  onFocus={() => setCatFocus(c.key)} onClick={() => pickCat(c.key)}>
+                  <Icon name="live_tv" size={28} />
+                  <span class="st-sheet-item-text">{c.label}</span>
+                  {catDwell.n > 0 && catFocus === c.key ? <CountdownRing n={catDwell.n} totalMs={3000} startedAt={catDwell.startedAt} /> : <span class="st-count">{c.count}</span>}
+                </button>
               )}
             />
           </div>
-          <Schedule channel={looking ?? current ?? list[0] ?? null}
-            onWatch={(c) => p.onPick(c, list)} onArchive={(c, x) => p.onArchive(c, x, list)} onUpcoming={(c, x) => p.onUpcoming(c, x, list)} />
-        </div>
-      ) : null}
-      {p.tab === "favorites" ? (
-        favs.length === 0 ? <div class="list-head">{t("favoritesEmpty")}</div> : (
-          <VirtualList
-            key={`favorites|${ROW}`} items={favs} rowHeight={ROW} height={Math.floor(LIST_H / ROW) * ROW} pageSize={9} autofocus
-            idOf={(c) => `pf-${c.id}`}
-            renderRow={(c, i) => (
-              <ChannelRow channel={c} index={i} favorite onOpen={() => p.onPick(c, favs)} onFav={p.onFav} />
-            )}
-          />
-        )
-      ) : null}
-      {p.tab === "recent" ? (
-        p.recents.length === 0 ? <div class="list-head">{t("recentEmpty")}</div> : (
-          <VirtualList
-            key={`recent|${ROW}`} items={p.recents} rowHeight={ROW} height={Math.floor(LIST_H / ROW) * ROW} pageSize={9} autofocus
-            initialIndex={recentStart}
-            idOf={(c) => `pr2-${c.id}`}
-            renderRow={(c, i) => (
-              <ChannelRow channel={c} index={i} favorite={p.favorites.has(channelKey(c))} onOpen={() => p.onPick(c, p.recents)} onFav={p.onFav} />
-            )}
-          />
-        )
-      ) : null}
-      {p.tab === "settings" ? (
-        <div class="drawer-body drawer-scroll"><PlayerSettingRows settings={p.settings} onChange={p.onChangeSettings} /></div>
-      ) : null}
-    </Drawer>
+        ) : null}
+      </div>
+    </div>
   );
 }
+

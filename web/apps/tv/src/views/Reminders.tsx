@@ -1,11 +1,14 @@
 import { useEffect } from "preact/hooks";
 import type { Channel, Reminder } from "@skmate/core";
 import type { Programme } from "@skmate/epg";
-import { focusFirst, Icon, useReturnFocus } from "@skmate/ui";
+import { Button, focusFirst, Icon, Popup } from "@skmate/ui";
 import { t } from "../i18n";
 import { clock } from "../time";
 
-/** A programme still to come, picked in the guide or the search: watch its channel now, or be reminded of it. */
+/**
+ * A programme still to come, picked in the guide or the search: watch its channel now, or be reminded of it.
+ * Drawn as the Android app's StagePopup (760 wide): the eyebrow with the bell, the title 38/800, the buttons.
+ */
 export function ProgrammeDialog(p: {
   channel: Channel;
   programme: Programme;
@@ -15,42 +18,40 @@ export function ProgrammeDialog(p: {
   onCancelRemind: () => void;
   onClose: () => void;
 }) {
-  const root = useReturnFocus();
-  useEffect(() => { focusFirst(document, "pd-remind"); }, []);
+  useEffect(() => { setTimeout(() => focusFirst(document, "pd-remind"), 30); }, []);
   return (
-    <div class="scrim" data-modal ref={root}>
-      <div class="dialog" role="dialog" aria-label={p.programme.title}>
-        <div class="dialog-title">{p.programme.title}</div>
-        <div class="dialog-body">{t("remindStartsAt", { channel: p.channel.name, time: clock(p.programme.start) })}</div>
-        <div class="dialog-actions">
-          <button class="btn" data-focus="pd-close" onClick={p.onClose}>{t("remindClose")}</button>
-          <button class="btn" data-focus="pd-watch" onClick={p.onWatch}>{t("remindWatchChannel")}</button>
+    <Popup width={760} returnFocus label={p.programme.title} onClose={p.onClose}
+      eyebrow={t("remindStartsAt", { channel: p.channel.name, time: clock(p.programme.start) })} title={p.programme.title}
+      buttons={(
+        <>
+          <Button small id="pd-close" text={t("remindClose")} onClick={p.onClose} />
+          <Button small id="pd-watch" icon="live_tv" text={t("remindWatchChannel")} onClick={p.onWatch} />
           {p.reminded
-            ? <button class="btn" data-focus="pd-remind" onClick={p.onCancelRemind}>{t("remindCancel")}</button>
-            : <button class="btn" data-focus="pd-remind" onClick={p.onRemind}><Icon name="bell" size={28} />{t("remind")}</button>}
-        </div>
-      </div>
-    </div>
+            ? <Button small id="pd-remind" text={t("remindCancel")} onClick={p.onCancelRemind} />
+            : <Button small id="pd-remind" icon="bell" text={t("remind")} onClick={p.onRemind} />}
+        </>
+      )}
+    />
   );
 }
 
-/** The start-time prompt, over any screen and the player too, as on Android: Watch switches, Close lets it be. */
+/**
+ * The start-time prompt (GuideStage.kt ReminderPrompt), over any screen and the player too: 760 wide, the bell and
+ * when in the accent, the title 38/800, then "Watch" (focused) and "Close". Watch switches, Close lets it be.
+ */
 export function ReminderPrompt(p: { reminder: Reminder; now: number; onWatch: () => void; onClose: () => void }) {
-  const root = useReturnFocus();
-  useEffect(() => { focusFirst(document, "rp-watch"); }, [p.reminder.start, p.reminder.channel]);
+  useEffect(() => { const id = setTimeout(() => focusFirst(document, "rp-watch"), 60); return () => clearTimeout(id); }, [p.reminder.start, p.reminder.channel]);
   const r = p.reminder;
   const line = r.start <= p.now ? t("remindOnNow", { channel: r.channelName }) : t("remindStartsAt", { channel: r.channelName, time: clock(r.start) });
   return (
-    <div class="scrim" data-modal ref={root}>
-      <div class="dialog" role="alertdialog" aria-label={t("remindSoon")}>
-        <div class="dialog-title"><Icon name="bell" size={36} /> {t("remindSoon")}</div>
-        <div class="dialog-body"><b class="rp-title">{r.title}</b><br />{line}</div>
-        <div class="dialog-actions">
-          <button class="btn" data-focus="rp-close" onClick={p.onClose}>{t("remindClose")}</button>
-          <button class="btn" data-focus="rp-watch" onClick={p.onWatch}>{t("remindWatch")}</button>
-        </div>
-      </div>
-    </div>
+    <Popup width={760} returnFocus label={t("remindSoon")} onClose={p.onClose} eyebrow={line} title={r.title}
+      buttons={(
+        <>
+          <Button small id="rp-watch" icon="live_tv" text={t("remindWatch")} onClick={p.onWatch} />
+          <Button small id="rp-close" text={t("remindClose")} onClick={p.onClose} />
+        </>
+      )}
+    />
   );
 }
 

@@ -22,9 +22,12 @@ import { PinDialog } from "./views/PinDialog";
 import { UpdateDialog } from "./views/UpdateDialog";
 import { QrDialog } from "./views/QrDialog";
 import { PlaylistPicker } from "./views/PlaylistPicker";
-import { Wizard, type WizardResult } from "./views/Wizard";
+import { Terms, Wizard, withWizardProfile, type WizardResult } from "./views/Wizard";
 import { GuideView } from "./views/GuideView";
-import { LiveView } from "./views/LiveView";
+import { LiveView, type LiveEntry } from "./views/LiveView";
+import { StageIcon, type StageIconName } from "./views/GroupIcon";
+import { HomeStatus } from "./views/HomeStatus";
+import { detectPlatform } from "./platform";
 import { PlayerView } from "./views/PlayerView";
 import { SearchView } from "./views/SearchView";
 import { SettingsSheet, type Page } from "./views/SettingsSheet";
@@ -38,15 +41,27 @@ import { vodSourceOf } from "./state/library";
 import { continueWatching, loadProgress, progressKey, saveProgress, type Progress } from "./state/progress";
 
 type Section = "live" | "movies" | "series" | "guide" | "sport" | "search";
-/** The middle of the rail: the places you go; Settings sits apart at the bottom and opens as a sheet. */
-const NAV: Array<[Section, IconName, Key]> = [
-  ["live", "live_tv", "navLive"],
-  ["movies", "movies", "navMovies"],
-  ["series", "series", "navSeries"],
-  ["guide", "epg", "navGuide"],
-  ["sport", "sports", "navSport"],
-  ["search", "search", "navSearch"],
+/**
+ * The side menu (Android StageRail.kt, TV-box look): Home (the channels), Sport, Guide, Search, then the gear
+ * (Settings, as a sheet). Films, series and downloads are not in the TV-box menu (StageRail.kt TvBoxHiddenSections).
+ */
+const NAV: Array<[Section, StageIconName, Key]> = [
+  ["live", "home", "homeNavHome"],
+  ["sport", "sports", "homeNavSport"],
+  ["guide", "epg", "homeNavGuide"],
+  ["search", "search", "homeNavSearch"],
 ];
+/** A second Back on the channels screen within this leaves the app (OwnTVShell.kt ExitBackWindowMs). */
+const EXIT_BACK_MS = 2000;
+
+/** Leaves the app the TV's way: Tizen's own exit; elsewhere false, and the platform's Back does it. */
+function exitApp(): boolean {
+  if (detectPlatform() !== "tizen") return false;
+  try {
+    (window as unknown as { tizen?: { application?: { getCurrentApplication(): { exit(): void } } } }).tizen?.application?.getCurrentApplication().exit();
+    return true;
+  } catch { return false; }
+}
 
 /** sessionStorage: the profile just opened with its PIN, so the restart that follows does not ask again. */
 const UNLOCKED_KEY = "skmate.unlocked";
@@ -94,6 +109,11 @@ export function App() {
   const [history, setHistory] = useState<string[]>(loadHistory);
   const [leaving, setLeaving] = useState(false);
   const [railOpen, setRailOpen] = useState(false);
+  // The channels screen's way in from the side menu (its open categories, else the channel row): see LiveView.
+  const liveEntry = useRef<LiveEntry | null>(null);
+  // "Press Back again to exit" (OwnTVShell.kt): when the first Back on the channels screen was pressed.
+  const [backAt, setBackAt] = useState(0);
+  useEffect(() => { if (!backAt) return; const id = setTimeout(() => setBackAt(0), EXIT_BACK_MS); return () => clearTimeout(id); }, [backAt]);
   const [redo, setRedo] = useState(false);
   const [sheet, setSheet] = useState(false);
   const full = useFullScreen();
@@ -129,15 +149,31 @@ export function App() {
   useEffect(() => {
     const onMove = (e: MouseEvent) => {
       if (e.movementX === 0 && e.movementY === 0) return;
-      const nav = document.querySelector(".rail");
+      const nav = document.querySelector(".tb-rail");
       const inside = nav?.contains(document.activeElement);
       if (e.clientX < 24) setRailOpen(true);
-      else if (e.clientX > 160 && !inside) setRailOpen(false);
+      else if (e.clientX > 120 && !inside) setRailOpen(false);
     };
     document.addEventListener("mousemove", onMove, { passive: true });
     return () => document.removeEventListener("mousemove", onMove);
   }, []);
   useEffect(() => { saveFavorites(favorites); }, [favorites]);
+  // ◀ with nothing further left on the screen opens the side menu, however the screen was entered (OwnTVShell.kt: the
+  // content box's onKeyEvent calls focusRail when moveFocus(Left) fails). Seen after every other handler had its turn:
+  // one that took the key stops it, and the D-pad that found a place moved the focus.
+  useEffect(() => {
+    let before: Element | null = null;
+    const isLeft = (e: KeyboardEvent) => e.key === "ArrowLeft" || e.keyCode === 37;
+    const early = (e: KeyboardEvent) => { if (isLeft(e)) before = document.activeElement; };
+    const late = (e: KeyboardEvent) => {
+      if (!isLeft(e) || document.activeElement !== before || !before) return;
+      if (before instanceof HTMLInputElement || !before.closest(".content") || document.querySelector("[data-modal]")) return;
+      document.querySelector<HTMLElement>(".tb-rail [data-focus]")?.focus(); // the menu puts it on the open place
+    };
+    window.addEventListener("keydown", early, true);
+    window.addEventListener("keydown", late);
+    return () => { window.removeEventListener("keydown", early, true); window.removeEventListener("keydown", late); };
+  }, []);
   // The stage never scrolls. A sheet that is still rising sits below the screen, and focusing a control in it makes the
   // browser scroll the stage to show it, which would leave the whole screen shifted once the sheet is up.
   useEffect(() => {
@@ -163,9 +199,16 @@ export function App() {
     if (details) { setDetails(null); return true; }
     if (sheet) { sheetBack(); return true; }
     if (playing) { exitPlayer(); return true; }
+    // The side menu: Back closes it, the focus goes back to the screen (OwnTVShell.kt closeMenuToContent).
+    if (document.activeElement?.closest(".tb-rail")) { closeMenuToContent(); return true; }
+    // The guide goes back to the menu it was opened from; any other place to the channels.
+    if (section === "guide") { focusRail(); return true; }
     if (section !== "live") { setSection("live"); return true; }
-    return false;
-  }), [unlocked, prompt, upcoming, pinAsk, deleting, resetting, qr, deletingProfile, picking, details, multiview, sheet, sheetPage, sheetFrom, playing, section]);
+    // The channels: a first Back says so, a second within 2 s leaves the app (no question asked).
+    if (Date.now() - backAt < EXIT_BACK_MS) return exitApp();
+    setBackAt(Date.now());
+    return true;
+  }), [backAt, unlocked, prompt, upcoming, pinAsk, deleting, resetting, qr, deletingProfile, picking, details, multiview, sheet, sheetPage, sheetFrom, playing, section]);
 
   const openHere = (c: Channel, list: readonly Channel[]) => setPlaying({ list, index: Math.max(0, list.findIndex((x) => x.id === c.id)) });
   // A note at the top that goes by itself: a recording saved, an external player that did not start.
@@ -320,14 +363,36 @@ export function App() {
   // The control last focused on the page, so Right from the menu (or its icon of the open place) returns exactly there.
   const lastContent = useRef<string | null>(null);
   const backToContent = () => {
+    if (section === "live" && !sheet && liveEntry.current?.enter()) return;
     const all = Array.from(document.querySelectorAll<HTMLElement>(".content [data-focus]"));
     // Never a text field first: it would open the TV's keyboard.
     (all.find((e) => e.dataset.focus === lastContent.current) ?? all.find((e) => !(e instanceof HTMLInputElement)))?.focus();
   };
-  /** The rail: another place opens; the one already open sends the focus into its content (so the icon always does something). */
+  /** The menu's item of the place open now (or the gear while Settings is up): where focus lands on entering the menu. */
+  const railTarget = () => (sheet ? "nav-settings" : `nav-${NAV.some(([id]) => id === section) ? section : "live"}`);
+  const focusRail = () => { document.querySelector<HTMLElement>(`.tb-rail [data-focus="${railTarget()}"]`)?.focus(); };
+  /** Closes the menu: focus back into the screen (the channels: the open categories, else the current row). */
+  const closeMenuToContent = () => { backToContent(); setRailOpen(false); };
+  /**
+   * OK on a menu item (OwnTVShell.kt selectFromNav, TV-box): another place opens with the focus in it and the menu
+   * closes; the place already open closes the menu (on the channels, the categories beside it first).
+   */
   const goTo = (id: Section) => {
-    if (id !== section) { setSection(id); return; }
-    backToContent();
+    if (id !== section || sheet) {
+      setSheet(false);
+      setSection(id);
+      // The new screen focuses itself as it opens; if it has not after a moment, the focus is put into it.
+      let tries = 0;
+      const settle = () => {
+        if (!document.activeElement?.closest(".tb-rail")) return;
+        if (++tries > 20) { backToContent(); return; }
+        setTimeout(settle, 50);
+      };
+      setTimeout(settle, 50);
+      return;
+    }
+    if (id === "live" && liveEntry.current?.closeBeside()) return;
+    closeMenuToContent();
   };
   const toggleFavorite = (c: Channel) => setFavorites((f) => toggle(f, channelKey(c)));
   const doomed = deleting ? pl.store.list.find((p) => p.id === deleting) : undefined;
@@ -417,45 +482,21 @@ export function App() {
   return (
     <UiContext.Provider value={ui}>
     <GuideContext.Provider value={guideValue}>
-      <nav
-        class={`rail${railOpen ? " open" : ""}`} data-collapsed={railOpen ? undefined : ""}
-        onFocusIn={() => setRailOpen(true)}
-        onKeyDown={(e) => {
-          // Right leaves the menu for the page, back to where the viewer was, whatever lies beside the item.
-          if (e.key !== "ArrowRight" && e.keyCode !== 39) return;
-          e.preventDefault(); e.stopPropagation();
-          backToContent();
-        }}
-        onFocusOut={(e) => { if (!(e.currentTarget as HTMLElement).contains(e.relatedTarget as Node | null)) setRailOpen(false); }}
-      >
-        <div class="rail-brand"><img class="rail-logo" src={skLogo} alt="" /><span class="rail-word">mate</span></div>
-        <div class="rail-mid">
-          {NAV.map(([id, icon, label]) => (
-            <button class="rail-item" key={id} data-focus={`nav-${id}`} data-label={t(label)} aria-label={t(label)} aria-current={section === id && !sheet} onClick={() => goTo(id)}>
-              <Icon name={icon} /><span class="rail-label">{t(label)}</span>
-            </button>
-          ))}
-          <button class="rail-item" data-focus="nav-settings" data-label={t("navSettings")} aria-label={t("navSettings")} aria-current={sheet} onClick={() => openSheet(null, "menu")}>
-            <Icon name="settings" /><span class="rail-label">{t("navSettings")}</span>
-          </button>
-          {full ? (
-            <button class="rail-item" data-focus="nav-full" data-label={t(full.on ? "fullScreenExit" : "fullScreen")} aria-label={t(full.on ? "fullScreenExit" : "fullScreen")} onClick={full.toggle}>
-              <Icon name={full.on ? "fullscreen_exit" : "fullscreen"} /><span class="rail-label">{t(full.on ? "fullScreenExit" : "fullScreen")}</span>
-            </button>
-          ) : null}
-        </div>
-      </nav>
-      <main class="content" onFocusIn={(e) => { const id = (e.target as HTMLElement).dataset?.focus; if (id) lastContent.current = id; }}>
+      <main class={`content${section === "live" ? " home-on" : ""}${railOpen ? " menu-pushed" : ""}`} onFocusIn={(e) => { const id = (e.target as HTMLElement).dataset?.focus; if (id) lastContent.current = id; }}>
         {section === "live" ? (
           <LiveView
             channels={channels} favorites={favorites} status={pl.status} settings={settings}
             onOpen={open} onFav={toggleFavorite}
             onAddPlaylist={() => openSheet("playlists", "screen")} onDemo={pl.addDemo}
             greeting={greeting} playlistName={pl.active?.name ?? null} onPickPlaylist={() => setPicking(true)}
-            recents={recents} paused={false}
+            recents={recents} paused={book === null || redo} /* the wizard covers the screen: no preview stream may hold the TV's only decoder behind it */
+            onGuideView={() => setSection("guide")} onUpcoming={openUpcoming} entry={liveEntry}
           />
         ) : null}
-        {section === "guide" ? <GuideView settings={settings} channels={channels} favorites={favorites} status={guide.status} onRefresh={() => void guide.sync()} onOpen={open} onArchive={openArchive} onUpcoming={openUpcoming} reminded={reminded} /> : null}
+        {/* guide-sport-search: the programme menu sets or cancels a reminder and (un)favours the channel in place (Android GuideProgrammeMenu). */}
+        {section === "guide" ? <GuideView settings={settings} channels={channels} favorites={favorites} status={guide.status} onRefresh={() => void guide.sync()} onOpen={open} onArchive={openArchive} onUpcoming={openUpcoming} reminded={reminded}
+          onFav={toggleFavorite}
+          onRemind={(c, p) => { if (reminded(c, p)) rem.remove({ channel: channelKey(c), start: p.start }); else if (canRemind(p.start, Date.now())) rem.add({ channel: channelKey(c), channelName: c.name, title: p.title, start: p.start, stop: p.stop, lead: settings.reminderLead }); }} /> : null}
         {section === "sport" ? <SportView channels={channels} favorites={favorites} onOpen={open} onFav={toggleFavorite} /> : null}
         {section === "movies" || section === "series" ? (
           <VodView kind={section === "movies" ? "movie" : "series"} source={vod}
@@ -467,8 +508,65 @@ export function App() {
           <VodDetails item={details.item} kind={details.kind} source={vod} progressOf={progressOf(details.kind)}
             onPlayMovie={playMovie} onPlayEpisode={playEpisode} onClose={() => setDetails(null)} />
         ) : null}
-        {section === "search" ? <SearchView channels={channels} favorites={favorites} onOpen={open} onArchive={openArchive} onUpcoming={openUpcoming} reminded={reminded} onFav={toggleFavorite} /> : null}
+        {/* guide-sport-search: films and series are searched too (Android SearchScreen); OK on one opens its card. */}
+        {section === "search" ? <SearchView channels={channels} favorites={favorites} onOpen={open} onArchive={openArchive} onUpcoming={openUpcoming} reminded={reminded} onFav={toggleFavorite}
+          settings={settings} vod={vod} onOpenVod={(item, kind) => setDetails({ item, kind })} /> : null}
       </main>
+      {/* After the page in the document, so a plain "first control" is never in the menu. The side menu (StageRail.kt, TV-box): out of sight until ◀ brings the focus to it; then an 84-wide strip at the
+          left edge, the screen pushed right by its width. "sk" on top, the places in the middle, the profile at the bottom. */}
+      <nav
+        class={`tb-rail${railOpen ? " open" : ""}`} data-collapsed={railOpen ? undefined : ""}
+        onFocusIn={(e) => {
+          setRailOpen(true);
+          // Every entry from the screen lands on the place open now, not on whatever icon lines up.
+          const from = (e as FocusEvent).relatedTarget as Node | null;
+          if (!from || !(e.currentTarget as HTMLElement).contains(from)) {
+            const target = (e.currentTarget as HTMLElement).querySelector<HTMLElement>(`[data-focus="${railTarget()}"]`);
+            if (target && target !== e.target) target.focus();
+          }
+        }}
+        onKeyDown={(e) => {
+          const k = e.key;
+          const code = e.keyCode;
+          // ▶ always leaves for the screen, back to where the viewer was; ◀ goes nowhere.
+          if (k === "ArrowRight" || code === 39) { e.preventDefault(); e.stopPropagation(); closeMenuToContent(); return; }
+          if (k === "ArrowLeft" || code === 37) { e.preventDefault(); e.stopPropagation(); return; }
+          // ▲/▼ walk the items in order and stop at the ends (never into the screen beside the menu).
+          const dir = k === "ArrowUp" || code === 38 ? -1 : k === "ArrowDown" || code === 40 ? 1 : 0;
+          if (dir === 0) return;
+          e.preventDefault(); e.stopPropagation();
+          const all = Array.from((e.currentTarget as HTMLElement).querySelectorAll<HTMLElement>("[data-focus]"));
+          const at = all.indexOf(document.activeElement as HTMLElement);
+          all[Math.max(0, Math.min(all.length - 1, at + dir))]?.focus();
+        }}
+        onFocusOut={(e) => { if (!(e.currentTarget as HTMLElement).contains(e.relatedTarget as Node | null)) setRailOpen(false); }}
+      >
+        <img class="tb-rail-logo" src={skLogo} alt="" onClick={() => goTo("live")} />
+        <div class="tb-rail-mid">
+          {NAV.map(([id, icon, label]) => (
+            <button class={`st-focusable tb-rail-item${section === id && !sheet ? " active" : ""}`} key={id} data-focus={`nav-${id}`} aria-label={t(label)} aria-current={section === id && !sheet} onClick={() => goTo(id)}>
+              <StageIcon name={icon} size={32} />
+            </button>
+          ))}
+          <button class={`st-focusable tb-rail-item${sheet ? " active" : ""}`} data-focus="nav-settings" aria-label={t("homeNavMore")} aria-current={sheet}
+            onClick={() => { if (section === "live") liveEntry.current?.closeBeside(); openSheet(null, "menu"); }}>
+            <StageIcon name="gear" size={32} />
+          </button>
+          {full ? (
+            <button class="st-focusable tb-rail-item" data-focus="nav-full" aria-label={t(full.on ? "fullScreenExit" : "fullScreen")} onClick={full.toggle}>
+              <Icon name={full.on ? "fullscreen_exit" : "fullscreen"} size={32} />
+            </button>
+          ) : null}
+        </div>
+        {me ? (
+          <button class="tb-rail-avatar" data-focus="nav-profile" aria-label={me.guest ? t("guestName") : me.name} onClick={() => openSheet("profile", "menu")}>
+            <span>{((me.guest ? t("guestName") : me.name).trim().slice(0, 1) || "?").toUpperCase()}</span>
+          </button>
+        ) : null}
+      </nav>
+      {/* The clock, the date and the weather (StageStatus.kt): on every screen but Settings; the menu does not move it. */}
+      {!sheet ? <HomeStatus /> : null}
+      {backAt ? <div class="toast home-exit-toast" role="status"><span>{t("homePressBackAgain")}</span></div> : null}
       <Presence show={sheet} ms={300}>
         {(out) => (
           <SettingsSheet
@@ -518,8 +616,16 @@ export function App() {
       {/* A fresh dialog for every question: the digits of "New PIN" must not carry over into "Repeat the PIN". */}
       {pinAsk ? <PinDialog key={pinAsk.title} title={pinAsk.title} hint={pinAsk.hint} check={pinAsk.check} onDone={pinAsk.onDone} onCancel={() => setPinAsk(null)} /> : null}
       {book === null || redo ? (
-        <Wizard settings={settings} hasProfile={book !== null} onPreview={setSettings} onFinish={(r) => { finishWizard(r); setTimeout(backToContent, 0); }} onCancel={redo ? () => { setRedo(false); setTimeout(backToContent, 0); } : undefined} />
+        // Wizard port (Android SetupWizard): it adds the playlist and watches the import itself (`playlists`), shows the
+        // guide's state on its last step and can open Settings › TV guide; the new profile gets the kids mark and PIN.
+        <Wizard settings={settings} hasProfile={book !== null} onPreview={setSettings}
+          playlists={pl} guideLoading={guide.status.kind === "syncing"} guideAttached={pl.headerGuides.length > 0 || settings.epgSources.length > 0}
+          onAddGuide={() => openSheet("sources", "menu")} /* Android: Settings › EPG sources (here the "sources" page) */
+          onFinish={(r) => { const fresh = book === null; finishWizard(r); const made = fresh ? loadBook() : null; if (made) updateBook(withWizardProfile(made, r)); setTimeout(backToContent, 0); }}
+          onCancel={redo ? () => { setRedo(false); setTimeout(backToContent, 0); } : undefined} />
       ) : null}
+      {/* The terms of use (Android TermsOfUseScreen), once per TERMS_VERSION, over the wizard; it keeps its own state. */}
+      <Terms />
       {resetting ? (
         <Confirm
           title={t("setResetTitle")} body={t("setResetHint")} confirm={t("setResetDo")}
