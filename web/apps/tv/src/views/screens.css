@@ -89,9 +89,6 @@
 .pf-panel .pf-static { cursor: default; background: var(--control); }
 .pf-panel .pf-first { margin-top: 0; }
 
-/* The playlist picker: the playlist in use is a plain lighter row, as a chosen item is everywhere else. */
-.drawer-bottom .row[aria-pressed="true"]:not(:focus) { background: var(--selected); }
-
 /* ===== Search: one box, the same on every screen =====
    At the left of the toolbar, right after the screen's title: a magnifier and "Search" (or what is searched now).
    It is a button: OK opens the entry panel, so the TV keyboard never pops up just because the cursor passed by.
@@ -124,8 +121,8 @@
 .search-tip { margin: 40px 4px 0; max-width: 1000px; }
 .search-tip-title { font-size: 30px; font-weight: 700; }
 .search-tip-body { margin-top: 8px; font-size: 24px; line-height: 1.4; color: var(--muted); }
-/* The entry panel of a search: how many the query finds, live, under the field. */
-.entry-note { margin-top: 16px; min-height: 32px; font-size: 24px; font-weight: 600; color: var(--muted); }
+/* The entry popup of a search: how many the query finds, live, under the field (inset as the field's text). */
+.entry-note { margin-top: 10px; padding: 0 22px 0 72px; min-height: 28px; font-size: 18px; font-weight: 600; color: var(--st-muted); }
 /* The channels screen: the sort is one row under the categories, saying the order in use; OK steps to the next. */
 .live .groups .gr-sort { height: 64px; margin-top: 8px; font-size: 24px; color: var(--muted); border-top: 1px solid var(--line); border-radius: 0 0 var(--radius) var(--radius); }
 .live .groups .gr-sort:focus { color: var(--focus-text); border-top-color: transparent; border-radius: var(--radius); }

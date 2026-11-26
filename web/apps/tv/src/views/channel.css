@@ -48,30 +48,18 @@ button.row.ch .redge .tag > svg { flex: none; margin-right: 6px; }
 
 /* ---------- The channel's menu (long OK on a row) ---------- */
 
-/* A layer over the whole stage that only catches a click outside: no dimming (it may be over the playing picture). */
+/* As Android's channel menu: the wash over the whole stage, a menu card (ui.css .st-menu, 640 wide) in the middle.
+   The layer fades (opacity only); a click outside it closes it. */
 .ch-menu, .ch-sched { position: absolute; left: 0; top: 0; right: 0; bottom: 0; z-index: 40; }
-.ch-sched .scrim { left: 0; top: 0; right: 0; bottom: 0; }
-/* A small sheet at the bottom, in the middle; its lines stay inside the title-safe area (48 px above the edge). */
-.ch-menu-panel {
-  position: absolute; left: 50%; bottom: 0; width: 760px; margin-left: -380px; padding: 28px 28px 48px;
-  border-radius: 24px 24px 0 0; background: var(--panel); color: var(--text); box-shadow: 0 -1px 0 var(--line);
-  animation: ch-menu-in 260ms cubic-bezier(.2, 0, 0, 1) both;
-}
-.ch-menu.out .ch-menu-panel { animation: ch-menu-out 200ms cubic-bezier(.4, 0, 1, 1) both; }
-@keyframes ch-menu-in { from { transform: translateY(100%); } to { transform: none; } }
-@keyframes ch-menu-out { from { transform: none; } to { transform: translateY(100%); } }
-.ch-menu-head { display: flex; align-items: center; height: 72px; padding: 0 20px; margin-bottom: 12px; }
-.ch-menu-head .logo { flex: none; width: 78px; height: 52px; margin-right: 20px; border-radius: 8px; font-size: 22px; }
+.ch-menu { display: flex; align-items: center; justify-content: center; background: var(--st-scrim); animation: st-fade-in var(--st-popup-ms) linear both; }
+.ch-menu.out { animation: st-fade-out var(--st-popup-ms) linear both; }
+.ch-menu-panel { width: 640px; max-height: 1000px; }
+.ch-menu-head .logo { flex: none; display: block; width: 70px; height: 50px; border-radius: var(--st-r-plate); font-size: 20px; }
 .ch-menu-head img.logo { padding: 4px; object-fit: contain; background: #fff; }
 .ch-menu-head .logo.badge { display: flex; align-items: center; justify-content: center; overflow: hidden; }
-.ch-menu-name { flex: 1 1 0%; min-width: 0; font-size: 32px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.ch-menu .menu-row, .ch-sched .ch-sched-watch { gap: 0; }
-.ch-menu .menu-row + .menu-row { margin-top: 6px; }
-.ch-menu .menu-row > svg, .ch-sched .ch-sched-watch > svg { flex: none; margin-right: 24px; }
-/* A favourite: the line a little lighter (the state), white only in focus. */
-.ch-menu .menu-row.on:not(:focus) { background: var(--selected); }
+.ch-menu-name { flex: 1 1 0%; min-width: 0; }
 
-/* The programme sheet: "Watch" above the day. */
-.ch-sched .ch-sched-watch { flex: none; margin-bottom: 8px; }
-.ch-sched .tm-sched { padding-left: 0; padding-right: 0; }
-.ch-sched .sc-head { display: none; } /* the sheet's title already names the channel */
+/* The programme as a side panel (ui.css .st-side-panel): Watch above the day. */
+.ch-sched .ch-sched-watch { flex: none; margin-bottom: 8px; padding: 0 30px; border-radius: var(--st-r-focus); }
+.ch-sched .tm-sched { padding-left: 14px; padding-right: 14px; }
+.ch-sched .sc-head { display: none; } /* the panel's title already names the channel */

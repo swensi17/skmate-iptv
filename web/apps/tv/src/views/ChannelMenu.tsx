@@ -5,7 +5,6 @@ import { Drawer, focusFirst, Icon, isBack } from "@skmate/ui";
 import { t } from "../i18n";
 import { ChannelLogo } from "./ChannelLogo";
 import { Schedule } from "./Schedule";
-import { SheetHead } from "./SheetHead";
 import "./channel.css";
 
 /** Where the layers go: the stage itself, so they cover the whole screen whatever list the row sits in. */
@@ -57,9 +56,9 @@ function useLayerKeys(root: { current: HTMLElement | null }, onBack: () => void)
 }
 
 /**
- * A small sheet from the bottom for one channel, opened by a long OK on its row: favourite on or off, watch, its
- * programme. Plain: the app's panel colour, white only on the focused line, a slide by transform; nothing dims the
- * screen behind it (it may be over the playing picture).
+ * The menu of one channel, opened by a long OK on its row: favourite on or off, watch, its programme. As Android's
+ * channel menu (live/LiveScreen.kt ChannelContextMenu): a menu card (StageMenu, 640 wide) in the middle of the screen
+ * over the wash, the logo and the name on top, one line per action.
  */
 export function ChannelMenu(p: {
   channel: Channel; favorite: boolean; closing: boolean;
@@ -70,20 +69,20 @@ export function ChannelMenu(p: {
   useEffect(() => { focusFirst(root.current ?? document, "cm-fav"); }, []);
   return createPortal(
     <div class={`ch-menu${p.closing ? " out" : ""}`} ref={root} data-modal={p.closing ? undefined : ""} onClick={p.onClose}>
-      <div class="ch-menu-panel" role="dialog" aria-label={p.channel.name} onClick={(e) => e.stopPropagation()}>
-        <div class="ch-menu-head">
-          <ChannelLogo channel={p.channel} />
-          <span class="ch-menu-name">{p.channel.name}</span>
+      <div class="st-menu ch-menu-panel" role="dialog" aria-label={p.channel.name} onClick={(e) => e.stopPropagation()}>
+        <div class="st-menu-head ch-menu-head">
+          <span class="st-menu-lead"><ChannelLogo channel={p.channel} /></span>
+          <span class="st-menu-title ch-menu-name">{p.channel.name}</span>
         </div>
         {/* TODO(i18n): "Убрать из избранного" has no key yet; a favourite shows "Избранное" with the line lit. */}
-        <button class={`menu-row${p.favorite ? " on" : ""}`} data-focus="cm-fav" aria-pressed={p.favorite} onClick={p.onFav}>
-          <Icon name="star" size={36} /><span class="grow">{t(p.favorite ? "favorites" : "playerFavorite")}</span>
+        <button class="st-focusable st-menu-item" data-focus="cm-fav" aria-pressed={p.favorite} onClick={p.onFav}>
+          <Icon name="star" size={28} /><span class="st-menu-item-text">{t(p.favorite ? "favorites" : "playerFavorite")}</span>
         </button>
-        <button class="menu-row" data-focus="cm-watch" onClick={p.onWatch}>
-          <Icon name="play" size={36} /><span class="grow">{t("remindWatch")}</span>
+        <button class="st-focusable st-menu-item" data-focus="cm-watch" onClick={p.onWatch}>
+          <Icon name="play" size={28} /><span class="st-menu-item-text">{t("remindWatch")}</span>
         </button>
-        <button class="menu-row" data-focus="cm-epg" onClick={p.onSchedule}>
-          <Icon name="epg" size={36} /><span class="grow">{t("navGuide")}</span>
+        <button class="st-focusable st-menu-item" data-focus="cm-epg" onClick={p.onSchedule}>
+          <Icon name="epg" size={28} /><span class="st-menu-item-text">{t("navGuide")}</span>
         </button>
       </div>
     </div>,
@@ -105,8 +104,7 @@ export function ChannelSchedule(p: { channel: Channel; closing: boolean; onWatch
   }, []);
   return createPortal(
     <div class={`ch-sched${p.closing ? " out" : ""}`} ref={root}>
-      <Drawer side="bottom" label={p.channel.name} onClose={p.onClose} closing={p.closing}>
-        <SheetHead title={p.channel.name} />
+      <Drawer variant="panel" title={p.channel.name} label={p.channel.name} onClose={p.onClose} closing={p.closing}>
         <button class="menu-row ch-sched-watch" data-focus="cs-watch" onClick={p.onWatch}>
           <Icon name="play" size={36} /><span class="grow">{t("remindWatch")}</span>
         </button>

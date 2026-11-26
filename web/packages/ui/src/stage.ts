@@ -1,7 +1,7 @@
-export const STAGE_W = 1920;
-export const STAGE_H = 1080;
+export const STAGE_W = 1728;
+export const STAGE_H = 972;
 
-/** The largest scale at which the whole 1920×1080 design fits the window, never beyond what the screen can show crisply. */
+/** The largest scale at which the whole design (1728×972 = Android mpx at its default 100% UI zoom: 1920 px / 1.111) fits the window, never beyond what the screen can show crisply. */
 export function fitScale(width: number, height: number): number {
   if (width <= 0 || height <= 0) return 1;
   const scale = Math.min(width / STAGE_W, height / STAGE_H);

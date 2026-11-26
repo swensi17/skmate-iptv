@@ -8,7 +8,6 @@ import { stalkerSource, xtreamUrl, type PlaylistStore } from "../state/playlists
 import type { Status } from "../state/usePlaylists";
 import { EditPlaylist } from "./EditPlaylist";
 import { LinkDialog } from "./LinkDialog";
-import { SheetHead } from "./SheetHead";
 import { SourceForm } from "./SourceForm";
 
 interface Props {
@@ -31,8 +30,9 @@ function sourceOf(url: string): string {
 }
 
 /**
- * Adding a playlist, as its own sheet over the list: the kinds (link, Xtream, file), the values, the button. Back
- * lowers only this sheet; once a playlist is added it goes down by itself and the list shows the new one in use.
+ * Adding a playlist, as a page of the Settings sheet laid over the list (it appears in place, as pages do on Android):
+ * the kinds (link, Xtream, file), the values, the button. Back closes only this page; once a playlist is added it
+ * closes by itself and the list shows the new one in use.
  */
 function AddSheet(p: { closing: boolean; busy: boolean; onAdd: (link: string) => string | null; onAddFile: (name: string, text: string) => Promise<string | null>; onClose: () => void }) {
   const root = useRef<HTMLDivElement>(null);
@@ -40,9 +40,8 @@ function AddSheet(p: { closing: boolean; busy: boolean; onAdd: (link: string) =>
   useEffect(() => { focusFirst(document, "pl-kind-m3u"); }, []);
   return createPortal(
     <div ref={root}>
-      <Drawer side="bottom" label={t("emptyAdd")} onClose={p.onClose} closing={p.closing} returnFocus>
-        <SheetHead title={t("emptyAdd")} />
-        <div class="drawer-body drawer-scroll setting">
+      <Drawer variant="sheet" instant title={t("emptyAdd")} label={t("emptyAdd")} onClose={p.onClose} closing={p.closing} returnFocus>
+        <div class="st-sheet-body setting">
           <SourceForm idPrefix="pl" busy={p.busy}
             onSubmit={(link) => { const err = p.onAdd(link); if (!err) p.onClose(); return err; }}
             onFile={async (name, text) => { const err = await p.onAddFile(name, text); if (!err) p.onClose(); return err; }} />

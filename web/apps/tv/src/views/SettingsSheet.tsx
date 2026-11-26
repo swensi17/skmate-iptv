@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "preact/hooks";
-import { Drawer, focusFirst, Icon, Presence, type IconName } from "@skmate/ui";
+import { Drawer, focusFirst, GroupLine, type IconName } from "@skmate/ui";
 import type { GuideData, SourceOutcome } from "@skmate/epg";
 import { t, type Key } from "../i18n";
 import type { PlaylistEntry, PlaylistStore } from "../state/playlists";
@@ -9,15 +9,13 @@ import type { GuideStatus } from "../state/useGuide";
 import type { Status } from "../state/usePlaylists";
 import { AboutPanel } from "./AboutPanel";
 import { BackupPanel } from "./BackupPanel";
-import { EpgPanel, guideLine } from "./EpgPanel";
+import { EpgPanel } from "./EpgPanel";
 import { PlayerSettingRows } from "./PlayerRows";
 import { PlaylistsPanel } from "./PlaylistsPanel";
 import { ProfilesPanel } from "./ProfilesPanel";
 import { SettingRow } from "./SettingRow";
-import { SheetHead } from "./SheetHead";
 import type { UpdateState } from "../state/useUpdates";
 import { SystemPanel } from "./SystemPanel";
-import { LANGUAGES } from "../i18n/languages";
 import "./settings.css";
 
 export type Page = "player" | "look" | "playlists" | "epg" | "profiles" | "system" | "backup" | "about";
@@ -78,7 +76,7 @@ interface Props {
   update: { state: UpdateState; check: () => void; install: () => void };
 }
 
-/** Settings as a sheet from the bottom: a menu of sections, each opening its rows in a sheet of its own on top. */
+/** Settings as the Android sheet on the right (SettingsStage.kt SettingsSheet): the groups, each opening its rows in place. */
 export function SettingsSheet(p: Props) {
   const { settings: s, onChange, page } = p;
   const set = <K extends keyof Settings>(k: K) => (v: Settings[K]) => onChange({ ...s, [k]: v });
@@ -91,28 +89,11 @@ export function SettingsSheet(p: Props) {
     if (page) left.current = page;
   }, [page, p.show]);
 
-  const aspect = { fit: t("aspFit"), fill: t("aspFill"), cover: t("aspCover") }[s.aspect];
-  const density = { 72: t("rowCompact"), 84: t("rowNormal"), 96: t("rowLarge") }[s.rowSize];
-  const theme = { system: t("themeSystem"), dark: t("themeDark"), light: t("themeLight") }[s.theme];
-  const language = s.language === "auto" ? t("langAuto") : (LANGUAGES.find((l) => l.code === s.language)?.name ?? s.language);
   const me = p.book.profiles.find((x) => x.id === p.book.activeId);
-  // Under each section: what it is set to now, in the words of its own rows.
-  const subtitle: Record<Page, string> = {
-    player: `${t("setAspect")}: ${aspect}`,
-    look: `${t("settingsTheme")}: ${theme} · ${t("setRowSize")}: ${density}`,
-    playlists: p.store.list.length === 0 ? t("noPlaylist") : t("menuPlSub", { name: p.active?.name ?? t("noPlaylist"), n: p.store.list.length }),
-    epg: p.guide.status.kind === "syncing" ? t("epgRefreshing") : guideLine(p.guide.data, p.channelCount),
-    profiles: me ? (me.guest ? t("guestName") : me.name) : "",
-    system: `${t("setLanguage")}: ${language} · ${t("sysVersion")} ${__APP_VERSION__}`,
-    backup: t("bkSaveHint"),
-    about: t("aboutLicense"),
-  };
 
-  // One page of settings, as its own sheet on top of the menu.
-  const pageSheet = (pg: Page) => (
-        <>
-          <SheetHead title={t(META[pg].title)} right={pg === "about" ? __APP_VERSION__ : undefined} />
-          <div class="drawer-body drawer-scroll">
+  // One page of settings: its rows, in the same sheet (a page replaces the list at once, as on Android).
+  const pageRows = (pg: Page) => (
+          <div class="st-sheet-body setting">
             {pg === "player" ? <PlayerSettingRows settings={s} onChange={onChange} /> : null}
             {pg === "look" ? (
               <>
@@ -147,36 +128,23 @@ export function SettingsSheet(p: Props) {
             {pg === "backup" ? <BackupPanel /> : null}
             {pg === "about" ? <AboutPanel onQr={p.onQr} /> : null}
           </div>
-        </>
   );
 
-  // The menu is a sheet from the bottom; a section opened from it is another sheet rising over it, and Back lowers only
-  // that one, so the menu is there again under it.
+  // One sheet on the right, as TV boxes draw Settings: the list of groups, or the open group's rows under its title.
+  // It slides in once, when Settings opens; moving between the list and a group changes only what is inside it.
   return (
-    <>
-      <Drawer side="bottom" label={t("sheetTitle")} onClose={p.onClose} closing={!p.show} returnFocus>
-        <>
-          <SheetHead title={t("sheetTitle")} />
-          <div class="drawer-scroll">
-            {MENU.map((id) => (
-              <button class="menu-row two" key={id} data-focus={`sheet-${id}`} onClick={() => p.onPage(id)}>
-                <Icon name={META[id].icon} size={40} />
-                <span class="grow">
-                  <span class="mr-title">{t(META[id].title)}</span>
-                  <span class="mr-sub">{subtitle[id]}</span>
-                </span>
-              </button>
-            ))}
-          </div>
-        </>
-      </Drawer>
-      <Presence show={p.show && page !== null}>
-        {(out) => (
-          <Drawer side="bottom" label={page ? t(META[page].title) : t("sheetTitle")} onClose={p.onBack} closing={out}>
-            {page ? pageSheet(page) : null}
-          </Drawer>
-        )}
-      </Presence>
-    </>
+    <Drawer
+      variant="sheet" label={page ? t(META[page].title) : t("sheetTitle")} onClose={page ? p.onBack : p.onClose} closing={!p.show} returnFocus
+      title={page ? t(META[page].title) : t("sheetTitle")}
+      tools={page === "about" ? <span class="drawer-ver">{__APP_VERSION__}</span> : undefined}
+    >
+      {page ? pageRows(page) : (
+        <div class="st-sheet-body">
+          {MENU.map((id) => (
+            <GroupLine key={id} id={`sheet-${id}`} icon={META[id].icon} title={t(META[id].title)} onClick={() => p.onPage(id)} />
+          ))}
+        </div>
+      )}
+    </Drawer>
   );
 }

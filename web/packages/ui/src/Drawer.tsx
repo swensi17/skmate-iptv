@@ -1,57 +1,31 @@
 import type { ComponentChildren } from "preact";
-import { createPortal } from "preact/compat";
-import { useState } from "preact/hooks";
 import { useReturnFocus } from "./returnFocus";
 
 /**
- * A panel that slides in from an edge over a dimmed screen, and slides out again when [closing] is set (see
- * `Presence`). By default it is a dialog for the remote: focus stays inside it (`data-modal`), Back or a click outside
- * closes it. With [modal] false the remote may leave it for what is outside (the player's bar below it), and
- * [bottomGap] keeps that much of the screen's bottom free.
+ * A panel at the edge of the screen. By default it is a dialog for the remote: focus stays inside it (`data-modal`),
+ * Back or a click outside closes it ([onClose]). It leaves when [closing] is set (see `Presence`).
  *
- * `side="bottom"` is a sheet: it rises from the bottom over the whole screen and goes down again the same way, its
- * content in one centred column (`.sheet-col`) so text has room. Sheets stack: a section opened from a sheet is
- * another sheet on top, and Back lowers only that one. Only a transform moves, so it is cheap on a TV.
+ * [variant] picks one of the Android app's two side panels (ui.css documents the classes):
+ * - `"sheet"`: the Settings sheet (SettingsStage.kt `SettingsSheet`): flush with the right edge, 37% of the screen
+ *   (`wide`: 64%), full height, left corners rounded, no wash over the screen beside it. It slides in from the right
+ *   with a fade (300 ms) when Settings opens; pages inside it change at once ([instant]), as on Android.
+ * - `"panel"`: `StageSidePanel`, for short single-choice lists: 620 wide (or [width]), over a dimmed screen, 240 ms.
+ * Both take a [title] for the header (and [subtitle] for a panel); without one the children draw their own.
+ *
+ * Without [variant] it is the older edge drawer still used by the player's lists (`side` left or right, [width],
+ * [modal] false lets the remote leave it, [bottomGap] keeps the bottom free).
  */
-/**
- * Where the full-window layers of sheets go: a fixed box right before the stage (#app) in the page, so it paints over
- * the page background but under the stage. (A negative z-index would put it under the body background.)
- */
-function wingsHost(): HTMLElement | null {
-  if (typeof document === "undefined") return null;
-  let host = document.getElementById("sheet-wings-host");
-  if (!host) {
-    host = document.createElement("div");
-    host.id = "sheet-wings-host";
-    const stage = document.getElementById("app");
-    document.body.insertBefore(host, stage ?? document.body.firstChild);
-  }
-  return host;
-}
-
-/**
- * How far a sheet travels, in stage pixels: the window's whole height. The stage is scaled and centred, so when the
- * window is not 16:9 (or the interface is zoomed out) there are bands around it; travelling the window's height, the
- * sheet and its full-window layer (`SheetWings`, which travels 100% of the window) move as one rigid piece. Null when
- * there are no bands (a TV at 100 %): the plain 100% keyframes are exact there and need no variable.
- */
-export function sheetTravel(): number | null {
-  if (typeof document === "undefined") return null;
-  const stage = document.getElementById("app");
-  const h = stage ? stage.getBoundingClientRect().height : 0;
-  if (!h) return null;
-  const travel = (window.innerHeight * 1080) / h;
-  return travel > 1081 ? Math.ceil(travel) : null;
-}
-
-/** The full-window layer behind the stage that covers the bands beside it while a sheet is up (see `Drawer`). */
-export function SheetWings(p: { closing?: boolean }) {
-  const host = wingsHost();
-  return host ? createPortal(<div class={`sheet-wings${p.closing ? " out" : ""}`} aria-hidden="true" />, host) : null;
-}
-
 export function Drawer(p: {
-  side: "left" | "right" | "bottom";
+  side?: "left" | "right";
+  variant?: "sheet" | "panel";
+  /** Sheet: the wide layout (64% of the screen) for pages built for a wide screen. */
+  wide?: boolean;
+  /** Sheet: no slide and no fade, in or out (a page replacing another one inside Settings). */
+  instant?: boolean;
+  title?: string;
+  subtitle?: string;
+  /** Header tools beside a sheet's title. */
+  tools?: ComponentChildren;
   width?: number;
   label: string;
   onClose: () => void;
@@ -66,26 +40,70 @@ export function Drawer(p: {
 }) {
   const modal = p.modal ?? true;
   const root = useReturnFocus<HTMLElement>(!!p.closing, !!p.returnFocus);
-  const sheet = p.side === "bottom";
-  // Measured once, as it opens: the window does not change size while a sheet moves.
-  const [travel] = useState(() => (sheet ? sheetTravel() : null));
+  const extra = p.className ? ` ${p.className}` : "";
+  const dialog = modal && !p.closing ? "" : undefined;
+
+  if (p.variant === "sheet") {
+    return (
+      <div class={`st-layer st-sheet-layer${p.closing ? " closing" : ""}`} data-modal={dialog} onClick={p.onClose}>
+        <aside
+          ref={root} role="dialog" aria-label={p.label} onClick={(e) => e.stopPropagation()}
+          class={`st-sheet${p.wide ? " wide" : ""}${p.instant ? " instant" : ""}${p.closing ? " out" : ""}${extra}`}
+        >
+          {p.title !== undefined ? <PanelHeader title={p.title} tools={p.tools} /> : null}
+          {p.children}
+        </aside>
+      </div>
+    );
+  }
+
+  if (p.variant === "panel") {
+    return (
+      <div class={`st-layer st-panel-layer${p.closing ? " closing" : ""}`} data-modal={dialog} onClick={p.onClose}>
+        <aside
+          ref={root} role="dialog" aria-label={p.label} onClick={(e) => e.stopPropagation()}
+          class={`st-side-panel${p.closing ? " out" : ""}${extra}`} style={p.width ? { width: `${p.width}px` } : undefined}
+        >
+          {p.title !== undefined ? <SidePanelHeader title={p.title} subtitle={p.subtitle} /> : null}
+          {p.children}
+        </aside>
+      </div>
+    );
+  }
+
+  const side = p.side ?? "right";
   // `.has-<class>` on the scrim stands in for `.drawer-scrim:has(.<class>)`, which TV engines before Chromium 105 drop.
   const has = p.className ? p.className.split(" ").filter(Boolean).map((c) => ` has-${c}`).join("") : "";
-  const size = sheet ? (travel ? { "--travel": `${travel}px` } : {}) : { width: `${p.width ?? 760}px`, ...(p.bottomGap ? { height: `calc(100% - ${p.bottomGap}px)` } : {}) };
-  // The stage keeps 16:9, so a wider or taller window shows bands beside it. A sheet also covers those: a layer of the
-  // same colour on the whole window rises and falls with it (behind the stage, so only the bands show it).
+  const size = { width: `${p.width ?? 760}px`, ...(p.bottomGap ? { height: `calc(100% - ${p.bottomGap}px)` } : {}) };
   return (
-    <>
-    {sheet ? <SheetWings closing={p.closing} /> : null}
-    <div class={`scrim drawer-scrim${sheet ? " sheet-scrim" : ""}${p.closing ? " closing" : ""}${modal ? "" : " open-ended"}${has}`} data-modal={modal && !p.closing ? "" : undefined} onClick={p.onClose}>
+    <div class={`scrim drawer-scrim${p.closing ? " closing" : ""}${modal ? "" : " open-ended"}${has}`} data-modal={dialog} onClick={p.onClose}>
       <aside
         ref={root}
-        class={`drawer drawer-${p.side}${travel ? " far" : ""}${p.closing ? " out" : ""}${p.className ? ` ${p.className}` : ""}`}
+        class={`drawer drawer-${side}${p.closing ? " out" : ""}${extra}`}
         style={size} role="dialog" aria-label={p.label} onClick={(e) => e.stopPropagation()}
       >
-        {sheet ? <div class="sheet-col">{p.children}</div> : p.children}
+        {p.children}
       </aside>
     </div>
-    </>
+  );
+}
+
+/** The Settings sheet's title row (32/800 at 30 from the edge, 36 from the top), with optional tools beside it. */
+export function PanelHeader(p: { title: string; tools?: ComponentChildren }) {
+  return (
+    <div class="st-sheet-head">
+      <div class="st-sheet-title">{p.title}</div>
+      {p.tools ? <div class="st-sheet-tools">{p.tools}</div> : null}
+    </div>
+  );
+}
+
+/** A side panel's title (34/800) and the muted line under it. */
+export function SidePanelHeader(p: { title: string; subtitle?: string }) {
+  return (
+    <div class="st-panel-head">
+      <div class={`st-panel-title${p.subtitle ? " with-sub" : ""}`}>{p.title}</div>
+      {p.subtitle ? <div class="st-panel-sub">{p.subtitle}</div> : null}
+    </div>
   );
 }

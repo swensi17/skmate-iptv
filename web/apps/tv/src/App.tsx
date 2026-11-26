@@ -469,7 +469,7 @@ export function App() {
         ) : null}
         {section === "search" ? <SearchView channels={channels} favorites={favorites} onOpen={open} onArchive={openArchive} onUpcoming={openUpcoming} reminded={reminded} onFav={toggleFavorite} /> : null}
       </main>
-      <Presence show={sheet}>
+      <Presence show={sheet} ms={300}>
         {(out) => (
           <SettingsSheet
             show={!out} page={sheetPage} onPage={(pg) => { setSheetFrom("menu"); setSheetPage(pg); }} onClose={() => setSheet(false)} onBack={sheetBack}

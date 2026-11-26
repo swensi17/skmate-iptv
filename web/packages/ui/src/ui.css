@@ -1,3 +1,381 @@
+/*
+ * SkMate Stage design system for the web TV app: the Android TV app's look (TV-box style), ported 1:1.
+ * Tokens are in tokens.css. Android sources: ui/stage/StageComponents.kt, StageControls.kt, StagePopup.kt,
+ * StageSidePanel.kt, features/settings/SettingsStage.kt (sheet, rows), features/more/MorePages.kt (GroupLine),
+ * features/live/LiveStage.kt (archive tag). Sizes are Android `mpx` = px on the 1920 stage.
+ *
+ * Rules for every new rule here (2019 TVs, Chromium 53-63): animate only transform and opacity; no blur, no
+ * backdrop-filter, no large shadows; no flex `gap` (margins instead), no `inset`, `aspect-ratio`, `:has`, `clamp`,
+ * `:is`, `:where`.
+ *
+ * ---------------------------------------------------------------------------------------------------------------
+ * CLASS API (stable; Preact helpers for most of them are in Controls.tsx, exported from @skmate/ui)
+ *
+ * Focus
+ *   .st-focusable          any control the remote can stop on. :focus (or .st-lit = drawn as focused without focus,
+ *                          e.g. a field being typed in) = the TV-box plate: --st-focus-fill, radius 4, no ring, no
+ *                          animation; inside it the LIGHT palette applies (all --st-* text vars are swapped), so
+ *                          children coloured with --st-* vars turn dark by themselves. Give it data-focus="id".
+ *   .st-lift               + scale 1.04 on focus over 170 ms (StageButton PRIMARY); .st-lift.poster = 1.08 from 50% 40%.
+ *
+ * Containers (render through the Drawer / Popup / Menu components, which add the layer and the keys)
+ *   .st-sheet              Settings sheet: right edge, 37% of the stage (min 600), full height, left corners 20,
+ *                          no scrim; slides in from the right with a fade, 300 ms. .wide = 64%. .instant = no motion
+ *                          (pages inside Settings change at once, as on Android).
+ *     .st-sheet-head > .st-sheet-title (32/800)   .st-sheet-body (scrolling rows, 12 top / 40 bottom)
+ *   .st-side-panel         StageSidePanel: right edge, 620 wide, #1e2228, dim scrim, slide 240 ms (short choice lists).
+ *     .st-panel-head > .st-panel-title (34/800) + .st-panel-sub (17/500)   rows: .st-panel-option
+ *   .st-popup              StagePopup (dialog): card radius 30, 880 wide by default, centred over --st-scrim;
+ *                          .st-popup-layer.top puts it 40 px from the top (the TV keyboard covers the bottom).
+ *     .st-popup-head > .st-popup-eyebrow / .st-popup-title (38/800) / .st-popup-body (18/400)
+ *     .st-popup-buttons (right-aligned row of .st-button.sm)   .st-divider
+ *   .st-menu               StageMenu (☰ menus, channel menu, playlist switcher): card radius 28.
+ *     .st-menu-head (.st-menu-lead, .st-menu-title 23/800, .st-menu-sub 15/500)  .st-menu-group (caps label)
+ *     .st-menu-list (scrolls)   rows: .st-menu-item
+ *
+ * Rows
+ *   .st-line               a Settings group (GroupLine): 80 high, 32 icon (.st-line-icon), 25/700 text (.st-line-text)
+ *   .st-setting            a setting in the sheet (StageSettingRow): min 92, .st-setting-icon 38, .st-setting-body >
+ *                          .st-setting-title (26/600) + .st-setting-value (20/500 line under it); .st-setting-end on
+ *                          the right (switch, stepper, swatch). .off = disabled (title dim).
+ *   .st-field              a text field row (StageFieldRow): like .st-setting with an <input class="st-field-input">;
+ *                          .st-field-edit = the blue "Edit" shown while lit and not typing.
+ *   .st-menu-item          a menu row: 76 high, 28 icon, 23/600; .st-menu-value (17/700, blue on focus),
+ *                          .st-check (22, accent); hairline under it. .off = 45%.
+ *   .st-option             a popup row (StagePopupOption): min 84 (.two = 96 with .st-option-sub), 25/600 title,
+ *                          .st-option-value (accent, "›"), .st-check at the end; .danger, .chosen.
+ *   .st-panel-option       a side-panel row: min 76, 30 icon, 22/700 title, 15/500 line; .danger.
+ *   .st-sheet-item         a category row (StageSheetItem): 56 high, 20/600, .st-count (16/600 dim); .sel = accent.
+ *
+ * Text
+ *   .st-section            section header in a page ("Плеер"): 24/800, 26 above (.first: 6), 10 below, inset 22
+ *   .st-caps               dim caps label (13/800, +0.12em)
+ *   .st-value              a row's value: 18/700 accent (blue in Settings); .plain = text colour
+ *   .st-chevron            the 20 px muted › after a value
+ *   .st-muted / .st-dim / .st-body   colour helpers
+ *
+ * Controls
+ *   .st-switch (.on)       56×32 switch, display only (the row owns focus); knob slides 200 ms, track fades
+ *   .st-stepper            "− 90% +": .st-step (34×34) .st-step-value (18/700)
+ *   .st-seg                segmented value: .st-seg-opt (.on = chosen, on --st-segment-on)
+ *   .st-button             StageButton TV-box: grey slab radius 4, 64 high, 22/700 (.sm = 56 / 19); focus = plate
+ *                          + lift 1.04. .round = square icon button. .st-button-trail = muted trailing part.
+ *   .st-tool               toolbar chip (StageTool): 48 high, 18/700 muted, 20 icon; .boxed = grey slab;
+ *                          .st-tool-value = the bold part in text colour
+ *   .st-search             search field (StageSearchField): 48 high, grey slab, 20 icon, 18 px; lit = light plate
+ *
+ * Badges and bars
+ *   .st-tag                provider / quality tag (13/800 caps on ink 8%); .tint + style="--tag-color:#..." = outline
+ *   .st-archive            the blue archive tag ("3 дня") in a row's top-right corner (place it with .corner)
+ *   .st-live-badge         red-dot LIVE on video;  .st-spec  stream fact chip on video;  .st-rating  ★ chip on posters
+ *   .st-progress (> i, style width) 6 high accent bar; .flat = the channel row's 4 px ink bar
+ *   .st-sep                hairline between groups of a sheet
+ * ---------------------------------------------------------------------------------------------------------------
+ */
+
+/* ===== Focus: the TV-box plate ===== */
+.st-focusable { outline: none; }
+.st-focusable:focus, .st-focusable.st-lit {
+  background-color: var(--st-focus-fill);
+  border-radius: var(--st-r-focus);
+  outline: none;
+  /* The light palette on the plate (StageSurface: LocalStagePalette provides Light). */
+  --st-text: #121212;
+  --st-muted: #474645;
+  --st-dim: #7e7e7d;
+  --st-item: #343433;
+  --st-menu-item: #343433;
+  --st-tag-text: #474645;
+  --st-body: #474645;
+  --st-fx-line: #343433;
+  --st-ink-rgb: 18, 18, 18;
+  --st-control: rgba(18, 18, 18, 0.06);
+  --st-segment-on: #ffffff;
+  --st-knob-off: #ffffff;
+  --st-danger: #ff2b3a;
+  /* A pale accent (the dark theme's cream) vanishes on the plate: the brand blue reads on it. */
+  --st-accent: var(--st-accent-on-plate, var(--st-blue));
+  --st-on-accent: #121212;
+  color: var(--st-text);
+}
+:root[data-theme="light"] { --st-accent-on-plate: #121212; }
+.st-lift { transition: transform var(--st-lift-ms) var(--st-ease); }
+.st-lift:focus { transform: scale(1.04); }
+.st-lift.poster { transform-origin: 50% 40%; }
+.st-lift.poster:focus { transform: scale(1.08); }
+
+/* Every Stage control is a plain button underneath: reset what the browser adds. */
+button.st-focusable { border: 0; font-family: var(--st-font); text-align: left; cursor: pointer; -webkit-appearance: none; }
+
+/* ===== Layers ===== */
+.st-layer { position: absolute; left: 0; top: 0; right: 0; bottom: 0; z-index: 10; contain: paint; }
+@keyframes st-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes st-fade-out { from { opacity: 1; } to { opacity: 0; } }
+
+/* --- The Settings sheet (SettingsStage.kt SettingsSheet + OwnTVShell.kt's slide) --- */
+.st-sheet-layer { background: none; } /* no wash: the screen beside the sheet stays as it is; a click there is Back */
+.st-sheet {
+  position: absolute; right: 0; top: 0; bottom: 0; width: 37%; min-width: 600px; max-width: 100%;
+  display: flex; flex-direction: column;
+  background: var(--st-sheet-fill); color: var(--st-text); font-family: var(--st-font);
+  border-radius: var(--st-r-sheet-edge) 0 0 var(--st-r-sheet-edge); overflow: hidden;
+  /* Inside the sheet the accent is SkMate blue on white (switches, values), whatever the theme's accent. */
+  --st-accent: var(--st-blue);
+  --st-on-accent: #ffffff;
+  --st-accent-on-plate: var(--st-blue);
+  will-change: transform, opacity;
+  animation: st-sheet-in var(--st-sheet-ms) var(--st-ease) both;
+}
+.st-sheet.wide { width: 64%; }
+.st-sheet.out { animation: st-sheet-out var(--st-sheet-ms) var(--st-ease) both; }
+.st-sheet.instant { animation: none; }
+.st-sheet.instant.out { animation: none; opacity: 0; }
+/* The whole screen-wide layer moves on Android (translationX = (1 - p) * width, alpha = p): the panel travels the
+   full stage width, fading in as it comes. */
+@keyframes st-sheet-in { from { transform: translateX(1920px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes st-sheet-out { from { transform: none; opacity: 1; } to { transform: translateX(1920px); opacity: 0; } }
+.st-sheet-head { flex: none; display: flex; align-items: center; padding: 36px 24px 14px 30px; }
+/* line-height 1.3: the title line Android lays out (measured on 10-nastroyki.png: first row at 103.5 design px). */
+.st-sheet-title { flex: 1 1 0%; min-width: 0; font-size: 32px; font-weight: 800; letter-spacing: -0.0217em; line-height: 1.3; color: var(--st-text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.st-sheet-head > .st-sheet-tools { flex: none; display: flex; align-items: center; margin-left: 12px; }
+.st-sheet-body { flex: 1 1 0%; min-height: 0; overflow-x: hidden; overflow-y: auto; padding: 12px 0 40px; scrollbar-width: none; }
+.st-sheet-body::-webkit-scrollbar { display: none; }
+
+/* --- StageSidePanel: short single-choice lists over a dimmed screen --- */
+.st-panel-layer::before { content: ""; position: absolute; left: 0; top: 0; right: 0; bottom: 0; background: var(--st-side-panel-scrim);
+  animation: st-fade-in var(--st-panel-ms) var(--st-ease) both; }
+.st-panel-layer.closing::before { animation: st-fade-out var(--st-panel-ms) var(--st-ease) both; }
+.st-side-panel {
+  position: absolute; right: 0; top: 0; bottom: 0; width: 620px; max-width: 100%;
+  display: flex; flex-direction: column; padding: 48px 0;
+  background: var(--st-side-panel-fill); color: var(--st-text); font-family: var(--st-font);
+  will-change: transform, opacity;
+  animation: st-panel-in var(--st-panel-ms) var(--st-ease) both;
+}
+.st-side-panel.out { animation: st-panel-out var(--st-panel-ms) var(--st-ease) both; }
+@keyframes st-panel-in { from { transform: translateX(100%); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes st-panel-out { from { transform: none; opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
+.st-panel-head { flex: none; }
+.st-panel-title { padding: 0 30px; margin-bottom: 24px; font-size: 34px; font-weight: 800; color: var(--st-text); }
+.st-panel-title.with-sub { margin-bottom: 8px; }
+.st-panel-sub { padding: 0 30px; margin-bottom: 28px; font-size: 17px; font-weight: 500; color: var(--st-muted); }
+.st-panel-body { flex: 1 1 0%; min-height: 0; overflow-x: hidden; overflow-y: auto; scrollbar-width: none; }
+.st-panel-body::-webkit-scrollbar { display: none; }
+
+/* --- StagePopup (a dialog) --- */
+.st-popup-layer { z-index: 60; display: flex; align-items: center; justify-content: center; background: var(--st-scrim);
+  animation: st-fade-in var(--st-popup-ms) linear both; }
+.st-popup-layer.closing { animation: st-fade-out var(--st-popup-ms) linear both; }
+/* While the TV keyboard is up Android moves the panel to the top (40 from the edge), so the field stays in view. */
+.st-popup-layer.top { align-items: flex-start; padding-top: 40px; }
+.st-popup {
+  width: 880px; max-width: calc(100% - 80px); max-height: calc(100% - 80px); overflow-x: hidden; overflow-y: auto;
+  padding: 30px 12px; border-radius: var(--st-r-popup);
+  background: var(--st-card-fill); color: var(--st-text); box-shadow: var(--st-card-shadow);
+  font-family: var(--st-font); font-size: 19px; font-weight: 500; scrollbar-width: none;
+}
+.st-popup::-webkit-scrollbar { display: none; }
+.st-popup-head { padding: 0 18px; margin-bottom: 22px; }
+.st-popup-eyebrow { font-size: 15px; font-weight: 800; letter-spacing: 0.12em; color: var(--st-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.st-popup-title { font-size: 38px; font-weight: 800; letter-spacing: -0.5px; color: var(--st-text);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.st-popup-eyebrow + .st-popup-title { margin-top: 6px; }
+.st-popup-body { margin-top: 10px; font-size: 18px; font-weight: 400; line-height: 1.45; color: var(--st-muted); overflow-wrap: break-word; }
+.st-popup-buttons { display: flex; justify-content: flex-end; align-items: center; padding: 24px 18px 0; }
+.st-popup-buttons > * + * { margin-left: 14px; }
+.st-divider { height: 1px; margin: 18px 0; background: var(--st-divider); }
+
+/* --- StageMenu: ☰ menus, the channel menu, the playlist switcher --- */
+.st-menu-layer { z-index: 40; background: var(--st-scrim); animation: st-fade-in var(--st-popup-ms) linear both; }
+.st-menu-layer.closing { animation: st-fade-out var(--st-popup-ms) linear both; }
+.st-menu-layer.center { display: flex; align-items: center; justify-content: center; }
+.st-menu {
+  display: flex; flex-direction: column; max-height: 965px; /* the screen less 64 dp, as Android keeps */
+  padding: 22px 16px 16px; border-radius: var(--st-r-menu);
+  background: var(--st-card-fill); color: var(--st-text); box-shadow: var(--st-card-shadow); font-family: var(--st-font);
+}
+.st-menu-layer.top-end .st-menu { position: absolute; top: 104px; right: 100px; max-height: calc(100% - 128px); }
+.st-menu-head { flex: none; display: flex; align-items: center; padding: 0 12px 12px; }
+.st-menu-lead { flex: none; margin-right: 14px; }
+.st-menu-text { min-width: 0; }
+.st-menu-title { font-size: 23px; font-weight: 800; color: var(--st-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.st-menu-sub { margin-top: 2px; font-size: 15px; font-weight: 500; color: var(--st-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.st-menu-list { flex: 0 1 auto; min-height: 0; overflow-x: hidden; overflow-y: auto; scrollbar-width: none; }
+.st-menu-list::-webkit-scrollbar { display: none; }
+.st-menu-group { padding: 12px 14px 5px; font-size: 12.5px; font-weight: 800; letter-spacing: 0.13em; color: var(--st-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ===== Rows ===== */
+/* A Settings group (MorePages.kt GroupLine): Android TV's own settings list. */
+.st-line { display: flex; align-items: center; width: 100%; height: 80px; padding: 0 30px; background: none; color: var(--st-text); }
+.st-line-icon { flex: none; width: 32px; height: 32px; margin-right: 22px; opacity: 0.85; }
+.st-line:focus .st-line-icon, .st-line.st-lit .st-line-icon { opacity: 1; }
+.st-line-text { flex: 1 1 0%; min-width: 0; font-size: 25px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* A setting in the sheet (StageSettingRow, side = true): the value is the line under the title. */
+.st-setting, .st-field { display: flex; align-items: center; width: 100%; min-height: 92px; padding: 0 30px; background: none; color: var(--st-text); }
+.st-setting-icon { flex: none; width: 38px; height: 38px; margin-right: 18px; color: var(--st-muted); }
+.st-setting-body { flex: 1 1 0%; min-width: 0; padding: 8px 0; }
+.st-setting-title { display: block; font-size: 26px; font-weight: 600; color: var(--st-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.st-setting.off .st-setting-title { color: var(--st-dim); }
+.st-setting-value { display: block; margin-top: 3px; font-size: 20px; font-weight: 500; color: var(--st-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.st-focusable:focus .st-setting-value, .st-lit .st-setting-value { color: var(--st-fx-line); }
+.st-setting-end { flex: none; display: flex; align-items: center; margin-left: 18px; }
+.st-setting.marked:not(:focus) { background: var(--st-marked); border-radius: var(--st-r-focus); }
+
+/* A text field row (StageFieldRow). In a popup it is the narrower variant (90 high, 32 icon, 21/700). */
+.st-field-input { display: block; width: 100%; margin: 3px 0 0; padding: 0; border: 0; outline: none; background: none;
+  font: 600 20px var(--st-font); color: var(--st-text); caret-color: var(--st-accent); }
+.st-field-input::placeholder { color: var(--st-dim); font-weight: 500; }
+.st-field-input.solo { margin-top: 0; }
+label.st-field { cursor: text; }
+.st-focusable:focus .st-field-input, .st-lit .st-field-input { color: var(--st-fx-line); }
+.st-field-edit { flex: none; margin-left: 18px; font-size: 18px; font-weight: 700; color: var(--st-blue); white-space: nowrap; }
+.st-popup .st-field { min-height: 90px; padding: 0 22px; }
+.st-popup .st-field .st-setting-icon { width: 32px; height: 32px; }
+.st-popup .st-field .st-setting-title { font-size: 21px; font-weight: 700; }
+.st-popup .st-field .st-field-input { font-size: 19px; }
+
+/* A menu row (StageMenuItem, TV-box: 76 high, 23 px, a hairline under it). */
+.st-menu-item { position: relative; display: flex; align-items: center; width: 100%; height: 76px; padding: 0 14px; flex-shrink: 0;
+  background: none; color: var(--st-menu-item); font-size: 23px; font-weight: 600; }
+.st-menu-item::after { content: ""; position: absolute; left: 14px; right: 14px; bottom: 0; height: 1px; background: var(--st-hairline); pointer-events: none; }
+.st-menu-item.off { opacity: 0.45; }
+.st-menu-item > svg { flex: none; width: 28px; height: 28px; margin-right: 14px; color: var(--st-muted); }
+.st-menu-item-text { flex: 1 1 0%; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--st-menu-item); }
+.st-menu-value { flex: none; margin-left: 14px; font-size: 17px; font-weight: 700; color: var(--st-dim); white-space: nowrap; }
+.st-focusable:focus .st-menu-value { color: var(--st-blue); }
+.st-check { flex: none; width: 22px; height: 22px; margin-left: 14px; color: var(--st-accent); }
+.st-menu-item > .st-check { margin-right: 0; color: var(--st-accent); }
+.st-menu-item:focus > .st-check { color: var(--st-on-accent); } /* StageMenuItem: the check takes the plate's ink */
+
+/* A popup row (StagePopupOption). */
+.st-option { display: flex; align-items: center; width: 100%; min-height: 84px; padding: 10px 24px; background: none; color: var(--st-text); }
+.st-option.two { min-height: 96px; }
+.st-option.off { opacity: 0.45; }
+.st-option-lead { flex: none; margin-right: 18px; display: flex; align-items: center; }
+.st-option-body { flex: 1 1 0%; min-width: 0; }
+.st-option-title { display: block; font-size: 25px; font-weight: 600; color: var(--st-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.st-option.danger .st-option-title { color: var(--st-danger); }
+.st-option.chosen:not(:focus) .st-option-title { color: var(--st-accent); }
+.st-option-sub { display: block; font-size: 19px; font-weight: 500; color: var(--st-muted);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.st-option-value { flex: none; margin-left: 18px; font-size: 18px; font-weight: 700; color: var(--st-accent); white-space: nowrap; }
+.st-focusable:focus .st-option-value { color: var(--st-blue); }
+/* StagePopupRadio: accent while idle; SkMate blue on a light page and on the (light) focus plate. */
+.st-option > .st-check { width: 24px; height: 24px; margin-left: 18px; color: var(--st-accent); }
+:root[data-theme="light"] .st-option > .st-check, .st-option:focus > .st-check { color: var(--st-blue); }
+
+/* A side-panel row (StageSidePanelOption). */
+.st-panel-option { display: flex; align-items: center; width: 100%; min-height: 76px; padding: 12px 30px; background: none; color: var(--st-text); }
+.st-panel-option > svg { flex: none; width: 30px; height: 30px; margin-right: 18px; }
+.st-panel-option-body { flex: 1 1 0%; min-width: 0; }
+.st-panel-option-title { display: block; font-size: 22px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.st-panel-option-sub { display: block; font-size: 15px; font-weight: 500; color: var(--st-muted);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.st-panel-option.danger { color: var(--st-danger); }
+
+/* A category row (StageSheetItem, TV-box: no dot, the chosen one in accent, a hairline under each row). */
+.st-sheet-item { position: relative; display: flex; align-items: center; width: 100%; height: 56px; padding: 0 16px; background: none;
+  font-size: 20px; font-weight: 600; color: var(--st-item); }
+.st-sheet-item::after { content: ""; position: absolute; left: 16px; right: 16px; bottom: 0; height: 1px; background: rgba(0, 0, 0, 0.07); pointer-events: none; }
+.st-sheet-item > svg { flex: none; width: 28px; height: 28px; margin-right: 14px; color: var(--st-muted); }
+.st-sheet-item-text { flex: 1 1 0%; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.st-sheet-item.sel:not(:focus), .st-sheet-item.sel:not(:focus) > svg { color: var(--st-accent); }
+.st-count { flex: none; margin-left: 14px; font-size: 16px; font-weight: 600; color: var(--st-dim); }
+
+/* ===== Text ===== */
+.st-section { padding: 26px 22px 10px; font-size: 24px; font-weight: 800; color: var(--st-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.st-section.first { padding-top: 6px; }
+.st-caps { padding: 14px 16px 6px; font-size: 13px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--st-dim); }
+.st-value { font-size: 18px; font-weight: 700; color: var(--st-accent); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.st-value.plain { color: var(--st-text); }
+.st-chevron { flex: none; width: 20px; height: 20px; margin-left: 10px; color: var(--st-muted); }
+.st-muted { color: var(--st-muted); }
+.st-dim { color: var(--st-dim); }
+.st-body { color: var(--st-body); }
+.st-sep { height: 1px; margin: 10px 24px; background: var(--st-separator); }
+
+/* ===== Controls ===== */
+/* StageSwitch: 56×32; the knob slides and the track's colour fades (a layer's opacity, not a colour transition). */
+.st-switch { position: relative; flex: none; display: inline-block; width: 56px; height: 32px; border-radius: 16px; background: rgba(var(--st-ink-rgb), 0.14); vertical-align: middle; }
+.st-switch::before { content: ""; position: absolute; left: 0; top: 0; right: 0; bottom: 0; border-radius: 16px; background: var(--st-accent);
+  opacity: 0; transition: opacity var(--st-switch-ms) var(--st-ease); }
+.st-switch::after { content: ""; position: absolute; left: 4px; top: 4px; width: 24px; height: 24px; border-radius: 50%; background: var(--st-knob-off);
+  transition: transform var(--st-switch-ms) var(--st-ease); }
+.st-switch.on::before { opacity: 1; }
+.st-switch.on::after { transform: translateX(24px); background: #ffffff; }
+
+/* StageStepper: "− 90% +", display only (◀ ▶ on the row step it). */
+.st-stepper { flex: none; display: inline-flex; align-items: center; padding: 4px; border-radius: 13px; background: var(--st-control); }
+.st-step { width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 700; color: var(--st-muted); }
+.st-step-value { min-width: 64px; margin: 0 4px; text-align: center; font-size: 18px; font-weight: 700; color: var(--st-text); white-space: nowrap; }
+
+/* The segmented value in a settings row (SettingsStage.kt SegmentedDisplay). Android slides the chosen pill (160 ms);
+   here the chosen option simply carries it. */
+.st-seg { flex: none; display: inline-flex; padding: 4px; border-radius: 15px; background: var(--st-control); }
+.st-seg-opt { height: 40px; padding: 0 14px; display: flex; align-items: center; border-radius: 11px; font-size: 17px; font-weight: 700; color: var(--st-muted); white-space: nowrap; }
+.st-seg-opt + .st-seg-opt { margin-left: 2px; }
+.st-seg-opt.on { background: var(--st-segment-on); color: var(--st-text); }
+
+/* StageButton (TV-box): every button the same square grey slab; focus = the plate and a 1.04 lift. */
+.st-button { display: inline-flex; align-items: center; justify-content: center; flex: none; height: 64px; padding: 0 30px;
+  border-radius: var(--st-r-focus); background: var(--st-control); color: var(--st-text);
+  font-size: 22px; font-weight: 700; white-space: nowrap; transition: transform var(--st-lift-ms) var(--st-ease); }
+.st-button:focus { transform: scale(1.04); }
+.st-button.sm { height: 56px; font-size: 19px; }
+.st-button.round { width: 64px; padding: 0; }
+.st-button.sm.round { width: 56px; }
+.st-button > svg { flex: none; width: 1em; height: 1em; }
+.st-button > svg + span, .st-button > span + svg, .st-button > span + span { margin-left: 12px; }
+.st-button-trail { font-weight: 600; color: var(--st-muted); }
+
+/* StageTool: a quiet text button in a tool row; .boxed = the grey slab (TV-box). */
+.st-tool { display: inline-flex; align-items: center; flex: none; height: 48px; padding: 0 16px; border-radius: var(--st-r-focus); background: none;
+  color: var(--st-muted); font-size: 18px; font-weight: 700; white-space: nowrap; }
+.st-tool.boxed { background: var(--st-control-solid); }
+.st-tool.danger { color: var(--st-danger); }
+.st-tool > svg { flex: none; width: 20px; height: 20px; }
+.st-tool > svg + span, .st-tool > span + span, .st-tool > span + svg { margin-left: 9px; }
+.st-tool-value { color: var(--st-text); }
+.st-tool:focus { background-color: var(--st-focus-fill); }
+
+/* StageSearchField (TV-box): a slab with small corners; chosen = the light plate with dark text. */
+.st-search { display: flex; align-items: center; height: 48px; padding: 0 18px; border-radius: var(--st-r-focus); background: var(--st-control-solid); color: var(--st-text); }
+.st-search > svg { flex: none; width: 20px; height: 20px; margin-right: 12px; color: var(--st-dim); }
+.st-search-input { flex: 1 1 0%; min-width: 0; height: 100%; padding: 0; border: 0; outline: none; background: none;
+  font: 500 18px var(--st-font); color: var(--st-text); }
+.st-search-input::placeholder { font-weight: 400; color: var(--st-dim); }
+.st-search:focus, .st-search:focus-within, .st-search.st-lit { background: #e0e2e4; }
+.st-search:focus > svg, .st-search:focus-within > svg, .st-search.st-lit > svg { color: #121212; }
+.st-search:focus-within .st-search-input, .st-search.st-lit .st-search-input { color: #121212; caret-color: #121212; }
+.st-search:focus-within .st-search-input::placeholder, .st-search.st-lit .st-search-input::placeholder { color: rgba(18, 18, 18, 0.6); }
+
+/* ===== Badges and bars ===== */
+.st-tag { display: inline-block; padding: 3px 7px; border-radius: var(--st-r-tag); background: rgba(var(--st-ink-rgb), 0.08);
+  font-size: 13px; font-weight: 800; letter-spacing: 0.05em; line-height: normal; color: var(--st-tag-text); white-space: nowrap; }
+.st-tag.tint { background: none; color: var(--tag-color, var(--st-tag-text)); box-shadow: inset 0 0 0 1.5px var(--tag-color, var(--st-tag-text)); }
+/* The archive (LiveStage.kt ArchiveCornerTag): blue, white text, its top and right edges on the row's own. */
+.st-archive { display: inline-block; padding: 4px 12px; border-radius: 0 4px 0 10px; background: var(--st-blue); color: #ffffff;
+  font-size: 14px; font-weight: 600; line-height: normal; white-space: nowrap; }
+.st-archive.corner { position: absolute; top: 0; right: 0; }
+.st-live-badge { display: inline-flex; align-items: center; padding: 6px 12px; border-radius: 10px; background: rgba(0, 0, 0, 0.55);
+  font-size: 15px; font-weight: 800; letter-spacing: 0.08em; color: #ffffff; white-space: nowrap; }
+.st-live-badge::before { content: ""; flex: none; width: 9px; height: 9px; margin-right: 8px; border-radius: 50%; background: #ff4d4d; }
+.st-spec { display: inline-block; padding: 5px 9px; border-radius: 8px; background: rgba(0, 0, 0, 0.5);
+  font-size: 13px; font-weight: 800; letter-spacing: 0.05em; color: #e7efec; white-space: nowrap; }
+.st-rating { display: inline-flex; align-items: center; height: 32px; min-width: 76px; padding: 0 10px; border-radius: 10px;
+  background: rgba(8, 12, 14, 0.92); color: #ffffff; font-size: 15px; font-weight: 800; }
+.st-rating > svg { flex: none; width: 15px; height: 15px; margin-right: 6px; color: var(--st-rating); }
+.st-progress { position: relative; display: block; height: 6px; border-radius: 3px; overflow: hidden; background: rgba(var(--st-ink-rgb), 0.12); }
+.st-progress > i { display: block; height: 100%; border-radius: inherit; background: var(--st-accent); }
+.st-progress.flat { height: 4px; border-radius: 2px; background: rgba(var(--st-ink-rgb), 0.16); }
+.st-progress.flat > i { background: rgb(var(--st-ink-rgb)); }
+
+/* ===================================================================================================================
+ * Older base classes the current screens still use (.rail, .row, .btn, .seg, the virtual list). Screen agents move
+ * their screens to the st-* classes above; these stay until nothing uses them.
+ * =================================================================================================================== */
 .rail { position: absolute; left: 0; top: 0; bottom: 0; width: 120px; background: var(--panel); display: flex; flex-direction: column; align-items: center; gap: 12px; padding-top: 48px; }
 .rail-item { width: 84px; height: 84px; display: flex; align-items: center; justify-content: center; border-radius: var(--radius); color: var(--muted); outline: none; border: 0; background: none; }
 .rail-item[aria-current="true"] { color: var(--text); background: var(--selected); }
