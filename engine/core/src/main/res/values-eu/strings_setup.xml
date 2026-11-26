@@ -271,4 +271,5 @@
         <item quantity="other"><xliff:g id="count">%1$d</xliff:g> hizkuntza guztiak</item>
     </plurals>
     <string name="setup_display_sub">Interfazea eta bere testua zein handiak diren telebista honetan. Beheko errenkada aldatzen doa aurrera egin ahala.</string>
+    <string name="storage_allow_files">Baimendu fitxategietara sartzea</string>
 </resources>

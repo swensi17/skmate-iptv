@@ -271,4 +271,5 @@
     <string name="setup_importing_title"><xliff:g id="name">%1$s</xliff:g> importeren</string>
     <string name="setup_add_guide">Tv-gids toevoegen</string>
     <string name="setup_add_guide_line">Een nieuwe installatie heeft nog geen gids</string>
+    <string name="storage_allow_files">Toegang tot bestanden toestaan</string>
 </resources>

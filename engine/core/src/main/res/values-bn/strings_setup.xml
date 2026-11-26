@@ -271,4 +271,5 @@
     <string name="setup_importing_title"><xliff:g id="name">%1$s</xliff:g> ইমপোর্ট হচ্ছে</string>
     <string name="setup_add_guide">টিভি গাইড যোগ করুন</string>
     <string name="setup_add_guide_line">নতুন ইনস্টলে এখনও কোনো গাইড নেই</string>
+    <string name="storage_allow_files">ফাইলে অ্যাক্সেস দিন</string>
 </resources>

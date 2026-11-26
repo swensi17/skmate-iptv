@@ -569,8 +569,16 @@ class LivePreviewEngine(
         val fps = _videoFps.value ?: measured?.let { m ->
             facts.fps?.let { (it * (1 - BITRATE_WEIGHT) + m * BITRATE_WEIGHT).toFloat() } ?: m
         }
-        _streamFacts.value = facts.copy(kbps = smooth, fps = fps ?: facts.fps)
+        // Live, but at a steady beat: the smoothed figures go on screen every two seconds, so the line keeps moving
+        // with the stream without re-writing itself on every look of the watchdog.
+        if (facts.fps == null || facts.kbps == null || at - factsShownAt >= FACTS_BEAT_MS) {
+            factsShownAt = at
+            _streamFacts.value = facts.copy(kbps = smooth, fps = fps ?: facts.fps)
+        }
     }
+
+    /** When the stream facts last changed on screen. */
+    private var factsShownAt = 0L
 
     private val reconnectRun = Runnable { currentUrl?.let { open(it) } }
 
@@ -811,6 +819,7 @@ class LivePreviewEngine(
         private const val BITS_PER_BYTE = 8
         private const val BITRATE_WEIGHT = 0.3
         private const val MS_PER_SECOND = 1000.0
+        private const val FACTS_BEAT_MS = 2_000L
         private const val MAX_FPS = 120f
 
         /** libVLC's four-letter codec as people know it: "hevc" is H.265, "mpgv" MPEG-2. */

@@ -271,4 +271,5 @@
     <string name="setup_importing_title"><xliff:g id="name">%1$s</xliff:g> ഇംപോർട്ട് ചെയ്യുന്നു</string>
     <string name="setup_add_guide">ടിവി ഗൈഡ് ചേർക്കുക</string>
     <string name="setup_add_guide_line">പുതിയ ഇൻസ്റ്റാളിൽ ഇതുവരെ ഗൈഡ് ഇല്ല</string>
+    <string name="storage_allow_files">ഫയലുകളിലേക്കുള്ള ആക്സസ് അനുവദിക്കുക</string>
 </resources>

@@ -1,5 +1,6 @@
 package tv.own.owntv.features.shell.components
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -60,7 +61,7 @@ fun TvBoxPlayerInfo(channel: ChannelEntity?, nowNext: EpgNowNext?, chips: List<S
             verticalAlignment = if (art != null) Alignment.Top else Alignment.CenterVertically,
         ) {
             infoArt(art, channel)
-            Column(verticalArrangement = Arrangement.spacedBy(8.mpx)) {
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.mpx)) {
                 if (current != null) {
                     Text(
                         current.title, style = stageText(34, 700), color = Color.White,
@@ -85,12 +86,7 @@ fun TvBoxPlayerInfo(channel: ChannelEntity?, nowNext: EpgNowNext?, chips: List<S
                     chips.take(MaxChips).forEach { Chip(it) }
                 }
                 art?.let { programmeAbout(it) }
-                if (next != null) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(16.mpx)) {
-                        Text(range(formatTime, next), style = stageText(20, 500), color = Faint, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
-                        Text(next.title, style = stageText(20, 500), color = Faint, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    }
-                }
+                nextLine(next, formatTime)
             }
         }
         val progress = current?.let {
@@ -104,6 +100,30 @@ fun TvBoxPlayerInfo(channel: ChannelEntity?, nowNext: EpgNowNext?, chips: List<S
             )
             tv.own.owntv.player.LocalTvBoxSeekRun.current?.let { moved -> seekCounter(progress, moved, watching) }
         }
+    }
+}
+
+/** What follows on the left; on its right, level with it, what the stream is (50 fps · H.264 · 4.7 Mbps). */
+@Composable
+private fun nextLine(next: XtEpgEntry?, formatTime: (Long) -> String) {
+    val facts = tv.own.owntv.player.LocalTvBoxStreamFacts.current
+    if (next == null && facts == null) return
+    Row(
+        Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(16.mpx),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        if (next != null) {
+            Text(
+                range(formatTime, next), style = stageText(NEXT_TEXT, NEXT_WEIGHT), color = Faint,
+                maxLines = 1, overflow = TextOverflow.Ellipsis,
+            )
+        }
+        Text(
+            next?.title.orEmpty(), style = stageText(NEXT_TEXT, NEXT_WEIGHT), color = Faint,
+            maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f),
+        )
+        facts?.let { tv.own.owntv.player.tvBoxStreamFacts(it) }
     }
 }
 
@@ -198,14 +218,24 @@ private fun signedDuration(sec: Int): String {
 /** The poster of a film or series on air, or else the channel's logo on its own over the picture. */
 @Composable
 private fun infoArt(art: tv.own.owntv.core.metadata.ProgrammeArt?, channel: ChannelEntity?) {
-    if (art != null) {
-        tv.own.owntv.ui.components.programmePoster(art.posterUrl, POSTER_WIDTH.mpx)
-    } else {
-        ChannelLogoTile(
-            logoUrl = channel?.displayLogoUrl,
-            modifier = Modifier.size(132.mpx).padding(6.mpx),
-            fill = Color.Transparent,
-        ) { tv.own.owntv.ui.components.OwnTVIcon(OwnTVIcon.LIVE_TV, Color.White.copy(alpha = 0.6f), Modifier.size(56.mpx)) }
+    // The logo gives way to the poster in a short cross-fade, the space growing with it, never in one frame.
+    androidx.compose.animation.Crossfade(
+        targetState = art?.posterUrl,
+        animationSpec = androidx.compose.animation.core.tween(tv.own.owntv.ui.theme.MotionPrefs.dur(ART_FADE_MS)),
+        modifier = Modifier.animateContentSize(
+            androidx.compose.animation.core.tween(tv.own.owntv.ui.theme.MotionPrefs.dur(ART_FADE_MS)),
+        ),
+        label = "info-art",
+    ) { poster ->
+        if (poster != null) {
+            tv.own.owntv.ui.components.programmePoster(poster, POSTER_WIDTH.mpx)
+        } else {
+            ChannelLogoTile(
+                logoUrl = channel?.displayLogoUrl,
+                modifier = Modifier.size(132.mpx).padding(6.mpx),
+                fill = Color.Transparent,
+            ) { tv.own.owntv.ui.components.OwnTVIcon(OwnTVIcon.LIVE_TV, Color.White.copy(alpha = 0.6f), Modifier.size(56.mpx)) }
+        }
     }
 }
 
@@ -222,6 +252,9 @@ private fun programmeAbout(art: tv.own.owntv.core.metadata.ProgrammeArt) {
 }
 
 private const val POSTER_WIDTH = 120
+private const val ART_FADE_MS = 260
+private const val NEXT_TEXT = 20
+private const val NEXT_WEIGHT = 500
 private const val ABOUT_TEXT = 19
 private const val ABOUT_WIDTH = 1300
 

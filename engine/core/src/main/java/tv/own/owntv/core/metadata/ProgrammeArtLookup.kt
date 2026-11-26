@@ -30,14 +30,26 @@ class ProgrammeArtLookup(
     }
     private val lock = Mutex()
 
+    /** What was found, readable without waiting: a programme seen before shows its poster at once, not after a beat. */
+    private val known = java.util.concurrent.ConcurrentHashMap<String, ProgrammeArt>()
+
+    /** The art for [title] if it was already found in this run, without asking anyone. */
+    fun peek(title: String): ProgrammeArt? {
+        val query = ProgrammeTitle.parse(title) ?: return null
+        return known[keyOf(query)]
+    }
+
+    private fun keyOf(query: ProgrammeTitle) = "${language()}|${query.kind}|${query.title.lowercase()}"
+
     /** The art for the programme titled [title] in the guide, or null when it is not a film or series TMDB knows. */
     suspend fun lookup(title: String): ProgrammeArt? {
-        if (!settings.metadataConfig().enabled) return null
+        if (!settings.metadataConfig().enabled) { known.clear(); return null }
         val query = ProgrammeTitle.parse(title) ?: return null
-        val key = "${language()}|${query.kind}|${query.title.lowercase()}"
+        val key = keyOf(query)
         lock.withLock { if (cache.containsKey(key)) return cache[key] }
         val found = search(query) ?: return null // offline or out of allowance: ask again later
         lock.withLock { cache[key] = found.getOrNull() }
+        found.getOrNull()?.let { if (known.size < CACHE_SIZE) known[key] = it }
         return found.getOrNull()
     }
 

@@ -526,4 +526,6 @@
     <string name="sports_broadcasts_find_first">Gebruik Zenders zoeken om de zenders in je gids te zien die deze wedstrijd uitzenden.</string>
     <string name="sports_broadcasts_none">Geen vermeld</string>
     <string name="sports_move_instructions">▲/▼ om te kiezen · OK om op te pakken of neer te zetten · Opslaan als je klaar bent</string>
+    <string name="sports_board_more">Meer</string>
+    <string name="live_adult_open">Volwassenenzenders tonen</string>
 </resources>

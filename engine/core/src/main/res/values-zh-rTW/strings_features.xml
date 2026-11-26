@@ -503,4 +503,6 @@
     <string name="sports_broadcasts_find_first">使用「尋找頻道」列出節目表中轉播這場比賽的頻道。</string>
     <string name="sports_broadcasts_none">暫無</string>
     <string name="sports_move_instructions">▲/▼ 選擇 · OK 拿起或放下 · 完成後儲存</string>
+    <string name="live_adult_open">顯示成人頻道</string>
+    <string name="live_more_title">更多</string>
 </resources>

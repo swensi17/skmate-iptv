@@ -549,4 +549,6 @@
     <string name="sports_broadcasts_find_first">Use Encontrar canais para listar os canais do seu guia que mostram esta partida.</string>
     <string name="sports_broadcasts_none">Nenhuma listada</string>
     <string name="sports_move_instructions">▲/▼ para escolher · OK para pegar ou soltar · Salvar ao terminar</string>
+    <string name="sports_board_more">Mais</string>
+    <string name="live_adult_open">Mostrar canais adultos</string>
 </resources>

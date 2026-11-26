@@ -267,4 +267,5 @@
     <string name="setup_importing_title"><xliff:g id="name">%1$s</xliff:g> をインポート中</string>
     <string name="setup_add_guide">番組ガイドを追加</string>
     <string name="setup_add_guide_line">新しくインストールした直後はガイドがありません</string>
+    <string name="storage_allow_files">ファイルへのアクセスを許可</string>
 </resources>

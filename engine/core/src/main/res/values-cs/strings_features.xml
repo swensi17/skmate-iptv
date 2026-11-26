@@ -572,4 +572,6 @@
     <string name="sports_broadcasts_find_first">Pomocí Najít kanály zobrazíte kanály z průvodce, které zápas vysílají.</string>
     <string name="sports_broadcasts_none">Žádné</string>
     <string name="sports_move_instructions">▲/▼ vybrat · OK zvednout nebo položit · Na konci Uložit</string>
+    <string name="sports_board_more">Více</string>
+    <string name="live_adult_open">Zobrazit kanály pro dospělé</string>
 </resources>

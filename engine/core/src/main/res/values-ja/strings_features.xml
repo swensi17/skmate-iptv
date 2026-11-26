@@ -503,4 +503,6 @@
     <string name="sports_broadcasts_find_first">「チャンネルを探す」で、この試合を放送する番組表のチャンネルを表示します。</string>
     <string name="sports_broadcasts_none">なし</string>
     <string name="sports_move_instructions">▲/▼ で選択 · OK で持ち上げ／置く · 終わったら保存</string>
+    <string name="live_adult_open">アダルトチャンネルを表示</string>
+    <string name="live_more_title">その他</string>
 </resources>

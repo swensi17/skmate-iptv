@@ -503,4 +503,6 @@
     <string name="sports_broadcasts_find_first">使用“查找频道”列出节目指南中转播这场比赛的频道。</string>
     <string name="sports_broadcasts_none">暂无</string>
     <string name="sports_move_instructions">▲/▼ 选择 · OK 拿起或放下 · 完成后保存</string>
+    <string name="live_adult_open">显示成人频道</string>
+    <string name="live_more_title">更多</string>
 </resources>

@@ -526,4 +526,7 @@
     <string name="sports_broadcasts_find_first">इस मैच को दिखाने वाले गाइड के चैनल देखने के लिए चैनल खोजें का उपयोग करें।</string>
     <string name="sports_broadcasts_none">कोई नहीं</string>
     <string name="sports_move_instructions">▲/▼ चुनें · OK उठाएँ या रखें · अंत में सहेजें</string>
+    <string name="live_adult_open">वयस्क चैनल दिखाएँ</string>
+    <string name="live_more_title">अधिक</string>
+    <string name="sports_board_more">अधिक</string>
 </resources>

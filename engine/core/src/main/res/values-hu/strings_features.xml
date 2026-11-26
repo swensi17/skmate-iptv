@@ -526,4 +526,6 @@
     <string name="sports_broadcasts_find_first">A Csatornák keresése mutatja meg a műsorújságod meccset adó csatornáit.</string>
     <string name="sports_broadcasts_none">Nincs</string>
     <string name="sports_move_instructions">▲/▼ kiválasztás · OK felvétel vagy letétel · Végül Mentés</string>
+    <string name="live_adult_open">Felnőtt csatornák megjelenítése</string>
+    <string name="live_more_title">Továbbiak</string>
 </resources>

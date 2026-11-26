@@ -267,4 +267,5 @@
     <string name="setup_importing_title">正在导入 <xliff:g id="name">%1$s</xliff:g></string>
     <string name="setup_add_guide">添加电视节目指南</string>
     <string name="setup_add_guide_line">全新安装还没有节目指南</string>
+    <string name="storage_allow_files">允许访问文件</string>
 </resources>

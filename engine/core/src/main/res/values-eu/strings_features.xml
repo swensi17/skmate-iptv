@@ -526,4 +526,6 @@
     <string name="sports_broadcasts_find_first">Erabili Bilatu kateak partida hau ematen duten gidako kateak ikusteko.</string>
     <string name="sports_broadcasts_none">Bat ere ez</string>
     <string name="sports_move_instructions">▲/▼ aukeratzeko · OK hartzeko edo uzteko · Amaitzean Gorde</string>
+    <string name="live_adult_open">Erakutsi helduentzako kanalak</string>
+    <string name="live_more_title">Gehiago</string>
 </resources>

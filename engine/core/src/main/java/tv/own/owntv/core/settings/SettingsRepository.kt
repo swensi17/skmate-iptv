@@ -375,6 +375,7 @@ class SettingsRepository(private val context: Context, private val localeStore: 
         // survives to the next launch means the restore was interrupted and may be half-applied.
         val RESTORE_IN_PROGRESS = stringPreferencesKey("restore_in_progress")
         val LIVE_PREVIEW = booleanPreferencesKey("live_preview")
+        val PROGRAMME_POSTERS = booleanPreferencesKey("programme_posters")
         val LIVE_PREVIEW_AUDIO = booleanPreferencesKey("live_preview_audio")
         // Whether the expanded Home hero plays its video. Unset means "device default" — see
         // heroPreviewEnabled.
@@ -2452,6 +2453,13 @@ class SettingsRepository(private val context: Context, private val localeStore: 
      * low-RAM device, like [heroPreviewDefault]: the preview is a second live decoder running while the
      * user scrolls the list, which is where a weak box has the least to spare.
      */
+    /** A film's or series' poster from TMDB in the channel logo's place (player info, channel panel). */
+    val programmePosters: Flow<Boolean> = prefsFlow { it[Keys.PROGRAMME_POSTERS] ?: true }
+
+    suspend fun setProgrammePosters(enabled: Boolean) {
+        context.dataStore.edit { it[Keys.PROGRAMME_POSTERS] = enabled }
+    }
+
     val livePreviewEnabled: Flow<Boolean> = prefsFlow { it[Keys.LIVE_PREVIEW] ?: livePreviewDefault }
 
     /** The value [livePreviewEnabled] reports until the user picks one; also the initial value of the
@@ -3262,7 +3270,7 @@ class SettingsRepository(private val context: Context, private val localeStore: 
             Keys.TIMESHIFT_WINDOW_MINUTES)
         val bools = listOf(
             Keys.GUIDE_SHOW_EMPTY, Keys.GUIDE_PREVIEW, Keys.ADULT_LOCK,
-            Keys.LIVE_PREVIEW, Keys.LIVE_PREVIEW_AUDIO, Keys.HERO_PREVIEW, Keys.PREFER_SDR, Keys.AUTO_FRAME_RATE, Keys.AFR_MATCH_RESOLUTION, Keys.AUTO_FRAME_RATE_PROMPTED, Keys.PLAYER_CLOCK, Keys.ANDROID_TV_HOME, Keys.HW_DECODING, Keys.SOFTWARE_DECODE_ABOVE_1080P,
+            Keys.LIVE_PREVIEW, Keys.LIVE_PREVIEW_AUDIO, Keys.PROGRAMME_POSTERS, Keys.HERO_PREVIEW, Keys.PREFER_SDR, Keys.AUTO_FRAME_RATE, Keys.AFR_MATCH_RESOLUTION, Keys.AUTO_FRAME_RATE_PROMPTED, Keys.PLAYER_CLOCK, Keys.ANDROID_TV_HOME, Keys.HW_DECODING, Keys.SOFTWARE_DECODE_ABOVE_1080P,
             Keys.VOD_PREFER_EXO, Keys.MEASURED_STREAM_STATS, Keys.DETAILED_DIAGNOSTICS, Keys.DIRECT_TUNE, Keys.LIVE_LEFT_RIGHT_REWINDS, Keys.EXTERNAL_PLAYER,
             Keys.EXTERNAL_PLAYER_LIVE, Keys.EXTERNAL_PLAYER_MOVIES, Keys.EXTERNAL_PLAYER_SERIES, Keys.UPDATE_CHECK_ON_START, Keys.SURROUND_SOUND, Keys.AUTO_PLAY_NEXT, Keys.PROXY_ENABLED,
             Keys.WEATHER_ENABLED, Keys.WEATHER_FAHRENHEIT, Keys.RESUME_LAST_CHANNEL, Keys.METADATA_ENABLED, Keys.CH_NAV_ENABLED,

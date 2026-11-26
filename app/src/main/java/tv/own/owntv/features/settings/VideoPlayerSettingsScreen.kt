@@ -123,7 +123,7 @@ internal fun videoSectionCounts(vm: SettingsViewModel): List<Int> {
         5 + (if (vm.tunnelingSupported) 1 else 0),
         3,
         3,
-        4 + (if (livePreview) 1 else 0) + (if (timeshift) 1 else 0),
+        5 + (if (livePreview) 1 else 0) + (if (timeshift) 1 else 0),
         3 + (if (perPlaylist) 3 else 0),
         3,
         2 + (if (multiview) 1 else 0),
@@ -209,6 +209,7 @@ internal val VIDEO_QUICK_ROWS: List<VideoQuickRef> = listOf(
     VideoQuickRef("vp_channel_numbers", SECTION_LIVE, OwnTVIcon.LIVE_TV, R.string.settings_channel_numbers, R.string.settings_channel_numbers_description),
     VideoQuickRef("vp_live_preview", SECTION_LIVE, OwnTVIcon.LIVE_TV, R.string.settings_quick_live_preview, R.string.settings_live_preview_description),
     VideoQuickRef("vp_preview_audio", SECTION_LIVE, OwnTVIcon.AUDIO, R.string.settings_preview_audio, R.string.settings_preview_audio_description),
+    VideoQuickRef("vp_programme_posters", SECTION_LIVE, OwnTVIcon.IMAGE, R.string.settings_programme_posters, R.string.settings_programme_posters_description),
     VideoQuickRef("vp_timeshift", SECTION_LIVE, OwnTVIcon.REWIND, R.string.settings_timeshift, R.string.settings_timeshift_description),
     VideoQuickRef("vp_timeshift_window", SECTION_LIVE, OwnTVIcon.REWIND, R.string.settings_timeshift_window, R.string.settings_timeshift_window_description),
     VideoQuickRef("vp_timeshift_resume", SECTION_LIVE, OwnTVIcon.PLAY, R.string.settings_timeshift_resume, R.string.settings_timeshift_resume_description),
@@ -398,6 +399,10 @@ internal fun videoQuickBinding(key: String, vm: SettingsViewModel): VideoQuickBi
         "vp_preview_audio" -> {
             val on by vm.livePreviewAudio.collectAsStateWithLifecycle()
             toggle(onOff(on), on) { vm.setLivePreviewAudio(!on) }
+        }
+        "vp_programme_posters" -> {
+            val on by vm.programmePosters.collectAsStateWithLifecycle()
+            toggle(onOff(on), on) { vm.setProgrammePosters(!on) }
         }
         "vp_live_latency" -> {
             val mode by vm.liveLatencyMode.collectAsStateWithLifecycle()
@@ -654,6 +659,7 @@ internal fun VideoPlayerGroupRows(
     val autoPlayNext by vm.autoPlayNext.collectAsStateWithLifecycle()
     val livePreview by vm.livePreviewEnabled.collectAsStateWithLifecycle()
     val previewAudio by vm.livePreviewAudio.collectAsStateWithLifecycle()
+    val programmePosters by vm.programmePosters.collectAsStateWithLifecycle()
     val livePreviewPanelActive by vm.livePreviewPanelActive.collectAsStateWithLifecycle()
     val sources by vm.sources.collectAsStateWithLifecycle()
     // The playlist whose per-playlist "Pre-buffer" override is being edited.
@@ -1045,6 +1051,14 @@ internal fun VideoPlayerGroupRows(
                 onClick = { vm.setLivePreviewAudio(!previewAudio) },
             )
         }
+        KeyedSettingRow(
+            quickKey = "vp_programme_posters",
+            icon = OwnTVIcon.IMAGE,
+            title = stringResource(R.string.settings_programme_posters),
+            desc = stringResource(R.string.settings_programme_posters_description),
+            value = SettingValue.Switch(programmePosters),
+            onClick = { vm.setProgrammePosters(!programmePosters) },
+        )
         KeyedSettingRow(
             quickKey = "vp_timeshift",
             icon = OwnTVIcon.REWIND,

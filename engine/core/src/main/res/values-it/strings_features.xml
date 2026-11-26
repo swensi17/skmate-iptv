@@ -549,4 +549,5 @@
     <string name="sports_broadcasts_find_first">Usa Trova canali per elencare i canali della tua guida che trasmettono questa partita.</string>
     <string name="sports_broadcasts_none">Nessuna indicata</string>
     <string name="sports_move_instructions">▲/▼ per scegliere · OK per prendere o posare · Salva alla fine</string>
+    <string name="live_adult_open">Mostra canali per adulti</string>
 </resources>

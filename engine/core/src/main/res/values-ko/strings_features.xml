@@ -503,4 +503,6 @@
     <string name="sports_broadcasts_find_first">채널 찾기로 이 경기를 중계하는 편성표 채널을 확인하세요.</string>
     <string name="sports_broadcasts_none">없음</string>
     <string name="sports_move_instructions">▲/▼ 선택 · OK 들기/놓기 · 끝나면 저장</string>
+    <string name="live_adult_open">성인 채널 표시</string>
+    <string name="live_more_title">더보기</string>
 </resources>

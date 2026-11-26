@@ -279,4 +279,5 @@
     <string name="setup_importing_title">Importuje se <xliff:g id="name">%1$s</xliff:g></string>
     <string name="setup_add_guide">Přidat TV průvodce</string>
     <string name="setup_add_guide_line">Nová instalace zatím nemá průvodce</string>
+    <string name="storage_allow_files">Povolit přístup k souborům</string>
 </resources>

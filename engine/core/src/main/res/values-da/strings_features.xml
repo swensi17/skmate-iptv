@@ -526,4 +526,6 @@
     <string name="sports_broadcasts_find_first">Brug Find kanaler for at se de kanaler i din guide, der viser kampen.</string>
     <string name="sports_broadcasts_none">Ingen angivet</string>
     <string name="sports_move_instructions">▲/▼ for at vælge · OK for at samle op eller lægge · Gem til sidst</string>
+    <string name="live_adult_open">Vis kanaler for voksne</string>
+    <string name="live_more_title">Mere</string>
 </resources>

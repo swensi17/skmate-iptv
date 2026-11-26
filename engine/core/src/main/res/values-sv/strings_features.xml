@@ -526,4 +526,6 @@
     <string name="sports_broadcasts_find_first">Använd Hitta kanaler för att se kanalerna i din tablå som visar matchen.</string>
     <string name="sports_broadcasts_none">Inga angivna</string>
     <string name="sports_move_instructions">▲/▼ för att välja · OK för att plocka upp eller släppa · Spara när du är klar</string>
+    <string name="live_adult_open">Visa vuxenkanaler</string>
+    <string name="live_more_title">Mer</string>
 </resources>

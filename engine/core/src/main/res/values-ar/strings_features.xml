@@ -618,4 +618,6 @@
     <string name="sports_broadcasts_find_first">استخدم «البحث عن القنوات» لعرض قنوات دليلك التي تبث هذه المباراة.</string>
     <string name="sports_broadcasts_none">لا شيء مُدرج</string>
     <string name="sports_move_instructions">▲/▼ للاختيار · OK للالتقاط أو الوضع · احفظ عند الانتهاء</string>
+    <string name="live_adult_open">إظهار قنوات البالغين</string>
+    <string name="live_more_title">المزيد</string>
 </resources>

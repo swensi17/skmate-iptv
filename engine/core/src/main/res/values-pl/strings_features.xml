@@ -572,4 +572,6 @@
     <string name="sports_broadcasts_find_first">Użyj Znajdź kanały, aby zobaczyć kanały z przewodnika pokazujące ten mecz.</string>
     <string name="sports_broadcasts_none">Brak</string>
     <string name="sports_move_instructions">▲/▼ wybór · OK podnieś lub upuść · Na koniec Zapisz</string>
+    <string name="sports_board_more">Więcej</string>
+    <string name="live_adult_open">Pokaż kanały dla dorosłych</string>
 </resources>

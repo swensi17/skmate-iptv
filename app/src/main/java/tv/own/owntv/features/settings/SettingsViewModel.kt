@@ -273,6 +273,13 @@ class SettingsViewModel(
         viewModelScope.launch { settings.setLivePreviewEnabled(enabled) }
     }
 
+    val programmePosters: StateFlow<Boolean> = settings.programmePosters
+        .stateIn(viewModelScope, SharingStarted.Eagerly, true)
+
+    fun setProgrammePosters(enabled: Boolean) {
+        viewModelScope.launch { settings.setProgrammePosters(enabled) }
+    }
+
     val livePreviewAudio: StateFlow<Boolean> = settings.livePreviewAudio
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 

@@ -526,4 +526,7 @@
     <string name="sports_broadcasts_find_first">ഈ മത്സരം കാണിക്കുന്ന ഗൈഡിലെ ചാനലുകൾ കാണാൻ ചാനലുകൾ കണ്ടെത്തുക ഉപയോഗിക്കുക.</string>
     <string name="sports_broadcasts_none">ഒന്നുമില്ല</string>
     <string name="sports_move_instructions">▲/▼ തിരഞ്ഞെടുക്കാൻ · OK എടുക്കാനോ വയ്ക്കാനോ · കഴിഞ്ഞാൽ സേവ് ചെയ്യുക</string>
+    <string name="live_adult_open">മുതിർന്നവർക്കുള്ള ചാനലുകൾ കാണിക്കുക</string>
+    <string name="live_more_title">കൂടുതൽ</string>
+    <string name="sports_board_more">കൂടുതൽ</string>
 </resources>

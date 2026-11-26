@@ -294,4 +294,5 @@
     <string name="setup_local_files_none_hint">İndirilenler klasörüne veya bir USB belleğe .m3u dosyası koyun</string>
     <string name="setup_author_playlist_line">Yazarın kanalları, kendiliğinden güncellenir</string>
     <string name="setup_guide_attached">Bir TV rehberi bağlı. Başka bir tane ekleyebilirsiniz</string>
+    <string name="storage_allow_files">Dosyalara erişime izin ver</string>
 </resources>

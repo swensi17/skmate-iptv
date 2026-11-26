@@ -589,4 +589,5 @@
 <item quantity="one"><xliff:g id="count">%1$d</xliff:g> kanal için yayın akışı bulundu</item>
         <item quantity="other"><xliff:g id="count">%1$d</xliff:g> kanal için yayın akışı bulundu</item>
     </plurals>
+    <string name="live_adult_open">Yetişkin kanallarını göster</string>
 </resources>

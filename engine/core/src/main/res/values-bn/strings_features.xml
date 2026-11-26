@@ -526,4 +526,7 @@
     <string name="sports_broadcasts_find_first">এই ম্যাচ দেখানো গাইডের চ্যানেল দেখতে চ্যানেল খুঁজুন ব্যবহার করুন।</string>
     <string name="sports_broadcasts_none">কিছু নেই</string>
     <string name="sports_move_instructions">▲/▼ বাছুন · OK তুলুন বা রাখুন · শেষে সংরক্ষণ করুন</string>
+    <string name="live_adult_open">প্রাপ্তবয়স্ক চ্যানেল দেখান</string>
+    <string name="live_more_title">আরও</string>
+    <string name="sports_board_more">আরও</string>
 </resources>

@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.Dp
 import coil3.compose.AsyncImage
 import coil3.compose.LocalPlatformContext
 import coil3.request.ImageRequest
+import coil3.request.crossfade
 import kotlinx.coroutines.delay
 import tv.own.owntv.core.metadata.ProgrammeArt
 import tv.own.owntv.core.metadata.ProgrammeArtLookup
@@ -42,20 +43,32 @@ fun rememberProgrammeArt(title: String?): ProgrammeArt? {
     // Asked again in the app's new language when it changes: TMDB's title, description and poster follow it.
     val language by org.koin.compose.koinInject<tv.own.owntv.core.i18n.LocaleStore>().currentTag
         .collectAsState()
-    val art by produceState<ProgrammeArt?>(initialValue = null, title, language) {
-        value = null
+    // The poster in the logo's place can be turned off (Settings › Live and buffer › Film posters).
+    val settings = org.koin.compose.koinInject<tv.own.owntv.core.settings.SettingsRepository>()
+    val posters by androidx.compose.runtime.remember(settings) { settings.programmePosters }.collectAsState(true)
+    // A programme seen before comes straight from memory, so there is no logo first and a poster a beat later.
+    // The art is kept with the title it was found for and shown only for that title: the state outlives a change of
+    // programme, and another programme's poster must never stay on screen, not even for a frame.
+    val known = androidx.compose.runtime.remember(title, language) { title?.let(lookup::peek) }
+    val found by produceState(initialValue = title to known, title, language) {
+        value = title to known
         if (title.isNullOrBlank()) return@produceState
-        delay(ART_SETTLE_MS)
-        value = runCatching { lookup.lookup(title) }.getOrNull()
+        // Memory only makes it quicker: the lookup still runs (at once when the title is known, answered from its
+        // cache), so turning TMDB off in Categories › Metadata takes even a poster already on screen away.
+        if (known == null) delay(ART_SETTLE_MS)
+        value = title to runCatching { lookup.lookup(title) }.getOrNull()
     }
-    return art
+    val (forTitle, art) = found
+    // In the frame before the state catches up, what memory knows for this title, never the last one's.
+    return (if (forTitle == title) art else known).takeIf { posters }
 }
 
-/** A programme's poster, [width] wide at the poster's own 2:3, softly rounded; nothing fades in. */
+/** A programme's poster, [width] wide at the poster's own 2:3, softly rounded, fading in as it loads. */
 @Composable
 fun programmePoster(url: String, width: Dp, modifier: Modifier = Modifier) {
     AsyncImage(
-        model = ImageRequest.Builder(LocalPlatformContext.current).data(url).build(),
+        // A short fade as it arrives instead of the picture appearing in one frame.
+        model = ImageRequest.Builder(LocalPlatformContext.current).data(url).crossfade(POSTER_FADE_MS).build(),
         contentDescription = null,
         contentScale = ContentScale.Crop,
         modifier = modifier
@@ -71,6 +84,7 @@ fun ProgrammeArt.largePosterUrl(): String = posterUrl.replace("/$SMALL_SIZE/", "
 private const val SMALL_SIZE = "w342"
 private const val LARGE_SIZE = "w780"
 private const val ART_SETTLE_MS = 450L
+private const val POSTER_FADE_MS = 220
 private const val POSTER_RATIO = 1.5f
 private const val POSTER_RADIUS = 10
 private const val POSTER_BACK_ALPHA = 0.06f

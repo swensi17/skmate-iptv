@@ -549,4 +549,5 @@
     <string name="sports_broadcasts_find_first">Utilisez Trouver les chaînes pour lister les chaînes de votre guide qui diffusent ce match.</string>
     <string name="sports_broadcasts_none">Aucune indiquée</string>
     <string name="sports_move_instructions">▲/▼ pour choisir · OK pour prendre ou poser · Enregistrer à la fin</string>
+    <string name="live_adult_open">Afficher les chaînes adultes</string>
 </resources>

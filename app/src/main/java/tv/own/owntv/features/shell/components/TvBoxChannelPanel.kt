@@ -326,20 +326,23 @@ fun TvBoxChannelPanel(
                     item(key = "head") { panelHeader(head, c.text, Soft) }
                     art?.let { a ->
                         item(key = "art") {
-                            panelProgrammeArt(a, c.text, Soft, posterFocus, onFocused = { showFrom(0) }) { key ->
-                                when (key) {
-                                    Key.DirectionLeft -> { runCatching { firstFocus.requestFocus() }; true }
-                                    // ▼ goes to the line right under the poster: what is on, or, once earlier
-                                    // programmes were brought in above it, the first of them. The on-air line is
-                                    // then far below and not laid out, and asking for it did nothing at all.
-                                    Key.DirectionDown -> {
-                                        val atStart = firstShown == (onAirIndex - 1).coerceAtLeast(0)
-                                        runCatching { (if (atStart) onAirFocus else topRowFocus).requestFocus() }
-                                        true
+                            // Fades in and moves the guide down smoothly when the poster arrives, instead of a jump.
+                            Box(Modifier.animateItem()) {
+                                panelProgrammeArt(a, c.text, Soft, posterFocus, onFocused = { showFrom(0) }) { key ->
+                                    when (key) {
+                                        Key.DirectionLeft -> { runCatching { firstFocus.requestFocus() }; true }
+                                        // ▼ goes to the line right under the poster: what is on, or, once earlier
+                                        // programmes were brought in above it, the first of them. The on-air line is
+                                        // then far below and not laid out, and asking for it did nothing at all.
+                                        Key.DirectionDown -> {
+                                            val atStart = firstShown == (onAirIndex - 1).coerceAtLeast(0)
+                                            runCatching { (if (atStart) onAirFocus else topRowFocus).requestFocus() }
+                                            true
+                                        }
+                                        Key.DirectionCenter, Key.Enter, Key.NumPadEnter -> { bigPoster = a; true }
+                                        Key.DirectionRight, Key.DirectionUp -> true
+                                        else -> false
                                     }
-                                    Key.DirectionCenter, Key.Enter, Key.NumPadEnter -> { bigPoster = a; true }
-                                    Key.DirectionRight, Key.DirectionUp -> true
-                                    else -> false
                                 }
                             }
                         }
@@ -364,7 +367,7 @@ fun TvBoxChannelPanel(
                                     null
                                 },
                                 onFocused = { showFrom(rowsFrom + i - 1) },
-                                modifier = Modifier
+                                modifier = Modifier.animateItem()
                                     .then(if (index == onAirIndex) Modifier.focusRequester(onAirFocus) else Modifier)
                                     .then(if (i == 0) Modifier.focusRequester(topRowFocus) else Modifier),
                             )
