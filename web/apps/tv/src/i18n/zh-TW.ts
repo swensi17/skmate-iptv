@@ -1253,4 +1253,19 @@ export const zhTW: Record<keyof typeof en, string> = {
   sa_web_sync_tv: "Wi‑Fi sync is not available on Samsung and LG yet: move your data with a backup.",
   sa_web_tg_body: "The Telegram remote works only in the Android TV app for now.",
   // end settings (Android)
+  // player functions (Android)
+  pfAudio: "音訊",
+  pfSubtitles: "字幕",
+  pfAudioTrack: "音訊軌",
+  pfSubtitlesTitle: "字幕",
+  pfNoTracks: "沒有可用的軌道。",
+  pfAudioN: "音訊 {n}",
+  pfSubtitleN: "字幕 {n}",
+  // settings functions (Android)
+  sa_settings_startup_channel_unavailable: "啟動頻道無法使用，已開啟首頁。",
+  sa_settings_focus_thickness: "粗細",
+  sa_common_search_hint: "搜尋…",
+  sa_content_no_channels_found: "找不到與「{1}」相關的頻道",
+  sa_content_no_channels_here: "這裡沒有頻道。",
+  sa_web_tvbox_no_effect: "電視盒外觀中不會生效（與 Android TV 應用程式相同）：所選內容會保存並包含在備份中。",
 };

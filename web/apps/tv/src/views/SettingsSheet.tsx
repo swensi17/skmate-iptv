@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { Drawer, focusFirst, isBack, useOwnBack } from "@skmate/ui";
 import type { GuideData, SourceOutcome } from "@skmate/epg";
+import type { Channel } from "@skmate/core";
 import { t, type Key } from "../i18n";
 import { desktop, usePlayers } from "../state/desktop";
 import type { PlaylistEntry, PlaylistStore } from "../state/playlists";
@@ -101,6 +102,8 @@ interface Props {
   onQr: (name: string, address: string) => void;
   onRedoWizard: () => void;
   update: { state: UpdateState; check: () => void; install: () => void };
+  /** The channels of the playlist in use (the startup channel picker). */
+  channels?: readonly Channel[];
 }
 
 /**
@@ -139,7 +142,7 @@ export function SettingsSheet(p: Props) {
 
   const throttled = typeof document !== "undefined" && document.documentElement.getAttribute("data-motion") === "off" && s.motion === "auto";
   const rows = buildRows({
-    s, set, playlists: p.store.list, epgCount: epgSourceCount(s, p.active, p.headerGuides), players, throttled,
+    s, set, playlists: p.store.list, epgCount: epgSourceCount(s, p.active, p.headerGuides), players, throttled, channels: p.channels ?? [],
     ask: setAsk, openUpdate: () => setUpdating(true),
   }, closeEditor);
 

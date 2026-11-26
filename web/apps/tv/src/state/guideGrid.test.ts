@@ -36,6 +36,14 @@ describe("guide grid", () => {
     expect(pxAt(T0, w.start)).toBeCloseTo(120 * 7.2);
   });
 
+  it("reaches as far as the stored guide does: a week kept, a week of timeline", () => {
+    const week = T0 + 7 * 24 * 60 * M;
+    const w = guideWindow(T0 + 17 * M, week);
+    expect(w.end).toBe(week);
+    // a week at 7.2 px a minute is 72 576 px: a long plane, but only the cells in view are ever built
+    expect(pxAt(w.end, w.start)).toBeCloseTo((7 * 24 * 60 + 120) * 7.2);
+  });
+
   it("scrolls only when the cursor comes within a slot of an edge", () => {
     expect(followCursor(500, 0, 1360, 5000)).toBe(0);
     expect(followCursor(1300, 0, 1360, 5000)).toBe(1300 - 1360 + 216);

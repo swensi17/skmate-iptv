@@ -85,17 +85,34 @@ const weakKey = (t: string) => t.length < 2 || /^[0-9]+$/.test(t);
  * every pair across all cores; a TV has neither the cores nor the time (3000 channels × 2000 guide entries).
  */
 export class GuideIndex {
-  private readonly items: Prepared[];
+  private readonly items: Prepared[] = [];
   private readonly byKey = new Map<string, number[]>();
   private readonly exact = new Map<string, number>();
 
   constructor(candidates: readonly GuideCandidate[]) {
-    this.items = candidates.map((c) => {
+    this.append(candidates);
+  }
+
+  /**
+   * The same index built a few hundred names at a time, [pause] between them: a guide of thousands of channels
+   * took a quarter of a second in one piece, a stall of the remote on a TV several times that.
+   */
+  static async build(candidates: readonly GuideCandidate[], pause: () => Promise<void> | void, step = 300): Promise<GuideIndex> {
+    const index = new GuideIndex([]);
+    for (let i = 0; i < candidates.length; i += step) {
+      index.append(candidates.slice(i, i + step));
+      await pause();
+    }
+    return index;
+  }
+
+  private append(candidates: readonly GuideCandidate[]): void {
+    for (const c of candidates) {
       const normName = c.name ? normalizeForEpg(c.name) : "";
       const normId = normalizeForEpg(c.id);
-      return { id: c.id, normName, normId, digitsName: digitRuns(normName), digitsId: digitRuns(normId) };
-    });
-    this.items.forEach((it, i) => {
+      const it: Prepared = { id: c.id, normName, normId, digitsName: digitRuns(normName), digitsId: digitRuns(normId) };
+      const i = this.items.length;
+      this.items.push(it);
       if (it.normName !== "" && !this.exact.has(it.normName)) this.exact.set(it.normName, i);
       for (const text of [it.normName, it.normId]) {
         for (const t of text.split(" ")) {
@@ -104,7 +121,7 @@ export class GuideIndex {
           if (t.length >= 4) this.add(`^${t.slice(0, 3)}`, i);
         }
       }
-    });
+    }
   }
 
   private add(key: string, index: number) {

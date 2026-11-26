@@ -1,11 +1,16 @@
 import type { ComponentChildren } from "preact";
-import { useEffect, useState } from "preact/hooks";
+import { useEffect, useMemo, useState } from "preact/hooks";
 import { focusFirst, Stepper, Toggle } from "@skmate/ui";
 import { t, type Key } from "../i18n";
 import { LANGUAGES } from "../i18n/languages";
+import { SearchIndex, type Channel } from "@skmate/core";
+import { channelKey } from "../state/favorites";
+import { FOCUS_PRESETS } from "../state/look";
 import type { PlaylistEntry } from "../state/playlists";
 import { ACCENTS, accentColor, bufferFor, clampZoom, type Settings } from "../state/settings";
 import { BigStepper, ChoiceList, onOffText, pl, SwitchList, tf, useSheet, type Choice } from "./SettingsKit";
+import { Presence } from "@skmate/ui";
+import { TextEntry } from "./TextEntry";
 
 /*
  * Every row of the Android settings groups, by its Android key (SettingsScreen.kt root rows, VideoPlayerSettingsScreen.kt
@@ -40,6 +45,8 @@ export interface RowsCtx {
   /** External players this computer has (the Windows app); none on a TV. */
   players: string[];
   throttled: boolean;
+  /** The channels of the playlist in use (Запуск приложения › Выбранный канал). */
+  channels: readonly Channel[];
   ask: (c: Confirmation) => void;
   openUpdate: () => void;
 }
@@ -207,8 +214,15 @@ export function buildRows(c: RowsCtx, close: () => void): Record<string, RowDef>
   });
   add({
     key: "focus_highlight", icon: "FOCUS_HIGHLIGHT", title: t("sa_settings_focus_highlight"), line: t("sa_settings_focus_highlight_description"),
-    end: <span class="set-swatch-end"><i class="set-swatch sm" style={{ background: s.focusColor || "#E0E2E4" }} /><span class="set-hex">{t(FOCUS_WIDTHS[s.focusWidth] ?? FOCUS_WIDTHS[1]!)}</span><span class="set-chev">›</span></span>,
-    editor: choice(FOCUS_WIDTHS.map((k, i) => ({ value: i as Settings["focusWidth"], label: t(k) })), s.focusWidth, (v) => set({ focusWidth: v })),
+    end: <span class="set-swatch-end"><i class="set-swatch sm" style={{ background: s.focusColor || accentNow }} /><span class="set-hex">{t(FOCUS_WIDTHS[s.focusWidth] ?? FOCUS_WIDTHS[1]!)}</span><span class="set-chev">›</span></span>,
+    // The colour popup's presets and the four widths (SettingsScreen.kt FocusHighlightPopup). On the TV-box look the
+    // colour reaches the ring styles only; Android reads the width nowhere but in the popup's sample.
+    editor: () => (
+      <SwitchListish items={[
+        ...FOCUS_PRESETS.map((f) => ({ label: t(f.key as Key), swatch: f.hex || accentNow, on: s.focusColor.toUpperCase() === f.hex, ok: () => set({ focusColor: f.hex }) })),
+        { label: t("sa_settings_focus_thickness"), value: t(FOCUS_WIDTHS[s.focusWidth] ?? FOCUS_WIDTHS[1]!), ok: () => set({ focusWidth: ((s.focusWidth + 1) % 4) as Settings["focusWidth"] }) },
+      ]} />
+    ),
   });
   add({ key: "tab_GLASS_EFFECT", icon: "SPARKLE", title: t("sa_settings_glass_bg_title"), line: `Stage · ${pct(s.glassOpacity)}` });
   add({ key: "fonts", icon: "TEXT_SIZE", title: t("sa_settings_title_fonts"), line: `${fontName(s.fontFamily)} · ${pct(s.fontSize)}` });
@@ -251,7 +265,7 @@ export function buildRows(c: RowsCtx, close: () => void): Record<string, RowDef>
         { label: t("sa_settings_nav_docked"), on: s.navStyle === "docked", ok: () => set({ navStyle: "docked" }) },
         { label: t("sa_settings_size"), value: t(NAV_SIZES[s.navSize] ?? NAV_SIZES[0]!), ok: () => set({ navSize: (s.navSize + 1) % 4 }) },
         { label: t("sa_settings_nav_length"), value: t(s.navLength === 1 ? "sa_settings_nav_length_full" : "sa_settings_nav_length_fit"), ok: () => set({ navLength: s.navLength === 1 ? 0 : 1 }) },
-      ]} />
+      ]} note={t("sa_web_tvbox_no_effect")} />
     ) });
   const layoutAt = (d: number) => set({ liveLayout: cyc(["stage", "separate"] as const, s.liveLayout, d) });
   add({ key: "live_layout", icon: "LIVE_TV", title: t("sa_settings_live_layout"), line: t(s.liveLayout === "stage" ? "sa_settings_live_layout_stage" : "sa_settings_seg_separate"), ok: () => layoutAt(1), step: layoutAt });
@@ -361,14 +375,17 @@ export function buildRows(c: RowsCtx, close: () => void): Record<string, RowDef>
   add({ key: "vp_multiview", icon: "LIST_GRID", title: t("sa_settings_multiview"), line: t("sa_settings_vp_cat_multiview_summary_mobile"), end: sw(s.multiview), ok: () => set({ multiview: !s.multiview }) });
   add({ key: "vp_multiview_tiles", icon: "LIST_GRID", title: t("sa_settings_multiview_tiles_max"), line: tf("sa_settings_multiview_tiles_max_value", Math.max(2, s.multiviewTiles)), hidden: !s.multiview,
     editor: choice([2, 3, 4].map((n) => ({ value: n, label: tf("sa_settings_multiview_tiles_max_value", n) })), Math.max(2, s.multiviewTiles), (v) => tiles(v)) });
-  add({ key: "vp_mini", icon: "PIP", title: t("sa_settings_mini_player_root"), line: t("sa_settings_line_mini"), editor: () => <MiniEditor s={s} set={set} close={close} /> });
+  // Mini player: only where one exists (the browser's picture-in-picture; a Samsung or LG TV has none, so the row is not shown).
+  const miniHere = typeof document !== "undefined" && (document as unknown as { pictureInPictureEnabled?: boolean }).pictureInPictureEnabled === true;
+  add({ key: "vp_mini", icon: "PIP", title: t("sa_settings_mini_player_root"), line: t("sa_settings_line_mini"), hidden: !miniHere, editor: () => <MiniEditor s={s} set={set} close={close} /> });
 
   // ---- Общие настройки
   add({ key: "tab_SPORTS", icon: "SPORTS", title: t("sa_sports_title"), line: t("sa_sports_leagues") });
   const lang = s.language === "auto" ? t("sa_settings_language_system_default") : LANGUAGES.find((l) => l.code === s.language)?.name ?? s.language;
   add({ key: "tab_LANGUAGE", icon: "LANGUAGE", title: t("sa_settings_language"), line: lang });
-  add({ key: "app_startup", icon: "POWER", title: t("sa_settings_app_startup"), line: t(STARTUPS.find((x) => x.v === s.startup)?.k ?? "sa_settings_startup_home"),
-    editor: choice(STARTUPS.map((x) => ({ value: x.v, label: t(x.k) })), s.startup, (v) => set({ startup: v })) });
+  add({ key: "app_startup", icon: "POWER", title: t("sa_settings_app_startup"),
+    line: s.startup === "channel" && s.startupChannelName ? s.startupChannelName : t(STARTUPS.find((x) => x.v === s.startup)?.k ?? "sa_settings_startup_home"),
+    editor: () => <StartupEditor s={s} set={set} channels={c.channels} close={close} /> });
   add({ key: "check_updates", icon: "REFRESH", title: t("sa_settings_check_updates"), line: t("sa_settings_check_now"), ok: c.openUpdate });
   add({ key: "update_startup", icon: "REFRESH", title: t("sa_settings_update_startup"), line: t("sa_settings_line_when_app_opens"), end: sw(s.updateOnStart), ok: () => set({ updateOnStart: !s.updateOnStart }) });
   add({ key: "update_auto", icon: "REFRESH", title: t("sa_settings_update_auto"), line: t("sa_settings_update_auto_desc"), end: sw(s.autoUpdate), ok: () => set({ autoUpdate: !s.autoUpdate }) });
@@ -447,17 +464,74 @@ function MiniEditor(p: { s: Settings; set: (x: Partial<Settings>) => void; close
 }
 
 /** A popup-like list in the sheet whose lines are radios or values that change on OK (the Navigation popup's rows). */
-function SwitchListish(p: { items: Array<{ label: string; on?: boolean; value?: string; ok: () => void }> }) {
+function SwitchListish(p: { items: Array<{ label: string; on?: boolean; value?: string; swatch?: string; ok: () => void }>; note?: string }) {
   useEffect(() => { setTimeout(() => focusFirst(document, "set-nav-0"), 0); }, []);
   return (
     <div class="set-choices">
       {p.items.map((it, i) => (
         <button key={i} class={`st-focusable set-choice${it.on ? " on" : ""}`} data-focus={`set-nav-${i}`} onClick={it.ok}>
+          {it.swatch ? <i class="set-swatch sm set-choice-swatch" style={{ background: it.swatch }} /> : null}
           <span class="set-choice-body"><span class="set-choice-label">{it.label}</span></span>
           {it.value !== undefined ? <span class="set-choice-value">{it.value}</span> : <span class="set-tick">{it.on ? <TickIcon /> : null}</span>}
         </button>
       ))}
+      {p.note ? <div class="set-editor-note">{p.note}</div> : null}
     </div>
+  );
+}
+
+/** Android caps the startup channel picker at 300 rows (SettingsViewModel.kt startupChannelResults). */
+const PICK_MAX = 300;
+
+/**
+ * Запуск приложения (StartupDialogHost + StartupChannelPickerDialog): the four choices; «Выбранный канал» then lists
+ * the playlist's channels (number and name, searchable, at most 300), the chosen one ticked.
+ */
+function StartupEditor(p: { s: Settings; set: (x: Partial<Settings>) => void; channels: readonly Channel[]; close: () => void }) {
+  const [picking, setPicking] = useState(false);
+  if (picking) return <StartupChannels {...p} back={() => setPicking(false)} />;
+  return (
+    <ChoiceList key="mode" idPrefix="su" value={p.s.startup} options={STARTUPS.map((x) => ({ value: x.v, label: t(x.k) }))} onClose={p.close}
+      onPick={(v) => { if (v === "channel") { setPicking(true); return; } p.set({ startup: v }); p.close(); }} />
+  );
+}
+
+/** «Выбранный канал»: the playlist's channels by number and name, searchable, at most 300 (StartupChannelPickerDialog). */
+function StartupChannels(p: { s: Settings; set: (x: Partial<Settings>) => void; channels: readonly Channel[]; close: () => void; back: () => void }) {
+  const [query, setQuery] = useState("");
+  const [typing, setTyping] = useState(false);
+  const sheet = useSheet();
+  const q = query.trim();
+  // The same name search as the channel list (layout and look-alike letters do not matter), numbered as in the list.
+  const index = useMemo(() => new SearchIndex(p.channels, (c) => c.name), [p.channels]);
+  const numbers = useMemo(() => new Map(p.channels.map((c, i) => [c.id, i + 1])), [p.channels]);
+  const found = useMemo(() => (q === "" ? p.channels.slice(0, PICK_MAX) : index.search(q).map((r) => r.item).slice(0, PICK_MAX))
+    .map((c) => ({ c, n: numbers.get(c.id) ?? 0 })), [q, index, numbers]);
+  const chosen = p.s.startup === "channel" ? p.s.startupChannel : "";
+  return (
+    <>
+      <div class="set-choices">
+        <button class="st-focusable set-choice" data-focus="set-su-search" onClick={() => setTyping(true)}>
+          <span class="set-choice-body"><span class="set-choice-label">{query || t("sa_common_search_hint")}</span></span>
+        </button>
+      </div>
+      {found.length === 0 ? <div class="set-editor-note">{q ? tf("sa_content_no_channels_found", query.trim()) : t("sa_content_no_channels_here")}</div> : (
+        <ChoiceList key={`pick-${q}`} idPrefix="suc" value={chosen} onClose={p.back}
+          options={found.map((x) => ({ value: channelKey(x.c), label: `${x.n}  ${x.c.name}` }))}
+          onPick={(key) => {
+            const c = p.channels.find((x) => channelKey(x) === key);
+            p.set({ startup: "channel", startupChannel: key, startupChannelName: c?.name ?? "" });
+            p.close();
+          }} />
+      )}
+      <Presence show={typing}>
+        {(out) => (
+          <TextEntry title={t("sa_settings_startup_specific_channel")} hint={t("sa_common_search_hint")} value={query} closing={out}
+            onCancel={() => { setTyping(false); setTimeout(() => sheet.focus("set-su-search"), 0); }}
+            onDone={(v) => { setQuery(v); setTyping(false); setTimeout(() => sheet.focus("set-su-search"), 0); }} />
+        )}
+      </Presence>
+    </>
   );
 }
 

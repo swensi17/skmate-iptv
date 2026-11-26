@@ -1,4 +1,5 @@
 import { applyMotion, type MotionSetting } from "@skmate/ui";
+import { applyLook, fontStack, setVar } from "./look";
 
 export type ThemeSetting = "system" | "dark" | "light";
 export type EngineSetting = "auto" | "native" | "hls" | "mpegts";
@@ -66,26 +67,26 @@ export interface Settings {
   preferSdr: boolean;
   /** The next episode starts by itself (stored). */
   autoPlayNext: boolean;
-  /** Look for a new version when the app opens (stored). */
+  /** Look for a new version 5 s after the app opens; then every 6 h / a day; install any time or 02:00–06:00 (useUpdates). */
   updateOnStart: boolean;
   updateEvery: "start" | "6h" | "day";
   updateWindow: "any" | "night";
-  /** Guide time shift, minutes, −720…+840 in steps of 30 (stored). */
+  /** Guide time shift, minutes, −720…+840 in steps of 30 (applied in useGuide: every programme moves, archives too). */
   epgOffsetMin: number;
-  /** Days of programme kept, 1–14 (stored). */
+  /** Days of programme kept ahead, 1–14 (applied in useGuide: what a download stores in IndexedDB and the grid reaches). */
   guideDays: number;
-  /** Archive time zone (stored). */
+  /** Archive time zone (applied in useGuide → core setArchiveZone): automatic = the device's, the device's, or a UTC offset. */
   catchupTz: "auto" | "device" | "manual";
   catchupOffsetMin: number;
-  /** Per playlist id: "device" or an offset in minutes; absent = as in Settings (stored). */
+  /** Per playlist id: "device" or an offset in minutes; absent = as in Settings (applied, it wins over the global one). */
   catchupPerPlaylist: Record<string, "device" | number>;
   /** Accent preset (applied), or a custom hex. */
   accent: "ink" | "teal" | "blue" | "violet" | "green" | "amber";
   accentHex: string;
-  /** Focus highlight: colour ("" = default) and width 0 thin … 3 very thick (stored). */
+  /** Focus highlight: colour ("" = the accent; drawn on the ring styles) and width 0 thin … 3 very thick (Android reads the width nowhere). */
   focusColor: string;
   focusWidth: 0 | 1 | 2 | 3;
-  /** Glass and background (stored: the TV-box look draws flat panels). */
+  /** Glass and background (stored: the TV-box look draws flat panels, on Android too). */
   bgMode: number;
   bgLook: number;
   bgDim: number;
@@ -93,18 +94,18 @@ export interface Settings {
   bgGlow: boolean;
   glassOn: boolean;
   glassOpacity: number;
-  /** Fonts (stored). */
+  /** Fonts: family, text size 60–140 and popup text size 50–120 (applied by look.ts). */
   fontFamily: string;
   fontSize: number;
   popupFontSize: number;
-  /** Popup size, percent 50–120 (stored). */
+  /** Popup size, percent 50–120 (the whole popup card scales, look.ts). */
   popupSize: number;
   motionSpeed: "fast" | "normal" | "slow";
-  /** Date, time and weather on the home screen (stored). */
+  /** Date, time and weather on the home screen (HomeStatus). */
   weatherOn: boolean;
   weatherPlace: string;
   tempUnit: "c" | "f";
-  /** Navigation (stored: the TV-box rail does not use it). */
+  /** Navigation (stored: the TV-box rail does not use it, on Android too); Live TV layout (stored) and how it opens (App). */
   navStyle: "floating" | "docked";
   navSize: number;
   navLength: number;
@@ -113,7 +114,7 @@ export interface Settings {
   /** Remote buttons (stored). */
   chNav: boolean;
   liveKeys: Record<string, string>;
-  /** Remember the last category / item, for live, films, series (stored). */
+  /** Remember the last category / item, for live, films, series (live applied in LiveView; films and series have no TV-box screen). */
   browseLastCat: boolean[];
   browseLastItem: boolean[];
   /** External player per section; live drives externalPlayer where the Windows app found one. */
@@ -136,7 +137,7 @@ export interface Settings {
   /** Live buffer and delay; drives buffer. */
   liveLatency: "low" | "balanced" | "stable" | "custom";
   liveCustomSec: number;
-  /** Per playlist id (stored). */
+  /** Per playlist id: the live delay of that playlist (App liveSettingsFor). */
   latencyPerPlaylist: Record<string, string>;
   /** Stop retrying after, seconds (0 = never) (stored). */
   tuneTimeout: number;
@@ -146,8 +147,15 @@ export interface Settings {
   /** Mini player (stored). */
   miniSize: number;
   miniPos: string;
-  /** What opens at start (stored). */
+  /** What opens at start (applied in App: the channels, the last channel, Favourites, or the channel picked here). */
   startup: "home" | "last" | "favorites" | "channel";
+  /** "Выбранный канал": its channelKey and the name shown in the row. */
+  startupChannel: string;
+  startupChannelName: string;
+  /** Home clock colours (Дата, время и погода): "" = as designed (time Text, date/weather Muted), "accent", or a hex. */
+  clockTimeColor: string;
+  clockDateColor: string;
+  clockWeatherColor: string;
   /** Use the guide proxy above. */
   proxyOn: boolean;
   /** DNS (stored: a web app uses the TV's resolver). */
@@ -171,12 +179,14 @@ export const DEFAULTS: Settings = {
   bgMode: 0, bgLook: 0, bgDim: 40, bgBlur: 40, bgGlow: true, glassOn: true, glassOpacity: 50,
   fontFamily: "PLUS_JAKARTA_SANS", fontSize: 100, popupFontSize: 100, popupSize: 100, motionSpeed: "normal",
   weatherOn: true, weatherPlace: "", tempUnit: "c", navStyle: "docked", navSize: 0, navLength: 0, liveLayout: "stage", liveOpensIn: "list",
-  chNav: true, liveKeys: {}, browseLastCat: [true, true, true], browseLastItem: [true, true, true],
+  // Android SettingsRepository: remember_cat_live / remember_last_live on, films and series off.
+  chNav: true, liveKeys: {}, browseLastCat: [true, false, false], browseLastItem: [true, false, false],
   extLive: false, extMovies: false, extSeries: false,
   playerClock: false, clockSize: 1, clockWeight: 1, clockBg: 1, clockColor: 0, clockAlpha: 1,
   zoomMode: "fit", afr: false, afrPause: 0, afrResolution: false,
   liveLatency: "balanced", liveCustomSec: 8, latencyPerPlaylist: {}, tuneTimeout: 30, tuneTimeoutPerPlaylist: {}, vodBuffer: 0,
-  miniSize: 25, miniPos: "br", startup: "home", proxyOn: true, dnsOn: false, dnsServer: "", playbackLog: false,
+  miniSize: 25, miniPos: "br", startup: "home", startupChannel: "", startupChannelName: "",
+  clockTimeColor: "", clockDateColor: "", clockWeatherColor: "", proxyOn: true, dnsOn: false, dnsServer: "", playbackLog: false,
 };
 
 /** Android UI zoom: 50–150 % in steps of 5 (C/theme/UiZoom.kt). */
@@ -226,17 +236,35 @@ export function resolveTheme(theme: ThemeSetting, systemDark: boolean): "dark" |
 
 export function applyTheme(theme: ThemeSetting, root: HTMLElement = document.documentElement): void {
   const dark = typeof matchMedia === "function" ? matchMedia("(prefers-color-scheme: dark)").matches : true;
-  root.setAttribute("data-theme", resolveTheme(theme, dark));
+  const next = resolveTheme(theme, dark);
+  if (root.getAttribute("data-theme") !== next) root.setAttribute("data-theme", next);
 }
 
 export function applyAll(s: Settings, throttled: boolean): void {
-  document.documentElement.style.setProperty("--row-h", `${s.rowSize}px`);
-  document.documentElement.style.setProperty("--ui-zoom", String(clampZoom(s.uiScale) / 100));
+  // Each root property is written only when it changes (setVar): a write restyles the whole page, and this runs on
+  // every settings change (a toggle in the sheet must not restyle the screen behind it).
+  const root = document.documentElement;
+  setVar(root, "--row-h", `${s.rowSize}px`);
+  setVar(root, "--ui-zoom", String(clampZoom(s.uiScale) / 100));
   applyTheme(s.theme);
   // The accent (Внешний вид › Акцентный цвет): the theme's own INK unless a preset or a hex is chosen.
-  const root = document.documentElement;
-  const accent = accentColor(s, root.getAttribute("data-theme") !== "light");
-  if (accent) root.style.setProperty("--st-accent", accent);
-  else root.style.removeProperty("--st-accent");
+  setVar(root, "--st-accent", accentColor(s, root.getAttribute("data-theme") !== "light"));
   applyMotion(s.motion, throttled);
+  // settings functions (Android): fonts, popup size, animation speed, focus highlight colour (state/look.ts).
+  applyLook(s);
+  setVar(root, "--st-font", fontStack(s.fontFamily));
+  // The focus colour reaches only the ring styles on TV-box (the poster ring of the profile); "" = the accent.
+  setVar(root, "--st-focus-ring", /^#[0-9a-fA-F]{6}$/.test(s.focusColor) ? s.focusColor : null);
+}
+
+/**
+ * The settings a channel of [playlistId] plays with: its own live delay (Эфир и буфер › per playlist) when it has
+ * one, else the general one (Android: the source's livePreroll override).
+ */
+export function liveSettingsFor(s: Settings, playlistId: string | null | undefined): Settings {
+  const own = playlistId ? s.latencyPerPlaylist[playlistId] : undefined;
+  if (!own) return s;
+  const latency = own as Settings["liveLatency"];
+  const buffer = bufferFor(latency, s.liveCustomSec);
+  return buffer === s.buffer && latency === s.liveLatency ? s : { ...s, liveLatency: latency, buffer };
 }

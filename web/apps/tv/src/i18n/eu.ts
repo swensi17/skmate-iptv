@@ -1253,4 +1253,19 @@ export const eu: Record<keyof typeof en, string> = {
   sa_web_sync_tv: "Wi‑Fi sync is not available on Samsung and LG yet: move your data with a backup.",
   sa_web_tg_body: "The Telegram remote works only in the Android TV app for now.",
   // end settings (Android)
+  // player functions (Android)
+  pfAudio: "Audioa",
+  pfSubtitles: "Azpitituluak",
+  pfAudioTrack: "Audio-pista",
+  pfSubtitlesTitle: "Azpitituluak",
+  pfNoTracks: "Ez dago pistarik eskuragarri.",
+  pfAudioN: "{n}. audioa",
+  pfSubtitleN: "{n}. azpititulua",
+  // settings functions (Android)
+  sa_settings_startup_channel_unavailable: "Abioko kanala ez dago erabilgarri. Hasiera ireki da.",
+  sa_settings_focus_thickness: "Lodiera",
+  sa_common_search_hint: "Bilatu…",
+  sa_content_no_channels_found: "Ez da kanalik aurkitu “{1}” bilaketarako",
+  sa_content_no_channels_here: "Ez dago kanalik hemen.",
+  sa_web_tvbox_no_effect: "TV-box itxuran ez du eraginik, Android TV aplikazioan bezala: aukera gordetzen da eta babeskopian sartzen da.",
 };

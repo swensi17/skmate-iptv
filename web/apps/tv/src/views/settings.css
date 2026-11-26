@@ -207,3 +207,7 @@
 .set-update-busy > * + * { margin-left: 14px; }
 .set-update-text { padding: 0 18px; font-size: 18px; line-height: 1.45; color: var(--st-muted); }
 .set-update-text.error { color: var(--st-danger); }
+
+/* settings functions (Android): a colour preset's dot before its name; a short note under an editor's lines. */
+.set-choice-swatch { margin-left: 0; margin-right: 18px; box-shadow: 0 0 0 1px rgba(var(--st-ink-rgb), 0.18); }
+.set-editor-note { padding: 14px 30px 0; font-size: 18px; font-weight: 500; line-height: 1.4; color: var(--st-dim); }

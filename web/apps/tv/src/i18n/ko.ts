@@ -1253,4 +1253,19 @@ export const ko: Record<keyof typeof en, string> = {
   sa_web_sync_tv: "Wi‑Fi sync is not available on Samsung and LG yet: move your data with a backup.",
   sa_web_tg_body: "The Telegram remote works only in the Android TV app for now.",
   // end settings (Android)
+  // player functions (Android)
+  pfAudio: "오디오",
+  pfSubtitles: "자막",
+  pfAudioTrack: "오디오 트랙",
+  pfSubtitlesTitle: "자막",
+  pfNoTracks: "사용 가능한 트랙이 없습니다.",
+  pfAudioN: "오디오 {n}",
+  pfSubtitleN: "자막 {n}",
+  // settings functions (Android)
+  sa_settings_startup_channel_unavailable: "시작 채널을 사용할 수 없어 홈을 열었습니다.",
+  sa_settings_focus_thickness: "두께",
+  sa_common_search_hint: "검색…",
+  sa_content_no_channels_found: "“{1}”에 대한 채널을 찾지 못했습니다",
+  sa_content_no_channels_here: "여기에 채널이 없습니다.",
+  sa_web_tvbox_no_effect: "TV 박스 화면에서는 적용되지 않습니다(Android TV 앱과 동일). 선택은 저장되며 백업에 포함됩니다.",
 };

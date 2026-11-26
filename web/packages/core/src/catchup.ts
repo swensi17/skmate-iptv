@@ -26,29 +26,73 @@ const SHIFT_TEMPLATE = "?utc={utc}&lutc={lutc}";
 
 interface Fields { Y: number; m: number; d: number; H: number; M: number; S: number; ms: number }
 
+/**
+ * The time zone an archive address is written in (Android `resolveCatchupTimeZone`): an IANA name, "local" for the
+ * TV's own zone, a fixed offset from UTC in minutes, or absent/"UTC" for UTC.
+ */
+export type ArchiveZone = string | number;
+
+/** The zone used when a caller passes none: set from Settings › archive time zone (see [setArchiveZone]). */
+let defaultZone: ArchiveZone | undefined;
+
+/** Sets the zone every archive address is written in unless the caller names one; undefined goes back to UTC. */
+export function setArchiveZone(zone: ArchiveZone | undefined): void { defaultZone = zone; }
+export function archiveZone(): ArchiveZone | undefined { return defaultZone; }
+
+/** Settings › archive time zone (Android `CatchupTimezone`): automatic, the device's, or a fixed UTC offset. */
+export type ArchiveZoneMode = "auto" | "device" | "manual";
+
+/**
+ * The zone of a playlist's archive, as Android resolves it: the playlist's own choice when it has one ("device" or
+ * an offset in minutes), else the global one. Automatic is the panel's reported zone when known, else the device's
+ * (an M3U playlist reports none, so here it is the device's).
+ */
+export function resolveArchiveZone(mode: ArchiveZoneMode, offsetMin: number, own?: "device" | number, panelZone?: string): ArchiveZone {
+  if (own === "device") return "local";
+  if (typeof own === "number") return own;
+  if (mode === "manual") return offsetMin;
+  if (mode === "auto" && panelZone) return panelZone;
+  return "local";
+}
+
 const two = (n: number): string => (n < 10 ? `0${n}` : String(n));
 
-/** The date fields of [ms] in [tz] (an IANA zone; UTC when absent). */
-function fieldsOf(ms: number, tz?: string): Fields {
+function localFields(date: Date): Fields {
+  return {
+    Y: date.getFullYear(), m: date.getMonth() + 1, d: date.getDate(),
+    H: date.getHours(), M: date.getMinutes(), S: date.getSeconds(), ms: date.getMilliseconds(),
+  };
+}
+
+/** The date fields of [ms] in [tz] (see [ArchiveZone]; UTC when absent). */
+function fieldsOf(ms: number, tz?: ArchiveZone): Fields {
+  if (typeof tz === "number") return fieldsOf(ms + tz * 60_000, "UTC");
   const date = new Date(ms);
+  if (tz === "local") return localFields(date);
   if (!tz || tz === "UTC") {
     return {
       Y: date.getUTCFullYear(), m: date.getUTCMonth() + 1, d: date.getUTCDate(),
       H: date.getUTCHours(), M: date.getUTCMinutes(), S: date.getUTCSeconds(), ms: date.getUTCMilliseconds(),
     };
   }
-  // toLocaleString with a zone works on the old TV browsers too (formatToParts does not).
-  const s = date.toLocaleString("en-US", {
-    timeZone: tz, hour12: false, year: "numeric", month: "2-digit", day: "2-digit",
-    hour: "2-digit", minute: "2-digit", second: "2-digit",
-  });
+  // toLocaleString with a zone works on the old TV browsers too (formatToParts does not); one that does not know
+  // the zone throws, and the TV's own time is the best guess then.
+  let s: string;
+  try {
+    s = date.toLocaleString("en-US", {
+      timeZone: tz, hour12: false, year: "numeric", month: "2-digit", day: "2-digit",
+      hour: "2-digit", minute: "2-digit", second: "2-digit",
+    });
+  } catch {
+    return localFields(date);
+  }
   const n = s.match(/\d+/g)?.map(Number) ?? [];
   const [mo = 1, d = 1, Y = 1970, H = 0, M = 0, S = 0] = n;
   return { Y, m: mo, d, H: H % 24, M, S, ms: date.getUTCMilliseconds() };
 }
 
 /** [ms] in [tz], with each of Y m d H M S in [format] replaced by that field; other characters kept. */
-function formatDateLetters(ms: number, format: string, tz?: string): string {
+function formatDateLetters(ms: number, format: string, tz?: ArchiveZone): string {
   const f = fieldsOf(ms, tz);
   let out = "";
   for (const c of format) {
@@ -77,7 +121,7 @@ function isKodiFormat(fmt: string): boolean {
 }
 
 /** The subset of Java's SimpleDateFormat the archive templates use; null for a pattern it cannot do. */
-function formatJava(ms: number, fmt: string, tz?: string): string | null {
+function formatJava(ms: number, fmt: string, tz?: ArchiveZone): string | null {
   if (fmt.includes("'")) return null; // quoting: not used by any provider seen, and an unclosed quote is an error in Java
   const f = fieldsOf(ms, tz);
   let out = "";
@@ -103,7 +147,7 @@ function formatJava(ms: number, fmt: string, tz?: string): string | null {
 }
 
 /** `${(b)FMT}` / `${(e)FMT}`; the original token when FMT is unknown or not a valid pattern. */
-function legacyToken(whole: string, which: string, fmt: string, utc: string | undefined, startMs: number, endMs: number, tz?: string): string {
+function legacyToken(whole: string, which: string, fmt: string, utc: string | undefined, startMs: number, endMs: number, tz?: ArchiveZone): string {
   const ms = which === "b" ? startMs : endMs;
   const zone = utc ? "UTC" : tz;
   if (fmt.toLowerCase() === "timestamp") return String(Math.floor(ms / 1000));
@@ -125,7 +169,7 @@ function divided(seconds: number, arg: string): string | null {
  * formatted instants (`{utc:YmdHMS}`), the bare date parts of the start, and the legacy `${(b)FMT}` /
  * `${(e)FMT}` (these follow [tz]; a `:utc` suffix forces UTC). Unknown placeholders are left as they are.
  */
-export function fromTemplate(template: string, startMs: number, endMs: number, nowMs: number = Date.now(), tz?: string): string {
+export function fromTemplate(template: string, startMs: number, endMs: number, nowMs: number = Date.now(), tz?: ArchiveZone): string {
   const filled = template.replace(LEGACY, (whole, which: string, fmt: string, utc?: string) =>
     legacyToken(whole, which, fmt, utc, startMs, endMs, tz));
   const durationS = Math.max(0, Math.floor((endMs - startMs) / 1000));
@@ -180,13 +224,13 @@ function flussonic(liveUrl: string, startMs: number, endMs: number): string | nu
 const XC_LIVE_URL = /^(https?:\/\/[^/]+)\/(?:live\/)?([^/]+)\/([^/]+)\/(\d+)(?:\.[A-Za-z0-9]+)?$/i;
 
 /** Xtream's start stamp: `2021-01-01:00-00` in the panel's zone. */
-function xtreamStart(ms: number, tz?: string): string {
+function xtreamStart(ms: number, tz?: ArchiveZone): string {
   const f = fieldsOf(ms, tz);
   return `${f.Y}-${two(f.m)}-${two(f.d)}:${two(f.H)}-${two(f.M)}`;
 }
 
 /** `catchup="xc"`: an Xtream panel behind a plain M3U; its timeshift endpoint rebuilt from the live URL. */
-function xtreamStyle(liveUrl: string, startMs: number, endMs: number, tz?: string): string | null {
+function xtreamStyle(liveUrl: string, startMs: number, endMs: number, tz?: ArchiveZone): string | null {
   const g = XC_LIVE_URL.exec(liveUrl.split("?")[0] as string);
   if (!g) return null;
   const durationMin = Math.max(1, Math.floor((endMs - startMs) / 60_000));
@@ -197,11 +241,13 @@ function xtreamStyle(liveUrl: string, startMs: number, endMs: number, tz?: strin
  * The archive URL of an M3U channel from its `catchup` [type] and `catchup-source` [source] template:
  * append, a plain template, shift/timeshift/default, flussonic, xc. Null when nothing usable can be built.
  * [correctionMin] is the playlist's `catchup-correction`: the provider's archive clock that far off the guide's.
+ * [zone] is the zone dates are written in; absent, the one set from Settings ([setArchiveZone]), else UTC.
  */
 export function forM3u(
   liveUrl: string, type: string | undefined, source: string | undefined,
-  startMs: number, endMs: number, tz?: string, correctionMin = 0, nowMs: number = Date.now(),
+  startMs: number, endMs: number, zone?: ArchiveZone, correctionMin = 0, nowMs: number = Date.now(),
 ): string | null {
+  const tz = zone ?? defaultZone;
   const template = source && source.trim() !== "" ? source : undefined;
   const kind = type?.trim().toLowerCase() || undefined;
   const shift = correctionMin * 60_000;
@@ -255,8 +301,9 @@ export function hasArchive(channel: ArchiveChannel, startMs: number, stopMs: num
  * none for it. A channel that only says how many days it keeps (an Xtream panel's own M3U usually gives
  * nothing more) is asked through the panel's timeshift endpoint when its URL has the Xtream shape.
  */
-export function archiveUrl(channel: ArchiveChannel, startMs: number, stopMs: number, nowMs: number = Date.now(), tz?: string): string | null {
+export function archiveUrl(channel: ArchiveChannel, startMs: number, stopMs: number, nowMs: number = Date.now(), zone?: ArchiveZone): string | null {
   if (!hasArchive(channel, startMs, stopMs, nowMs)) return null;
+  const tz = zone ?? defaultZone;
   const correction = channel.catchupCorrectionMin ?? 0;
   const built = forM3u(channel.url, channel.catchupType, channel.catchupSource, startMs, stopMs, tz, correction, nowMs);
   if (built !== null) return built;

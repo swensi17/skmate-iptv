@@ -94,3 +94,9 @@
 .gd-state-title { max-width: 900px; font-size: 24px; font-weight: 700; color: var(--st-text); }
 .gd-state-body { max-width: 900px; margin-top: 8px; font-size: 19px; color: var(--st-muted); }
 .gd-state-act { margin-top: 24px; }
+
+/* A new guide downloading while the stored one is shown: one quiet line above the programme, not a spinner over it. */
+.gd-sync { position: absolute; left: 743.6px; top: 66px; max-width: 926.8px; height: 28px; display: flex; align-items: center;
+  font-size: 17px; line-height: 28px; color: var(--st-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gd-sync-spin { flex: none; display: block; width: 22px; height: 22px; margin-right: 10px; }
+.gd-sync-spin .ticks rect { fill: var(--st-muted); }

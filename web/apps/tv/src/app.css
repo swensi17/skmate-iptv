@@ -674,3 +674,7 @@ nav.rail { background: var(--control); }
 /* "In use" on a playlist row: plain grey text on the right, as in the other lists. */
 .srow .sub { flex: none; color: var(--muted); font-size: 22px; font-weight: 500; }
 .srow:focus .sub { color: var(--focus-text); opacity: .7; }
+
+/* settings functions (Android): popups get their own text size and their own scale (OwnTVPopup.kt: the popup font
+   size replaces the main one inside, the popup size scales the whole card). --fs is read by every font size (state/look.ts). */
+.st-popup { --fs: var(--fs-popup, 1); zoom: var(--popup-zoom, 1); }

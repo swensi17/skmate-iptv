@@ -5,6 +5,7 @@ import type { Programme } from "@skmate/epg";
 import { focusFirst, isBack, Menu, MenuItem, Presence, VirtualList } from "@skmate/ui";
 import { t } from "../i18n";
 import { channelKey } from "../state/favorites";
+import { scoped } from "../state/scope";
 import type { Settings } from "../state/settings";
 import type { Status } from "../state/usePlaylists";
 import { ChannelSearch } from "../state/channelSearch";
@@ -83,6 +84,40 @@ export interface LiveEntry {
  */
 const memory: { group: string; query: string; channel: string | null } = { group: ALL, query: "", channel: null };
 
+/*
+ * settings functions (Android): Просмотр и списки › remember the last category / the last channel of Live TV across
+ * restarts (SettingsRepository remember_cat_live / remember_last_live, kept per profile, saved 800 ms after a change),
+ * and Запуск приложения › "Прямой эфир · Избранное" (the channels open on Favourites).
+ */
+const LAST_KEY = "skmate.liveLast";
+const SAVE_MS = 800;
+let saveTimer: ReturnType<typeof setTimeout> | undefined;
+/** The channel is kept by its tvg-id and name: a refreshed playlist renumbers its channels and may renew tokens in the
+ * addresses, and timeshift copies share one tvg-id. */
+const rowKey = (c: Channel): string => `${c.tvgId ?? ""}|${c.name}`;
+let lastKey: string | null = null;
+/** The key restored at start, until the playlist is there to find it in. */
+let pendingKey: string | null = null;
+let primed = false;
+function saveLast(): void {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    try { localStorage.setItem(scoped(LAST_KEY), JSON.stringify({ group: memory.group, channel: lastKey })); } catch { /* not remembered */ }
+  }, SAVE_MS);
+}
+
+/** Before the channels screen first opens: where it starts. Off = "All channels", at the top (Android LiveKey.All). */
+export function primeLive(o: { favorites: boolean; rememberGroup: boolean; rememberItem: boolean }): void {
+  if (primed) return; // once per start: a shell drawn again must not send the screen back to where it began
+  primed = true;
+  let last: { group?: unknown; channel?: unknown } = {};
+  try { last = JSON.parse(localStorage.getItem(scoped(LAST_KEY)) ?? "{}") as typeof last; } catch { /* nothing kept */ }
+  memory.group = o.favorites ? FAV : o.rememberGroup && typeof last.group === "string" && last.group ? last.group : ALL;
+  memory.channel = null;
+  pendingKey = o.rememberItem && typeof last.channel === "string" ? last.channel : null;
+  lastKey = typeof last.channel === "string" ? last.channel : null;
+}
+
 function loadSort(): Sort {
   try { const v = localStorage.getItem(SORT_KEY) as Sort | null; return v && SORTS.includes(v) ? v : "provider"; } catch { return "provider"; }
 }
@@ -118,7 +153,14 @@ export function LiveView(p: Props) {
   const [sort, setSortState] = useState<Sort>(loadSort);
   const [query, setQueryState] = useState(memory.query);
   const [settled, setSettled] = useState(memory.query);
-  const setGroup = (g: string) => { memory.group = g; setGroupState(g); };
+  const setGroup = (g: string) => { memory.group = g; setGroupState(g); saveLast(); };
+  // A remembered provider category that this playlist no longer has: back to "All channels" (Android restores it only
+  // while it still exists).
+  useEffect(() => {
+    if (p.channels.length === 0 || group.charAt(0) === "~" || groups.some((g) => g.name === group)) return;
+    memory.channel = null;
+    setGroup(ALL);
+  }, [groups, group]);
   const setSort = (v: Sort) => { try { localStorage.setItem(SORT_KEY, v); } catch { /* this session only */ } setSortState(v); };
   const setQuery = (q: string) => { memory.query = q; memory.channel = null; setQueryState(q); };
   const [catsOpen, setCatsOpen] = useState(false);
@@ -164,6 +206,11 @@ export function LiveView(p: Props) {
   }, [groupItems, catQuery]);
 
   // The row the cursor was on before a channel was opened, while it is still in the list; else the first.
+  if (pendingKey !== null && p.channels.length > 0) {
+    const key = pendingKey;
+    pendingKey = null;
+    memory.channel = p.channels.find((c) => rowKey(c) === key)?.id ?? null;
+  }
   const back = memory.channel !== null ? shown.findIndex((c) => c.id === memory.channel) : -1;
   const [preview, setPreview] = useState<Channel | null>(() => (back >= 0 ? shown[back] : shown[0]) ?? null);
   useEffect(() => { if (dwelled) setPreview(dwelled); }, [dwelled]);
@@ -233,6 +280,8 @@ export function LiveView(p: Props) {
   // The preview follows the cursor only after it has rested on a channel: listing fast must not open a stream per row.
   const onFocusChannel = (c: Channel) => {
     memory.channel = c.id;
+    lastKey = rowKey(c);
+    saveLast();
     focusedRef.current = c;
     setAway(!!preview && c.id !== preview.id);
     clearTimeout(timer.current);

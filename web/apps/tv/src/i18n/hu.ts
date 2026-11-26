@@ -1253,4 +1253,19 @@ export const hu: Record<keyof typeof en, string> = {
   sa_web_sync_tv: "Wi‑Fi sync is not available on Samsung and LG yet: move your data with a backup.",
   sa_web_tg_body: "The Telegram remote works only in the Android TV app for now.",
   // end settings (Android)
+  // player functions (Android)
+  pfAudio: "Hang",
+  pfSubtitles: "Felirat",
+  pfAudioTrack: "Hangsáv",
+  pfSubtitlesTitle: "Feliratok",
+  pfNoTracks: "Nincs elérhető sáv.",
+  pfAudioN: "{n}. hangsáv",
+  pfSubtitleN: "{n}. felirat",
+  // settings functions (Android)
+  sa_settings_startup_channel_unavailable: "Az indítási csatorna nem érhető el. A kezdőlap nyílt meg.",
+  sa_settings_focus_thickness: "Vastagság",
+  sa_common_search_hint: "Keresés…",
+  sa_content_no_channels_found: "Nincs csatorna erre: „{1}”",
+  sa_content_no_channels_here: "Itt nincsenek csatornák.",
+  sa_web_tvbox_no_effect: "A TV-box megjelenésben nincs hatása, ugyanúgy, mint az Android TV-alkalmazásban: a választás megmarad, és a biztonsági mentésbe is bekerül.",
 };

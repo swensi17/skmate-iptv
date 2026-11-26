@@ -3,6 +3,7 @@ import { AUTO_THRESHOLD, GuideIndex } from "./match";
 import { GuideData, KEEP_AHEAD_MS, KEEP_PAST_MS } from "./store";
 import { readGuide } from "./stream";
 import { XmltvScanner, type GuideChannel, type Programme } from "./xmltv";
+import { breathe } from "./yielder";
 
 export interface EpgSource { id: string; name: string; url: string }
 
@@ -25,9 +26,26 @@ export interface SyncOptions {
   open: (url: string) => Promise<Response>;
   onProgress?: (source: EpgSource, stage: Stage) => void;
   isCancelled?: () => boolean;
+  /** How far ahead of [now] programmes are kept (Settings › days of guide kept); 12 h by default. */
+  aheadMs?: number;
+  /** How far back a programme that is over is still kept; 1 h by default. */
+  pastMs?: number;
+  /**
+   * Where the programmes go as they are read (the IndexedDB writer, see cache.ts). Without it they are collected in
+   * the returned GuideData, which is fine for half a day but not for a week of a large playlist.
+   */
+  sink?: GuideSink;
+  /** After each source that linked channels: what is linked so far (a first guide can be shown before the rest). */
+  onSource?: (data: GuideData) => void | Promise<void>;
 }
 
-const tick = () => new Promise<void>((resolve) => setTimeout(resolve, 0));
+/** Takes programmes while a guide is read, and writes them away whenever [full] says enough has gathered. */
+export interface GuideSink {
+  add(epgId: string, p: Programme): void;
+  readonly full: boolean;
+  flush(): Promise<void>;
+}
+
 const MATCH_CHUNK = 120;
 const FEED_SLICE = 48 * 1024;
 
@@ -38,6 +56,9 @@ const FEED_SLICE = 48 * 1024;
  */
 export async function syncGuides(o: SyncOptions): Promise<{ data: GuideData; outcomes: SourceOutcome[] }> {
   const data = new GuideData(new Map(), new Map(), o.now);
+  const from = o.now - (o.pastMs ?? KEEP_PAST_MS);
+  const until = o.now + (o.aheadMs ?? KEEP_AHEAD_MS);
+  const sink = o.sink;
   const unlinked = new Map(o.channels.map((c) => [c.id, c]));
   const outcomes: SourceOutcome[] = [];
 
@@ -56,21 +77,30 @@ export async function syncGuides(o: SyncOptions): Promise<{ data: GuideData; out
       let wanted: Set<string> | null = null;
 
       const accept = (id: string, p: Programme) => {
-        if (!wanted?.has(id) || p.stop <= o.now - KEEP_PAST_MS || p.start >= o.now + KEEP_AHEAD_MS) return;
+        if (!wanted?.has(id) || p.stop <= from || p.start >= until) return;
+        if (sink) { sink.add(id, p); outcome.programmes++; return; }
         const list = taken.get(id);
         if (list) list.push(p); else taken.set(id, [p]);
       };
 
       const link = async () => {
         o.onProgress?.(source, "match");
-        const ids = new Map(guideChannels.map((c) => [c.id.toLowerCase(), c.id]));
-        const index = new GuideIndex(guideChannels.reduce<Array<{ id: string; name?: string }>>(
-          (all, c) => all.concat(c.names.length > 0 ? c.names.map((name) => ({ id: c.id, name })) : [{ id: c.id }]), []));
+        const ids = new Map<string, string>();
+        for (const c of guideChannels) ids.set(c.id.toLowerCase(), c.id);
+        await breathe();
+        // One list of every name (a reduce with concat copied it once per guide channel: quadratic on a big guide).
+        const names: Array<{ id: string; name?: string }> = [];
+        for (const c of guideChannels) {
+          if (c.names.length === 0) names.push({ id: c.id });
+          for (const name of c.names) names.push({ id: c.id, name });
+        }
+        const index = await GuideIndex.build(names, breathe);
         const found = new Set<string>();
         const iconOf = new Map(guideChannels.filter((c) => c.icon).map((c) => [c.id, c.icon as string]));
         const todo = Array.from(unlinked.values());
         for (let i = 0; i < todo.length; i += MATCH_CHUNK) {
           for (const ch of todo.slice(i, i + MATCH_CHUNK)) {
+            await breathe(); // a match by name can take milliseconds: the thread is given back as soon as a slice is used
             const direct = (ch.tvgId && ids.get(ch.tvgId.toLowerCase())) || null;
             const byName = direct ?? index.best(ch.name, AUTO_THRESHOLD)?.id ?? (ch.tvgName ? index.best(ch.tvgName, AUTO_THRESHOLD)?.id : null) ?? null;
             if (byName) {
@@ -82,7 +112,6 @@ export async function syncGuides(o: SyncOptions): Promise<{ data: GuideData; out
               outcome.linked++;
             }
           }
-          await tick();
         }
         wanted = found;
         for (const [id, p] of pending) accept(id, p);
@@ -92,6 +121,8 @@ export async function syncGuides(o: SyncOptions): Promise<{ data: GuideData; out
       const scanner = new XmltvScanner({
         onChannel: (c) => guideChannels.push(c),
         onProgramme: (id, p) => (wanted === null ? pending.push([id, p]) : accept(id, p)),
+        // Programmes of channels this playlist does not have, or outside the days kept, are not decoded at all.
+        keep: (id, start, stop) => wanted === null || (wanted.has(id) && stop > from && start < until),
       });
       await readGuide(res, async (text) => {
         // A big piece is fed in slices, so no single parse holds the screen for long.
@@ -99,14 +130,15 @@ export async function syncGuides(o: SyncOptions): Promise<{ data: GuideData; out
           scanner.feed(text.slice(i, i + FEED_SLICE));
           // All of a guide's channels precede its programmes: the first programme means the names are all in.
           if (wanted === null && scanner.sawProgramme) await link();
-          if (i + FEED_SLICE < text.length) await tick();
+          if (sink?.full) await sink.flush();
+          if (i + FEED_SLICE < text.length) await breathe();
         }
       });
       outcome.guideChannels = guideChannels.length;
 
       let done = 0;
       for (const [id, list] of Array.from(taken.entries())) {
-        if (++done % 150 === 0) await tick();
+        if (++done % 150 === 0) await breathe();
         list.sort((a, b) => a.start - b.start);
         const merged = (data.programmes.get(id) ?? []).concat(list);
         const seen = new Set<string>();
@@ -118,6 +150,7 @@ export async function syncGuides(o: SyncOptions): Promise<{ data: GuideData; out
       outcome.error = e instanceof Error ? e.message : String(e);
     }
     o.onProgress?.(source, "done");
+    if (outcome.ok && outcome.linked > 0) await o.onSource?.(data);
   }
   return { data, outcomes };
 }

@@ -4,8 +4,11 @@ import { Button, focusFirst, isBack } from "@skmate/ui";
 import { t } from "../i18n";
 import { remoteKey } from "../platform";
 import type { Settings } from "../state/settings";
+import { defaultZoom, itemPrefs, type ZoomMode } from "@skmate/player";
 import { usePlayback } from "../state/usePlayback";
-import { AspectDialog, ClassicHud, hms, Loading, PlayerError, SleepDialog, Tool, useTick, type Aspect } from "./PlayerChrome";
+import {
+  AspectDialog, ClassicHud, CornerClock, hms, Loading, PlayerError, SleepDialog, Tool, TrackDialog, TrackGlyph, useTick, useZoomStyle,
+} from "./PlayerChrome";
 import "./player.css";
 
 /** 1:05:09 or 5:09. */
@@ -28,6 +31,8 @@ interface Props {
   onExit: () => void;
   /** The episode after this one: its card shows 30 s before it starts, 8 s before the end (PlayerHud). */
   next?: { label: string; play: () => void } | null;
+  /** The film, or the whole series, whose zoom and audio / subtitle choice are remembered (Android trackKey). */
+  trackKey?: string;
 }
 
 /**
@@ -39,15 +44,22 @@ interface Props {
 export function VodPlayer(p: Props) {
   const video = useRef<HTMLVideoElement>(null);
   const target = useMemo<Channel>(() => ({ id: p.url, name: p.title, url: p.url, group: "", ...(p.headers ? { headers: p.headers } : {}) }), [p.url]);
-  const { state, paused, retry, togglePause } = usePlayback(video, target, {
-    engine: p.settings.engine, bufferSeconds: p.settings.buffer, openTimeoutMs: p.settings.openTimeout * 1000, autoRestart: p.settings.autoRestart,
+  const itemKey = p.trackKey ?? p.url;
+  const { state, paused, retry, togglePause, tracks, selectAudio, selectSubtitle } = usePlayback(video, target, {
+    // Settings › films and archive buffer: seconds ahead, 0 = Auto (hls.js' own amount).
+    engine: p.settings.engine, bufferSeconds: p.settings.vodBuffer, openTimeoutMs: p.settings.openTimeout * 1000, autoRestart: p.settings.autoRestart,
+    log: p.settings.playbackLog, trackKey: itemKey,
   });
   const [pos, setPos] = useState(p.startMs);
   const [dur, setDur] = useState(0);
   const [shown, setShown] = useState(true);
   const [dismissed, setDismissed] = useState(false);
-  const [aspect, setAspect] = useState<Aspect>(p.settings.aspect === "fill" ? "fill" : p.settings.aspect === "cover" ? "cover" : "fit");
-  const [dialog, setDialog] = useState<"aspect" | "sleep" | null>(null);
+  // Zoom: the default unless one was picked for this film or series (OwnTVPlayer setZoomModeByUser).
+  const [aspect, setAspect] = useState<ZoomMode>(() => itemPrefs.get(itemKey)?.zoom ?? defaultZoom(p.settings.zoomMode, p.settings.aspect));
+  const pickZoom = (z: ZoomMode) => { setAspect(z); itemPrefs.rememberZoom(itemKey, z); };
+  const [dialog, setDialog] = useState<"aspect" | "sleep" | "audio" | "subs" | null>(null);
+  // Settings › autoplay next episode (OwnTVPlayer advanceAfterNaturalEnd): off, an episode ends where it ends.
+  const autoNext = p.settings.autoPlayNext && !!p.next;
   const [sleepAt, setSleepAt] = useState<number | null>(null);
   const last = useRef(p.startMs);
   const hide = useRef<ReturnType<typeof setTimeout>>();
@@ -75,19 +87,22 @@ export function VodPlayer(p: Props) {
       setPos(el.currentTime * 1000);
       if (Number.isFinite(el.duration)) setDur(el.duration * 1000);
     };
-    const onEnded = () => { report(); if (p.next) p.next.play(); else p.onExit(); };
+    // The end: the next episode when it plays by itself; off, the controls come back on the last picture (Android
+    // stays too); a single film closes as before.
+    const onEnded = () => { report(); if (autoNext && p.next) p.next.play(); else if (p.next) show("ch-play"); else p.onExit(); };
     el.addEventListener("loadedmetadata", onMeta);
     el.addEventListener("timeupdate", onTime);
     el.addEventListener("ended", onEnded);
     const save = setInterval(report, SAVE_EVERY_MS);
     return () => { el.removeEventListener("loadedmetadata", onMeta); el.removeEventListener("timeupdate", onTime); el.removeEventListener("ended", onEnded); clearInterval(save); };
-  }, [p.url, p.next]);
+  }, [p.url, p.next, autoNext]);
   useEffect(() => { if (paused) report(); }, [paused]);
 
   // The next episode: its card in the last 30 s before it starts, which is 8 s before this one ends.
   const left = dur > 0 ? dur - pos : Infinity;
-  const card = !!p.next && !dismissed && left <= NEXT_EPISODE_AT_END_MS + NEXT_EPISODE_CARD_MS && left > 0;
-  useEffect(() => { if (p.next && !dismissed && dur > 0 && left <= NEXT_EPISODE_AT_END_MS) { report(); p.next.play(); } }, [left <= NEXT_EPISODE_AT_END_MS]);
+  // The card counts down to a start that happens by itself, so it is shown only while autoplay is on.
+  const card = autoNext && !dismissed && left <= NEXT_EPISODE_AT_END_MS + NEXT_EPISODE_CARD_MS && left > 0;
+  useEffect(() => { if (autoNext && p.next && !dismissed && dur > 0 && left <= NEXT_EPISODE_AT_END_MS) { report(); p.next.play(); } }, [left <= NEXT_EPISODE_AT_END_MS]);
   useEffect(() => { if (card) focusFirst(document, "vod-next-now"); }, [card]);
 
   // Sleep timer: the end of the film, or so many minutes.
@@ -131,12 +146,16 @@ export function VodPlayer(p: Props) {
   useEffect(() => { if (state === "failed") { const id = setTimeout(() => focusFirst(document, "vod-retry"), 150); return () => clearTimeout(id); } return undefined; }, [state]);
   useEffect(() => () => { clearTimeout(hide.current); report(); }, []);
 
-  const looks = aspect === "fit" ? "contain" : aspect === "fill" ? "fill" : "cover";
+  const look = useZoomStyle(video, aspect);
   const failed = state === "failed";
   const durMin = Math.round(dur / 60_000);
   return (
     <div class="player pv vod-player">
-      <video ref={video} class="video pv-video" style={{ objectFit: looks }} autoplay playsInline />
+      <video ref={video} class="video pv-video" style={look} autoplay playsInline />
+      {/* Settings › player clock, over the whole picture (PlayerCornerClock.kt). */}
+      {p.settings.playerClock ? (
+        <CornerClock size={p.settings.clockSize} weight={p.settings.clockWeight} bg={p.settings.clockBg} color={p.settings.clockColor} alpha={p.settings.clockAlpha} />
+      ) : null}
       <Loading on={state === "loading"} classic />
       {shown && !failed ? (
         <ClassicHud
@@ -144,6 +163,13 @@ export function VodPlayer(p: Props) {
           now={now} paused={paused} onBack={leave} onPlayPause={() => { togglePause(); wake(); }}
           onRewind={() => { seek(-VOD_SEEK_STEP_S); wake(); }} onForward={() => { seek(VOD_SEEK_STEP_S); wake(); }}
           position={pos} duration={dur}
+          media={(
+            <>
+              {/* Both always in the classic dock, with a count badge (PlayerHudChrome.kt:404-407). */}
+              <Tool id="vod-subs" icon="info" glyph={<TrackGlyph kind="subtitle" size={47} />} label={t("pfSubtitles")} badge={tracks.subs.length || null} onClick={() => setDialog("subs")} />
+              <Tool id="vod-audio" icon="volume_high" glyph={<TrackGlyph kind="audio" size={47} />} label={t("pfAudio")} badge={tracks.audio.length > 1 ? tracks.audio.length : null} onClick={() => setDialog("audio")} />
+            </>
+          )}
           tools={(
             <>
               <Tool id="vod-aspect" icon="aspect" label={t("tbAspect")} active={aspect !== "fit"} onClick={() => setDialog("aspect")} />
@@ -163,7 +189,11 @@ export function VodPlayer(p: Props) {
         </div>
       ) : null}
       {failed ? <PlayerError onRetry={retry} retryId="vod-retry" /> : null}
-      {dialog === "aspect" ? <AspectDialog value={aspect} onClose={() => setDialog(null)} onPick={(a) => { setAspect(a); setDialog(null); }} /> : null}
+      {dialog === "aspect" ? <AspectDialog value={aspect} onClose={() => setDialog(null)} onPick={(a) => { pickZoom(a); setDialog(null); }} /> : null}
+      {dialog === "audio" || dialog === "subs" ? (
+        <TrackDialog kind={dialog === "audio" ? "audio" : "subtitle"} tracks={dialog === "audio" ? tracks.audio : tracks.subs} onClose={() => setDialog(null)}
+          onPick={(x) => { setDialog(null); if (dialog === "audio") { if (x) selectAudio(x); } else selectSubtitle(x); }} />
+      ) : null}
       {dialog === "sleep" ? (
         <SleepDialog leftMs={sleepAt !== null ? sleepAt - Date.now() : null} endLabel={dur > 0 ? t("tbSleepEndMovie") : null} onClose={() => setDialog(null)}
           onPick={(m) => {

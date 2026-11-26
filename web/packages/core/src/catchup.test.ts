@@ -1,5 +1,6 @@
-import { describe, expect, it } from "vitest";
-import { archiveUrl, forM3u, fromTemplate, timeshiftPhpAlternate } from "./catchup";
+import { afterEach, describe, expect, it } from "vitest";
+import { archiveUrl, forM3u, fromTemplate, resolveArchiveZone, setArchiveZone, timeshiftPhpAlternate } from "./catchup";
+import { startOverUrl } from "./timeshift";
 
 // The same cases as the Android app's CatchupUrlTest, so both build the same archive address.
 // 2021-01-01 00:00:00 UTC = 1609459200; +1h = 1609462800.
@@ -169,5 +170,43 @@ describe("archiveUrl", () => {
   it("applies catchup-correction to the Xtream form too", () => {
     expect(archiveUrl({ ...xc, catchupCorrectionMin: 60 }, start, end, now, "UTC"))
       .toBe("http://x:8080/streaming/timeshift.php?username=u&password=p&stream=1234&start=2021-01-01:01-00&duration=60");
+  });
+});
+
+describe("the archive time zone (Settings › archive, Android resolveCatchupTimeZone)", () => {
+  const now = end + 3_600_000;
+  const xc = { url: "http://x:8080/live/u/p/1234.m3u8", catchupDays: 3 };
+  afterEach(() => setArchiveZone(undefined));
+
+  it("resolves the playlist's own choice first, then the global mode", () => {
+    expect(resolveArchiveZone("auto", 0)).toBe("local"); // automatic without a panel zone: the device's
+    expect(resolveArchiveZone("auto", 0, undefined, "Europe/Moscow")).toBe("Europe/Moscow");
+    expect(resolveArchiveZone("device", 180)).toBe("local");
+    expect(resolveArchiveZone("manual", 180)).toBe(180);
+    expect(resolveArchiveZone("manual", 180, "device")).toBe("local");
+    expect(resolveArchiveZone("device", 0, -300)).toBe(-300);
+  });
+
+  it("writes the Xtream start in a fixed offset, an IANA zone, or the default set from Settings", () => {
+    expect(archiveUrl(xc, start, end, now, 180)).toContain("start=2021-01-01:03-00");
+    expect(archiveUrl(xc, start, end, now, -330)).toContain("start=2020-12-31:18-30");
+    expect(archiveUrl(xc, start, end, now, "Asia/Tashkent")).toContain("start=2021-01-01:05-00");
+    expect(archiveUrl(xc, start, end, now)).toContain("start=2021-01-01:00-00"); // nothing set: UTC, as before
+    setArchiveZone(300);
+    expect(archiveUrl(xc, start, end, now)).toContain("start=2021-01-01:05-00");
+    expect(archiveUrl(xc, start, end, now, "UTC")).toContain("start=2021-01-01:00-00"); // a named zone still wins
+    // the programme on air from its start goes the same way
+    expect(startOverUrl(xc, start, end, start + 600_000)).toContain("start=2021-01-01:05-00");
+  });
+
+  it("the device's zone is the TV clock's", () => {
+    const d = new Date(start);
+    const local = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}:${String(d.getHours()).padStart(2, "0")}-${String(d.getMinutes()).padStart(2, "0")}`;
+    expect(archiveUrl(xc, start, end, now, "local")).toContain(`start=${local}`);
+  });
+
+  it("formats legacy tokens in the zone, unix tokens never move", () => {
+    setArchiveZone(120);
+    expect(forM3u("http://h/a.m3u8", "append", "?b=${(b)yyyyMMddHHmmss}&u={utc}", start, end)).toBe("http://h/a.m3u8?b=20210101020000&u=1609459200");
   });
 });

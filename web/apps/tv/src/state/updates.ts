@@ -79,3 +79,15 @@ export async function install(
   u.searchParams.set("v", String(release.build));
   env.go(u.toString());
 }
+
+/** How often to look again while the app is open (Android UpdatePrefs.Every: START = only at start, 6 h, a day); 0 = never again. */
+export function updateEveryMs(every: "start" | "6h" | "day"): number {
+  return every === "6h" ? 6 * 3_600_000 : every === "day" ? 24 * 3_600_000 : 0;
+}
+
+/** Android UpdatePrefs.mayInstallNow: an automatic install may go ahead any time, or only between 02:00 and 06:00. */
+export function mayInstallNow(window: "any" | "night", now: Date = new Date()): boolean {
+  if (window === "any") return true;
+  const h = now.getHours();
+  return h >= 2 && h < 6;
+}

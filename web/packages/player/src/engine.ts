@@ -1,3 +1,5 @@
+import type { TrackSource } from "./tracks";
+
 /** What a player engine must offer; the ladder and the UI know nothing beyond this. */
 export interface Source {
   url: string;
@@ -14,6 +16,8 @@ export interface PlayerEngine {
   start(video: HTMLVideoElement, source: Source): Promise<void>;
   /** Releases everything; safe to call twice. */
   stop(): void;
+  /** The audio and subtitle tracks of what plays, once [start] resolved; absent where the engine has no say. */
+  tracks?(): TrackSource | null;
 }
 
 export class PlayFailure extends Error {

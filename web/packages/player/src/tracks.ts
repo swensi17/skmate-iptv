@@ -1,0 +1,225 @@
+/*
+ * Audio and subtitle tracks, as the Android app offers them (player/TrackMemory.kt, SubtitleLanguage.kt,
+ * PlayerHudDialogs.kt TrackDialog): what an engine exposes, how a remembered language is matched to a track,
+ * and the two sources a browser has — hls.js' own lists (alternate renditions) and the <video> element's
+ * `audioTracks` / `textTracks` (only where the browser has them: feature-checked, never assumed).
+ */
+
+/** One audio or subtitle track (Android TrackOption): an engine-scoped id, the stream's own label and language. */
+export interface TrackOption {
+  id: number;
+  /** The stream's label ("English", "Main"); "" when it gives none. */
+  label: string;
+  /** The language tag as the stream writes it ("en", "eng", "ger", "en-US"); "" when none. */
+  lang: string;
+  selected: boolean;
+}
+
+/** What an engine can tell about its tracks and switch. */
+export interface TrackSource {
+  audio(): TrackOption[];
+  subtitles(): TrackOption[];
+  selectAudio(id: number): void;
+  /** null turns subtitles off. */
+  selectSubtitle(id: number | null): void;
+  /** Calls [onChange] whenever a list or a choice changes; returns the way to stop. */
+  watch(onChange: () => void): () => void;
+}
+
+/** The stored subtitle choice meaning "the user turned subtitles off here" (PlaybackPrefsStore.SUBTITLES_OFF). */
+export const SUBTITLES_OFF = "off";
+
+/** ISO 639-2/B ("bibliographic") codes and their 639-2/T forms: broadcast tracks often carry `ger`, `fre`. */
+const B_TO_T: Record<string, string> = {
+  alb: "sqi", arm: "hye", baq: "eus", bur: "mya", chi: "zho", cze: "ces", dut: "nld", fre: "fra", geo: "kat", ger: "deu",
+  gre: "ell", ice: "isl", mac: "mkd", mao: "mri", may: "msa", per: "fas", rum: "ron", slo: "slk", tib: "bod", wel: "cym",
+};
+
+/** ISO 639-1 → 639-2/T, what Java's `Locale.isO3Language` gives Android for the two-letter tags. */
+const ONE_TO_THREE: Record<string, string> = {
+  af: "afr", am: "amh", ar: "ara", az: "aze", be: "bel", bg: "bul", bn: "ben", bo: "bod", bs: "bos", ca: "cat", cs: "ces",
+  cy: "cym", da: "dan", de: "deu", el: "ell", en: "eng", es: "spa", et: "est", eu: "eus", fa: "fas", fi: "fin", fr: "fra",
+  ga: "gle", gl: "glg", gu: "guj", he: "heb", iw: "heb", hi: "hin", hr: "hrv", hu: "hun", hy: "hye", id: "ind", in: "ind",
+  is: "isl", it: "ita", ja: "jpn", ka: "kat", kk: "kaz", km: "khm", kn: "kan", ko: "kor", ku: "kur", ky: "kir", la: "lat",
+  lo: "lao", lt: "lit", lv: "lav", mk: "mkd", ml: "mal", mn: "mon", mr: "mar", ms: "msa", my: "mya", nb: "nob", ne: "nep",
+  nl: "nld", nn: "nno", no: "nor", pa: "pan", pl: "pol", ps: "pus", pt: "por", ro: "ron", ru: "rus", si: "sin", sk: "slk",
+  sl: "slv", so: "som", sq: "sqi", sr: "srp", sv: "swe", sw: "swa", ta: "tam", te: "tel", tg: "tgk", th: "tha", tk: "tuk",
+  tl: "tgl", tr: "tur", uk: "ukr", ur: "urd", uz: "uzb", vi: "vie", yi: "yid", zh: "zho", zu: "zul",
+};
+
+/** One spelling per language: "en", "eng", "en-US" → "eng"; "ger", "de" → "deu". Unknown codes stay as they are. */
+export function languageIdentity(code: string): string {
+  const raw = code.trim().replace(/_/g, "-").toLowerCase();
+  const base = raw.split("-")[0] ?? "";
+  const t = B_TO_T[base] ?? base;
+  return ONE_TO_THREE[t] ?? t;
+}
+
+/** Android subtitleLanguageMatches: ISO 639-1/2 and regional tags match one another (eng, en, en-US). */
+export function languageMatches(preferred: string, actual: string | null | undefined): boolean {
+  if (!preferred.trim() || !actual || !actual.trim()) return false;
+  return languageIdentity(preferred) === languageIdentity(actual);
+}
+
+/** TrackMemory.audioToSelect: the track to switch to for [lang], or null when none matches or one already plays. */
+export function audioToSelect(tracks: readonly TrackOption[], lang: string | null | undefined): TrackOption | null {
+  if (!lang || !lang.trim()) return null;
+  if (tracks.some((x) => x.selected && languageMatches(lang, x.lang))) return null;
+  return tracks.find((x) => languageMatches(lang, x.lang)) ?? null;
+}
+
+export type SubtitleAction = { kind: "none" } | { kind: "off" } | { kind: "select"; track: TrackOption };
+
+/** TrackMemory.subtitleAction: what a remembered subtitle choice (a language or [SUBTITLES_OFF]) asks for. */
+export function subtitleAction(tracks: readonly TrackOption[], choice: string | null | undefined): SubtitleAction {
+  if (!choice || !choice.trim()) return { kind: "none" };
+  if (choice === SUBTITLES_OFF) return tracks.some((x) => x.selected) ? { kind: "off" } : { kind: "none" };
+  if (tracks.some((x) => x.selected && languageMatches(choice, x.lang))) return { kind: "none" };
+  const track = tracks.find((x) => languageMatches(choice, x.lang));
+  return track ? { kind: "select", track } : { kind: "none" };
+}
+
+/** The audio tile is there only with a choice to make (PlayerHud.kt: `audioCount > 1`), subtitles with any track. */
+export function showAudioTile(audio: readonly TrackOption[]): boolean { return audio.length > 1; }
+export function showSubtitleTile(subs: readonly TrackOption[]): boolean { return subs.length > 0; }
+
+/* ---------- The <video> element's own lists (feature-checked: Chromium has `audioTracks` only behind a flag) ---------- */
+
+interface AudioTrackLike { id: string; label: string; language: string; enabled: boolean }
+interface ListLike<T> { length: number; [i: number]: T; addEventListener?(type: string, fn: () => void): void; removeEventListener?(type: string, fn: () => void): void }
+
+function audioList(video: HTMLVideoElement): ListLike<AudioTrackLike> | null {
+  const list = (video as unknown as { audioTracks?: ListLike<AudioTrackLike> }).audioTracks;
+  return list && typeof list.length === "number" ? list : null;
+}
+
+function textList(video: HTMLVideoElement): ListLike<TextTrack> | null {
+  const list = (video as unknown as { textTracks?: ListLike<TextTrack> }).textTracks;
+  return list && typeof list.length === "number" ? list : null;
+}
+
+const isSubtitle = (t: TextTrack) => t.kind === "subtitles" || t.kind === "captions";
+
+/** The text tracks a viewer can pick, with their index in the element's list as the id. */
+function elementSubtitles(video: HTMLVideoElement, base = 0, only?: (t: TextTrack) => boolean): TrackOption[] {
+  const list = textList(video);
+  if (!list) return [];
+  const out: TrackOption[] = [];
+  for (let i = 0; i < list.length; i++) {
+    const t = list[i] as TextTrack;
+    if (!isSubtitle(t) || (only && !only(t))) continue;
+    out.push({ id: base + i, label: t.label || "", lang: t.language || "", selected: t.mode === "showing" });
+  }
+  return out;
+}
+
+function showText(video: HTMLVideoElement, index: number | null, only?: (t: TextTrack) => boolean): void {
+  const list = textList(video);
+  if (!list) return;
+  for (let i = 0; i < list.length; i++) {
+    const t = list[i] as TextTrack;
+    if (!isSubtitle(t) || (only && !only(t))) continue;
+    t.mode = i === index ? "showing" : "disabled";
+  }
+}
+
+function listen(list: ListLike<unknown> | null, fn: () => void): () => void {
+  if (!list || !list.addEventListener) return () => undefined;
+  const events = ["change", "addtrack", "removetrack"];
+  events.forEach((e) => list.addEventListener?.(e, fn));
+  return () => events.forEach((e) => list.removeEventListener?.(e, fn));
+}
+
+/**
+ * The tracks of the page's own decoder (the TV's <video src>, mpegts.js on Media Source): `audioTracks` where the
+ * browser has it (Safari, some TV firmware; Chromium only behind a flag), `textTracks` everywhere.
+ */
+export function elementTracks(video: HTMLVideoElement): TrackSource {
+  return {
+    audio() {
+      const list = audioList(video);
+      if (!list) return [];
+      const out: TrackOption[] = [];
+      for (let i = 0; i < list.length; i++) {
+        const t = list[i] as AudioTrackLike;
+        out.push({ id: i, label: t.label || "", lang: t.language || "", selected: !!t.enabled });
+      }
+      return out;
+    },
+    subtitles: () => elementSubtitles(video),
+    selectAudio(id) {
+      const list = audioList(video);
+      if (!list || id < 0 || id >= list.length) return;
+      // Enable the chosen one first: some players drop the sound for a moment with none enabled.
+      (list[id] as AudioTrackLike).enabled = true;
+      for (let i = 0; i < list.length; i++) if (i !== id) (list[i] as AudioTrackLike).enabled = false;
+    },
+    selectSubtitle: (id) => showText(video, id),
+    watch(fn) {
+      const a = listen(audioList(video), fn);
+      const t = listen(textList(video), fn);
+      return () => { a(); t(); };
+    },
+  };
+}
+
+/* ---------- hls.js: its alternate renditions, plus the CEA-608 captions it puts on the element ---------- */
+
+/** What of hls.js is used here (kept structural so the library is still loaded only when needed). */
+export interface HlsTrackApi {
+  readonly audioTracks: ReadonlyArray<{ name: string; lang?: string }>;
+  audioTrack: number;
+  readonly subtitleTracks: ReadonlyArray<{ name: string; lang?: string }>;
+  subtitleTrack: number;
+  subtitleDisplay: boolean;
+  on(event: string, fn: () => void): void;
+  off(event: string, fn: () => void): void;
+}
+
+/** Ids at and above this name a caption track of the element (CEA-608 inside the video), not an hls.js subtitle. */
+export const CAPTION_ID_BASE = 1000;
+
+export const HLS_TRACK_EVENTS = [
+  "hlsManifestParsed", "hlsAudioTracksUpdated", "hlsAudioTrackSwitched", "hlsSubtitleTracksUpdated", "hlsSubtitleTrackSwitch",
+];
+
+/** In-stream captions hls.js draws as the element's text tracks; its own subtitle renditions are picked through it. */
+const isCaption = (t: TextTrack) => t.kind === "captions";
+
+export function hlsTracks(hls: () => HlsTrackApi | null, video: HTMLVideoElement): TrackSource {
+  return {
+    audio() {
+      const h = hls();
+      if (!h) return [];
+      return h.audioTracks.map((t, i) => ({ id: i, label: t.name || "", lang: t.lang || "", selected: i === h.audioTrack }));
+    },
+    subtitles() {
+      const h = hls();
+      const own = h ? h.subtitleTracks.map((t, i) => ({ id: i, label: t.name || "", lang: t.lang || "", selected: h.subtitleDisplay && i === h.subtitleTrack })) : [];
+      return [...own, ...elementSubtitles(video, CAPTION_ID_BASE, isCaption)];
+    },
+    selectAudio(id) {
+      const h = hls();
+      if (h && id >= 0 && id < h.audioTracks.length) h.audioTrack = id;
+    },
+    selectSubtitle(id) {
+      const h = hls();
+      if (id !== null && id >= CAPTION_ID_BASE) {
+        if (h) h.subtitleTrack = -1;
+        showText(video, id - CAPTION_ID_BASE, isCaption);
+        return;
+      }
+      showText(video, null, isCaption);
+      if (!h) return;
+      if (id === null) { h.subtitleTrack = -1; return; }
+      h.subtitleDisplay = true;
+      h.subtitleTrack = id;
+    },
+    watch(fn) {
+      const h = hls();
+      HLS_TRACK_EVENTS.forEach((e) => h?.on(e, fn));
+      const t = listen(textList(video), fn);
+      return () => { HLS_TRACK_EVENTS.forEach((e) => h?.off(e, fn)); t(); };
+    },
+  };
+}

@@ -1,5 +1,5 @@
 import { memo } from "preact/compat";
-import { useContext, useEffect, useMemo, useRef, useState } from "preact/hooks";
+import { useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "preact/hooks";
 import { hasArchive, type Channel } from "@skmate/core";
 import type { GuideData, Programme } from "@skmate/epg";
 import { Button, focusFirst, focusWithoutScroll, Icon, isBack, Menu, MenuItem, useOwnBack } from "@skmate/ui";
@@ -75,14 +75,23 @@ type MenuFor = { channel: Channel; programme: Programme | null } | null;
 export function GuideView(p: Props) {
   const { settings, channels, favorites, status } = p;
   const { data, now } = useContext(GuideContext);
-  const rows = useMemo(() => channels.filter((c) => data.of(c.id).length > 0), [channels, data]);
+  // A channel is a row when the guide has it at all, also when the hours in memory hold none of its programmes:
+  // rows do not come and go as the grid scrolls and days are read in.
+  // The same rows stay the same array when a fresh guide replaces the stored one, so nothing below them moves.
+  const prevRows = useRef<Channel[]>([]);
+  const rows = useMemo(() => {
+    const next = channels.filter((c) => data.stored(c.id));
+    const prev = prevRows.current;
+    return next.length === prev.length && next.every((c, i) => c === prev[i]) ? prev : next;
+  }, [channels, data]);
   const numberOf = useMemo(() => { const m = new Map<string, number>(); channels.forEach((c, i) => m.set(c.id, i + 1)); return m; }, [channels]);
   const numW = Math.max(38, String(channels.length).length * 11);
   const halfHour = Math.floor(now / (30 * MINUTE));
   const win = useMemo(() => {
     let last = 0;
     for (const c of rows) { const l = data.of(c.id); const s = l.length ? (l[l.length - 1] as Programme).stop : 0; if (s > last) last = s; }
-    return guideWindow(now, last);
+    // A guide kept in IndexedDB reaches further than what is in memory: the days kept (Settings).
+    return guideWindow(now, Math.max(last, data.horizon));
   }, [rows, data, halfHour]);
   const maxX = Math.max(0, Math.round(pxAt(win.end, win.start) - TIMELINE_W));
   const maxY = Math.max(0, rows.length * ROW_STEP - ROW_GAP + 24 - VIEW_H);
@@ -106,8 +115,22 @@ export function GuideView(p: Props) {
 
   // The time a programme is shown 3/8 of the way across, as the Android guide opens: room on both sides of "now".
   useEffect(() => { setScrollX(Math.round(Math.min(maxX, Math.max(0, pxAt(Date.now(), win.start) - (TIMELINE_W * 3) / 8)))); }, [win.start, rows.length > 0]);
-  // Fewer rows (a new playlist): the focus stays on one that exists.
-  useEffect(() => { if (row > rows.length - 1) { setRow(Math.max(0, rows.length - 1)); setScrollY(0); } }, [rows.length]);
+  // Other rows (a fresh guide has more or fewer channels): the focus stays on the channel it was on, at the same
+  // height on the screen, before anything is painted; a playlist with fewer rows keeps it on one that exists.
+  useLayoutEffect(() => {
+    const prev = prevRows.current;
+    prevRows.current = rows;
+    if (prev === rows || prev.length === 0) return;
+    const was = prev[st.current.row];
+    const at = was ? rows.indexOf(was) : -1;
+    if (at >= 0 && at !== st.current.row) {
+      const y = Math.min(Math.max(0, rows.length * ROW_STEP - ROW_GAP + 24 - VIEW_H), Math.max(0, st.current.scrollY + (at - st.current.row) * ROW_STEP));
+      st.current.row = at;
+      st.current.scrollY = y;
+      setRow(at);
+      setScrollY(y);
+    } else if (at < 0 && st.current.row > rows.length - 1) { setRow(Math.max(0, rows.length - 1)); setScrollY(0); }
+  }, [rows]);
 
   // The grid of a long playlist takes a while to lay out on a TV: the screen first shows that the guide is coming,
   // and the grid is built a frame later, so the wait is never an empty grey page.
@@ -119,7 +142,9 @@ export function GuideView(p: Props) {
   }, []);
   const syncing = status.kind === "syncing";
   const grid = ready && rows.length > 0;
-  const loading = !grid && (!ready || syncing);
+  // The stored guide is read in a moment after the start: until then (and while a first download runs) a spinner.
+  const loading = !grid && (!ready || syncing || status.kind === "restoring");
+  useEffect(() => { if (grid) { try { performance.mark("skmate:guide-grid"); } catch { /* no user timing */ } } }, [grid]);
   useEffect(() => {
     // The state follows the focus call itself too: a window that is not focused yet (a TV app still starting) sends no focus event.
     if (grid && view.current) { focusWithoutScroll(view.current); if (document.activeElement === view.current) setGridFocused(true); }
@@ -273,6 +298,22 @@ export function GuideView(p: Props) {
   const videoNow = videoChannel ? programmeAt(data.of(videoChannel.id), now) : null;
   const dayAt = timeAt(scrollX + (TIMELINE_W * 3) / 8, win.start);
 
+  // The hours in view (and a margin) are asked of the guide: a later day is read in from storage as it comes near.
+  const hour = 3_600_000;
+  const viewFrom = Math.floor(timeAt(scrollX - OVERSCAN_X, win.start) / hour);
+  const viewTo = Math.ceil(timeAt(scrollX + TIMELINE_W + OVERSCAN_X, win.start) / hour);
+  useEffect(() => { if (grid) data.need(viewFrom * hour, viewTo * hour); }, [grid, viewFrom, viewTo, data]);
+
+  // The description of a programme far ahead is on disk: read when the cursor rests on it.
+  const [desc, setDesc] = useState<{ p: Programme; text: string } | null>(null);
+  useEffect(() => {
+    if (!shown || shown.desc || !topChannel) return;
+    let live = true;
+    const id = setTimeout(() => { void data.describe(topChannel.id, shown).then((text) => { if (live && text) setDesc({ p: shown, text }); }); }, 250);
+    return () => { live = false; clearTimeout(id); };
+  }, [shown, topChannel?.id, data]);
+  const synopsis = shown?.desc ?? (desc && shown && desc.p.start === shown.start && desc.p.title === shown.title ? desc.text : "");
+
   // --- Rows and cells in view ---
   const first = Math.max(0, Math.floor(scrollY / ROW_STEP) - 1);
   const last = Math.min(rows.length - 1, Math.floor((scrollY + VIEW_H) / ROW_STEP) + 1);
@@ -300,7 +341,7 @@ export function GuideView(p: Props) {
           {shown ? <div class="gd-eyebrow"><Icon name="clock" size={18} /><span>{eyebrow(shown, topChannel.name, now)}</span></div> : null}
           <div class="gd-title">{shown?.title ?? topChannel.name}</div>
           {shown ? null : <div class="gd-details">{t("gssNoProgramme")}</div>}
-          <div class="gd-syn">{shown?.desc ?? ""}</div>
+          <div class="gd-syn">{synopsis}</div>
         </div>
       ) : null}
 
@@ -318,6 +359,7 @@ export function GuideView(p: Props) {
       ) : (
         <>
           <div class="gd-day">{dayLabel(dayAt)}</div>
+          {syncing ? <div class="gd-sync" role="status"><span class="gd-sync-spin"><Ticks /></span>{status.text}</div> : null}
           <Ruler start={win.start} end={win.end} now={now} scrollX={scrollX} />
           <div class="gd-labels">
             <div class="gd-plane" style={{ transform: `translate3d(0,${-scrollY}px,0)` }}>

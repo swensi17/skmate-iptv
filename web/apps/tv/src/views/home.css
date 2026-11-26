@@ -39,7 +39,7 @@ button.tb-rail-avatar { flex: none; width: 46px; height: 46px; margin-top: 4px; 
   display: flex; align-items: center; justify-content: center;
   background: linear-gradient(135deg, #ffb35c, #ff5f7a); color: #2a0d12; font: 800 20px var(--st-font);
   transition: transform var(--st-lift-ms) var(--st-ease); transform-origin: 50% 40%; }
-button.tb-rail-avatar:focus { transform: scale(1.08); box-shadow: 0 0 0 3px var(--st-page), 0 0 0 6px var(--st-accent); }
+button.tb-rail-avatar:focus { transform: scale(1.08); box-shadow: 0 0 0 3px var(--st-page), 0 0 0 6px var(--st-focus-ring, var(--st-accent)); }
 
 /* --- The clock, date and weather (StageStatus.kt StageClock, TV-box): 64 from the right, 34 from the top --- */
 .home-status { position: absolute; top: 34px; right: 64px; z-index: 5; display: flex; align-items: center; pointer-events: none;

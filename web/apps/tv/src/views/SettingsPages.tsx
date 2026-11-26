@@ -32,7 +32,7 @@ interface P { s: Settings; set: (x: Partial<Settings>) => void }
 const pct = (n: number) => tf("sa_common_percent", n);
 const clamp = (n: number, a: number, b: number) => Math.max(a, Math.min(b, n));
 
-/** Стекло и фон (GlassEffectPage.kt). Stored: the TV-box look the web app draws has flat panels. */
+/** Стекло и фон (GlassEffectPage.kt). Stored: the TV-box look draws flat panels, on Android as here. */
 export function GlassPage({ s, set }: P) {
   const bg: Key[] = ["sa_settings_bg_stage", "sa_settings_bg_picture", "sa_settings_bg_plain"];
   const looks: Key[] = ["sa_settings_bg_sharp", "sa_settings_bg_soft", "sa_settings_bg_dark"];
@@ -53,11 +53,13 @@ export function GlassPage({ s, set }: P) {
         onStep: (d) => { if (s.glassOn) set({ glassOpacity: clamp(s.glassOpacity + d * 5, 20, 100) }); }, disabled: !s.glassOn },
       { id: "g-reset", icon: "REFRESH", title: t("sa_common_reset"), line: tf("sa_settings_line_glass_reset", pct(50)),
         onOk: () => set({ bgMode: 0, bgLook: 0, bgDim: 40, bgBlur: 40, bgGlow: true, glassOn: true, glassOpacity: 50 }) },
+      // The TV-box look draws flat panels: Android's own TV-box shell ignores these too (OwnTVShell.kt:1070-1075, 1296).
+      { note: t("sa_web_tvbox_no_effect") },
     ]} />
   );
 }
 
-/** Шрифты и размер текста (FontSettingsScreen.kt). Stored. */
+/** Шрифты и размер текста (FontSettingsScreen.kt): applied by state/look.ts (every text, popups their own size). */
 export function FontsPage({ s, set }: P) {
   const sheet = useSheet();
   const [choosing, setChoosing] = useState(false);
@@ -80,21 +82,46 @@ export function FontsPage({ s, set }: P) {
   );
 }
 
-/** Дата, время и погода (WeatherSettingsScreen.kt). Stored. */
+/** The clock colour presets (WeatherSettingsScreen.kt:171-178): white = the text colour, grey = muted, the accent, the six accents. */
+const CLOCK_COLORS: Array<{ v: string; k: Key; css: string }> = [
+  { v: "text", k: "sa_settings_clock_color_white", css: "var(--st-text)" },
+  { v: "muted", k: "sa_settings_clock_color_grey", css: "var(--st-muted)" },
+  { v: "accent", k: "sa_settings_accent", css: "var(--st-accent)" },
+  { v: "#52DBC8", k: "sa_settings_accent_teal", css: "#52DBC8" }, { v: "#6FB0FF", k: "sa_settings_accent_blue", css: "#6FB0FF" },
+  { v: "#CBBEFF", k: "sa_settings_accent_violet", css: "#CBBEFF" }, { v: "#6FDB94", k: "sa_settings_accent_green", css: "#6FDB94" },
+  { v: "#FFB95C", k: "sa_settings_accent_amber", css: "#FFB95C" }, { v: "#F2F0ED", k: "sa_settings_accent_ink", css: "#F2F0ED" },
+];
+type ClockField = "clockTimeColor" | "clockDateColor" | "clockWeatherColor";
+
+/** Дата, время и погода (WeatherSettingsScreen.kt): drives the clock at the top right (HomeStatus). */
 export function WeatherPage({ s, set }: P) {
   const [typing, setTyping] = useState(false);
+  const [coloring, setColoring] = useState<ClockField | null>(null);
   const sheet = useSheet();
   const units = (d: number) => set({ tempUnit: d > 0 ? "f" : "c" });
+  // "" = as designed: the time in the text colour, the date and the weather muted.
+  const colorOf = (f: ClockField) => CLOCK_COLORS.find((c) => c.v === (s[f] || (f === "clockTimeColor" ? "text" : "muted"))) ?? CLOCK_COLORS[0]!;
+  const rowOf: Record<ClockField, string> = { clockTimeColor: "w-time", clockDateColor: "w-date", clockWeatherColor: "w-weather" };
+  const done = () => { const f = coloring; setColoring(null); if (f) setTimeout(() => sheet.focus(rowOf[f]), 0); };
+  useSheetBack(coloring !== null, done);
+  const end = (f: ClockField) => { const c = colorOf(f); return <ColorEnd label={t(c.k)} css={c.css} />; };
+  const editor = coloring ? (
+    <EditorLayer title={t(coloring === "clockTimeColor" ? "sa_settings_clock_time_color" : coloring === "clockDateColor" ? "sa_settings_clock_date_color" : "sa_settings_clock_weather_color")}>
+      <ChoiceList idPrefix="cc" value={colorOf(coloring).v} options={CLOCK_COLORS.map((c) => ({ value: c.v, label: t(c.k) }))}
+        onPick={(v) => { const f = coloring; const designed = f === "clockTimeColor" ? "text" : "muted"; set({ [f]: v === designed ? "" : v } as Partial<Settings>); done(); }} onClose={done} />
+    </EditorLayer>
+  ) : null;
   return (
     <>
+      {editor}
       <Lines items={[
         { id: "w-on", icon: "SUN", title: t("sa_settings_show_weather"), line: t("sa_settings_line_show_weather"), end: <Toggle on={s.weatherOn} />, onOk: () => set({ weatherOn: !s.weatherOn }) },
         { id: "w-place", icon: "LANGUAGE", title: t("sa_settings_custom_location"), line: s.weatherPlace || t("sa_settings_auto"), onOk: () => setTyping(true) },
         { id: "w-unit", icon: "SUN", title: t("sa_settings_temperature_unit"), line: s.tempUnit === "f" ? "°F" : "°C", onOk: () => set({ tempUnit: s.tempUnit === "f" ? "c" : "f" }), onStep: units },
         { h: "sa_settings_clock_colors" },
-        { id: "w-time", icon: "CLOCK", title: t("sa_settings_clock_time_color"), line: t("sa_settings_line_clock_time"), end: <ColorEnd label={t("sa_settings_clock_color_white")} /> },
-        { id: "w-date", icon: "CALENDAR", title: t("sa_settings_clock_date_color"), line: t("sa_settings_line_clock_date"), end: <ColorEnd label={t("sa_settings_clock_color_grey")} grey /> },
-        { id: "w-weather", icon: "SUN", title: t("sa_settings_clock_weather_color"), line: t("sa_settings_line_clock_weather"), end: <ColorEnd label={t("sa_settings_clock_color_grey")} grey /> },
+        { id: "w-time", icon: "CLOCK", title: t("sa_settings_clock_time_color"), line: t("sa_settings_line_clock_time"), end: end("clockTimeColor"), onOk: () => setColoring("clockTimeColor") },
+        { id: "w-date", icon: "CALENDAR", title: t("sa_settings_clock_date_color"), line: t("sa_settings_line_clock_date"), end: end("clockDateColor"), onOk: () => setColoring("clockDateColor") },
+        { id: "w-weather", icon: "SUN", title: t("sa_settings_clock_weather_color"), line: t("sa_settings_line_clock_weather"), end: end("clockWeatherColor"), onOk: () => setColoring("clockWeatherColor") },
       ]} />
       <Presence show={typing}>
         {(out) => (
@@ -107,8 +134,8 @@ export function WeatherPage({ s, set }: P) {
   );
 }
 
-function ColorEnd({ label, grey }: { label: string; grey?: boolean }) {
-  return <span class="set-swatch-end"><i class="set-swatch sq" style={{ background: grey ? "#9AA0A6" : "#FFFFFF" }} /><span class="set-hex blue">{label}</span><span class="set-chev">›</span></span>;
+function ColorEnd({ label, css }: { label: string; css: string }) {
+  return <span class="set-swatch-end"><i class="set-swatch sq" style={{ background: css }} /><span class="set-hex blue">{label}</span><span class="set-chev">›</span></span>;
 }
 
 const KEY_ACTIONS: Key[] = [

@@ -1253,4 +1253,19 @@ export const en: Record<keyof typeof ru, string> = {
   sa_web_sync_tv: "Wi‑Fi sync is not available on Samsung and LG yet: move your data with a backup.",
   sa_web_tg_body: "The Telegram remote works only in the Android TV app for now.",
   // end settings (Android)
+  // player functions (Android)
+  pfAudio: "Audio",
+  pfSubtitles: "Subtitles",
+  pfAudioTrack: "Audio Track",
+  pfSubtitlesTitle: "Subtitles",
+  pfNoTracks: "No tracks available.",
+  pfAudioN: "Audio {n}",
+  pfSubtitleN: "Subtitle {n}",
+  // settings functions (Android)
+  sa_settings_startup_channel_unavailable: "The startup channel is unavailable. Home was opened.",
+  sa_settings_focus_thickness: "Thickness",
+  sa_common_search_hint: "Search…",
+  sa_content_no_channels_found: "No channels found for “{1}”",
+  sa_content_no_channels_here: "No channels here.",
+  sa_web_tvbox_no_effect: "Not used by the TV-box look, the same as in the Android TV app: the choice is kept and saved in backups.",
 };

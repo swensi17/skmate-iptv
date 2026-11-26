@@ -9,6 +9,8 @@ import { clock } from "../time";
  * Weather as Android's WeatherRepository: the approximate place from a free IP-location service (three tried in turn),
  * then Open-Meteo's current weather; both are free and need no key. Kept 30 minutes (here in localStorage too, so a
  * restart does not ask again). Nothing is shown for the weather when it cannot be had: the date and time stay.
+ * Settings › Дата, время и погода (WeatherSettingsScreen.kt): weather off hides only the mark and the degrees; a typed
+ * place is "lat,lon" or a city found with Open-Meteo's geocoding; °F = trunc(°C × 9/5 + 32); each line has its colour.
  */
 
 export interface Weather { temperatureC: number; city: string; code: number; isDay: boolean }
@@ -29,45 +31,90 @@ async function getJson(url: string, ms = 8000): Promise<Record<string, unknown>>
   ]);
 }
 
-async function fetchWeather(): Promise<Weather> {
+/** "41.3, 69.28" as a place (WeatherRepository.kt: exactly two numbers split by a comma); null for anything else. */
+export function parseLatLon(text: string): { lat: number; lon: number } | null {
+  const parts = text.split(",");
+  if (parts.length !== 2) return null;
+  const a = parts[0]!.trim(), b = parts[1]!.trim();
+  const num = /^-?\d+(\.\d+)?$/;
+  if (!num.test(a) || !num.test(b)) return null;
+  const lat = Number(a), lon = Number(b);
+  return Math.abs(lat) <= 90 && Math.abs(lon) <= 180 ? { lat, lon } : null;
+}
+
+/** The degrees shown: whole °C, or °F as Android counts them (trunc(c × 9/5 + 32)). */
+export function degrees(c: number, unit: "c" | "f"): number {
+  return Math.trunc(unit === "f" ? (c * 9) / 5 + 32 : c) || 0; // never "-0"
+}
+
+/** Where to look: the typed place (coordinates, or a city by name), else the TV's approximate place by its address. */
+async function locate(place: string): Promise<{ lat: number; lon: number; city: string }> {
+  const typed = place.trim();
+  if (typed) {
+    const ll = parseLatLon(typed);
+    if (ll) return { ...ll, city: typed };
+    const g = await getJson(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(typed)}&count=1&language=en&format=json`);
+    const first = (g.results as Array<Record<string, unknown>> | undefined)?.[0];
+    if (!first || !isFinite(Number(first.latitude)) || !isFinite(Number(first.longitude))) throw new Error("place not found");
+    return { lat: Number(first.latitude), lon: Number(first.longitude), city: String(first.name ?? typed) };
+  }
   for (const [url, latKey, lonKey] of IP_LOCATORS) {
     let loc: Record<string, unknown>;
     try { loc = await getJson(url); } catch { continue; }
     const lat = Number(loc[latKey]);
     const lon = Number(loc[lonKey]);
     if (!isFinite(lat) || !isFinite(lon) || loc[latKey] === undefined) continue;
-    const city = String(loc.city ?? loc.region ?? "");
-    const w = await getJson(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,is_day&timezone=auto`);
-    const cur = w.current as Record<string, unknown> | undefined;
-    if (!cur) throw new Error("no current weather");
-    return { temperatureC: Number(cur.temperature_2m), city, code: Number(cur.weather_code), isDay: Number(cur.is_day ?? 1) === 1 };
+    return { lat, lon, city: String(loc.city ?? loc.region ?? "") };
   }
   throw new Error("no IP location");
 }
 
-function readCache(): { at: number; w: Weather } | null {
-  try { const raw = localStorage.getItem(CACHE_KEY); return raw ? JSON.parse(raw) as { at: number; w: Weather } : null; } catch { return null; }
+async function fetchWeather(place: string): Promise<Weather> {
+  const { lat, lon, city } = await locate(place);
+  const w = await getJson(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,is_day&timezone=auto`);
+  const cur = w.current as Record<string, unknown> | undefined;
+  if (!cur) throw new Error("no current weather");
+  return { temperatureC: Number(cur.temperature_2m), city, code: Number(cur.weather_code), isDay: Number(cur.is_day ?? 1) === 1 };
 }
 
-/** The weather, refreshed every 30 minutes; null until (and unless) it is known. A stale one is kept when offline. */
-export function useWeather(): Weather | null {
-  const [w, setW] = useState<Weather | null>(() => readCache()?.w ?? null);
+/** The kept weather, only if it was looked up for this same place. */
+function readCache(place: string): { at: number; w: Weather } | null {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    const c = raw ? JSON.parse(raw) as { at: number; w: Weather; place?: string } : null;
+    return c && (c.place ?? "") === place.trim() ? c : null;
+  } catch { return null; }
+}
+
+/** The weather for [place] ("" = by the TV's address), refreshed every 30 minutes; null while off, unknown or unreachable. */
+export function useWeather(on = true, place = ""): Weather | null {
+  const [w, setW] = useState<Weather | null>(() => (on ? readCache(place)?.w ?? null : null));
   useEffect(() => {
+    if (!on) { setW(null); return; }
     let alive = true;
+    setW(readCache(place)?.w ?? null);
     const run = () => {
-      const c = readCache();
+      const c = readCache(place);
       if (c && Date.now() - c.at < CACHE_MS) { if (alive) setW(c.w); return; }
-      fetchWeather().then((fresh) => {
+      fetchWeather(place).then((fresh) => {
         if (!alive) return;
         setW(fresh);
-        try { localStorage.setItem(CACHE_KEY, JSON.stringify({ at: Date.now(), w: fresh })); } catch { /* kept in memory only */ }
-      }, () => { /* offline or refused: the clock stays without weather (or with the last one) */ });
+        try { localStorage.setItem(CACHE_KEY, JSON.stringify({ at: Date.now(), w: fresh, place: place.trim() })); } catch { /* kept in memory only */ }
+      }, () => { /* offline, refused or no such place: the clock stays without weather (or with the last one) */ });
     };
     run();
     const id = setInterval(run, CACHE_MS);
     return () => { alive = false; clearInterval(id); };
-  }, []);
+  }, [on, place]);
   return w;
+}
+
+/** A line's colour: "" as designed, "accent" the live accent, or a hex (WeatherSettingsScreen.kt clock colours). */
+export function statusColor(v: string): string | undefined {
+  if (v === "accent") return "var(--st-accent)";
+  if (v === "text") return "var(--st-text)";
+  if (v === "muted") return "var(--st-muted)";
+  return /^#[0-9a-fA-F]{6}$/.test(v) ? v : undefined;
 }
 
 /** "ср, 25 нояб." as Android's getBestDateTimePattern(locale, "EEEdMMM"). */
@@ -77,12 +124,12 @@ function dateText(ms: number): string {
 }
 
 /** [text] whose changed characters roll up into place (StageStatus.kt RollingText, 420 ms): only the new ones move. */
-function Rolling({ text, class: cls }: { text: string; class: string }) {
+function Rolling({ text, class: cls, style }: { text: string; class: string; style?: { color: string } }) {
   const prev = useRef(text);
   const was = prev.current;
   useEffect(() => { prev.current = text; }, [text]);
   return (
-    <span class={cls}>
+    <span class={cls} style={style}>
       {Array.from(text).map((ch, i) => {
         const changed = was !== text && Array.from(was)[i] !== ch;
         // A changed character gets a new key, so its element is new and its roll-in animation runs once.
@@ -93,20 +140,32 @@ function Rolling({ text, class: cls }: { text: string; class: string }) {
 }
 
 /** The clock, the date and the weather at the top right of every screen but the full-screen player and Settings. */
-export function HomeStatus() {
+export function HomeStatus({ look }: { look?: StatusLook }) {
   const [now, setNow] = useState(Date.now());
   useEffect(() => { const id = setInterval(() => setNow(Date.now()), 15_000); return () => clearInterval(id); }, []);
-  const w = useWeather();
+  const w = useWeather(look?.weatherOn ?? true, look?.weatherPlace ?? "");
+  const color = (v: string | undefined) => { const c = statusColor(v ?? ""); return c ? { color: c } : undefined; };
   return (
     <div class="home-status" aria-hidden="true">
       {w ? <WeatherIcon w={w} /> : null}
       <div class="home-status-lines">
-        <Rolling class="home-status-sub" text={dateText(now)} />
-        {w ? <Rolling class="home-status-sub" text={t("homeWeatherCity", { t: Math.trunc(w.temperatureC), city: w.city }).trim()} /> : null}
+        <Rolling class="home-status-sub" text={dateText(now)} style={color(look?.clockDateColor)} />
+        {w ? <Rolling class="home-status-sub" style={color(look?.clockWeatherColor)}
+          text={t("homeWeatherCity", { t: degrees(w.temperatureC, look?.tempUnit ?? "c"), city: w.city }).trim()} /> : null}
       </div>
-      <Rolling class="home-status-time" text={clock(now)} />
+      <Rolling class="home-status-time" text={clock(now)} style={color(look?.clockTimeColor)} />
     </div>
   );
+}
+
+/** What the cluster reads from Settings › Дата, время и погода. */
+export interface StatusLook {
+  weatherOn: boolean;
+  weatherPlace: string;
+  tempUnit: "c" | "f";
+  clockTimeColor: string;
+  clockDateColor: string;
+  clockWeatherColor: string;
 }
 
 /* ---- The weather mark: Android's WeatherConditionIcon.kt and SkyPhase.kt, drawn as SVG on its 100-unit square. ---- */

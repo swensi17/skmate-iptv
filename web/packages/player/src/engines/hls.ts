@@ -1,5 +1,6 @@
 import type Hls from "hls.js";
 import { PlayFailure, type PlayerEngine, type Source } from "../engine";
+import { hlsTracks, type HlsTrackApi, type TrackSource } from "../tracks";
 
 /** How many times the whole decoder is rebuilt, and how many times one decoder tries to heal itself. */
 const REBUILDS = 2;
@@ -63,6 +64,7 @@ export class HlsJsEngine implements PlayerEngine {
 
   constructor(private readonly options: HlsOptions = {}) {}
   private hls: Hls | null = null;
+  private video: HTMLVideoElement | null = null;
   private stopped = false;
 
   supports(source: Source): boolean {
@@ -71,6 +73,7 @@ export class HlsJsEngine implements PlayerEngine {
 
   async start(video: HTMLVideoElement, source: Source): Promise<void> {
     this.stopped = false;
+    this.video = video;
     const { default: HlsLib } = await import("hls.js");
     if (this.stopped || !HlsLib.isSupported()) throw new PlayFailure(this.id, "unsupported");
     for (let attempt = 0; ; attempt++) {
@@ -127,6 +130,12 @@ export class HlsJsEngine implements PlayerEngine {
     });
   }
 
+  /** hls.js' alternate audio and subtitle renditions, and the in-stream captions it puts on the element. */
+  tracks(): TrackSource | null {
+    const video = this.video;
+    return video ? hlsTracks(() => this.hls as unknown as HlsTrackApi | null, video) : null;
+  }
+
   private destroy(): void {
     this.hls?.destroy();
     this.hls = null;
@@ -134,6 +143,7 @@ export class HlsJsEngine implements PlayerEngine {
 
   stop(): void {
     this.stopped = true;
+    this.video = null;
     this.destroy();
   }
 }

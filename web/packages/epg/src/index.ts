@@ -5,3 +5,6 @@ export * from "./guides";
 export * from "./store";
 export * from "./stream";
 export * from "./sync";
+export * from "./kv";
+export * from "./cache";
+export * from "./yielder";

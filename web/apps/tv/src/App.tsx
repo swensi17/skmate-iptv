@@ -6,7 +6,7 @@ import { Icon, installDpad, Presence, watchFrames, type IconName } from "@skmate
 import { applyLanguage, loadLanguage, t, type Key } from "./i18n";
 import skLogo from "./assets/skmate-sk.png";
 import { channelKey, loadFavorites, saveFavorites, toggle } from "./state/favorites";
-import { applyAll, DEFAULTS, load, save, type Settings } from "./state/settings";
+import { applyAll, DEFAULTS, liveSettingsFor, load, save, type Settings } from "./state/settings";
 import { GuideContext } from "./state/GuideContext";
 import { loadHistory, pushRecent, recentChannels, saveHistory } from "./state/history";
 import { UiContext } from "./state/UiContext";
@@ -24,7 +24,7 @@ import { QrDialog } from "./views/QrDialog";
 import { PlaylistPicker } from "./views/PlaylistPicker";
 import { Terms, Wizard, withWizardProfile, type WizardResult } from "./views/Wizard";
 import { GuideView } from "./views/GuideView";
-import { LiveView, type LiveEntry } from "./views/LiveView";
+import { LiveView, primeLive, type LiveEntry } from "./views/LiveView";
 import { StageIcon, type StageIconName } from "./views/GroupIcon";
 import { HomeStatus } from "./views/HomeStatus";
 import { detectPlatform } from "./platform";
@@ -67,7 +67,10 @@ function exitApp(): boolean {
 const UNLOCKED_KEY = "skmate.unlocked";
 
 export function App() {
-  const [section, setSection] = useState<Section>("live");
+  // settings functions (Android): «Прямой эфир открывается в виде» Телегид = Live TV is drawn as the guide
+  // (OwnTVShell.kt liveMode EpgScreen); [guideAsLive] tells that guide from the menu's own Guide.
+  const [section, setSection] = useState<Section>(() => (load().liveOpensIn === "guide" && load().startup !== "favorites" ? "guide" : "live"));
+  const [guideAsLive, setGuideAsLive] = useState(() => section === "guide");
   // `archive`: a past programme played from the provider's recording instead of the live stream.
   const [playing, setPlaying] = useState<{ list: readonly Channel[]; index: number; archive?: { programme: Programme; url: string } } | null>(null);
   // A film or an episode full screen, and the card it was opened from.
@@ -85,6 +88,12 @@ export function App() {
   };
   const [details, setDetails] = useState<{ item: Movie | Show; kind: "movie" | "series" } | null>(null);
   const [settings, setSettings] = useState<Settings>(load);
+  // settings functions (Android): where the channels screen starts (Запуск приложения › Избранное; Просмотр и списки
+  // › the last category and channel), set before it is first drawn.
+  useState(() => {
+    primeLive({ favorites: settings.startup === "favorites", rememberGroup: !!settings.browseLastCat[0], rememberItem: !!settings.browseLastItem[0] });
+    return 0;
+  });
   const [throttled, setThrottled] = useState(false);
   const [favorites, setFavorites] = useState<Set<string>>(loadFavorites);
   const [deleting, setDeleting] = useState<string | null>(null);
@@ -118,7 +127,7 @@ export function App() {
   const [sheet, setSheet] = useState(false);
   const full = useFullScreen();
   // Updates wait for the picture to end: nothing interrupts a channel.
-  const update = useUpdates(settings.autoUpdate, playing !== null);
+  const update = useUpdates({ auto: settings.autoUpdate, onStart: settings.updateOnStart, every: settings.updateEvery, window: settings.updateWindow }, playing !== null);
   const [sheetPage, setSheetPage] = useState<Page | null>(null);
   // Where an open settings section came from, so one step back returns there: the menu, the channel screen, or the
   // playlist picker ("Manage playlists"), never somewhere the viewer has not been.
@@ -201,6 +210,8 @@ export function App() {
     if (playing) { exitPlayer(); return true; }
     // The side menu: Back closes it, the focus goes back to the screen (OwnTVShell.kt closeMenuToContent).
     if (document.activeElement?.closest(".tb-rail")) { closeMenuToContent(); return true; }
+    // Live TV shown as the guide: Back turns it into the list and keeps that (EpgScreen.kt TV-box setLiveView(LIST)).
+    if (section === "guide" && guideAsLive) { showLiveAs("list"); return true; }
     // The guide goes back to the menu it was opened from; any other place to the channels.
     if (section === "guide") { focusRail(); return true; }
     if (section !== "live") { setSection("live"); return true; }
@@ -208,7 +219,7 @@ export function App() {
     if (Date.now() - backAt < EXIT_BACK_MS) return exitApp();
     setBackAt(Date.now());
     return true;
-  }), [backAt, unlocked, prompt, upcoming, pinAsk, deleting, resetting, qr, deletingProfile, picking, details, multiview, sheet, sheetPage, sheetFrom, playing, section]);
+  }), [backAt, unlocked, prompt, upcoming, pinAsk, deleting, resetting, qr, deletingProfile, picking, details, multiview, sheet, sheetPage, sheetFrom, playing, section, guideAsLive]);
 
   const openHere = (c: Channel, list: readonly Channel[]) => setPlaying({ list, index: Math.max(0, list.findIndex((x) => x.id === c.id)) });
   // A note at the top that goes by itself: a recording saved, an external player that did not start.
@@ -281,6 +292,28 @@ export function App() {
     });
   };
   const recents = useMemo(() => recentChannels(channels, history), [channels, history]);
+  // settings functions (Android): the live delay of the playing playlist (Эфир и буфер › per playlist) for the player
+  // and the preview. What the player changes goes back into the general settings, never the playlist's own value.
+  const liveSettings = useMemo(() => liveSettingsFor(settings, pl.active?.id), [settings, pl.active?.id]);
+  const changeFromPlayer = (next: Settings) => setSettings((cur) => (liveSettings === cur || next.buffer !== liveSettings.buffer || next.liveLatency !== liveSettings.liveLatency
+    ? next : { ...next, buffer: cur.buffer, liveLatency: cur.liveLatency }));
+  // settings functions (Android): Запуск приложения, once, when the app first shows unlocked (OwnTVShell.kt): the last
+  // channel or the chosen one full screen; a chosen channel that is gone says so and the channels stay.
+  const startupDone = useRef(false);
+  useEffect(() => {
+    if (startupDone.current || !unlocked || book === null || redo) return;
+    const mode = settings.startup;
+    if (mode !== "last" && mode !== "channel") { startupDone.current = true; return; }
+    if (channels.length === 0) {
+      if (pl.status.kind !== "loading" && pl.store.list.length === 0) startupDone.current = true; // nothing to play yet
+      return;
+    }
+    startupDone.current = true;
+    if (playing || vodPlay || multiview) return;
+    const c = mode === "last" ? recents[0] : channels.find((x) => channelKey(x) === settings.startupChannel);
+    if (c) { setPlaying({ list: channels, index: channels.indexOf(c) }); return; }
+    if (mode === "channel") setFlash({ icon: "warning", text: t("sa_settings_startup_channel_unavailable") });
+  }, [unlocked, book, redo, channels, pl.status.kind]);
   // Reminders, as on Android: the guide's "Remind me" sets one; when its moment comes the app asks to switch,
   // switches, or only says so (Settings, Guide). Watch or Close both end it.
   const reminded = (c: Channel, p: Programme) => rem.has(channelKey(c), p.start);
@@ -368,8 +401,16 @@ export function App() {
     // Never a text field first: it would open the TV's keyboard.
     (all.find((e) => e.dataset.focus === lastContent.current) ?? all.find((e) => !(e instanceof HTMLInputElement)))?.focus();
   };
+  /** The menu's place lit now: Live TV drawn as the guide is still Home. */
+  const railSection: Section = section === "guide" && guideAsLive ? "live" : section;
+  /** Live TV as the list or as the guide (Вид экрана › Прямой эфир открывается в виде; the toolbar's «Вид телегида»). */
+  const showLiveAs = (view: "list" | "guide") => {
+    if (settings.liveOpensIn !== view) setSettings((cur) => ({ ...cur, liveOpensIn: view }));
+    setGuideAsLive(view === "guide");
+    setSection(view === "guide" ? "guide" : "live");
+  };
   /** The menu's item of the place open now (or the gear while Settings is up): where focus lands on entering the menu. */
-  const railTarget = () => (sheet ? "nav-settings" : `nav-${NAV.some(([id]) => id === section) ? section : "live"}`);
+  const railTarget = () => (sheet ? "nav-settings" : `nav-${NAV.some(([id]) => id === railSection) ? railSection : "live"}`);
   const focusRail = () => { document.querySelector<HTMLElement>(`.tb-rail [data-focus="${railTarget()}"]`)?.focus(); };
   /** Closes the menu: focus back into the screen (the channels: the open categories, else the current row). */
   const closeMenuToContent = () => { backToContent(); setRailOpen(false); };
@@ -378,9 +419,12 @@ export function App() {
    * closes; the place already open closes the menu (on the channels, the categories beside it first).
    */
   const goTo = (id: Section) => {
-    if (id !== section || sheet) {
+    if (id !== railSection || sheet) {
       setSheet(false);
-      setSection(id);
+      // Home opens Live TV the way it is set to open; the menu's Guide is the plain guide.
+      const asGuide = id === "live" && settings.liveOpensIn === "guide";
+      setGuideAsLive(asGuide);
+      setSection(asGuide ? "guide" : id);
       // The new screen focuses itself as it opens; if it has not after a moment, the focus is put into it.
       let tries = 0;
       const settle = () => {
@@ -446,6 +490,8 @@ export function App() {
         <VodPlayer
           key={vodPlay.url} title={vodPlay.title} subtitle={vodPlay.subtitle} url={vodPlay.url} headers={vodPlay.headers} startMs={vodPlay.startMs}
           settings={settings} next={vodPlay.next}
+          // player functions (Android): zoom and audio/subtitle choice are remembered per film or whole series
+          trackKey={`${playlistId}:${vodPlay.meta.kind}:${vodPlay.meta.itemId}`}
           onProgress={(positionMs, durationMs) => saveProgress(vodPlay.key, { ...vodPlay.meta, positionMs, durationMs, at: Date.now() })}
           onExit={() => { setVodPlay(null); setProgressTick((n) => n + 1); }}
         />
@@ -467,8 +513,10 @@ export function App() {
         archive={playing.archive ?? null} onLive={() => setPlaying((cur) => (cur ? { list: cur.list, index: cur.index } : cur))}
         onArchive={(programme, url) => setPlaying((cur) => (cur ? { list: cur.list, index: cur.index, archive: { programme, url } } : cur))}
         onGo={(to) => { setSection(to); exitPlayer(); }}
-        settings={settings} onChangeSettings={setSettings}
+        settings={liveSettings} onChangeSettings={changeFromPlayer}
         suspended={prompt !== null || upcoming !== null}
+        // player functions (Android): the playlist's own "Stop retrying after"
+        playlistId={playlistId}
       />
       {programmeDialog}
       {prompt ? <ReminderPrompt reminder={prompt} now={Date.now()} onWatch={() => watchReminder(prompt)} onClose={() => rem.remove(prompt)} /> : null}
@@ -485,12 +533,12 @@ export function App() {
       <main class={`content${section === "live" ? " home-on" : ""}${railOpen ? " menu-pushed" : ""}`} onFocusIn={(e) => { const id = (e.target as HTMLElement).dataset?.focus; if (id) lastContent.current = id; }}>
         {section === "live" ? (
           <LiveView
-            channels={channels} favorites={favorites} status={pl.status} settings={settings}
+            channels={channels} favorites={favorites} status={pl.status} settings={liveSettings}
             onOpen={open} onFav={toggleFavorite}
             onAddPlaylist={() => openSheet("playlists", "screen")} onDemo={pl.addDemo}
             greeting={greeting} playlistName={pl.active?.name ?? null} onPickPlaylist={() => setPicking(true)}
             recents={recents} paused={book === null || redo} /* the wizard covers the screen: no preview stream may hold the TV's only decoder behind it */
-            onGuideView={() => setSection("guide")} onUpcoming={openUpcoming} entry={liveEntry}
+            onGuideView={() => showLiveAs("guide")} onUpcoming={openUpcoming} entry={liveEntry}
           />
         ) : null}
         {/* guide-sport-search: the programme menu sets or cancels a reminder and (un)favours the channel in place (Android GuideProgrammeMenu). */}
@@ -544,7 +592,7 @@ export function App() {
         <img class="tb-rail-logo" src={skLogo} alt="" onClick={() => goTo("live")} />
         <div class="tb-rail-mid">
           {NAV.map(([id, icon, label]) => (
-            <button class={`st-focusable tb-rail-item${section === id && !sheet ? " active" : ""}`} key={id} data-focus={`nav-${id}`} aria-label={t(label)} aria-current={section === id && !sheet} onClick={() => goTo(id)}>
+            <button class={`st-focusable tb-rail-item${railSection === id && !sheet ? " active" : ""}`} key={id} data-focus={`nav-${id}`} aria-label={t(label)} aria-current={railSection === id && !sheet} onClick={() => goTo(id)}>
               <StageIcon name={icon} size={32} />
             </button>
           ))}
@@ -565,7 +613,7 @@ export function App() {
         ) : null}
       </nav>
       {/* The clock, the date and the weather (StageStatus.kt): on every screen but Settings; the menu does not move it. */}
-      {!sheet ? <HomeStatus /> : null}
+      {!sheet ? <HomeStatus look={settings} /> : null}
       {backAt ? <div class="toast home-exit-toast" role="status"><span>{t("homePressBackAgain")}</span></div> : null}
       <Presence show={sheet} ms={300}>
         {(out) => (
@@ -580,7 +628,7 @@ export function App() {
             onRenameProfile={(name) => { if (book) updateBook(renameProfile(book, book.activeId, name)); }} onAskDeleteProfile={askDeleteProfile}
             onSetPin={askNewPin} onRemovePin={removePin} onToggleKids={toggleKids}
             onQr={(name, address) => setQr({ name, address })}
-            update={update} onRedoWizard={() => { setSheet(false); setRedo(true); }}
+            update={update} onRedoWizard={() => { setSheet(false); setRedo(true); }} channels={channels}
           />
         )}
       </Presence>

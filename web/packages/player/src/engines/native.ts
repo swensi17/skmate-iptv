@@ -1,4 +1,5 @@
 import { PlayFailure, type PlayerEngine, type Source } from "../engine";
+import { elementTracks, type TrackSource } from "../tracks";
 
 /** The TV's own decoder through `<video src>`: the lightest path, and the one that knows the TV's codecs. */
 export class NativeEngine implements PlayerEngine {
@@ -22,6 +23,11 @@ export class NativeEngine implements PlayerEngine {
       const p = video.play();
       if (p) p.catch(() => undefined); // autoplay refusal is reported by the missing "playing" event (timeout)
     });
+  }
+
+  /** The element's own lists: `textTracks`, and `audioTracks` where the browser or the TV has it. */
+  tracks(): TrackSource | null {
+    return this.video ? elementTracks(this.video) : null;
   }
 
   stop(): void {

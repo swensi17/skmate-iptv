@@ -1,6 +1,7 @@
 import { Gunzip } from "fflate";
+import { breathe } from "./yielder";
 
-const tick = () => new Promise<void>((resolve) => setTimeout(resolve, 0));
+const UNPACK_STEP = 16 * 1024;
 
 /**
  * Reads a guide response chunk by chunk into [onText]; gzip (the usual `.xml.gz`) is unpacked on the fly,
@@ -11,7 +12,8 @@ export async function readGuide(res: Response, onText: (text: string) => void | 
   const decoder = new TextDecoder("utf-8");
   let gz: Gunzip | null = null;
   let pending: Promise<void> | void = undefined;
-  const emit = (text: string) => { if (text !== "") pending = onText(text); };
+  // Pieces are handed on strictly in order, also when one push unpacks into several.
+  const emit = (text: string) => { if (text !== "") pending = pending ? pending.then(() => onText(text)) : onText(text); };
 
   const body = res.body;
   if (!body) {
@@ -35,10 +37,14 @@ export async function readGuide(res: Response, onText: (text: string) => void | 
         gz = new Gunzip((chunk) => emit(decoder.decode(chunk, { stream: true })));
       }
     }
-    if (gz) gz.push(value, false); else emit(decoder.decode(value, { stream: true }));
-    await pending;
-    pending = undefined;
-    await tick();
+    // A network piece of a packed guide unpacks to ten times its size: it is unpacked a quarter at a time.
+    for (let i = 0; i < value.length; i += UNPACK_STEP) {
+      const part = value.length <= UNPACK_STEP ? value : value.subarray(i, i + UNPACK_STEP);
+      if (gz) gz.push(part, false); else emit(decoder.decode(part, { stream: true }));
+      await pending;
+      pending = undefined;
+      await breathe();
+    }
   }
   if (gz) gz.push(new Uint8Array(0), true);
   emit(decoder.decode());

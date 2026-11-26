@@ -173,18 +173,24 @@ export function PreviewVideo({ channel, settings, stage }: { channel: Channel; s
   const { state } = usePlayback(video, channel, {
     engine: settings.engine, bufferSeconds: 10, openTimeoutMs: settings.openTimeout * 1000, autoRestart: false,
   });
+  // Settings › Preview sound (Android livePreviewAudio): the preview is heard; turning it off mutes the one playing now.
+  // A desktop browser refuses sound before the first key press (the stream would hang for the engine's whole
+  // timeout): until then it stays muted. A TV has no such rule and no `userActivation` (Chromium 63).
+  const activation = typeof navigator !== "undefined" ? (navigator as unknown as { userActivation?: { hasBeenActive: boolean } }).userActivation : undefined;
+  const muted = !settings.previewAudio || (activation !== undefined && !activation.hasBeenActive);
+  useEffect(() => { if (video.current) video.current.muted = muted; }, [muted]);
   if (stage) {
     return (
       <>
         {state !== "failed" ? <div class={`hp-skeleton${state === "playing" ? " gone" : ""}`} /> : null}
-        <video ref={video} class={`pv hp-video${state === "playing" ? " on" : ""}`} muted autoplay playsInline style={{ objectFit: "cover" }} />
+        <video ref={video} class={`pv hp-video${state === "playing" ? " on" : ""}`} muted={muted} autoplay playsInline style={{ objectFit: "cover" }} />
         {state === "loading" ? <Spinner class="hp-spin on" /> : null}
       </>
     );
   }
   return (
     <>
-      <video ref={video} class="pv" muted autoplay playsInline style={{ objectFit: "cover" }} />
+      <video ref={video} class="pv" muted={muted} autoplay playsInline style={{ objectFit: "cover" }} />
       {state === "loading" ? <Spinner class="small" /> : null}
       {state === "failed" ? <div class="preview-empty"><Icon name="warning" size={56} /></div> : null}
     </>

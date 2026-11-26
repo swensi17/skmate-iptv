@@ -9,7 +9,7 @@ import { detectPlatform } from "../platform";
 import { parseBackup, restoreBackup } from "../state/backup";
 import { desktop, type CompanionPayload } from "../state/desktop";
 import { setKids, setPinHash, type ProfileBook } from "../state/scope";
-import type { Settings } from "../state/settings";
+import { clampZoom, type Settings } from "../state/settings";
 import { stalkerSource, xtreamUrl } from "../state/playlists";
 import type { usePlaylists } from "../state/usePlaylists";
 import { LinkDialog } from "./LinkDialog";
@@ -60,8 +60,6 @@ const STEP_OF: Record<Page, number> = { welcome: 0, display: 1, choice: 2, profi
 /** The author's playlist (Android OwnTVApp.kt CoreBuildInfo.authorPlaylistUrl, core/setup/AuthorPlaylist.kt). */
 const AUTHOR_URL = "https://nutrokstore.xyz/skmate/playlist.m3u8";
 const AUTHOR_NAME = "SkMate";
-/** The UI zoom steps the web stage can draw (it can only shrink the 1728×972 box); Android: 50-150 by 5. */
-const ZOOMS: Array<Settings["uiScale"]> = [80, 90, 100];
 /** Below this Android asks once before zooming out (UiZoom.LOW_RAM_WARN). */
 const LOW_RAM_WARN = 85;
 const THEMES: Array<Settings["theme"]> = ["system", "dark", "light"];
@@ -391,10 +389,10 @@ export function Wizard(p: Props) {
   }, []);
 
   // ----- Display size -----
-  const zoomAt = Math.max(0, ZOOMS.indexOf(s.uiScale));
   const setZoom = (z: Settings["uiScale"]) => change({ ...s, uiScale: z });
+  // Android UiZoom: 50–150 % in steps of 5, the same as Settings › Внешний вид › Масштаб интерфейса.
   const stepZoom = (d: number) => {
-    const next = ZOOMS[Math.max(0, Math.min(ZOOMS.length - 1, zoomAt + d))] as Settings["uiScale"];
+    const next = clampZoom(clampZoom(s.uiScale) + d * 5);
     if (next === s.uiScale) return;
     if (d < 0 && next < LOW_RAM_WARN && !lowZoomOk) setAskLowZoom(next); else setZoom(next);
   };

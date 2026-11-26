@@ -6,7 +6,7 @@
 import { describe, expect, it } from "vitest";
 import { gzipSync } from "fflate";
 import { groupsOf, parseM3U, pickMirrors, SearchIndex, type Channel } from "@skmate/core";
-import { GuideData, syncGuides, type EpgSource } from "@skmate/epg";
+import { BASE_AHEAD_MS, DAY_MS, GuideCache, GuideData, GuideWriter, MEMORY_PAST_MS, MemoryKv, STORED_PAST_MS, syncGuides, type EpgSource } from "@skmate/epg";
 import { ChannelSearch } from "../state/channelSearch";
 import { buildBackup, parseBackup, restoreBackup } from "../state/backup";
 import { addPlaylist, nextActive, type PlaylistEntry } from "../state/playlists";
@@ -152,6 +152,55 @@ describe("the guide under load", () => {
     expect(restored.out.linked).toBeGreaterThan(0);
     expect(restored.out.nowNext("10", now).now).not.toBeNull();
     expect(ms).toBeLessThan(120_000);
+  }, 300_000);
+
+  it("keeps the whole week in storage (IndexedDB's stand-in) and only a day and a bit of it in memory", async () => {
+    const xml = bigGuide();
+    const gz = gzipSync(new TextEncoder().encode(xml));
+    const channels: Channel[] = Array.from({ length: CHANNELS }, (_, i) => ({ id: String(i), name: `Канал ${i} UHD`, url: `http://s/${i}`, group: "", tvgId: i % 2 === 0 ? `g${i}` : undefined }));
+    const stream = () => new ReadableStream<Uint8Array>({
+      start(ctl) { for (let i = 0; i < gz.length; i += 65_536) ctl.enqueue(gz.slice(i, i + 65_536)); ctl.close(); },
+    });
+    const kv = new MemoryKv();
+    const writer = new GuideWriter(kv, "1", now);
+    let longest = 0;
+    let last = performance.now();
+    const probe = setInterval(() => { const n = performance.now(); longest = Math.max(longest, n - last); last = n; }, 5);
+    const t0 = performance.now();
+    const { data } = await syncGuides({
+      sources: [{ id: "1", name: "Большой", url: "http://guide/big.xml.gz" }], channels, now,
+      open: async () => new Response(stream()), aheadMs: 7 * DAY_MS, pastMs: STORED_PAST_MS, sink: writer,
+    });
+    const meta = await writer.commit(data.links, data.logos, now, 7);
+    clearInterval(probe);
+    console.log(`[load] week to storage: ${Math.round(performance.now() - t0)} ms, ${writer.written} programmes in ${kv.size} records, longest stretch ${Math.round(longest)} ms`);
+    expect(longest).toBeLessThan(1_500);
+    expect(writer.written).toBeGreaterThan(CHANNELS * PER_DAY * 6.5); // a week, not half a day
+    expect(meta.until).toBeGreaterThan(now + 6 * DAY_MS);
+
+    const cache = new GuideCache(kv, "1", meta, 0, 7);
+    const t1 = performance.now();
+    await cache.ensure([[now - MEMORY_PAST_MS, now + 6 * 3_600_000]], now);
+    cache.snapshot(now);
+    console.log(`[load] first read, the next hours: ${Math.round(performance.now() - t1)} ms, ${cache.inMemory} programmes`);
+    const base = performance.now();
+    await cache.ensure([[now - MEMORY_PAST_MS, now + BASE_AHEAD_MS]], now);
+    await cache.refreshNear(now);
+    const view = cache.snapshot(now);
+    console.log(`[load] base window read: ${Math.round(performance.now() - base)} ms, ${cache.inMemory} programmes in memory`);
+    // 33 hours asked for, read in 6-hour blocks: under two days of 48-minute programmes, against 7 stored.
+    expect(cache.inMemory).toBeLessThan(CHANNELS * 60);
+    expect(cache.inMemory).toBeLessThan(writer.written / 3);
+    expect(view.nowNext("10", now).now?.desc).toContain("Описание");
+    expect(view.horizon).toBeGreaterThan(now + 6 * DAY_MS);
+    const later = performance.now();
+    const day6 = now + 6 * DAY_MS;
+    await cache.ensure([[now - MEMORY_PAST_MS, now + BASE_AHEAD_MS], [day6, day6 + 5 * 3_600_000]], now);
+    const far = cache.snapshot(now);
+    console.log(`[load] day six read: ${Math.round(performance.now() - later)} ms, ${cache.inMemory} programmes in memory`);
+    const p6 = far.of("10").find((p) => p.start <= day6 && day6 < p.stop);
+    expect(p6?.title).toContain("Передача");
+    expect(await far.describe("10", p6!)).toContain("Описание");
   }, 300_000);
 
   it("answers a screenful of rows at once, and a programme search over 3000 channels", () => {

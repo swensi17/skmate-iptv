@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import type { Channel } from "@skmate/core";
-import { defaultEngines, PlayerLadder, type EnginePreference } from "@skmate/player";
+import {
+  audioToSelect, defaultEngines, itemPrefs, PlayerLadder, subtitleAction, SUBTITLES_OFF,
+  type EnginePreference, type TrackOption, type TrackSource,
+} from "@skmate/player";
 
 export type PlayState = "loading" | "playing" | "failed";
 
@@ -22,7 +25,20 @@ export interface PlaybackOptions {
   liveBehindSeconds?: number;
   /** A multiview tile without the sound takes no picture taller than this many lines. */
   maxHeight?: number;
+  /**
+   * Android "Stop retrying after" (LiveTuneController.startAlarm): the whole tune — every engine and every copy of
+   * the channel — gets this long to show a picture, then the error screen. 0 or absent: no limit. A channel that
+   * opened stands the alarm down; a later stall is the restart's business, not this one's.
+   */
+  tuneBudgetMs?: number;
+  /** Android "Detailed playback log": every try, fallback, restart and give-up goes to the console. */
+  log?: boolean;
+  /** The item whose audio / subtitle choice is remembered (a channel, a film, a whole series); absent: none. */
+  trackKey?: string;
 }
+
+export interface Tracks { audio: TrackOption[]; subs: TrackOption[] }
+const NO_TRACKS: Tracks = { audio: [], subs: [] };
 
 /** hls.js before the page's own decoder; off by default. `localStorage.setItem("skmate.hlsfirst", "0" | "1")` overrides it, to compare the two orders on a stream. */
 function hlsFirstHere(): boolean {
@@ -44,6 +60,9 @@ export function releaseVideo(el: HTMLVideoElement): void {
   } catch { /* already empty */ }
 }
 
+const sameTracks = (a: readonly TrackOption[], b: readonly TrackOption[]) =>
+  a.length === b.length && a.every((x, i) => { const y = b[i] as TrackOption; return x.id === y.id && x.selected === y.selected && x.label === y.label && x.lang === y.lang; });
+
 export function usePlayback(
   video: { current: HTMLVideoElement | null },
   channel: Channel,
@@ -55,24 +74,56 @@ export function usePlayback(
   const [engine, setEngine] = useState<string | null>(null);
   const [paused, setPaused] = useState(false);
   const [attempt, setAttempt] = useState(0);
+  const [tracks, setTracks] = useState<Tracks>(NO_TRACKS);
   // 0 = the channel itself, n = the n-th copy.
   const [hop, setHop] = useState(0);
   const source0 = hop > 0 ? mirrors[hop - 1] ?? channel : channel;
   const restarts = useRef(0);
+  /** The running tune's deadline: set when a channel (or Retry) starts one, null once a picture came or with no budget. */
+  const tune = useRef<{ url: string; deadline: number | null } | null>(null);
+  const trackSource = useRef<TrackSource | null>(null);
+  const keyRef = useRef(o.trackKey);
+  keyRef.current = o.trackKey;
 
   useEffect(() => {
     const el = video.current;
     if (!el) return;
+    const log = (line: string) => { if (o.log) console.info(`[player] ${line}`); };
     // Why an engine gave up goes to the console: the one line that tells a codec problem from a dead stream.
     const ladder = new PlayerLadder(
       defaultEngines({ preference: o.engine, hlsFirst: hlsFirstHere(), bufferSeconds: o.bufferSeconds, liveBehindSeconds: o.liveBehindSeconds, ...(o.maxHeight ? { maxHeight: o.maxHeight } : {}) }),
-      { onFail: (f) => console.warn(`[player] ${f.message}`) },
+      { onFail: (f) => console.warn(`[player] ${f.message}`), onTry: (id) => log(`'${source0.name}' trying ${id}`) },
       { openTimeoutMs: o.openTimeoutMs },
     );
     let alive = true;
     setState("loading");
     setEngine(null);
     setPaused(false);
+    setTracks(NO_TRACKS);
+    trackSource.current = null;
+
+    // A new channel (or Retry) is a fresh tune with the whole budget; a copy or a restart of it keeps what is left.
+    if (!tune.current || tune.current.url !== channel.url) {
+      tune.current = { url: channel.url, deadline: o.tuneBudgetMs && o.tuneBudgetMs > 0 ? Date.now() + o.tuneBudgetMs : null };
+    }
+    const outOfTime = () => tune.current?.deadline != null && Date.now() >= tune.current.deadline;
+    let alarm: ReturnType<typeof setTimeout> | undefined;
+    const giveUp = (why: string) => {
+      if (!alive) return;
+      log(`'${channel.name}' — giving up: ${why}`);
+      alive = false; // nothing of this run may report any more
+      clearTimeout(stall);
+      clearTimeout(start);
+      ladder.stop();
+      releaseVideo(el);
+      setState("failed");
+    };
+    const armAlarm = () => {
+      const at = tune.current?.deadline;
+      if (at == null) return;
+      alarm = setTimeout(() => giveUp(`no picture within ${Math.round((o.tuneBudgetMs ?? 0) / 1000)}s of tuning`), Math.max(0, at - Date.now()));
+    };
+    const standDown = () => { clearTimeout(alarm); if (tune.current) tune.current.deadline = null; };
 
     let stall: ReturnType<typeof setTimeout> | undefined;
     const armStall = () => {
@@ -80,24 +131,60 @@ export function usePlayback(
       stall = setTimeout(() => {
         if (!alive || !o.autoRestart || restarts.current >= 1) return;
         restarts.current++;
+        log(`'${channel.name}' picture frozen ${STALL_RESTART_MS / 1000}s — opening it again`);
         setAttempt((n) => n + 1);
       }, STALL_RESTART_MS);
     };
     const onWaiting = () => { if (alive) { setState("loading"); armStall(); } };
-    const onPlaying = () => { clearTimeout(stall); if (alive) setState("playing"); };
+    const onPlaying = () => { clearTimeout(stall); if (alive) { standDown(); setState("playing"); } };
     el.addEventListener("waiting", onWaiting);
     el.addEventListener("playing", onPlaying);
+
+    // The tracks of the engine that plays; a remembered language is applied once per half (TrackMemory).
+    let unwatch: (() => void) | null = null;
+    const recall = { audioDone: false, subDone: false };
+    const attach = (src: TrackSource) => {
+      trackSource.current = src;
+      const prefs = keyRef.current ? itemPrefs.get(keyRef.current) : null;
+      const read = () => {
+        if (!alive) return;
+        const audio = src.audio();
+        const subs = src.subtitles();
+        if (!recall.audioDone && audio.length > 0) {
+          recall.audioDone = true;
+          const pick = audioToSelect(audio, prefs?.audio);
+          if (pick) { log(`audio: remembered '${prefs?.audio}' → track ${pick.id}`); src.selectAudio(pick.id); }
+        }
+        if (!recall.subDone && subs.length > 0) {
+          recall.subDone = true;
+          const act = subtitleAction(subs, prefs?.sub);
+          if (act.kind === "off") src.selectSubtitle(null);
+          else if (act.kind === "select") src.selectSubtitle(act.track.id);
+        }
+        setTracks((cur) => (sameTracks(cur.audio, audio) && sameTracks(cur.subs, subs) ? cur : { audio, subs }));
+      };
+      unwatch = src.watch(read);
+      read();
+    };
 
     const source = source0.headers ? { url: source0.url, headers: source0.headers } : { url: source0.url };
     const start = setTimeout(() => {
       armStall();
+      armAlarm();
       ladder.play(el, source).then(
-        (e) => { if (alive) { setEngine(e.id); setState("playing"); clearTimeout(stall); } },
+        (e) => {
+          if (!alive) return;
+          log(`'${source0.name}' opened on ${e.id}`);
+          setEngine(e.id); setState("playing"); clearTimeout(stall); standDown();
+          const src = e.tracks?.() ?? null;
+          if (src) attach(src);
+        },
         () => {
           if (!alive) return;
           clearTimeout(stall);
-          if (hop < mirrors.length) setHop(hop + 1); // the next copy of the same channel, not an error screen yet
-          else setState("failed");
+          if (outOfTime()) { giveUp(`no picture within ${Math.round((o.tuneBudgetMs ?? 0) / 1000)}s of tuning`); return; }
+          if (hop < mirrors.length) { log(`'${channel.name}' trying copy ${hop + 1} of ${mirrors.length}`); setHop(hop + 1); } // the next copy, not an error screen yet
+          else { log(`'${channel.name}' — no engine left`); setState("failed"); }
         },
       );
     }, ZAP_SETTLE_MS);
@@ -106,22 +193,35 @@ export function usePlayback(
       alive = false;
       clearTimeout(start);
       clearTimeout(stall);
+      clearTimeout(alarm);
+      unwatch?.();
+      trackSource.current = null;
       el.removeEventListener("waiting", onWaiting);
       el.removeEventListener("playing", onPlaying);
       ladder.stop();
       releaseVideo(el);
     };
-  }, [source0.url, attempt, o.engine, o.bufferSeconds, o.openTimeoutMs, o.autoRestart, o.liveBehindSeconds, o.maxHeight]);
+  }, [source0.url, attempt, o.engine, o.bufferSeconds, o.openTimeoutMs, o.autoRestart, o.liveBehindSeconds, o.maxHeight, o.tuneBudgetMs]);
 
   // A new channel starts with a fresh allowance of restarts.
   useEffect(() => { restarts.current = 0; setHop(0); }, [channel.url]);
 
-  const retry = useCallback(() => { restarts.current = 0; setHop(0); setAttempt((n) => n + 1); }, []);
+  const retry = useCallback(() => { restarts.current = 0; tune.current = null; setHop(0); setAttempt((n) => n + 1); }, []);
   const togglePause = useCallback(() => {
     const el = video.current;
     if (!el) return;
     if (el.paused) { void el.play().catch(() => undefined); setPaused(false); } else { el.pause(); setPaused(true); }
   }, []);
 
-  return { state, engine, paused, retry, togglePause, via: hop > 0 ? source0 : null };
+  // A pick in the dialog: applied now, and remembered for this item by its language (Android rememberAudioLang).
+  const selectAudio = useCallback((t: TrackOption) => {
+    trackSource.current?.selectAudio(t.id);
+    if (keyRef.current) itemPrefs.rememberAudio(keyRef.current, t.lang);
+  }, []);
+  const selectSubtitle = useCallback((t: TrackOption | null) => {
+    trackSource.current?.selectSubtitle(t ? t.id : null);
+    if (keyRef.current) itemPrefs.rememberSubtitle(keyRef.current, t ? t.lang : SUBTITLES_OFF);
+  }, []);
+
+  return { state, engine, paused, retry, togglePause, via: hop > 0 ? source0 : null, tracks, selectAudio, selectSubtitle };
 }

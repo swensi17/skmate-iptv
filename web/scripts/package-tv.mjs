@@ -35,6 +35,9 @@ function files(dir, base = dir, into = {}) {
 rmSync(out, { recursive: true, force: true });
 mkdirSync(out, { recursive: true });
 const app_ = files(dist);
+// The bundled fonts (Plus Jakarta Sans, Roboto Cyrillic) are SIL OFL 1.1: their licence travels with every package.
+const fonts = join(web, "packages/ui/src/fonts");
+for (const name of readdirSync(fonts).filter((n) => n.startsWith("OFL-"))) app_[`licenses/${name}`] = readFileSync(join(fonts, name));
 const zip = (entries) => zipSync(entries, { level: 9, mtime: new Date("2026-01-01T00:00:00Z") });
 
 writeFileSync(join(out, `SkMate-IPTV-web-v${version}.zip`), zip(app_));
@@ -48,6 +51,8 @@ writeFileSync(join(out, `SkMate-IPTV-tizen-v${version}.wgt`), zip({
 
 const webos = join(out, "webos");
 cpSync(dist, webos, { recursive: true, filter: (p) => !p.endsWith(".map") });
+mkdirSync(join(webos, "licenses"), { recursive: true });
+for (const name of readdirSync(fonts).filter((n) => n.startsWith("OFL-"))) cpSync(join(fonts, name), join(webos, "licenses", name));
 const info = JSON.parse(readFileSync(join(platform, "webos/appinfo.json"), "utf8"));
 writeFileSync(join(webos, "appinfo.json"), JSON.stringify({ ...info, version }, null, 2) + "\n");
 cpSync(join(platform, "icon.png"), join(webos, "icon.png"));

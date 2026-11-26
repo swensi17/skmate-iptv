@@ -1251,4 +1251,19 @@ export const ru = {
   sa_web_sync_tv: "На Samsung и LG синхронизация по Wi‑Fi пока недоступна: перенесите данные резервной копией.",
   sa_web_tg_body: "Пульт через Telegram пока работает только в приложении для Android TV.",
   // end settings (Android)
+  // player functions (Android)
+  pfAudio: "Звук",
+  pfSubtitles: "Субтитры",
+  pfAudioTrack: "Звуковая дорожка",
+  pfSubtitlesTitle: "Субтитры",
+  pfNoTracks: "Нет доступных дорожек.",
+  pfAudioN: "Звуковая дорожка {n}",
+  pfSubtitleN: "Субтитры {n}",
+  // settings functions (Android)
+  sa_settings_startup_channel_unavailable: "Стартовый канал недоступен. Открыт главный экран.",
+  sa_settings_focus_thickness: "Толщина",
+  sa_common_search_hint: "Поиск…",
+  sa_content_no_channels_found: "По запросу «{1}» каналы не найдены",
+  sa_content_no_channels_here: "Здесь нет каналов.",
+  sa_web_tvbox_no_effect: "Не действует в оформлении для ТВ-приставок, как и в приложении для Android TV: выбор сохраняется и попадает в резервную копию.",
 } as const;

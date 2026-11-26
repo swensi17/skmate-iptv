@@ -2,9 +2,30 @@ import type { Programme } from "./xmltv";
 
 export interface NowNext { now: Programme | null; next: Programme | null; progress: number }
 
-/** The window of programmes kept: a little of the past (the one that is on), and a day and a half ahead. */
+/**
+ * The window the localStorage copy keeps (the fallback where there is no IndexedDB): a little of the past (the one
+ * that is on) and half a day ahead. With IndexedDB the guide keeps the days chosen in Settings (see cache.ts).
+ */
 export const KEEP_PAST_MS = 1 * 3_600_000;
 export const KEEP_AHEAD_MS = 12 * 3_600_000;
+
+/** What stands behind a guide kept in IndexedDB: the parts not in memory, fetched when they are wanted. */
+export interface GuideBacking {
+  /** The grid reached [from]..[to]: those programmes are read in, and come as a new GuideData. */
+  need(from: number, to: number): void;
+  /** The description of the programme of guide channel [epgId] starting at [start] (display time). */
+  describe(epgId: string, start: number): Promise<string | undefined>;
+}
+
+export interface GuideExtent {
+  /** The last instant the stored guide reaches (more than what is in memory now); 0 when only memory counts. */
+  horizon?: number;
+  /** The guide channels that have programmes stored, in memory or not. */
+  stored?: ReadonlySet<string>;
+  /** Minutes every programme is moved by (Settings › guide time shift); already applied to the programmes. */
+  shiftMin?: number;
+  backing?: GuideBacking;
+}
 
 /** Descriptions are kept only for what is on the screen soon, and short: the stored guide must fit a browser's 5 MB. */
 const DESC_MAX = 220;
@@ -19,7 +40,41 @@ export class GuideData {
     public updatedAt = 0,
     /** Logo address by guide channel id: the logos a playlist without `tvg-logo` lacks. */
     readonly logos: Map<string, string> = new Map(),
+    private readonly extent: GuideExtent = {},
   ) {}
+
+  /** See [GuideExtent.horizon]. */
+  get horizon(): number { return this.extent.horizon ?? 0; }
+  get shiftMin(): number { return this.extent.shiftMin ?? 0; }
+
+  /** Whether the channel has a guide at all, also when none of it is in memory right now (a later day only). */
+  stored(channelId: string): boolean {
+    const epg = this.links.get(channelId);
+    if (epg === undefined) return false;
+    const list = this.programmes.get(epg);
+    return (list !== undefined && list.length > 0) || (this.extent.stored?.has(epg) ?? false);
+  }
+
+  /** Asks for the programmes of [from]..[to] (a guide kept in IndexedDB reads them in; otherwise nothing to do). */
+  need(from: number, to: number): void { this.extent.backing?.need(from, to); }
+
+  /** The programme's description: at hand for what is on soon, read from storage for the rest. */
+  describe(channelId: string, p: Programme): Promise<string | undefined> {
+    if (p.desc) return Promise.resolve(p.desc);
+    const epg = this.links.get(channelId);
+    const backing = this.extent.backing;
+    if (epg === undefined || !backing) return Promise.resolve(undefined);
+    return backing.describe(epg, p.start).catch(() => undefined);
+  }
+
+  /** The same guide moved to a shift of [minutes] (the in-memory guide; one kept in IndexedDB re-reads instead). */
+  withShift(minutes: number): GuideData {
+    const delta = (minutes - this.shiftMin) * 60_000;
+    if (delta === 0) return this;
+    const moved = new Map<string, Programme[]>();
+    this.programmes.forEach((list, id) => moved.set(id, list.map((p) => ({ start: p.start + delta, stop: p.stop + delta, title: p.title, desc: p.desc }))));
+    return new GuideData(this.links, moved, this.updatedAt, this.logos, { ...this.extent, shiftMin: minutes });
+  }
 
   of(channelId: string): Programme[] {
     const epg = this.links.get(channelId);
@@ -55,7 +110,9 @@ export class GuideData {
     });
   }
 
+  /** The compact copy for localStorage, kept without the shift (it is applied again after reading). */
   serialize(at: number = this.updatedAt): string {
+    if (this.shiftMin !== 0) return this.withShift(0).serialize(at);
     const build = (withDesc: boolean, until: number) => {
       const programmes: Record<string, Array<[number, number, string, string?]>> = {};
       this.programmes.forEach((list, id) => {

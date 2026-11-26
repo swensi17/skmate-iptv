@@ -1253,4 +1253,19 @@ export const ja: Record<keyof typeof en, string> = {
   sa_web_sync_tv: "Wi‑Fi sync is not available on Samsung and LG yet: move your data with a backup.",
   sa_web_tg_body: "The Telegram remote works only in the Android TV app for now.",
   // end settings (Android)
+  // player functions (Android)
+  pfAudio: "音声",
+  pfSubtitles: "字幕",
+  pfAudioTrack: "音声トラック",
+  pfSubtitlesTitle: "字幕",
+  pfNoTracks: "利用可能なトラックはありません。",
+  pfAudioN: "音声{n}",
+  pfSubtitleN: "字幕{n}",
+  // settings functions (Android)
+  sa_settings_startup_channel_unavailable: "起動チャンネルを利用できません。ホームを開きました。",
+  sa_settings_focus_thickness: "太さ",
+  sa_common_search_hint: "検索…",
+  sa_content_no_channels_found: "「{1}」に一致するチャンネルは見つかりませんでした",
+  sa_content_no_channels_here: "ここにチャンネルはありません。",
+  sa_web_tvbox_no_effect: "TVボックス表示では効果がありません（Android TV アプリと同じ）。選択は保存され、バックアップにも含まれます。",
 };

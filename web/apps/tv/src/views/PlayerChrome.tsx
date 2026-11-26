@@ -1,8 +1,10 @@
 import type { ComponentChildren } from "preact";
-import { useEffect, useRef, useState } from "preact/hooks";
+import { useEffect, useMemo, useRef, useState } from "preact/hooks";
+import { ZOOM_MODES, zoomLook, zoomTransform, type TrackOption, type ZoomMode } from "@skmate/player";
 import { Icon, Option, Popup, type IconName } from "@skmate/ui";
-import { t } from "../i18n";
+import { t, type Key } from "../i18n";
 import { clock } from "../time";
+import { SET_ICONS } from "./settingsIcons";
 import { Spinner } from "./Spinner";
 import "./player.css";
 
@@ -174,13 +176,46 @@ export function Circle(p: { id: string; icon: IconName; size: 40 | 44 | 64; prim
   );
 }
 
-export function Tool(p: { id: string; icon: IconName; label: string; active?: boolean; onClick: () => void }) {
+/** A dock tool. [glyph] stands in for the icon (the track glyphs); [badge]: the count circle at its top-end (ToolTile). */
+export function Tool(p: { id: string; icon: IconName; label: string; active?: boolean; onClick: () => void; glyph?: ComponentChildren; badge?: number | null }) {
   return (
     <button class={`ch-tool${p.active ? " active" : ""}`} data-focus={p.id} onClick={p.onClick} aria-pressed={p.active}>
-      <span class="ch-tool-glyph"><Icon name={p.icon} size={47} /></span>
+      <span class="ch-tool-glyph">{p.glyph ?? <Icon name={p.icon} size={47} />}{p.badge ? <span class="ch-tool-badge">{p.badge}</span> : null}</span>
       <span class="ch-tool-label">{p.label}</span>
     </button>
   );
+}
+
+/** OwnTVIcon.AUDIO and SUBTITLE (Phosphor, the paths the settings rows draw too): not in the shared icon set. */
+export function TrackGlyph(p: { kind: "audio" | "subtitle"; size: number }) {
+  const g = SET_ICONS[p.kind === "audio" ? "AUDIO" : "SUBTITLE"] as [number, string];
+  return (
+    <svg viewBox={`0 0 ${g[0]} ${g[0]}`} width={p.size} height={p.size} fill="currentColor" aria-hidden="true"><path d={g[1]} /></svg>
+  );
+}
+
+/**
+ * PlayerCornerClock.kt (Settings › player clock and its look): the time top-right over the whole picture, ticking on
+ * the minute. Sizes 20/26/36, weight 500/700, background none (a soft shadow) / black / white (dark digits) / SkMate
+ * blue at 0/25/50/75 % transparency, hanging from the top edge; digits white / #FFD54F / #8CC8FF.
+ */
+export function CornerClock(p: { size: number; weight: number; bg: number; color: number; alpha: number }) {
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    let id: ReturnType<typeof setTimeout>;
+    const step = () => { setNow(Date.now()); id = setTimeout(step, 60_000 - (Date.now() % 60_000)); };
+    id = setTimeout(step, 60_000 - (Date.now() % 60_000));
+    return () => clearTimeout(id);
+  }, []);
+  const bg = p.bg >= 0 && p.bg <= 3 ? p.bg : 1;
+  const opaque = 1 - ([0, 25, 50, 75][p.alpha] ?? 25) / 100;
+  const fill = bg === 0 ? null : bg === 2 ? `rgba(255, 255, 255, ${opaque})` : bg === 3 ? `rgba(0, 134, 252, ${opaque})` : `rgba(0, 0, 0, ${opaque})`;
+  const ink = bg === 2 ? "#15181c" : (["#ffffff", "#ffd54f", "#8cc8ff"][p.color] ?? "#ffffff");
+  const style = {
+    fontSize: `${[20, 26, 36][p.size] ?? 26}px`, fontWeight: p.weight === 0 ? 500 : 700, color: ink,
+    ...(fill ? { background: fill } : { textShadow: "0 0 8px rgba(0, 0, 0, .45)" }),
+  };
+  return <div class={`pv-clock${fill ? " plate" : ""}`} style={style} aria-hidden="true">{clock(now)}</div>;
 }
 
 /** PlayerClock.kt: the real time, and while a recording plays the moment being watched first, in the accent. */
@@ -288,15 +323,92 @@ export function ClassicHud(p: {
 
 /* ---------- Dialogs (PlayerHudDialogs.kt): a 640-wide StagePopup list, a check on the chosen row ---------- */
 
-export type Aspect = "fit" | "fill" | "cover";
+export type Aspect = ZoomMode;
 
-/** Zoom: the three object-fit modes a browser has (Android also offers 1:1, 16:9 and 4:3). */
+/** The six zoom modes' names (OwnTVPlayer.kt ZoomMode labels). */
+const ZOOM_LABELS: Record<ZoomMode, Key> = {
+  fit: "sa_player_zoom_fit_screen", crop: "sa_player_zoom_fill_crop", stretch: "sa_player_zoom_stretch",
+  original: "sa_player_zoom_original", "16_9": "sa_player_zoom_force_16_9", "4_3": "sa_player_zoom_force_4_3",
+};
+
+/** Zoom (PlayerHudDialogs.kt ZoomDialog): the six modes in Android's order, the current one ticked and focused. */
 export function AspectDialog(p: { value: Aspect; onPick: (a: Aspect) => void; onClose: () => void }) {
-  const rows: Array<[Aspect, string]> = [["fit", t("tbZoomFit")], ["cover", t("tbZoomFill")], ["fill", t("tbZoomStretch")]];
   useEffect(() => { setTimeout(() => (document.querySelector<HTMLElement>(`[data-focus="za-${p.value}"]`))?.focus(), 30); }, []);
   return (
     <Popup title={t("tbZoom")} width={640} onClose={p.onClose}>
-      {rows.map(([v, label]) => <Option key={v} id={`za-${v}`} title={label} checked={v === p.value} onClick={() => p.onPick(v)} />)}
+      {ZOOM_MODES.map((v) => <Option key={v} id={`za-${v}`} title={t(ZOOM_LABELS[v])} checked={v === p.value} onClick={() => p.onPick(v)} />)}
+    </Popup>
+  );
+}
+
+/**
+ * The <video> style of a zoom mode: `object-fit` and, for Fill/Crop, 1:1 and the forced shapes, one static scale.
+ * Measured only when the mode, the picture's size or the window changes (never per frame, no layout of its own).
+ */
+export function useZoomStyle(video: { current: HTMLVideoElement | null }, mode: ZoomMode): { objectFit: "contain" | "fill"; transform?: string } {
+  const [size, setSize] = useState<{ w: number; h: number } | null>(null);
+  const [win, setWin] = useState(0);
+  useEffect(() => {
+    const el = video.current;
+    if (!el) return;
+    const read = () => {
+      const w = el.videoWidth, h = el.videoHeight;
+      setSize((cur) => (w > 0 && h > 0 ? (cur && cur.w === w && cur.h === h ? cur : { w, h }) : null));
+    };
+    const onWin = () => setWin((n) => n + 1);
+    ["loadedmetadata", "resize", "emptied"].forEach((e) => el.addEventListener(e, read));
+    window.addEventListener("resize", onWin);
+    read();
+    return () => { ["loadedmetadata", "resize", "emptied"].forEach((e) => el.removeEventListener(e, read)); window.removeEventListener("resize", onWin); };
+  }, []);
+  return useMemo(() => {
+    if (mode === "fit") return { objectFit: "contain" };
+    if (mode === "stretch") return { objectFit: "fill" };
+    // The full-screen box is the player's own (the element may still sit in the docked corner while this runs).
+    const host = video.current?.parentElement;
+    if (!host) return { objectFit: "contain" };
+    const box = { w: host.offsetWidth, h: host.offsetHeight };
+    const devicePerCss = box.w > 0 ? (host.getBoundingClientRect().width / box.w) * (window.devicePixelRatio || 1) : 1;
+    const look = zoomLook(mode, size, box, devicePerCss);
+    const transform = zoomTransform(look);
+    return transform === "none" ? { objectFit: look.objectFit } : { objectFit: look.objectFit, transform };
+  }, [mode, size?.w, size?.h, win]);
+}
+
+/** A language's own name in the app's language where the browser can say it (Intl.DisplayNames: not on Chromium 63), else its code. */
+function languageName(code: string): string {
+  const c = code.trim();
+  if (!c || c.toLowerCase() === "und") return "";
+  const Names = (Intl as unknown as { DisplayNames?: new (l: string[], o: { type: string }) => { of(c: string): string | undefined } }).DisplayNames;
+  if (Names) {
+    try { const n = new Names([document.documentElement.lang || "en"], { type: "language" }).of(c); if (n && n.toLowerCase() !== c.toLowerCase()) return n.charAt(0).toUpperCase() + n.slice(1); } catch { /* not a tag it knows */ }
+  }
+  return c.toUpperCase();
+}
+
+/** TrackOptionText.kt displayLabel: the stream's label, else the language's name, else "Audio N" / "Subtitle N". */
+export function trackLabel(x: TrackOption, kind: "audio" | "subtitle", index: number): string {
+  return x.label.trim() || languageName(x.lang) || t(kind === "audio" ? "pfAudioN" : "pfSubtitleN", { n: index + 1 });
+}
+
+/**
+ * Audio / Subtitles (PlayerHudDialogs.kt TrackDialog): a 640-wide list, the chosen track ticked. Subtitles begin with
+ * Off. Focus starts on the chosen track, else Off, else the first. No track at all: one quiet line.
+ */
+export function TrackDialog(p: {
+  kind: "audio" | "subtitle"; tracks: readonly TrackOption[]; onPick: (x: TrackOption | null) => void; onClose: () => void;
+}) {
+  const offRow = p.kind === "subtitle";
+  const chosen = p.tracks.findIndex((x) => x.selected);
+  useEffect(() => {
+    const id = chosen >= 0 ? `tr-${chosen}` : offRow ? "tr-off" : "tr-0";
+    setTimeout(() => (document.querySelector<HTMLElement>(`[data-focus="${id}"]`))?.focus(), 30);
+  }, []);
+  return (
+    <Popup title={t(p.kind === "audio" ? "pfAudioTrack" : "pfSubtitlesTitle")} width={640} onClose={p.onClose}>
+      {p.tracks.length === 0 && !offRow ? <div class="pv-no-tracks">{t("pfNoTracks")}</div> : null}
+      {offRow ? <Option id="tr-off" title={t("tbOff")} checked={chosen < 0} onClick={() => p.onPick(null)} /> : null}
+      {p.tracks.map((x, i) => <Option key={x.id} id={`tr-${i}`} title={trackLabel(x, p.kind, i)} checked={x.selected} onClick={() => p.onPick(x)} />)}
     </Popup>
   );
 }

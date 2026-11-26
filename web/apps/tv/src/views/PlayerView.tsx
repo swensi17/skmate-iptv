@@ -4,6 +4,7 @@ import {
   type Channel, type LiveAnchor, type SeekWindow,
 } from "@skmate/core";
 import type { Programme } from "@skmate/epg";
+import { defaultZoom, itemPrefs, showAudioTile, showSubtitleTile, type ZoomMode } from "@skmate/player";
 import { Drawer, focusFirst, Icon, isBack, Presence, type IconName } from "@skmate/ui";
 import { t } from "../i18n";
 import { remoteKey, type RemoteKey } from "../platform";
@@ -16,8 +17,8 @@ import { usePlayback } from "../state/usePlayback";
 import { clock } from "../time";
 import { ChannelLogo } from "./ChannelLogo";
 import {
-  AspectDialog, ClassicHud, clockSec, Loading, PauseMark, PlayerError, RecBadge, resolutionChip, signed, SleepDialog, Tool, useTick,
-  type Aspect,
+  AspectDialog, ClassicHud, clockSec, CornerClock, Loading, PauseMark, PlayerError, RecBadge, resolutionChip, signed, SleepDialog, Tool,
+  TrackDialog, TrackGlyph, useTick, useZoomStyle,
 } from "./PlayerChrome";
 import { PlayerPanel, type DockRect, type Go, type PanelTab } from "./PlayerPanel";
 import { PlayerSettingRows } from "./PlayerRows";
@@ -58,6 +59,8 @@ interface Props {
   onUpcoming?: (channel: Channel, programme: Programme, list: readonly Channel[]) => void;
   /** A dialog of the app is over the picture (a reminder, a programme to come): the remote is its, not the player's. */
   suspended?: boolean;
+  /** The playlist the channels come from: its own "Stop retrying after" applies when it has one. */
+  playlistId?: string;
 }
 
 /** What the player can wind through now: the seekable range, else what is buffered; null before any picture. */
@@ -114,7 +117,7 @@ function scrubUrl(channel: Channel, list: readonly Programme[], at: number, now:
 }
 
 type Step = "info" | "seek" | "tiles";
-interface TileDef { id: string; icon: IconName; label: string; run: () => void; active?: boolean }
+interface TileDef { id: string; icon: IconName; label: string; run: () => void; active?: boolean; glyph?: "audio" | "subtitle" }
 
 /**
  * Full-screen playback, as the Android TV app's TV-box player (PlayerHud.kt, docs/android-design-spec.md §2d.8):
@@ -141,9 +144,17 @@ export function PlayerView(p: Props) {
   // Timeshift: the live stream opened this far behind its edge, on hls.js (the TV's own decoder cannot); 0 = live.
   const [liveBehind, setLiveBehind] = useState(0);
   useEffect(() => { setLiveBehind(0); }, [channel.id, archive?.url]);
-  const { state, engine, paused, retry, togglePause } = usePlayback(video, target, {
-    engine: settings.engine, bufferSeconds: settings.buffer, openTimeoutMs: settings.openTimeout * 1000, autoRestart: settings.autoRestart,
+  // Android "Stop retrying after": the playlist's own value, else the setting (0 = never); live only (LiveTuneController).
+  const tuneSecs = (p.playlistId ? settings.tuneTimeoutPerPlaylist[p.playlistId] : undefined) ?? settings.tuneTimeout;
+  const itemKey = channelKey(channel);
+  const { state, engine, paused, retry, togglePause, tracks, selectAudio, selectSubtitle } = usePlayback(video, target, {
+    engine: settings.engine, openTimeoutMs: settings.openTimeout * 1000, autoRestart: settings.autoRestart,
+    // A recording is played like a film: Settings › films and archive buffer (0 = Auto, hls.js' own); live keeps the live delay.
+    bufferSeconds: archive ? settings.vodBuffer : settings.buffer,
     liveBehindSeconds: liveBehind,
+    tuneBudgetMs: archive ? 0 : Math.max(0, tuneSecs) * 1000,
+    log: settings.playbackLog,
+    trackKey: itemKey,
   }, mirrors);
   // A stream hls.js could not open behind its edge plays live again rather than end on an error screen.
   useEffect(() => { if (state === "failed" && liveBehind > 0) setLiveBehind(0); }, [state, liveBehind]);
@@ -218,7 +229,12 @@ export function PlayerView(p: Props) {
   const hud = useRef<{ shown: boolean; step: Step; panel: PanelTab | null }>({ shown: true, step: "info", panel: null });
   const [panel, setPanel] = useState<PanelTab | null>(null);
   const [sheet, setSheet] = useState(false);
-  const [dialog, setDialog] = useState<"aspect" | "sleep" | null>(null);
+  const [dialog, setDialog] = useState<"aspect" | "sleep" | "audio" | "subs" | null>(null);
+  // Zoom (OwnTVPlayer setZoomModeByUser): each channel starts at the default zoom unless one was picked for it.
+  const zoomFor = (key: string): ZoomMode => itemPrefs.get(key)?.zoom ?? defaultZoom(settings.zoomMode, settings.aspect);
+  const [aspect, setAspect] = useState<ZoomMode>(() => zoomFor(itemKey));
+  useEffect(() => { setAspect(zoomFor(itemKey)); }, [itemKey, settings.zoomMode, settings.aspect]);
+  const pickZoom = (z: ZoomMode) => { setAspect(z); itemPrefs.rememberZoom(itemKey, z); };
   const [dock, setDock] = useState<DockRect | null>(null);
   const hideTimer = useRef<ReturnType<typeof setTimeout>>();
   /** The tile that opened a dialog or the sheet, focused again when it closes. */
@@ -413,6 +429,9 @@ export function PlayerView(p: Props) {
     ...(previous ? [{ id: "tb-prev", icon: "skip_previous" as IconName, label: t("tbPrevChannel"), run: goPrevious }] : []),
     { id: "tb-fav", icon: favorite ? "favorite" : "star", label: t(favorite ? "tbFavorited" : "tbFavorite"), run: () => p.onFav(channel), active: favorite },
     ...(canRecord ? [{ id: "tb-rec", icon: "record" as IconName, label: t(recording ? "tbRecordStop" : "tbRecord"), run: toggleRecord, active: recording }] : []),
+    // Audio with a choice to make (more than one track), subtitles with any (PlayerHud.kt:903-904).
+    ...(showAudioTile(tracks.audio) ? [{ id: "tb-audio", icon: "volume_high" as IconName, glyph: "audio" as const, label: t("pfAudio"), run: () => setDialog("audio") }] : []),
+    ...(showSubtitleTile(tracks.subs) ? [{ id: "tb-subs", icon: "info" as IconName, glyph: "subtitle" as const, label: t("pfSubtitles"), run: () => setDialog("subs") }] : []),
     { id: "tb-aspect", icon: "aspect", label: t("tbAspect"), run: () => setDialog("aspect") },
     ...(canPip ? [{ id: "tb-mini", icon: "pip" as IconName, label: t("tbMini"), run: () => { hide(); pip(); } }] : []),
     ...(settings.multiview && !archive ? [{ id: "tb-mv", icon: "grid" as IconName, label: t("tbMultiview"), run: () => { hide(); p.onMultiview(channel); } }] : []),
@@ -444,10 +463,11 @@ export function PlayerView(p: Props) {
       }
       const k: RemoteKey | null = remoteKey(e);
       const rep = e.repeat ? ++repeat.current : (repeat.current = 0);
-      // Digits are taken whatever is on screen (direct tune), at the live edge of a channel.
+      // Digits are taken whatever is on screen (direct tune), at the live edge of a channel, while Settings › typed
+      // channel numbers is on (OwnTVShell.kt:2080 onTuneToNumber = directTuneEnabled && …); off, they do nothing.
       if (k !== null && typeof k === "object") {
         swallow(e);
-        if (!archive && state !== "failed" && offsetSec <= 1 && !e.repeat) digit(k.digit);
+        if (settings.directTune && !archive && state !== "failed" && offsetSec <= 1 && !e.repeat) digit(k.digit);
         return;
       }
       if (digits !== "") {
@@ -588,11 +608,11 @@ export function PlayerView(p: Props) {
   }, [state]);
   useEffect(() => { played.current = false; }, [channel.id]);
 
-  const aspect: Aspect = settings.aspect === "fill" ? "fill" : settings.aspect === "cover" ? "cover" : "fit";
-  const looks = aspect === "fit" ? "contain" : aspect === "fill" ? "fill" : "cover";
+  // The picture in the docked corner is always fitted (no scale spilling over the panel); full screen has the zoom.
+  const look = useZoomStyle(video, dock ? "fit" : aspect);
   const videoStyle = dock
-    ? { objectFit: looks, left: `${dock.x}px`, top: `${dock.y}px`, width: `${dock.w}px`, height: `${dock.h}px` }
-    : { objectFit: looks };
+    ? { ...look, left: `${dock.x}px`, top: `${dock.y}px`, width: `${dock.w}px`, height: `${dock.h}px` }
+    : look;
   const chips = [resolutionChip(video.current?.videoHeight ?? 0), engine && settings.showEngine ? engine : null].filter((x): x is string => !!x);
   const number = ui.numbers ? String(index + 1) : null;
   const failed = state === "failed";
@@ -659,6 +679,10 @@ export function PlayerView(p: Props) {
       {coverGone ? null : <div class={`pv-cover${revealed ? " off" : ""}`} />}
 
       <Loading on={state === "loading" && panel === null} classic={!tvLive} stalled={stalled} />
+      {/* Settings › player clock: over the whole picture only, never beside the panel (OwnTVShell.kt:1950-1954). */}
+      {settings.playerClock && !dock && panel === null ? (
+        <CornerClock size={settings.clockSize} weight={settings.clockWeight} bg={settings.clockBg} color={settings.clockColor} alpha={settings.clockAlpha} />
+      ) : null}
       {recording ? <RecBadge /> : null}
       {paused && tvLive && !failed && !inert ? <PauseMark /> : null}
 
@@ -695,7 +719,7 @@ export function PlayerView(p: Props) {
                   <div class="tb-tiles" role="toolbar">
                     {tiles.map((x) => (
                       <button key={x.id} class={`tb-tile${x.active ? " active" : ""}`} data-focus={x.id} aria-pressed={x.active} onClick={(ev) => { if ((ev as MouseEvent).detail > 0) runTile(x); }}>
-                        <span class="tb-disc"><Icon name={x.icon} size={32} /></span>
+                        <span class="tb-disc">{x.glyph ? <TrackGlyph kind={x.glyph} size={32} /> : <Icon name={x.icon} size={32} />}</span>
                         <span class="tb-tile-label">{x.label}</span>
                       </button>
                     ))}
@@ -717,6 +741,9 @@ export function PlayerView(p: Props) {
               media={(
                 <>
                   <button class="ch-golive" data-focus="ch-live" onClick={toLive}><i />{t("tbGoLive")}</button>
+                  {/* The classic dock always has both, with a count badge (PlayerHudChrome.kt:404-407). */}
+                  <Tool id="ch-subs" icon="info" glyph={<TrackGlyph kind="subtitle" size={47} />} label={t("pfSubtitles")} badge={tracks.subs.length || null} onClick={() => setDialog("subs")} />
+                  <Tool id="ch-audio" icon="volume_high" glyph={<TrackGlyph kind="audio" size={47} />} label={t("pfAudio")} badge={tracks.audio.length > 1 ? tracks.audio.length : null} onClick={() => setDialog("audio")} />
                   <Tool id="ch-fav" icon={favorite ? "favorite" : "star"} label={t("tbFavorite")} active={favorite} onClick={() => p.onFav(channel)} />
                 </>
               )}
@@ -758,8 +785,11 @@ export function PlayerView(p: Props) {
         )}
       </Presence>
       {dialog === "aspect" ? (
-        <AspectDialog value={aspect} onClose={() => setDialog(null)}
-          onPick={(a) => { setDialog(null); p.onChangeSettings({ ...settings, aspect: a }); }} />
+        <AspectDialog value={aspect} onClose={() => setDialog(null)} onPick={(a) => { setDialog(null); pickZoom(a); }} />
+      ) : null}
+      {dialog === "audio" || dialog === "subs" ? (
+        <TrackDialog kind={dialog === "audio" ? "audio" : "subtitle"} tracks={dialog === "audio" ? tracks.audio : tracks.subs} onClose={() => setDialog(null)}
+          onPick={(x) => { setDialog(null); if (dialog === "audio") { if (x) selectAudio(x); } else selectSubtitle(x); }} />
       ) : null}
       {dialog === "sleep" ? (
         <SleepDialog

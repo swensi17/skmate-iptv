@@ -4,21 +4,63 @@ export interface GuideChannel { id: string; names: string[]; /** The channel's l
 export interface XmltvHandlers {
   onChannel(channel: GuideChannel): void;
   onProgramme(channelId: string, programme: Programme): void;
+  /**
+   * Whether a programme of [channelId] from [start] to [stop] is wanted at all. A guide of thousands of channels is
+   * read for the few hundred a playlist has: the rest is skipped before its title and description are decoded.
+   */
+  keep?(channelId: string, start: number, stop: number): boolean;
 }
 
-/** XMLTV time "20261031053000 +0300" as epoch milliseconds; without an offset it is UTC. */
+/** The [len]-digit number at [at] in [s], or -1 when those are not all digits. */
+function digits(s: string, at: number, len: number): number {
+  if (at + len > s.length) return -1;
+  let v = 0;
+  for (let i = at; i < at + len; i++) {
+    const c = s.charCodeAt(i) - 48;
+    if (c < 0 || c > 9) return -1;
+    v = v * 10 + c;
+  }
+  return v;
+}
+
+const isSpace = (c: number) => c === 32 || c === 9 || c === 10 || c === 13;
+
+/**
+ * XMLTV time "20261031053000 +0300" as epoch milliseconds; without an offset it is UTC. Read digit by digit: a guide
+ * has two per programme, hundreds of thousands of them, and a regular expression was a large part of the time.
+ */
 export function parseXmltvTime(text: string): number | null {
-  const m = /^\s*(\d{4})(\d{2})(\d{2})(\d{2})?(\d{2})?(\d{2})?\s*(?:([+-])(\d{2}):?(\d{2}))?/.exec(text);
-  if (!m) return null;
-  const [, y, mo, d, h = "0", mi = "0", s = "0", sign, oh = "0", om = "0"] = m;
-  let t = Date.UTC(Number(y), Number(mo) - 1, Number(d), Number(h), Number(mi), Number(s));
-  if (sign) t -= (sign === "-" ? -1 : 1) * (Number(oh) * 60 + Number(om)) * 60_000;
+  let i = 0;
+  while (i < text.length && isSpace(text.charCodeAt(i))) i++;
+  const y = digits(text, i, 4);
+  const mo = digits(text, i + 4, 2);
+  const d = digits(text, i + 6, 2);
+  if (y < 0 || mo < 0 || d < 0) return null;
+  i += 8;
+  const part = [0, 0, 0];
+  for (let k = 0; k < 3; k++) {
+    const v = digits(text, i, 2);
+    if (v < 0) break;
+    part[k] = v;
+    i += 2;
+  }
+  let t = Date.UTC(y, mo - 1, d, part[0] as number, part[1] as number, part[2] as number);
+  while (i < text.length && isSpace(text.charCodeAt(i))) i++;
+  const sign = text[i];
+  if (sign === "+" || sign === "-") {
+    const oh = digits(text, i + 1, 2);
+    const colon = text[i + 3] === ":" ? 1 : 0;
+    const om = digits(text, i + 3 + colon, 2);
+    if (oh >= 0 && om >= 0) t -= (sign === "-" ? -1 : 1) * (oh * 60 + om) * 60_000;
+  }
   return t;
 }
 
 const ENTITIES: Record<string, string> = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'" };
 
 export function decodeEntities(s: string): string {
+  // Most titles have neither an entity nor CDATA: no regular expression for them.
+  if (s.indexOf("&") < 0 && s.indexOf("<!") < 0) return s.trim();
   return s
     .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")
     .replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi, (all, e: string) => {
@@ -31,9 +73,15 @@ export function decodeEntities(s: string): string {
     .trim();
 }
 
+/** The value of attribute [name] in an opening [tag] (` name="…"`), found by search, not a new RegExp per call. */
 const attr = (tag: string, name: string): string | null => {
-  const m = new RegExp(`\\s${name}="([^"]*)"`).exec(tag);
-  return m ? decodeEntities(m[1] as string) : null;
+  const key = `${name}="`;
+  let at = tag.indexOf(key);
+  while (at > 0 && !isSpace(tag.charCodeAt(at - 1))) at = tag.indexOf(key, at + 1);
+  if (at <= 0) return null;
+  const from = at + key.length;
+  const to = tag.indexOf('"', from);
+  return to < 0 ? null : decodeEntities(tag.slice(from, to));
 };
 
 const inner = (xml: string, tag: string): string | null => {
@@ -57,9 +105,13 @@ export class XmltvScanner {
     this.buf += chunk;
     let pos = 0;
     let cut = 0;
+    // Where the next of each element starts. Each is searched again only once passed: a guide has all its channels
+    // first, and searching the rest of the piece for one more `<channel ` before every programme cost most of the time.
+    let ic = -2;
+    let ip = -2;
     for (;;) {
-      const ic = this.buf.indexOf("<channel ", pos);
-      const ip = this.buf.indexOf("<programme ", pos);
+      if (ic !== -1 && ic < pos) ic = this.buf.indexOf("<channel ", pos);
+      if (ip !== -1 && ip < pos) ip = this.buf.indexOf("<programme ", pos);
       const isChannel = ic >= 0 && (ip < 0 || ic < ip);
       const start = isChannel ? ic : ip;
       if (start < 0) { cut = Math.max(pos, this.buf.length - 16); break; } // nothing open: keep only what could begin a tag
@@ -93,6 +145,7 @@ export class XmltvScanner {
     const start = parseXmltvTime(attr(open, "start") ?? "");
     const stop = parseXmltvTime(attr(open, "stop") ?? "");
     if (!channel || start === null || stop === null) return;
+    if (this.handlers.keep && !this.handlers.keep(channel, start, stop)) return;
     const title = inner(el, "title");
     if (!title) return;
     const desc = inner(el, "desc") ?? undefined;

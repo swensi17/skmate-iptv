@@ -1,5 +1,6 @@
 import type Mpegts from "mpegts.js";
 import { PlayFailure, type PlayerEngine, type Source } from "../engine";
+import { elementTracks, type TrackSource } from "../tracks";
 
 /**
  * mpegts.js: a raw MPEG-TS stream over HTTP (the `.ts` links of many IPTV providers, which hls.js does not take
@@ -8,6 +9,7 @@ import { PlayFailure, type PlayerEngine, type Source } from "../engine";
 export class MpegTsEngine implements PlayerEngine {
   readonly id = "mpegts";
   private player: Mpegts.Player | null = null;
+  private video: HTMLVideoElement | null = null;
   private stopped = false;
 
   supports(source: Source): boolean {
@@ -16,6 +18,7 @@ export class MpegTsEngine implements PlayerEngine {
 
   async start(video: HTMLVideoElement, source: Source): Promise<void> {
     this.stopped = false;
+    this.video = video;
     const { default: lib } = await import("mpegts.js");
     if (this.stopped || !lib.isSupported()) throw new PlayFailure(this.id, "unsupported");
     return new Promise<void>((resolve, reject) => {
@@ -32,8 +35,14 @@ export class MpegTsEngine implements PlayerEngine {
     });
   }
 
+  /** mpegts.js plays the stream's first audio; whatever the element itself reports is offered. */
+  tracks(): TrackSource | null {
+    return this.video ? elementTracks(this.video) : null;
+  }
+
   stop(): void {
     this.stopped = true;
+    this.video = null;
     try { this.player?.destroy(); } catch { /* already gone */ }
     this.player = null;
   }
