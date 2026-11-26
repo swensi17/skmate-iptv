@@ -577,11 +577,11 @@
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt">
         <error line="3" column="1" source="standard:import-ordering" />
-        <error line="2053" column="35" source="standard:wrapping" />
-        <error line="2616" column="19" source="standard:property-naming" />
-        <error line="2628" column="1" source="standard:kdoc" />
-        <error line="2634" column="19" source="standard:property-naming" />
-        <error line="2635" column="19" source="standard:property-naming" />
+        <error line="2062" column="35" source="standard:wrapping" />
+        <error line="2632" column="19" source="standard:property-naming" />
+        <error line="2644" column="1" source="standard:kdoc" />
+        <error line="2650" column="19" source="standard:property-naming" />
+        <error line="2651" column="19" source="standard:property-naming" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/shell/ShellViewModel.kt">
         <error line="3" column="1" source="standard:import-ordering" />
@@ -636,8 +636,8 @@
         <error line="87" column="5" source="standard:spacing-between-declarations-with-comments" />
         <error line="111" column="1" source="standard:kdoc" />
         <error line="112" column="1" source="standard:spacing-between-declarations-with-comments" />
-        <error line="551" column="5" source="standard:spacing-between-declarations-with-comments" />
-        <error line="553" column="5" source="standard:spacing-between-declarations-with-comments" />
+        <error line="555" column="5" source="standard:spacing-between-declarations-with-comments" />
+        <error line="557" column="5" source="standard:spacing-between-declarations-with-comments" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/shell/components/StageStatus.kt">
         <error line="3" column="1" source="standard:import-ordering" />

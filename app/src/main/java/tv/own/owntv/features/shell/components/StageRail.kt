@@ -207,7 +207,11 @@ fun StageRail(
                 .width(width)
                 .graphicsLayer {
                     val travel = (width + edge).toPx()
-                    translationX = slide.value * travel * (if (rtl) -1f else 1f)
+                    // Without animations the menu is in place in the frame it opens: the snap below runs an effect
+                    // later, and that frame showed the screen already moved with an empty dark strip beside it.
+                    val snapped = !tv.own.owntv.ui.theme.MotionPrefs.smoothMenu && state != RailState.HIDDEN
+                    val at = if (snapped) 0f else slide.value
+                    translationX = at * travel * (if (rtl) -1f else 1f)
                     // Fades as it slides out, so its shadow never lingers at the edge once hidden. Read here,
                     // at draw time: as a plain alpha it recomposed the whole rail on every frame of the slide.
                     alpha = if (state == RailState.HIDDEN) (1f + slide.value).coerceIn(0f, 1f) else 1f

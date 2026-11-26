@@ -777,7 +777,13 @@ fun OwnTVShell(
     LaunchedEffect(railKeyAt) { menuTappedAway = false }
     val railState = when {
         // As TV boxes do it: no side menu on screen until ◀ brings focus to it.
-        TvBoxNav -> if (railFocused && !menuTappedAway) tv.own.owntv.features.shell.components.RailState.OPEN else tv.own.owntv.features.shell.components.RailState.HIDDEN
+        // Opens in the very frame focus reaches it after ◀, not one effect later: the frame in between showed
+        // nothing lit and the screen moved after it, which read as a jerk with a dark flash.
+        TvBoxNav -> if (tvBoxMenuOpen(railFocused, railHasFocus, railKeyAt) && !menuTappedAway) {
+            tv.own.owntv.features.shell.components.RailState.OPEN
+        } else {
+            tv.own.owntv.features.shell.components.RailState.HIDDEN
+        }
         widenDocked -> tv.own.owntv.features.shell.components.RailState.OPEN
         navStyle == tv.own.owntv.core.settings.SettingsRepository.NavStyle.DOCKED -> tv.own.owntv.features.shell.components.RailState.PINNED
         railFocused -> tv.own.owntv.features.shell.components.RailState.OPEN
@@ -791,7 +797,7 @@ fun OwnTVShell(
         0.dp
     }
     // Eased; read only inside layer and placement lambdas, so a step redraws layers, never recomposes.
-    val menuPush by androidx.compose.animation.core.animateDpAsState(
+    val menuPushEased by androidx.compose.animation.core.animateDpAsState(
         menuPushTarget,
         androidx.compose.animation.core.tween(
             if (tv.own.owntv.ui.theme.MotionPrefs.smoothMenu) tv.own.owntv.ui.theme.MotionPrefs.ms(MENU_PUSH_MS) else 0,
@@ -799,6 +805,9 @@ fun OwnTVShell(
         ),
         label = "menuPush",
     )
+    // With animations off (or held back on a struggling box) the screen moves in the same frame the menu
+    // appears; an animation of no length still landed a frame late.
+    val menuPush = if (tv.own.owntv.ui.theme.MotionPrefs.smoothMenu) menuPushEased else menuPushTarget
     // The playlist chip reflects the active filter: "All playlists" when none is chosen (id <= 0), the
     // chosen playlist's name otherwise. With a single playlist there's nothing to switch, so just its name.
     val playlistLabel = when {
@@ -2599,6 +2608,13 @@ private fun railDetail(section: MainSection, d: RailDetails): String? = when (se
 
 /** How recently ◀ / ▶ or [focusRail] must have happened for a rail visit to open the rail. */
 private const val RAIL_KEY_WINDOW_MS = 400L
+
+/**
+ * The TV-box menu is open once the user brought focus to it: already counted, or arriving right now just after
+ * ◀ / ▶ (focus landing on the menu at start-up does not open it).
+ */
+private fun tvBoxMenuOpen(counted: Boolean, hasFocus: Boolean, keyAt: Long): Boolean =
+    counted || (hasFocus && android.os.SystemClock.uptimeMillis() - keyAt <= RAIL_KEY_WINDOW_MS)
 
 /**
  * The side menu as TV boxes show it: hidden, nothing at the screen edge, until ◀ from the content's
