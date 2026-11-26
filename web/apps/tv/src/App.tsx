@@ -325,6 +325,28 @@ export function App() {
     if (c) { setPlaying({ list: channels, index: channels.indexOf(c) }); return; }
     if (mode === "channel") setFlash({ icon: "warning", text: t("sa_settings_startup_channel_unavailable") });
   }, [unlocked, book, redo, channels, pl.status.kind]);
+  // The TV's own autostart: webOS often keeps the app alive behind the screen and only brings it back on power-on
+  // (webOSRelaunch, then visible again), so the start above never runs a second time. Coming back with nothing playing,
+  // the startup channel plays again, as on a cold start.
+  const relaunchState = useRef({ settings, recents, channels, unlocked, playing, vodPlay, multiview, book, redo });
+  relaunchState.current = { settings, recents, channels, unlocked, playing, vodPlay, multiview, book, redo };
+  useEffect(() => {
+    const resume = () => {
+      const s = relaunchState.current;
+      if (document.hidden || !s.unlocked || s.book === null || s.redo) return;
+      if (s.playing || s.vodPlay || s.multiview || s.channels.length === 0) return;
+      const mode = s.settings.startup;
+      const c = mode === "last" ? s.recents[0] : mode === "channel" ? s.channels.find((x) => channelKey(x) === s.settings.startupChannel) : undefined;
+      if (c) setPlaying({ list: s.channels, index: s.channels.indexOf(c) });
+    };
+    const onVisible = () => { if (!document.hidden) resume(); };
+    document.addEventListener("webOSRelaunch", resume);
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      document.removeEventListener("webOSRelaunch", resume);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, []);
   // Reminders, as on Android: the guide's "Remind me" sets one; when its moment comes the app asks to switch,
   // switches, or only says so (Settings, Guide). Watch or Close both end it.
   const reminded = (c: Channel, p: Programme) => rem.has(channelKey(c), p.start);
