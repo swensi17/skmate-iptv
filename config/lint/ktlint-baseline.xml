@@ -373,7 +373,7 @@
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/settings/ContentMenuSettingsScreen.kt">
         <error line="3" column="1" source="standard:import-ordering" />
-        <error line="136" column="1" source="standard:no-blank-line-before-rbrace" />
+        <error line="139" column="1" source="standard:no-blank-line-before-rbrace" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/settings/DeleteSubtitlesScreen.kt">
         <error line="3" column="1" source="standard:import-ordering" />
@@ -470,8 +470,8 @@
         <error line="272" column="43" source="standard:wrapping" />
         <error line="284" column="17" source="standard:wrapping" />
         <error line="379" column="11" source="standard:property-naming" />
-        <error line="584" column="1" source="standard:kdoc" />
-        <error line="585" column="1" source="standard:spacing-between-declarations-with-comments" />
+        <error line="589" column="1" source="standard:kdoc" />
+        <error line="590" column="1" source="standard:spacing-between-declarations-with-comments" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/settings/SettingsViewModel.kt">
         <error line="5" column="1" source="standard:import-ordering" />
@@ -650,11 +650,10 @@
         <error line="407" column="1" source="standard:no-consecutive-blank-lines" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/shell/components/TvBoxChannelPanel.kt">
-        <error line="123" column="9" source="standard:property-naming" />
-        <error line="124" column="9" source="standard:property-naming" />
-        <error line="485" column="1" source="standard:spacing-between-declarations-with-comments" />
-        <error line="496" column="19" source="standard:property-naming" />
-        <error line="499" column="19" source="standard:property-naming" />
+        <error line="128" column="9" source="standard:property-naming" />
+        <error line="129" column="9" source="standard:property-naming" />
+        <error line="670" column="1" source="standard:spacing-between-declarations-with-comments" />
+        <error line="681" column="19" source="standard:property-naming" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/shell/components/TvBoxPlayerInfo.kt">
         <error line="237" column="19" source="standard:property-naming" />
@@ -768,18 +767,18 @@
     </file>
     <file name="app/src/main/java/tv/own/owntv/player/PlayerHud.kt">
         <error line="3" column="1" source="standard:import-ordering" />
-        <error line="383" column="69" source="standard:wrapping" />
-        <error line="385" column="6" source="standard:wrapping" />
-        <error line="386" column="65" source="standard:wrapping" />
-        <error line="388" column="6" source="standard:wrapping" />
-        <error line="426" column="9" source="standard:keyword-spacing" />
-        <error line="869" column="17" source="standard:wrapping" />
-        <error line="870" column="133" source="standard:wrapping" />
-        <error line="924" column="17" source="standard:wrapping" />
-        <error line="930" column="17" source="standard:wrapping" />
-        <error line="931" column="17" source="standard:wrapping" />
-        <error line="937" column="17" source="standard:wrapping" />
-        <error line="1256" column="19" source="standard:property-naming" />
+        <error line="385" column="69" source="standard:wrapping" />
+        <error line="387" column="6" source="standard:wrapping" />
+        <error line="388" column="65" source="standard:wrapping" />
+        <error line="390" column="6" source="standard:wrapping" />
+        <error line="428" column="9" source="standard:keyword-spacing" />
+        <error line="889" column="17" source="standard:wrapping" />
+        <error line="890" column="133" source="standard:wrapping" />
+        <error line="944" column="17" source="standard:wrapping" />
+        <error line="950" column="17" source="standard:wrapping" />
+        <error line="951" column="17" source="standard:wrapping" />
+        <error line="957" column="17" source="standard:wrapping" />
+        <error line="1276" column="19" source="standard:property-naming" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/player/PlayerHudChrome.kt">
         <error line="3" column="1" source="standard:import-ordering" />
@@ -978,11 +977,11 @@
         <error line="193" column="32" source="standard:annotation" />
         <error line="252" column="1" source="standard:kdoc" />
         <error line="253" column="1" source="standard:spacing-between-declarations-with-comments" />
-        <error line="860" column="19" source="standard:wrapping" />
-        <error line="863" column="27" source="standard:wrapping" />
-        <error line="940" column="18" source="standard:wrapping" />
-        <error line="941" column="94" source="standard:wrapping" />
-        <error line="1346" column="1" source="standard:no-consecutive-blank-lines" />
+        <error line="861" column="19" source="standard:wrapping" />
+        <error line="864" column="27" source="standard:wrapping" />
+        <error line="941" column="18" source="standard:wrapping" />
+        <error line="942" column="94" source="standard:wrapping" />
+        <error line="1347" column="1" source="standard:no-consecutive-blank-lines" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/ui/stage/StageControls.kt">
         <error line="3" column="1" source="standard:import-ordering" />

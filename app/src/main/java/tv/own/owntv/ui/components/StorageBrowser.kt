@@ -167,9 +167,12 @@ private fun StorageBrowserContent(
                 if (dir == null) {
                     if (!hasAccess) {
                         item {
-                            BrowserRow(OwnTVIcon.SETTINGS, stringResource(R.string.setup_grant_storage_access), Modifier.focusRequester(firstFocus)) {
-                                StorageAccess.openStoragePermissionSettings(context)
-                            }
+                            BrowserRow(
+                                OwnTVIcon.SETTINGS,
+                                stringResource(R.string.storage_allow_files),
+                                Modifier.focusRequester(firstFocus),
+                                subtitle = stringResource(R.string.storage_allow_files_line),
+                            ) { StorageAccess.openStoragePermissionSettings(context) }
                         }
                     }
                     itemsIndexed(roots) { i, root ->
@@ -180,13 +183,15 @@ private fun StorageBrowserContent(
                     // Up a folder — not shown at the top of the only storage, where there is nowhere to go.
                     val atOnlyRoot = onlyRoot != null && dir.absolutePath == onlyRoot.absolutePath
                     if (!atOnlyRoot) item { BrowserRow(OwnTVIcon.BACK, stringResource(R.string.setup_from_current_folder), Modifier.focusRequester(firstFocus)) { up(dir) } }
-                    // Without access the system hides other apps' files, so a folder full of playlists
-                    // looked empty. Say why, with the way to fix it, instead of an empty list.
-                    if (!hasAccess && files.isEmpty()) {
+                    // Without access the system hides every file the app did not write in this install: a backup
+                    // saved before "clear data" or a reinstall vanished from its folder. Say why, with the way to fix
+                    // it, and say it when saving too, since a copy saved without access is hidden after a reset.
+                    if (!hasAccess) {
                         item {
-                            BrowserRow(OwnTVIcon.SETTINGS, stringResource(R.string.setup_files_hidden_grant_access)) {
-                                StorageAccess.openStoragePermissionSettings(context)
-                            }
+                            BrowserRow(
+                                OwnTVIcon.SETTINGS, stringResource(R.string.storage_allow_files),
+                                subtitle = stringResource(R.string.storage_allow_files_line),
+                            ) { StorageAccess.openStoragePermissionSettings(context) }
                         }
                     }
                     itemsIndexed(folders) { i, f ->
@@ -247,9 +252,15 @@ private fun StorageAccess.StorageRoot.displayLabel(): String = when (kind) {
 }
 
 @Composable
-private fun BrowserRow(icon: OwnTVIcon, label: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
+private fun BrowserRow(
+    icon: OwnTVIcon,
+    label: String,
+    modifier: Modifier = Modifier,
+    subtitle: String? = null,
+    onClick: () -> Unit,
+) {
     tv.own.owntv.ui.stage.StagePopupOption(
-        title = label, onClick = onClick, modifier = modifier,
+        title = label, onClick = onClick, modifier = modifier, subtitle = subtitle,
         leading = { tv.own.owntv.ui.stage.StagePopupIcon(icon) },
     )
 }

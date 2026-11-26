@@ -577,4 +577,6 @@
     <string name="terms_confirm">By pressing Accept you confirm that you have read these terms and agree to them.</string>
     <string name="terms_accept">Accept</string>
     <string name="terms_decline">Decline and exit</string>
+    <string name="storage_allow_files">Allow access to files</string>
+    <string name="storage_allow_files_line">Without it Android hides files saved before clearing data or reinstalling, a backup too</string>
 </resources>

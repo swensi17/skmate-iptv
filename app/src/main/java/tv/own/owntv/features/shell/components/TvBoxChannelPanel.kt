@@ -54,6 +54,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.tv.material3.Text
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import tv.own.owntv.R
 import tv.own.owntv.core.database.entity.ChannelEntity
 import tv.own.owntv.core.epg.displayLogoUrl
@@ -117,6 +118,10 @@ fun TvBoxChannelPanel(
     loading: Boolean = false,
     /** How far the picture has moved into its corner (0 = full screen, 1 = docked): the window follows it. */
     dockProgress: () -> Float = { 1f },
+    /** A channel's aired programmes still in its archive, newest first; null where the panel offers none. */
+    archiveFor: (suspend (ChannelEntity) -> List<tv.own.owntv.core.database.entity.EpgProgrammeEntity>)? = null,
+    /** OK on an aired programme under the picture: play it from the archive. */
+    onPlayArchive: ((ChannelEntity, tv.own.owntv.core.database.entity.EpgProgrammeEntity) -> Unit)? = null,
 ) {
     val formatTime = rememberSystemTimeFormatter()
     val c = tvBoxPanelColors()
@@ -175,7 +180,16 @@ fun TvBoxChannelPanel(
     val art = tv.own.owntv.ui.components.rememberProgrammeArt(onAir?.title)
     // ▶ from the list steps onto the poster: OK shows it over the whole screen, ▲ ▼ move through the guide under it.
     val posterFocus = remember { FocusRequester() }
-    var scheduleStart by remember(schedule) { androidx.compose.runtime.mutableIntStateOf(0) }
+    // The archive of a channel that keeps one: its aired programmes above what is on, each one OK to watch.
+    val archive by produceState(emptyList<tv.own.owntv.core.database.entity.EpgProgrammeEntity>(), focused?.id) {
+        value = emptyList()
+        val ch = focused?.takeIf { it.catchup } ?: return@produceState
+        val read = archiveFor ?: return@produceState
+        delay(ScheduleSettleMs)
+        value = runCatching { read(ch) }.getOrDefault(emptyList())
+    }
+    val lines = remember(entries, archive) { scheduleLines(entries, archive, System.currentTimeMillis()) }
+    val onAirFocus = remember { FocusRequester() }
     var bigPoster by remember { mutableStateOf<tv.own.owntv.core.metadata.ProgrammeArt?>(null) }
     // The block under the picture follows focus once it rests, like the guide: a held ▼ would otherwise
     // load a logo and lay out a name for every row it passes.
@@ -227,7 +241,7 @@ fun TvBoxChannelPanel(
                             if (onOpenCategories != null) onOpenCategories() else onDismiss()
                             true
                         } else if (e.type == KeyEventType.KeyDown && e.key == Key.DirectionRight) {
-                            if (art != null) runCatching { posterFocus.requestFocus() }
+                            runCatching { if (art != null) posterFocus.requestFocus() else onAirFocus.requestFocus() }
                             true
                         } else false
                     }
@@ -260,8 +274,9 @@ fun TvBoxChannelPanel(
                 }
             }
         }
-        // Under the picture: the focused channel and its guide, the width of the picture.
-        Column(
+        // Under the picture: the focused channel, the poster and the guide in one list, so going down the guide
+        // carries the channel's name and the poster up out of the way and the programmes get the room.
+        Box(
             Modifier.padding(
                 start = (TvBoxDock.Left + inset).coerceAtLeast(0.mpx),
                 top = TvBoxDock.Top + TvBoxDock.height(screenW, inset + menuShift) + 24.mpx,
@@ -270,63 +285,90 @@ fun TvBoxChannelPanel(
         ) {
             val head = shown
             if (head != null) {
-                Row(horizontalArrangement = Arrangement.spacedBy(16.mpx), verticalAlignment = Alignment.CenterVertically) {
-                    Logo(head, 68.mpx, 48.mpx)
-                    head.number?.let {
-                        Text(
-                            it.toString(), style = stageText(24, 700), color = Soft,
-                            maxLines = 1, overflow = TextOverflow.Ellipsis,
-                        )
-                    }
-                    Text(
-                        head.name, style = stageText(24, 700), color = c.text,
-                        maxLines = 1, overflow = TextOverflow.Ellipsis,
-                    )
+                val scheduleState = rememberLazyListState()
+                val onAirIndex = lines.indexOfFirst { now < it.stopMs }.coerceAtLeast(0)
+                // The guide starts at the programme before what is on; ▲ at its top brings earlier ones
+                // from the archive.
+                var firstShown by remember(head.id, lines.size) {
+                    androidx.compose.runtime.mutableIntStateOf((onAirIndex - 1).coerceAtLeast(0))
                 }
-                // A film or a series on air: its poster and what it is about (TMDB), in the room of a few rows.
-                val rows = if (art != null) MaxScheduleRows - ART_ROWS else MaxScheduleRows
-                // Up to the last programme: how many rows fit depends on the screen, so none is ever out of reach.
-                val lastStart = (entries.size - 1).coerceAtLeast(0)
-                art?.let { a ->
-                    panelProgrammeArt(a, c.text, Soft, posterFocus) { key ->
-                        when (key) {
-                            Key.DirectionLeft -> { runCatching { firstFocus.requestFocus() }; true }
-                            Key.DirectionDown -> { scheduleStart = (scheduleStart + 1).coerceAtMost(lastStart); true }
-                            Key.DirectionUp -> { scheduleStart = (scheduleStart - 1).coerceAtLeast(0); true }
-                            Key.DirectionCenter, Key.Enter, Key.NumPadEnter -> { bigPoster = a; true }
-                            Key.DirectionRight -> true
-                            else -> false
+                val topRowFocus = remember { FocusRequester() }
+                var focusTopRow by remember { mutableStateOf(false) }
+                LaunchedEffect(firstShown) {
+                    if (!focusTopRow) return@LaunchedEffect
+                    androidx.compose.runtime.withFrameNanos { }
+                    runCatching { topRowFocus.requestFocus() }
+                    focusTopRow = false
+                }
+                val scope = androidx.compose.runtime.rememberCoroutineScope()
+                // Rows come after the name, the poster (when there is one) and a gap.
+                val rowsFrom = if (art != null) ROWS_AFTER_ART else ROWS_AFTER_HEAD
+                val smooth = tv.own.owntv.ui.theme.MotionPrefs.smooth
+                // A focused line goes to the top with one line above it, the name and poster sliding away; back on the
+                // poster, the list returns to the top.
+                val showFrom: (Int) -> Unit = { item ->
+                    scope.launch {
+                        runCatching {
+                            if (smooth) scheduleState.animateScrollToItem(item.coerceAtLeast(0))
+                            else scheduleState.scrollToItem(item.coerceAtLeast(0))
                         }
                     }
                 }
-                if (entries.isEmpty()) {
-                    GuideStatusText(
-                        stringResource(R.string.content_no_guide_short), stageText(21, 500), Faint,
-                        Modifier.padding(top = 22.mpx),
-                    )
-                } else {
-                    Column(Modifier.padding(top = 14.mpx)) {
-                        entries.drop(scheduleStart.coerceAtMost(lastStart)).take(rows).forEach { p ->
-                            val onAir = now in p.startMs until p.stopMs
-                            val past = p.stopMs <= now
-                            val tint = if (onAir) SkMateBlue else if (past) Faint else c.text
-                            Row(Modifier.fillMaxWidth().height(50.mpx), horizontalArrangement = Arrangement.spacedBy(20.mpx), verticalAlignment = Alignment.CenterVertically) {
-                                Text(
-                                    stringResource(R.string.content_live_time_range_plain, formatTime(p.startMs), formatTime(p.stopMs)),
-                                    style = stageText(21, 600), color = if (onAir) SkMateBlue else if (past) Faint else Soft, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
-                                )
-                                Text(p.title, style = stageText(21, if (onAir) 700 else 500), color = tint, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
-                                if (onAir) {
-                                    // What is on: a long bar level with the line, and how much of it is left.
-                                    Bar(((now - p.startMs).toFloat() / (p.stopMs - p.startMs).coerceAtLeast(1)).coerceIn(0f, 1f), 240.mpx, thick = true, base = c.text)
-                                    Text(
-                                        stringResource(R.string.home_time_left, durationLeft(p.stopMs - now)),
-                                        style = stageText(19, 600), color = Soft, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
-                                    )
+                val pick: (ScheduleLine) -> Unit = { line ->
+                    val aired = line.archive
+                    if (aired != null) onPlayArchive?.invoke(head, aired)
+                    else if (now in line.startMs until line.stopMs) onSelect(head)
+                }
+                LazyColumn(Modifier.fillMaxSize(), state = scheduleState) {
+                    item(key = "head") { panelHeader(head, c.text, Soft) }
+                    art?.let { a ->
+                        item(key = "art") {
+                            panelProgrammeArt(a, c.text, Soft, posterFocus, onFocused = { showFrom(0) }) { key ->
+                                when (key) {
+                                    Key.DirectionLeft -> { runCatching { firstFocus.requestFocus() }; true }
+                                    Key.DirectionDown -> { runCatching { onAirFocus.requestFocus() }; true }
+                                    Key.DirectionCenter, Key.Enter, Key.NumPadEnter -> { bigPoster = a; true }
+                                    Key.DirectionRight, Key.DirectionUp -> true
+                                    else -> false
                                 }
                             }
                         }
                     }
+                    if (lines.isEmpty()) {
+                        item(key = "empty") {
+                            GuideStatusText(
+                                stringResource(R.string.content_no_guide_short), stageText(21, 500), Faint,
+                                Modifier.padding(top = 22.mpx),
+                            )
+                        }
+                    } else {
+                        item(key = "gap") { androidx.compose.foundation.layout.Spacer(Modifier.height(12.mpx)) }
+                        itemsIndexed(lines.drop(firstShown), key = { _, l -> l.startMs }) { i, line ->
+                            val index = i + firstShown
+                            scheduleLine(
+                                line, now, formatTime, pick,
+                                toList = { runCatching { firstFocus.requestFocus() } },
+                                onUpAtTop = if (i == 0 && firstShown > 0) {
+                                    { firstShown -= 1; focusTopRow = true }
+                                } else {
+                                    null
+                                },
+                                onFocused = { showFrom(rowsFrom + i - 1) },
+                                modifier = Modifier
+                                    .then(if (index == onAirIndex) Modifier.focusRequester(onAirFocus) else Modifier)
+                                    .then(if (i == 0) Modifier.focusRequester(topRowFocus) else Modifier),
+                            )
+                        }
+                    }
+                }
+                // A soft edge where the list slides under the picture, instead of a hard cut.
+                if (scheduleState.canScrollBackward) {
+                    Box(
+                        Modifier.fillMaxWidth().height(SCROLL_FADE.mpx)
+                            .background(
+                                androidx.compose.ui.graphics.Brush.verticalGradient(listOf(c.fill, Color.Transparent)),
+                            ),
+                    )
                 }
             }
         }
@@ -351,6 +393,7 @@ private fun panelProgrammeArt(
     ink: Color,
     soft: Color,
     posterFocus: FocusRequester,
+    onFocused: () -> Unit,
     onKey: (Key) -> Boolean,
 ) {
     var focused by remember { mutableStateOf(false) }
@@ -359,7 +402,7 @@ private fun panelProgrammeArt(
         Box(
             Modifier
                 .focusRequester(posterFocus)
-                .onFocusChanged { focused = it.isFocused }
+                .onFocusChanged { focused = it.isFocused; if (it.isFocused) onFocused() }
                 .onPreviewKeyEvent { e -> e.type == KeyEventType.KeyDown && onKey(e.key) }
                 .focusable()
                 .then(if (focused) Modifier.border(ART_RING.mpx, Color.White, ring) else Modifier)
@@ -375,15 +418,39 @@ private fun panelProgrammeArt(
             )
             val separator = stringResource(R.string.content_epg_bits_separator)
             val about = listOfNotNull(art.year?.toString(), art.overview).joinToString(separator)
-            if (about.isNotBlank()) {
-                Text(
-                    about, style = stageText(ART_TEXT, MEDIUM), color = soft,
-                    overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f),
-                )
-            }
+            if (about.isNotBlank()) fittedAbout(about, soft, Modifier.weight(1f))
         }
     }
 }
+
+/**
+ * What a programme is about, as large as fills the room beside the poster: a short text grows (up to
+ * [ART_TEXT_MAX]) so it reaches the poster's foot, a long one stays at [ART_TEXT] and ends in an ellipsis. A very
+ * short one is left at the usual size, where growing it would only look odd.
+ */
+@Composable
+private fun fittedAbout(text: String, color: Color, modifier: Modifier) {
+    val measurer = androidx.compose.ui.text.rememberTextMeasurer()
+    val styles = (ART_TEXT..ART_TEXT_MAX).associateWith { stageText(it, MEDIUM) }
+    androidx.compose.foundation.layout.BoxWithConstraints(modifier.fillMaxWidth()) {
+        val width = constraints.maxWidth
+        val height = constraints.maxHeight
+        val size = remember(text, width, height) {
+            if (text.length < SHORT_ABOUT) return@remember ART_TEXT
+            (ART_TEXT_MAX downTo ART_TEXT).firstOrNull { sp ->
+                val laid = measurer.measure(
+                    text, styles.getValue(sp),
+                    constraints = androidx.compose.ui.unit.Constraints(maxWidth = width),
+                )
+                laid.size.height <= height
+            } ?: ART_TEXT
+        }
+        Text(text, style = styles.getValue(size), color = color, overflow = TextOverflow.Ellipsis)
+    }
+}
+
+private const val ART_TEXT_MAX = 24
+private const val SHORT_ABOUT = 60
 
 private const val ART_POSTER_WIDTH = 96
 private const val ART_POSTER_RATIO = 1.5f
@@ -394,8 +461,121 @@ private const val ART_TEXT = 18
 private const val BOLD = 700
 private const val MEDIUM = 500
 
-/** The schedule rows the art takes the room of. */
-private const val ART_ROWS = 3
+/** One line of the guide under the picture; [archive] is set on an aired programme that can be watched again. */
+private data class ScheduleLine(
+    val startMs: Long,
+    val stopMs: Long,
+    val title: String,
+    val archive: tv.own.owntv.core.database.entity.EpgProgrammeEntity?,
+)
+
+/** The archive's last aired programmes, then what is on and what comes, in time order. */
+private fun scheduleLines(
+    entries: List<XtEpgEntry>,
+    archive: List<tv.own.owntv.core.database.entity.EpgProgrammeEntity>,
+    now: Long,
+): List<ScheduleLine> {
+    val aired = archive.filter { it.stopMs <= now }.sortedBy { it.startMs }.takeLast(AIRED_LINES)
+        .map { ScheduleLine(it.startMs, it.stopMs, it.title, it) }
+    val rest = entries.filter { aired.isEmpty() || it.stopMs > now }
+        .map { ScheduleLine(it.startMs, it.stopMs, it.title, null) }
+    return (aired + rest).distinctBy { it.startMs }.sortedBy { it.startMs }
+}
+
+/** The focused channel's logo, number and name, over its poster and guide. */
+@Composable
+private fun panelHeader(head: ChannelEntity, ink: Color, soft: Color) {
+    Row(horizontalArrangement = Arrangement.spacedBy(16.mpx), verticalAlignment = Alignment.CenterVertically) {
+        Logo(head, 68.mpx, 48.mpx)
+        head.number?.let {
+            Text(
+                it.toString(), style = stageText(HEADER_TEXT, BOLD), color = soft,
+                maxLines = 1, overflow = TextOverflow.Ellipsis,
+            )
+        }
+        Text(
+            head.name, style = stageText(HEADER_TEXT, BOLD), color = ink,
+            maxLines = 1, overflow = TextOverflow.Ellipsis,
+        )
+    }
+}
+
+/** One guide line: times, title, the archive mark on an aired one; on air, the bar and the time left. */
+@Composable
+private fun scheduleLine(
+    line: ScheduleLine,
+    now: Long,
+    formatTime: (Long) -> String,
+    onPick: (ScheduleLine) -> Unit,
+    toList: () -> Unit,
+    /** ▲ on the top line while earlier programmes wait in the archive: show the one before. */
+    onUpAtTop: (() -> Unit)?,
+    onFocused: () -> Unit,
+    modifier: Modifier,
+) {
+    val c = tvBoxPanelColors()
+    val interaction = remember { MutableInteractionSource() }
+    val focused = interaction.collectIsFocusedAsState().value
+    val onAir = now in line.startMs until line.stopMs
+    val past = line.stopMs <= now
+    val ink = when {
+        focused -> c.focusInk
+        onAir -> SkMateBlue
+        past -> c.faint
+        else -> c.text
+    }
+    Row(
+        modifier.fillMaxWidth().height(SCHEDULE_LINE.mpx)
+            .background(if (focused) c.focus else Color.Transparent, tv.own.owntv.ui.stage.FocusBarShape)
+            .onFocusChanged { if (it.isFocused) onFocused() }
+            .onPreviewKeyEvent { e ->
+                if (e.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
+                when (e.key) {
+                    Key.DirectionLeft -> { toList(); true }
+                    Key.DirectionRight -> true
+                    Key.DirectionUp -> onUpAtTop?.let { it(); true } ?: false
+                    else -> false
+                }
+            }
+            .clickable(interactionSource = interaction, indication = null) { onPick(line) }
+            .padding(horizontal = SCHEDULE_INSET.mpx),
+        horizontalArrangement = Arrangement.spacedBy(20.mpx),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            stringResource(R.string.content_live_time_range_plain, formatTime(line.startMs), formatTime(line.stopMs)),
+            style = stageText(SCHEDULE_TEXT, SEMI), color = ink, maxLines = 1, overflow = TextOverflow.Ellipsis,
+        )
+        if (line.archive != null) OwnTVIcon(OwnTVIcon.REWIND, ink, Modifier.size(ARCHIVE_MARK.mpx))
+        Text(
+            line.title, style = stageText(SCHEDULE_TEXT, if (onAir) BOLD else MEDIUM), color = ink,
+            maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f),
+        )
+        if (onAir) {
+            val done = ((now - line.startMs).toFloat() / (line.stopMs - line.startMs).coerceAtLeast(1)).coerceIn(0f, 1f)
+            Bar(done, ON_AIR_BAR.mpx, thick = true, base = ink)
+            Text(
+                stringResource(R.string.home_time_left, durationLeft(line.stopMs - now)),
+                style = stageText(LEFT_TEXT, SEMI), color = ink, maxLines = 1, overflow = TextOverflow.Ellipsis,
+            )
+        }
+    }
+}
+
+private const val AIRED_LINES = 24
+private const val SCROLL_FADE = 28
+
+/** Where the guide's rows start in the list under the picture: after the name and gap, and the poster when shown. */
+private const val ROWS_AFTER_HEAD = 2
+private const val ROWS_AFTER_ART = 3
+private const val HEADER_TEXT = 24
+private const val SCHEDULE_LINE = 50
+private const val SCHEDULE_INSET = 12
+private const val SCHEDULE_TEXT = 21
+private const val LEFT_TEXT = 19
+private const val SEMI = 600
+private const val ARCHIVE_MARK = 18
+private const val ON_AIR_BAR = 200
 
 /** One channel: logo, number and name, what is on with a short bar; white when focused, a blue mark when playing. */
 @Composable
@@ -433,8 +613,13 @@ private fun ChannelLine(
                 // The channel being watched: its name in brand blue, nothing else.
                 Text(
                     channel.name, style = stageText(20, 700), color = if (playing) SkMateBlue else ink,
-                    maxLines = 1, overflow = marqueeOverflow(focused), modifier = Modifier.focusMarquee(focused),
+                    maxLines = 1, overflow = marqueeOverflow(focused),
+                    modifier = Modifier.weight(1f, fill = false).focusMarquee(focused),
                 )
+                // A channel with an archive says so beside its name.
+                if (channel.catchup) {
+                    OwnTVIcon(OwnTVIcon.REWIND, soft, Modifier.size(ARCHIVE_MARK.mpx).align(Alignment.CenterVertically))
+                }
             }
             if (now != null) {
                 Text(
@@ -496,7 +681,6 @@ internal fun tvBoxPanelColors(): TvBoxPanelColors =
 private const val ScheduleSettleMs = 250L
 private const val HEADER_SETTLE_MS = 120L
 private const val NOW_TICK_MS = 30_000L
-private const val MaxScheduleRows = 14
 
 /** Where a channel row's content starts: on the panel title's line, the row itself reaching the edges. */
 private const val CHANNEL_LINE_INSET = 28

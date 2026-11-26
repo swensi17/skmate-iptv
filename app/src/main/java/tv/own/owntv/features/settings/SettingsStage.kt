@@ -499,7 +499,12 @@ fun SettingsSheet(
         if (sheetHasFocus || !windowFocused) return@LaunchedEffect
         kotlinx.coroutines.delay(if (firstFocus) SHEET_FIRST_FOCUS_MS else SHEET_REFOCUS_MS)
         firstFocus = false
-        runCatching { sheetFocus.requestFocus() }
+        // Opened with a mouse or an air-mouse click, the screen is in touch mode and the request is refused;
+        // the first key on the remote leaves touch mode, and the next try lands, so the remote works again.
+        while (!sheetHasFocus) {
+            runCatching { sheetFocus.requestFocus() }
+            kotlinx.coroutines.delay(SHEET_REFOCUS_MS)
+        }
     }
     BoxWithConstraints(modifier.fillMaxSize()) {
         val screenW = maxWidth

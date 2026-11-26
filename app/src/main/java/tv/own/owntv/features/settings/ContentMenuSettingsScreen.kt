@@ -18,6 +18,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.layout.heightIn
+import tv.own.owntv.ui.stage.sheetRowInset
+import tv.own.owntv.ui.stage.sheetBleed
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.key.Key
@@ -185,13 +188,19 @@ private fun ArrangeMenuOverlay(
                 },
             verticalArrangement = Arrangement.spacedBy(2.mpx),
         ) {
-            Text(stringResource(R.string.settings_content_menus_hint), style = tv.own.owntv.ui.theme.stageText(15, 500), color = tv.own.owntv.ui.theme.StageColors.Muted, modifier = Modifier.padding(bottom = 10.mpx))
+            // On the heading's line, as the rows' text below it.
+            Text(
+                stringResource(R.string.settings_content_menus_hint), style = tv.own.owntv.ui.theme.stageText(15, 500),
+                color = tv.own.owntv.ui.theme.StageColors.Muted,
+                modifier = Modifier.padding(start = HINT_START.mpx, end = HINT_START.mpx, bottom = 10.mpx),
+            )
             Column(Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(2.mpx)) {
             keys.forEachIndexed { index, key ->
                 val ref = refs.first { it.key == key }
                 ArrangeMenuRow(
                     number = index + 1,
                     label = stringResource(ref.labelRes),
+                    line = actionLine(menu, key)?.let { stringResource(it) },
                     picked = picked == index,
                     onPick = { picked = if (picked == index) -1 else index },
                     modifier = when {
@@ -217,6 +226,8 @@ private fun ArrangeMenuOverlay(
 private fun ArrangeMenuRow(
     number: Int,
     label: String,
+    /** What the action does, under its name. */
+    line: String?,
     picked: Boolean,
     onPick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -228,15 +239,55 @@ private fun ArrangeMenuRow(
     tv.own.owntv.ui.stage.StageSurface(
         onClick = { if (android.os.SystemClock.uptimeMillis() - longAt > 800) onPick() },
         onLongClick = { longAt = android.os.SystemClock.uptimeMillis(); onPick() },
-        radius = 14.mpx,
+        radius = 4.mpx,
         focusStyle = tv.own.owntv.ui.stage.StageFocus.FX,
         // The action being carried stays lit, focused or not.
-        idle = if (picked) Modifier.background(a.accent.copy(alpha = 0.22f), RoundedCornerShape(14.mpx)) else Modifier,
-        modifier = modifier.fillMaxWidth().height(50.mpx),
+        idle = if (picked) Modifier.background(a.accent.copy(alpha = 0.22f), RoundedCornerShape(4.mpx)) else Modifier,
+        // Edge to edge, as the settings rows, the text on the heading's line.
+        modifier = modifier.sheetBleed().fillMaxWidth()
+            .heightIn(min = if (line != null) ROW_LINED.mpx else ROW_PLAIN.mpx),
     ) { focused ->
-        Row(Modifier.padding(horizontal = 14.mpx), horizontalArrangement = Arrangement.spacedBy(12.mpx), verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            Modifier.padding(horizontal = sheetRowInset(14.mpx), vertical = 6.mpx),
+            horizontalArrangement = Arrangement.spacedBy(12.mpx), verticalAlignment = Alignment.CenterVertically,
+        ) {
             Text(if (picked) stringResource(R.string.setup_move_indicator) else number.toString(), style = tv.own.owntv.ui.theme.stageText(17, 700), color = if (picked) a.accent else tv.own.owntv.ui.theme.StageColors.Dim, modifier = Modifier.width(26.mpx))
-            Text(label, style = tv.own.owntv.ui.theme.stageText(18, 600), color = if (picked || focused) tv.own.owntv.ui.theme.StageColors.Text else tv.own.owntv.ui.theme.StageColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Column(verticalArrangement = Arrangement.spacedBy(2.mpx)) {
+                Text(label, style = tv.own.owntv.ui.theme.stageText(18, 600), color = if (picked || focused) tv.own.owntv.ui.theme.StageColors.Text else tv.own.owntv.ui.theme.StageColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                if (line != null) {
+                    Text(
+                        line, style = tv.own.owntv.ui.theme.stageText(LINE_TEXT, LINE_WEIGHT),
+                        color = tv.own.owntv.ui.theme.StageColors.Dim, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
         }
     }
 }
+
+/** What a live channel's menu action does, one short line under its name; null for the other menus. */
+private fun actionLine(menu: ContentMenu, key: String): Int? = if (menu != ContentMenu.LIVE) null else when (key) {
+    "catchup" -> R.string.menu_line_catchup
+    "favourite" -> R.string.menu_line_favourite
+    "rename" -> R.string.menu_line_rename
+    "logo" -> R.string.menu_line_logo
+    "match_epg" -> R.string.menu_line_match_epg
+    "epg_offset" -> R.string.menu_line_epg_offset
+    "record" -> R.string.menu_line_record
+    "schedule_record" -> R.string.menu_line_schedule_record
+    "add_to_multiview" -> R.string.menu_line_multiview
+    "play_external" -> R.string.menu_line_play_external
+    "move" -> R.string.menu_line_move
+    "move_to_category" -> R.string.menu_line_move_to_category
+    "remove_from_category" -> R.string.menu_line_remove_from_category
+    "hide" -> R.string.menu_line_hide
+    "remove_history" -> R.string.menu_line_remove_history
+    else -> null
+}
+
+/** The hint's inset: on the heading's line inside the editor's padding. */
+private const val HINT_START = 6
+private const val ROW_PLAIN = 50
+private const val LINE_TEXT = 14
+private const val LINE_WEIGHT = 500
+private const val ROW_LINED = 64

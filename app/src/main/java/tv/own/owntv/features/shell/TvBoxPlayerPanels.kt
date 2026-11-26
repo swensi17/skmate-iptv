@@ -79,6 +79,13 @@ internal fun TvBoxPlayerPanels(
                 liveVm.ensurePlaying(ch)
             }.takeIf { previewOn },
             inset = inset, menuShift = menuShift,
+            // The channel's archive under the picture: OK on an aired programme plays it.
+            archiveFor = liveVm::catchupProgrammes,
+            onPlayArchive = { ch, programme ->
+                startChannel = null
+                liveVm.playCatchupProgramme(ch, programme)
+                onClose()
+            },
             active = !categoriesOpen,
             loading = loading,
             dockProgress = dockProgress,

@@ -323,4 +323,6 @@
     <string name="terms_confirm">Нажимая «Принять», вы подтверждаете, что прочитали эти условия и согласны с ними.</string>
     <string name="terms_accept">Принять</string>
     <string name="terms_decline">Отказаться и выйти</string>
+    <string name="storage_allow_files">Разрешить доступ к файлам</string>
+    <string name="storage_allow_files_line">Без него Android прячет файлы, сохранённые до очистки данных или переустановки, и резервную копию тоже</string>
 </resources>

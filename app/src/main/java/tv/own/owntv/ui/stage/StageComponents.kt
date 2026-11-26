@@ -407,7 +407,8 @@ fun StagePill(
     dimmed: Boolean = false,
 ) {
     val a = stageAccent
-    val r = StageRadii.Pill
+    // TV-box look: square, as every button and row in Settings, never a pill.
+    val r = if (tv.own.owntv.features.shell.TvBoxNav) TV_BUTTON_RADIUS else StageRadii.Pill
     StageSurface(
         onClick = onClick,
         radius = r,
@@ -1373,6 +1374,9 @@ private fun focusCornerPx(height: Float, ownRadius: Float, pillMaxHeight: Float)
     height <= pillMaxHeight -> maxOf(height / 2f, ownRadius)
     else -> ownRadius
 }
+
+/** A TV-box button's corner: the focus bar's ([FocusBarShape]), square as in Settings. */
+internal val TV_BUTTON_RADIUS = 4.mpx
 
 /** 4 of the 100 px [PillMaxHeight]: the focus bar's corner ([FocusBarShape]). */
 private const val TV_CORNER_SHARE = 0.04f

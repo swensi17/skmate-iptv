@@ -33,6 +33,9 @@ private val HelpItems = listOf(
     R.string.help_q10 to R.string.help_a10,
     R.string.help_q11 to R.string.help_a11,
     R.string.help_q12 to R.string.help_a12,
+    R.string.help_q13 to R.string.help_a13,
+    R.string.help_q14 to R.string.help_a14,
+    R.string.help_q15 to R.string.help_a15,
 )
 
 /**

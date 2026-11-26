@@ -30,6 +30,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -546,6 +548,24 @@ fun PlayerHud(
     }
     Box(
         modifier = modifier.fillMaxSize()
+            // A mouse or an air remote's pointer (arrows off): a click on the left edge opens the channel list as ◀
+            // does, on the right edge the recently watched as ▶, anywhere else shows or hides the info. Controls on
+            // screen take their own clicks first.
+            .pointerInput(inert, error == null) {
+                if (inert) return@pointerInput
+                detectTapGestures { at ->
+                    val edge = size.width * POINTER_EDGE
+                    when {
+                        tvLive && error == null && at.x < edge && onOpenChannelList != null -> {
+                            controlsVisible = false; onOpenChannelList()
+                        }
+                        tvLive && error == null && at.x > size.width - edge && onOpenHistoryList != null -> {
+                            controlsVisible = false; onOpenHistoryList()
+                        }
+                        else -> { controlsVisible = !controlsVisible; wakeTick++ }
+                    }
+                }
+            }
             .onPreviewKeyEvent { e ->
             // ---- Direct-tune digit capture (before the existing KeyDown guard) ----
             // Number keys are consumed globally here, HUD visible or not: on a TV remote a digit press
@@ -1301,6 +1321,9 @@ private const val SEEK_STEP_TAP = 10
 private const val SEEK_STEP_30S = 30
 private const val SEEK_STEP_1M = 60
 private const val SEEK_STEP_5M = 300
+
+/** The share of the screen's width at each side where a pointer click opens the channel lists. */
+private const val POINTER_EDGE = 0.22f
 
 /** How long the run's counter stays after the last press; a press later than that starts a new run. */
 private const val SEEK_RUN_SHOW_MS = 1_500L

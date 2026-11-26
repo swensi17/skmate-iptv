@@ -29,13 +29,14 @@ fun catalogue(menu: ContentMenu): List<MenuActionRef> = when (menu) {
 }
 
 private val LIVE_ACTIONS = listOf(
+    // The archive first: the one thing a long OK on a channel is most often for. A saved order keeps its own.
+    MenuActionRef("catchup", R.string.content_catchup),
     MenuActionRef("favourite", R.string.content_add_favourite),
     MenuActionRef("rename", R.string.content_rename),
     // The channel's own logo, for a playlist and guide that have none. Listed for the same reason as `record`.
     MenuActionRef("logo", R.string.content_channel_logo),
     MenuActionRef("match_epg", R.string.content_match_epg),
     MenuActionRef("epg_offset", R.string.content_epg_time_offset),
-    MenuActionRef("catchup", R.string.content_catchup),
     // Record this channel from now. It belongs in the list rather than being added by an app,
     // because this list is what both apps arrange by and what Customize lets the user reorder and
     // hide — a key that is not here is dropped by the arrangement, which is exactly what happened

@@ -3306,7 +3306,7 @@
     <string name="help_q3">Adding a channel to favourites</string>
     <string name="help_a3">Hold OK on a channel and choose “Add to favourites”. In the player the “Favourite” button does the same. Favourites are the first category on the left.</string>
     <string name="help_q4">Where is catch-up</string>
-    <string name="help_a4">Hold OK on a channel with catch-up and choose “Catch-up”, then a programme. Or pick a past programme in the guide and press “Watch from start”. In catch-up ◀ ▶ move through it.</string>
+    <string name="help_a4">In the player press ◀: the channel list opens, and past programmes marked with the catch-up icon are under the picture. ▶ goes to them, OK plays one from the start. Or hold OK on a channel → “Catch-up”. In catch-up ◀ ▶ move through it.</string>
     <string name="help_q5">Recording a programme</string>
     <string name="help_a5">Hold OK on a channel → “Record” or “Schedule recording”. While watching catch-up, the player’s “Record” button saves the whole programme.</string>
     <string name="help_q6">No programme guide</string>
@@ -3330,4 +3330,26 @@
     <string name="settings_adult_lock">Adult channels behind a PIN</string>
     <string name="settings_adult_lock_line">18+ groups stay hidden until the profile PIN or 0000 is entered</string>
     <string name="settings_adult_lock_help">Groups with adult content are hidden with their channels on every profile. Live channels › More › Show adult channels opens them until the app restarts. Switching this off also asks for the PIN.</string>
+    <!-- Settings › Long-press menus: what each live channel action does, one line under its name. -->
+    <string name="menu_line_catchup">Aired programmes from the provider’s archive</string>
+    <string name="menu_line_favourite">The channel shows in Favourites</string>
+    <string name="menu_line_rename">Your own name for the channel in lists</string>
+    <string name="menu_line_logo">Your own logo when the playlist has none</string>
+    <string name="menu_line_match_epg">Pick the channel’s guide by hand</string>
+    <string name="menu_line_epg_offset">Shift the guide when it runs early or late</string>
+    <string name="menu_line_record">Record the channel from now</string>
+    <string name="menu_line_schedule_record">Record between two times you pick</string>
+    <string name="menu_line_multiview">Watch it beside other channels</string>
+    <string name="menu_line_play_external">Open it in another player, such as VLC</string>
+    <string name="menu_line_move">Put the channel elsewhere in the list</string>
+    <string name="menu_line_move_to_category">Move it into a category of your own</string>
+    <string name="menu_line_remove_from_category">Take it out of this category of yours</string>
+    <string name="menu_line_hide">Take the channel out of every list</string>
+    <string name="menu_line_remove_history">Take it out of Recently watched</string>
+    <string name="help_q13">Posters and what a film is about</string>
+    <string name="help_a13">Nothing to set up. On a channel showing a film or a series press OK: the poster and the story appear below. In the channel list (◀) they are under the picture: ▶ to the poster, OK opens it full screen. Texts follow the app language.</string>
+    <string name="help_q14">The backup is gone after clearing data</string>
+    <string name="help_a14">Android hides files saved before clearing data or reinstalling. In the file picker choose “Allow access to files” and turn on access to all files: the copy is back in its folder.</string>
+    <string name="help_q15">A remote with a mouse pointer</string>
+    <string name="help_a15">In the player a click on the left edge opens the channel list, on the right edge the recently watched, in the middle the programme info. In lists a click opens what it points at.</string>
 </resources>

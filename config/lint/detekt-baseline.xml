@@ -267,7 +267,6 @@
     <ID>FunctionNaming:ChannelNameCleanupDialog.kt$@Composable private fun ChannelNameCleanupDialog( source: SourceEntity, onSave: (enabled: Boolean, customText: String) -&gt; Unit, onDismiss: () -&gt; Unit, )</ID>
     <ID>FunctionNaming:ContentMenuSettingsScreen.kt$@Composable fun ContentMenuSettingsScreen(onBack: () -&gt; Unit, modifier: Modifier = Modifier)</ID>
     <ID>FunctionNaming:ContentMenuSettingsScreen.kt$@Composable private fun ArrangeMenuOverlay( menu: ContentMenu, onSave: (List&lt;String&gt;) -&gt; Unit, onCancel: () -&gt; Unit, )</ID>
-    <ID>FunctionNaming:ContentMenuSettingsScreen.kt$@Composable private fun ArrangeMenuRow( number: Int, label: String, picked: Boolean, onPick: () -&gt; Unit, modifier: Modifier = Modifier, )</ID>
     <ID>FunctionNaming:CountdownRing.kt$@Composable fun CountdownRing(n: Int, totalMs: Long, modifier: Modifier = Modifier, diameter: androidx.compose.ui.unit.Dp = 30.mpx)</ID>
     <ID>FunctionNaming:CustomizeItemsScreen.kt$@Composable fun CustomizeItemsScreen( onBack: () -&gt; Unit, modifier: Modifier = Modifier, )</ID>
     <ID>FunctionNaming:CustomizeItemsScreen.kt$@Composable private fun ItemRow( row: CustomizeItemRow, /** The page's explanation, shown in the panel. */ about: String, isLive: Boolean, inRangeMode: Boolean, inRenameRange: Boolean, isInSpan: Boolean, focusRequester: FocusRequester, upFocusRequester: FocusRequester?, actionsFocus: FocusRequester, keepPanel: Boolean, onRowFocused: () -&gt; Unit, onMoveUp: () -&gt; Unit, onMoveDown: () -&gt; Unit, onMoveTop: () -&gt; Unit, onMoveBottom: () -&gt; Unit, onMoveLongPress: () -&gt; Unit, onRename: () -&gt; Unit, onRenameLongPress: () -&gt; Unit, onPickRenameEnd: () -&gt; Unit, // "Move to…": send this item into a user's combined category. onMove: () -&gt; Unit, // Only in a custom category: take the item out of it alone. onRemoveFromCategory: (() -&gt; Unit)?, onToggleHidden: () -&gt; Unit, onHideLongPress: () -&gt; Unit, onPickRangeEnd: () -&gt; Unit, )</ID>
@@ -732,7 +731,6 @@
     <ID>FunctionNaming:StageTitleArt.kt$@Composable fun StageTitleArt( url: String, contentDescription: String?, modifier: Modifier = Modifier, alignment: Alignment = Alignment.CenterStart, onFailed: () -&gt; Unit, )</ID>
     <ID>FunctionNaming:StateViews.kt$@Composable fun OwnTVSpinner( modifier: Modifier = Modifier, sizeDp: Int = 44, color: Color = tv.own.owntv.ui.theme.stageAccent.accent, )</ID>
     <ID>FunctionNaming:StorageBrowser.kt$@Composable fun StorageBrowser( title: String, mode: BrowseMode, onPick: (File) -&gt; Unit, onDismiss: () -&gt; Unit, fileExtensions: Set&lt;String&gt;? = null, )</ID>
-    <ID>FunctionNaming:StorageBrowser.kt$@Composable private fun BrowserRow(icon: OwnTVIcon, label: String, modifier: Modifier = Modifier, onClick: () -&gt; Unit)</ID>
     <ID>FunctionNaming:StorageBrowser.kt$@Composable private fun NewFolderDialog(onCreate: (String) -&gt; Unit, onDismiss: () -&gt; Unit)</ID>
     <ID>FunctionNaming:StorageBrowser.kt$@Composable private fun StorageBrowserContent( title: String, mode: BrowseMode, onPick: (File) -&gt; Unit, onDismiss: () -&gt; Unit, fileExtensions: Set&lt;String&gt;?, /** Ask for a folder name; the lambda creates it in the folder shown now. */ onNewFolder: (onCreate: (String) -&gt; Unit) -&gt; Unit, )</ID>
     <ID>FunctionNaming:StreamInfoOverlay.kt$@Composable fun StreamInfoOverlay(player: PlaybackEngine, modifier: Modifier = Modifier)</ID>
@@ -2464,7 +2462,6 @@
     <ID>MagicNumber:SettingsStage.kt$1060</ID>
     <ID>MagicNumber:SettingsStage.kt$120</ID>
     <ID>MagicNumber:SettingsStage.kt$13</ID>
-    <ID>MagicNumber:SettingsStage.kt$14.5f</ID>
     <ID>MagicNumber:SettingsStage.kt$15</ID>
     <ID>MagicNumber:SettingsStage.kt$15.5f</ID>
     <ID>MagicNumber:SettingsStage.kt$16</ID>
@@ -2725,7 +2722,6 @@
     <ID>MagicNumber:StageComponents.kt$2.5f</ID>
     <ID>MagicNumber:StageComponents.kt$20</ID>
     <ID>MagicNumber:StageComponents.kt$200</ID>
-    <ID>MagicNumber:StageComponents.kt$21</ID>
     <ID>MagicNumber:StageComponents.kt$22</ID>
     <ID>MagicNumber:StageComponents.kt$23</ID>
     <ID>MagicNumber:StageComponents.kt$3</ID>
@@ -2801,7 +2797,6 @@
     <ID>MagicNumber:StagePopup.kt$16</ID>
     <ID>MagicNumber:StagePopup.kt$18</ID>
     <ID>MagicNumber:StagePopup.kt$19</ID>
-    <ID>MagicNumber:StagePopup.kt$21</ID>
     <ID>MagicNumber:StagePopup.kt$38</ID>
     <ID>MagicNumber:StagePopup.kt$400</ID>
     <ID>MagicNumber:StagePopup.kt$500</ID>
@@ -2967,13 +2962,11 @@
     <ID>MagicNumber:TvBoxChannelPanel.kt$15</ID>
     <ID>MagicNumber:TvBoxChannelPanel.kt$16</ID>
     <ID>MagicNumber:TvBoxChannelPanel.kt$16f</ID>
-    <ID>MagicNumber:TvBoxChannelPanel.kt$19</ID>
     <ID>MagicNumber:TvBoxChannelPanel.kt$20</ID>
     <ID>MagicNumber:TvBoxChannelPanel.kt$21</ID>
     <ID>MagicNumber:TvBoxChannelPanel.kt$24</ID>
     <ID>MagicNumber:TvBoxChannelPanel.kt$3</ID>
     <ID>MagicNumber:TvBoxChannelPanel.kt$500</ID>
-    <ID>MagicNumber:TvBoxChannelPanel.kt$600</ID>
     <ID>MagicNumber:TvBoxChannelPanel.kt$60_000L</ID>
     <ID>MagicNumber:TvBoxChannelPanel.kt$700</ID>
     <ID>MagicNumber:TvBoxChannelPanel.kt$9f</ID>
@@ -3379,7 +3372,6 @@
     <ID>MaxLineLength:ContentMenuSettingsScreen.kt$Text((i + 1).toString(), style = tv.own.owntv.ui.theme.stageText(17, 700), color = tv.own.owntv.ui.theme.StageColors.Dim, modifier = Modifier.width(22.mpx))</ID>
     <ID>MaxLineLength:ContentMenuSettingsScreen.kt$Text(if (picked) stringResource(R.string.setup_move_indicator) else number.toString(), style = tv.own.owntv.ui.theme.stageText(17, 700), color = if (picked) a.accent else tv.own.owntv.ui.theme.StageColors.Dim, modifier = Modifier.width(26.mpx))</ID>
     <ID>MaxLineLength:ContentMenuSettingsScreen.kt$Text(label, style = tv.own.owntv.ui.theme.stageText(18, 600), color = if (picked || focused) tv.own.owntv.ui.theme.StageColors.Text else tv.own.owntv.ui.theme.StageColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
-    <ID>MaxLineLength:ContentMenuSettingsScreen.kt$Text(stringResource(R.string.settings_content_menus_hint), style = tv.own.owntv.ui.theme.stageText(15, 500), color = tv.own.owntv.ui.theme.StageColors.Muted, modifier = Modifier.padding(bottom = 10.mpx))</ID>
     <ID>MaxLineLength:ContentMenuSettingsScreen.kt$Text(stringResource(res), style = tv.own.owntv.ui.theme.stageText(17, 500), color = tv.own.owntv.ui.theme.StageColors.Text)</ID>
     <ID>MaxLineLength:ContentMenuSettingsScreen.kt$count = pluralStringResource(R.plurals.settings_setting_count, ContentMenu.entries.size, ContentMenu.entries.size)</ID>
     <ID>MaxLineLength:ContentMenuSettingsScreen.kt$tv.own.owntv.ui.stage.StageButton(stringResource(R.string.common_cancel), onClick = onCancel, height = 52.mpx, textSize = 18)</ID>
@@ -5310,12 +5302,9 @@
     <ID>MaxLineLength:SettingsStage.kt$Text(group, style = stageText(42, 800, (-1f / 46f).em), color = StageColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:SettingsStage.kt$Text(label, style = stageText(16, 500), color = StageColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:SettingsStage.kt$Text(label, style = stageText(17, 700), color = if (on) StageColors.Text else StageColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
-    <ID>MaxLineLength:SettingsStage.kt$Text(label, style = stageText(18, 600), color = if (on || focused) StageColors.Text else StageColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
-    <ID>MaxLineLength:SettingsStage.kt$Text(label, style = stageText(21, 700), color = StageColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:SettingsStage.kt$Text(p, style = stageText(42, 800, (-1f / 46f).em), color = StageColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))</ID>
     <ID>MaxLineLength:SettingsStage.kt$Text(parent, style = stageText(30, 700, (-0.02f).em), color = StageColors.Dim, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:SettingsStage.kt$Text(path, style = stageText(15.5f, 500), color = StageColors.Dim, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(bottom = 3.mpx))</ID>
-    <ID>MaxLineLength:SettingsStage.kt$Text(placeholder, style = stageText(19, 500), color = StageColors.Dim, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:SettingsStage.kt$Text(src.name, style = stageText(18, 700), color = StageColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))</ID>
     <ID>MaxLineLength:SettingsStage.kt$Text(stringResource(R.string.common_cancel), style = stageText(19, 700), color = a.onAccent, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:SettingsStage.kt$Text(stringResource(R.string.common_exit), style = stageText(19, 700), color = a.accent, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)</ID>
@@ -5328,13 +5317,11 @@
     <ID>MaxLineLength:SettingsStage.kt$Text(title, style = stageText(26, 800), color = StageColors.Text, maxLines = 2, overflow = TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:SettingsStage.kt$Text(title, style = stageText(30, 800, (-0.02f).em), color = StageColors.Text, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:SettingsStage.kt$Text(title, style = stageText(32, 800, (-1f / 46f).em), color = StageColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))</ID>
-    <ID>MaxLineLength:SettingsStage.kt$Text(title, style = stageText(if (side) 26 else 21, if (side) 600 else 700), color = if (enabled) StageColors.Text else StageColors.Dim, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))</ID>
     <ID>MaxLineLength:SettingsStage.kt$Text(value, style = stageText(16, 700), color = StageColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:SettingsStage.kt$Text(value, style = stageText(36, 800), color = a.accent, maxLines = 1, overflow = TextOverflow.Ellipsis, textAlign = androidx.compose.ui.text.style.TextAlign.Center, modifier = Modifier.weight(1f))</ID>
     <ID>MaxLineLength:SettingsStage.kt$Text(value.text, style = valueStyle, color = a.accent, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))</ID>
     <ID>MaxLineLength:SettingsStage.kt$androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(tv.own.owntv.ui.theme.MotionPrefs.dur(SideInMs)))</ID>
     <ID>MaxLineLength:SettingsStage.kt$androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(tv.own.owntv.ui.theme.MotionPrefs.dur(SideInMs)))</ID>
-    <ID>MaxLineLength:SettingsStage.kt$androidx.compose.foundation.lazy</ID>
     <ID>MaxLineLength:SettingsStage.kt$androidx.compose.runtime.DisposableEffect(Unit) { onDispose { lastSheetGoneAt = android.os.SystemClock.uptimeMillis() } }</ID>
     <ID>MaxLineLength:SettingsStage.kt$androidx.compose.runtime.DisposableEffect(panel) { onDispose { if (panel.editor?.owner === token) panel.editor = null } }</ID>
     <ID>MaxLineLength:SettingsStage.kt$drawCircle(if (on) a.accent else dim, radius = r - ring / 2f, style = androidx.compose.ui.graphics.drawscope.Stroke(ring))</ID>
@@ -5350,13 +5337,11 @@
     <ID>MaxLineLength:SettingsStage.kt$if ((focused || editing) &amp;&amp; panel != null &amp;&amp; help != null) androidx.compose.runtime.SideEffect { panel.help = help.copy(hints = hints) }</ID>
     <ID>MaxLineLength:SettingsStage.kt$if (body != null) Text(body, style = stageText(17, 500), color = StageColors.Muted, modifier = Modifier.padding(top = 6.mpx))</ID>
     <ID>MaxLineLength:SettingsStage.kt$if (body != null) Text(body, style = stageText(20, 500), color = StageColors.Muted, maxLines = 3, overflow = TextOverflow.Ellipsis)</ID>
-    <ID>MaxLineLength:SettingsStage.kt$if (current != null &amp;&amp; editor != null) SettingPanelEditor(current, panel.help, onClosed = { panel.opener?.let { r -&gt; runCatching { r.requestFocus() } } })</ID>
     <ID>MaxLineLength:SettingsStage.kt$if (headerTools != null) Row(horizontalArrangement = Arrangement.spacedBy(8.mpx), verticalAlignment = Alignment.CenterVertically, content = headerTools)</ID>
     <ID>MaxLineLength:SettingsStage.kt$if (help != null) Text(help.text, style = stageText(17, 500).copy(lineHeight = 27.mpxSpLine()), color = PanelText, maxLines = 3, overflow = TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:SettingsStage.kt$if (iconContent != null) iconContent() else if (icon != null) OwnTVIcon(icon, StageColors.Text, Modifier.size(34.mpx))</ID>
     <ID>MaxLineLength:SettingsStage.kt$if (label != null) Text(label, style = stageText(15, 700), color = StageColors.Dim, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:SettingsStage.kt$if (label == recommended) StageTag(stringResource(R.string.settings_panel_recommended).uppercase())</ID>
-    <ID>MaxLineLength:SettingsStage.kt$if (lit &amp;&amp; !editing) Text(stringResource(R.string.common_edit), style = stageText(18, 700), color = a.accent, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:SettingsStage.kt$if (onReset != null) tv.own.owntv.ui.stage.StageButton(stringResource(R.string.common_reset), onClick = onReset, height = 52.mpx, textSize = 18)</ID>
     <ID>MaxLineLength:SettingsStage.kt$if (password) "▶" to stringResource(if (shown) R.string.common_hide else R.string.common_show) else submitHint</ID>
     <ID>MaxLineLength:SettingsStage.kt$if (pinnable) stringResource(R.string.content_key_hold_ok) to stringResource(R.string.settings_row_menu_pin) else null</ID>
@@ -5367,14 +5352,11 @@
     <ID>MaxLineLength:SettingsStage.kt$is SettingValue.Segmented -&gt; SegmentedDisplay(value.options, value.selected, onStep?.let { step -&gt; { i: Int -&gt; if (i != value.selected) step(i - value.selected) } })</ID>
     <ID>MaxLineLength:SettingsStage.kt$keyboardType = if (password &amp;&amp; keyboardType == androidx.compose.ui.text.input.KeyboardType.Text) androidx.compose.ui.text.input.KeyboardType.Password else keyboardType</ID>
     <ID>MaxLineLength:SettingsStage.kt$label</ID>
-    <ID>MaxLineLength:SettingsStage.kt$modifier = Modifier.fillMaxWidth().heightIn(min = 52.mpx).then(if (i == selIndex) Modifier.focusRequester(first) else Modifier)</ID>
     <ID>MaxLineLength:SettingsStage.kt$modifier = Modifier.widthIn(max = if (tools != null) 360.mpx else 520.mpx).focusRequester(searchFocus)</ID>
     <ID>MaxLineLength:SettingsStage.kt$parent = if (crumb) ((if (settingsRoot) listOf(stringResource(R.string.common_nav_settings)) else emptyList()) + parents).lastOrNull() else null</ID>
-    <ID>MaxLineLength:SettingsStage.kt$picker.descriptions[value]?.let { Text(it, style = stageText(14.5f, 500), color = StageColors.Muted, maxLines = 2, overflow = TextOverflow.Ellipsis) }</ID>
     <ID>MaxLineLength:SettingsStage.kt$private</ID>
     <ID>MaxLineLength:SettingsStage.kt$stringResource(R.string.common_back) to stringResource(if (confirm) R.string.common_cancel else R.string.common_done)</ID>
     <ID>MaxLineLength:SettingsStage.kt$style = stageText(15, 500)</ID>
-    <ID>MaxLineLength:SettingsStage.kt$textStyle = stageText(19, 600).copy(color = if (focused || editing) FocusedDesc else StageColors.Text)</ID>
     <ID>MaxLineLength:SettingsStage.kt$tv.own.owntv.ui.stage.StageButton(stringResource(R.string.common_done), onClick = onDone, height = 52.mpx, textSize = 18, tinted = true)</ID>
     <ID>MaxLineLength:SettingsStage.kt$tv.own.owntv.ui.stage.StageButton(stringResource(if (confirm) R.string.common_ok else R.string.common_done), onClick = onDone, height = 52.mpx, textSize = 18, tinted = true)</ID>
     <ID>MaxLineLength:SettingsStage.kt$tv.own.owntv.ui.theme.LocalStageAccentOverride provides tv.own.owntv.ui.theme.StageAccent(tv.own.owntv.ui.brand.SkMateBlue, Color.White, Color.White)</ID>
@@ -5799,7 +5781,6 @@
     <ID>MaxLineLength:StageComponents.kt$Modifier.align(Alignment.TopEnd).padding(10.mpx).size(30.mpx).background(badge.copy(alpha = 0.9f), RoundedCornerShape(8.mpx))</ID>
     <ID>MaxLineLength:StageComponents.kt$Row</ID>
     <ID>MaxLineLength:StageComponents.kt$StageSurface</ID>
-    <ID>MaxLineLength:StageComponents.kt$Text</ID>
     <ID>MaxLineLength:StageComponents.kt$Text(count, style = stageText(if (centered) 19 else 16, 700), color = on ?: if (centered) StageColors.Text.copy(alpha = 0.9f) else StageColors.Dim, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.alignByBaseline())</ID>
     <ID>MaxLineLength:StageComponents.kt$Text(label, style = stageText(17, 700), color = color, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:StageComponents.kt$Text(label, style = stageText(if (centered) 20 else 22, 700), color = on ?: if (selected) StageColors.Text else StageColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.alignByBaseline())</ID>
@@ -5814,7 +5795,6 @@
     <ID>MaxLineLength:StageComponents.kt$Text(trailing, style = stageText(textSize, 600), color = if (tvBox) StageColors.Muted else if (focused) tv.own.owntv.ui.theme.stageAccent.onAccent else idle, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:StageComponents.kt$color = if (focused) tv.own.owntv.ui.theme.stageAccent.onAccent else if (on) a.accent else StageColors.Muted</ID>
     <ID>MaxLineLength:StageComponents.kt$drawRect(Color(0x12000000), topLeft = androidx.compose.ui.geometry.Offset(16.mpx.toPx(), drawContext.size.height - h), size = androidx.compose.ui.geometry.Size(drawContext.size.width - 32.mpx.toPx(), h))</ID>
-    <ID>MaxLineLength:StageComponents.kt$drawRect(line, topLeft = androidx.compose.ui.geometry.Offset(14.mpx.toPx(), drawContext.size.height - h), size = androidx.compose.ui.geometry.Size(drawContext.size.width - 28.mpx.toPx(), h))</ID>
     <ID>MaxLineLength:StageComponents.kt$drawRoundRect(if (palette.isLight) LightFocusFill else SheetFocusFill, cornerRadius = CornerRadius(4.mpx.toPx()))</ID>
     <ID>MaxLineLength:StageComponents.kt$fun</ID>
     <ID>MaxLineLength:StageComponents.kt$get</ID>
@@ -5827,7 +5807,6 @@
     <ID>MaxLineLength:StageComponents.kt$if (small != null) Text(small, style = stageText(15, 700), color = on ?: StageColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:StageComponents.kt$if (text != null) Text(text, style = stageText(18, 700), color = color, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:StageComponents.kt$if (text != null) Text(text, style = stageText(textSize, 700), color = color, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
-    <ID>MaxLineLength:StageComponents.kt$if (value != null) Text(value, style = stageText(15, 700), color = on ?: StageColors.Dim, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:StageComponents.kt$if (value != null) Text(value, style = stageText(18, 700), color = if (focused) tv.own.owntv.ui.theme.stageAccent.onAccent else if (valueAccent) a.accent else StageColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:StageComponents.kt$modifier</ID>
     <ID>MaxLineLength:StageComponents.kt$modifier = Modifier.weight(1f).height(46.mpx).then(if (on &amp;&amp; focusRequester != null) Modifier.focusRequester(focusRequester) else Modifier)</ID>
@@ -5860,15 +5839,10 @@
     <ID>MaxLineLength:StagePopup.kt$Box(Modifier.padding(vertical = 18.mpx).fillMaxWidth().height(1.mpx).background(StageColors.Ink.copy(alpha = 0.10f)))</ID>
     <ID>MaxLineLength:StagePopup.kt$StageButton(cancel, onClick = onCancel, height = 56.mpx, textSize = 19, modifier = if (focusCancel) Modifier.focusRequester(first) else Modifier)</ID>
     <ID>MaxLineLength:StagePopup.kt$StageButton(confirm, onClick = onConfirm, height = 56.mpx, textSize = 19, tinted = true, modifier = if (focusCancel) Modifier else Modifier.focusRequester(first))</ID>
-    <ID>MaxLineLength:StagePopup.kt$Text("$value ›", style = stageText(18, 700), color = a.accent, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
-    <ID>MaxLineLength:StagePopup.kt$Text(subtitle, style = stageText(15, 500), color = StageColors.Muted, maxLines = 2, overflow = TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:StagePopup.kt$buttons = { StageButton(ok, onClick = onDismiss, height = 56.mpx, textSize = 19, tinted = true, modifier = Modifier.focusRequester(first)) }</ID>
     <ID>MaxLineLength:StagePopup.kt$else</ID>
-    <ID>MaxLineLength:StagePopup.kt$idle = Modifier.background(if (primary) a.accent.copy(alpha = 0.2f) else StageColors.Ink.copy(alpha = 0.08f), shape)</ID>
     <ID>MaxLineLength:StagePopup.kt$if (icon != null) OwnTVIcon(icon = icon, tint = content, filled = true, modifier = Modifier.size(if (compact) 14.dp else 20.dp))</ID>
     <ID>MaxLineLength:StagePopup.kt$if (on) tv.own.owntv.ui.components.OwnTVIcon(tv.own.owntv.ui.components.OwnTVIcon.CHECK, tint, Modifier.size(24.mpx))</ID>
-    <ID>MaxLineLength:StagePopup.kt$modifier = Modifier.padding(horizontal = if (compact) 13.dp else 22.dp, vertical = if (compact) 6.dp else 12.dp)</ID>
-    <ID>MaxLineLength:StagePopup.kt$modifier = modifier.fillMaxWidth().heightIn(min = if (subtitle != null) 76.mpx else 62.mpx).alpha(if (enabled) 1f else 0.45f)</ID>
     <ID>MaxLineLength:StagePopup.kt$style</ID>
     <ID>MaxLineLength:StagePopup.kt$val room = if (ime.visible) with(density) { ime.keyboardTopPx.toDp() } - edge - 24.mpx else maxHeight - edge * 2</ID>
     <ID>MaxLineLength:StageRail.kt$.</ID>
@@ -5914,7 +5888,6 @@
     <ID>MaxLineLength:StageStatus.kt$val shadow = if (light) null else with(LocalDensity.current) { Shadow(Color.Black.copy(alpha = 0.6f), Offset(0f, 1.mpx.toPx()), 3.mpx.toPx()) }</ID>
     <ID>MaxLineLength:StageTokens.kt$if (LocalStagePalette.current.isLight) Color(244, 247, 245).copy(alpha = (alpha * 1.15f).coerceAtMost(0.92f)) else Color.Black.copy(alpha = alpha)</ID>
     <ID>MaxLineLength:StateViews.kt$*</ID>
-    <ID>MaxLineLength:StorageBrowser.kt$BrowserRow</ID>
     <ID>MaxLineLength:StorageBrowser.kt$BrowserRow(OwnTVIcon.PLAYLIST, f.name, if (first) Modifier.focusRequester(firstFocus) else Modifier) { onPick(f) }</ID>
     <ID>MaxLineLength:StorageBrowser.kt$LazyColumn</ID>
     <ID>MaxLineLength:StorageBrowser.kt$Row</ID>
@@ -6009,11 +5982,6 @@
     <ID>MaxLineLength:TrailerPlayerScreen.kt$style = stageText(14, 800, 0.12.em)</ID>
     <ID>MaxLineLength:TrailerPlayerScreen.kt$style = stageText(15, 800, 0.12.em)</ID>
     <ID>MaxLineLength:TrailerPlayerScreen.kt$val keys = remember(videoKey) { tv.own.owntv.core.metadata.TrailerKeys.split(videoKey).ifEmpty { listOf(videoKey) } }</ID>
-    <ID>MaxLineLength:TvBoxChannelPanel.kt$Bar(((now - p.startMs).toFloat() / (p.stopMs - p.startMs).coerceAtLeast(1)).coerceIn(0f, 1f), 240.mpx, thick = true, base = c.text)</ID>
-    <ID>MaxLineLength:TvBoxChannelPanel.kt$Row</ID>
-    <ID>MaxLineLength:TvBoxChannelPanel.kt$Text(channel.name, style = stageText(20, 700), color = if (playing) SkMateBlue else ink, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
-    <ID>MaxLineLength:TvBoxChannelPanel.kt$Text(now.title, style = stageText(16, 500), color = soft, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
-    <ID>MaxLineLength:TvBoxChannelPanel.kt$Text(p.title, style = stageText(21, if (onAir) 700 else 500), color = tint, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))</ID>
     <ID>MaxLineLength:TvBoxChannelPanel.kt$Text(title, style = stageText(24, 700), color = c.text, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(horizontal = 28.mpx))</ID>
     <ID>MaxLineLength:TvBoxChannelPanel.kt$TvBoxPanelColors$internal data</ID>
     <ID>MaxLineLength:TvBoxChannelPanel.kt$TvBoxPanelColors(Color(0xF2232629), Color.White, Color.White.copy(alpha = 0.8f), Color.White.copy(alpha = 0.55f), Color(0xFF3A3F45), Color.White, Color(0x1FFFFFFF))</ID>
@@ -6022,12 +5990,8 @@
     <ID>MaxLineLength:TvBoxChannelPanel.kt$channel.number?.let { Text(it.toString(), style = stageText(20, 700), color = soft, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) }</ID>
     <ID>MaxLineLength:TvBoxChannelPanel.kt$else</ID>
     <ID>MaxLineLength:TvBoxChannelPanel.kt$if</ID>
-    <ID>MaxLineLength:TvBoxChannelPanel.kt$stringResource(R.string.content_live_time_range_plain, formatTime(p.startMs), formatTime(p.stopMs))</ID>
-    <ID>MaxLineLength:TvBoxChannelPanel.kt$style = stageText(19, 600)</ID>
-    <ID>MaxLineLength:TvBoxChannelPanel.kt$style = stageText(21, 600)</ID>
     <ID>MaxLineLength:TvBoxChannelPanel.kt$trailing = watchedAt?.get(ch.id)?.let { if (index == playingIndex) null else formatTime(it) }</ID>
     <ID>MaxLineLength:TvBoxChannelPanel.kt$tv.own.owntv.ui.stage.StageProgress(((nowMs - now.startMs).toFloat() / (now.stopMs - now.startMs).coerceAtLeast(1)).coerceIn(0f, 1f), Modifier.fillMaxWidth(), flat = true)</ID>
-    <ID>MaxLineLength:TvBoxChannelPanel.kt$val</ID>
     <ID>MaxLineLength:TvBoxLiveHud.kt$Modifier.size(64.mpx).background(if (focused) Color.White else Color.Transparent, androidx.compose.foundation.shape.CircleShape)</ID>
     <ID>MaxLineLength:TvBoxLiveHud.kt$TvBoxAction$internal data</ID>
     <ID>MaxLineLength:TvBoxLiveHud.kt$tv.own.owntv.ui.components.OwnTVIcon(action.icon, tint, Modifier.size(32.mpx), filled = action.active)</ID>
@@ -6435,7 +6399,6 @@
     <ID>TopLevelPropertyNaming:SocialIcons.kt$private const val TwitterPath = "M22,5.8a8.49,8.49,0,0,1-2.36.64,4.13,4.13,0,0,0,1.81-2.27,8.21,8.21,0,0,1-2.61,1,4.1,4.1,0,0,0-7,3.74A11.64,11.64,0,0,1,3.39,4.62a4.16,4.16,0,0,0-.55,2.07A4.09,4.09,0,0,0,4.66,10.1,4.05,4.05,0,0,1,2.8,9.59v.05a4.1,4.1,0,0,0,3.3,4A3.93,3.93,0,0,1,5,13.81a4.9,4.9,0,0,1-.77-.07,4.11,4.11,0,0,0,3.83,2.84A8.22,8.22,0,0,1,3,18.34a7.93,7.93,0,0,1-1-.06,11.57,11.57,0,0,0,6.29,1.85A11.59,11.59,0,0,0,20,8.45c0-.17,0-.35,0-.53A8.43,8.43,0,0,0,22,5.8Z"</ID>
     <ID>TopLevelPropertyNaming:StageSidePanel.kt$private const val PanelMs = 240</ID>
     <ID>TopLevelPropertyNaming:StageStatus.kt$private const val RollMs = 420</ID>
-    <ID>TopLevelPropertyNaming:TvBoxChannelPanel.kt$private const val MaxScheduleRows = 14</ID>
     <ID>TopLevelPropertyNaming:TvBoxChannelPanel.kt$private const val ScheduleSettleMs = 250L</ID>
     <ID>TopLevelPropertyNaming:TvBoxPlayerInfo.kt$private const val MaxChips = 4</ID>
     <ID>TopLevelPropertyNaming:VodStage.kt$/** Group ids of a title's options menu, in order: WATCH, LIBRARY, ORGANISE, DETAILS. */ internal const val VodGroupWatch = 0</ID>
@@ -6486,13 +6449,22 @@
     <ID>UnusedPrivateProperty:WizardFrame.kt$val a = stageAccent</ID>
     <ID>VariableNaming:TvBoxChannelPanel.kt$val Faint = c.faint</ID>
     <ID>VariableNaming:TvBoxChannelPanel.kt$val Soft = c.soft</ID>
-      <ID>CyclomaticComplexMethod:TvBoxChannelPanel.kt$@Composable fun TvBoxChannelPanel( channels: List&lt;ChannelEntity&gt;, currentId: Long?, title: String, nowProgrammes: Map&lt;Long, XtEpgEntry&gt;, scheduleFor: suspend (ChannelEntity) -&gt; EpgNowNext?, playingGuide: EpgNowNext?, onSelect: (ChannelEntity) -&gt; Unit, onDismiss: () -&gt; Unit, modifier: Modifier = Modifier, watchedAt: Map&lt;Long, Long&gt;? = null, onOpenCategories: (() -&gt; Unit)? = null, /** Focus resting on a channel: show it in the picture above the guide (the channel list, not history). */ onPreview: ((ChannelEntity) -&gt; Unit)? = null, /** Room on the left for the categories column; the panel moves right by it. */ inset: Dp = 0.mpx, /** The side menu's push: the panel is moved by it from outside; the picture's window narrows by it to stay * on screen, as the picture does. */ menuShift: Dp = 0.mpx, /** False while the categories beside it have focus: the panel shows, but takes no keys or focus. */ active: Boolean = true, /** The picture is opening a channel: a spinner in the middle of the picture's window. */ loading: Boolean = false, /** How far the picture has moved into its corner (0 = full screen, 1 = docked): the window follows it. */ dockProgress: () -&gt; Float = { 1f }, )</ID>
-    <ID>FunctionNaming:TvBoxChannelPanel.kt$@Composable fun TvBoxChannelPanel( channels: List&lt;ChannelEntity&gt;, currentId: Long?, title: String, nowProgrammes: Map&lt;Long, XtEpgEntry&gt;, scheduleFor: suspend (ChannelEntity) -&gt; EpgNowNext?, playingGuide: EpgNowNext?, onSelect: (ChannelEntity) -&gt; Unit, onDismiss: () -&gt; Unit, modifier: Modifier = Modifier, watchedAt: Map&lt;Long, Long&gt;? = null, onOpenCategories: (() -&gt; Unit)? = null, /** Focus resting on a channel: show it in the picture above the guide (the channel list, not history). */ onPreview: ((ChannelEntity) -&gt; Unit)? = null, /** Room on the left for the categories column; the panel moves right by it. */ inset: Dp = 0.mpx, /** The side menu's push: the panel is moved by it from outside; the picture's window narrows by it to stay * on screen, as the picture does. */ menuShift: Dp = 0.mpx, /** False while the categories beside it have focus: the panel shows, but takes no keys or focus. */ active: Boolean = true, /** The picture is opening a channel: a spinner in the middle of the picture's window. */ loading: Boolean = false, /** How far the picture has moved into its corner (0 = full screen, 1 = docked): the window follows it. */ dockProgress: () -&gt; Float = { 1f }, )</ID>
-    <ID>FunctionNaming:TvBoxPlayerPanels.kt$@Composable internal fun TvBoxPlayerPanels( liveVm: LiveViewModel, previewChannel: ChannelEntity?, zapChannels: List&lt;ChannelEntity&gt;, title: String, categoryKey: LiveKey?, nowProgrammes: Map&lt;Long, XtEpgEntry&gt;, railItems: List&lt;LiveRailItem&gt;, railCounts: Map&lt;LiveKey, Int&gt;, categoriesOpen: Boolean, inset: Dp, /** The open side menu's push: the panels move by it, and the picture's window narrows by it. */ menuShift: Dp, categoriesWidth: Dp, dockProgress: () -&gt; Float, onClose: () -&gt; Unit, onOpenMenu: () -&gt; Unit, )</ID>
-    <ID>LongMethod:TvBoxChannelPanel.kt$@Composable fun TvBoxChannelPanel( channels: List&lt;ChannelEntity&gt;, currentId: Long?, title: String, nowProgrammes: Map&lt;Long, XtEpgEntry&gt;, scheduleFor: suspend (ChannelEntity) -&gt; EpgNowNext?, playingGuide: EpgNowNext?, onSelect: (ChannelEntity) -&gt; Unit, onDismiss: () -&gt; Unit, modifier: Modifier = Modifier, watchedAt: Map&lt;Long, Long&gt;? = null, onOpenCategories: (() -&gt; Unit)? = null, /** Focus resting on a channel: show it in the picture above the guide (the channel list, not history). */ onPreview: ((ChannelEntity) -&gt; Unit)? = null, /** Room on the left for the categories column; the panel moves right by it. */ inset: Dp = 0.mpx, /** The side menu's push: the panel is moved by it from outside; the picture's window narrows by it to stay * on screen, as the picture does. */ menuShift: Dp = 0.mpx, /** False while the categories beside it have focus: the panel shows, but takes no keys or focus. */ active: Boolean = true, /** The picture is opening a channel: a spinner in the middle of the picture's window. */ loading: Boolean = false, /** How far the picture has moved into its corner (0 = full screen, 1 = docked): the window follows it. */ dockProgress: () -&gt; Float = { 1f }, )</ID>
-    <ID>LongParameterList:TvBoxChannelPanel.kt$( channels: List&lt;ChannelEntity&gt;, currentId: Long?, title: String, nowProgrammes: Map&lt;Long, XtEpgEntry&gt;, scheduleFor: suspend (ChannelEntity) -&gt; EpgNowNext?, playingGuide: EpgNowNext?, onSelect: (ChannelEntity) -&gt; Unit, onDismiss: () -&gt; Unit, modifier: Modifier = Modifier, watchedAt: Map&lt;Long, Long&gt;? = null, onOpenCategories: (() -&gt; Unit)? = null, /** Focus resting on a channel: show it in the picture above the guide (the channel list, not history). */ onPreview: ((ChannelEntity) -&gt; Unit)? = null, /** Room on the left for the categories column; the panel moves right by it. */ inset: Dp = 0.mpx, /** The side menu's push: the panel is moved by it from outside; the picture's window narrows by it to stay * on screen, as the picture does. */ menuShift: Dp = 0.mpx, /** False while the categories beside it have focus: the panel shows, but takes no keys or focus. */ active: Boolean = true, /** The picture is opening a channel: a spinner in the middle of the picture's window. */ loading: Boolean = false, /** How far the picture has moved into its corner (0 = full screen, 1 = docked): the window follows it. */ dockProgress: () -&gt; Float = { 1f }, )</ID>
+      <ID>FunctionNaming:TvBoxPlayerPanels.kt$@Composable internal fun TvBoxPlayerPanels( liveVm: LiveViewModel, previewChannel: ChannelEntity?, zapChannels: List&lt;ChannelEntity&gt;, title: String, categoryKey: LiveKey?, nowProgrammes: Map&lt;Long, XtEpgEntry&gt;, railItems: List&lt;LiveRailItem&gt;, railCounts: Map&lt;LiveKey, Int&gt;, categoriesOpen: Boolean, inset: Dp, /** The open side menu's push: the panels move by it, and the picture's window narrows by it. */ menuShift: Dp, categoriesWidth: Dp, dockProgress: () -&gt; Float, onClose: () -&gt; Unit, onOpenMenu: () -&gt; Unit, )</ID>
     <ID>LongParameterList:TvBoxPlayerPanels.kt$( liveVm: LiveViewModel, previewChannel: ChannelEntity?, zapChannels: List&lt;ChannelEntity&gt;, title: String, categoryKey: LiveKey?, nowProgrammes: Map&lt;Long, XtEpgEntry&gt;, railItems: List&lt;LiveRailItem&gt;, railCounts: Map&lt;LiveKey, Int&gt;, categoriesOpen: Boolean, inset: Dp, /** The open side menu's push: the panels move by it, and the picture's window narrows by it. */ menuShift: Dp, categoriesWidth: Dp, dockProgress: () -&gt; Float, onClose: () -&gt; Unit, onOpenMenu: () -&gt; Unit, )</ID>
     <ID>FunctionNaming:LiveSortMenu.kt$@Composable internal fun LiveMoreMenu( x: Float, top: Dp, fixing: Boolean, onFixGuide: () -&gt; Unit, onPick: (SmartPick) -&gt; Unit, onCleanup: () -&gt; Unit, onDismiss: () -&gt; Unit, /** Adult categories: null when the lock is off; true while they are closed (the row opens them). */ adultLocked: Boolean? = null, onAdult: () -&gt; Unit = {}, )</ID>
     <ID>LongParameterList:LiveSortMenu.kt$( x: Float, top: Dp, fixing: Boolean, onFixGuide: () -&gt; Unit, onPick: (SmartPick) -&gt; Unit, onCleanup: () -&gt; Unit, onDismiss: () -&gt; Unit, /** Adult categories: null when the lock is off; true while they are closed (the row opens them). */ adultLocked: Boolean? = null, onAdult: () -&gt; Unit = {}, )</ID>
+    <ID>CyclomaticComplexMethod:ContentMenuSettingsScreen.kt$private fun actionLine(menu: ContentMenu, key: String): Int?</ID>
+    <ID>CyclomaticComplexMethod:TvBoxChannelPanel.kt$@Composable fun TvBoxChannelPanel( channels: List&lt;ChannelEntity&gt;, currentId: Long?, title: String, nowProgrammes: Map&lt;Long, XtEpgEntry&gt;, scheduleFor: suspend (ChannelEntity) -&gt; EpgNowNext?, playingGuide: EpgNowNext?, onSelect: (ChannelEntity) -&gt; Unit, onDismiss: () -&gt; Unit, modifier: Modifier = Modifier, watchedAt: Map&lt;Long, Long&gt;? = null, onOpenCategories: (() -&gt; Unit)? = null, /** Focus resting on a channel: show it in the picture above the guide (the channel list, not history). */ onPreview: ((ChannelEntity) -&gt; Unit)? = null, /** Room on the left for the categories column; the panel moves right by it. */ inset: Dp = 0.mpx, /** The side menu's push: the panel is moved by it from outside; the picture's window narrows by it to stay * on screen, as the picture does. */ menuShift: Dp = 0.mpx, /** False while the categories beside it have focus: the panel shows, but takes no keys or focus. */ active: Boolean = true, /** The picture is opening a channel: a spinner in the middle of the picture's window. */ loading: Boolean = false, /** How far the picture has moved into its corner (0 = full screen, 1 = docked): the window follows it. */ dockProgress: () -&gt; Float = { 1f }, /** A channel's aired programmes still in its archive, newest first; null where the panel offers none. */ archiveFor: (suspend (ChannelEntity) -&gt; List&lt;tv.own.owntv.core.database.entity.EpgProgrammeEntity&gt;)? = null, /** OK on an aired programme under the picture: play it from the archive. */ onPlayArchive: ((ChannelEntity, tv.own.owntv.core.database.entity.EpgProgrammeEntity) -&gt; Unit)? = null, )</ID>
+    <ID>CyclomaticComplexMethod:TvBoxChannelPanel.kt$@Composable private fun scheduleLine( line: ScheduleLine, now: Long, formatTime: (Long) -&gt; String, onPick: (ScheduleLine) -&gt; Unit, toList: () -&gt; Unit, /** ▲ on the top line while earlier programmes wait in the archive: show the one before. */ onUpAtTop: (() -&gt; Unit)?, onFocused: () -&gt; Unit, modifier: Modifier, )</ID>
+    <ID>FunctionNaming:ContentMenuSettingsScreen.kt$@Composable private fun ArrangeMenuRow( number: Int, label: String, /** What the action does, under its name. */ line: String?, picked: Boolean, onPick: () -&gt; Unit, modifier: Modifier = Modifier, )</ID>
+    <ID>FunctionNaming:StorageBrowser.kt$@Composable private fun BrowserRow( icon: OwnTVIcon, label: String, modifier: Modifier = Modifier, subtitle: String? = null, onClick: () -&gt; Unit, )</ID>
+    <ID>FunctionNaming:TvBoxChannelPanel.kt$@Composable fun TvBoxChannelPanel( channels: List&lt;ChannelEntity&gt;, currentId: Long?, title: String, nowProgrammes: Map&lt;Long, XtEpgEntry&gt;, scheduleFor: suspend (ChannelEntity) -&gt; EpgNowNext?, playingGuide: EpgNowNext?, onSelect: (ChannelEntity) -&gt; Unit, onDismiss: () -&gt; Unit, modifier: Modifier = Modifier, watchedAt: Map&lt;Long, Long&gt;? = null, onOpenCategories: (() -&gt; Unit)? = null, /** Focus resting on a channel: show it in the picture above the guide (the channel list, not history). */ onPreview: ((ChannelEntity) -&gt; Unit)? = null, /** Room on the left for the categories column; the panel moves right by it. */ inset: Dp = 0.mpx, /** The side menu's push: the panel is moved by it from outside; the picture's window narrows by it to stay * on screen, as the picture does. */ menuShift: Dp = 0.mpx, /** False while the categories beside it have focus: the panel shows, but takes no keys or focus. */ active: Boolean = true, /** The picture is opening a channel: a spinner in the middle of the picture's window. */ loading: Boolean = false, /** How far the picture has moved into its corner (0 = full screen, 1 = docked): the window follows it. */ dockProgress: () -&gt; Float = { 1f }, /** A channel's aired programmes still in its archive, newest first; null where the panel offers none. */ archiveFor: (suspend (ChannelEntity) -&gt; List&lt;tv.own.owntv.core.database.entity.EpgProgrammeEntity&gt;)? = null, /** OK on an aired programme under the picture: play it from the archive. */ onPlayArchive: ((ChannelEntity, tv.own.owntv.core.database.entity.EpgProgrammeEntity) -&gt; Unit)? = null, )</ID>
+    <ID>LongMethod:TvBoxChannelPanel.kt$@Composable fun TvBoxChannelPanel( channels: List&lt;ChannelEntity&gt;, currentId: Long?, title: String, nowProgrammes: Map&lt;Long, XtEpgEntry&gt;, scheduleFor: suspend (ChannelEntity) -&gt; EpgNowNext?, playingGuide: EpgNowNext?, onSelect: (ChannelEntity) -&gt; Unit, onDismiss: () -&gt; Unit, modifier: Modifier = Modifier, watchedAt: Map&lt;Long, Long&gt;? = null, onOpenCategories: (() -&gt; Unit)? = null, /** Focus resting on a channel: show it in the picture above the guide (the channel list, not history). */ onPreview: ((ChannelEntity) -&gt; Unit)? = null, /** Room on the left for the categories column; the panel moves right by it. */ inset: Dp = 0.mpx, /** The side menu's push: the panel is moved by it from outside; the picture's window narrows by it to stay * on screen, as the picture does. */ menuShift: Dp = 0.mpx, /** False while the categories beside it have focus: the panel shows, but takes no keys or focus. */ active: Boolean = true, /** The picture is opening a channel: a spinner in the middle of the picture's window. */ loading: Boolean = false, /** How far the picture has moved into its corner (0 = full screen, 1 = docked): the window follows it. */ dockProgress: () -&gt; Float = { 1f }, /** A channel's aired programmes still in its archive, newest first; null where the panel offers none. */ archiveFor: (suspend (ChannelEntity) -&gt; List&lt;tv.own.owntv.core.database.entity.EpgProgrammeEntity&gt;)? = null, /** OK on an aired programme under the picture: play it from the archive. */ onPlayArchive: ((ChannelEntity, tv.own.owntv.core.database.entity.EpgProgrammeEntity) -&gt; Unit)? = null, )</ID>
+    <ID>LongMethod:TvBoxPlayerPanels.kt$@Composable internal fun TvBoxPlayerPanels( liveVm: LiveViewModel, previewChannel: ChannelEntity?, zapChannels: List&lt;ChannelEntity&gt;, title: String, categoryKey: LiveKey?, nowProgrammes: Map&lt;Long, XtEpgEntry&gt;, railItems: List&lt;LiveRailItem&gt;, railCounts: Map&lt;LiveKey, Int&gt;, categoriesOpen: Boolean, inset: Dp, /** The open side menu's push: the panels move by it, and the picture's window narrows by it. */ menuShift: Dp, categoriesWidth: Dp, dockProgress: () -&gt; Float, onClose: () -&gt; Unit, onOpenMenu: () -&gt; Unit, )</ID>
+    <ID>LongParameterList:ContentMenuSettingsScreen.kt$( number: Int, label: String, /** What the action does, under its name. */ line: String?, picked: Boolean, onPick: () -&gt; Unit, modifier: Modifier = Modifier, )</ID>
+    <ID>LongParameterList:TvBoxChannelPanel.kt$( art: tv.own.owntv.core.metadata.ProgrammeArt, ink: Color, soft: Color, posterFocus: FocusRequester, onFocused: () -&gt; Unit, onKey: (Key) -&gt; Boolean, )</ID>
+    <ID>LongParameterList:TvBoxChannelPanel.kt$( channels: List&lt;ChannelEntity&gt;, currentId: Long?, title: String, nowProgrammes: Map&lt;Long, XtEpgEntry&gt;, scheduleFor: suspend (ChannelEntity) -&gt; EpgNowNext?, playingGuide: EpgNowNext?, onSelect: (ChannelEntity) -&gt; Unit, onDismiss: () -&gt; Unit, modifier: Modifier = Modifier, watchedAt: Map&lt;Long, Long&gt;? = null, onOpenCategories: (() -&gt; Unit)? = null, /** Focus resting on a channel: show it in the picture above the guide (the channel list, not history). */ onPreview: ((ChannelEntity) -&gt; Unit)? = null, /** Room on the left for the categories column; the panel moves right by it. */ inset: Dp = 0.mpx, /** The side menu's push: the panel is moved by it from outside; the picture's window narrows by it to stay * on screen, as the picture does. */ menuShift: Dp = 0.mpx, /** False while the categories beside it have focus: the panel shows, but takes no keys or focus. */ active: Boolean = true, /** The picture is opening a channel: a spinner in the middle of the picture's window. */ loading: Boolean = false, /** How far the picture has moved into its corner (0 = full screen, 1 = docked): the window follows it. */ dockProgress: () -&gt; Float = { 1f }, /** A channel's aired programmes still in its archive, newest first; null where the panel offers none. */ archiveFor: (suspend (ChannelEntity) -&gt; List&lt;tv.own.owntv.core.database.entity.EpgProgrammeEntity&gt;)? = null, /** OK on an aired programme under the picture: play it from the archive. */ onPlayArchive: ((ChannelEntity, tv.own.owntv.core.database.entity.EpgProgrammeEntity) -&gt; Unit)? = null, )</ID>
+    <ID>LongParameterList:TvBoxChannelPanel.kt$( line: ScheduleLine, now: Long, formatTime: (Long) -&gt; String, onPick: (ScheduleLine) -&gt; Unit, toList: () -&gt; Unit, /** ▲ on the top line while earlier programmes wait in the archive: show the one before. */ onUpAtTop: (() -&gt; Unit)?, onFocused: () -&gt; Unit, modifier: Modifier, )</ID>
+    <ID>TooManyFunctions:TvBoxChannelPanel.kt$tv.own.owntv.features.shell.components.TvBoxChannelPanel.kt</ID>
 </CurrentIssues>
 </SmellBaseline>

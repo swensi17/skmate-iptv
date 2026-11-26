@@ -386,11 +386,13 @@ fun StagePopupButton(
     // One look in every popup, no accent colour: the main button white with dark text, the others grey; the
     // focused one fully white and a little larger, so where focus is never depends on which button it is.
     val light = tv.own.owntv.ui.theme.LocalStagePalette.current.isLight
-    val shape = androidx.compose.foundation.shape.RoundedCornerShape(14.dp)
+    // TV-box look: square, as the buttons and rows in Settings.
+    val radius = if (tv.own.owntv.features.shell.TvBoxNav) TV_BUTTON_RADIUS else 14.dp
+    val shape = androidx.compose.foundation.shape.RoundedCornerShape(radius)
     StageSurface(
         onClick = onClick,
         onLongClick = onLongClick,
-        radius = 14.dp,
+        radius = radius,
         enabled = enabled,
         focusStyle = StageFocus.NONE,
         modifier = modifier.then(if (enabled) Modifier else Modifier.alpha(0.45f)),
