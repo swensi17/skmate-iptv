@@ -29,6 +29,7 @@ const val MAX_CATCHUP_DAYS = 31
 // screen — this used to be 48h, left over from when only ~2 days of guide were retained, which meant
 // a programme the Guide happily replayed was not even listed in Live TV.
 private const val CATCHUP_LOOKBACK_CAP_MS = 7L * 24 * 60 * 60 * 1000
+private const val MAX_CATCHUP_ROWS = 3000
 
 // How far past a finished catch-up programme to look for the next one. Beyond this the guide has a
 // gap rather than a next programme, and auto-play stops instead of leaping hours ahead.
@@ -384,7 +385,9 @@ class LiveEpgReader(
         epgSourceStore.priority().resolve(epgDao.programmesForChannel(epgKey, at - windowMs, at + 60 * 60 * 1000))
             .filter { it.startMs <= at }           // already started → catch-up applies
             .sortedByDescending { it.startMs }      // most recent first
-            .take(80)
+            // The whole archive window, not the last 80 rows: on a channel of short programmes 80 was about eight
+            // hours of a seven-day archive.
+            .take(MAX_CATCHUP_ROWS)
             .map { EpgShift.apply(it, shift) }
     }
 

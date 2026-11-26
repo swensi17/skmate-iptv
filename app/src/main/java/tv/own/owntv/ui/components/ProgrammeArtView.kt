@@ -85,6 +85,9 @@ fun programmePosterViewer(art: ProgrammeArt, onClose: () -> Unit) {
     val focus = androidx.compose.runtime.remember { androidx.compose.ui.focus.FocusRequester() }
     val smooth = tv.own.owntv.ui.theme.MotionPrefs.smooth
     val shown = androidx.compose.runtime.remember { androidx.compose.animation.core.Animatable(if (smooth) 0f else 1f) }
+    // Back reaches the app as the system's back, not as a key: without this the panel under the poster took it
+    // and closed itself together with the poster.
+    androidx.activity.compose.BackHandler { onClose() }
     androidx.compose.runtime.LaunchedEffect(Unit) {
         runCatching { focus.requestFocus() }
         if (smooth) {
@@ -97,9 +100,9 @@ fun programmePosterViewer(art: ProgrammeArt, onClose: () -> Unit) {
             .background(VIEWER_SCRIM)
             .focusRequester(focus)
             .onPreviewKeyEvent { e ->
-                val closes = e.key in CLOSE_KEYS
+                val closes = e.key in CLOSE_KEYS && e.key != Key.Back
                 if (closes && e.type == KeyEventType.KeyDown) onClose()
-                true // nothing behind it moves while it is open
+                e.key != Key.Back // nothing behind it moves while it is open; Back goes on to the BackHandler
             }
             .focusable(),
         contentAlignment = Alignment.Center,

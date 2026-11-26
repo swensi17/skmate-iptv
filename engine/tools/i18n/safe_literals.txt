@@ -5936,6 +5936,7 @@
 1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	${it.toInt()} FPS
 1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	${it}.0
 1	technical	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	%.2f:1
+1	technical	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	-
 1	technical	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	.m3u8
 1	technical	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	16:9
 1	technical	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	4:3
@@ -5945,19 +5946,37 @@
 1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	:http-referrer=$it
 1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	:http-user-agent=$agent
 1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	:network-caching=$caching
+1	technical	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	AV1
+3	technical	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	H.264
+4	technical	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	H.265
+3	technical	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	MPEG-2
+1	technical	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	MPEG-4
 3	protocol	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	Referer
 1	technical	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	STEREO
 2	technical	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	UNUSED_PARAMETER
 1	protocol	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	User-Agent
 1	technical	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	VLC/3.0.20 LibVLC/3.0.20
+1	technical	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	VP8
+1	technical	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	VP9
 1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	abandon: $reason
+1	technical	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	av01
+1	technical	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	avc1
 1	technical	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	end of stream
 1	technical	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	error
 1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	first frame after ${SystemClock.elapsedRealtime() - openedAt}ms
 1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	gave up after $reconnects reconnects ($why)
+1	technical	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	h264
+1	technical	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	h265
+1	technical	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	hev1
+1	technical	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	hevc
 1	protocol	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	http error
 1	protocol	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	http error ${c.responseCode}
+1	technical	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	hvc1
 1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	memory pressure: the preview lets go
+1	technical	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	mp2v
+1	technical	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	mp4v
+1	technical	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	mpeg-2
+1	technical	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	mpgv
 1	protocol	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	network timeout
 1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	open timeout
 1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	open timing: queue ${startedAt - queuedAt}ms, stop+set ${mediaSetAt - startedAt}ms,
@@ -5973,7 +5992,10 @@
 2	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	vlc-control
 1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	vlc-probe
 1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	vlc-reap
+1	technical	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	vp80
+1	technical	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	vp90
 1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	wedged player shut down
+1	technical	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	x264
 1	empty	player-core/src/main/java/tv/own/owntv/player/LiveStreamQuirks.kt	\0
 1	protocol	player-core/src/main/java/tv/own/owntv/player/LiveStreamQuirks.kt	$rewritten?$query
 2	protocol	player-core/src/main/java/tv/own/owntv/player/LiveStreamQuirks.kt	.m3u8

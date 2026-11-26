@@ -336,4 +336,5 @@
     <string name="player_error_title_signal">Канал не отвечает</string>
     <string name="player_error_title_internet">Нет интернета</string>
     <string name="player_error_title_device">Не удаётся показать видео</string>
+    <string name="player_stream_fps_whole"><xliff:g id="fps">%1$d</xliff:g> кадр/с</string>
 </resources>

@@ -294,15 +294,18 @@ fun TvBoxChannelPanel(
                 }
                 val topRowFocus = remember { FocusRequester() }
                 var focusTopRow by remember { mutableStateOf(false) }
+                val scope = androidx.compose.runtime.rememberCoroutineScope()
+                // Rows come after the name, the poster (when there is one) and a gap.
+                val rowsFrom = if (art != null) ROWS_AFTER_ART else ROWS_AFTER_HEAD
+                // The line just brought in above is laid out first, then focused: asked while it was still above the
+                // list's edge, the request found nothing to focus.
                 LaunchedEffect(firstShown) {
                     if (!focusTopRow) return@LaunchedEffect
+                    runCatching { scheduleState.scrollToItem((rowsFrom - 1).coerceAtLeast(0)) }
                     androidx.compose.runtime.withFrameNanos { }
                     runCatching { topRowFocus.requestFocus() }
                     focusTopRow = false
                 }
-                val scope = androidx.compose.runtime.rememberCoroutineScope()
-                // Rows come after the name, the poster (when there is one) and a gap.
-                val rowsFrom = if (art != null) ROWS_AFTER_ART else ROWS_AFTER_HEAD
                 val smooth = tv.own.owntv.ui.theme.MotionPrefs.smooth
                 // A focused line goes to the top with one line above it, the name and poster sliding away; back on the
                 // poster, the list returns to the top.
@@ -326,7 +329,14 @@ fun TvBoxChannelPanel(
                             panelProgrammeArt(a, c.text, Soft, posterFocus, onFocused = { showFrom(0) }) { key ->
                                 when (key) {
                                     Key.DirectionLeft -> { runCatching { firstFocus.requestFocus() }; true }
-                                    Key.DirectionDown -> { runCatching { onAirFocus.requestFocus() }; true }
+                                    // ▼ goes to the line right under the poster: what is on, or, once earlier
+                                    // programmes were brought in above it, the first of them. The on-air line is
+                                    // then far below and not laid out, and asking for it did nothing at all.
+                                    Key.DirectionDown -> {
+                                        val atStart = firstShown == (onAirIndex - 1).coerceAtLeast(0)
+                                        runCatching { (if (atStart) onAirFocus else topRowFocus).requestFocus() }
+                                        true
+                                    }
                                     Key.DirectionCenter, Key.Enter, Key.NumPadEnter -> { bigPoster = a; true }
                                     Key.DirectionRight, Key.DirectionUp -> true
                                     else -> false
@@ -562,7 +572,7 @@ private fun scheduleLine(
     }
 }
 
-private const val AIRED_LINES = 24
+private const val AIRED_LINES = 3000
 private const val SCROLL_FADE = 28
 
 /** Where the guide's rows start in the list under the picture: after the name and gap, and the poster when shown. */

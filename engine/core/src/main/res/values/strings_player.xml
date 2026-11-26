@@ -596,4 +596,5 @@
     <string name="player_error_title_signal">The channel is not responding</string>
     <string name="player_error_title_internet">No internet</string>
     <string name="player_error_title_device">This video cannot be shown</string>
+    <string name="player_stream_fps_whole"><xliff:g id="fps">%1$d</xliff:g> fps</string>
 </resources>

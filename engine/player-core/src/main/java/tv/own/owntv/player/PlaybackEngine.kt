@@ -31,6 +31,8 @@ interface PlaybackEngine {
     val videoRes: StateFlow<String?>
     /** Up-to-4 mini stream chips (aspect · resolution · fps · audio) for the player top bar. */
     val streamChips: StateFlow<List<String>> get() = NO_CHIPS
+    /** What the stream is, for the TV-box info's corner: resolution, frames, codec, sound, bitrate. Null until known. */
+    val streamFacts: StateFlow<StreamFacts?> get() = NO_FACTS
     /** Re-check [streamChips] now. */
     fun refreshStreamChips() {}
     /** Bitrate is only ever displayed in the debug overlay — enable tracking only while it's open. */
@@ -166,6 +168,7 @@ interface PlaybackEngine {
         private val NULL_ERROR: StateFlow<ErrorInfo?> = MutableStateFlow(null)
         private val NO_BACKOFF: StateFlow<ProviderBackOff?> = MutableStateFlow(null)
         private val NO_CHIPS: StateFlow<List<String>> = MutableStateFlow(emptyList())
+        private val NO_FACTS: StateFlow<StreamFacts?> = MutableStateFlow(null)
         private val NULL_STRING: StateFlow<String?> = MutableStateFlow(null)
         private val FALSE_FLOW: StateFlow<Boolean> = MutableStateFlow(false)
         private val NO_QUALITIES: StateFlow<List<Int>> = MutableStateFlow(emptyList())
@@ -237,3 +240,9 @@ class MpvPlaybackEngine(private val p: OwnTVPlayer) : PlaybackEngine {
     override val seekStepMs get() = p.seekStepMs
     override fun cancelAutoNext() = p.cancelAutoNext()
 }
+
+/**
+ * The stream as the player sees it: [height] lines, [fps] frames a second, the video [codec] ("H.265"), the sound's
+ * [channels] and the bitrate in [kbps] measured from what arrives. Each part is null while it is not known.
+ */
+data class StreamFacts(val height: Int?, val fps: Float?, val codec: String?, val channels: Int?, val kbps: Int?)

@@ -123,6 +123,11 @@ class LivePreviewEngine(
     val videoAspect: StateFlow<Float?> = _videoAspect.asStateFlow()
     private val _videoSize = MutableStateFlow<Pair<Int, Int>?>(null)
     val videoSize: StateFlow<Pair<Int, Int>?> = _videoSize.asStateFlow()
+    private val _streamFacts = MutableStateFlow<StreamFacts?>(null)
+    override val streamFacts: StateFlow<StreamFacts?> = _streamFacts.asStateFlow()
+
+    /** When [lastRead] was taken: the bitrate is the bytes read between two of the watchdog's looks. */
+    private var lastReadAt = 0L
     private val _videoFps = MutableStateFlow<Float?>(null)
     val videoFps: StateFlow<Float?> = _videoFps.asStateFlow()
     /** Bumped when the video surface must be rebuilt; libVLC never needs it, kept for the surface composables. */
@@ -329,6 +334,7 @@ class LivePreviewEngine(
         _error.value = null; _errorInfo.value = null
         _state.value = State.LOADING; _buffering.value = true; _isPlaying.value = false
         lastShown = 0; lastRead = 0L; stuckChecks = 0; sawLife = false; bufferedOnce = false
+        _streamFacts.value = null // the last channel's facts are not this one's
         _pictureReady.value = false
         openedAt = SystemClock.elapsedRealtime()
         main.removeCallbacks(watchdog)
@@ -377,7 +383,8 @@ class LivePreviewEngine(
                 _buffering.value = false; _stalledSinceMs.value = null
             }
             MediaPlayer.Event.Playing -> { _isPlaying.value = true }
-            MediaPlayer.Event.Vout -> if (e.voutCount > 0) { player?.let { applyWindow(it) }; onFirstPicture() }
+            // The tracks are read again with the first picture: when they were added the size was still 0×0.
+            MediaPlayer.Event.Vout -> if (e.voutCount > 0) { player?.let { applyWindow(it) }; onFirstPicture(); readTracks() }
             MediaPlayer.Event.ESAdded, MediaPlayer.Event.ESSelected -> readTracks()
             MediaPlayer.Event.EncounteredError -> lost("error")
             MediaPlayer.Event.EndReached -> lost("end of stream")
@@ -431,6 +438,7 @@ class LivePreviewEngine(
                 stereo?.let { if (it > 2) "${it}.0" else "STEREO" },
             )
         }
+        if (video != null) noteFacts(p, video)
         audioTracks = p.audioTracks?.filter { it.id >= 0 }?.map { TrackOption(it.name ?: "", it.id, it.id == p.audioTrack) } ?: emptyList()
         textTracks = p.spuTracks?.filter { it.id >= 0 }?.map { TrackOption(it.name ?: "", it.id, it.id == p.spuTrack) } ?: emptyList()
         _audioCount.value = audioTracks.size
@@ -501,6 +509,7 @@ class LivePreviewEngine(
         receivingNow = dataFlows
         if (!noVideo && dataFlows && shown == lastShown && !_buffering.value) stuckChecks++ else if (shown != lastShown) stuckChecks = 0
         if (!noVideo && dataFlows && shown == lastShown && SystemClock.elapsedRealtime() - openedAt > FIRST_PICTURE_MS && !hasPlayed) stuckChecks++
+        noteRates(read, shown)
         lastShown = shown; lastRead = read
         if (stuckChecks >= STUCK_CHECKS) {
             stuckChecks = 0
@@ -512,6 +521,55 @@ class LivePreviewEngine(
                 open(url)
             }
         }
+    }
+
+    /**
+     * What the info's corner says about the stream. libVLC often leaves a live stream's size and frame rate at
+     * zero for good, so the frames a second are measured from decoded pictures (see [noteRates]) and the size is
+     * shown only once it is known; the codec and the sound come from the tracks.
+     */
+    private fun noteFacts(p: MediaPlayer, video: org.videolan.libvlc.interfaces.IMedia.VideoTrack) {
+        // getMedia() retains the native Media: it is released here, or every channel's stayed in memory.
+        val channels = p.media?.let { m ->
+            try {
+                (0 until m.trackCount).map { m.getTrack(it) }
+                    .firstNotNullOfOrNull { it as? org.videolan.libvlc.interfaces.IMedia.AudioTrack }?.channels
+            } finally {
+                m.release()
+            }
+        }?.takeIf { it > 0 }
+        val was = _streamFacts.value
+        _streamFacts.value = StreamFacts(
+            height = video.height.takeIf { it > 0 } ?: was?.height,
+            fps = _videoFps.value ?: was?.fps,
+            codec = codecName(video.codec),
+            channels = channels ?: was?.channels,
+            kbps = was?.kbps,
+        )
+    }
+
+    /**
+     * The bitrate from the bytes the watchdog already reads each second: nothing more is asked of libVLC. Smoothed,
+     * so the figure does not jump with every burst of a segmented stream.
+     */
+    private fun noteRates(read: Long, shown: Int) {
+        val at = SystemClock.elapsedRealtime()
+        val facts = _streamFacts.value
+        val elapsed = at - lastReadAt
+        lastReadAt = at
+        if (facts == null || read <= lastRead || elapsed <= 0 || lastRead == 0L) return
+        val kbps = ((read - lastRead) * BITS_PER_BYTE / elapsed).toInt()
+        val smooth = facts.kbps?.let { (it * (1 - BITRATE_WEIGHT) + kbps * BITRATE_WEIGHT).toInt() } ?: kbps
+        // The decoder's own count when the stream does not say its frame rate: a round figure, as a TV shows it.
+        val measured = if (_videoFps.value == null && shown > lastShown && lastShown > 0) {
+            ((shown - lastShown) * MS_PER_SECOND / elapsed).toFloat().takeIf { it in 1f..MAX_FPS }
+        } else {
+            null
+        }
+        val fps = _videoFps.value ?: measured?.let { m ->
+            facts.fps?.let { (it * (1 - BITRATE_WEIGHT) + m * BITRATE_WEIGHT).toFloat() } ?: m
+        }
+        _streamFacts.value = facts.copy(kbps = smooth, fps = fps ?: facts.fps)
     }
 
     private val reconnectRun = Runnable { currentUrl?.let { open(it) } }
@@ -614,7 +672,7 @@ class LivePreviewEngine(
         _state.value = State.IDLE; _isPlaying.value = false; _buffering.value = false
         _error.value = null; _errorInfo.value = null; _stalledSinceMs.value = null
         _videoRes.value = null; _videoSize.value = null; _videoAspect.value = null; _videoFps.value = null
-        _streamChips.value = emptyList(); _audioOnlyMedia.value = false
+        _streamChips.value = emptyList(); _audioOnlyMedia.value = false; _streamFacts.value = null
     }
 
     fun release() {
@@ -750,6 +808,24 @@ class LivePreviewEngine(
         private const val MIN_CACHE_MS = 500
         private const val MAX_CACHE_MS = 30_000
         private const val WATCH_MS = 1_000L
+        private const val BITS_PER_BYTE = 8
+        private const val BITRATE_WEIGHT = 0.3
+        private const val MS_PER_SECOND = 1000.0
+        private const val MAX_FPS = 120f
+
+        /** libVLC's four-letter codec as people know it: "hevc" is H.265, "mpgv" MPEG-2. */
+        internal fun codecName(fourcc: String?): String? {
+            // libVLC hands over "H264 - MPEG-4 AVC (part 10)" as often as "h264": the short code is the first word.
+            val c = fourcc?.substringBefore(" - ")?.trim()?.lowercase()?.takeIf { it.isNotEmpty() } ?: return null
+            return CODEC_NAMES[c] ?: c.uppercase()
+        }
+
+        private val CODEC_NAMES = mapOf(
+            "h264" to "H.264", "mpeg-2" to "MPEG-2", "avc1" to "H.264", "x264" to "H.264",
+            "hevc" to "H.265", "h265" to "H.265", "hev1" to "H.265", "hvc1" to "H.265",
+            "mpgv" to "MPEG-2", "mp2v" to "MPEG-2", "mp4v" to "MPEG-4",
+            "av01" to "AV1", "vp90" to "VP9", "vp80" to "VP8",
+        )
         private const val LOW_SPEC_WATCH_MS = 2_000L
         private const val LOW_SPEC_MAX_HEIGHT = 1080
         /** The longest the main thread waits for libVLC to let go of a surface. */

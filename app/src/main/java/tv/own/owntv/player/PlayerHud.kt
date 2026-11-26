@@ -270,6 +270,7 @@ fun PlayerHud(
     val volume by player.volume.collectAsStateWithLifecycle()
     val videoRes by player.videoRes.collectAsStateWithLifecycle()
     val streamChips by player.streamChips.collectAsStateWithLifecycle()
+    val streamFacts by player.streamFacts.collectAsStateWithLifecycle()
     val engineChip by player.engineChip.collectAsStateWithLifecycle()
     val audioCount by player.audioCount.collectAsStateWithLifecycle()
     val audioDelayMs by player.audioDelayMs.collectAsStateWithLifecycle()
@@ -888,6 +889,8 @@ fun PlayerHud(
             // A soft see-through fall-off, never a dark band: the picture stays visible behind the text.
             Box(Modifier.align(Alignment.BottomStart).fillMaxWidth().height(if (tvActions) 560.dp else 420.dp)
                 .gradientWash(vertical = true, 0.0f to Color.Transparent, 0.5f to TvBoxShade.copy(alpha = 0.35f), 1.0f to TvBoxShade))
+            // Top right, as on other TV players: the clock, the date and what the stream is (1080p · 25 fps · H.265).
+            tvBoxStreamCorner(streamFacts, Modifier.align(Alignment.TopEnd).padding(top = 32.dp, end = 44.dp))
             Column(
                 Modifier.align(Alignment.BottomStart).fillMaxWidth().padding(start = 44.dp, end = 44.dp, bottom = 36.dp),
                 verticalArrangement = Arrangement.spacedBy(22.dp),
