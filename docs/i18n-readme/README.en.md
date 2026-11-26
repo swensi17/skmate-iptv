@@ -112,7 +112,7 @@ What is verified and how: [COMPARISON.md](../COMPARISON.md).
 
 ## FAQ
 
-**Is this a TiviMate alternative?** Yes: a free, open-source alternative for Android TV, Google TV and Fire TV.
+**How is SkMate different from other IPTV players?** Free, no ads, open source. Runs on Android TV, Google TV and Fire TV.
 **Does it include channels?** No. It is only a player: you add your own M3U, Xtream Codes or Stalker source.
 **How do I add a playlist without typing with the remote?** Scan the QR code on the TV with your phone; both must be on the same Wi-Fi.
 
