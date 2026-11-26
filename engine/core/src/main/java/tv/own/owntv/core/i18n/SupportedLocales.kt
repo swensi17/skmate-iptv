@@ -116,7 +116,7 @@ object SupportedLocales {
             tier = 1,
             packaged = true,
             pickerVisible = true,
-            coverage = 89,
+            coverage = 88,
         ),
         SupportedLocale(
             id = "zh-CN",
@@ -312,7 +312,7 @@ object SupportedLocales {
             tier = 1,
             packaged = true,
             pickerVisible = true,
-            coverage = 89,
+            coverage = 88,
         ),
         SupportedLocale(
             id = "es-ES",
