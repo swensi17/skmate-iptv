@@ -7,7 +7,7 @@
 
 <h1 align="center">SkMate IPTV</h1>
 
-<p align="center"><b>Бесплатный IPTV-плеер с открытым кодом для Android TV, Google TV и Fire TV.</b> Версии для Windows, LG webOS и Samsung Tizen — в разработке.<br>
+<p align="center"><b>Бесплатный IPTV-плеер с открытым кодом для Android TV, Google TV и Fire TV.</b> Для телевизоров Samsung и LG: <a href="https://github.com/swensi17/skmate-tv">SkMate для Smart TV</a>.<br>
 M3U и Xtream Codes, телегид (EPG), архив, профили — управление только пультом, без рекламы и аккаунтов.</p>
 
 <p align="center">
@@ -229,7 +229,7 @@ SkMate рядом с самыми известными IPTV-плеерами.
 **Чем SkMate отличается от других IPTV-плееров?** Бесплатно, без рекламы, с открытым кодом. Работает на Android TV, Google TV и Fire TV.
 **Есть ли в приложении каналы?** Нет. Это только плеер: вы добавляете свой M3U, Xtream Codes или Stalker.
 **Как добавить плейлист без набора адреса пультом?** Отсканируйте QR-код на телевизоре телефоном; телефон и ТВ должны быть в одной сети Wi-Fi.
-**А Windows, LG и Samsung?** В разработке, выйдут отдельными версиями.
+**А Samsung и LG?** Для них отдельная версия: [swensi17/skmate-tv](https://github.com/swensi17/skmate-tv). Там инструкции по установке.
 **Какой нужен Android?** Android TV / Google TV 8.0 и новее, Fire TV, приставки на arm64-v8a и armeabi-v7a.
 
 ## Установка

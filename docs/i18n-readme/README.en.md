@@ -7,7 +7,7 @@
 
 <h1 align="center">SkMate IPTV</h1>
 
-<p align="center"><b>A free, open-source IPTV player for Android TV, Google TV and Fire TV.</b> Windows, LG webOS and Samsung Tizen versions are in development.<br>
+<p align="center"><b>A free, open-source IPTV player for Android TV, Google TV and Fire TV.</b> For Samsung and LG TVs: <a href="https://github.com/swensi17/skmate-tv">SkMate for Smart TV</a>.<br>
 M3U and Xtream Codes, TV guide (EPG), catch-up, profiles — built for the remote, no ads, no accounts.</p>
 
 <p align="center">

@@ -7,7 +7,7 @@
 
 <h1 align="center">SkMate IPTV</h1>
 
-<p align="center"><b>免费、开源的 IPTV 播放器，适用于 Android TV、Google TV 和 Fire TV。</b>Windows、LG webOS 和 Samsung Tizen 版本正在开发中。<br>
+<p align="center"><b>免费、开源的 IPTV 播放器，适用于 Android TV、Google TV 和 Fire TV。</b>Samsung 和 LG 电视版：<a href="https://github.com/swensi17/skmate-tv">SkMate for Smart TV</a>。<br>
 支持 M3U 与 Xtream Codes、电视节目单 (EPG)、回看、多用户——专为遥控器设计，无广告，无需账号。</p>
 
 <p align="center">
