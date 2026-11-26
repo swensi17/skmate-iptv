@@ -100,3 +100,6 @@
   font-size: 17px; line-height: 28px; color: var(--st-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .gd-sync-spin { flex: none; display: block; width: 22px; height: 22px; margin-right: 10px; }
 .gd-sync-spin .ticks rect { fill: var(--st-muted); }
+
+/* 2.5.2: a row whose programmes are still read: a bar 6 in from its top and foot, the text colour at 5 %, rounded 10. */
+.gd-skel { position: absolute; top: 6px; height: 44px; border-radius: 10px; background: rgba(var(--st-ink-rgb), 0.05); pointer-events: none; }

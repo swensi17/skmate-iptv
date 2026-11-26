@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "preact/hooks";
-import { Button, focusFirst, Popup, Presence, Toggle, useOwnBack } from "@skmate/ui";
+import { focusFirst, Popup, PopupButton, Presence, Toggle, useOwnBack } from "@skmate/ui";
 import { t } from "../i18n";
 import type { ProfileBook } from "../state/scope";
 import { SIcon, SRow, Tag, useSheet, OverSheet } from "./SettingsKit";
@@ -15,6 +15,9 @@ interface Props {
   onSetPin: () => void;
   onRemovePin: () => void;
   onToggleKids: () => void;
+  /** screens 2.5.4: adult categories behind the PIN on every profile, and its switch (off takes the PIN). */
+  adultLock: boolean;
+  onToggleAdultLock: () => void;
 }
 
 type Profile = ProfileBook["profiles"][number];
@@ -55,6 +58,9 @@ export function ProfilesPanel(p: Props) {
         );
       })}
       <SRow id="pf-add" icon="SPARKLE" title={t("sa_settings_profile_add")} line={t("sa_settings_profile_add_line")} onOk={() => setAdding(true)} />
+      {/* ProfileSettingsRows.kt adultLockRow (Android 2.5.2): on by default; switching it off asks the PIN, the profile's own or 0000. */}
+      <SRow id="pf-adult" icon="EYE_OFF" title={t("sa_settings_adult_lock")} line={t("sa_settings_adult_lock_line")} end={<Toggle on={p.adultLock} />}
+        onOk={p.onToggleAdultLock} />
       {editing ? (
         <ProfileEditor book={p.book} onRename={p.onRename} onToggleKids={p.onToggleKids} onSetPin={p.onSetPin} onRemovePin={p.onRemovePin}
           onClose={() => { setEditing(false); setTimeout(() => sheet.focus(`pf-${p.book.activeId}`), 0); }} />
@@ -91,7 +97,7 @@ function ProfileEditor(p: { book: ProfileBook; onRename: (n: string) => void; on
     <OverSheet app>
       <div ref={root}>
         <Popup title={t("sa_profiles_edit")} width={880} onClose={p.onClose}
-          buttons={<><Button small id="pe-cancel" text={t("sa_common_cancel")} onClick={p.onClose} /><Button small id="pe-save" text={t("sa_common_save")} onClick={save} /></>}>
+          buttons={<><PopupButton primary={false} id="pe-cancel" text={t("sa_common_cancel")} onClick={p.onClose} /><PopupButton id="pe-save" text={t("sa_common_save")} onClick={save} /></>}>
           {!me.guest ? (
             <button class="st-focusable st-field set-popup-row" data-focus="pe-name" onClick={() => setTyping(true)}>
               <span class="st-setting-icon"><SIcon name="PENCIL" size={32} /></span>

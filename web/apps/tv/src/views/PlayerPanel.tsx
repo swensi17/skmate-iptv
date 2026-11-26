@@ -1,5 +1,6 @@
 import { useContext, useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { groupsOf, type Channel } from "@skmate/core";
+import type { Programme } from "@skmate/epg";
 import { focusFirst, Icon, isBack, VirtualList, type IconName } from "@skmate/ui";
 import { t, type Key } from "../i18n";
 import { channelKey } from "../state/favorites";
@@ -8,7 +9,9 @@ import { UiContext } from "../state/UiContext";
 import { capitalize } from "../text";
 import { ChannelLogo } from "./ChannelLogo";
 import { CountdownRing, useDwell, useTick } from "./PlayerChrome";
-import { PanelSchedule } from "./Schedule";
+import { useProgrammeArt, type ArtSettings, type ProgrammeArt } from "../state/tmdb";
+import { PosterViewer } from "./ProgrammeArt";
+import { PanelGuide, scheduleLines, UNDER_HEAD } from "./Schedule";
 import { Ticks } from "./Spinner";
 import "./player.css";
 
@@ -84,6 +87,10 @@ export function PlayerPanel(p: {
   onGo: (to: Go) => void;
   onSettings: () => void;
   onDock: (rect: DockRect | null) => void;
+  /** TMDB and the posters switch: the poster and story of a film or series on air under the picture (2.5.3). */
+  art: ArtSettings;
+  /** OK on an aired programme under the picture: it plays from the archive and the panel closes (2.5.3). */
+  onArchive: (c: Channel, p: Programme, list: readonly Channel[]) => void;
 }) {
   const ui = useContext(UiContext);
   const { data } = useContext(GuideContext);
@@ -128,6 +135,52 @@ export function PlayerPanel(p: {
   const dwell = useDwell(focused?.id ?? null, !history && p.preview && listActive && !!focused && focused.id !== p.playing.id,
     CHANNEL_QUIET_MS, () => { if (focused) p.onPreview(focused, list); });
 
+  // ---- Under the picture (2.5.3): the focused channel once it rests (120 ms the name, 250 ms its day), the poster
+  // and story of a film or series on it (TMDB), and its guide with the archive's aired programmes above what is on.
+  const [head, setHead] = useState<Channel | null>(p.playing);
+  const [day, setDay] = useState<Channel | null>(p.playing);
+  useEffect(() => {
+    if (!focused) return;
+    const a = setTimeout(() => setHead(focused), head ? 120 : 0);
+    const b = setTimeout(() => setDay(focused), 250);
+    return () => { clearTimeout(a); clearTimeout(b); };
+  }, [focused?.id]);
+  const dayItems = day ? data.of(day.id) : null;
+  const lines = useMemo(() => (day && head && day.id === head.id && dayItems ? scheduleLines(day, dayItems, Date.now()) : null),
+    [day?.id, head?.id, dayItems, Math.floor(now / 60_000)]);
+  const onAirLine = lines?.find((l) => l.start <= now && now < l.stop) ?? null;
+  const art = useProgrammeArt(onAirLine?.title, p.art);
+  const onAirIndex = lines ? Math.max(0, lines.findIndex((l) => now < l.stop)) : 0;
+  // The guide starts at the programme before what is on; ▲ at its top brings earlier ones from the archive.
+  const [first, setFirst] = useState(0);
+  useEffect(() => { setFirst(Math.max(0, onAirIndex - 1)); }, [head?.id, lines?.length]);
+  // What is focused under the picture: the poster, a line (its index in [lines]), or nothing (the list has the focus).
+  const [uAt, setUAt] = useState<"poster" | number | null>(null);
+  const [big, setBig] = useState<ProgrammeArt | null>(null);
+  // Where the list under the picture is scrolled: by the focused line, to the top on the poster; it stays while focus
+  // is back in the channels (Android keeps its list state), and a new channel starts at the top.
+  const [view, setView] = useState<number | null>(null);
+  useEffect(() => { if (typeof uAt === "number") setView(uAt); else if (uAt === "poster") setView(null); }, [uAt]);
+  useEffect(() => { setView(null); }, [head?.id]);
+  const under = useRef({ uAt, big, first, lines, art, onAirIndex });
+  under.current = { uAt, big, first, lines, art, onAirIndex };
+  useEffect(() => {
+    if (uAt === null || big) return;
+    document.querySelector<HTMLElement>(`.tp-under [data-ug="${uAt}"]`)?.focus();
+  }, [uAt, first, art, big]);
+  // A poster that went (another programme, TMDB switched off) takes its focus with it, to the line under it.
+  useEffect(() => {
+    if (!art && uAt === "poster") setUAt(lines && lines.length > 0 ? onAirIndex : null);
+    if (!art) setBig(null);
+  }, [art]);
+  const toList = () => { setUAt(null); if (focused) focusFirst(document, `pc-${focused.id}`); };
+  const pickLine = (i: number) => {
+    const l = lines?.[i];
+    if (!l || !head) return;
+    if (l.archive) p.onArchive(head, l.archive, list);
+    else if (l.start <= Date.now() && Date.now() < l.stop) p.onPick(head, list);
+  };
+
   // Categories: the playing list's category focused first; resting 7 s on another opens it after 3-2-1.
   const [catFocus, setCatFocus] = useState<string | null>(null);
   const pickCat = (key: string) => {
@@ -150,7 +203,45 @@ export function PlayerPanel(p: {
     const onKey = (e: KeyboardEvent) => {
       const left = e.key === "ArrowLeft" || e.keyCode === 37;
       const right = e.key === "ArrowRight" || e.keyCode === 39;
+      const up = e.key === "ArrowUp" || e.keyCode === 38;
+      const down = e.key === "ArrowDown" || e.keyCode === 40;
+      const ok = e.key === "Enter" || e.keyCode === 13;
       const back = isBack(e);
+      const u = under.current;
+      // The poster over the whole screen: nothing behind it moves; OK or Back closes it, back on the poster.
+      if (u.big) {
+        if (left || right || up || down || ok || back) {
+          e.stopPropagation(); e.preventDefault();
+          if ((ok || back) && !e.repeat) setBig(null);
+        }
+        return;
+      }
+      // Under the picture: ◀ back to the list, ▲ ▼ through the guide, OK plays the line or opens the poster.
+      if (u.uAt !== null && !menuOpen && !catsOpen) {
+        if (!left && !right && !up && !down && !ok && !back) return;
+        e.stopPropagation();
+        e.preventDefault();
+        if (back) { p.onDismiss(); return; }
+        if (left) { toList(); return; }
+        if (right) return;
+        const L = u.lines ?? [];
+        if (u.uAt === "poster") {
+          // ▼ to the line right under the poster: what is on, or the first of the earlier ones brought in above it.
+          if (down && L.length > 0) setUAt(u.first === Math.max(0, u.onAirIndex - 1) ? u.onAirIndex : u.first);
+          else if (ok && !e.repeat && u.art) setBig(u.art);
+          return;
+        }
+        const i = u.uAt;
+        if (up) {
+          if (i === u.first && u.first > 0) { setFirst(u.first - 1); setUAt(u.first - 1); }
+          else if (i > u.first) setUAt(i - 1);
+          else if (u.art) setUAt("poster");
+          return;
+        }
+        if (down) { if (i < L.length - 1) setUAt(i + 1); return; }
+        if (ok && !e.repeat) pickLine(i);
+        return;
+      }
       if (!left && !right && !back) return;
       e.stopPropagation();
       e.preventDefault();
@@ -167,12 +258,16 @@ export function PlayerPanel(p: {
         return;
       }
       if (back) { p.onDismiss(); return; }
-      if (left) { if (history) p.onDismiss(); else { setCatFocus(catKey); setCatsOpen(true); } }
-      // ▶ in the list: consumed, it leads nowhere
+      if (left) { if (history) p.onDismiss(); else { setCatFocus(catKey); setCatsOpen(true); } return; }
+      // ▶ in the list: onto the poster, else onto what is on under the picture (2.5.3).
+      if (right && !e.repeat) {
+        if (u.art) setUAt("poster");
+        else if (u.lines && u.lines.length > 0) setUAt(Math.max(u.first, u.onAirIndex));
+      }
     };
     document.addEventListener("keydown", onKey, true);
     return () => document.removeEventListener("keydown", onKey, true);
-  }, [menuOpen, catsOpen, history, catKey, list, focused, p.playing.id]);
+  }, [menuOpen, catsOpen, history, catKey, list, focused, p.playing.id, head]);
 
   const rail = (go: Go | "home" | "settings") => {
     if (go === "home") { setMenuOpen(false); p.onDismiss(); return; } // Home is the picture itself
@@ -180,7 +275,8 @@ export function PlayerPanel(p: {
     p.onGo(go);
   };
 
-  const under = { left: `${dock.x}px`, top: `${dock.y + dock.h + 24}px`, width: `${dock.w}px` };
+  const underTop = dock.y + dock.h + 24;
+  const underBox = { left: `${dock.x}px`, top: `${underTop}px`, width: `${dock.w}px` };
   const listIndex = (c: Channel) => list.findIndex((x) => x.id === c.id);
   return (
     <div class={`tp${p.closing ? " out" : ""}`} role="dialog" aria-label={title}>
@@ -210,10 +306,10 @@ export function PlayerPanel(p: {
                     const playing = c.id === p.playing.id;
                     const counting = !playing && dwell.n > 0 && focused?.id === c.id;
                     return (
-                      <button class={`tp-row${playing ? " playing" : ""}`} data-focus={`pc-${c.id}`} onFocus={() => setFocused(c)} onClick={() => p.onPick(c, list)}>
+                      <button class={`tp-row${playing ? " playing" : ""}`} data-focus={`pc-${c.id}`} onFocus={() => { setFocused(c); setUAt(null); }} onClick={() => p.onPick(c, list)}>
                         {ui.logos ? <span class="tp-row-logo"><ChannelLogo channel={c} /></span> : null}
                         <span class="tp-row-text">
-                          <span class="tp-row-name">{ui.numbers ? <span class="n">{i + 1}</span> : null}<span class="t">{c.name}</span></span>
+                          <span class="tp-row-name">{ui.numbers ? <span class="n">{i + 1}</span> : null}<span class="t">{c.name}</span>{(c.catchupDays ?? 0) > 0 ? <span class="tp-row-arch"><Icon name="rewind" size={18} /></span> : null}</span>
                           {on.now ? (
                             <>
                               <span class="tp-row-prog">{on.now.title}</span>
@@ -230,8 +326,14 @@ export function PlayerPanel(p: {
               )}
             </div>
           </div>
-          <div class="tp-under" style={under}>
-            <PanelSchedule channel={focused} number={focused && ui.numbers && listIndex(focused) >= 0 ? listIndex(focused) + 1 : null} now={now} />
+          <div class="tp-under" style={underBox}>
+            {head ? (
+              <PanelGuide
+                channel={head} number={ui.numbers && listIndex(head) >= 0 ? listIndex(head) + 1 : null} now={now}
+                lines={lines} first={first} art={art} at={uAt} view={view} viewH={Math.max(UNDER_HEAD, 972 - underTop)}
+                onLine={(i) => { setUAt(i); pickLine(i); }} onPoster={() => { setUAt("poster"); if (art) setBig(art); }}
+              />
+            ) : null}
           </div>
         </div>
         {catsOpen ? (
@@ -253,6 +355,8 @@ export function PlayerPanel(p: {
           </div>
         ) : null}
       </div>
+      {/* The poster over the whole screen, from OK on it; focus goes back to it when it closes. */}
+      {big ? <PosterViewer art={big} /> : null}
     </div>
   );
 }

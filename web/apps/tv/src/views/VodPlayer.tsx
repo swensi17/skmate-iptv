@@ -45,10 +45,10 @@ export function VodPlayer(p: Props) {
   const video = useRef<HTMLVideoElement>(null);
   const target = useMemo<Channel>(() => ({ id: p.url, name: p.title, url: p.url, group: "", ...(p.headers ? { headers: p.headers } : {}) }), [p.url]);
   const itemKey = p.trackKey ?? p.url;
-  const { state, paused, retry, togglePause, tracks, selectAudio, selectSubtitle } = usePlayback(video, target, {
+  const { state, paused, retry, togglePause, tracks, selectAudio, selectSubtitle, reason } = usePlayback(video, target, {
     // Settings › films and archive buffer: seconds ahead, 0 = Auto (hls.js' own amount).
     engine: p.settings.engine, bufferSeconds: p.settings.vodBuffer, openTimeoutMs: p.settings.openTimeout * 1000, autoRestart: p.settings.autoRestart,
-    log: p.settings.playbackLog, trackKey: itemKey,
+    log: p.settings.playbackLog, trackKey: itemKey, explain: true,
   });
   const [pos, setPos] = useState(p.startMs);
   const [dur, setDur] = useState(0);
@@ -188,7 +188,7 @@ export function VodPlayer(p: Props) {
           </div>
         </div>
       ) : null}
-      {failed ? <PlayerError onRetry={retry} retryId="vod-retry" /> : null}
+      {failed ? <PlayerError onRetry={retry} retryId="vod-retry" reason={reason} /> : null}
       {dialog === "aspect" ? <AspectDialog value={aspect} onClose={() => setDialog(null)} onPick={(a) => { pickZoom(a); setDialog(null); }} /> : null}
       {dialog === "audio" || dialog === "subs" ? (
         <TrackDialog kind={dialog === "audio" ? "audio" : "subtitle"} tracks={dialog === "audio" ? tracks.audio : tracks.subs} onClose={() => setDialog(null)}

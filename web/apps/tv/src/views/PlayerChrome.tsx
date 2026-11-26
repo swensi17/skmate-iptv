@@ -1,6 +1,6 @@
 import type { ComponentChildren } from "preact";
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
-import { ZOOM_MODES, zoomLook, zoomTransform, type TrackOption, type ZoomMode } from "@skmate/player";
+import { ZOOM_MODES, zoomLook, zoomTransform, type FailureReason, type TrackOption, type ZoomMode } from "@skmate/player";
 import { Icon, Option, Popup, type IconName } from "@skmate/ui";
 import { t, type Key } from "../i18n";
 import { clock } from "../time";
@@ -106,7 +106,13 @@ export function ErrorArt(p: { kind: "signal" | "internet" }) {
 }
 
 /** The error screen: picture, headline, one line of why, Retry. [quiet]: behind an open panel, only the faded mark. */
-export function PlayerError(p: { quiet?: boolean; onRetry: () => void; retryId: string }) {
+/** The reason's sentence (Android PlayerFailureReason.messageRes). */
+const REASON_TEXT: Record<FailureReason, Key> = {
+  http509: "plReason509", oneSession: "plReasonOneSession", http403: "plReason403", http401: "plReason401", http404: "plReason404",
+  http400: "plReason400", ssl: "plReasonSsl", format: "plReasonFormat", network: "plReasonNetwork",
+};
+
+export function PlayerError(p: { quiet?: boolean; onRetry: () => void; retryId: string; reason?: FailureReason | null }) {
   const offline = typeof navigator !== "undefined" && navigator.onLine === false;
   const kind = offline ? "internet" : "signal";
   if (p.quiet) return <div class="pv-error quiet"><ErrorArt kind={kind} /></div>;
@@ -116,6 +122,8 @@ export function PlayerError(p: { quiet?: boolean; onRetry: () => void; retryId: 
         <ErrorArt kind={kind} />
         <div class="pv-error-title">{t(offline ? "tbErrInternet" : "tbErrSignal")}</div>
         <div class="pv-error-text">{t("tbErrChannel")}</div>
+        {/* 2.5.2: once the reason is known (a 404, a 403, no answer), it says so under the failure. */}
+        {p.reason && !offline ? <div class="pv-error-reason">{t(REASON_TEXT[p.reason])}</div> : null}
         <button class="pv-error-btn" data-focus={p.retryId} onClick={p.onRetry}>{t("tbRetry")}</button>
       </div>
     </div>

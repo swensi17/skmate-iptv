@@ -62,10 +62,17 @@ export function languageMatches(preferred: string, actual: string | null | undef
 }
 
 /** TrackMemory.audioToSelect: the track to switch to for [lang], or null when none matches or one already plays. */
-export function audioToSelect(tracks: readonly TrackOption[], lang: string | null | undefined): TrackOption | null {
-  if (!lang || !lang.trim()) return null;
-  if (tracks.some((x) => x.selected && languageMatches(lang, x.lang))) return null;
-  return tracks.find((x) => languageMatches(lang, x.lang)) ?? null;
+export function audioToSelect(tracks: readonly TrackOption[], lang: string | null | undefined, name?: string | null): TrackOption | null {
+  if (lang && lang.trim()) {
+    if (tracks.some((x) => x.selected && languageMatches(lang, x.lang))) return null;
+    const byLang = tracks.find((x) => languageMatches(lang, x.lang));
+    if (byLang) return byLang;
+  }
+  // Android 2.5.2 (applyRememberedAudio): a channel's track kept by its name, with a choice to make.
+  if (!name || !name.trim() || tracks.length < 2) return null;
+  const n = name.trim();
+  const track = tracks.find((x) => x.label === n) ?? tracks.find((x) => x.label.toLowerCase() === n.toLowerCase());
+  return track && !track.selected ? track : null;
 }
 
 export type SubtitleAction = { kind: "none" } | { kind: "off" } | { kind: "select"; track: TrackOption };

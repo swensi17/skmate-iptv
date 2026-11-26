@@ -10,6 +10,11 @@ export interface ItemPrefs {
   zoom?: ZoomMode;
   /** The language of the audio track picked last. */
   audio?: string;
+  /**
+   * The name of the audio track picked last ("Track 2 - [English]"): a live channel's tracks often name no language,
+   * and Android 2.5.2 (LivePreviewEngine.rememberAudio) keeps a channel's sound track by its name.
+   */
+  audioName?: string;
   /** The language of the subtitle track picked last, or SUBTITLES_OFF. */
   sub?: string;
   /** When it was last written: the oldest items go first once the store is full. */
@@ -57,7 +62,14 @@ export class ItemPrefsStore {
 
   rememberZoom(key: string, zoom: ZoomMode): void { this.patch(key, { zoom }); }
   /** A blank language is not remembered (a track that names none says nothing to match later). */
-  rememberAudio(key: string, lang: string): void { if (lang.trim()) this.patch(key, { audio: lang }); }
+  rememberAudio(key: string, lang: string, name = ""): void {
+    const p: Partial<ItemPrefs> = {};
+    if (lang.trim()) p.audio = lang;
+    if (name.trim()) p.audioName = name;
+    // A track with a name but no language replaces the language picked before, so the two never disagree.
+    if (!lang.trim() && name.trim()) p.audio = undefined;
+    if (p.audio !== undefined || p.audioName !== undefined) this.patch(key, p);
+  }
   rememberSubtitle(key: string, langOrOff: string): void { if (langOrOff.trim()) this.patch(key, { sub: langOrOff }); }
 
   /** Settings › reset saved zoom: every item back to the default zoom; audio and subtitle choices are kept. */

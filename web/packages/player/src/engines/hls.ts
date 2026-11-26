@@ -1,5 +1,6 @@
 import type Hls from "hls.js";
 import { PlayFailure, type PlayerEngine, type Source } from "../engine";
+import type { EngineFacts } from "../facts";
 import { hlsTracks, type HlsTrackApi, type TrackSource } from "../tracks";
 
 /** How many times the whole decoder is rebuilt, and how many times one decoder tries to heal itself. */
@@ -117,7 +118,9 @@ export class HlsJsEngine implements PlayerEngine {
           hls.startLoad();
           return;
         }
-        reject(new PlayFailure(this.id, "error", data.details));
+        // The status of a load that failed goes with it: "http error 404" is what names the reason on the error screen.
+        const code = (data as { response?: { code?: number } }).response?.code;
+        reject(new PlayFailure(this.id, "error", code ? `${data.details} http error ${code}` : data.details));
       });
       video.addEventListener("playing", () => resolve(), { once: true });
       hls.on(HlsLib.Events.MANIFEST_PARSED, (_e, data) => {
@@ -134,6 +137,22 @@ export class HlsJsEngine implements PlayerEngine {
   tracks(): TrackSource | null {
     const video = this.video;
     return video ? hlsTracks(() => this.hls as unknown as HlsTrackApi | null, video) : null;
+  }
+
+  /** The playing level's codec, declared frame rate and bitrate, and the audio rendition's channels. */
+  facts(): EngineFacts | null {
+    const hls = this.hls;
+    if (!hls) return null;
+    const level = hls.levels[hls.currentLevel >= 0 ? hls.currentLevel : hls.loadLevel] as
+      | { videoCodec?: string; codecSet?: string; frameRate?: number; bitrate?: number } | undefined;
+    const audio = hls.audioTracks[hls.audioTrack] as { channels?: string } | undefined;
+    const channels = audio?.channels ? parseInt(audio.channels, 10) : NaN;
+    return {
+      codec: level?.videoCodec ?? null,
+      fps: level?.frameRate && level.frameRate > 0 ? level.frameRate : null,
+      kbps: level?.bitrate ? level.bitrate / 1000 : null,
+      channels: Number.isFinite(channels) ? channels : null,
+    };
   }
 
   private destroy(): void {

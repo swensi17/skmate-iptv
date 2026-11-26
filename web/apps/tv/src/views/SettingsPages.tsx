@@ -293,27 +293,7 @@ export function DnsPage({ s, set }: P) {
   );
 }
 
-/** The twelve questions and answers, in order (HelpPage.kt). */
-const HELP: Array<[Key, Key]> = [
-  ["sa_help_q1", "sa_help_a1"], ["sa_help_q2", "sa_help_a2"], ["sa_help_q3", "sa_help_a3"], ["sa_help_q4", "sa_help_a4"],
-  ["sa_help_q5", "sa_help_a5"], ["sa_help_q6", "sa_help_a6"], ["sa_help_q7", "sa_help_a7"], ["sa_help_q8", "sa_help_a8"],
-  ["sa_help_q9", "sa_help_a9"], ["sa_help_q10", "sa_help_a10"], ["sa_help_q11", "sa_help_a11"], ["sa_help_q12", "sa_help_a12"],
-];
-
-/** Как пользоваться (HelpPage.kt): twelve questions, each a focusable card (OK does nothing), lines between them. */
-export function HelpPage() {
-  const items: ComponentChildren[] = [];
-  HELP.forEach(([q, a], i) => {
-    if (i > 0) items.push(<div key={`d${i}`} class="set-divider" />);
-    items.push(
-      <div key={q} class="st-focusable set-help" tabIndex={0} data-focus={`help-${i + 1}`}>
-        <div class="set-help-q">{t(q)}</div>
-        <div class="set-help-a">{t(a)}</div>
-      </div>,
-    );
-  });
-  return <div class="set-help-list">{items}</div>;
-}
+// Как пользоваться: HelpPages.tsx (Android 2.5.4 HelpPage.kt, topics and answer windows).
 
 /**
  * Синхронизация ТВ (LocalSyncScreen.kt): the description and the two cards. A web app cannot listen on the network or

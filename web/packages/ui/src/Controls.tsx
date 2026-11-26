@@ -114,6 +114,23 @@ export function Button(p: Press & { icon?: IconName; text?: string; trailing?: s
   );
 }
 
+/**
+ * A button inside a popup's content (`StagePopupButton`, Android 2.5.2): one look in every popup, no accent colour —
+ * the main one ([primary], the default) white with dark text, the others grey; the focused one fully white and 1.06
+ * larger, so where the focus is never depends on which button it is. Square corners in the TV-box look.
+ */
+export function PopupButton(p: Press & { text: string; icon?: IconName; primary?: boolean; disabled?: boolean; compact?: boolean }) {
+  return (
+    <button class={cls("st-focusable st-pbutton", p.primary !== false && "primary", p.compact && "compact", p.disabled && "off", p.className)}
+      data-focus={p.id} onClick={p.disabled ? undefined : p.onClick} onKeyDown={p.onKeyDown as never} aria-disabled={p.disabled || undefined}>
+      <span class="st-pbutton-in">
+        {p.icon ? <Icon name={p.icon} size={p.compact ? 25 : 36} /> : null}
+        <span class="st-pbutton-text">{p.text}</span>
+      </span>
+    </button>
+  );
+}
+
 /** A menu row (`StageMenuItem`, TV-box): icon, text, the dim value (blue on focus) or the accent check. */
 export function MenuItem(p: Press & { icon?: IconName; text: string; value?: string; checked?: boolean; disabled?: boolean; lead?: ComponentChildren }) {
   return (

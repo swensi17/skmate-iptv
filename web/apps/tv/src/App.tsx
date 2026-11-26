@@ -65,6 +65,8 @@ function exitApp(): boolean {
 
 /** sessionStorage: the profile just opened with its PIN, so the restart that follows does not ask again. */
 const UNLOCKED_KEY = "skmate.unlocked";
+/** The PIN that opens adult categories on a profile without one of its own (Android AdultLock.DEFAULT_PIN). */
+const ADULT_DEFAULT_PIN = "0000";
 
 export function App() {
   // settings functions (Android): «Прямой эфир открывается в виде» Телегид = Live TV is drawn as the guide
@@ -267,10 +269,26 @@ export function App() {
     setTimeout(() => { setPlaying(null); setLeaving(false); }, 200); // the player fades out before it is gone
   };
   const me = book?.profiles.find((x) => x.id === book.activeId);
-  // A kids profile sees no adult category anywhere: one filter here, every screen gets the same list.
-  // Films and series are not channels: they leave Live TV for their own sections, as on Android.
-  const channels = useMemo(() => visibleTo(pl.channels.filter((c) => !c.media), !!me?.kids) as Channel[], [pl.channels, me?.kids]);
-  const vod = useMemo(() => (pl.active ? vodSourceOf(pl.active.url, pl.channels, !!me?.kids) : null), [pl.active?.url, pl.channels, me?.kids]);
+  // screens 2.5.4 (Android AdultLock): adult groups are closed on every profile while the lock is on, until the profile's
+  // PIN (or 0000 on a profile without one) opens them for this run of the app; a kids profile never sees them.
+  const [adultOpen, setAdultOpen] = useState(false);
+  const adultLocked = settings.adultLock && !adultOpen;
+  const hideAdult = !!me?.kids || adultLocked;
+  const adultPinOk = (pin: string) => (me?.pinHash ? verifyPin(pin, me.pinHash) : pin === ADULT_DEFAULT_PIN);
+  const askAdultPin = (then: () => void) => setPinAsk({
+    title: t("sa_live_adult_pin_title"), hint: t("sa_live_adult_open_hint"), check: adultPinOk, onDone: () => { setPinAsk(null); then(); },
+  });
+  /** Каналы › Ещё › «Показать / Скрыть взрослые каналы» (LiveScreen.kt onAdult). */
+  const toggleAdult = () => { if (adultLocked) askAdultPin(() => setAdultOpen(true)); else setAdultOpen(false); };
+  /** Мой профиль › «Взрослые каналы по PIN»: switching it off takes the PIN too (ProfileSettingsRows.kt adultLockRow). */
+  const toggleAdultLock = () => {
+    if (settings.adultLock) askAdultPin(() => setSettings((cur) => ({ ...cur, adultLock: false })));
+    else setSettings((cur) => ({ ...cur, adultLock: true }));
+  };
+  // A kids profile, or any while the adult lock is closed, sees no adult category anywhere: one filter here, every screen
+  // gets the same list. Films and series are not channels: they leave Live TV for their own sections, as on Android.
+  const channels = useMemo(() => visibleTo(pl.channels.filter((c) => !c.media), hideAdult) as Channel[], [pl.channels, hideAdult]);
+  const vod = useMemo(() => (pl.active ? vodSourceOf(pl.active.url, pl.channels, hideAdult) : null), [pl.active?.url, pl.channels, hideAdult]);
   const playlistId = pl.active?.id ?? "";
   const [progressTick, setProgressTick] = useState(0);
   const progressOf = (kind: "movie" | "series") => (id: string): Progress | undefined => loadProgress()[progressKey(playlistId, kind, id)];
@@ -539,6 +557,7 @@ export function App() {
             greeting={greeting} playlistName={pl.active?.name ?? null} onPickPlaylist={() => setPicking(true)}
             recents={recents} paused={book === null || redo} /* the wizard covers the screen: no preview stream may hold the TV's only decoder behind it */
             onGuideView={() => showLiveAs("guide")} onUpcoming={openUpcoming} entry={liveEntry}
+            adultLocked={settings.adultLock ? adultLocked : null} onAdult={toggleAdult}
           />
         ) : null}
         {/* guide-sport-search: the programme menu sets or cancels a reminder and (un)favours the channel in place (Android GuideProgrammeMenu). */}
@@ -626,7 +645,7 @@ export function App() {
             channelCount={pl.channels.length} active={pl.active} headerGuides={pl.headerGuides}
             book={book ?? firstBook("", true)} onSwitchProfile={switchTo} onAddProfile={addOne}
             onRenameProfile={(name) => { if (book) updateBook(renameProfile(book, book.activeId, name)); }} onAskDeleteProfile={askDeleteProfile}
-            onSetPin={askNewPin} onRemovePin={removePin} onToggleKids={toggleKids}
+            onSetPin={askNewPin} onRemovePin={removePin} onToggleKids={toggleKids} onToggleAdultLock={toggleAdultLock}
             onQr={(name, address) => setQr({ name, address })}
             update={update} onRedoWizard={() => { setSheet(false); setRedo(true); }} channels={channels}
           />

@@ -1,9 +1,11 @@
+import { Fragment } from "preact";
 import { useRef, useState } from "preact/hooks";
 import { focusFirst, Presence } from "@skmate/ui";
 import { detectPlatform } from "../platform";
 import { t, type Key } from "../i18n";
 import { desktop } from "../state/desktop";
 import { canonicalMac, normalizeUrl, stalkerSource, xtreamUrl } from "../state/playlists";
+import { SIcon } from "./SettingsKit";
 import { TextEntry } from "./TextEntry";
 
 type Kind = "m3u" | "xtream" | "stalker" | "file";
@@ -58,13 +60,19 @@ export function SourceForm(p: {
   // A portal wants a MAG box's headers, which only the Windows app can send (desktop/stalker.cjs).
   const kinds: Kind[] = ["m3u", "xtream", ...(desktop() ? ["stalker" as const] : []), ...(canPickFile ? ["file" as const] : [])];
   const [error, setError] = useState<string | null>(null);
+  // Android 2.5.2 (e35591f, AddSourceScreen.kt fieldError): a portal's address and MAC say what is wrong right under
+  // themselves, not at the foot of the form: as soon as what was typed is wrong, or when adding found one missing.
+  const [tried, setTried] = useState(false);
   const v = values;
+  const fieldError = (id: FieldId): string | null => {
+    if (kind !== "stalker" || (!tried && v[id].trim() === "")) return null;
+    if (id === "portal") return normalizeUrl(v.portal) ? null : t("stkPortalBad");
+    if (id === "mac") return canonicalMac(v.mac) ? null : t("stkMacBad");
+    return null;
+  };
 
   const submit = () => {
-    if (kind === "stalker") {
-      if (!normalizeUrl(v.portal)) { setError(t("stkPortalBad")); return; }
-      if (!canonicalMac(v.mac)) { setError(t("stkMacBad")); return; }
-    }
+    if (kind === "stalker" && (!normalizeUrl(v.portal) || !canonicalMac(v.mac))) { setTried(true); setError(null); return; }
     if (p.busy) return;
     const link = kind === "m3u" ? normalizeUrl(v.url) : kind === "xtream" ? xtreamUrl(v.server, v.user, v.pass) : stalkerSource(v.portal, v.mac);
     if (!link) { setError(t(kind === "m3u" ? "playlistBadUrl" : kind === "xtream" ? "xtBad" : "stkPortalBad")); return; }
@@ -95,7 +103,7 @@ export function SourceForm(p: {
     <div class="source-form">
       <div class="seg" role="radiogroup" aria-label={t("srcKind")}>
         {kinds.map((k) => (
-          <button class="seg-item" key={k} data-focus={`${p.idPrefix}-kind-${k}`} aria-pressed={kind === k} onClick={() => { setKind(k); setError(null); }}>
+          <button class="seg-item" key={k} data-focus={`${p.idPrefix}-kind-${k}`} aria-pressed={kind === k} onClick={() => { setKind(k); setError(null); setTried(false); }}>
             {t(KIND_LABEL[k])}
           </button>
         ))}
@@ -103,14 +111,20 @@ export function SourceForm(p: {
       <div class="src-hint">{t(KIND_HINT[kind])}</div>
       {FIELDS_OF[kind].length > 0 ? (
         <div class="src-fields">
-          {FIELDS_OF[kind].map((id) => (
-            <button class="srow src-field" key={id} data-focus={`${p.idPrefix}-f-${id}`} onClick={() => setEditing(id)}>
-              <span class="srow-text">
-                <span class="srow-title">{t(FIELDS[id].title)}</span>
-                <span class={v[id] ? "src-value" : "srow-hint"}>{v[id] ? shown(id) : t("entEmpty")}</span>
-              </span>
-            </button>
-          ))}
+          {FIELDS_OF[kind].map((id) => {
+            const wrong = fieldError(id);
+            return (
+              <Fragment key={id}>
+                <button class="srow src-field" data-focus={`${p.idPrefix}-f-${id}`} onClick={() => setEditing(id)}>
+                  <span class="srow-text">
+                    <span class="srow-title">{t(FIELDS[id].title)}</span>
+                    <span class={v[id] ? "src-value" : "srow-hint"}>{v[id] ? shown(id) : t("entEmpty")}</span>
+                  </span>
+                </button>
+                {wrong ? <div class="src-field-error"><SIcon name="INFO" size={22} /><span>{wrong}</span></div> : null}
+              </Fragment>
+            );
+          })}
         </div>
       ) : null}
       {/* What went wrong is said right here, between the values and the button that sends them. */}

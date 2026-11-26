@@ -3,6 +3,8 @@ export * from "./ladder";
 export * from "./tracks";
 export * from "./zoom";
 export * from "./memory";
+export * from "./facts";
+export * from "./diagnose";
 export { NativeEngine } from "./engines/native";
 export { HlsJsEngine, type HlsOptions } from "./engines/hls";
 export { MpegTsEngine } from "./engines/mpegts";

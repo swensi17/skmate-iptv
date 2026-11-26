@@ -15,6 +15,7 @@ import { GroupIcon, StageIcon } from "./GroupIcon";
 import { ChannelRow } from "./ChannelRow";
 import { PreviewPane } from "./PreviewPane";
 import { SearchEntry } from "./EntryRow";
+import { SIcon } from "./SettingsKit";
 import "./home.css";
 
 /*
@@ -143,6 +144,10 @@ interface Props {
   onUpcoming?: (c: Channel, p: Programme, list: readonly Channel[]) => void;
   /** The shell's hook for the side menu (▶ / Back out of it, OK on Home beside open categories). */
   entry?: { current: LiveEntry | null };
+  /** screens 2.5.4 (Android LiveMoreMenu): adult categories; null when the lock is off, true while they are closed. */
+  adultLocked?: boolean | null;
+  /** The More menu's adult row: open them (asks the PIN) or close them again. */
+  onAdult?: () => void;
 }
 
 export function LiveView(p: Props) {
@@ -487,6 +492,12 @@ export function LiveView(p: Props) {
               <MenuItem key={x.id} id={`pick-${x.id}`} lead={<LiveDot />} text={t("homePickNow", { what: t(x.label) })}
                 onClick={() => setMenu(x.id)} />
             ))}
+            {p.adultLocked !== null && p.adultLocked !== undefined ? (
+              <MenuItem id="more-adult" lead={<SIcon name="EYE_OFF" size={28} />}
+                text={t(p.adultLocked ? "sa_live_adult_open" : "sa_live_adult_close")}
+                value={p.adultLocked ? t("sa_live_adult_open_hint") : undefined}
+                onClick={() => { setMenu(null); setTimeout(() => { focusFirst(document, menuFrom); p.onAdult?.(); }, 0); }} />
+            ) : null}
             <FocusOnOpen id="pick-sport" />
           </Menu>
         )}

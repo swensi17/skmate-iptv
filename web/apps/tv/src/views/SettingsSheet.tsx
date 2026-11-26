@@ -18,9 +18,10 @@ import { PlaylistsPanel } from "./PlaylistsPanel";
 import { ProfilesPanel } from "./ProfilesPanel";
 import { SheetCtx, SHeading, SIcon, SNote, SRow, EditorLayer, tf, type SheetApi, OverSheet } from "./SettingsKit";
 import {
-  BrowsingPage, ChNavPage, DnsPage, FontsPage, GlassPage, GuideWidthPage, HelpPage, LanguagePage, MenusPage, NotHerePage, PanelWidthPage,
+  BrowsingPage, ChNavPage, DnsPage, FontsPage, GlassPage, GuideWidthPage, LanguagePage, MenusPage, NotHerePage, PanelWidthPage,
   ProxyPage, SyncPage, TelegramPage, WeatherPage,
 } from "./SettingsPages";
+import { HelpPage } from "./HelpPages";
 import { buildRows, GROUP_ITEMS, homeGroup, type Confirmation, type RowDef } from "./SettingsRows";
 import { SyncDialog } from "./SyncDialog";
 import { UpdatePopup } from "./UpdateDialog";
@@ -43,14 +44,15 @@ const GROUPS: Array<{ id: Page; icon: string; title: Key }> = [
   { id: "picture", icon: "EXPAND", title: "sa_settings_short_picture" },
   { id: "live", icon: "LIVE_TV", title: "sa_settings_short_live" },
   { id: "watching", icon: "REC", title: "sa_settings_short_watching" },
-  { id: "app", icon: "INFO", title: "sa_settings_short_app" },
+  { id: "app", icon: "GEAR", title: "sa_settings_short_app" }, // Android 2.5.5 (40de217): the gear, not ⓘ
 ];
 const EXTRAS: Array<{ id: Page; icon: string; title: Key }> = [
   { id: "backup", icon: "DOWNLOADS", title: "sa_settings_short_backup" },
   { id: "sync", icon: "PHONE", title: "sa_settings_short_sync" },
   { id: "telegram", icon: "SEND", title: "sa_settings_short_telegram" },
-  { id: "help", icon: "INFO", title: "sa_help_title" },
-  { id: "about", icon: "INFO", title: "sa_settings_short_about" },
+  // Android 2.5.5 (40de217): «Как пользоваться» with a question mark, «О приложении» with </>.
+  { id: "help", icon: "HELP", title: "sa_help_title" },
+  { id: "about", icon: "CODE", title: "sa_settings_short_about" },
 ];
 /** A page's title where it differs from its line in the list (MoreScreen.kt InSheet titles). */
 const PAGE_TITLE: Partial<Record<Page, Key>> = {
@@ -63,6 +65,9 @@ const SUBS: Record<string, Key> = {
   tab_PANEL_WIDTH: "sa_settings_panel_width", tab_GUIDE_WIDTH: "sa_settings_guide_width", browsing_lists: "sa_settings_browsing_lists",
   tab_CONTENT_MENUS: "sa_settings_content_menus_title", tab_CUSTOMIZE: "sa_settings_customize_title", tab_SPORTS: "sa_sports_title",
   tab_LANGUAGE: "sa_settings_language", tab_TG_REMOTE: "sa_settings_tg_remote", tab_NETWORK: "sa_common_proxy", tab_DNS: "sa_settings_dns",
+  // screens 2.5.4: the recording rows (a TV browser cannot record): their page says it is only in the Android TV app.
+  rec_reserve: "sa_settings_recording_reserve", rec_watching: "sa_settings_record_watching",
+  rec_pre_roll: "sa_settings_recording_pre_roll", rec_post_roll: "sa_settings_recording_post_roll",
 };
 /** "Закреплено из раздела «…»" names the full group (SettingsGroup.titleRes). */
 const GROUP_NAME: Record<string, Key> = {
@@ -99,6 +104,8 @@ interface Props {
   onSetPin: () => void;
   onRemovePin: () => void;
   onToggleKids: () => void;
+  /** screens 2.5.4: Мой профиль › «Взрослые каналы по PIN» (off asks the PIN). */
+  onToggleAdultLock: () => void;
   onQr: (name: string, address: string) => void;
   onRedoWizard: () => void;
   update: { state: UpdateState; check: () => void; install: () => void };
@@ -292,7 +299,8 @@ export function SettingsSheet(p: Props) {
       case "quick": return quickRows();
       case "profile": return (
         <ProfilesPanel book={p.book} onSwitch={p.onSwitchProfile} onAdd={p.onAddProfile} onRename={p.onRenameProfile} onAskDelete={p.onAskDeleteProfile}
-          onSetPin={p.onSetPin} onRemovePin={p.onRemovePin} onToggleKids={p.onToggleKids} />
+          onSetPin={p.onSetPin} onRemovePin={p.onRemovePin} onToggleKids={p.onToggleKids}
+          adultLock={s.adultLock} onToggleAdultLock={p.onToggleAdultLock} />
       );
       case "backup": return <BackupPanel playlists={p.store.list.length} />;
       case "sync": return <SyncPage onDesktop={desktop() ? () => setSyncing(true) : null} />;
@@ -327,7 +335,7 @@ export function SettingsSheet(p: Props) {
           tools={page === "about" && !sub ? <span class="set-version">{__APP_VERSION__.split("-")[0]}</span> : undefined}
         >
           <div class="set-body-wrap">
-            <div class={`st-sheet-body${page === "about" || page === "help" ? " flush" : ""}`} ref={body} onFocusIn={onFocusIn as never}>
+            <div class={`st-sheet-body${page === "about" ? " flush" : ""}`} ref={body} onFocusIn={onFocusIn as never}>
               {page ? pageBody(page) : list}
             </div>
             <div class="set-slot" ref={setSlot as never} />

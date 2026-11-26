@@ -22,6 +22,9 @@ import {
 } from "./PlayerChrome";
 import { PlayerPanel, type DockRect, type Go, type PanelTab } from "./PlayerPanel";
 import { PlayerSettingRows } from "./PlayerRows";
+import { aboutText, ProgrammePoster } from "./ProgrammeArt";
+import { StreamCorner, StreamFactsLine, useStreamFacts } from "./StreamCorner";
+import { useProgrammeArt, type ArtSettings } from "../state/tmdb";
 import "./player.css";
 
 export type { Go, PanelTab };
@@ -91,6 +94,8 @@ const MIN_OFFSET_SEC = 60;
 const DIRECT_TUNE_TIMEOUT_MS = 2_000;
 const DIRECT_TUNE_FEEDBACK_MS = 1_500;
 const MAX_DIRECT_TUNE_DIGITS = 5;
+/** The share of the screen's width at each side where a pointer click opens the channel lists (POINTER_EDGE). */
+const POINTER_EDGE = 0.22;
 /** A stall longer than this gets the "reconnecting" line under the spinner. */
 const RECONNECT_NOTICE_MS = 10_000;
 
@@ -147,7 +152,7 @@ export function PlayerView(p: Props) {
   // Android "Stop retrying after": the playlist's own value, else the setting (0 = never); live only (LiveTuneController).
   const tuneSecs = (p.playlistId ? settings.tuneTimeoutPerPlaylist[p.playlistId] : undefined) ?? settings.tuneTimeout;
   const itemKey = channelKey(channel);
-  const { state, engine, paused, retry, togglePause, tracks, selectAudio, selectSubtitle } = usePlayback(video, target, {
+  const { state, engine, paused, retry, togglePause, tracks, selectAudio, selectSubtitle, reason, facts: engineFacts } = usePlayback(video, target, {
     engine: settings.engine, openTimeoutMs: settings.openTimeout * 1000, autoRestart: settings.autoRestart,
     // A recording is played like a film: Settings › films and archive buffer (0 = Auto, hls.js' own); live keeps the live delay.
     bufferSeconds: archive ? settings.vodBuffer : settings.buffer,
@@ -155,6 +160,7 @@ export function PlayerView(p: Props) {
     tuneBudgetMs: archive ? 0 : Math.max(0, tuneSecs) * 1000,
     log: settings.playbackLog,
     trackKey: itemKey,
+    explain: true,
   }, mirrors);
   // A stream hls.js could not open behind its edge plays live again rather than end on an error screen.
   useEffect(() => { if (state === "failed" && liveBehind > 0) setLiveBehind(0); }, [state, liveBehind]);
@@ -619,11 +625,22 @@ export function PlayerView(p: Props) {
 
   // ---- TV-box info (TvBoxPlayerInfo.kt) ----
   const cur = at.now;
+  // A film or a series on air: its poster in the logo's place and what it is about under the times (TMDB, 2.5.3).
+  const artSettings = useMemo<ArtSettings>(() => ({
+    metadataOn: settings.metadataOn, tmdbKey: settings.tmdbKey, tmdbLanguage: settings.tmdbLanguage, programmePosters: settings.programmePosters,
+  }), [settings.metadataOn, settings.tmdbKey, settings.tmdbLanguage, settings.programmePosters]);
+  const art = useProgrammeArt(tvLive && cur && watching < cur.stop ? cur.title : null, artSettings);
+  const about = art ? aboutText(art) : "";
+  // What the stream is (2.5.3/2.5.4): on the right of the line of what follows, refreshed every two seconds while shown.
+  const streamFacts = useStreamFacts(video, engineFacts, shown && tvLive && !inert && state === "playing", `${channel.id}|${archive?.url ?? ""}`);
   const progress = cur ? Math.max(0, Math.min(1, (watching - cur.start) / Math.max(1, cur.stop - cur.start))) : 1;
   const info = (
     <>
-      <div class="tb-row">
-        <div class="tb-logo"><ChannelLogo channel={channel} /></div>
+      <div class={`tb-row${art ? " art" : ""}`}>
+        {/* The logo gives way to the poster in a short fade (2.5.4); the poster's own picture fades in as it loads. */}
+        {art
+          ? <div class="tb-art" key={art.posterUrl}><ProgrammePoster url={art.posterUrl} width={120} /></div>
+          : <div class="tb-logo" key="logo"><ChannelLogo channel={channel} /></div>}
         <div class="tb-text">
           <div class="tb-title">{cur ? cur.title : t("tbNoGuide")}</div>
           <div class="tb-line">
@@ -633,10 +650,13 @@ export function PlayerView(p: Props) {
             <span class="tb-ch">{number ? <span class="tb-num">{number}</span> : null}{channel.name}</span>
             {chips.slice(0, 4).map((c) => <span class="tb-chip" key={c}>{c}</span>)}
           </div>
-          {at.next ? (
+          {about ? <div class="tb-about">{about}</div> : null}
+          {/* What follows on the left; on its right, level with it, what the stream is (2.5.4 nextLine). */}
+          {at.next || streamFacts ? (
             <div class="tb-line tb-next">
-              <span>{t("tbRange", { a: clock(at.next.start), b: clock(at.next.stop) })}</span>
-              <span class="tb-next-title">{at.next.title}</span>
+              {at.next ? <span>{t("tbRange", { a: clock(at.next.start), b: clock(at.next.stop) })}</span> : null}
+              <span class="tb-next-title">{at.next ? at.next.title : ""}</span>
+              {streamFacts ? <StreamFactsLine facts={streamFacts} /> : null}
             </div>
           ) : null}
         </div>
@@ -673,8 +693,23 @@ export function PlayerView(p: Props) {
   ) : null;
   const archiveLength = archive ? Math.max(duration, archive.programme.stop - archive.programme.start) : 0;
 
+  // A mouse or an air remote's pointer (af69acf): a click on the left edge opens the channel list as ◀ does, on the
+  // right edge the recently watched as ▶, anywhere else shows or hides the info. Controls on screen take their own clicks.
+  const onPointer = (e: MouseEvent) => {
+    if (inert || panel !== null) return;
+    const target = e.target as HTMLElement | null;
+    if (target?.closest("button, a, input, .tp, .tb-tiles, .ch-hud, [data-modal]")) return;
+    const box = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const x = e.clientX - box.left;
+    const edge = box.width * POINTER_EDGE;
+    if (tvLive && !failed && x < edge) { hide(); openPanel("channels"); return; }
+    if (tvLive && !failed && x > box.width - edge && p.recents.length > 0) { hide(); openPanel("history"); return; }
+    if (failed) return;
+    if (hud.current.shown) hide(); else show("info");
+  };
+
   return (
-    <div class={`player pv${p.closing ? " closing" : ""}`}>
+    <div class={`player pv${p.closing ? " closing" : ""}`} onClick={onPointer}>
       <video ref={video} class="video pv-video" style={videoStyle} autoplay playsInline />
       {coverGone ? null : <div class={`pv-cover${revealed ? " off" : ""}`} />}
 
@@ -713,6 +748,8 @@ export function PlayerView(p: Props) {
           {(out) => (
             <div class={`tb-hud${out ? " out" : ""}${step === "tiles" ? " tiles" : ""}`}>
               <div class="tb-shade" />
+              {/* Top right, as on other TV players: the clock and the date (TvBoxStreamCorner.kt). */}
+              <StreamCorner />
               <div class="tb-col">
                 {info}
                 {step === "tiles" ? (
@@ -759,7 +796,7 @@ export function PlayerView(p: Props) {
         </Presence>
       )}
 
-      {failed ? <PlayerError quiet={panel !== null} onRetry={retry} retryId="pl-retry" /> : null}
+      {failed ? <PlayerError quiet={panel !== null} onRetry={retry} retryId="pl-retry" reason={reason} /> : null}
 
       <Presence show={panel !== null}>
         {(out) => (
@@ -773,6 +810,9 @@ export function PlayerView(p: Props) {
             onGo={(to) => { hud.current.panel = null; setPanel(null); p.onGo(to); }}
             onSettings={() => { startOfPanel.current = null; hud.current.panel = null; setPanel(null); setSheet(true); }}
             onDock={setDock}
+            art={artSettings}
+            // The channel's archive under the picture (2.5.3): OK on an aired programme plays it, the panel closes.
+            onArchive={(c, prog, list) => { startOfPanel.current = null; hud.current.panel = null; setPanel(null); p.onArchiveOf?.(c, prog, list); }}
           />
         )}
       </Presence>

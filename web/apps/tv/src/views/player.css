@@ -230,10 +230,10 @@
 /* The channel column: 640 wide, 36 from the top, title 24/700 at 28 in. */
 .tp-list { position: absolute; left: 0; top: 0; bottom: 0; width: 640px; padding-top: 36px; box-sizing: border-box; }
 .tp-title { padding: 0 28px; font-size: 24px; font-weight: 700; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.tp-rows { margin-top: 14px; padding: 0 12px; }
+.tp-rows { margin-top: 14px; padding: 0; }
 .tp-rows .vlist { overflow: hidden; }
 /* A row: 92 high (4 between), padding 16, logo 72×52, focus the dark bar #3A3F45 with white text. */
-.tp-row { display: flex; align-items: center; width: 100%; height: 92px; padding: 0 16px; box-sizing: border-box; border: 0; border-radius: 4px; background: none; color: #fff; font-family: inherit; text-align: left; outline: none; cursor: pointer; }
+.tp-row { display: flex; align-items: center; width: 100%; height: 92px; padding: 0 28px; box-sizing: border-box; border: 0; border-radius: 4px; background: none; color: #fff; font-family: inherit; text-align: left; outline: none; cursor: pointer; }
 .tp-row:focus { background: #3a3f45; }
 .tp-row-logo { flex: none; width: 72px; height: 52px; display: flex; align-items: center; justify-content: center; }
 .tp-row-logo .logo { width: 100%; height: 100%; object-fit: contain; border-radius: 0; background: none; font-size: 18px; }
@@ -260,18 +260,7 @@
 .tp-head .tp-row-logo { width: 68px; height: 48px; }
 .tp-head .n { margin-left: 16px; color: rgba(255, 255, 255, .8); }
 .tp-head .t { min-width: 0; margin-left: 16px; overflow: hidden; text-overflow: ellipsis; }
-.tp-day { margin-top: 14px; }
 .tp-none { margin-top: 22px; font-size: 21px; font-weight: 500; color: rgba(255, 255, 255, .55); }
-.tp-p { display: flex; align-items: center; height: 50px; font-size: 21px; white-space: nowrap; }
-.tp-p > * + * { margin-left: 20px; }
-.tp-p-time { flex: none; font-weight: 600; color: rgba(255, 255, 255, .8); font-feature-settings: "tnum"; }
-.tp-p-title { flex: 1 1 0%; min-width: 0; font-weight: 500; overflow: hidden; text-overflow: ellipsis; }
-.tp-p.past .tp-p-time, .tp-p.past .tp-p-title { color: rgba(255, 255, 255, .55); }
-.tp-p.on .tp-p-time, .tp-p.on .tp-p-title { color: #0086fc; }
-.tp-p.on .tp-p-title { font-weight: 700; }
-.tp-p-bar { flex: none; position: relative; width: 240px; height: 6px; border-radius: 3px; background: rgba(255, 255, 255, .22); overflow: hidden; }
-.tp-p-bar i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 3px; background: #fff; }
-.tp-p-left { flex: none; font-size: 19px; font-weight: 600; color: rgba(255, 255, 255, .8); }
 
 /* The categories column: 440 at the left edge, #232629, a hairline on its right, padding 16 × 30, title 26/800. */
 .tp-cats { position: absolute; left: 0; top: 0; bottom: 0; width: 440px; padding: 30px 16px 0; box-sizing: border-box; background: #232629; box-shadow: inset -1px 0 0 rgba(0, 0, 0, .08);
@@ -333,3 +322,71 @@
 .pv-clock.plate { top: 0; border-radius: 0 0 8px 8px; }
 /* A zoom other than Fit is one static scale about the centre (set inline, never animated). */
 .pv-video { transform-origin: 50% 50%; }
+
+/* ---------- player 2.5.4 (Android): archive and poster in the panel, stream facts, the error's reason ---------- */
+
+/* af69acf: a channel with an archive says so beside its name (18, the row's faint ink). */
+.tp-row-arch { flex: none; display: flex; align-items: center; margin-left: 10px; color: rgba(255, 255, 255, .55); }
+.tp-row:focus .tp-row-arch { color: rgba(255, 255, 255, .62); }
+
+/* Under the picture: the name, the poster and the guide in one list that slides up as the guide is walked. */
+.tp-under-clip { position: relative; overflow: hidden; }
+.tp-under-plane { position: absolute; left: 0; top: 0; right: 0; transition: transform 220ms cubic-bezier(.4, 0, .2, 1); }
+.tp-under .tp-head { height: 48px; }
+.tp-under .tp-none { position: absolute; left: 0; }
+.tp-under-fade { position: absolute; left: 0; top: 0; right: 0; height: 28px; background: linear-gradient(rgba(35, 38, 41, .95), rgba(35, 38, 41, 0)); pointer-events: none; }
+/* panelProgrammeArt: 18 above; the poster (96 × 144) in a 3 ring, 16 beside it the title (22/700) and the story to its foot. */
+.tp-art { display: flex; height: 150px; padding-top: 18px; }
+.tp-art-poster { flex: none; padding: 3px; border: 0; border-radius: 13px; background: none; box-shadow: none; outline: none; cursor: pointer; }
+.tp-art-poster.foc, .tp-art-poster:focus { box-shadow: inset 0 0 0 3px #fff; }
+.tp-art-text { flex: 1 1 0%; min-width: 0; height: 150px; margin-left: 16px; display: flex; flex-direction: column; }
+.tp-art-title { flex: none; font-size: 22px; font-weight: 700; line-height: 1.3; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tp-art-about { flex: 1 1 0%; min-height: 0; margin-top: 6px; font-weight: 500; line-height: 1.3; color: rgba(255, 255, 255, .8); overflow: hidden; }
+/* scheduleLine: 50 high, 12 in, 20 between; the white bar when focused; blue on air, faint once over. */
+.tp-l { position: absolute; left: 0; right: 0; display: flex; align-items: center; height: 50px; padding: 0 12px; box-sizing: border-box; border: 0; border-radius: 4px;
+  background: none; color: #fff; font-family: inherit; font-size: 21px; text-align: left; white-space: nowrap; outline: none; cursor: pointer; }
+.tp-l > * + * { margin-left: 20px; }
+.tp-l.past { color: rgba(255, 255, 255, .55); }
+.tp-l.on { color: #0086fc; }
+.tp-l.foc, .tp-l:focus { background: #3a3f45; color: #fff; }
+.tp-l svg { flex: none; }
+.tp-l-time { flex: none; font-weight: 600; font-feature-settings: "tnum"; }
+.tp-l-title { flex: 1 1 0%; min-width: 0; font-weight: 500; overflow: hidden; text-overflow: ellipsis; }
+.tp-l.on .tp-l-title { font-weight: 700; }
+.tp-l-bar { flex: none; position: relative; width: 200px; height: 6px; border-radius: 3px; overflow: hidden; }
+.tp-l-bar::before { content: ""; position: absolute; left: 0; top: 0; right: 0; bottom: 0; background: currentColor; opacity: .22; }
+.tp-l-bar i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 3px; background: currentColor; }
+.tp-l-left { flex: none; font-size: 19px; font-weight: 600; }
+
+/* ProgrammeArtView: the poster at 2:3, rounded 10 on a faint plate, fading in as it arrives (220 ms). */
+.pa-poster { position: relative; display: block; border-radius: 10px; overflow: hidden; background: rgba(255, 255, 255, .06); }
+.pa-poster img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 220ms linear; }
+.pa-poster img.in { opacity: 1; }
+/* programmePosterViewer: 86 % of the screen high, rounded 18, over a 90 % black; a 180 ms fade and grow from .94. */
+.pa-viewer { position: absolute; left: 0; top: 0; right: 0; bottom: 0; z-index: 30; display: flex; align-items: center; justify-content: center;
+  background: rgba(0, 0, 0, .9); animation: pa-fade 180ms linear both; }
+.pa-viewer-frame { position: relative; width: 557px; height: 836px; border-radius: 18px; overflow: hidden; animation: pa-grow 180ms cubic-bezier(.4, 0, .2, 1) both; }
+.pa-viewer-frame img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; }
+.pa-viewer-frame img + img { opacity: 0; transition: opacity 180ms linear; }
+.pa-viewer-frame img + img.in { opacity: 1; }
+@keyframes pa-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes pa-grow { from { transform: scale(.94); } to { transform: none; } }
+
+/* TvBoxPlayerInfo 2.5.3: a poster (120 wide) in the logo's place, level with the title; the story under the times. */
+.tb-row.art { align-items: flex-start; }
+.tb-art { flex: none; }
+.tb-about { max-width: 1300px; margin-top: 8px; font-size: 19px; font-weight: 500; line-height: 1.3; color: rgba(255, 255, 255, .8);
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+/* 2.5.4 nextLine: what follows on the left, the stream facts on its right, level with it. */
+.tb-next .tb-next-title { flex: 1 1 0%; }
+.tb-facts { flex: none; display: flex; align-items: center; }
+.tb-facts > * + * { margin-left: 10px; }
+.tb-badge { padding: 3px 9px; border-radius: 4px; background: #1e6fd9; font-size: 20px; font-weight: 700; line-height: 1.3; color: #fff; }
+.tb-facts-text { font-size: 20px; font-weight: 500; color: rgba(255, 255, 255, .62); font-feature-settings: "tnum"; }
+/* TvBoxStreamCorner: top 32 dp, end 44 dp (58, 79 here); the clock 44/700 and the date 18/500, shadowed. */
+.tb-corner { position: absolute; top: 58px; right: 79px; text-align: right; white-space: nowrap; text-shadow: 0 0 8px rgba(0, 0, 0, .6); }
+.tb-corner-time { font-size: 44px; font-weight: 700; line-height: 1.2; color: #fff; font-feature-settings: "tnum"; }
+.tb-corner-date { margin-top: 2px; font-size: 18px; font-weight: 500; line-height: 1.3; color: rgba(255, 255, 255, .8); }
+
+/* 2.5.2: the reason under the failure, a little brighter (25/400, 92 %). */
+.pv-error-reason { margin-top: 14px; font-size: 25px; font-weight: 400; line-height: 1.4; color: rgba(255, 255, 255, .92); }

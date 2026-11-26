@@ -60,6 +60,8 @@
  *   .st-seg                segmented value: .st-seg-opt (.on = chosen, on --st-segment-on)
  *   .st-button             StageButton TV-box: grey slab radius 4, 64 high, 22/700 (.sm = 56 / 19); focus = plate
  *                          + lift 1.04. .round = square icon button. .st-button-trail = muted trailing part.
+ *   .st-pbutton            StagePopupButton (2.5.2): > .st-pbutton-in; .primary = white 86%, others text 12%; focus =
+ *                          full white + 1.06, no plate; .compact. Preact: PopupButton.
  *   .st-tool               toolbar chip (StageTool): 48 high, 18/700 muted, 20 icon; .boxed = grey slab;
  *                          .st-tool-value = the bold part in text colour
  *   .st-search             search field (StageSearchField): 48 high, grey slab, 20 icon, 18 px; lit = light plate
@@ -196,13 +198,20 @@ button.st-focusable { border: 0; font-family: var(--st-font); text-align: left; 
   background: var(--st-card-fill); color: var(--st-text); box-shadow: var(--st-card-shadow); font-family: var(--st-font);
 }
 .st-menu-layer.top-end .st-menu { position: absolute; top: 104px; right: 100px; max-height: calc(100% - 128px); }
-.st-menu-head { flex: none; display: flex; align-items: center; padding: 0 12px 12px; }
+.st-menu-head { flex: none; display: flex; align-items: center; padding: 0 12px 12px 14px; }
 .st-menu-lead { flex: none; margin-right: 14px; }
 .st-menu-text { min-width: 0; }
 .st-menu-title { font-size: 23px; font-weight: 800; color: var(--st-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .st-menu-sub { margin-top: 2px; font-size: 15px; font-weight: 500; color: var(--st-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .st-menu-list { flex: 0 1 auto; min-height: 0; overflow-x: hidden; overflow-y: auto; scrollbar-width: none; }
 .st-menu-list::-webkit-scrollbar { display: none; }
+/* Android 2.5.2 (a90e933, StageMenu + sheetBleed): the items reach past the card's 16 side padding to its edges, their text
+   30 in, on the heading's line (the heading sits 30 − 16 = 14 in). The scrolling list itself spans the card, or it would clip them. */
+.st-menu-list { margin: 0 -16px; }
+.st-menu-list > .st-menu-group { padding-left: 30px; padding-right: 30px; }
+.st-menu > .st-menu-item { width: calc(100% + 32px); margin: 0 -16px; }
+.st-menu .st-menu-item { padding: 0 30px; }
+.st-menu .st-menu-item::after { left: 30px; right: 30px; }
 .st-menu-group { padding: 12px 14px 5px; font-size: 12.5px; font-weight: 800; letter-spacing: 0.13em; color: var(--st-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* ===== Rows ===== */
@@ -252,6 +261,8 @@ label.st-field { cursor: text; }
 /* A popup row (StagePopupOption). */
 .st-option { display: flex; align-items: center; width: 100%; min-height: 84px; padding: 10px 24px; background: none; color: var(--st-text); }
 .st-option.two { min-height: 96px; }
+/* Android 2.5.2 (a90e933, StagePopupOption + sheetBleed): in a popup the row reaches past the card's 12 side padding, text 30 in. */
+.st-popup .st-option { width: calc(100% + 24px); margin: 0 -12px; padding: 10px 30px; }
 .st-option.off { opacity: 0.45; }
 .st-option-lead { flex: none; margin-right: 18px; display: flex; align-items: center; }
 .st-option-body { flex: 1 1 0%; min-width: 0; }
@@ -329,6 +340,24 @@ label.st-field { cursor: text; }
 .st-button > svg { flex: none; width: 1em; height: 1em; }
 .st-button > svg + span, .st-button > span + svg, .st-button > span + span { margin-left: 12px; }
 .st-button-trail { font-weight: 600; color: var(--st-muted); }
+
+/* StagePopupButton (Android 2.5.2, 02e40d9 + af69acf), sized in dp (1 dp = 1.8 px here): no accent, no plate — the main
+   button white (86%) with dark ink, the others text at 12%; the focused one fully white and 1.06 larger, at once (no
+   animation, as graphicsLayer on focus). TV-box corners 4. On a light page white and ink swap. */
+.st-pbutton { display: inline-flex; align-items: center; justify-content: center; flex: none; padding: 0; background: none; color: var(--st-text); }
+.st-pbutton.st-focusable:focus { background: none; }
+.st-pbutton.off { opacity: 0.45; }
+.st-pbutton-in { display: flex; align-items: center; padding: 21.6px 39.6px; border-radius: var(--st-r-focus);
+  background: rgba(241, 242, 243, 0.12); color: #f1f2f3; font-size: 19px; font-weight: 700; white-space: nowrap; }
+.st-pbutton.compact > .st-pbutton-in { padding: 10.8px 23.4px; font-size: 16px; }
+.st-pbutton-in > svg { flex: none; margin-right: 18px; }
+.st-pbutton.compact > .st-pbutton-in > svg { margin-right: 10.8px; }
+.st-pbutton-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.st-pbutton.primary > .st-pbutton-in { background: rgba(255, 255, 255, 0.86); color: #16181b; }
+.st-pbutton:focus > .st-pbutton-in { background: #ffffff; color: #16181b; transform: scale(1.06); }
+:root[data-theme="light"] .st-pbutton-in { background: rgba(18, 18, 18, 0.12); color: #121212; }
+:root[data-theme="light"] .st-pbutton.primary > .st-pbutton-in { background: rgba(22, 24, 27, 0.86); color: #ffffff; }
+:root[data-theme="light"] .st-pbutton:focus > .st-pbutton-in { background: #16181b; color: #ffffff; }
 
 /* StageTool: a quiet text button in a tool row; .boxed = the grey slab (TV-box). */
 .st-tool { display: inline-flex; align-items: center; flex: none; height: 48px; padding: 0 16px; border-radius: var(--st-r-focus); background: none;

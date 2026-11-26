@@ -75,15 +75,18 @@ type MenuFor = { channel: Channel; programme: Programme | null } | null;
 export function GuideView(p: Props) {
   const { settings, channels, favorites, status } = p;
   const { data, now } = useContext(GuideContext);
+  const syncing = status.kind === "syncing";
+  const firstGuide = status.kind === "syncing" && status.first === true;
   // A channel is a row when the guide has it at all, also when the hours in memory hold none of its programmes:
-  // rows do not come and go as the grid scrolls and days are read in.
+  // rows do not come and go as the grid scrolls and days are read in. While a first guide arrives (2.5.2), a channel
+  // already linked is a row too, with a quiet bar until its programmes are written.
   // The same rows stay the same array when a fresh guide replaces the stored one, so nothing below them moves.
   const prevRows = useRef<Channel[]>([]);
   const rows = useMemo(() => {
-    const next = channels.filter((c) => data.stored(c.id));
+    const next = channels.filter((c) => data.stored(c.id) || (firstGuide && data.links.has(c.id)));
     const prev = prevRows.current;
     return next.length === prev.length && next.every((c, i) => c === prev[i]) ? prev : next;
-  }, [channels, data]);
+  }, [channels, data, firstGuide]);
   const numberOf = useMemo(() => { const m = new Map<string, number>(); channels.forEach((c, i) => m.set(c.id, i + 1)); return m; }, [channels]);
   const numW = Math.max(38, String(channels.length).length * 11);
   const halfHour = Math.floor(now / (30 * MINUTE));
@@ -114,7 +117,8 @@ export function GuideView(p: Props) {
   const holdGuard = useRef(false);
 
   // The time a programme is shown 3/8 of the way across, as the Android guide opens: room on both sides of "now".
-  useEffect(() => { setScrollX(Math.round(Math.min(maxX, Math.max(0, pxAt(Date.now(), win.start) - (TIMELINE_W * 3) / 8)))); }, [win.start, rows.length > 0]);
+  // Set before the frame is painted (2.5.2): the grid never shows the start of its window, and that date, first.
+  useLayoutEffect(() => { setScrollX(Math.round(Math.min(maxX, Math.max(0, pxAt(Date.now(), win.start) - (TIMELINE_W * 3) / 8)))); }, [win.start, rows.length > 0]);
   // Other rows (a fresh guide has more or fewer channels): the focus stays on the channel it was on, at the same
   // height on the screen, before anything is painted; a playlist with fewer rows keeps it on one that exists.
   useLayoutEffect(() => {
@@ -140,7 +144,6 @@ export function GuideView(p: Props) {
     const frame = requestAnimationFrame(() => { timer = window.setTimeout(() => setReady(true), 0); });
     return () => { cancelAnimationFrame(frame); clearTimeout(timer); };
   }, []);
-  const syncing = status.kind === "syncing";
   const grid = ready && rows.length > 0;
   // The stored guide is read in a moment after the start: until then (and while a first download runs) a spinner.
   const loading = !grid && (!ready || syncing || status.kind === "restoring");
@@ -392,6 +395,7 @@ export function GuideView(p: Props) {
                 return (
                   <Strip
                     key={c.id} index={i} channel={c} list={data.of(c.id)} ws={win.start} we={win.end} now={now} scrollX={scrollX}
+                    reading={!data.stored(c.id)}
                     lit={sel && lit} cursor={sel && cellMode ? cursor : -1} tick={tick}
                     reminded={stable.reminded} onCell={stable.onCell}
                   />
@@ -466,6 +470,8 @@ function Ruler({ start, end, now, scrollX }: { start: number; end: number; now: 
 
 interface StripProps {
   index: number; channel: Channel; list: readonly Programme[]; ws: number; we: number; now: number; scrollX: number;
+  /** The row's programmes are still being read (a first guide arriving): a quiet bar where they go. */
+  reading?: boolean;
   /** Row stage on this row: the light bar, dark text. */
   lit: boolean;
   /** The cursor, only on the focused row in cell stage (−1 elsewhere, so a cursor move repaints one row). */
@@ -476,7 +482,7 @@ interface StripProps {
 }
 
 /** One channel's programmes as TV-box cells (`ProgrammeStripCanvas`, TvBoxNav branch). */
-const Strip = memo(function Strip({ index, channel, list, ws, we, now, scrollX, lit, cursor, reminded, onCell }: StripProps) {
+const Strip = memo(function Strip({ index, channel, list, ws, we, now, scrollX, lit, cursor, reminded, onCell, reading }: StripProps) {
   const cells = cellsIn(list, ws, we, scrollX - OVERSCAN_X, scrollX + TIMELINE_W + OVERSCAN_X);
   const top = index * ROW_STEP;
   const focusOn = cursor >= 0 ? programmeAt(list, cursor) : null;
@@ -488,6 +494,15 @@ const Strip = memo(function Strip({ index, channel, list, ws, we, now, scrollX, 
     if (x1 > x0) gap = [x0, x1];
   }
   const inView = cells.some((c) => c.x + c.w > scrollX && c.x < scrollX + TIMELINE_W);
+  // While the row is read, a quiet bar where its programmes go, so the grid never opens on empty rows (2.5.2).
+  if (reading && list.length === 0) {
+    return (
+      <div class={`gd-row${lit ? " lit" : ""}`} style={{ top: `${top}px` }}>
+        {lit ? <div class="gd-bar" style={{ left: `${scrollX}px`, width: `${TIMELINE_W}px` }} /> : null}
+        <div class="gd-skel" style={{ left: `${scrollX}px`, width: `${TIMELINE_W}px` }} />
+      </div>
+    );
+  }
   return (
     <div class={`gd-row${lit ? " lit" : ""}`} style={{ top: `${top}px` }}>
       {lit ? <div class="gd-bar" style={{ left: `${scrollX}px`, width: `${TIMELINE_W}px` }} /> : null}

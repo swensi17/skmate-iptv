@@ -1,7 +1,7 @@
 import { useEffect } from "preact/hooks";
 import type { Channel, Reminder } from "@skmate/core";
 import type { Programme } from "@skmate/epg";
-import { Button, focusFirst, Icon, Popup } from "@skmate/ui";
+import { Button, focusFirst, Icon, Popup, PopupButton } from "@skmate/ui";
 import { t } from "../i18n";
 import { clock } from "../time";
 
@@ -24,11 +24,13 @@ export function ProgrammeDialog(p: {
       eyebrow={t("remindStartsAt", { channel: p.channel.name, time: clock(p.programme.start) })} title={p.programme.title}
       buttons={(
         <>
-          <Button small id="pd-close" text={t("remindClose")} onClick={p.onClose} />
-          <Button small id="pd-watch" icon="live_tv" text={t("remindWatchChannel")} onClick={p.onWatch} />
+          {/* StagePopupButton (2.5.2), as the guide programme popup (GuideCore.kt): "Watch channel" the main one, with
+              the play mark; the rest grey. */}
+          <PopupButton primary={false} id="pd-close" text={t("remindClose")} onClick={p.onClose} />
+          <PopupButton id="pd-watch" icon="play" text={t("remindWatchChannel")} onClick={p.onWatch} />
           {p.reminded
-            ? <Button small id="pd-remind" text={t("remindCancel")} onClick={p.onCancelRemind} />
-            : <Button small id="pd-remind" icon="bell" text={t("remind")} onClick={p.onRemind} />}
+            ? <PopupButton primary={false} id="pd-remind" text={t("remindCancel")} onClick={p.onCancelRemind} />
+            : <PopupButton primary={false} id="pd-remind" icon="bell" text={t("remind")} onClick={p.onRemind} />}
         </>
       )}
     />

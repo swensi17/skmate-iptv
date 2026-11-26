@@ -1,6 +1,10 @@
-import { useContext, useEffect, useRef, useState } from "preact/hooks";
+import type { ComponentChildren } from "preact";
+import { useContext, useEffect, useLayoutEffect, useRef, useState } from "preact/hooks";
 import type { Programme } from "@skmate/epg";
-import { archiveUrl, type Channel } from "@skmate/core";
+import { archiveUrl, hasArchive, type Channel } from "@skmate/core";
+import { Icon } from "@skmate/ui";
+import type { ProgrammeArt } from "../state/tmdb";
+import { aboutText, ProgrammePoster } from "./ProgrammeArt";
 import { t } from "../i18n";
 import { GuideContext } from "../state/GuideContext";
 import { capitalize } from "../text";
@@ -88,50 +92,124 @@ export function Schedule({ channel, onWatch, onArchive, onUpcoming }: {
   );
 }
 
-/**
- * The block under the docked picture in the player's channel panel (TvBoxChannelPanel.kt:248-304): the focused
- * channel (logo, number, name) and its day — the programme before, the one on air, then what comes — at most 14 rows
- * of 50. It only shows: OK in the panel watches the channel. It follows the focus once it rests (120 ms for the
- * header, 250 ms for the day), so a held key does not lay out every row it passes.
- */
-export function PanelSchedule({ channel, number, now }: { channel: Channel | null; number: number | null; now: number }) {
-  const { data } = useContext(GuideContext);
-  const [head, setHead] = useState<{ c: Channel; n: number | null } | null>(channel ? { c: channel, n: number } : null);
-  const [day, setDay] = useState<Channel | null>(channel);
-  useEffect(() => {
-    if (!channel) return;
-    const a = setTimeout(() => setHead({ c: channel, n: number }), head ? 120 : 0);
-    const b = setTimeout(() => setDay(channel), 250);
-    return () => { clearTimeout(a); clearTimeout(b); };
-  }, [channel?.id]);
-  if (!head) return null;
-  const items = day ? data.of(day.id) : [];
+/* ---------- The guide under the docked picture (TvBoxChannelPanel.kt 2.5.3–2.5.4) ---------- */
+
+/** One line of the guide under the picture; [archive] is set on an aired programme that can be watched again. */
+export interface ScheduleLine { start: number; stop: number; title: string; archive: Programme | null }
+
+/** The archive's aired programmes kept (Android AIRED_LINES: the provider's whole depth, as far as the guide holds it). */
+const AIRED_LINES = 3000;
+/** What comes after what is on: a day of a channel of short programmes. */
+const AHEAD_LINES = 48;
+
+/** The archive's aired programmes, then what is on and what comes, in time order (scheduleLines). */
+export function scheduleLines(channel: Channel, items: readonly Programme[], now: number): ScheduleLine[] {
   const at = items.findIndex((x) => x.stop > now);
-  const from = at < 0 ? -1 : Math.max(0, at - 1);
-  const shown = from < 0 || day?.id !== head.c.id ? [] : items.slice(from, from + 14);
+  const entries = at < 0 ? [] : items.slice(Math.max(0, at - 1), at + AHEAD_LINES);
+  const aired = items.filter((x) => x.stop <= now && hasArchive(channel, x.start, x.stop, now)).slice(-AIRED_LINES)
+    .map((x): ScheduleLine => ({ start: x.start, stop: x.stop, title: x.title, archive: x }));
+  const rest = entries.filter((x) => aired.length === 0 || x.stop > now).map((x): ScheduleLine => ({ start: x.start, stop: x.stop, title: x.title, archive: null }));
+  const seen = new Set<number>();
+  return aired.concat(rest).filter((l) => (seen.has(l.start) ? false : (seen.add(l.start), true))).sort((a, b) => a.start - b.start);
+}
+
+/** Heights of the pieces of the block (mpx): the name row, the poster row (18 above, 144 + the 3 ring each side), the gap, a line. */
+export const UNDER_HEAD = 48;
+export const UNDER_ART = 18 + 144 + 6;
+export const UNDER_GAP = 12;
+export const UNDER_LINE = 50;
+
+/** Where [line] (counted from the first shown) starts in the block. */
+export const lineTop = (art: boolean, line: number) => UNDER_HEAD + (art ? UNDER_ART : 0) + UNDER_GAP + line * UNDER_LINE;
+
+/**
+ * Android showFrom(rowsFrom + i - 1): a focused line goes to the top with one line above it (the gap above the first),
+ * the name and the poster sliding away; never past the list's end. The poster brings the list back to the top.
+ */
+export function scrollFor(art: boolean, line: number | null, shownLines: number, viewH: number): number {
+  if (line === null) return 0;
+  const target = line === 0 ? lineTop(art, 0) - UNDER_GAP : lineTop(art, line - 1);
+  const content = lineTop(art, shownLines);
+  return Math.max(0, Math.min(target, content - viewH));
+}
+
+/** What a programme is about, as large as fills the room beside the poster (fittedAbout): 24 down to 18 mpx. */
+function FittedAbout({ text }: { text: string }) {
+  const box = useRef<HTMLDivElement>(null);
+  const [size, setSize] = useState(18);
+  useLayoutEffect(() => {
+    const el = box.current;
+    if (!el) return;
+    // A very short text keeps the usual size, where growing it would only look odd.
+    if (text.length < 60) { setSize(18); return; }
+    for (let sp = 24; sp >= 18; sp--) {
+      el.style.fontSize = `${sp}px`;
+      if (el.scrollHeight <= el.clientHeight || sp === 18) { setSize(sp); break; }
+    }
+  }, [text]);
+  return <div class="tp-art-about" ref={box} style={{ fontSize: `${size}px` }}>{text}</div>;
+}
+
+/**
+ * The block under the docked picture: the focused channel (logo, number, name), the poster and the story of a film
+ * or series on air, and its guide as lines: the archive's aired programmes (the rewind mark, OK plays one from the
+ * start), what is on (the bar and the minutes left; OK watches) and what comes. It only draws: the panel owns the keys
+ * and says which piece is focused ([at]: the poster, or a line's index in [lines]).
+ */
+export function PanelGuide(p: {
+  channel: Channel; number: number | null; now: number; lines: readonly ScheduleLine[] | null; first: number;
+  art: ProgrammeArt | null; at: "poster" | number | null; viewH: number;
+  /** The line the list was last scrolled for (it stays so while focus is back in the channels); null: the top. */
+  view: number | null;
+  onLine: (i: number) => void; onPoster: () => void;
+}) {
+  const { channel, now, lines, first, art } = p;
+  const shownLines = lines ? Math.max(0, lines.length - first) : 0;
+  const line = typeof p.at === "number" ? p.at - first : null;
+  const scroll = scrollFor(!!art, p.view !== null ? Math.max(0, p.view - first) : null, shownLines, p.viewH);
+  // Only the lines in view and a little past the focused one exist: a week of archive is never laid out at once.
+  const last = Math.min(lines ? lines.length : 0, first + Math.max(18, (line ?? 0) + 14));
+  const rows: ComponentChildren[] = [];
+  for (let i = first; lines && i < last; i++) {
+    const l = lines[i] as ScheduleLine;
+    const on = l.start <= now && now < l.stop;
+    const past = l.stop <= now;
+    rows.push(
+      <button
+        key={l.start} type="button" tabIndex={-1} data-ug={i} class={`tp-l${on ? " on" : past ? " past" : ""}${p.at === i ? " foc" : ""}`}
+        style={{ top: `${lineTop(!!art, i - first)}px` }} onClick={() => p.onLine(i)}
+      >
+        <span class="tp-l-time">{t("tbRange", { a: clock(l.start), b: clock(l.stop) })}</span>
+        {l.archive ? <Icon name="rewind" size={18} /> : null}
+        <span class="tp-l-title">{l.title}</span>
+        {on ? <span class="tp-l-bar"><i style={{ width: `${Math.round(Math.min(1, Math.max(0, (now - l.start) / Math.max(1, l.stop - l.start))) * 100)}%` }} /></span> : null}
+        {on ? <span class="tp-l-left">{t("tbTimeLeft", { t: t("tbMinutes", { n: Math.max(0, Math.floor((l.stop - now) / 60_000)) }) })}</span> : null}
+      </button>,
+    );
+  }
   return (
-    <>
-      <div class="tp-head">
-        <span class="tp-row-logo"><ChannelLogo channel={head.c} /></span>
-        {head.n !== null ? <span class="n">{head.n}</span> : null}
-        <span class="t">{head.c.name}</span>
-      </div>
-      {day?.id === head.c.id && shown.length === 0 ? <div class="tp-none">{t("tbNoGuideShort")}</div> : (
-        <div class="tp-day">
-          {shown.map((x) => {
-            const on = x.start <= now && now < x.stop;
-            const past = x.stop <= now;
-            return (
-              <div class={`tp-p${on ? " on" : past ? " past" : ""}`} key={x.start}>
-                <span class="tp-p-time">{t("tbRange", { a: clock(x.start), b: clock(x.stop) })}</span>
-                <span class="tp-p-title">{x.title}</span>
-                {on ? <span class="tp-p-bar"><i style={{ width: `${Math.round(Math.min(1, (now - x.start) / Math.max(1, x.stop - x.start)) * 100)}%` }} /></span> : null}
-                {on ? <span class="tp-p-left">{t("tbTimeLeft", { t: t("tbMinutes", { n: Math.max(0, Math.floor((x.stop - now) / 60_000)) }) })}</span> : null}
-              </div>
-            );
-          })}
+    <div class="tp-under-clip" style={{ height: `${p.viewH}px` }}>
+      <div class="tp-under-plane" style={{ transform: `translate3d(0,${-scroll}px,0)` }}>
+        <div class="tp-head">
+          <span class="tp-row-logo"><ChannelLogo channel={channel} /></span>
+          {p.number !== null ? <span class="n">{p.number}</span> : null}
+          <span class="t">{channel.name}</span>
         </div>
-      )}
-    </>
+        {art ? (
+          <div class="tp-art">
+            <button type="button" tabIndex={-1} data-ug="poster" class={`tp-art-poster${p.at === "poster" ? " foc" : ""}`} onClick={p.onPoster}>
+              <ProgrammePoster url={art.posterUrl} width={96} />
+            </button>
+            <div class="tp-art-text">
+              <div class="tp-art-title">{art.title}</div>
+              {aboutText(art) ? <FittedAbout text={aboutText(art)} /> : null}
+            </div>
+          </div>
+        ) : null}
+        {lines !== null && lines.length === 0 ? <div class="tp-none" style={{ top: `${UNDER_HEAD + (art ? UNDER_ART : 0)}px` }}>{t("tbNoGuideShort")}</div> : rows}
+      </div>
+      {/* A soft edge where the list slides under the picture, instead of a hard cut. */}
+      {scroll > 0 ? <div class="tp-under-fade" /> : null}
+    </div>
   );
 }

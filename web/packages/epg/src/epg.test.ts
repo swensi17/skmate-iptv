@@ -149,6 +149,16 @@ describe("syncGuides", () => {
     expect(GuideData.restore(data.serialize(now)).logoOf("1")).toBe("http://img/1.png");
   });
 
+  it("says when channels are linked, before their programmes are in (a first guide fills in, 2.5.2)", async () => {
+    const seen: Array<[number, number]> = [];
+    const { data } = await syncGuides({
+      sources: [source], channels, now, open: async () => new Response(body),
+      onLinked: (sofar) => { seen.push([sofar.linked, sofar.programmeCount]); },
+    });
+    expect(seen).toEqual([[2, 0]]);
+    expect(data.programmeCount).toBeGreaterThan(0);
+  });
+
   it("reports a failing source and goes on to the next", async () => {
     const { data, outcomes } = await syncGuides({
       sources: [source, { ...source, id: "2", url: "http://guide/b.xml" }], channels, now,

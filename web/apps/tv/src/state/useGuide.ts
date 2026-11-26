@@ -10,8 +10,11 @@ import { scoped } from "./scope";
 import type { PlaylistEntry } from "./playlists";
 import type { Settings } from "./settings";
 
-/** "restoring": the stored guide is being read (a moment); "syncing": a new one downloads, the old one stays shown. */
-export type GuideStatus = { kind: "idle" } | { kind: "restoring" } | { kind: "syncing"; text: string };
+/**
+ * "restoring": the stored guide is being read (a moment); "syncing": a new one downloads, the old one stays shown.
+ * [first]: there was no guide before (a new playlist): it fills in as it downloads (2.5.2).
+ */
+export type GuideStatus = { kind: "idle" } | { kind: "restoring" } | { kind: "syncing"; text: string; first?: boolean };
 
 /** The playlist's guide key, per profile: the localStorage copy, and the name it is kept under in IndexedDB. */
 const legacyKey = (playlistId: string) => scoped(`skmate.epg.${playlistId}`);
@@ -22,6 +25,8 @@ const FIRST_AHEAD_MS = 3_600_000;
 const MEMORY_DAYS = 2;
 /** Descriptions of what is on soon are refreshed every quarter of an hour. */
 const NEAR_EVERY_MS = 15 * MINUTE;
+/** While a first guide arrives, how often what is written so far is shown (Android LiveViewModel GUIDE_PROGRESS_MS). */
+const GUIDE_PROGRESS_MS = 8_000;
 
 /** IndexedDB, opened once for the app; the in-memory stand-in where there is none. */
 let kvOnce: Promise<GuideKv> | null = null;
@@ -64,6 +69,9 @@ export function useGuide(channels: Channel[], active: PlaylistEntry | null, head
   const view = useRef<[number, number] | null>(null);
   const nearAt = useRef(0);
   const opts = useRef({ shift: settings.epgOffsetMin, days: settings.guideDays });
+  /** How many channels the guide on screen links: none means a first guide is what downloads (2.5.2). */
+  const linkedNow = useRef(0);
+  linkedNow.current = data.linked;
   opts.current = { shift: settings.epgOffsetMin, days: settings.guideDays };
 
   const sources = useMemo<EpgSource[]>(() => {
@@ -106,16 +114,21 @@ export function useGuide(channels: Channel[], active: PlaylistEntry | null, head
     }, 0);
   });
 
-  /** Makes [m] the guide on screen: the hours ahead first, then the rest of the base window. */
-  const adopt = async (kv: GuideKv, pid: string, m: GuideMeta): Promise<void> => {
+  /**
+   * Makes [m] the guide on screen: the hours ahead first, then the rest of the base window. [light]: a first guide
+   * still arriving, shown every few seconds: only the hours around now are read (the grid asks for the rest).
+   */
+  const adopt = async (kv: GuideKv, pid: string, m: GuideMeta, light = false): Promise<void> => {
     cache.current?.close();
     const c = new GuideCache(kv, legacyKey(pid), m, opts.current.shift, opts.current.days);
+    const at = view.current;
     cache.current = c;
     meta.current = m;
-    view.current = null;
+    view.current = light ? at : null;
     nearAt.current = 0;
     await reload.current(c, true);
     mark("skmate:guide-cached");
+    if (light) { if (at) { view.current = null; need.current(at[0], at[1]); } return; }
     await reload.current(c);
   };
 
@@ -191,8 +204,12 @@ export function useGuide(channels: Channel[], active: PlaylistEntry | null, head
     if (running.current || !active || channels.length === 0 || sources.length === 0) return;
     running.current = true;
     const pid = active.id;
-    setStatus({ kind: "syncing", text: t("guideLoading") });
+    // Nothing stored yet (a new playlist): the guide fills in on screen as it downloads (2.5.2).
+    const first = meta.current === null && cache.current === null && linkedNow.current === 0;
+    setStatus({ kind: "syncing", text: t("guideLoading"), first });
     let writer: GuideWriter | null = null;
+    let progress: ReturnType<typeof setInterval> | undefined;
+    let inflight: Promise<void> = Promise.resolve();
     try {
       const kv = kvRef.current ?? (await guideKv());
       kvRef.current = kv;
@@ -211,9 +228,31 @@ export function useGuide(channels: Channel[], active: PlaylistEntry | null, head
           meta.current = null; // a draft: the stored guide is still missing until the commit
         },
         onProgress: (source, stage) => {
-          if (stage !== "done") setStatus({ kind: "syncing", text: t(stage === "download" ? "guideStageDownload" : "guideStageMatch", { source: source.name }) });
+          if (stage !== "done") setStatus({ kind: "syncing", first, text: t(stage === "download" ? "guideStageDownload" : "guideStageMatch", { source: source.name }) });
+        },
+        // A first guide: its rows at once (a quiet bar each), then every few seconds what has been written so far,
+        // so channels fill in as their programmes arrive instead of all at the end (LiveViewModel 2.5.2).
+        onLinked: async (sofar) => {
+          if (!first || progress !== undefined) return;
+          let busy = false;
+          const show = async () => {
+            const w = writer;
+            if (busy || !w || meta.current !== null || activeId.current !== pid) return;
+            busy = true;
+            try {
+              await w.flush();
+              await adopt(kv, pid, w.draft(sofar.links, sofar.logos, at, days), true);
+              meta.current = null; // a draft: the stored guide is still missing until the commit
+            } catch { /* the next look, or the commit, shows it */ } finally { busy = false; }
+          };
+          progress = setInterval(() => { inflight = show(); }, GUIDE_PROGRESS_MS);
+          inflight = show();
+          await inflight;
         },
       });
+      clearInterval(progress);
+      progress = undefined;
+      await inflight; // a look still reading must not undo the commit below
       setOutcomes(result.outcomes);
       // A refresh that found nothing must not wipe a guide that worked: the old one stays then.
       if (result.data.linked === 0) { await writer.abort(); return; }
@@ -234,6 +273,7 @@ export function useGuide(channels: Channel[], active: PlaylistEntry | null, head
     } catch {
       if (writer) await writer.abort().catch(() => undefined);
     } finally {
+      clearInterval(progress);
       running.current = false;
       setStatus({ kind: "idle" });
     }

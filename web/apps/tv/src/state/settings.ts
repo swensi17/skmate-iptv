@@ -163,6 +163,17 @@ export interface Settings {
   dnsServer: string;
   /** Detailed playback log (stored). */
   playbackLog: boolean;
+  /** screens 2.5.4 (Android SettingsRepository adultLockEnabled): 18+ groups closed behind the profile's PIN on every profile. */
+  adultLock: boolean;
+  /** screens 2.5.4 (Android programmePosters): a film's TMDB poster in the channel logo's place (Эфир и буфер › Постеры фильмов). */
+  programmePosters: boolean;
+  /**
+   * player 2.5.4 (Android MetadataConfig, Settings › categories › metadata): TMDB on, the viewer's own key ("" = SkMate's,
+   * put in at build time from VITE_SKMATE_TMDB_KEY), and the language TMDB answers in ("" = the app's).
+   */
+  metadataOn: boolean;
+  tmdbKey: string;
+  tmdbLanguage: string;
 }
 
 const KEY = "skmate.settings.v1";
@@ -187,6 +198,8 @@ export const DEFAULTS: Settings = {
   liveLatency: "balanced", liveCustomSec: 8, latencyPerPlaylist: {}, tuneTimeout: 30, tuneTimeoutPerPlaylist: {}, vodBuffer: 0,
   miniSize: 25, miniPos: "br", startup: "home", startupChannel: "", startupChannelName: "",
   clockTimeColor: "", clockDateColor: "", clockWeatherColor: "", proxyOn: true, dnsOn: false, dnsServer: "", playbackLog: false,
+  adultLock: true, programmePosters: true,
+  metadataOn: true, tmdbKey: "", tmdbLanguage: "",
 };
 
 /** Android UI zoom: 50–150 % in steps of 5 (C/theme/UiZoom.kt). */

@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import type { Channel } from "@skmate/core";
 import {
-  audioToSelect, defaultEngines, itemPrefs, PlayerLadder, subtitleAction, SUBTITLES_OFF,
-  type EnginePreference, type TrackOption, type TrackSource,
+  audioToSelect, classifyFailure, defaultEngines, itemPrefs, PlayerLadder, probeFailure, subtitleAction, SUBTITLES_OFF,
+  type EngineFacts, type EnginePreference, type FailureReason, type PlayerEngine, type TrackOption, type TrackSource,
 } from "@skmate/player";
 
 export type PlayState = "loading" | "playing" | "failed";
@@ -35,6 +35,11 @@ export interface PlaybackOptions {
   log?: boolean;
   /** The item whose audio / subtitle choice is remembered (a channel, a film, a whole series); absent: none. */
   trackKey?: string;
+  /**
+   * The error screen names the reason (2.5.2): after giving up, one short request to the address asks it, when the
+   * engines did not say. Only the screens that show a reason ask (the player, a film); a preview or a tile does not.
+   */
+  explain?: boolean;
 }
 
 export interface Tracks { audio: TrackOption[]; subs: TrackOption[] }
@@ -82,6 +87,10 @@ export function usePlayback(
   /** The running tune's deadline: set when a channel (or Retry) starts one, null once a picture came or with no budget. */
   const tune = useRef<{ url: string; deadline: number | null } | null>(null);
   const trackSource = useRef<TrackSource | null>(null);
+  /** The engine that plays now: what it knows of the stream goes to the info (Android StreamFacts). */
+  const playingEngine = useRef<PlayerEngine | null>(null);
+  /** Why the channel did not open, once known (Android ErrorInfo.reason, 2.5.2): the engines' words, else a probe. */
+  const [reason, setReason] = useState<FailureReason | null>(null);
   const keyRef = useRef(o.trackKey);
   keyRef.current = o.trackKey;
 
@@ -92,7 +101,7 @@ export function usePlayback(
     // Why an engine gave up goes to the console: the one line that tells a codec problem from a dead stream.
     const ladder = new PlayerLadder(
       defaultEngines({ preference: o.engine, hlsFirst: hlsFirstHere(), bufferSeconds: o.bufferSeconds, liveBehindSeconds: o.liveBehindSeconds, ...(o.maxHeight ? { maxHeight: o.maxHeight } : {}) }),
-      { onFail: (f) => console.warn(`[player] ${f.message}`), onTry: (id) => log(`'${source0.name}' trying ${id}`) },
+      { onFail: (f) => { if (f.reason !== "timeout") said.push(f.message); console.warn(`[player] ${f.message}`); }, onTry: (id) => log(`'${source0.name}' trying ${id}`) },
       { openTimeoutMs: o.openTimeoutMs },
     );
     let alive = true;
@@ -100,8 +109,25 @@ export function usePlayback(
     setEngine(null);
     setPaused(false);
     setTracks(NO_TRACKS);
+    setReason(null);
     trackSource.current = null;
-
+    playingEngine.current = null;
+    // What each engine said when it gave up; the last words that name a reason are the error screen's. The ladder's
+    // own open timeout is not one: it says the picture did not come in time, not that the network failed.
+    const said: string[] = [];
+    // The player gave up: the reason from what the engines said, else one short request to the address.
+    const explain = () => {
+      const known = said.map(classifyFailure).filter((r): r is FailureReason => r !== null).pop() ?? null;
+      if (known) { setReason(known); return; }
+      if (!o.explain) return;
+      if (typeof navigator !== "undefined" && navigator.onLine === false) return; // the screen says "no internet" already
+      const url = source0.url;
+      void probeFailure(url).then((r) => {
+        log(`probe after give-up: ${r.raw || "nothing"}`);
+        if (!alive && gaveUpOn === url && r.reason) setReason(r.reason);
+      });
+    };
+    let gaveUpOn: string | null = null;
     // A new channel (or Retry) is a fresh tune with the whole budget; a copy or a restart of it keeps what is left.
     if (!tune.current || tune.current.url !== channel.url) {
       tune.current = { url: channel.url, deadline: o.tuneBudgetMs && o.tuneBudgetMs > 0 ? Date.now() + o.tuneBudgetMs : null };
@@ -117,6 +143,8 @@ export function usePlayback(
       ladder.stop();
       releaseVideo(el);
       setState("failed");
+      gaveUpOn = source0.url;
+      explain();
     };
     const armAlarm = () => {
       const at = tune.current?.deadline;
@@ -152,8 +180,8 @@ export function usePlayback(
         const subs = src.subtitles();
         if (!recall.audioDone && audio.length > 0) {
           recall.audioDone = true;
-          const pick = audioToSelect(audio, prefs?.audio);
-          if (pick) { log(`audio: remembered '${prefs?.audio}' → track ${pick.id}`); src.selectAudio(pick.id); }
+          const pick = audioToSelect(audio, prefs?.audio, prefs?.audioName);
+          if (pick) { log(`audio: remembered '${prefs?.audio ?? prefs?.audioName}' → track ${pick.id}`); src.selectAudio(pick.id); }
         }
         if (!recall.subDone && subs.length > 0) {
           recall.subDone = true;
@@ -176,6 +204,7 @@ export function usePlayback(
           if (!alive) return;
           log(`'${source0.name}' opened on ${e.id}`);
           setEngine(e.id); setState("playing"); clearTimeout(stall); standDown();
+          playingEngine.current = e;
           const src = e.tracks?.() ?? null;
           if (src) attach(src);
         },
@@ -184,7 +213,7 @@ export function usePlayback(
           clearTimeout(stall);
           if (outOfTime()) { giveUp(`no picture within ${Math.round((o.tuneBudgetMs ?? 0) / 1000)}s of tuning`); return; }
           if (hop < mirrors.length) { log(`'${channel.name}' trying copy ${hop + 1} of ${mirrors.length}`); setHop(hop + 1); } // the next copy, not an error screen yet
-          else { log(`'${channel.name}' — no engine left`); setState("failed"); }
+          else { log(`'${channel.name}' — no engine left`); alive = false; gaveUpOn = source0.url; setState("failed"); explain(); }
         },
       );
     }, ZAP_SETTLE_MS);
@@ -196,6 +225,8 @@ export function usePlayback(
       clearTimeout(alarm);
       unwatch?.();
       trackSource.current = null;
+      playingEngine.current = null;
+      gaveUpOn = null;
       el.removeEventListener("waiting", onWaiting);
       el.removeEventListener("playing", onPlaying);
       ladder.stop();
@@ -216,12 +247,14 @@ export function usePlayback(
   // A pick in the dialog: applied now, and remembered for this item by its language (Android rememberAudioLang).
   const selectAudio = useCallback((t: TrackOption) => {
     trackSource.current?.selectAudio(t.id);
-    if (keyRef.current) itemPrefs.rememberAudio(keyRef.current, t.lang);
+    if (keyRef.current) itemPrefs.rememberAudio(keyRef.current, t.lang, t.label);
   }, []);
   const selectSubtitle = useCallback((t: TrackOption | null) => {
     trackSource.current?.selectSubtitle(t ? t.id : null);
     if (keyRef.current) itemPrefs.rememberSubtitle(keyRef.current, t ? t.lang : SUBTITLES_OFF);
   }, []);
 
-  return { state, engine, paused, retry, togglePause, via: hop > 0 ? source0 : null, tracks, selectAudio, selectSubtitle };
+  const facts = useCallback((): EngineFacts | null => playingEngine.current?.facts?.() ?? null, []);
+
+  return { state, engine, paused, retry, togglePause, via: hop > 0 ? source0 : null, tracks, selectAudio, selectSubtitle, reason, facts };
 }

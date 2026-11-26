@@ -37,6 +37,11 @@ export interface SyncOptions {
   sink?: GuideSink;
   /** After each source that linked channels: what is linked so far (a first guide can be shown before the rest). */
   onSource?: (data: GuideData) => void | Promise<void>;
+  /**
+   * As soon as a source's channels are linked, before its programmes are read: the links so far (the same object,
+   * filled further as later sources link more). A first guide shows its rows from here, filling in as it downloads.
+   */
+  onLinked?: (data: GuideData) => void | Promise<void>;
 }
 
 /** Takes programmes while a guide is read, and writes them away whenever [full] says enough has gathered. */
@@ -116,6 +121,7 @@ export async function syncGuides(o: SyncOptions): Promise<{ data: GuideData; out
         wanted = found;
         for (const [id, p] of pending) accept(id, p);
         pending.length = 0;
+        if (outcome.linked > 0) await o.onLinked?.(data);
       };
 
       const scanner = new XmltvScanner({

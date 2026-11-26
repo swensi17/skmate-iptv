@@ -1,3 +1,4 @@
+import type { EngineFacts } from "./facts";
 import type { TrackSource } from "./tracks";
 
 /** What a player engine must offer; the ladder and the UI know nothing beyond this. */
@@ -18,6 +19,8 @@ export interface PlayerEngine {
   stop(): void;
   /** The audio and subtitle tracks of what plays, once [start] resolved; absent where the engine has no say. */
   tracks?(): TrackSource | null;
+  /** What the engine knows of the stream (codec, sound, declared frame rate), for the info's facts; absent: nothing. */
+  facts?(): EngineFacts | null;
 }
 
 export class PlayFailure extends Error {

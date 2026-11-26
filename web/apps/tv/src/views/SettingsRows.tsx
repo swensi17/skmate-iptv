@@ -362,6 +362,9 @@ export function buildRows(c: RowsCtx, close: () => void): Record<string, RowDef>
   add({ key: "vp_channel_numbers", icon: "LIVE_TV", title: t("sa_settings_channel_numbers"), line: t("sa_settings_line_channel_numbers"), end: sw(s.showNumbers), ok: () => set({ showNumbers: !s.showNumbers }) });
   add({ key: "vp_live_preview", icon: "LIVE_TV", title: t("sa_settings_quick_live_preview"), line: t("sa_settings_line_live_preview"), end: sw(s.preview), ok: () => preview(!s.preview) });
   add({ key: "vp_preview_audio", icon: "AUDIO", title: t("sa_settings_preview_audio"), line: t("sa_settings_line_preview_sound"), end: sw(s.previewAudio), ok: () => set({ previewAudio: !s.previewAudio }), hidden: !s.preview });
+  // screens 2.5.4 (Android VideoPlayerSettingsScreen vp_programme_posters): a film's poster from TMDB in the logo's place.
+  add({ key: "vp_programme_posters", icon: "IMAGE", title: t("sa_settings_programme_posters"), line: t("sa_settings_programme_posters_description"),
+    end: sw(s.programmePosters), ok: () => set({ programmePosters: !s.programmePosters }) });
 
   // ---- Мультиэкран
   const tiles = (n: number) => {
@@ -378,6 +381,12 @@ export function buildRows(c: RowsCtx, close: () => void): Record<string, RowDef>
   // Mini player: only where one exists (the browser's picture-in-picture; a Samsung or LG TV has none, so the row is not shown).
   const miniHere = typeof document !== "undefined" && (document as unknown as { pictureInPictureEnabled?: boolean }).pictureInPictureEnabled === true;
   add({ key: "vp_mini", icon: "PIP", title: t("sa_settings_mini_player_root"), line: t("sa_settings_line_mini"), hidden: !miniHere, editor: () => <MiniEditor s={s} set={set} close={close} /> });
+
+  // ---- Запись (screens 2.5.4, RecordingSettingsScreen.kt): Android's rows and words; no value is shown, as none applies here.
+  add({ key: "rec_reserve", icon: "LIVE_TV", title: t("sa_settings_recording_reserve"), line: t("sa_settings_recording_reserve_description"), pin: false });
+  add({ key: "rec_watching", icon: "PLAY", title: t("sa_settings_record_watching"), line: t("sa_settings_record_watching_description"), pin: false });
+  add({ key: "rec_pre_roll", icon: "HISTORY", title: t("sa_settings_recording_pre_roll"), line: t("sa_settings_recording_pre_roll_description"), pin: false });
+  add({ key: "rec_post_roll", icon: "HISTORY", title: t("sa_settings_recording_post_roll"), line: t("sa_settings_recording_post_roll_description"), pin: false });
 
   // ---- Общие настройки
   add({ key: "tab_SPORTS", icon: "SPORTS", title: t("sa_sports_title"), line: t("sa_sports_leagues") });
@@ -396,7 +405,7 @@ export function buildRows(c: RowsCtx, close: () => void): Record<string, RowDef>
   add({ key: "tab_TG_REMOTE", icon: "SEND", title: t("sa_settings_tg_remote"), line: t("sa_settings_tg_remote_description") });
   add({ key: "tab_NETWORK", icon: "NETWORK", title: t("sa_common_proxy"), line: s.proxyOn && s.proxy ? hostOf(s.proxy) : t("sa_common_off") });
   add({ key: "tab_DNS", icon: "DNS", title: t("sa_settings_dns"), line: s.dnsOn ? (s.dnsServer ? hostOf(s.dnsServer) : t("sa_common_on")) : t("sa_common_off") });
-  add({ key: "vp_logging", icon: "INFO", title: t("sa_settings_detailed_playback_logging"), line: t("sa_settings_line_logging"), end: sw(s.playbackLog), ok: () => set({ playbackLog: !s.playbackLog }) });
+  add({ key: "vp_logging", icon: "CODE", title: t("sa_settings_detailed_playback_logging"), line: t("sa_settings_line_logging"), end: sw(s.playbackLog), ok: () => set({ playbackLog: !s.playbackLog }) });
 
   const out: Record<string, RowDef> = {};
   for (const r of list) out[r.key] = r;
@@ -553,9 +562,12 @@ export const GROUP_ITEMS: Record<string, Item[]> = {
     "clock_size", "clock_weight", "clock_bg", "clock_color", "clock_alpha"],
   picture: [{ h: "sa_settings_vp_cat_picture", first: true }, "vp_zoom", "vp_reset_zoom", { h: "sa_settings_vp_cat_frame_rate" }, "vp_afr", "vp_afr_pause", "vp_afr_resolution"],
   live: [{ h: "sa_settings_vp_cat_live_tuning", first: true }, "vp_live_latency", "vp_latency_sources", "vp_tune_timeout", "vp_tune_timeout_sources",
-    { h: "sa_settings_vp_cat_streaming" }, "vp_vod_buffer", { h: "sa_settings_live_tv" }, "vp_channel_numbers", "vp_live_preview", "vp_preview_audio"],
+    { h: "sa_settings_vp_cat_streaming" }, "vp_vod_buffer", { h: "sa_settings_live_tv" }, "vp_channel_numbers", "vp_live_preview", "vp_preview_audio", "vp_programme_posters"],
   // The Resume part has no rows left, so its heading is gone and this one is drawn as a second heading (26 above).
-  watching: [{ h: "sa_settings_vp_cat_multiview" }, "vp_multiview", "vp_multiview_tiles", "vp_mini"],
+  watching: [{ h: "sa_settings_vp_cat_multiview" }, "vp_multiview", "vp_multiview_tiles", "vp_mini",
+    // screens 2.5.4 (Android a8ce6c4 RecordingSettingsRows): the recording rows after the watching ones. A TV browser cannot
+    // record a stream, so each opens the page that says it is only in the Android TV app.
+    { h: "sa_recording_settings_group" }, "rec_reserve", "rec_watching", "rec_pre_roll", "rec_post_roll"],
   app: [{ h: "sa_settings_app_group", first: true }, "tab_SPORTS", "tab_LANGUAGE", "app_startup", "check_updates", "update_startup", "update_auto",
     "update_every", "update_window", "tab_TG_REMOTE", { h: "sa_settings_group_network" }, "tab_NETWORK", "tab_DNS", "vp_logging"],
 };

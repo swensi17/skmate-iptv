@@ -188,22 +188,23 @@ button.hp-sched-item:focus, button.hp-sched-item:focus > b { color: #121212; }
 .hp-skel.none i { background: rgba(241, 242, 243, 0.06); }
 .hp-noguide { font-size: 22px; font-weight: 700; color: var(--st-muted); }
 
-/* --- The categories (LiveStage.kt LiveCategories, sheet, TV-box): 405 wide, full height, the page's grey --- */
-.home-cats { position: absolute; left: 0; top: 0; bottom: 0; z-index: 3; width: 405px; display: flex; flex-direction: column; padding: 30px 16px;
+/* --- The categories (LiveStage.kt LiveCategories, sheet, TV-box): 405 wide, full height, the page's grey. Android 2.5.2
+   (a90e933): the rows span the strip from edge to edge, their text 30 in as the settings rows; the search keeps 28 each side. --- */
+.home-cats { position: absolute; left: 0; top: 0; bottom: 0; z-index: 3; width: 405px; display: flex; flex-direction: column; padding: 30px 0;
   background: var(--st-page); box-shadow: inset -1px 0 0 rgba(0, 0, 0, 0.08); will-change: transform;
   animation: home-cats-in 280ms var(--st-ease) both; }
 :root[data-theme="light"] .home-cats { background: #eff2f5; }
 .home-cats.out { animation: home-cats-out 240ms var(--st-ease) both; }
 @keyframes home-cats-in { from { transform: translateX(-100%); } to { transform: none; } }
 @keyframes home-cats-out { from { transform: none; } to { transform: translateX(-100%); } }
-.home-cats-title { flex: none; padding: 0 14px 16px; font-size: 26px; font-weight: 800; color: var(--st-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.home-cats-list { flex: 1 1 0%; min-height: 0; padding: 4px 4px 8px; overflow-x: hidden; overflow-y: auto; scrollbar-width: none; }
+.home-cats-title { flex: none; padding: 0 14px 16px 30px; font-size: 26px; font-weight: 800; color: var(--st-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.home-cats-list { flex: 1 1 0%; min-height: 0; padding: 4px 0 8px; overflow-x: hidden; overflow-y: auto; scrollbar-width: none; }
 .home-cats-list::-webkit-scrollbar { display: none; }
-.home-cats-search { padding: 0 8px 14px; }
+.home-cats-search { padding: 0 28px 14px; }
 .home-cats-search .search-entry { width: 100%; }
 .home-cats-search .search-box { height: 54px; padding: 0 16px; }
-.home-cats-head { padding: 14px 16px 6px; font-size: 13px; font-weight: 800; letter-spacing: 0.12em; color: var(--st-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-button.home-cat { position: relative; display: flex; align-items: center; width: 100%; min-height: 56px; padding: 8px 16px; border: 0; background: none;
+.home-cats-head { padding: 14px 16px 6px 30px; font-size: 13px; font-weight: 800; letter-spacing: 0.12em; color: var(--st-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+button.home-cat { position: relative; display: flex; align-items: center; width: 100%; min-height: 56px; padding: 8px 30px; border: 0; background: none;
   font: 600 20px var(--st-font); color: var(--st-item); text-align: left; cursor: pointer; }
 button.home-cat::after { content: ""; position: absolute; left: 16px; right: 16px; bottom: 0; height: 1px; background: rgba(0, 0, 0, 0.07); pointer-events: none; }
 button.home-cat > .st-icon { flex: none; margin-right: 14px; color: var(--st-muted); }

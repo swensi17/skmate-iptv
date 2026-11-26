@@ -1,5 +1,6 @@
 import type Mpegts from "mpegts.js";
 import { PlayFailure, type PlayerEngine, type Source } from "../engine";
+import type { EngineFacts } from "../facts";
 import { elementTracks, type TrackSource } from "../tracks";
 
 /**
@@ -27,7 +28,9 @@ export class MpegTsEngine implements PlayerEngine {
         { enableWorker: true, liveBufferLatencyChasing: true, lazyLoad: false },
       );
       this.player = player;
-      player.on(lib.Events.ERROR, (type: string, detail: string) => reject(new PlayFailure(this.id, "error", `${type}/${detail}`)));
+      // An HTTP status of the request goes with the failure ("http error 404"): it names the reason on the error screen.
+      player.on(lib.Events.ERROR, (type: string, detail: string, info?: { code?: number }) =>
+        reject(new PlayFailure(this.id, "error", `${type}/${detail}${info?.code && info.code >= 100 ? ` http error ${info.code}` : ""}`)));
       video.addEventListener("playing", () => resolve(), { once: true });
       player.attachMediaElement(video);
       player.load();
@@ -38,6 +41,13 @@ export class MpegTsEngine implements PlayerEngine {
   /** mpegts.js plays the stream's first audio; whatever the element itself reports is offered. */
   tracks(): TrackSource | null {
     return this.video ? elementTracks(this.video) : null;
+  }
+
+  /** What mpegts.js read from the stream: the video codec, the frame rate it declares, the sound's channels. */
+  facts(): EngineFacts | null {
+    const info = (this.player as unknown as { mediaInfo?: { videoCodec?: string; fps?: number; audioChannelCount?: number } } | null)?.mediaInfo;
+    if (!info) return null;
+    return { codec: info.videoCodec ?? null, fps: info.fps && info.fps > 0 ? info.fps : null, channels: info.audioChannelCount ?? null };
   }
 
   stop(): void {
