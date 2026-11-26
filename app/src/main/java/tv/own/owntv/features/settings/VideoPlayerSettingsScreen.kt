@@ -241,7 +241,7 @@ internal val VIDEO_QUICK_ROWS: List<VideoQuickRef> = listOf(
     VideoQuickRef("vp_resume", SECTION_RESUME, OwnTVIcon.PLAY, R.string.settings_resume_playback, R.string.settings_resume_playback_description),
     VideoQuickRef("vp_autoplay", SECTION_RESUME, OwnTVIcon.AUTOPLAY_NEXT, R.string.settings_autoplay_next, R.string.settings_autoplay_next_description),
     VideoQuickRef("vp_measured_stats", SECTION_DIAGNOSTICS, OwnTVIcon.VIDEO, R.string.settings_measured_stats, R.string.settings_measured_stats_description),
-    VideoQuickRef("vp_logging", SECTION_DIAGNOSTICS, OwnTVIcon.INFO, R.string.settings_detailed_playback_logging, R.string.settings_detailed_playback_logging_description),
+    VideoQuickRef("vp_logging", SECTION_DIAGNOSTICS, OwnTVIcon.CODE, R.string.settings_detailed_playback_logging, R.string.settings_detailed_playback_logging_description),
     // No row, so nothing to find or pin, on a TV whose decoders cannot tunnel.
 ).filter { it.key !in RemovedVideoRows && (it.key != "vp_tunneled" || tv.own.owntv.player.Tunneling.supported) }
 
@@ -1424,7 +1424,7 @@ internal fun VideoPlayerGroupRows(
         )
         KeyedSettingRow(
             quickKey = "vp_logging",
-            icon = OwnTVIcon.INFO,
+            icon = OwnTVIcon.CODE,
             title = stringResource(R.string.settings_detailed_playback_logging),
             desc = stringResource(R.string.settings_detailed_playback_logging_description),
             value = SettingValue.Switch(detailedDiagnostics),

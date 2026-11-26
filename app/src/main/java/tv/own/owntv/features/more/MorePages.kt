@@ -223,7 +223,7 @@ private val SettingsCards = listOf(
         OwnTVIcon.LIVE_TV, R.string.settings_live_tv, R.string.settings_card_live, 12, R.string.settings_short_live,
     ),
     SettingsGroupCard(OwnTVIcon.REC, R.string.settings_group_watching_recording, R.string.settings_card_watching, 11, R.string.settings_short_watching),
-    SettingsGroupCard(OwnTVIcon.INFO, R.string.settings_group_app, R.string.settings_card_app, 10, R.string.settings_short_app),
+    SettingsGroupCard(OwnTVIcon.GEAR, R.string.settings_group_app, R.string.settings_card_app, 10, R.string.settings_short_app),
 )
 
 /** Where the group list was scrolled when a group opened over it. */

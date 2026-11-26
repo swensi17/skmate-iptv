@@ -215,7 +215,7 @@ private fun MainRows(vm: SportsSettingsViewModel, c: SportsConfig, shown: Boolea
     val last = rebuiltAt?.let { at -> (dayOf(at, locale) ?: stringResource(R.string.content_epg_today)) + sep + timeText(at) }
     Row(OwnTVIcon.REFRESH, stringResource(R.string.sports_refresh_data_now),
         if (rebuilding) stringResource(R.string.sports_rebuilding) else last?.let { stringResource(R.string.sports_last_updated, it) }, null) { if (!rebuilding) vm.rebuild() }
-    Row(OwnTVIcon.INFO, stringResource(R.string.sports_about), stringResource(R.string.sports_about_summary), SettingValue.Opens(null)) { open(SportsSettingsPage.ABOUT) }
+    Row(OwnTVIcon.SPORTS, stringResource(R.string.sports_about), stringResource(R.string.sports_about_summary), SettingValue.Opens(null)) { open(SportsSettingsPage.ABOUT) }
 }
 
 /** "My teams", "Followed leagues", both, or Off — what Goal alerts covers on this profile. */

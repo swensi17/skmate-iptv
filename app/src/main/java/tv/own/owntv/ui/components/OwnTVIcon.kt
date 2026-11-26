@@ -52,6 +52,12 @@ enum class OwnTVIcon {
     EQ,
     // The Sports Hub's trophy (rail, Settings → Sports).
     SPORTS,
+
+    // "How to use": a question in a circle, so the guide is not one more ⓘ among the settings.
+    HELP,
+
+    // About the app and the logs: </>, what the app is made of, in place of the ⓘ the settings had everywhere.
+    CODE,
 }
 
 /** Parsed once: [StageGlyphPaths] in 24-unit coordinates. */

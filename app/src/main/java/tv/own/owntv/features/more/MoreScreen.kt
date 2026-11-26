@@ -212,7 +212,7 @@ fun MoreScreen(
             )
             item(MoreItem.LOCAL_SYNC, OwnTVIcon.PHONE, stringResource(R.string.local_sync_title), stringResource(if (sync.listening) R.string.common_on else R.string.common_off), false)
             GroupLabel(stringResource(R.string.settings_app_group))
-            item(MoreItem.ABOUT, OwnTVIcon.INFO, stringResource(R.string.settings_about), BuildConfig.VERSION_NAME, false)
+            item(MoreItem.ABOUT, OwnTVIcon.CODE, stringResource(R.string.settings_about), BuildConfig.VERSION_NAME, false)
             // Maintainer-only; DEV_TOOLS is a compile-time constant, so R8 removes it from published APKs.
             if (BuildConfig.DEV_TOOLS) item(MoreItem.DEVELOPER, OwnTVIcon.GEAR, "Developer", "DEV", false)
             Spacer(Modifier.weight(1f))
@@ -252,8 +252,8 @@ fun MoreScreen(
                         SettingsExtra(OwnTVIcon.PHONE, stringResource(R.string.settings_short_sync)) { choose(MoreItem.LOCAL_SYNC) },
                         SettingsExtra(OwnTVIcon.SEND, stringResource(R.string.settings_short_telegram)) { choose(MoreItem.TELEGRAM) },
                         // The guide first among these: it is what someone new is looking for.
-                        SettingsExtra(OwnTVIcon.INFO, stringResource(R.string.help_title)) { choose(MoreItem.HELP) },
-                        SettingsExtra(OwnTVIcon.INFO, stringResource(R.string.settings_short_about)) { choose(MoreItem.ABOUT) },
+                        SettingsExtra(OwnTVIcon.HELP, stringResource(R.string.help_title)) { choose(MoreItem.HELP) },
+                        SettingsExtra(OwnTVIcon.CODE, stringResource(R.string.settings_short_about)) { choose(MoreItem.ABOUT) },
                         SettingsExtra(OwnTVIcon.PERSON, stringResource(R.string.more_profile_switch), onClick = onSwitchProfile),
                     ),
                     onOpenGroup = { onOpenSettings(it, false) },

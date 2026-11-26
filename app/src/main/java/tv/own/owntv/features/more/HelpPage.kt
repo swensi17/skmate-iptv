@@ -75,7 +75,7 @@ private val HelpTopics = listOf(
             HelpItem(OwnTVIcon.LIVE_TV, R.string.help_q2, R.string.help_a2),
             HelpItem(OwnTVIcon.FAVORITE, R.string.help_q3, R.string.help_a3),
             HelpItem(OwnTVIcon.IMAGE, R.string.help_q13, R.string.help_a13),
-            HelpItem(OwnTVIcon.INFO, R.string.help_q16, R.string.help_a16),
+            HelpItem(OwnTVIcon.VIDEO, R.string.help_q16, R.string.help_a16),
             HelpItem(OwnTVIcon.MOTION, R.string.help_q15, R.string.help_a15),
             HelpItem(OwnTVIcon.PERSON, R.string.help_q17, R.string.help_a17),
             HelpItem(OwnTVIcon.LIST_GRID, R.string.help_q18, R.string.help_a18),
@@ -101,7 +101,7 @@ private val HelpTopics = listOf(
         R.string.help_section_archive,
         listOf(
             HelpItem(OwnTVIcon.REWIND, R.string.help_q4, R.string.help_a4),
-            HelpItem(OwnTVIcon.VIDEO, R.string.help_q5, R.string.help_a5),
+            HelpItem(OwnTVIcon.REC, R.string.help_q5, R.string.help_a5),
             HelpItem(OwnTVIcon.PAUSE, R.string.help_q24, R.string.help_a24),
         ),
     ),
@@ -210,7 +210,7 @@ private fun helpCard(icon: OwnTVIcon, topic: String, question: String, answer: S
                 // Every window keeps one layout: the sketch column on the left (only where it says something:
                 // the path to press, or the remote's keys), the text in an even column on the right, from the
                 // same top line. On a small screen the text takes the whole width.
-                val sketch = answerParts.path.size >= 2 || answerParts.keys.isNotEmpty() || icon == OwnTVIcon.INFO
+                val sketch = answerParts.path.size >= 2 || answerParts.keys.isNotEmpty() || icon == OwnTVIcon.VIDEO
                 Row(
                     Modifier.weight(1f, fill = false).heightIn(min = BODY_MIN.mpx),
                     horizontalArrangement = Arrangement.spacedBy(36.mpx),
