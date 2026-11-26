@@ -1,9 +1,11 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "preact/hooks";
+import { useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "preact/hooks";
 import { groupsOf, type Channel } from "@skmate/core";
+import type { Programme } from "@skmate/epg";
 import { Drawer, focusFirst, Icon, VirtualList, type IconName } from "@skmate/ui";
 import { t, type Key } from "../i18n";
 import { channelKey } from "../state/favorites";
 import type { Settings } from "../state/settings";
+import { UiContext } from "../state/UiContext";
 import { capitalize } from "../text";
 import { ChannelRow } from "./ChannelRow";
 import { GroupIcon } from "./GroupIcon";
@@ -39,9 +41,11 @@ interface Props {
   onChangeSettings: (s: Settings) => void;
   /** Leave the player for a place of the app. */
   onGo: (to: Go) => void;
+  /** OK on a past programme in the day column (one with a recording). */
+  onArchive: (c: Channel, p: Programme, list: readonly Channel[]) => void;
+  /** OK on a programme still to come in the day column. */
+  onUpcoming: (c: Channel, p: Programme, list: readonly Channel[]) => void;
 }
-
-const ROW = 84;
 
 /**
  * Where the viewer was in the channel panel: the category and the channel under the cursor. Reopening the panel (or coming
@@ -83,6 +87,8 @@ export function PlayerPanel(p: Props) {
   const [group, setGroupState] = useState<string | null>(memory.group);
   const setGroup = (g: string | null) => { memory.group = g; memory.channel = null; setGroupState(g); };
   // The lists focus their own current row; the menu and the settings page start at their first row.
+  // Rows as tall as the "Row size" setting draws them (the CSS takes the same value), so they never overlap or part.
+  const ROW = useContext(UiContext).rowH;
   useEffect(() => { if (p.tab === "menu") focusFirst(document, "pm-home"); else if (p.tab === "settings") focusFirst(document, "s-engine"); }, [p.tab]);
   const groups = useMemo(() => groupsOf(p.catalog), [p.catalog]);
   const favs = useMemo(() => p.catalog.filter((c) => p.favorites.has(channelKey(c))), [p.catalog, p.favorites]);
@@ -101,7 +107,12 @@ export function PlayerPanel(p: Props) {
   const showGroups = p.tab === "groups" || p.tab === "menu";
   const showMenu = p.tab === "menu";
   const current = p.channels[p.index] ?? null;
+  // Right, then OK: back to the channel watched before this one (the list starts with the one on screen once it has
+  // been on for a moment), as the "previous channel" key of a set-top box.
+  const recentStart = Math.max(0, p.recents.findIndex((c) => c.id !== current?.id));
   const [looking, setLooking] = useState<Channel | null>(null);
+  /** Into the day column beside the list ("Programme" in a channel's menu, or Right): the programme on air first. */
+  const focusDay = () => (document.querySelector<HTMLElement>(".tm-sched .sc-now") ?? document.querySelector<HTMLElement>(".tm-sched .sc-row[data-focus]"))?.focus();
   // The day column narrows while the categories and the menu are open, so a strip of the picture always stays in view.
   const width = !wide ? 980 : showMenu ? 1660 : showGroups ? 1560 : 1320;
   const listing = p.tab === "channels";
@@ -156,22 +167,24 @@ export function PlayerPanel(p: Props) {
           <div class="tm-list">
             <div class="tm-head">{group === null || group === "~all" ? t("allChannelsShort") : group === "~fav" ? t("favorites") : capitalize(group)}</div>
             <VirtualList
-              key={`channels|${group}|${listing}`} items={list} rowHeight={ROW} height={Math.floor(PANEL_ROOM / ROW) * ROW} pageSize={9} autofocus={listing}
+              key={`channels|${group}|${listing}|${ROW}`} items={list} rowHeight={ROW} height={Math.floor(PANEL_ROOM / ROW) * ROW} pageSize={9} autofocus={listing}
               initialIndex={memoryIndex(list, group, p.index)}
               idOf={(c) => `pc-${c.id}`}
               renderRow={(c, i) => (
                 <ChannelRow channel={c} index={i} favorite={p.favorites.has(channelKey(c))} playing={c.id === current?.id}
-                  onOpen={() => p.onPick(c, list)} onFav={p.onFav} onFocus={(ch) => { memory.channel = ch.id; setLooking(ch); }} />
+                  onOpen={() => p.onPick(c, list)} onFav={p.onFav} onFocus={(ch) => { memory.channel = ch.id; setLooking(ch); }}
+                  onSchedule={(ch) => { setLooking(ch); setTimeout(focusDay, 30); }} />
               )}
             />
           </div>
-          <Schedule channel={looking ?? current ?? list[0] ?? null} />
+          <Schedule channel={looking ?? current ?? list[0] ?? null}
+            onWatch={(c) => p.onPick(c, list)} onArchive={(c, x) => p.onArchive(c, x, list)} onUpcoming={(c, x) => p.onUpcoming(c, x, list)} />
         </div>
       ) : null}
       {p.tab === "favorites" ? (
         favs.length === 0 ? <div class="list-head">{t("favoritesEmpty")}</div> : (
           <VirtualList
-            key="favorites" items={favs} rowHeight={ROW} height={LIST_H} pageSize={9} autofocus
+            key={`favorites|${ROW}`} items={favs} rowHeight={ROW} height={Math.floor(LIST_H / ROW) * ROW} pageSize={9} autofocus
             idOf={(c) => `pf-${c.id}`}
             renderRow={(c, i) => (
               <ChannelRow channel={c} index={i} favorite onOpen={() => p.onPick(c, favs)} onFav={p.onFav} />
@@ -182,7 +195,8 @@ export function PlayerPanel(p: Props) {
       {p.tab === "recent" ? (
         p.recents.length === 0 ? <div class="list-head">{t("recentEmpty")}</div> : (
           <VirtualList
-            key="recent" items={p.recents} rowHeight={ROW} height={LIST_H} pageSize={9} autofocus
+            key={`recent|${ROW}`} items={p.recents} rowHeight={ROW} height={Math.floor(LIST_H / ROW) * ROW} pageSize={9} autofocus
+            initialIndex={recentStart}
             idOf={(c) => `pr2-${c.id}`}
             renderRow={(c, i) => (
               <ChannelRow channel={c} index={i} favorite={p.favorites.has(channelKey(c))} onOpen={() => p.onPick(c, p.recents)} onFav={p.onFav} />

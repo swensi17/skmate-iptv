@@ -3,7 +3,9 @@ import preact from "@preact/preset-vite";
 import legacy from "@vitejs/plugin-legacy";
 import type { Plugin } from "vite";
 import { Readable } from "node:stream";
-import { readFileSync } from "node:fs";
+import { readFileSync, statSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { createRequire } from "node:module";
 
 const pkg = JSON.parse(readFileSync(new URL("./package.json", import.meta.url), "utf8")) as { version: string };
 
@@ -45,6 +47,35 @@ function devProxy(): Plugin {
 
 const BUILD = Date.now();
 
+const here = (p: string) => fileURLToPath(new URL(p, import.meta.url));
+
+/**
+ * The CSS side of the old TV browsers (webOS 4 = Chromium 53, Tizen 4 = 56, Tizen 5 = 63): flex `gap`, `inset`,
+ * `:has()` and a few more get fallbacks (see postcss/legacy-tv.cjs). The plugin reads every stylesheet of the app, so
+ * the layout of a box is known even when its `display`, direction and `gap` come from different rules and files.
+ * It is loaded with require (the config bundler would inline the CommonJS file and break its own require calls), and
+ * loaded again when the file changes: the dev server uses the edited plugin for the next stylesheet it transforms.
+ */
+const nodeRequire = createRequire(import.meta.url);
+const legacyCssFile = nodeRequire.resolve("./postcss/legacy-tv.cjs");
+const legacyCssOptions = {
+  dirs: [here("./src"), here("../../packages/ui/src")],
+  first: ["packages/ui/src/tokens.css", "packages/ui/src/ui.css", "apps/tv/src/app.css"],
+};
+let legacyCssLoaded: { mtime: number; plugin: { Once: (...args: unknown[]) => unknown } } | null = null;
+const legacyCssPlugin = {
+  postcssPlugin: "skmate-legacy-tv",
+  Once(...args: unknown[]) {
+    const mtime = statSync(legacyCssFile).mtimeMs;
+    if (!legacyCssLoaded || legacyCssLoaded.mtime !== mtime) {
+      delete nodeRequire.cache[legacyCssFile];
+      const create = nodeRequire(legacyCssFile) as (o: typeof legacyCssOptions) => { Once: (...a: unknown[]) => unknown };
+      legacyCssLoaded = { mtime, plugin: create(legacyCssOptions) };
+    }
+    return legacyCssLoaded.plugin.Once(...args);
+  },
+};
+
 /** Next to the app, `version.json` says which build is deployed: a running app compares it with its own to find an update. */
 function versionFile(): Plugin {
   return {
@@ -64,6 +95,9 @@ export default defineConfig({
   resolve: { dedupe: ["preact"] },
   define: { __APP_VERSION__: JSON.stringify(pkg.version), __APP_BUILD__: String(BUILD) },
   plugins: [devProxy(), versionFile(), preact(), legacy({ targets: ["chrome >= 53", "safari >= 10"] })],
-  build: { target: "es2017", sourcemap: false },
+  css: { postcss: { plugins: [legacyCssPlugin] } },
+  // esbuild minifies the CSS for the oldest engine too: it must not fold the fallbacks back (top/right/bottom/left
+  // into `inset`, for one).
+  build: { target: "es2017", cssTarget: "chrome53", sourcemap: false },
   server: { port: 5173, host: true },
 });

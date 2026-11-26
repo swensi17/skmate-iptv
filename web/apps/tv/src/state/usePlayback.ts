@@ -30,6 +30,20 @@ function hlsFirstHere(): boolean {
   return false; // not measured to be faster yet (a provider that is slow to start hides the difference), so the TV order stays
 }
 
+/**
+ * Gives the element's decoder back at once. A TV has one hardware video decoder: a <video> that still holds a stream
+ * (an engine that was still opening is not stopped by the ladder until it gives up, and an element taken off the page
+ * keeps its stream until it is collected) leaves the next player's <video> without a picture ("native: timeout").
+ * Called whenever a stream is left: another channel, the screen closing (preview, player, multiview tile, film).
+ */
+export function releaseVideo(el: HTMLVideoElement): void {
+  try {
+    el.pause();
+    el.removeAttribute("src");
+    el.load();
+  } catch { /* already empty */ }
+}
+
 export function usePlayback(
   video: { current: HTMLVideoElement | null },
   channel: Channel,
@@ -95,6 +109,7 @@ export function usePlayback(
       el.removeEventListener("waiting", onWaiting);
       el.removeEventListener("playing", onPlaying);
       ladder.stop();
+      releaseVideo(el);
     };
   }, [source0.url, attempt, o.engine, o.bufferSeconds, o.openTimeoutMs, o.autoRestart, o.liveBehindSeconds, o.maxHeight]);
 

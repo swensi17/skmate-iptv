@@ -1,3 +1,5 @@
+import { focusWithoutScroll } from "./legacy";
+
 /**
  * The mouse and a Magic Remote point instead of pressing arrows: hovering a control focuses it (the same
  * highlight the D-pad gives), so one look serves both. Only a real movement counts: a layout change under
@@ -16,7 +18,7 @@ export function installPointer(): () => void {
     const modals = document.querySelectorAll("[data-modal]");
     const modal = modals.length > 0 ? modals[modals.length - 1] : null;
     if (modal && !modal.contains(target)) return; // a dialog keeps the pointer inside it, as it keeps the remote
-    target.focus({ preventScroll: true });
+    focusWithoutScroll(target); // focus({ preventScroll }) is Chromium 64+: older TVs would scroll the list
   };
   document.addEventListener("mousemove", onMove, { passive: true });
   return () => document.removeEventListener("mousemove", onMove);

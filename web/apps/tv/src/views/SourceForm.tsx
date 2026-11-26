@@ -1,12 +1,12 @@
 import { useRef, useState } from "preact/hooks";
-import { focusFirst, Icon, Presence } from "@skmate/ui";
+import { focusFirst, Presence } from "@skmate/ui";
 import { detectPlatform } from "../platform";
 import { t, type Key } from "../i18n";
 import { desktop } from "../state/desktop";
 import { canonicalMac, normalizeUrl, stalkerSource, xtreamUrl } from "../state/playlists";
 import { TextEntry } from "./TextEntry";
 
-type Kind = "m3u" | "xtream" | "stalker";
+type Kind = "m3u" | "xtream" | "stalker" | "file";
 type FieldId = "url" | "server" | "user" | "pass" | "portal" | "mac";
 
 /** What each field asks for: its name on the row, the example in the entry panel, and whether it is a secret. */
@@ -19,11 +19,15 @@ const FIELDS: Record<FieldId, { title: Key; hint: Key; secret?: boolean }> = {
   mac: { title: "stkMac", hint: "stkMacHint" },
 };
 
-const FIELDS_OF: Record<Kind, FieldId[]> = { m3u: ["url"], xtream: ["server", "user", "pass"], stalker: ["portal", "mac"] };
+const FIELDS_OF: Record<Kind, FieldId[]> = { m3u: ["url"], xtream: ["server", "user", "pass"], stalker: ["portal", "mac"], file: [] };
+/** The kinds as the viewer reads them, and one line under them on what to have at hand. */
+const KIND_LABEL: Record<Kind, Key> = { m3u: "srcM3u", xtream: "srcXtream", stalker: "stkKind", file: "plKindFile" };
+const KIND_HINT: Record<Kind, Key> = { m3u: "plKindHintM3u", xtream: "plKindHintXtream", stalker: "plKindHintStalker", file: "plKindHintFile" };
 
 /**
  * Where a playlist comes from, as in the Android app: an M3U / M3U8 link, or an Xtream Codes login (server, login,
- * password) that becomes the provider's own M3U link, or (in the Windows app) a Stalker portal and its MAC address.
+ * password) that becomes the provider's own M3U link, or (in the Windows app) a Stalker portal and its MAC address, or
+ * (where a file dialog exists) a file of this device. One line under the kinds says what to have at hand.
  * Each value is a row that says what it is and what is filled in; OK on a row opens a panel to type it (TextEntry),
  * so a remote never lands in a bare text box. [onSubmit] gets the link and says what was wrong, if anything.
  */
@@ -52,7 +56,7 @@ export function SourceForm(p: {
   const [values, setValues] = useState<Record<FieldId, string>>({ url: "", server: "", user: "", pass: "", portal: "", mac: "" });
   const [editing, setEditing] = useState<FieldId | null>(null);
   // A portal wants a MAG box's headers, which only the Windows app can send (desktop/stalker.cjs).
-  const kinds: Kind[] = desktop() ? ["m3u", "xtream", "stalker"] : ["m3u", "xtream"];
+  const kinds: Kind[] = ["m3u", "xtream", ...(desktop() ? ["stalker" as const] : []), ...(canPickFile ? ["file" as const] : [])];
   const [error, setError] = useState<string | null>(null);
   const v = values;
 
@@ -64,6 +68,7 @@ export function SourceForm(p: {
     if (p.busy) return;
     const link = kind === "m3u" ? normalizeUrl(v.url) : kind === "xtream" ? xtreamUrl(v.server, v.user, v.pass) : stalkerSource(v.portal, v.mac);
     if (!link) { setError(t(kind === "m3u" ? "playlistBadUrl" : kind === "xtream" ? "xtBad" : "stkPortalBad")); return; }
+    if (kind === "file") return;
     const err = p.onSubmit(link);
     setError(err);
     if (!err) setValues((x) => ({ ...x, url: "", pass: "" }));
@@ -91,33 +96,40 @@ export function SourceForm(p: {
       <div class="seg" role="radiogroup" aria-label={t("srcKind")}>
         {kinds.map((k) => (
           <button class="seg-item" key={k} data-focus={`${p.idPrefix}-kind-${k}`} aria-pressed={kind === k} onClick={() => { setKind(k); setError(null); }}>
-            {t(k === "m3u" ? "srcM3u" : k === "xtream" ? "srcXtream" : "stkKind")}
+            {t(KIND_LABEL[k])}
           </button>
         ))}
       </div>
-      <div class="src-fields">
-        {FIELDS_OF[kind].map((id) => (
-          <button class="srow src-field" key={id} data-focus={`${p.idPrefix}-f-${id}`} onClick={() => setEditing(id)}>
-            <span class="srow-text">
-              <span class="srow-title">{t(FIELDS[id].title)}</span>
-              <span class={v[id] ? "src-value" : "srow-hint"}>{v[id] ? shown(id) : t("entEmpty")}</span>
-            </span>
-          </button>
-        ))}
-      </div>
+      <div class="src-hint">{t(KIND_HINT[kind])}</div>
+      {FIELDS_OF[kind].length > 0 ? (
+        <div class="src-fields">
+          {FIELDS_OF[kind].map((id) => (
+            <button class="srow src-field" key={id} data-focus={`${p.idPrefix}-f-${id}`} onClick={() => setEditing(id)}>
+              <span class="srow-text">
+                <span class="srow-title">{t(FIELDS[id].title)}</span>
+                <span class={v[id] ? "src-value" : "srow-hint"}>{v[id] ? shown(id) : t("entEmpty")}</span>
+              </span>
+            </button>
+          ))}
+        </div>
+      ) : null}
+      {/* What went wrong is said right here, between the values and the button that sends them. */}
+      {error ? <div class="status error src-error">{error}</div> : null}
       <div class="src-actions">
-        <button class="btn primary" data-focus={`${p.idPrefix}-add`} onClick={submit} aria-busy={p.busy}>
-          {p.busy ? t("playlistLoading") : (p.addLabel ?? t("playlistAdd"))}
-        </button>
-        {kind === "m3u" && canPickFile ? (
+        {kind === "file" ? (
           <>
-            <button class="btn" data-focus={`${p.idPrefix}-file`} onClick={() => picker.current?.click()}>{t("srcFile")}</button>
+            <button class="btn primary" data-focus={`${p.idPrefix}-add`} onClick={() => picker.current?.click()} aria-busy={p.busy}>
+              {p.busy ? t("playlistLoading") : t("plFilePick")}
+            </button>
             <input ref={picker} type="file" accept=".m3u,.m3u8,.txt,audio/x-mpegurl,application/vnd.apple.mpegurl" style={{ display: "none" }}
               onChange={(e) => pickFile(e.currentTarget as HTMLInputElement)} />
           </>
-        ) : null}
+        ) : (
+          <button class="btn primary" data-focus={`${p.idPrefix}-add`} onClick={submit} aria-busy={p.busy}>
+            {p.busy ? t("playlistLoading") : (p.addLabel ?? t("playlistAdd"))}
+          </button>
+        )}
       </div>
-      {error ? <div class="status error">{error}</div> : null}
       <Presence show={editing !== null}>
         {(out) => editing ? (
           <TextEntry title={t(FIELDS[editing].title)} hint={t(FIELDS[editing].hint)} value={v[editing]} closing={out}

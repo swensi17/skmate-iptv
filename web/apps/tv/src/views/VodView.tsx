@@ -6,6 +6,7 @@ import type { VodKind, VodSource } from "../state/library";
 import type { Progress } from "../state/progress";
 import { hueOf, monogram } from "../text";
 import { LoadingState } from "./Spinner";
+import { SearchEntry } from "./EntryRow";
 import "./screens.css";
 
 const PER_ROW = 5;
@@ -100,8 +101,9 @@ export function VodView(p: {
         </div>
         <div class="vod-main">
           <div class="toolbar">
-            <input class="field small" data-focus="vod-search" value={query} placeholder={t("filterSearch")}
-              onInput={(e) => setQuery((e.currentTarget as HTMLInputElement).value)} />
+            <SearchEntry id="vod-search" value={query} entryTitle={`${t("filterSearch")}: ${t(p.kind === "movie" ? "navMovies" : "navSeries")}`}
+              entryHint={t("searchTitlesHint")} results=".screen.vod .vod-main .vlist"
+              count={(q) => (items ?? []).filter((i) => i.name.toLowerCase().includes(q.toLowerCase())).length} onDone={(v) => { setQuery(v); setSettled(v); }} />
             {SORTS.map(([s, label]) => (
               <button class="filter" key={s} data-focus={`vod-sort-${s}`} aria-pressed={sort === s} onClick={() => setSort(s)}>{t(label)}</button>
             ))}

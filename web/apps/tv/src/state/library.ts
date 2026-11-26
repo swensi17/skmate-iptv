@@ -23,10 +23,11 @@ export interface VodSource {
 const TIMEOUT_MS = 30_000;
 
 async function getJson(url: string): Promise<unknown> {
-  const ctl = new AbortController();
-  const timer = setTimeout(() => ctl.abort(), TIMEOUT_MS);
+  // AbortController is Chromium 66+: an older TV gets the request without a timeout rather than a crash.
+  const ctl = typeof AbortController === "function" ? new AbortController() : null;
+  const timer = setTimeout(() => ctl?.abort(), TIMEOUT_MS);
   try {
-    const res = await fetch(url, { signal: ctl.signal });
+    const res = await fetch(url, ctl ? { signal: ctl.signal } : {});
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     return await res.json();
   } finally {

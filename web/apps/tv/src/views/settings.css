@@ -1,0 +1,51 @@
+/* Settings and its sections (sheets from the bottom), on top of app.css. Colours come only from the theme variables;
+   only transform and opacity move. Margins instead of flex gap: Chromium 63 on a 2019 TV has no gap for flexbox. */
+
+/* A short line that says what a section or a list is for, and a quieter note under a caption. */
+.set-intro { margin: 0 8px 16px; font-size: 24px; line-height: 1.4; color: var(--muted); max-width: 1100px; }
+.set-note { margin: 0 8px 12px; font-size: 22px; line-height: 1.4; color: var(--muted); max-width: 1100px; }
+.set-error { margin: 8px 8px 0; }
+
+/* Rows that follow each other in a section: one small step apart, never touching. */
+.drawer-bottom .setting > .srow + .srow, .drawer-bottom .setting > .srow + .srow-wrap { margin-top: 4px; }
+.drawer-bottom .setting > .caption:first-child { margin-top: 0; }
+
+/* ===== Playlists ===== */
+/* A playlist: its row (OK watches it), then "Edit" and "Delete" in words, the same height as the row. */
+/* Spacing by margins only (app.css spaces these with flex gap, which an old TV ignores). */
+.setting .pl-list, .setting .pl-item { gap: 0; }
+.setting .pl-list { margin-bottom: 4px; }
+.setting .pl-item + .pl-item { margin-top: 6px; }
+.setting .pl-item > * + * { margin-left: 8px; }
+.pl-item .pl-act { flex: none; min-width: 0; width: 180px; height: auto; padding: 0 16px; font-size: 24px; }
+.pl-row .srow-text { min-width: 0; }
+.pl-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pl-row .sub { margin-left: 16px; }
+/* The playlist in use did not load: said in its own row, in the error colour; the focused (white) row keeps it dark. */
+.srow-hint.pl-bad { color: var(--danger); }
+.srow:focus .srow-hint.pl-bad { color: var(--focus-text); opacity: 1; }
+/* The playlist in use, when the cursor is elsewhere: slightly lighter, as a chosen item is everywhere else. */
+.pl-row[aria-pressed="true"]:not(:focus) { background: var(--selected); }
+
+/* Adding one: the kinds, a line on what to have at hand, the values, what went wrong, the button. */
+.source-form .src-hint { margin: 14px 8px 0; font-size: 22px; line-height: 1.4; color: var(--muted); }
+.source-form .src-error { margin: 8px 8px 0; }
+.source-form .src-actions { margin-top: 16px; }
+
+/* The quick switch from the channel screen. */
+.pk-manage { margin-top: 12px; }
+
+/* ===== Guide ===== */
+/* A source the playlist names: read only, its name and address on the left, how it did on the right. */
+.irow.src-info { min-height: 92px; padding: 12px 24px; }
+.irow.src-info .irow-title { font-size: 26px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.irow.src-info .srow-text { margin-right: 24px; }
+.irow.src-info .irow-value { flex: none; max-width: 520px; text-align: right; font-size: 22px; }
+.irow.src-info:focus .srow-hint { color: var(--focus-text); opacity: .7; }
+.irow.src-info + .irow.src-info { margin-top: 4px; }
+.epg-panel .pl-list { margin-bottom: 8px; }
+.epg-panel .pl-row { cursor: default; }
+.epg-panel .src-field, .pl-panel .src-field { flex-shrink: 0; }
+/* "Add a playlist": a row like the playlists above it, a step below them. */
+.pl-panel .pl-add-open { margin-top: 16px; background: var(--control); }
+.pl-panel .pl-add-open:focus { background: var(--focus-fill); }

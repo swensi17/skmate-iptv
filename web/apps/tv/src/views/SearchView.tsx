@@ -12,6 +12,7 @@ import { UiContext } from "../state/UiContext";
 import { isSport } from "../sport";
 import { ChannelRow } from "./ChannelRow";
 import { ProgrammeRow } from "./ProgrammeRow";
+import { SearchEntry } from "./EntryRow";
 
 type Filter = "all" | "channels" | "shows" | "sport" | "movies";
 const FILTERS: Array<[Filter, Key]> = [
@@ -54,14 +55,17 @@ export function SearchView({ channels, favorites, onOpen, onArchive, onUpcoming,
   const programmes = useMemo(() => new ProgrammeSearch(data, channels, now), [data, channels, Math.floor(now / 60_000)]);
 
   const q = settled.trim();
-  const { channelHits, programmeHits } = useMemo(() => {
-    if (q === "") return { channelHits: [] as Channel[], programmeHits: [] as ProgrammeHit[] };
-    let c = channelIndex.search(q).map((r) => r.item);
-    let p = programmes.search(q, now);
+  // What a query finds under the chosen filter: for the results, and for the count while it is being typed.
+  const find = (query: string) => {
+    if (query === "") return { channelHits: [] as Channel[], programmeHits: [] as ProgrammeHit[] };
+    let c = filter === "shows" ? [] : channelIndex.search(query).map((r) => r.item);
+    let p = filter === "channels" ? [] : programmes.search(query, now);
     if (filter === "sport") { c = c.filter(isSport); p = p.filter((h) => isSport(h.channel)); }
     if (filter === "movies") { c = c.filter(isMovieChannel); p = p.filter((h) => isMovieTitle(h.programme.title) || isMovieChannel(h.channel)); }
     return { channelHits: c, programmeHits: p };
-  }, [q, filter, channelIndex, programmes, now]);
+  };
+  const { channelHits, programmeHits } = useMemo(() => find(q), [q, filter, channelIndex, programmes, now]);
+  const countOf = (query: string) => { const f = find(query); return f.channelHits.length + f.programmeHits.length; };
 
   const hits = useMemo<Hit[]>(() => {
     const showC = filter !== "shows";
@@ -73,8 +77,8 @@ export function SearchView({ channels, favorites, onOpen, onArchive, onUpcoming,
   }, [channelHits, programmeHits, filter]);
   const playable = useMemo(() => hits.map((h) => h.channel).filter((c, i, all) => all.findIndex((x) => x.id === c.id) === i), [hits]);
 
-  // The filters first, not the field: a focused field opens the TV keyboard before the viewer asked for it.
-  useEffect(() => { focusFirst(document, "sf-all"); }, []);
+  // The search box first: it is a button (OK opens the entry panel), so no TV keyboard pops up by itself.
+  useEffect(() => { focusFirst(document, "search-input"); }, []);
   useEffect(() => { const id = setTimeout(() => setSettled(query), TYPING_PAUSE_MS); return () => clearTimeout(id); }, [query]);
 
   const remember = () => { const next = pushQuery(recent, q); setRecent(next); saveQueries(next); };
@@ -97,13 +101,10 @@ export function SearchView({ channels, favorites, onOpen, onArchive, onUpcoming,
 
   return (
     <div class="screen search">
-      <div class="search-bar">
-        <Icon name="search" size={32} />
-        <input
-          class="field" data-focus="search-input" value={query} placeholder={t("searchPlaceholder2")}
-          onInput={(e) => setQuery((e.currentTarget as HTMLInputElement).value)}
-        />
-      </div>
+      {/* The same search box as on the other screens, only larger: top left, the filters under it, the results below. */}
+      <SearchEntry id="search-input" wide value={query} placeholder={t("searchPlaceholder2")}
+        entryTitle={t("navSearch")} entryHint={t("searchCaption")} count={countOf} results=".screen.search .vlist"
+        onDone={(v) => { setQuery(v); setSettled(v); }} />
       <div class="filters">
         {FILTERS.map(([id, label]) => (
           <button class="filter" key={id} data-focus={`sf-${id}`} aria-pressed={filter === id} onClick={() => setFilter(id)}>{t(label)}</button>
@@ -111,13 +112,8 @@ export function SearchView({ channels, favorites, onOpen, onArchive, onUpcoming,
       </div>
 
       {q === "" ? (
-        // Before anything is typed: what can be found, in the middle, and under it the last queries, as in Lampa.
-        <div class="search-idle">
-          <div class="search-welcome">
-            <span class="search-welcome-icon"><Icon name="search" size={56} /></span>
-            <div class="empty-title">{t("searchIdleTitle")}</div>
-            <div class="empty-hint">{t("searchIdleBody")}</div>
-          </div>
+        // Before anything is searched: the last queries first (OK on one repeats it), then what can be found.
+        <div class="search-idle start">
           {recent.length > 0 ? (
             <div class="search-recent">
               <div class="caption">{t("searchRecent")}</div>
@@ -127,12 +123,16 @@ export function SearchView({ channels, favorites, onOpen, onArchive, onUpcoming,
                     <Icon name="history" size={22} />{r}
                   </button>
                 ))}
-                <button class="filter quiet" data-focus="rq-clear" onClick={() => { setRecent([]); saveQueries([]); }}>
-                  <Icon name="trash" size={22} />{t("searchClear")}
+                <button class="filter quiet" data-focus="rq-clear" onClick={() => { setRecent([]); saveQueries([]); focusFirst(document, "search-input"); }}>
+                  {t("searchClear")}
                 </button>
               </div>
             </div>
           ) : null}
+          <div class="search-tip">
+            <div class="search-tip-title">{t("searchIdleTitle")}</div>
+            <div class="search-tip-body">{t("searchCaption")}</div>
+          </div>
         </div>
       ) : hits.length === 0 ? (
         <div class="empty-idle">
@@ -141,7 +141,7 @@ export function SearchView({ channels, favorites, onOpen, onArchive, onUpcoming,
         </div>
       ) : (
         <>
-          <div class="list-head">{t("searchCount", { c: filter === "shows" ? 0 : channelHits.length, p: filter === "channels" ? 0 : programmeHits.length })}</div>
+          <div class="list-head">{t("searchCount", { c: channelHits.length, p: programmeHits.length })}</div>
           <VirtualList
             key={`${q}|${filter}|${ROW}`}
             items={hits} rowHeight={ROW} height={Math.floor(HEIGHT / ROW) * ROW} pageSize={8}

@@ -43,7 +43,11 @@ interface Props {
   onArchive: (programme: Programme, url: string) => void;
   /** Open the multiview with [channel] as its first tile (the setting is on, a channel is live). */
   onMultiview: (channel: Channel) => void;
-  /** A dialog of the app is over the picture (a reminder): the remote is its, not the player's. */
+  /** A past programme of a channel in the side list's day: its recording (or the channel live when it keeps none). */
+  onArchiveOf: (channel: Channel, programme: Programme, list: readonly Channel[]) => void;
+  /** A programme still to come in that day: the app asks to watch the channel or set a reminder. */
+  onUpcoming: (channel: Channel, programme: Programme, list: readonly Channel[]) => void;
+  /** A dialog of the app is over the picture (a reminder, a programme to come): the remote is its, not the player's. */
   suspended?: boolean;
 }
 
@@ -74,9 +78,10 @@ function elapsed(ms: number): string {
   return h > 0 ? `${h}:${String(m).padStart(2, "0")}:${sec}` : `${m}:${sec}`;
 }
 
-function Tile(p: { id: string; icon: IconName; label: Key; onClick: () => void; active?: boolean }) {
+/** A button of the bar. [active]: something running (a recording); [on]: a state that is set (in favourites). */
+function Tile(p: { id: string; icon: IconName; label: Key; onClick: () => void; active?: boolean; on?: boolean }) {
   return (
-    <button class={`tile${p.active ? " active" : ""}`} data-focus={p.id} onClick={p.onClick}>
+    <button class={`tile${p.active ? " active" : ""}${p.on ? " on" : ""}`} data-focus={p.id} onClick={p.onClick} aria-pressed={p.on}>
       <span class="tile-icon"><Icon name={p.icon} size={44} /></span>
       <span class="tile-label">{t(p.label)}</span>
     </button>
@@ -86,15 +91,21 @@ function Tile(p: { id: string; icon: IconName; label: Key; onClick: () => void; 
 const CH_UP = [427, 33];
 const SEEK_MS = SEEK_STEP_S * 1000;
 const CH_DOWN = [428, 34];
+/** Play (415) and Pause (19) on webOS and Tizen; Play/Pause in one key on Tizen (10252, once registered). */
+const MEDIA_PLAY_PAUSE = [415, 19, 10252];
 
 /**
- * Full-screen playback. Keys: OK pauses and resumes; Up or Down first show the action bar, then step through the
- * channels; Right opens the recently watched, Left the channels (each from its own edge); the channel keys always step; Back closes what is open, then leaves.
- * Timeshift, as on Android: OK pauses the live picture too, and once it runs behind the live edge (or in a recording
- * from the archive) Left and Right wind it 30 s instead, and the bar has "Live". "From the start" plays the programme
- * on air from the archive of a channel that keeps one.
+ * Full-screen playback. Keys, as on the usual IPTV players (OTT Navigator, Lampa):
+ * - OK shows the strip and the action bar with the focus on Pause, so a second OK pauses; nothing is paused by a press
+ *   that was only meant to see what is on. On a paused picture OK plays again. Play/Pause keys of the remote always toggle.
+ * - Up and Down step through the channels (the channel keys too); on the bar, Up leaves it.
+ * - Left opens the channels (then the categories, then the menu), Right the recently watched, each from its own edge.
+ * - Back closes what is open (panel, bar, strip), then leaves the player.
+ * Timeshift, as on Android: once the picture runs behind the live edge (or in a recording from the archive) Left and
+ * Right wind it 30 s instead, and the bar has "Live". "From the start" plays the programme on air from the archive of
+ * a channel that keeps one. "Settings" on the bar opens the player's settings in the side panel.
  */
-export function PlayerView({ channels, catalog, index, favorites, recents, onPick, closing, onStep, onFav, onExit, settings, onChangeSettings, onGo, archive, onLive, onArchive, onMultiview, suspended = false }: Props) {
+export function PlayerView({ channels, catalog, index, favorites, recents, onPick, closing, onStep, onFav, onExit, settings, onChangeSettings, onGo, archive, onLive, onArchive, onMultiview, onArchiveOf, onUpcoming, suspended = false }: Props) {
   const channel = channels[index] as Channel;
   const video = useRef<HTMLVideoElement>(null);
   const full = useFullScreen();
@@ -213,30 +224,24 @@ export function PlayerView({ channels, catalog, index, favorites, recents, onPic
   // Two layers: the info strip (what is on) and the action bar (what can be done). The panel is the side menu.
   const [info, setInfo] = useState(true);
   const [bar, setBar] = useState(false);
-  // A list that opens inside the bar itself, in place of its buttons.
-  const [strip, setStrip] = useState<null | "favorites" | "recent">(null);
   const [panel, setPanel] = useState(false);
   const [tab, setTab] = useState<PanelTab>("channels");
   const [side, setSide] = useState<"left" | "right">("right");
   const hideTimer = useRef<ReturnType<typeof setTimeout>>();
 
   const wake = (withBar = false) => {
-    if (panel) return; // an open menu keeps the strip and the bar
+    if (panel || suspended) return; // an open menu keeps the strip and the bar; so does a dialog over them
     setInfo(true);
     if (withBar) setBar(true);
     clearTimeout(hideTimer.current);
-    hideTimer.current = setTimeout(() => { setInfo(false); setBar(false); setStrip(null); }, settings.osdSeconds * 1000);
+    hideTimer.current = setTimeout(() => { setInfo(false); setBar(false); }, settings.osdSeconds * 1000);
   };
   // The strip shows on every new channel, then goes by itself; a paused picture keeps it.
-  useEffect(() => { setBar(false); setStrip(null); wake(); return () => clearTimeout(hideTimer.current); }, [channel.id]);
+  useEffect(() => { setBar(false); wake(); return () => clearTimeout(hideTimer.current); }, [channel.id]);
   useEffect(() => { if (paused) { clearTimeout(hideTimer.current); setInfo(true); } else wake(); }, [paused]);
 
   // An open panel keeps the info strip on screen and it does not go away by itself.
   const openPanel = (to: PanelTab, from: "left" | "right" = "right") => { setTab(to); setSide(from); setPanel(true); setInfo(true); setBar(false); clearTimeout(hideTimer.current); };
-  const stripList = strip === "favorites" ? catalog.filter((c) => favorites.has(channelKey(c))) : strip === "recent" ? recents : [];
-  const openStrip = (to: "favorites" | "recent") => { setStrip(to); clearTimeout(hideTimer.current); setTimeout(() => focusFirst(document, "ps-first"), 30); };
-  // OK arms the bar: the Down that follows it opens the bar instead of stepping to the next channel.
-  const ok = useRef(false);
 
   // Capture phase: the player decides first, so Back closes the menu before it leaves the player.
   useEffect(() => {
@@ -246,18 +251,21 @@ export function PlayerView({ channels, catalog, index, favorites, recents, onPic
       if (isBack(e)) {
         swallow(e);
         if (panel) setPanel(false);
-        else if (strip) { const was = strip; setStrip(null); setTimeout(() => focusFirst(document, was === "favorites" ? "pl-favs" : "pl-recent"), 30); }
         else if (bar) setBar(false);
         else if (info && state !== "failed" && !paused) { clearTimeout(hideTimer.current); setInfo(false); }
         else onExit();
         return;
       }
-      // The error screen has its own buttons, but the channel list must stay reachable from it: a dead channel is when it is needed.
-      if (state === "failed" && !panel && e.key !== "ArrowLeft") return;
       const up = e.key === "ArrowUp";
       const down = e.key === "ArrowDown";
       if (CH_UP.includes(e.keyCode)) { swallow(e); onStep(1); return; }
       if (CH_DOWN.includes(e.keyCode)) { swallow(e); onStep(-1); return; }
+      // The error screen has its own buttons (OK, Right), but zapping and the channel list stay as on the picture: a
+      // dead channel is exactly when the next one is wanted.
+      if (state === "failed" && !panel) {
+        if (up || down) { swallow(e); onStep(up ? 1 : -1); return; }
+        if (e.key !== "ArrowLeft") return;
+      }
       const left = e.key === "ArrowLeft";
       const right = e.key === "ArrowRight";
       if (panel) {
@@ -292,7 +300,7 @@ export function PlayerView({ channels, catalog, index, favorites, recents, onPic
       if (up || down) {
         swallow(e);
         if (bar) { if (up) { setBar(false); wake(); } return; } // on the bar Up leaves it
-        if (down && (ok.current || paused)) { ok.current = false; wake(true); setTimeout(() => focusFirst(document, "pl-play"), 30); return; }
+        if (down && paused) { wake(true); setTimeout(() => focusFirst(document, "pl-play"), 30); return; } // a still picture has nothing to step to
         onStep(up ? 1 : -1); // straight up and down steps through the channels
         wake();
         return;
@@ -305,25 +313,32 @@ export function PlayerView({ channels, catalog, index, favorites, recents, onPic
         wake(true);
         return;
       }
-      if (e.key === "Enter" || e.keyCode === 13 || e.keyCode === 415 || e.keyCode === 19) {
-        // OK on the picture pauses it; on a button of the bar it presses that button.
-        if (!bar) { swallow(e); ok.current = true; setTimeout(() => { ok.current = false; }, settings.osdSeconds * 1000); playPause(); wake(); }
-        else wake(true);
+      // The remote's Play and Pause keys always play or pause, whatever is on screen.
+      if (MEDIA_PLAY_PAUSE.includes(e.keyCode)) { swallow(e); playPause(); wake(); return; }
+      if (e.key === "Enter" || e.keyCode === 13) {
+        // On a button of the bar OK presses that button (the browser clicks it).
+        if (bar) { wake(true); return; }
+        swallow(e);
+        // A paused picture plays again; a playing one shows the strip and the bar, the focus on Pause.
+        if (paused) { playPause(); wake(); return; }
+        wake(true);
+        setTimeout(() => focusFirst(document, "pl-play"), 30);
         return;
       }
       swallow(e);
       wake();
     };
-    const onMove = (e: MouseEvent) => { if (e.movementX !== 0 || e.movementY !== 0) wake(); };
+    const onMove = (e: MouseEvent) => { if (!suspended && (e.movementX !== 0 || e.movementY !== 0)) wake(); };
     document.addEventListener("keydown", onKey, true);
     document.addEventListener("mousemove", onMove, true);
     return () => {
       document.removeEventListener("keydown", onKey, true);
       document.removeEventListener("mousemove", onMove, true);
     };
-  }, [info, bar, strip, panel, tab, side, state, paused, channel.id, archive?.url, shifted, liveBehind, suspended]);
+  }, [info, bar, panel, tab, side, state, paused, channel.id, archive?.url, shifted, liveBehind, suspended]);
 
-  useEffect(() => { if (state === "failed") focusFirst(document, "pl-retry"); }, [state]);
+  // Not while a dialog is over the picture: the focus stays in it.
+  useEffect(() => { if (state === "failed" && !suspended) focusFirst(document, "pl-retry"); }, [state]);
 
   const looks = settings.aspect === "fit" ? "contain" : settings.aspect === "fill" ? "fill" : "cover";
   return (
@@ -335,19 +350,22 @@ export function PlayerView({ channels, catalog, index, favorites, recents, onPic
       {recording ? <div class="rec-badge" role="status"><span />{t("recBadge")}</div> : null}
       {paused ? <div class="paused" aria-label={t("playerPaused")}><Icon name="pause" size={96} /></div> : null}
 
-      {/* What is on, as in the phone version: the logo, the programme, its time and what is left, the channel, what is next. */}
+      {/* What is on, as on the usual IPTV players (TiviMate, OTT Navigator): the channel's number and name, the programme,
+          its time and what is left, what is next. It stays while the action bar is up, raised above it. */}
       <div class="pinfo">
         <div class="pinfo-logo"><ChannelLogo channel={channel} /></div>
         <div class="pinfo-text">
-          <div class="pinfo-title">{onNow ? onNow.title : channel.name}</div>
-          <div class="pinfo-line">
-            {archive ? <span class="pinfo-arch">{t("playerArchive")}</span> : null}
-            {onNow ? <span>{clock(onNow.start)} – {clock(onNow.stop)}</span> : null}
-            {onNow ? <span class="pinfo-bar"><span style={{ width: `${Math.round(progress * 100)}%` }} /></span> : null}
-            {archive ? <span>{elapsed(position)} / {elapsed(length)}</span> : onNow ? <span>{leftLabel(onNow.stop, guide.now)}</span> : null}
-            {shifted ? <span class="pinfo-arch">{t("playerBehind", { t: elapsed(behind * 1000) })}</span> : null}
-            <b>{index + 1}</b><b class="pinfo-ch">{channel.name}</b>
-          </div>
+          <div class="pinfo-head"><b class="pinfo-num">{index + 1}</b><b class="pinfo-ch">{channel.name}</b></div>
+          {onNow ? <div class="pinfo-title">{onNow.title}</div> : null}
+          {onNow || shifted ? (
+            <div class="pinfo-line">
+              {archive ? <span class="pinfo-arch">{t("playerArchive")}</span> : null}
+              {onNow ? <span>{clock(onNow.start)} – {clock(onNow.stop)}</span> : null}
+              {onNow ? <span class="pinfo-bar"><span style={{ width: `${Math.round(progress * 100)}%` }} /></span> : null}
+              {archive ? <span>{elapsed(position)} / {elapsed(length)}</span> : onNow ? <span>{leftLabel(onNow.stop, guide.now)}</span> : null}
+              {shifted ? <span class="pinfo-arch">{t("playerBehind", { t: elapsed(behind * 1000) })}</span> : null}
+            </div>
+          ) : null}
           {next ? <div class="pinfo-next">{clock(next.start)} – {clock(next.stop)}  {next.title}</div> : null}
           {via && !archive ? <div class="pinfo-next">{t("playerMirror", { name: via.name })}</div> : null}
           {engine && settings.showEngine ? <div class="pinfo-next">{t("playerEngine", { name: engine })}</div> : null}
@@ -362,6 +380,7 @@ export function PlayerView({ channels, catalog, index, favorites, recents, onPic
           <div class="player-note">{t("playerFailedHint")}</div>
           <div class="empty-actions">
             <button class="btn" data-focus="pl-retry" onClick={retry}>{t("playerRetry")}</button>
+            <button class="btn" data-focus="pl-skip" onClick={() => onStep(1)}>{t("playerNext")}</button>
             <button class="btn" data-focus="pl-back" onClick={onExit}>{t("playerBack")}</button>
           </div>
         </div>
@@ -374,40 +393,28 @@ export function PlayerView({ channels, catalog, index, favorites, recents, onPic
             channels={channels} catalog={catalog} index={index} recents={recents} favorites={favorites}
             onPick={(c, list) => { onPick(c, list); setPanel(false); }} onFav={onFav}
             settings={settings} onChangeSettings={onChangeSettings} onGo={onGo}
+            onArchive={(c, p, list) => { setPanel(false); onArchiveOf(c, p, list); }} onUpcoming={onUpcoming}
           />
         )}
       </Presence>
 
+      {/* Only what is done to the picture on screen. Channels are Up/Down (and Left), the recently watched Right: no
+          buttons for them here. */}
       {bar && state !== "failed" ? (
-        strip ? (
-          <div class="player-bar player-strip" role="list" aria-label={t(strip === "favorites" ? "favorites" : "panelRecent")}>
-            {stripList.length === 0 ? <div class="strip-empty">{t(strip === "favorites" ? "favoritesEmpty" : "recentEmpty")}</div> : stripList.map((c, i) => (
-              <button class="strip-card" key={c.id} data-focus={i === 0 ? "ps-first" : `ps-${c.id}`} onClick={() => { onPick(c, stripList); setStrip(null); setBar(false); }}>
-                <span class="strip-logo"><ChannelLogo channel={c} /></span>
-                <span class="strip-name">{c.name}</span>
-              </button>
-            ))}
-          </div>
-        ) : (
         <div class="player-bar">
           {archive || shifted ? <Tile id="pl-live" icon="live_tv" label="playerLive" onClick={toLive} /> : null}
-          {archive ? null : <Tile id="pl-prev" icon="skip_previous" label="playerPrev" onClick={() => onStep(-1)} />}
           <Tile id="pl-back" icon="rewind" label="playerBack30" onClick={() => seek(-SEEK_MS)} />
           <Tile id="pl-play" icon={paused ? "play" : "pause"} label={paused ? "playerPlay" : "playerPause"} onClick={playPause} />
           {archive || shifted ? <Tile id="pl-fwd" icon="fast_forward" label="playerFwd30" onClick={() => seek(SEEK_MS)} /> : null}
-          {archive ? null : <Tile id="pl-next" icon="skip_next" label="playerNext" onClick={() => onStep(1)} />}
-          {startOver && live.now ? <Tile id="pl-start" icon="history" label="playerStartOver" onClick={() => onArchive(live.now as Programme, startOver)} /> : null}
-          <Tile id="pl-fav" icon={favorite ? "favorite" : "star"} label="playerFavorite" onClick={() => onFav(channel)} />
-          <Tile id="pl-favs" icon="list" label="favorites" onClick={() => openStrip("favorites")} />
-          <Tile id="pl-recent" icon="history" label="panelRecent" onClick={() => openStrip("recent")} />
+          {startOver && live.now ? <Tile id="pl-start" icon="refresh" label="playerStartOver" onClick={() => onArchive(live.now as Programme, startOver)} /> : null}
+          <Tile id="pl-fav" icon="star" label="playerFavorite" onClick={() => onFav(channel)} on={favorite} />
+          {/* Only where they exist: multiview when its setting is on, recording, the mini window and full screen on a computer. */}
           {settings.multiview && !archive ? <Tile id="pl-mv" icon="grid" label="mvButton" onClick={() => onMultiview(channel)} /> : null}
           {canRecord ? <Tile id="pl-rec" icon={recording ? "stop" : "record"} label={recording ? "recStop" : "recRecord"} onClick={toggleRecord} active={recording} /> : null}
           {canPip ? <Tile id="pl-mini" icon="pip" label="playerMini" onClick={pip} /> : null}
-          <Tile id="pl-set" icon="settings" label="playerSettings" onClick={() => openPanel("settings", "right")} />
-          <Tile id="pl-list" icon="home" label="playerMenu" onClick={() => openPanel("channels", "left")} />
           {full ? <Tile id="pl-full" icon={full.on ? "fullscreen_exit" : "fullscreen"} label={full.on ? "fullScreenExit" : "fullScreen"} onClick={full.toggle} /> : null}
+          <Tile id="pl-set" icon="settings" label="playerSettings" onClick={() => openPanel("settings", "right")} />
         </div>
-        )
       ) : null}
     </div>
   );

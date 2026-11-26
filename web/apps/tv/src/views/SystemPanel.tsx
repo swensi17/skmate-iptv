@@ -55,19 +55,26 @@ export function SystemPanel({ settings, onChange, onQr, onReset, onRedo, update 
     <>
       <SettingRow<Settings["language"]> id="s-lang" title="setLanguage" hint="setLanguageHint" value={settings.language} onPick={(v) => onChange({ ...settings, language: v })}
         options={[{ value: "auto" as const, label: t("langAuto") }, ...LANGUAGES.map((l) => ({ value: l.code, label: l.name }))]} compact />
+
+      <div class="caption">{t("sysCapUpdates")}</div>
       <SettingRow<boolean> id="s-autoupdate" title="setAutoUpdate" hint="setAutoUpdateHint" value={settings.autoUpdate} onPick={(v) => onChange({ ...settings, autoUpdate: v })}
         options={[{ value: false, label: t("off") }, { value: true, label: t("on") }]} />
       <button class="srow" data-focus="s-update" onClick={() => (update.state.kind === "found" || update.state.kind === "failed" ? update.install() : update.check())}>
         <span class="srow-text">
-          <span class="srow-title">{t("updCheck")}</span>
+          {/* The row says what OK does now: check, or install the version found. */}
+          <span class="srow-title">{update.state.kind === "found" || update.state.kind === "failed" ? `${t("updateInstall")} ${update.state.release.version}` : t("updCheck")}</span>
           <span class="srow-hint">{updateHint(update.state)}</span>
         </span>
       </button>
+
+      <div class="caption">{t("sysCapDevice")}</div>
       <Info id="i-version" title={t("sysVersion")} value={__APP_VERSION__} />
       <Info id="i-platform" title={t("sysPlatform")} value={platformLabel()} />
       <Info id="i-screen" title={t("sysScreen")} value={`${window.innerWidth}×${window.innerHeight}`} />
       {mem ? <Info id="i-mem" title={t("sysMemory")} value={`${mem} GB`} /> : null}
       <Info id="i-storage" title={t("sysStorage")} value={`${storageKb()} KB`} />
+
+      <div class="caption">{t("sysCapHelp")}</div>
       <button class="srow" data-focus="s-clear" onClick={() => setCleared(clearCaches(localStorage))}>
         <span class="srow-text">
           <span class="srow-title">{t("sysClear")}</span>

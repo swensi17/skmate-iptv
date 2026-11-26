@@ -12,4 +12,5 @@ export { useOwnBack } from "./ownBack";
 export { Qr } from "./Qr";
 export { SocialIcon, type SocialMark } from "./social";
 export { Icon } from "./Icon";
+export { installLegacySupport, focusWithoutScroll, supportsFlexGap, supportsPreventScroll } from "./legacy";
 export { ICONS, type IconName } from "./icons";

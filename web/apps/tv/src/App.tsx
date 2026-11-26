@@ -331,6 +331,20 @@ export function App() {
   };
   const toggleFavorite = (c: Channel) => setFavorites((f) => toggle(f, channelKey(c)));
   const doomed = deleting ? pl.store.list.find((p) => p.id === deleting) : undefined;
+  // A programme still to come (the guide, the search, the player's day of a channel): watch its channel or be reminded.
+  const programmeDialog = upcoming ? (
+      <ProgrammeDialog
+        channel={upcoming.channel} programme={upcoming.programme} reminded={reminded(upcoming.channel, upcoming.programme)}
+        onWatch={() => { open(upcoming.channel, upcoming.list); setUpcoming(null); }}
+        onRemind={() => {
+          const { channel: c, programme: p } = upcoming;
+          if (canRemind(p.start, Date.now())) rem.add({ channel: channelKey(c), channelName: c.name, title: p.title, start: p.start, stop: p.stop, lead: settings.reminderLead });
+          setUpcoming(null);
+        }}
+        onCancelRemind={() => { rem.remove({ channel: channelKey(upcoming.channel), start: upcoming.programme.start }); setUpcoming(null); }}
+        onClose={() => setUpcoming(null)}
+      />
+  ) : null;
 
   // The lock screen of a profile with a PIN: nothing of it shows before the PIN, another profile can be chosen.
   if (book && !unlocked && me?.pinHash) {
@@ -384,13 +398,14 @@ export function App() {
         onPick={(c, list) => setPlaying({ list, index: Math.max(0, list.findIndex((x) => x.id === c.id)) })}
         onStep={(d) => setPlaying((cur) => (cur ? { list: cur.list, index: (cur.index + d + cur.list.length) % cur.list.length } : cur))}
         onFav={toggleFavorite} onExit={exitPlayer}
-        onMultiview={openMultiview}
+        onMultiview={openMultiview} onArchiveOf={openArchive} onUpcoming={openUpcoming}
         archive={playing.archive ?? null} onLive={() => setPlaying((cur) => (cur ? { list: cur.list, index: cur.index } : cur))}
         onArchive={(programme, url) => setPlaying((cur) => (cur ? { list: cur.list, index: cur.index, archive: { programme, url } } : cur))}
         onGo={(to) => { setSection(to); exitPlayer(); }}
         settings={settings} onChangeSettings={setSettings}
-        suspended={prompt !== null}
+        suspended={prompt !== null || upcoming !== null}
       />
+      {programmeDialog}
       {prompt ? <ReminderPrompt reminder={prompt} now={Date.now()} onWatch={() => watchReminder(prompt)} onClose={() => rem.remove(prompt)} /> : null}
       {note ? <ReminderNote reminder={note} now={Date.now()} /> : null}
       {flash ? <div class="toast" role="status"><Icon name={flash.icon} size={28} /><span>{flash.text}</span></div> : null}
@@ -491,19 +506,7 @@ export function App() {
           }}
         />
       ) : null}
-      {upcoming ? (
-        <ProgrammeDialog
-          channel={upcoming.channel} programme={upcoming.programme} reminded={reminded(upcoming.channel, upcoming.programme)}
-          onWatch={() => { open(upcoming.channel, upcoming.list); setUpcoming(null); }}
-          onRemind={() => {
-            const { channel: c, programme: p } = upcoming;
-            if (canRemind(p.start, Date.now())) rem.add({ channel: channelKey(c), channelName: c.name, title: p.title, start: p.start, stop: p.stop, lead: settings.reminderLead });
-            setUpcoming(null);
-          }}
-          onCancelRemind={() => { rem.remove({ channel: channelKey(upcoming.channel), start: upcoming.programme.start }); setUpcoming(null); }}
-          onClose={() => setUpcoming(null)}
-        />
-      ) : null}
+      {programmeDialog}
       {prompt ? <ReminderPrompt reminder={prompt} now={Date.now()} onWatch={() => watchReminder(prompt)} onClose={() => rem.remove(prompt)} /> : null}
       {note ? <ReminderNote reminder={note} now={Date.now()} /> : null}
       {flash ? <div class="toast" role="status"><Icon name={flash.icon} size={28} /><span>{flash.text}</span></div> : null}

@@ -18,6 +18,9 @@ export function TextEntry(p: {
   onCancel: () => void;
   /** Going down again (see `Presence`): it no longer takes keys. */
   closing?: boolean;
+  /** Every change while typing (a search counts what it would find); [note] is shown under the field. */
+  onInput?: (value: string) => void;
+  note?: string;
 }) {
   const [value, setValue] = useState(p.value);
   const input = useRef<HTMLInputElement>(null);
@@ -57,9 +60,10 @@ export function TextEntry(p: {
         <input
           ref={input} class="entry-field" data-focus="entry-field" value={value} placeholder={t("entTypeHere")}
           type={p.type ?? "text"} autocomplete="off" spellcheck={false} autocapitalize="off"
-          onInput={(e) => setValue((e.currentTarget as HTMLInputElement).value)}
+          onInput={(e) => { const v = (e.currentTarget as HTMLInputElement).value; setValue(v); p.onInput?.(v); }}
           onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); done(); } }}
         />
+        {p.note !== undefined ? <div class="entry-note" role="status">{p.note}</div> : null}
         <div class="entry-actions">
           <button class="btn primary" data-focus="entry-done" onClick={done}>{t("done")}</button>
           <button class="btn" data-focus="entry-cancel" onClick={p.onCancel}>{t("confirmCancel")}</button>

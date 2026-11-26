@@ -69,13 +69,15 @@ export function Drawer(p: {
   const sheet = p.side === "bottom";
   // Measured once, as it opens: the window does not change size while a sheet moves.
   const [travel] = useState(() => (sheet ? sheetTravel() : null));
+  // `.has-<class>` on the scrim stands in for `.drawer-scrim:has(.<class>)`, which TV engines before Chromium 105 drop.
+  const has = p.className ? p.className.split(" ").filter(Boolean).map((c) => ` has-${c}`).join("") : "";
   const size = sheet ? (travel ? { "--travel": `${travel}px` } : {}) : { width: `${p.width ?? 760}px`, ...(p.bottomGap ? { height: `calc(100% - ${p.bottomGap}px)` } : {}) };
   // The stage keeps 16:9, so a wider or taller window shows bands beside it. A sheet also covers those: a layer of the
   // same colour on the whole window rises and falls with it (behind the stage, so only the bands show it).
   return (
     <>
     {sheet ? <SheetWings closing={p.closing} /> : null}
-    <div class={`scrim drawer-scrim${sheet ? " sheet-scrim" : ""}${p.closing ? " closing" : ""}${modal ? "" : " open-ended"}`} data-modal={modal && !p.closing ? "" : undefined} onClick={p.onClose}>
+    <div class={`scrim drawer-scrim${sheet ? " sheet-scrim" : ""}${p.closing ? " closing" : ""}${modal ? "" : " open-ended"}${has}`} data-modal={modal && !p.closing ? "" : undefined} onClick={p.onClose}>
       <aside
         ref={root}
         class={`drawer drawer-${p.side}${travel ? " far" : ""}${p.closing ? " out" : ""}${p.className ? ` ${p.className}` : ""}`}

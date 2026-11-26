@@ -1,0 +1,77 @@
+/*
+ * A channel row (ChannelRow): number, logo, name and programme, the marks on the right. The same everywhere it is
+ * used (channels, the player's list, search, sport, multiview).
+ *
+ * Built to hold on an old TV browser (Chromium 53-63): the spaces are margins, not flex `gap` (which those browsers
+ * ignore, gluing the number, the logo and the name together). `gap` is set to 0 here so a browser that does know it
+ * does not add it on top of the margins. Selectors start with `button.row.ch` so they win over the older, more
+ * general rules in app.css (`.tm .row .num`, `.search .row .num`, `.row .logo`) without depending on load order.
+ */
+
+button.row.ch { gap: 0; }
+button.row.ch > * { margin: 0; }
+
+/* The number: a column of one width, right-aligned, so 9 and 10 end at the same place and the logos line up.
+   A rare five-digit number widens its own row a little instead of being cut. */
+button.row.ch > .num {
+  flex: none; width: auto; min-width: 72px; margin-right: 20px;
+  text-align: right; white-space: nowrap; font-size: 28px; font-weight: 700; font-variant-numeric: tabular-nums;
+}
+
+/* The logo: a fixed box in proportion to the row ("Row size": 72 / 84 / 96 px gives 60x40, 78x52, 96x64), the picture
+   contained in it whole, never stretched; a very wide logo is limited by the box's width. */
+button.row.ch > .logo {
+  flex: none; display: block;
+  width: calc((var(--row-h, 84px) - 32px) * 1.5); height: calc(var(--row-h, 84px) - 32px);
+  margin-right: 20px; border-radius: 8px;
+}
+button.row.ch > img.logo { padding: 4px; object-fit: contain; background: #fff; }
+/* The letters standing in for a missing logo: 20 px in compact rows, up to 24 px in large ones. */
+button.row.ch > .logo.badge {
+  display: flex; align-items: center; justify-content: center; overflow: hidden; white-space: nowrap;
+  font-size: calc(var(--row-h, 84px) / 6 + 8px);
+}
+
+/* The name and the programme take what is left; a long name ends in "…". */
+button.row.ch > .grow { flex: 1 1 0%; min-width: 0; }
+button.row.ch > .grow.two { gap: 0; }
+button.row.ch > .grow.two > .nm { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+button.row.ch > .grow.two > .prog { display: block; margin-top: 2px; }
+button.row.ch > .grow.two > .bar { margin-top: 6px; }
+
+/* The marks on the right edge (favourite, on screen now, archive), right-aligned in a column of their own. */
+button.row.ch > .redge { flex: none; margin-left: 16px; }
+button.row.ch .redge .rtop { gap: 0; }
+button.row.ch .redge .rtop > * + * { margin-left: 8px; }
+button.row.ch .redge .tag { gap: 0; }
+button.row.ch .redge .tag > svg { flex: none; margin-right: 6px; }
+
+/* ---------- The channel's menu (long OK on a row) ---------- */
+
+/* A layer over the whole stage that only catches a click outside: no dimming (it may be over the playing picture). */
+.ch-menu, .ch-sched { position: absolute; left: 0; top: 0; right: 0; bottom: 0; z-index: 40; }
+.ch-sched .scrim { left: 0; top: 0; right: 0; bottom: 0; }
+/* A small sheet at the bottom, in the middle; its lines stay inside the title-safe area (48 px above the edge). */
+.ch-menu-panel {
+  position: absolute; left: 50%; bottom: 0; width: 760px; margin-left: -380px; padding: 28px 28px 48px;
+  border-radius: 24px 24px 0 0; background: var(--panel); color: var(--text); box-shadow: 0 -1px 0 var(--line);
+  animation: ch-menu-in 260ms cubic-bezier(.2, 0, 0, 1) both;
+}
+.ch-menu.out .ch-menu-panel { animation: ch-menu-out 200ms cubic-bezier(.4, 0, 1, 1) both; }
+@keyframes ch-menu-in { from { transform: translateY(100%); } to { transform: none; } }
+@keyframes ch-menu-out { from { transform: none; } to { transform: translateY(100%); } }
+.ch-menu-head { display: flex; align-items: center; height: 72px; padding: 0 20px; margin-bottom: 12px; }
+.ch-menu-head .logo { flex: none; width: 78px; height: 52px; margin-right: 20px; border-radius: 8px; font-size: 22px; }
+.ch-menu-head img.logo { padding: 4px; object-fit: contain; background: #fff; }
+.ch-menu-head .logo.badge { display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.ch-menu-name { flex: 1 1 0%; min-width: 0; font-size: 32px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ch-menu .menu-row, .ch-sched .ch-sched-watch { gap: 0; }
+.ch-menu .menu-row + .menu-row { margin-top: 6px; }
+.ch-menu .menu-row > svg, .ch-sched .ch-sched-watch > svg { flex: none; margin-right: 24px; }
+/* A favourite: the line a little lighter (the state), white only in focus. */
+.ch-menu .menu-row.on:not(:focus) { background: var(--selected); }
+
+/* The programme sheet: "Watch" above the day. */
+.ch-sched .ch-sched-watch { flex: none; margin-bottom: 8px; }
+.ch-sched .tm-sched { padding-left: 0; padding-right: 0; }
+.ch-sched .sc-head { display: none; } /* the sheet's title already names the channel */

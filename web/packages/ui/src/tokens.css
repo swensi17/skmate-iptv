@@ -1,37 +1,163 @@
-/* Design tokens, taken from the Android app (StageTokens.kt): 1920×1080 canvas, same colours, same corner. */
+/*
+ * Design tokens, ported from the Android app (skmate-android-main, app/src/main/java/tv/own/owntv/ui):
+ *   theme/StageTokens.kt   StagePalette.Dark / .Light, StageRadii, stageText (type in design px)
+ *   ui/brand/SkMateWordmark.kt   SkMateBlue
+ *   core theme/Palette.kt  the INK accent (the default): cream on dark, near black on light
+ *   stage/StageComponents.kt  focus fills (SheetFocusFill, LightFocusFill), FocusBarShape (4)
+ *   stage/StageSidePanel.kt, features/settings/SettingsStage.kt  panel fills, scrims, motion
+ * Sizes in the Android code are `mpx`, pixels of a 1920-wide layout: they are used here 1:1 as px on the 1920 stage.
+ * The Android app runs the TV-box look (`TvBoxNav = true`): focus is a flat light-grey plate with dark text, never a ring.
+ *
+ * The first block keeps the names the existing screens already use (--page, --text, --focus-fill ...); the `--st-*`
+ * names are the Android tokens screen agents should prefer. Light values come from StagePalette.Light.
+ */
+
+/* Plus Jakarta Sans 2.071, variable (wght 200-800), SIL OFL 1.1 (fonts/OFL-Plus-Jakarta-Sans.txt), the same file the
+   Android app ships (res/font/plus_jakarta_sans_variable.ttf). It has no Cyrillic: Russian text falls back to the TV's
+   own sans, as it falls back to Roboto on Android. Old engines that cannot read the weight range (before Chromium 62)
+   drop that one descriptor and use the default instance (400) with synthetic bold. */
+@font-face {
+  font-family: "Plus Jakarta Sans";
+  src: url("./fonts/plus_jakarta_sans_variable.ttf") format("truetype");
+  font-weight: 200 800;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
-  --page: #232629;
-  --panel: #232629;
-  --text: #f1f2f3;
-  --muted: #a9adb2;
-  --dim: #6e7378;
-  --control: #2c3034;
-  --focus-fill: #dadcdf;
-  --focus-text: #121212;
-  --accent: #4aa8ff;
-  --ok: #7be3a4;
-  --danger: #ff8a7a;
-  --line: rgba(255, 255, 255, 0.12);
-  --selected: rgba(255, 255, 255, 0.08); /* a chosen item that is not in focus: a plain, slightly lighter row */
-  --radius: 4px; /* FocusBarShape: one rounded rectangle for every focus */
-  --font: "Plus Jakarta Sans", "Segoe UI", Roboto, Arial, sans-serif;
+  /* --- Android StagePalette.Dark --- */
+  --st-text: #f1f2f3;
+  --st-muted: #a9adb2;
+  --st-dim: #6e7378;
+  --st-item: #d7dade;        /* itemText: idle menu / sheet / category items */
+  --st-menu-item: #dde0e3;   /* menuItemText */
+  --st-tag-text: #c9cdd1;
+  --st-ink-rgb: 255, 255, 255; /* every flat surface is this ink at a low alpha */
+  --st-page: #232629;        /* the side menu's grey: the page and the panels on it read as one surface */
+  --st-body: #cbcfd3;        /* plots, descriptions, panel text */
+  --st-nav-text: #c6cacf;
+  --st-fx-line: #dadde0;     /* second line of a focused row (overridden on the light plate, see ui.css) */
+  --st-ok: #7be3a4;
+  --st-warn: #ffb86b;
+  --st-danger: #ff8a7a;
+  --st-rating: #ffcc4d;
+  --st-scrim: rgba(4, 5, 6, 0.55);          /* the wash behind a popup (StageColors.Scrim) */
+  --st-wash-rgb: 19, 22, 25;
+  --st-segment-on: rgba(255, 255, 255, 0.13);
+  --st-knob-off: #d0d3d6;
+  --st-keycap: rgba(255, 255, 255, 0.08);
+  --st-chip-warn-text: #ffd27a;
+  --st-chip-warn-fill: rgba(255, 200, 80, 0.14);
+  --st-control: rgba(255, 255, 255, 0.06);  /* controlFill: idle tools, fields, buttons, segmented */
+  --st-control-solid: #303336;              /* the same over --st-page, for things drawn over pictures or each other */
+  --st-hairline: rgba(241, 242, 243, 0.08); /* the line under a menu row (Text 8%) */
+  --st-divider: rgba(255, 255, 255, 0.10);  /* the 1 px line between a popup's parts (Ink 10%) */
+  --st-separator: rgba(241, 242, 243, 0.12); /* between the settings groups and the extras (Text 12%) */
+  --st-marked: rgba(241, 242, 243, 0.07);    /* a row whose choices are open / a span member (Text 7%) */
+  --st-still-back: #0f1518;                 /* the tile behind a channel logo or a missing picture */
+
+  /* The accent: INK, SkMate's default (cream on the dark theme). */
+  --st-accent: #f2f0ed;
+  --st-on-accent: #121212;
+  /* SkMate's brand blue: the accent inside Settings (switches, values), the archive tag, step markers, the value on a
+     focused menu row, check marks on a light page. Only where Android draws it. */
+  --st-blue: #0086fc;
+
+  /* Focus: the TV-box plate. Inside it the light palette applies (dark text), see `.st-focusable:focus` in ui.css. */
+  --st-focus-fill: #e0e2e4;  /* SheetFocusFill: rows, buttons, fields on the dark page */
+  --st-focus-text: #121212;
+  --st-focus-muted: #474645;
+  --st-focus-dim: #7e7e7d;
+  --st-focus-line: #343433;
+  --st-focus-radius: 4px;    /* FocusBarShape */
+
+  /* Surfaces */
+  --st-sheet-fill: #232629;        /* the Settings sheet (SettingsStage.kt SideFill) */
+  --st-side-panel-fill: #1e2228;   /* StageSidePanel (short choice lists) */
+  --st-side-panel-scrim: rgba(0, 0, 0, 0.55); /* 0x8C000000 */
+  --st-card-fill: #232629;         /* solidCard: menus and popups */
+  --st-card-shadow: 0 6px 16px rgba(0, 0, 0, 0.5); /* Android: 40 blur, 14 down; kept small for old TVs */
+
+  /* Radii (StageRadii + the few one-offs) */
+  --st-r-focus: 4px;
+  --st-r-tag: 6px;
+  --st-r-plate: 12px;
+  --st-r-row: 16px;
+  --st-r-button: 16px;
+  --st-r-white-focus: 16px;
+  --st-r-sheet-edge: 20px;  /* the Settings sheet's outer (left) corners */
+  --st-r-tile: 26px;
+  --st-r-menu: 28px;
+  --st-r-popup: 30px;
+  --st-r-sheet: 32px;
+
+  /* Motion (Android tween default = FastOutSlowInEasing) */
+  --st-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --st-sheet-ms: 300ms;      /* the Settings sheet: OwnTVShell.kt SheetSlideMs */
+  --st-panel-ms: 240ms;      /* StageSidePanel: PanelMs */
+  --st-lift-ms: 170ms;       /* stageLift: buttons 1.04, posters 1.08 */
+  --st-switch-ms: 200ms;     /* StageSwitch knob */
+  --st-segment-ms: 160ms;    /* the segmented value's pill */
+  --st-popup-ms: 150ms;      /* a popup's fade (Android's dialog window animation; not in the app's code) */
+
+  --st-font: "Plus Jakarta Sans", Roboto, "Samsung One", "SamsungOneUI", "LG Smart UI", "Segoe UI", Arial, sans-serif;
+
+  /* --- The names the existing screens use, mapped onto the tokens above --- */
+  --page: var(--st-page);
+  --panel: var(--st-page);
+  --text: var(--st-text);
+  --muted: var(--st-muted);
+  --dim: var(--st-dim);
+  --control: var(--st-control-solid);
+  --focus-fill: var(--st-focus-fill);
+  --focus-text: var(--st-focus-text);
+  --accent: var(--st-accent);
+  --ok: var(--st-ok);
+  --danger: var(--st-danger);
+  --line: var(--st-separator);
+  --selected: var(--st-marked); /* a chosen item that is not in focus: a plain, slightly lighter row */
+  --radius: var(--st-r-focus);  /* FocusBarShape: one rounded rectangle for every focus */
+  --font: var(--st-font);
   --enter-ms: 260ms;
   color-scheme: dark;
 }
 :root[data-theme="light"] {
-  --page: #fbfaf9;
-  --panel: #eff2f5;
-  --text: #121212;
-  --muted: #474645;
-  --dim: #7e7e7d;
-  --control: #f2f0ed;
-  --focus-fill: #121212;
-  --focus-text: #fbfaf9;
-  --accent: #0a6fe0;
-  --ok: #00a862;
-  --danger: #ff2b3a;
-  --line: rgba(0, 0, 0, 0.14);
-  --selected: rgba(0, 0, 0, 0.06);
+  /* --- Android StagePalette.Light: cream paper, warm ink, flat --- */
+  --st-text: #121212;
+  --st-muted: #474645;
+  --st-dim: #7e7e7d;
+  --st-item: #343433;
+  --st-menu-item: #343433;
+  --st-tag-text: #474645;
+  --st-ink-rgb: 18, 18, 18;
+  --st-page: #fbfaf9;
+  --st-body: #474645;
+  --st-nav-text: #7e7e7d;
+  --st-fx-line: #343433;
+  --st-ok: #00a862;
+  --st-warn: #d48f00;
+  --st-danger: #ff2b3a;
+  --st-scrim: rgba(18, 18, 18, 0.30);
+  --st-wash-rgb: 251, 250, 249;
+  --st-segment-on: #ffffff;
+  --st-knob-off: #ffffff;
+  --st-keycap: #f2f0ed;
+  --st-chip-warn-text: #d48f00;
+  --st-chip-warn-fill: rgba(255, 187, 38, 0.18);
+  --st-control: rgba(18, 18, 18, 0.06);
+  --st-control-solid: #edeceb;
+  --st-hairline: rgba(18, 18, 18, 0.08);
+  --st-divider: rgba(18, 18, 18, 0.10);
+  --st-separator: rgba(18, 18, 18, 0.12);
+  --st-marked: rgba(18, 18, 18, 0.07);
+  --st-still-back: rgba(18, 18, 18, 0.06);
+  --st-accent: #121212;
+  --st-on-accent: #fbfaf9;
+  --st-focus-fill: #e7e8ea;   /* LightFocusFill: a grey a step darker than the page */
+  --st-sheet-fill: #ffffff;
+  --st-side-panel-fill: #ffffff;
+  --st-card-fill: #ffffff;
+  --st-card-shadow: 0 6px 16px rgba(0, 0, 0, 0.16);
   color-scheme: light;
 }
 /* Motion off (user choice or a slow device): every transition becomes instant. */

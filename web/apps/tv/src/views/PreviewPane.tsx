@@ -1,4 +1,4 @@
-import { useContext, useRef } from "preact/hooks";
+import { useContext, useEffect, useRef, useState } from "preact/hooks";
 import type { Channel } from "@skmate/core";
 import { Icon } from "@skmate/ui";
 import { t } from "../i18n";
@@ -10,16 +10,34 @@ import { capitalize } from "../text";
 import { clock } from "../time";
 import { leftLabel } from "./Left";
 import { ChannelLogo } from "./ChannelLogo";
+import { detectPlatform } from "../platform";
+
+/**
+ * On a TV the preview opens only once the cursor has rested this long on one channel (on top of the list's own
+ * dwell), and closes at once when the cursor moves: a TV has one hardware decoder, and a preview still opening when
+ * a channel is started full screen would keep it from the player.
+ */
+const TV_REST_MS = detectPlatform() === "browser" ? 0 : 800;
 
 /** A muted live window for the channel under the cursor, so a channel can be judged before it is opened. */
 export function PreviewPane({ channel, focused, settings }: { channel: Channel | null; focused: Channel | null; settings: Settings }) {
   const info = focused ?? channel;
   const { data, now } = useContext(GuideContext);
   const nn = info ? data.nowNext(info.id, now) : null;
+  // The stream of the preview: only for the channel the cursor is still on, after the rest; any move releases it.
+  const [rested, setRested] = useState<string | null>(null);
+  useEffect(() => {
+    setRested(null);
+    if (!channel) return;
+    if (TV_REST_MS === 0) { setRested(channel.url); return; }
+    const id = setTimeout(() => setRested(channel.url), TV_REST_MS);
+    return () => clearTimeout(id);
+  }, [channel?.url, focused?.id]);
+  const live = channel && rested === channel.url && (!focused || focused.id === channel.id) ? channel : null;
   return (
     <aside class="preview" aria-label={t("setPreview")}>
       <div class="preview-video">
-        {channel && settings.preview ? <PreviewVideo key={channel.url} channel={channel} settings={settings} /> : <div class="preview-empty"><Icon name="live_tv" size={72} /></div>}
+        {live && settings.preview ? <PreviewVideo key={live.url} channel={live} settings={settings} /> : <div class="preview-empty"><Icon name="live_tv" size={72} /></div>}
       </div>
       {info ? (
         <>

@@ -46,7 +46,6 @@
 .player .pinfo-text { flex: 1; min-width: 0; }
 .player .pinfo-line { min-width: 0; white-space: nowrap; }
 .player .pinfo-line > * { flex: none; }
-.player .pinfo-line > .pinfo-ch { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .player .pinfo-next { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 /* "Archive" and "behind live": an outlined word, not a filled badge. */
 .player .pinfo-arch { padding: 0 10px; background: none; color: #f1f2f3; box-shadow: inset 0 0 0 2px rgba(241, 242, 243, .6); line-height: 30px; }
@@ -61,7 +60,6 @@
   max-width: 100%; padding: 0 4px; text-align: center; line-height: 1.2; word-break: break-word;
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
 }
-.player .strip-card { min-width: 0; }
 
 /* ---------- Player: the side panel ---------- */
 
@@ -111,3 +109,50 @@
 /* The wide panel keeps its text inside the title-safe area: a margin above the titles, beside the numbers, and under
    the lists (they show whole rows only, see PlayerPanel). */
 .pp-drawer.tm-drawer .tm { padding: 40px 0 0 24px; }
+
+/* ---------- Player: old TV browsers, dialogs over the picture ---------- */
+
+/* The player is a layer of its own (z-index), so a dialog of the app over the playing picture (a programme to come)
+   covers the bar and the strip too (the bar's z-index counts inside the player only). The edges are spelled
+   out: `inset` is newer than the TV browsers (Chromium 63). */
+.player { left: 0; top: 0; right: 0; bottom: 0; z-index: 0; }
+.player .player-error, .player .drawer-scrim { left: 0; top: 0; right: 0; bottom: 0; }
+/* The side lists do not dim the picture beside them: no see-through layer over the video. */
+.player .drawer-scrim, .player .drawer-scrim.closing { background: none; }
+
+/* Spaces as margins, not flex `gap` (ignored by those browsers, which glues the parts together); gap is 0 so a
+   browser that knows it does not add it twice. */
+.player .pinfo { gap: 0; }
+.player .pinfo-text { margin-left: 28px; }
+.player .pinfo-line { gap: 0; }
+.player .pinfo-line > * + * { margin-left: 18px; }
+.player .pinfo-num { font-variant-numeric: tabular-nums; }
+.player .tile { gap: 0; }
+.player .tile-label { margin-top: 12px; }
+.player .rec-badge { gap: 0; }
+.player .rec-badge span { margin-right: 10px; }
+.player .player-error { gap: 0; }
+.player .player-error .player-error-title { margin-top: 24px; }
+.player .player-error .player-note { margin-top: 12px; }
+.player .player-error .empty-actions { margin-top: 44px; }
+.player .player-error .empty-actions { gap: 0; }
+.player .player-error .empty-actions > * + * { margin-left: 16px; }
+
+/* A setting that is on (this channel is in favourites): the icon on a slightly lighter disc; focus is white as always. */
+.player .tile.on .tile-icon { background: #3a3d42; }
+.player .tile.on:focus .tile-icon { background: #f1f2f3; color: #121212; }
+
+/* The strip, line by line: number and channel 32 px bold; the programme 40 px; its time, progress and what is left;
+   what is next. It stays up while the action bar is open, raised above it with the progress line (transform only). */
+.player .pinfo-head { display: flex; align-items: baseline; min-width: 0; white-space: nowrap; font-size: 32px; font-weight: 700; line-height: 1.2; color: #fff; text-shadow: 0 2px 12px rgba(0, 0, 0, .6); }
+.player .pinfo-head .pinfo-num { flex: none; margin-right: 16px; color: #d6dade; }
+.player .pinfo-head .pinfo-ch { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.player .pinfo-title { margin-top: 4px; font-size: 40px; line-height: 1.2; }
+.player .pinfo-line { margin-top: 8px; }
+.player .pinfo { transition: opacity 220ms linear, transform 260ms cubic-bezier(.2, 0, 0, 1); }
+/* The bar is 172 px high (one line of labels; 198 with two): the progress line goes just above it, the strip above that. */
+div.player.with-bar .pinfo { opacity: 1; transform: translateY(-130px); }
+div.player.with-bar .pline { transform: translateY(-130px); }
+
+/* Dialogs of the app over the playing picture (a programme to come, a reminder): no dimming layer over the video. */
+.player ~ .scrim:not(.sheet-scrim) { background: none; left: 0; top: 0; right: 0; bottom: 0; }

@@ -9,6 +9,7 @@ import { UiContext } from "../state/UiContext";
 import { ChannelSearch } from "../state/channelSearch";
 import { GuideContext } from "../state/GuideContext";
 import { ChannelRow } from "./ChannelRow";
+import { SearchEntry } from "./EntryRow";
 import "./screens.css";
 
 /** The room under the title row and the filters; the list shows only whole rows of it, so the last one is never cut. */
@@ -39,12 +40,12 @@ export function SportView({ channels, favorites, onOpen, onFav }: Props) {
 
   return (
     <div class="screen sport">
+      {/* As on the channels screen: the title, then the search box on the left. */}
       <div class="screen-top">
         <h2>{t("navSport")}</h2>
-        <div class="toolbar">
-          <input class="field small" data-focus="sport-search" value={query} placeholder={t("filterSearch")}
-            onInput={(e) => setQuery((e.currentTarget as HTMLInputElement).value)} />
-        </div>
+        <SearchEntry id="sport-search" value={query} entryTitle={`${t("filterSearch")}: ${t("navSport")}`} entryHint={t("searchChannelsHint")}
+          count={(q) => index.search(q).length} results=".screen.sport .vlist"
+          onDone={(v) => { setQuery(v); setSettled(v); }} />
       </div>
       <div class="filters">
         <button class="filter" data-focus="sport-all" aria-pressed={kind === "all"} onClick={() => setKind("all")}>

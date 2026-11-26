@@ -27,4 +27,20 @@ describe("watchFrames", () => {
     for (let i = 0; i < 5; i++) r.frame((t += 80));
     expect(slow).toBe(0);
   });
+  it("stops asking for frames when nothing happens, and starts again on input", () => {
+    const r = fakeRaf();
+    let asked = 0;
+    const raf = (f: (t: number) => void) => { asked++; return r.raf(f); };
+    const listeners: Array<() => void> = [];
+    const wake = { addEventListener: (_: string, f: unknown) => { listeners.push(f as () => void); }, removeEventListener: () => {} };
+    watchFrames(() => {}, raf, wake);
+    const start = performance.now();
+    r.frame(start + 16);
+    r.frame(start + 60_000); // long after the watch window: the loop ends here
+    const before = asked;
+    r.frame(start + 60_016);
+    expect(asked).toBe(before);
+    listeners[0]?.(); // a key press
+    expect(asked).toBe(before + 1);
+  });
 });

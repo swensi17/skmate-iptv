@@ -1,6 +1,6 @@
 import { useContext, useEffect, useRef, useState } from "preact/hooks";
 import type { Programme } from "@skmate/epg";
-import type { Channel } from "@skmate/core";
+import { archiveUrl, type Channel } from "@skmate/core";
 import { t } from "../i18n";
 import { GuideContext } from "../state/GuideContext";
 import { capitalize } from "../text";
@@ -12,8 +12,15 @@ const clock = (ms: number) => new Date(ms).toLocaleTimeString([], { hour: "2-dig
  * The column beside the player's channel list: what is on the channel the cursor is on, and the day ahead of it. Right
  * from the list walks into it, Up and Down go through the programmes (the card above shows the one under the cursor),
  * Left goes back. A channel without a guide says so, over a few quiet placeholder lines.
+ * OK on a programme: the one on air watches the channel, a past one plays its recording (when the channel keeps one),
+ * one still to come asks about a reminder.
  */
-export function Schedule({ channel }: { channel: Channel | null }) {
+export function Schedule({ channel, onWatch, onArchive, onUpcoming }: {
+  channel: Channel | null;
+  onWatch?: (c: Channel) => void;
+  onArchive?: (c: Channel, p: Programme) => void;
+  onUpcoming?: (c: Channel, p: Programme) => void;
+}) {
   const { data, now } = useContext(GuideContext);
   const box = useRef<HTMLDivElement>(null);
   const [picked, setPicked] = useState<Programme | null>(null);
@@ -33,6 +40,11 @@ export function Schedule({ channel }: { channel: Channel | null }) {
   }, [channel?.id, shown.length]);
 
   if (!channel) return <div class="tm-sched" />;
+  const press = (x: Programme) => {
+    if (x.stop <= now) { if (archiveUrl(channel, x.start, x.stop, now) !== null) onArchive?.(channel, x); }
+    else if (x.start > now) onUpcoming?.(channel, x);
+    else onWatch?.(channel);
+  };
   const card = picked ?? live;
   return (
     <div class="tm-sched" data-ch={channel.id}>
@@ -63,7 +75,7 @@ export function Schedule({ channel }: { channel: Channel | null }) {
           ) : null}
           <div class="sc-list" ref={box}>
             {shown.map((x, i) => (
-              <button class={`sc-row${x === live ? " sc-now" : ""}`} key={x.start} data-focus={`sc-${i}`} onFocus={(e) => { setPicked(x); pin(e.currentTarget as HTMLElement); }} tabIndex={-1}>
+              <button class={`sc-row${x === live ? " sc-now" : ""}`} key={x.start} data-focus={`sc-${i}`} onFocus={(e) => { setPicked(x); pin(e.currentTarget as HTMLElement); }} onClick={() => press(x)} tabIndex={-1}>
                 <span class="sc-at">{clock(x.start)}</span>
                 <span class="sc-t">{x.title}</span>
               </button>

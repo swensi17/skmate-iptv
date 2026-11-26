@@ -91,3 +91,41 @@
 
 /* The playlist picker: the playlist in use is a plain lighter row, as a chosen item is everywhere else. */
 .drawer-bottom .row[aria-pressed="true"]:not(:focus) { background: var(--selected); }
+
+/* ===== Search: one box, the same on every screen =====
+   At the left of the toolbar, right after the screen's title: a magnifier and "Search" (or what is searched now).
+   It is a button: OK opens the entry panel, so the TV keyboard never pops up just because the cursor passed by.
+   Margins, not flex gap (Chromium 63 on a 2019 TV has no gap for flexbox). */
+.search-entry { display: flex; align-items: center; flex: none; min-width: 0; }
+.search-box { display: flex; align-items: center; height: 64px; width: 380px; padding: 0 24px; border: 0; border-radius: var(--radius);
+  background: var(--control); color: var(--muted); font: 600 24px var(--font); text-align: left; outline: none; cursor: pointer;
+  transition: background-color 120ms linear, color 120ms linear; }
+.search-box svg { flex: none; margin-right: 16px; }
+.search-q, .search-ph { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.search-q { color: var(--text); font-weight: 700; }
+.search-box:focus { background: var(--focus-fill); color: var(--focus-text); }
+.search-box:focus .search-q { color: var(--focus-text); }
+.search-entry .search-reset { margin-left: 12px; min-width: 0; }
+/* In a header the box sits next to the title; whatever else the header holds stays on the right. */
+.live-top .search-entry, .screen-top .search-entry { margin-left: 48px; margin-right: auto; }
+.live-top .top-title { flex: none; }
+.screen.vod .vod-main .search-entry { margin-right: 12px; }
+.screen.vod .vod-main .search-box { height: 56px; width: 340px; }
+.screen.vod .vod-main .search-reset { height: 56px; }
+
+/* The Search screen: the large box at the top left, the filters under it, then the results or the recent queries. */
+.search-entry.wide { align-self: flex-start; }
+.search-entry.wide .search-box { width: 1000px; height: 80px; font-size: 28px; }
+.search-entry.wide .search-reset { height: 80px; font-size: 24px; }
+.screen.search .search-idle.start { display: block; min-height: 0; padding-top: 16px; }
+.screen.search .search-idle.start .search-recent { display: block; max-width: 1500px; }
+.screen.search .search-idle.start .caption { margin: 0 0 12px 4px; }
+.screen.search .search-idle.start .recent { justify-content: flex-start; }
+.search-tip { margin: 40px 4px 0; max-width: 1000px; }
+.search-tip-title { font-size: 30px; font-weight: 700; }
+.search-tip-body { margin-top: 8px; font-size: 24px; line-height: 1.4; color: var(--muted); }
+/* The entry panel of a search: how many the query finds, live, under the field. */
+.entry-note { margin-top: 16px; min-height: 32px; font-size: 24px; font-weight: 600; color: var(--muted); }
+/* The channels screen: the sort is one row under the categories, saying the order in use; OK steps to the next. */
+.live .groups .gr-sort { height: 64px; margin-top: 8px; font-size: 24px; color: var(--muted); border-top: 1px solid var(--line); border-radius: 0 0 var(--radius) var(--radius); }
+.live .groups .gr-sort:focus { color: var(--focus-text); border-top-color: transparent; border-radius: var(--radius); }

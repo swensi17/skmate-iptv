@@ -3,11 +3,13 @@ import "@skmate/ui/src/tokens.css";
 import "@skmate/ui/src/ui.css";
 import "./app.css";
 import { App } from "./App";
-import { fitStage, installPointer } from "@skmate/ui";
+import { fitStage, installLegacySupport, installPointer } from "@skmate/ui";
 import { detectPlatform, registerRemoteKeys } from "./platform";
 import { loadLanguage } from "./i18n";
 import { load } from "./state/settings";
 
+// First: old TV engines (Chromium 53-63) get `html.no-flex-gap` and a few polyfills before anything is drawn.
+installLegacySupport();
 registerRemoteKeys(detectPlatform());
 fitStage();
 installPointer();

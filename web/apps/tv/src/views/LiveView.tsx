@@ -13,6 +13,7 @@ import { GroupIcon } from "./GroupIcon";
 import { ChannelRow } from "./ChannelRow";
 import { UiContext } from "../state/UiContext";
 import { PreviewPane } from "./PreviewPane";
+import { SearchEntry } from "./EntryRow";
 
 // Keys of the built-in groups; a leading "~" keeps them apart from any group a provider names.
 const FAV = "~fav";
@@ -26,6 +27,9 @@ const DWELL_MS = 600;
 const TYPING_PAUSE_MS = 180;
 
 type Sort = "provider" | "az" | "za";
+const SORTS: Sort[] = ["provider", "az", "za"];
+/** The sort row under the categories, and the space above it. */
+const SORT_ROW = GROUP_ROW + 8;
 
 interface GroupItem { key: string; label: string; count: number }
 
@@ -149,24 +153,17 @@ export function LiveView(p: Props) {
 
   return (
     <div class="screen live">
+      {/* The same toolbar on every screen: the title, then the search box on the left; the playlist on the right.
+          The sort is one row under the categories (Left), with what it is set to. */}
       <div class="live-top">
-        <div>
-          <h2>{t("navLive")}</h2>
-          <div class="greeting">{p.greeting}</div>
-        </div>
+        <div class="top-title"><h2>{t("navLive")}</h2></div>
+        <SearchEntry id="live-search" value={query} entryTitle={`${t("filterSearch")}: ${t("navLive")}`} entryHint={t("searchChannelsHint")}
+          count={(q) => index.search(q).length} results=".screen.live .list .vlist"
+          onDone={(v) => { setQuery(v); setSettled(v); }} />
         <div class="toolbar">
           <button class="btn tool" data-focus="live-playlist" onClick={p.onPickPlaylist}>
             <Icon name="playlist" size={28} /> <span class="chip-name">{p.playlistName ?? t("noPlaylist")}</span>
           </button>
-          <input class="field small" data-focus="live-search" value={query} placeholder={t("filterSearch")}
-            onInput={(e) => setQuery((e.currentTarget as HTMLInputElement).value)} />
-          <div class="seg sorts" role="radiogroup" aria-label={t("sortProvider")}>
-            {(["provider", "az", "za"] as const).map((v) => (
-              <button class="seg-item" key={v} data-focus={`live-sort-${v}`} aria-pressed={sort === v} onClick={() => setSort(v)}>
-                {t(v === "provider" ? "sortProvider" : v === "az" ? "sortAz" : "sortZa")}
-              </button>
-            ))}
-          </div>
         </div>
       </div>
       <div class="live-main">
@@ -177,7 +174,7 @@ export function LiveView(p: Props) {
             }}>
               <div class="gr-head"><span class="grow">{p.playlistName ?? t("noPlaylist")}</span></div>
               <VirtualList
-                items={groupItems} rowHeight={GROUP_ROW} height={LIST_HEIGHT - 72}
+                items={groupItems} rowHeight={GROUP_ROW} height={LIST_HEIGHT - 72 - SORT_ROW}
                 idOf={(g) => `g:${g.key}`}
                 renderRow={(g) => (
                   <button class="row gr" data-focus={`g:${g.key}`} onClick={() => { if (g.key === group) closeCats(); else { setGroup(g.key); setCatsOpen(false); } }} aria-pressed={group === g.key}>
@@ -187,13 +184,17 @@ export function LiveView(p: Props) {
                   </button>
                 )}
               />
+              {/* OK steps through the orders; the row says the one in use. */}
+              <button class="row gr gr-sort" data-focus="live-sort" onClick={() => setSort(SORTS[(SORTS.indexOf(sort) + 1) % SORTS.length] ?? "provider")}>
+                <span class="grow">{t("sortLabel", { v: t(sort === "provider" ? "sortProvider" : sort === "az" ? "sortAz" : "sortZa") })}</span>
+              </button>
             </aside>
           )}
         </Presence>
         <section class="list" onKeyDown={(e) => {
           if ((e.key === "ArrowLeft" || e.keyCode === 37) && !catsOpen && !(e.target instanceof HTMLInputElement)) { e.stopPropagation(); e.preventDefault(); openCats(); }
         }}>
-          <div class="list-head">{t("channelsCount", { n: shown.length })}{group === ARCHIVE ? ` · ${t("archiveHint")}` : ""}</div>
+          <div class="list-head">{t("channelsN", { n: shown.length })}{group === ARCHIVE ? ` · ${t("archiveHint")}` : ""}</div>
           <VirtualList
             key={`${group}|${settled}|${sort}|${ROW}`}
             items={shown} rowHeight={ROW} height={Math.floor((LIST_HEIGHT - 56) / ROW) * ROW} pageSize={9} initialIndex={Math.max(0, back)}
