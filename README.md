@@ -14,6 +14,26 @@ M3U и Xtream Codes, телегид (EPG), архив, профили — упр
   <a href="https://t.me/skmates"><img alt="Канал в Telegram: @skmates" src="docs/brand/telegram/button-channel.svg" width="20%"></a><a href="https://t.me/skmatetv"><img alt="Группа в Telegram: @skmatetv" src="docs/brand/telegram/button-group.svg" width="20%"></a><a href="https://t.me/swensi17"><img alt="Связь с автором в Telegram: @swensi17" src="docs/brand/telegram/button-dm.svg" width="20%"></a><a href="https://github.com/swensi17/skmate-iptv/releases/latest/download/SkMate-IPTV.apk"><img alt="Скачать APK для Android TV" src="docs/brand/telegram/button-download.svg" width="20%"></a>
 </p>
 
+<h3 align="center">Скачать</h3>
+<table align="center">
+  <tr>
+    <td align="center" valign="top" width="33%">
+      <a href="https://github.com/swensi17/skmate-iptv/releases/latest/download/SkMate-IPTV.apk"><img alt="Скачать APK для Android TV" src="docs/brand/telegram/button-download.svg" width="170"></a><br>
+      <sub>Android TV, Google TV, Fire TV<br>APK</sub>
+    </td>
+    <td align="center" valign="top" width="33%">
+      <a href="https://github.com/swensi17/skmate-tv/releases/latest/download/SkMate-IPTV-tizen.wgt"><img alt="Скачать для Samsung" src="docs/brand/telegram/button-download-samsung.svg" width="170"></a><br>
+      <sub>Samsung (Tizen), 2018 и новее<br>.wgt</sub>
+    </td>
+    <td align="center" valign="top" width="33%">
+      <a href="https://github.com/swensi17/skmate-tv/releases/latest/download/SkMate-IPTV-webos.ipk"><img alt="Скачать для LG" src="docs/brand/telegram/button-download-lg.svg" width="170"></a><br>
+      <sub>LG (webOS)<br>.ipk</sub>
+    </td>
+  </tr>
+</table>
+<p align="center"><sub>Android ставится файлом, как обычное приложение. Для Samsung и LG приложение ставится через режим разработчика телевизора: <a href="https://github.com/swensi17/skmate-tv/blob/main/docs/install-samsung.md">инструкция для Samsung</a> (через TizenBrew, около 10 минут), <a href="https://github.com/swensi17/skmate-tv/blob/main/docs/install-lg.md">инструкция для LG</a> (около 15 минут). Версия для Samsung и LG: <a href="https://github.com/swensi17/skmate-tv">swensi17/skmate-tv</a>.</sub></p>
+
+
 <p align="center">
   <a href="https://github.com/swensi17/skmate-iptv/releases/latest"><img alt="Release" src="https://img.shields.io/github/v/release/swensi17/skmate-iptv?label=release&color=1e88e5"></a>
   <a href="https://github.com/swensi17/skmate-iptv/releases"><img alt="Downloads" src="https://img.shields.io/github/downloads/swensi17/skmate-iptv/total?color=43a047"></a>
@@ -229,7 +249,7 @@ SkMate рядом с самыми известными IPTV-плеерами.
 **Чем SkMate отличается от других IPTV-плееров?** Бесплатно, без рекламы, с открытым кодом. Работает на Android TV, Google TV и Fire TV.
 **Есть ли в приложении каналы?** Нет. Это только плеер: вы добавляете свой M3U, Xtream Codes или Stalker.
 **Как добавить плейлист без набора адреса пультом?** Отсканируйте QR-код на телевизоре телефоном; телефон и ТВ должны быть в одной сети Wi-Fi.
-**А Samsung и LG?** Для них отдельная версия: [swensi17/skmate-tv](https://github.com/swensi17/skmate-tv). Там инструкции по установке.
+**А Samsung и LG?** Да, есть версия и для них: [swensi17/skmate-tv](https://github.com/swensi17/skmate-tv). Скачать: [Samsung (.wgt)](https://github.com/swensi17/skmate-tv/releases/latest/download/SkMate-IPTV-tizen.wgt), [LG (.ipk)](https://github.com/swensi17/skmate-tv/releases/latest/download/SkMate-IPTV-webos.ipk). Инструкции: [Samsung](https://github.com/swensi17/skmate-tv/blob/main/docs/install-samsung.md), [LG](https://github.com/swensi17/skmate-tv/blob/main/docs/install-lg.md).
 **Какой нужен Android?** Android TV / Google TV 8.0 и новее, Fire TV, приставки на arm64-v8a и armeabi-v7a.
 
 ## Установка

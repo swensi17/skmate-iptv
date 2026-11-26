@@ -21,6 +21,26 @@ M3U and Xtream Codes, TV guide (EPG), catch-up, profiles — built for the remot
   <a href="https://github.com/swensi17/skmate-iptv/issues"><img alt="Issues" src="https://img.shields.io/github/issues/swensi17/skmate-iptv?color=e67e22"></a>
 </p>
 
+<h3 align="center">Download</h3>
+<table align="center">
+  <tr>
+    <td align="center" valign="top" width="33%">
+      <a href="https://github.com/swensi17/skmate-iptv/releases/latest/download/SkMate-IPTV.apk"><img alt="Download the APK for Android TV" src="../brand/telegram/button-download.svg" width="170"></a><br>
+      <sub>Android TV, Google TV, Fire TV<br>APK</sub>
+    </td>
+    <td align="center" valign="top" width="33%">
+      <a href="https://github.com/swensi17/skmate-tv/releases/latest/download/SkMate-IPTV-tizen.wgt"><img alt="Download for Samsung" src="../brand/telegram/button-download-samsung.svg" width="170"></a><br>
+      <sub>Samsung (Tizen), 2018 and newer<br>.wgt</sub>
+    </td>
+    <td align="center" valign="top" width="33%">
+      <a href="https://github.com/swensi17/skmate-tv/releases/latest/download/SkMate-IPTV-webos.ipk"><img alt="Download for LG" src="../brand/telegram/button-download-lg.svg" width="170"></a><br>
+      <sub>LG (webOS)<br>.ipk</sub>
+    </td>
+  </tr>
+</table>
+<p align="center"><sub>Android installs from the file like any app. On Samsung and LG the app is installed through the TV's developer mode: <a href="https://github.com/swensi17/skmate-tv/blob/main/docs/install-samsung.md">Samsung guide</a> (TizenBrew, about 10 minutes), <a href="https://github.com/swensi17/skmate-tv/blob/main/docs/install-lg.md">LG guide</a> (about 15 minutes). The Samsung and LG version: <a href="https://github.com/swensi17/skmate-tv">swensi17/skmate-tv</a>.</sub></p>
+
+
 <p align="center">
   <img alt="Android TV" src="https://img.shields.io/badge/Android%20TV-8.0%2B-3ddc84?logo=android&logoColor=white">
   <img alt="Google TV" src="https://img.shields.io/badge/Google%20TV-supported-4285f4?logo=googletv&logoColor=white">

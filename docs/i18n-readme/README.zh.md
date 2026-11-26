@@ -21,6 +21,26 @@
   <a href="https://github.com/swensi17/skmate-iptv/issues"><img alt="Issues" src="https://img.shields.io/github/issues/swensi17/skmate-iptv?color=e67e22"></a>
 </p>
 
+<h3 align="center">下载</h3>
+<table align="center">
+  <tr>
+    <td align="center" valign="top" width="33%">
+      <a href="https://github.com/swensi17/skmate-iptv/releases/latest/download/SkMate-IPTV.apk"><img alt="下载 Android TV 版 APK" src="../brand/telegram/button-download.svg" width="170"></a><br>
+      <sub>Android TV、Google TV、Fire TV<br>APK</sub>
+    </td>
+    <td align="center" valign="top" width="33%">
+      <a href="https://github.com/swensi17/skmate-tv/releases/latest/download/SkMate-IPTV-tizen.wgt"><img alt="下载三星版" src="../brand/telegram/button-download-samsung.svg" width="170"></a><br>
+      <sub>三星 Samsung（Tizen），2018 年及以后<br>.wgt</sub>
+    </td>
+    <td align="center" valign="top" width="33%">
+      <a href="https://github.com/swensi17/skmate-tv/releases/latest/download/SkMate-IPTV-webos.ipk"><img alt="下载 LG 版" src="../brand/telegram/button-download-lg.svg" width="170"></a><br>
+      <sub>LG（webOS）<br>.ipk</sub>
+    </td>
+  </tr>
+</table>
+<p align="center"><sub>Android 版像普通应用一样用文件安装。三星和 LG 版通过电视的开发者模式安装：<a href="https://github.com/swensi17/skmate-tv/blob/main/docs/install-samsung.md">三星安装说明</a>（通过 TizenBrew，约 10 分钟），<a href="https://github.com/swensi17/skmate-tv/blob/main/docs/install-lg.md">LG 安装说明</a>（约 15 分钟）。三星和 LG 版本：<a href="https://github.com/swensi17/skmate-tv">swensi17/skmate-tv</a>。</sub></p>
+
+
 <p align="center">
   <img alt="Android TV" src="https://img.shields.io/badge/Android%20TV-8.0%2B-3ddc84?logo=android&logoColor=white">
   <img alt="Google TV" src="https://img.shields.io/badge/Google%20TV-supported-4285f4?logo=googletv&logoColor=white">
