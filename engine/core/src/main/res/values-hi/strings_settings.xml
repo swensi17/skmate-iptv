@@ -364,7 +364,6 @@
     <string name="settings_search_keywords_startup">लॉन्च खोलें आरंभ पेज</string>
     <string name="settings_search_keywords_updates">GitHub रिलीज़ संस्करण</string>
     <string name="settings_search_keywords_update_auto">अपने-आप अपडेट नया संस्करण</string>
-    <string name="settings_language_default">डिफ़ॉल्ट (अंग्रेज़ी)</string>
     <string name="settings_language_device">डिवाइस की भाषा</string>
     <string name="settings_language_arabic">अरबी</string>
     <string name="settings_language_bulgarian">बल्गेरियाई</string>

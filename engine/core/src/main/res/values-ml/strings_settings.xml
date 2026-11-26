@@ -364,7 +364,6 @@
     <string name="settings_search_keywords_startup">ആരംഭിക്കുക തുറക്കുക പ്രവേശനം</string>
     <string name="settings_search_keywords_updates">GitHub റിലീസ് പതിപ്പ്</string>
     <string name="settings_search_keywords_update_auto">സ്വയം അപ്‌ഡേറ്റ് പുതിയ പതിപ്പ്</string>
-    <string name="settings_language_default">ഡിഫോൾട്ട് (ഇംഗ്ലീഷ്)</string>
     <string name="settings_language_device">ഉപകരണത്തിന്റെ ഭാഷ</string>
     <string name="settings_language_arabic">അറബിക്</string>
     <string name="settings_language_bulgarian">ബൾഗേറിയൻ</string>

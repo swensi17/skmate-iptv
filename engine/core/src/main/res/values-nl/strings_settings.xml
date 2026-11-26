@@ -364,7 +364,6 @@
     <string name="settings_search_keywords_startup">starten openen beginpagina</string>
     <string name="settings_search_keywords_updates">github release versie</string>
     <string name="settings_search_keywords_update_auto">automatisch update nieuwe versie</string>
-    <string name="settings_language_default">Standaard (Engels)</string>
     <string name="settings_language_device">Taal van apparaat</string>
     <string name="settings_language_arabic">Arabisch</string>
     <string name="settings_language_bulgarian">Bulgaars</string>

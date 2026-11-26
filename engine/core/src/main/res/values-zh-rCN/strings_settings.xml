@@ -362,7 +362,6 @@
     <string name="settings_search_keywords_startup">启动 打开 起始页</string>
     <string name="settings_search_keywords_updates">github 发布 版本</string>
     <string name="settings_search_keywords_update_auto">自动 更新 新版本</string>
-    <string name="settings_language_default">默认（英语）</string>
     <string name="settings_language_device">设备语言</string>
     <string name="settings_language_arabic">阿拉伯语</string>
     <string name="settings_language_bulgarian">保加利亚语</string>

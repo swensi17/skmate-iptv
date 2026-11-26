@@ -166,6 +166,17 @@ fun TvBoxChannelPanel(
             value = System.currentTimeMillis()
         }
     }
+    // The focused channel's guide, and the poster and description of a film or series on it (TMDB).
+    val entries = remember(schedule) {
+        schedule?.let { g -> listOfNotNull(g.previous, g.now) + listOfNotNull(g.next) + g.upcoming }
+            ?.distinctBy { it.startMs }?.sortedBy { it.startMs }.orEmpty()
+    }
+    val onAir = entries.firstOrNull { now in it.startMs until it.stopMs }
+    val art = tv.own.owntv.ui.components.rememberProgrammeArt(onAir?.title)
+    // ▶ from the list steps onto the poster: OK shows it over the whole screen, ▲ ▼ move through the guide under it.
+    val posterFocus = remember { FocusRequester() }
+    var scheduleStart by remember(schedule) { androidx.compose.runtime.mutableIntStateOf(0) }
+    var bigPoster by remember { mutableStateOf<tv.own.owntv.core.metadata.ProgrammeArt?>(null) }
     // The block under the picture follows focus once it rests, like the guide: a held ▼ would otherwise
     // load a logo and lay out a name for every row it passes.
     var shown by remember { mutableStateOf(focused) }
@@ -215,7 +226,10 @@ fun TvBoxChannelPanel(
                         else if (e.type == KeyEventType.KeyDown && e.key == Key.DirectionLeft) {
                             if (onOpenCategories != null) onOpenCategories() else onDismiss()
                             true
-                        } else if (e.type == KeyEventType.KeyDown && e.key == Key.DirectionRight) true else false
+                        } else if (e.type == KeyEventType.KeyDown && e.key == Key.DirectionRight) {
+                            if (art != null) runCatching { posterFocus.requestFocus() }
+                            true
+                        } else false
                     }
                     .padding(top = 36.mpx),
             ) {
@@ -269,8 +283,22 @@ fun TvBoxChannelPanel(
                         maxLines = 1, overflow = TextOverflow.Ellipsis,
                     )
                 }
-                val entries = schedule?.let { g -> listOfNotNull(g.previous, g.now) + listOfNotNull(g.next) + g.upcoming }
-                    ?.distinctBy { it.startMs }?.sortedBy { it.startMs }.orEmpty()
+                // A film or a series on air: its poster and what it is about (TMDB), in the room of a few rows.
+                val rows = if (art != null) MaxScheduleRows - ART_ROWS else MaxScheduleRows
+                // Up to the last programme: how many rows fit depends on the screen, so none is ever out of reach.
+                val lastStart = (entries.size - 1).coerceAtLeast(0)
+                art?.let { a ->
+                    panelProgrammeArt(a, c.text, Soft, posterFocus) { key ->
+                        when (key) {
+                            Key.DirectionLeft -> { runCatching { firstFocus.requestFocus() }; true }
+                            Key.DirectionDown -> { scheduleStart = (scheduleStart + 1).coerceAtMost(lastStart); true }
+                            Key.DirectionUp -> { scheduleStart = (scheduleStart - 1).coerceAtLeast(0); true }
+                            Key.DirectionCenter, Key.Enter, Key.NumPadEnter -> { bigPoster = a; true }
+                            Key.DirectionRight -> true
+                            else -> false
+                        }
+                    }
+                }
                 if (entries.isEmpty()) {
                     GuideStatusText(
                         stringResource(R.string.content_no_guide_short), stageText(21, 500), Faint,
@@ -278,7 +306,7 @@ fun TvBoxChannelPanel(
                     )
                 } else {
                     Column(Modifier.padding(top = 14.mpx)) {
-                        entries.take(MaxScheduleRows).forEach { p ->
+                        entries.drop(scheduleStart.coerceAtMost(lastStart)).take(rows).forEach { p ->
                             val onAir = now in p.startMs until p.stopMs
                             val past = p.stopMs <= now
                             val tint = if (onAir) SkMateBlue else if (past) Faint else c.text
@@ -302,8 +330,72 @@ fun TvBoxChannelPanel(
                 }
             }
         }
+        // The poster over the whole screen, from OK on it; focus goes back to it when it closes.
+        bigPoster?.let { a ->
+            tv.own.owntv.ui.components.programmePosterViewer(a) {
+                bigPoster = null
+                runCatching { posterFocus.requestFocus() }
+            }
+        }
     }
 }
+
+/**
+ * The poster, title, year and what it is about of the film or series on air, beside one another; the text runs
+ * down to the poster's foot. The poster takes focus (▶ from the list) with a white ring, and [onKey] decides
+ * what each key does there.
+ */
+@Composable
+private fun panelProgrammeArt(
+    art: tv.own.owntv.core.metadata.ProgrammeArt,
+    ink: Color,
+    soft: Color,
+    posterFocus: FocusRequester,
+    onKey: (Key) -> Boolean,
+) {
+    var focused by remember { mutableStateOf(false) }
+    val ring = RoundedCornerShape(ART_RING_RADIUS.mpx)
+    Row(Modifier.padding(top = 18.mpx), horizontalArrangement = Arrangement.spacedBy(16.mpx)) {
+        Box(
+            Modifier
+                .focusRequester(posterFocus)
+                .onFocusChanged { focused = it.isFocused }
+                .onPreviewKeyEvent { e -> e.type == KeyEventType.KeyDown && onKey(e.key) }
+                .focusable()
+                .then(if (focused) Modifier.border(ART_RING.mpx, Color.White, ring) else Modifier)
+                .padding(ART_RING.mpx),
+        ) { tv.own.owntv.ui.components.programmePoster(art.posterUrl, ART_POSTER_WIDTH.mpx) }
+        Column(
+            Modifier.height((ART_POSTER_WIDTH * ART_POSTER_RATIO + ART_RING * 2).mpx),
+            verticalArrangement = Arrangement.spacedBy(6.mpx),
+        ) {
+            Text(
+                art.title, style = stageText(ART_TITLE_TEXT, BOLD), color = ink,
+                maxLines = 1, overflow = TextOverflow.Ellipsis,
+            )
+            val separator = stringResource(R.string.content_epg_bits_separator)
+            val about = listOfNotNull(art.year?.toString(), art.overview).joinToString(separator)
+            if (about.isNotBlank()) {
+                Text(
+                    about, style = stageText(ART_TEXT, MEDIUM), color = soft,
+                    overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f),
+                )
+            }
+        }
+    }
+}
+
+private const val ART_POSTER_WIDTH = 96
+private const val ART_POSTER_RATIO = 1.5f
+private const val ART_RING = 3
+private const val ART_RING_RADIUS = 13
+private const val ART_TITLE_TEXT = 22
+private const val ART_TEXT = 18
+private const val BOLD = 700
+private const val MEDIUM = 500
+
+/** The schedule rows the art takes the room of. */
+private const val ART_ROWS = 3
 
 /** One channel: logo, number and name, what is on with a short bar; white when focused, a blue mark when playing. */
 @Composable

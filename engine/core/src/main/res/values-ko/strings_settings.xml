@@ -362,7 +362,6 @@
     <string name="settings_search_keywords_startup">실행 열기 시작 화면</string>
     <string name="settings_search_keywords_updates">GitHub 릴리스 버전</string>
     <string name="settings_search_keywords_update_auto">자동 업데이트 새 버전</string>
-    <string name="settings_language_default">기본값(영어)</string>
     <string name="settings_language_device">기기 언어</string>
     <string name="settings_language_arabic">아랍어</string>
     <string name="settings_language_bulgarian">불가리아어</string>

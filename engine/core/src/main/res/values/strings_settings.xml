@@ -797,7 +797,7 @@
     <!-- Translators: Hidden keyword bag for the auto-update check settings. Translate as individual search terms. -->
     <string name="settings_search_keywords_update_auto">auto update new version</string>
     <!-- Translators: Language option to use the default (English) language. -->
-    <string name="settings_language_default">Default (English)</string>
+    <string name="settings_language_default">Same as the app</string>
     <!-- Translators: Language option to follow the device language. -->
     <string name="settings_language_device">Device language</string>
     <!-- Translators: Language name in the language picker. -->

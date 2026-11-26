@@ -369,7 +369,7 @@
     <string name="settings_search_keywords_startup">запуск открыть начальный экран</string>
     <string name="settings_search_keywords_updates">GitHub выпуск версия</string>
     <string name="settings_search_keywords_update_auto">автоматически обновление новая версия</string>
-    <string name="settings_language_default">По умолчанию (английский)</string>
+    <string name="settings_language_default">Как в приложении</string>
     <string name="settings_language_device">Язык устройства</string>
     <string name="settings_language_arabic">Арабский</string>
     <string name="settings_language_bulgarian">Болгарский</string>

@@ -364,7 +364,6 @@
     <string name="settings_search_keywords_startup">starta öppna startsida</string>
     <string name="settings_search_keywords_updates">github utgåva version</string>
     <string name="settings_search_keywords_update_auto">automatisk uppdatering ny version</string>
-    <string name="settings_language_default">Standard (engelska)</string>
     <string name="settings_language_device">Enhetens språk</string>
     <string name="settings_language_arabic">Arabiska</string>
     <string name="settings_language_bulgarian">Bulgariska</string>

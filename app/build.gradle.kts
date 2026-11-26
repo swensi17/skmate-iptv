@@ -93,6 +93,14 @@ android {
             ?: ""
         buildConfigField("String", "TMDB_EDGE_KEY", "\"${edgeKey.replace("\\", "\\\\").replace("\"", "\\\"")}\"")
 
+        // SkMate's own TMDB key: posters and descriptions straight from TMDB when the viewer has set no key of
+        // their own. Never in the repo: env var (CI's GitHub secret) > Gradle property > the out-of-repo file.
+        val tmdbKey = System.getenv("SKMATE_TMDB_KEY")
+            ?: providers.gradleProperty("skmate.tmdbKey").orNull
+            ?: localSigningProps.getProperty("skmate.tmdbKey")
+            ?: ""
+        buildConfigField("String", "TMDB_KEY", "\"${tmdbKey.filter { it.isLetterOrDigit() }}\"")
+
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 

@@ -364,7 +364,6 @@
     <string name="settings_search_keywords_startup">চালু খোলা শুরুপৃষ্ঠা</string>
     <string name="settings_search_keywords_updates">github রিলিজ সংস্করণ</string>
     <string name="settings_search_keywords_update_auto">স্বয়ংক্রিয় আপডেট নতুন সংস্করণ</string>
-    <string name="settings_language_default">ডিফল্ট (ইংরেজি)</string>
     <string name="settings_language_device">ডিভাইসের ভাষা</string>
     <string name="settings_language_arabic">আরবি</string>
     <string name="settings_language_bulgarian">বুলগেরীয়</string>

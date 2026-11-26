@@ -439,7 +439,6 @@
     <string name="settings_search_keywords_startup">abiarazi ireki hasierako orria launch open landing</string>
     <string name="settings_search_keywords_updates">github bertsioa release version</string>
     <string name="settings_search_keywords_update_auto">eguneraketa automatikoa bertsio berria auto update new version</string>
-    <string name="settings_language_default">Lehenetsia (ingelesa)</string>
     <string name="settings_language_device">Gailuaren hizkuntza</string>
     <string name="settings_language_arabic">Arabiera</string>
     <string name="settings_language_bulgarian">Bulgariera</string>

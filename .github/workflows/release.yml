@@ -83,6 +83,7 @@ jobs:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          SKMATE_TMDB_KEY: ${{ secrets.SKMATE_TMDB_KEY }}
         run: |
           chmod +x ./gradlew
           ./gradlew :app:assembleStandardRelease :app:assembleArm64Release :app:assembleX86_64Release --stacktrace

@@ -416,7 +416,6 @@
     <string name="settings_search_keywords_startup">indítás megnyitás nyitóképernyő</string>
     <string name="settings_search_keywords_updates">github kiadás verzió</string>
     <string name="settings_search_keywords_update_auto">automatikus frissítés új verzió</string>
-    <string name="settings_language_default">Alapértelmezett (angol)</string>
     <string name="settings_language_device">Eszköz nyelve</string>
     <string name="settings_language_arabic">Arab</string>
     <string name="settings_language_bulgarian">Bolgár</string>

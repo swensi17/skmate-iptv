@@ -368,7 +368,6 @@
     <string name="settings_search_keywords_startup">spuštění otevřít úvodní obrazovka</string>
     <string name="settings_search_keywords_updates">GitHub vydání verze</string>
     <string name="settings_search_keywords_update_auto">automatická aktualizace nová verze</string>
-    <string name="settings_language_default">Výchozí (angličtina)</string>
     <string name="settings_language_device">Jazyk zařízení</string>
     <string name="settings_language_arabic">Arabština</string>
     <string name="settings_language_bulgarian">Bulharština</string>

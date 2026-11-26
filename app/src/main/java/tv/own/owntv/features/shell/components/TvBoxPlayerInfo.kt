@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -50,14 +51,15 @@ fun TvBoxPlayerInfo(channel: ChannelEntity?, nowNext: EpgNowNext?, chips: List<S
     val watching = now - (offsetSec ?: 0) * 1000L
     val current = nowNext?.now?.takeIf { watching < it.stopMs }
     val next = nowNext?.next
+    // A film or a series on air: its poster in the logo's place and what it is about under the times (TMDB).
+    val art = tv.own.owntv.ui.components.rememberProgrammeArt(current?.title)
     Column(verticalArrangement = Arrangement.spacedBy(18.mpx)) {
-        Row(horizontalArrangement = Arrangement.spacedBy(24.mpx), verticalAlignment = Alignment.CenterVertically) {
-            ChannelLogoTile(
-                logoUrl = channel?.displayLogoUrl,
-                // The logo on its own over the picture, no plate behind it.
-                modifier = Modifier.size(132.mpx).padding(6.mpx),
-                fill = Color.Transparent,
-            ) { tv.own.owntv.ui.components.OwnTVIcon(OwnTVIcon.LIVE_TV, Color.White.copy(alpha = 0.6f), Modifier.size(56.mpx)) }
+        // A poster starts level with the title beside it; the smaller logo stays centred on the lines.
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(24.mpx),
+            verticalAlignment = if (art != null) Alignment.Top else Alignment.CenterVertically,
+        ) {
+            infoArt(art, channel)
             Column(verticalArrangement = Arrangement.spacedBy(8.mpx)) {
                 if (current != null) {
                     Text(
@@ -82,6 +84,7 @@ fun TvBoxPlayerInfo(channel: ChannelEntity?, nowNext: EpgNowNext?, chips: List<S
                     }
                     chips.take(MaxChips).forEach { Chip(it) }
                 }
+                art?.let { programmeAbout(it) }
                 if (next != null) {
                     Row(horizontalArrangement = Arrangement.spacedBy(16.mpx)) {
                         Text(range(formatTime, next), style = stageText(20, 500), color = Faint, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
@@ -191,6 +194,36 @@ private fun signedDuration(sec: Int): String {
     return if (h > 0) String.format(java.util.Locale.ROOT, "%s%d:%02d:%02d", sign, h, m, s)
     else String.format(java.util.Locale.ROOT, "%s%d:%02d", sign, m, s)
 }
+
+/** The poster of a film or series on air, or else the channel's logo on its own over the picture. */
+@Composable
+private fun infoArt(art: tv.own.owntv.core.metadata.ProgrammeArt?, channel: ChannelEntity?) {
+    if (art != null) {
+        tv.own.owntv.ui.components.programmePoster(art.posterUrl, POSTER_WIDTH.mpx)
+    } else {
+        ChannelLogoTile(
+            logoUrl = channel?.displayLogoUrl,
+            modifier = Modifier.size(132.mpx).padding(6.mpx),
+            fill = Color.Transparent,
+        ) { tv.own.owntv.ui.components.OwnTVIcon(OwnTVIcon.LIVE_TV, Color.White.copy(alpha = 0.6f), Modifier.size(56.mpx)) }
+    }
+}
+
+/** The year and what a film or series is about, two lines at most, under the programme's times. */
+@Composable
+private fun programmeAbout(art: tv.own.owntv.core.metadata.ProgrammeArt) {
+    val separator = stringResource(R.string.content_epg_bits_separator)
+    val text = listOfNotNull(art.year?.toString(), art.overview).joinToString(separator)
+    if (text.isBlank()) return
+    Text(
+        text, style = stageText(ABOUT_TEXT, 500), color = Soft, maxLines = 2, overflow = TextOverflow.Ellipsis,
+        modifier = Modifier.widthIn(max = ABOUT_WIDTH.mpx),
+    )
+}
+
+private const val POSTER_WIDTH = 120
+private const val ABOUT_TEXT = 19
+private const val ABOUT_WIDTH = 1300
 
 private const val COUNTER_GAP = 10
 private const val COUNTER_TEXT = 22

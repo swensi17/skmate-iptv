@@ -364,7 +364,7 @@
     <string name="settings_search_keywords_startup">başlat aç giriş</string>
     <string name="settings_search_keywords_updates">github sürüm</string>
     <string name="settings_search_keywords_update_auto">otomatik güncelleme yeni sürüm</string>
-    <string name="settings_language_default">Varsayılan (İngilizce)</string>
+    <string name="settings_language_default">Uygulamadaki gibi</string>
     <string name="settings_language_device">Cihaz dili</string>
     <string name="settings_language_arabic">Arapça</string>
     <string name="settings_language_bulgarian">Bulgarca</string>

@@ -366,7 +366,6 @@
     <string name="settings_search_keywords_startup">lancement ouvrir accueil</string>
     <string name="settings_search_keywords_updates">github publication version</string>
     <string name="settings_search_keywords_update_auto">automatique mise à jour nouvelle version</string>
-    <string name="settings_language_default">Par défaut (anglais)</string>
     <string name="settings_language_device">Langue de l’appareil</string>
     <string name="settings_language_arabic">Arabe</string>
     <string name="settings_language_bulgarian">Bulgare</string>

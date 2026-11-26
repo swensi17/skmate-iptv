@@ -28,6 +28,9 @@ object CoreBuildInfo {
      */
     var edgeKey: String = ""
 
+    /** The app's own TMDB key, used straight against TMDB when the viewer has set none. Blank: none built in. */
+    var tmdbKey: String = ""
+
     /**
      * The host app's maintainer-only build switch. Core uses it for one Logcat trace and nothing
      * else; every piece of dev-tool *UI* lives in the app, where `BuildConfig.DEV_TOOLS` is still a

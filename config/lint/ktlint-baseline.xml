@@ -652,12 +652,12 @@
     <file name="app/src/main/java/tv/own/owntv/features/shell/components/TvBoxChannelPanel.kt">
         <error line="123" column="9" source="standard:property-naming" />
         <error line="124" column="9" source="standard:property-naming" />
-        <error line="393" column="1" source="standard:spacing-between-declarations-with-comments" />
-        <error line="404" column="19" source="standard:property-naming" />
-        <error line="407" column="19" source="standard:property-naming" />
+        <error line="485" column="1" source="standard:spacing-between-declarations-with-comments" />
+        <error line="496" column="19" source="standard:property-naming" />
+        <error line="499" column="19" source="standard:property-naming" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/shell/components/TvBoxPlayerInfo.kt">
-        <error line="204" column="19" source="standard:property-naming" />
+        <error line="237" column="19" source="standard:property-naming" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/shell/components/VodStage.kt">
         <error line="3" column="1" source="standard:import-ordering" />
@@ -1085,5 +1085,8 @@
 
     <file name="app/src/main/java/tv/own/owntv/ui/components/FocusMarquee.kt">
         <error line="27" column="1" source="standard:no-consecutive-blank-lines" />
+    </file>
+    <file name="app/src/main/java/tv/own/owntv/ui/components/ProgrammeArtView.kt">
+        <error line="3" column="1" source="standard:import-ordering" />
     </file>
 </baseline>

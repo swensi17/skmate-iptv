@@ -3156,7 +3156,7 @@ private class SettingsPart(
  * rows, the icon choice — so their settings are gone from the list too.
  */
 private val RemovedRootKeys = setOf(
-    "vod_layout", "tab_METADATA", "tab_OPEN_SUBTITLES", "tab_HOME", "app_icon", "brand_accent",
+    "vod_layout", "tab_OPEN_SUBTITLES", "tab_HOME", "app_icon", "brand_accent",
 )
 
 /** Where App's diagnostics part sits among its parts. */

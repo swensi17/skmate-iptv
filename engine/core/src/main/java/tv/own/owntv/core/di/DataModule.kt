@@ -125,11 +125,19 @@ val dataModule = module {
     // self-hosted server are never metered.
     single { tv.own.owntv.core.metadata.MetadataBudget(androidContext()) }
     single<tv.own.owntv.core.metadata.MetadataProvider> {
-        tv.own.owntv.core.metadata.TmdbProvider(get(), get(), get(), get())
+        val locales = get<tv.own.owntv.core.i18n.LocaleStore>()
+        tv.own.owntv.core.metadata.TmdbProvider(get(), get(), get(), get()) {
+            locales.currentTag.value.ifBlank { java.util.Locale.getDefault().language }
+        }
     }
     // provider, metadataDao, settings, overrideStore — the on-demand resolve + cache orchestrator.
     single { tv.own.owntv.core.metadata.MetadataRepository(get(), get(), get(), get(), get()) }
     single { tv.own.owntv.core.metadata.OriginalLanguageLookup(get(), get(), get()) }
+    // The poster and description of a film or series on air (the player's info, the channel panel).
+    single {
+        val locales = get<tv.own.owntv.core.i18n.LocaleStore>()
+        tv.own.owntv.core.metadata.ProgrammeArtLookup(get(), get()) { locales.currentTag.value }
+    }
     // Gates the TMDB Trending download to once every 5–8 days per playlist and holds the shared
     // candidate list; deliberately DataStore, not Room (derived state, no migration, no backup).
     single { tv.own.owntv.core.trending.TrendingScheduleStore(androidContext()) }

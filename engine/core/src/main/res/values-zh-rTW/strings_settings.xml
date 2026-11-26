@@ -362,7 +362,6 @@
     <string name="settings_search_keywords_startup">啟動 開啟 起始頁</string>
     <string name="settings_search_keywords_updates">GitHub 發行版本 版本</string>
     <string name="settings_search_keywords_update_auto">自動 更新 新版本</string>
-    <string name="settings_language_default">預設（英文）</string>
     <string name="settings_language_device">裝置語言</string>
     <string name="settings_language_arabic">阿拉伯文</string>
     <string name="settings_language_bulgarian">保加利亞文</string>

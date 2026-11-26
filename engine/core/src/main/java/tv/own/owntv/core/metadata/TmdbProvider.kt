@@ -20,6 +20,8 @@ class TmdbProvider(
     private val settings: SettingsRepository,
     private val clientId: OwnTVClientId,
     private val budget: MetadataBudget,
+    /** The app's own language ("ru"), for calls when no metadata language is set: descriptions then come in it. */
+    private val uiLanguage: () -> String = { "" },
 ) : MetadataProvider {
 
     /**
@@ -39,12 +41,16 @@ class TmdbProvider(
     /** Precedence: self-host URL > user key > default Worker. */
     private suspend fun resolveEndpoint(): Endpoint {
         val cfg = settings.metadataConfig()
-        val lang = cfg.resolvedLanguage
+        val lang = cfg.resolvedLanguage.ifBlank { uiLanguage() }
         return when (cfg.tier) {
             MetadataConfig.Tier.SELF_HOST -> Endpoint(cfg.customServerUrl.trimEnd('/'), apiKey = null, language = lang)
             MetadataConfig.Tier.OWN_KEY -> Endpoint(TMDB_DIRECT_BASE, apiKey = cfg.tmdbApiKey.trim(), language = lang)
             // Identity headers are sent on THIS TIER ONLY. A self-hoster's Worker has no such rule and a
             // user calling TMDB with their own key must never carry the maintainer's shared secret.
+            // The app's own key, when the build carries one: TMDB directly, still within the per-install allowance.
+            MetadataConfig.Tier.DEFAULT_WORKER if CoreBuildInfo.tmdbKey.isNotBlank() -> Endpoint(
+                TMDB_DIRECT_BASE, apiKey = CoreBuildInfo.tmdbKey, language = lang, metered = true,
+            )
             MetadataConfig.Tier.DEFAULT_WORKER -> Endpoint(
                 baseUrl = defaultWorkerBase(),
                 apiKey = null,

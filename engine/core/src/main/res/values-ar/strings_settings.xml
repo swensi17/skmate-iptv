@@ -372,7 +372,6 @@
     <string name="settings_search_keywords_startup">تشغيل فتح واجهة بدء</string>
     <string name="settings_search_keywords_updates">GitHub إصدار تحديث</string>
     <string name="settings_search_keywords_update_auto">تلقائي تحديث إصدار جديد</string>
-    <string name="settings_language_default">الافتراضية (الإنجليزية)</string>
     <string name="settings_language_device">لغة الجهاز</string>
     <string name="settings_language_arabic">العربية</string>
     <string name="settings_language_bulgarian">البلغارية</string>

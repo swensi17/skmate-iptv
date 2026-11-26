@@ -362,7 +362,6 @@
     <string name="settings_search_keywords_startup">起動 開く 開始画面</string>
     <string name="settings_search_keywords_updates">GitHub リリース バージョン</string>
     <string name="settings_search_keywords_update_auto">自動 更新 新しいバージョン</string>
-    <string name="settings_language_default">デフォルト（英語）</string>
     <string name="settings_language_device">デバイスの言語</string>
     <string name="settings_language_arabic">アラビア語</string>
     <string name="settings_language_bulgarian">ブルガリア語</string>

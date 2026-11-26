@@ -368,7 +368,6 @@
     <string name="settings_search_keywords_startup">uruchom otwórz ekran początkowy</string>
     <string name="settings_search_keywords_updates">github wydanie wersja</string>
     <string name="settings_search_keywords_update_auto">automatyczna aktualizacja nowa wersja</string>
-    <string name="settings_language_default">Domyślny (angielski)</string>
     <string name="settings_language_device">Język urządzenia</string>
     <string name="settings_language_arabic">Arabski</string>
     <string name="settings_language_bulgarian">Bułgarski</string>

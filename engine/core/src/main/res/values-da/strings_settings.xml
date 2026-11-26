@@ -364,7 +364,6 @@
     <string name="settings_search_keywords_startup">start åbn landingsside</string>
     <string name="settings_search_keywords_updates">github udgivelse version</string>
     <string name="settings_search_keywords_update_auto">automatisk opdatering ny version</string>
-    <string name="settings_language_default">Standard (engelsk)</string>
     <string name="settings_language_device">Enhedens sprog</string>
     <string name="settings_language_arabic">Arabisk</string>
     <string name="settings_language_bulgarian">Bulgarsk</string>
