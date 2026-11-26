@@ -1,6 +1,7 @@
 {
   "id": "uz.skmate.iptv",
   "version": "2.5.4",
+  "supportGIP": true,
   "vendor": "SkMate",
   "type": "web",
   "main": "index.html",
