@@ -1813,4 +1813,6 @@
     <string name="help_d35">«Hurtiginnstillinger» er innstillingene du bruker mest, samlet på ett sted.</string>
     <string name="help_d36">Telegram-fjernkontroll lar deg styre TV-en fra en Telegram-chat på telefonen din.</string>
     <string name="help_d37">Synkronisering flytter data mellom to TV-er på samme Wi-Fi, uten filer eller USB-pinner.</string>
+    <string name="settings_info_hide">Visningstid for info</string>
+    <string name="settings_info_hide_description">Hvor mange sekunder kanalinfoen blir på skjermen etter OK eller kanalbytte</string>
 </resources>

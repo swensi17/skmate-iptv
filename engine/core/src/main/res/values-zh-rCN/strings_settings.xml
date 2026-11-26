@@ -1774,4 +1774,6 @@
     <string name="help_d35">“快捷设置”是把你最常用的设置集中在一处。</string>
     <string name="help_d36">Telegram 遥控让你可以在手机上的 Telegram 聊天中控制电视。</string>
     <string name="help_d37">同步可以在同一 Wi-Fi 下的两台电视之间转移数据，无需文件或 U 盘。</string>
+    <string name="settings_info_hide">信息显示时长</string>
+    <string name="settings_info_hide_description">按 OK 或切换频道后，频道信息在屏幕上停留的秒数</string>
 </resources>

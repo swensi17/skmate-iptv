@@ -1853,4 +1853,6 @@
     <string name="help_d35">«Rapide» raccoglie in un unico posto le impostazioni che ti servono di più.</string>
     <string name="help_d36">Il telecomando Telegram permette di controllare la TV da una chat di Telegram sul telefono.</string>
     <string name="help_d37">La sincronizzazione sposta i dati tra due televisori sullo stesso Wi-Fi, senza file né chiavette USB.</string>
+    <string name="settings_info_hide">Durata delle info</string>
+    <string name="settings_info_hide_description">Per quanti secondi le info del canale restano sullo schermo dopo OK o un cambio di canale</string>
 </resources>

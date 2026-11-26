@@ -1813,4 +1813,6 @@
     <string name="help_d35">നിങ്ങൾക്ക് ഏറ്റവും കൂടുതൽ വേണ്ട ക്രമീകരണങ്ങൾ ഒരിടത്ത് ശേഖരിച്ചതാണ് “പെട്ടെന്നുള്ള ക്രമീകരണങ്ങൾ”.</string>
     <string name="help_d36">ഫോണിലെ ഒരു Telegram ചാറ്റിൽ നിന്ന് ടിവി നിയന്ത്രിക്കാൻ Telegram റിമോട്ട് അനുവദിക്കുന്നു.</string>
     <string name="help_d37">ഫയലുകളോ USB സ്റ്റിക്കുകളോ ഇല്ലാതെ, ഒരേ Wi-Fi-യിലെ രണ്ട് ടിവികൾക്കിടയിൽ ടിവി സമന്വയം ഡാറ്റ നീക്കുന്നു.</string>
+    <string name="settings_info_hide">വിവരം കാണിക്കുന്ന സമയം</string>
+    <string name="settings_info_hide_description">OK അമർത്തിയ ശേഷമോ ചാനൽ മാറ്റിയ ശേഷമോ ചാനൽ വിവരം എത്ര സെക്കൻഡ് സ്ക്രീനിൽ നിൽക്കും</string>
 </resources>

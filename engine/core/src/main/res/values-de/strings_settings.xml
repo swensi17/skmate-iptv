@@ -1813,4 +1813,6 @@
     <string name="help_d35">„Schnellzugriff“ sind die Einstellungen, die du am meisten brauchst, an einem Ort gesammelt.</string>
     <string name="help_d36">Mit der Telegram-Fernbedienung steuerst du den Fernseher aus einem Telegram-Chat auf deinem Handy.</string>
     <string name="help_d37">Die Synchronisierung überträgt Daten zwischen zwei Fernsehern im selben Wi-Fi, ohne Dateien oder USB-Sticks.</string>
+    <string name="settings_info_hide">Anzeigedauer der Info</string>
+    <string name="settings_info_hide_description">Wie viele Sekunden die Senderinfo nach OK oder einem Senderwechsel sichtbar bleibt</string>
 </resources>

@@ -537,6 +537,11 @@ class SettingsViewModel(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), tv.own.owntv.core.settings.SeekSteps.DEFAULT_SEEK_STEP_SEC)
     fun setSeekStepSec(seconds: Int) { viewModelScope.launch { settings.setSeekStepSec(seconds) } }
 
+    /** How long the channel info stays up before it hides by itself. */
+    val infoHideSecs: StateFlow<Int> = settings.infoHideSecs
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), tv.own.owntv.core.settings.InfoHide.DEFAULT_SECS)
+    fun setInfoHideSecs(seconds: Int) { viewModelScope.launch { settings.setInfoHideSecs(seconds) } }
+
     val liveRewindStepSec: StateFlow<Int> = settings.liveRewindStepSec
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), tv.own.owntv.core.settings.SeekSteps.DEFAULT_LIVE_REWIND_STEP_SEC)
     fun setLiveRewindStepSec(seconds: Int) { viewModelScope.launch { settings.setLiveRewindStepSec(seconds) } }

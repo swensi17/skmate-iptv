@@ -1813,4 +1813,6 @@
     <string name="help_d35">“त्वरित सेटिंग” वे सेटिंग हैं जिनकी आपको सबसे ज़्यादा ज़रूरत पड़ती है, एक जगह इकट्ठी।</string>
     <string name="help_d36">Telegram रिमोट आपको फ़ोन के Telegram चैट से टीवी चलाने देता है।</string>
     <string name="help_d37">टीवी सिंक एक ही Wi-Fi पर दो टीवी के बीच डेटा ले जाता है, बिना फ़ाइलों या USB स्टिक के।</string>
+    <string name="settings_info_hide">जानकारी दिखने का समय</string>
+    <string name="settings_info_hide_description">OK दबाने या चैनल बदलने के बाद चैनल की जानकारी कितने सेकंड स्क्रीन पर रहे</string>
 </resources>

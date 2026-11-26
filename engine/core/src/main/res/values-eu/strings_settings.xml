@@ -1813,4 +1813,6 @@
     <string name="help_d35">“Ezarpen azkarrak” gehien behar dituzun ezarpenak dira, toki bakarrean bilduta.</string>
     <string name="help_d36">Telegram bidezko urruneko agintea aukerak telebista kontrolatzen uzten dizu telefonoko Telegram txat batetik.</string>
     <string name="help_d37">Sinkronizazioak datuak mugitzen ditu Wi-Fi berean dauden bi telebisten artean, fitxategirik edo USB memoriarik gabe.</string>
+    <string name="settings_info_hide">Informazioaren iraupena</string>
+    <string name="settings_info_hide_description">Kanalaren informazioa zenbat segundoz geratzen den pantailan OK sakatu edo kanalez aldatu ondoren</string>
 </resources>

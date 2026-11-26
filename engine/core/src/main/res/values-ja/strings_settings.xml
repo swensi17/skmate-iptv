@@ -1774,4 +1774,6 @@
     <string name="help_d35">「クイック設定」は、よく使う設定を 1 か所にまとめたものです。</string>
     <string name="help_d36">Telegramリモコンを使うと、スマートフォンの Telegram チャットからテレビを操作できます。</string>
     <string name="help_d37">同期は、同じ Wi-Fi 上の 2 台のテレビ間で、ファイルや USB メモリを使わずにデータを移します。</string>
+    <string name="settings_info_hide">情報の表示時間</string>
+    <string name="settings_info_hide_description">OK やチャンネル切り替えの後、チャンネル情報を画面に表示しておく秒数</string>
 </resources>

@@ -31,6 +31,7 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import tv.own.owntv.core.settings.InfoHide
 import org.koin.androidx.compose.koinViewModel
 import androidx.tv.material3.Text
 import tv.own.owntv.core.database.entity.FOLLOW_GLOBAL_LATENCY_SECS
@@ -210,6 +211,7 @@ internal val VIDEO_QUICK_ROWS: List<VideoQuickRef> = listOf(
     VideoQuickRef("vp_live_preview", SECTION_LIVE, OwnTVIcon.LIVE_TV, R.string.settings_quick_live_preview, R.string.settings_live_preview_description),
     VideoQuickRef("vp_preview_audio", SECTION_LIVE, OwnTVIcon.AUDIO, R.string.settings_preview_audio, R.string.settings_preview_audio_description),
     VideoQuickRef("vp_programme_posters", SECTION_LIVE, OwnTVIcon.IMAGE, R.string.settings_programme_posters, R.string.settings_programme_posters_description),
+    VideoQuickRef("vp_info_hide", SECTION_LIVE, OwnTVIcon.CLOCK, R.string.settings_info_hide, R.string.settings_info_hide_description),
     VideoQuickRef("vp_timeshift", SECTION_LIVE, OwnTVIcon.REWIND, R.string.settings_timeshift, R.string.settings_timeshift_description),
     VideoQuickRef("vp_timeshift_window", SECTION_LIVE, OwnTVIcon.REWIND, R.string.settings_timeshift_window, R.string.settings_timeshift_window_description),
     VideoQuickRef("vp_timeshift_resume", SECTION_LIVE, OwnTVIcon.PLAY, R.string.settings_timeshift_resume, R.string.settings_timeshift_resume_description),
@@ -447,6 +449,10 @@ internal fun videoQuickBinding(key: String, vm: SettingsViewModel): VideoQuickBi
             val on by vm.timeshiftEnabled.collectAsStateWithLifecycle()
             toggle(onOff(on), on) { vm.setTimeshiftEnabled(!on) }
         }
+        "vp_info_hide" -> {
+            val secs by vm.infoHideSecs.collectAsStateWithLifecycle()
+            link(stringResource(R.string.settings_live_buffer_seconds, secs))
+        }
         "vp_timeshift_window" -> {
             val minutes by vm.timeshiftWindowMinutes.collectAsStateWithLifecycle()
             link(stringResource(R.string.player_duration_minutes, minutes))
@@ -621,6 +627,7 @@ internal fun VideoPlayerGroupRows(
     val timeshiftWindowMinutes by vm.timeshiftWindowMinutes.collectAsStateWithLifecycle()
     val timeshiftResumeMode by vm.timeshiftResumeMode.collectAsStateWithLifecycle()
     val afrPauseSecs by vm.afrPauseSecs.collectAsStateWithLifecycle()
+    val infoHideSecs by vm.infoHideSecs.collectAsStateWithLifecycle()
     val vodBufferSecs by vm.vodBufferSecs.collectAsStateWithLifecycle()
     val vodNetworkTimeoutSecs by vm.vodNetworkTimeoutSecs.collectAsStateWithLifecycle()
     val vodReconnects by vm.vodReconnects.collectAsStateWithLifecycle()
@@ -1058,6 +1065,18 @@ internal fun VideoPlayerGroupRows(
             desc = stringResource(R.string.settings_programme_posters_description),
             value = SettingValue.Switch(programmePosters),
             onClick = { vm.setProgrammePosters(!programmePosters) },
+        )
+        KeyedSettingRow(
+            quickKey = "vp_info_hide",
+            choices = InfoHide.CHOICES.map { stringResource(R.string.settings_live_buffer_seconds, it) },
+            chosen = InfoHide.CHOICES.indexOf(infoHideSecs),
+            recommended = InfoHide.CHOICES.indexOf(InfoHide.DEFAULT_SECS),
+            icon = OwnTVIcon.CLOCK,
+            title = stringResource(R.string.settings_info_hide),
+            desc = stringResource(R.string.settings_info_hide_description),
+            value = SettingValue.Choice(stringResource(R.string.settings_live_buffer_seconds, infoHideSecs)),
+            modifier = Modifier.focusRequester(dialogRowFocus.getValue(Dialog.INFO_HIDE)),
+            onClick = { savedScroll = scrollState.value; dialog = Dialog.INFO_HIDE },
         )
         KeyedSettingRow(
             quickKey = "vp_timeshift",
@@ -1839,6 +1858,18 @@ internal fun VideoPlayerGroupRows(
             onReset = { vm.setDefaultVolume(100) },
             onDismiss = { dialog = Dialog.NONE },
         )
+        Dialog.INFO_HIDE -> PickerDialog(
+            title = stringResource(R.string.settings_info_hide),
+            options = InfoHide.CHOICES.map {
+                it.toString() to stringResource(R.string.settings_live_buffer_seconds, it)
+            },
+            selected = infoHideSecs.toString(),
+            onSelect = {
+                vm.setInfoHideSecs(it.toIntOrNull() ?: InfoHide.DEFAULT_SECS)
+                dialog = Dialog.NONE
+            },
+            onDismiss = { dialog = Dialog.NONE },
+        )
         Dialog.SEEK_STEP -> PickerDialog(
             title = stringResource(R.string.settings_seek_step),
             options = tv.own.owntv.core.settings.SeekSteps.SEEK_CHOICES.map {
@@ -2010,6 +2041,7 @@ private fun dialogForQuickKey(key: String): Dialog? = when (key) {
     "vp_zoom" -> Dialog.ZOOM
     "vp_reset_zoom" -> Dialog.RESET_SAVED_ZOOM
     "vp_seek_step" -> Dialog.SEEK_STEP
+    "vp_info_hide" -> Dialog.INFO_HIDE
     "vp_afr_pause" -> Dialog.AFR_PAUSE
     "vp_vod_buffer" -> Dialog.VOD_BUFFER
     "vp_max_quality" -> Dialog.MAX_QUALITY
@@ -2036,7 +2068,7 @@ private fun dialogForQuickKey(key: String): Dialog? = when (key) {
     else -> null
 }
 
-private enum class Dialog { NONE, LIVE_ENGINE, LIVE_ENGINE_SOURCES, LIVE_ENGINE_SOURCE, LIVE_LATENCY_SOURCES, LIVE_LATENCY_SOURCE, LIVE_LATENCY_CUSTOM_SOURCE, VOD_ENGINE, VOD_ENGINE_SOURCES, VOD_ENGINE_SOURCE, ZOOM, VOLUME, RESET_SAVED_ZOOM, RESET_SAVED_VOLUME, RESET_SAVED_AUDIO_DELAY, SEEK_STEP, LIVE_REWIND_STEP, SUB_STYLE, SUB_LANG, AUDIO_LANG, SURROUND, FFMPEG_AUDIO, AUDIO_SYNC, OUTPUT_AUDIO_DELAY, RESUME, LIVE_LATENCY, LIVE_CUSTOM, LIVE_PREROLL, LIVE_TUNE_TIMEOUT, LIVE_TUNE_TIMEOUT_SOURCES, LIVE_TUNE_TIMEOUT_SOURCE, LIVE_PREROLL_SOURCES, LIVE_PREROLL_SOURCE, EXTERNAL_PLAYER, RESET_PINS, RESET_LIVE_PINS, AFR_WARNING, AFR_PAUSE, VOD_BUFFER, VOD_TIMEOUT, VOD_RECONNECTS, TIMESHIFT_WINDOW, TIMESHIFT_RESUME, MAX_QUALITY, LIVE_PREVIEW_PANEL, MINI_PLAYER, MULTIVIEW_TILES, MULTIVIEW_WARNING }
+private enum class Dialog { NONE, LIVE_ENGINE, LIVE_ENGINE_SOURCES, LIVE_ENGINE_SOURCE, LIVE_LATENCY_SOURCES, LIVE_LATENCY_SOURCE, LIVE_LATENCY_CUSTOM_SOURCE, VOD_ENGINE, VOD_ENGINE_SOURCES, VOD_ENGINE_SOURCE, ZOOM, VOLUME, RESET_SAVED_ZOOM, RESET_SAVED_VOLUME, RESET_SAVED_AUDIO_DELAY, SEEK_STEP, INFO_HIDE, LIVE_REWIND_STEP, SUB_STYLE, SUB_LANG, AUDIO_LANG, SURROUND, FFMPEG_AUDIO, AUDIO_SYNC, OUTPUT_AUDIO_DELAY, RESUME, LIVE_LATENCY, LIVE_CUSTOM, LIVE_PREROLL, LIVE_TUNE_TIMEOUT, LIVE_TUNE_TIMEOUT_SOURCES, LIVE_TUNE_TIMEOUT_SOURCE, LIVE_PREROLL_SOURCES, LIVE_PREROLL_SOURCE, EXTERNAL_PLAYER, RESET_PINS, RESET_LIVE_PINS, AFR_WARNING, AFR_PAUSE, VOD_BUFFER, VOD_TIMEOUT, VOD_RECONNECTS, TIMESHIFT_WINDOW, TIMESHIFT_RESUME, MAX_QUALITY, LIVE_PREVIEW_PANEL, MINI_PLAYER, MULTIVIEW_TILES, MULTIVIEW_WARNING }
 
 /** "Auto" for 0, else seconds ("60s") — the film buffer and network timeout choices. */
 @Composable

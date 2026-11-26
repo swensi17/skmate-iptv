@@ -1853,4 +1853,6 @@
     <string name="help_d35">« Rapide » regroupe en un seul endroit les réglages dont vous avez le plus besoin.</string>
     <string name="help_d36">La télécommande Telegram permet de piloter le téléviseur depuis une conversation Telegram sur votre téléphone.</string>
     <string name="help_d37">La synchro transfère des données entre deux téléviseurs sur le même Wi-Fi, sans fichiers ni clés USB.</string>
+    <string name="settings_info_hide">Durée des infos</string>
+    <string name="settings_info_hide_description">Combien de secondes les infos de la chaîne restent à l’écran après OK ou un changement de chaîne</string>
 </resources>

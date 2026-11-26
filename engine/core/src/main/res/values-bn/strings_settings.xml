@@ -1813,4 +1813,6 @@
     <string name="help_d35">“দ্রুত সেটিংস” হলো সেই সেটিংস যা আপনার সবচেয়ে বেশি লাগে, এক জায়গায় জড়ো করা।</string>
     <string name="help_d36">Telegram রিমোট আপনাকে ফোনের Telegram চ্যাট থেকে টিভি চালাতে দেয়।</string>
     <string name="help_d37">টিভি সিঙ্ক একই Wi-Fi-তে থাকা দুটি টিভির মধ্যে ডেটা সরায়, ফাইল বা USB স্টিক ছাড়াই।</string>
+    <string name="settings_info_hide">তথ্য দেখানোর সময়</string>
+    <string name="settings_info_hide_description">OK চাপার বা চ্যানেল বদলানোর পরে চ্যানেলের তথ্য কত সেকেন্ড স্ক্রিনে থাকবে</string>
 </resources>

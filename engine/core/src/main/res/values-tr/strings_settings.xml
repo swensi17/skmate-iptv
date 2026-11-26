@@ -1942,4 +1942,6 @@
     <string name="help_d35">“Hızlı ayarlar”, en çok ihtiyaç duyduğunuz ayarların tek yerde toplanmış halidir.</string>
     <string name="help_d36">Telegram kumandası, TV’yi telefonunuzdaki bir Telegram sohbetinden kontrol etmenizi sağlar.</string>
     <string name="help_d37">Eşitleme, aynı Wi-Fi ağındaki iki TV arasında veriyi dosya ya da USB bellek olmadan taşır.</string>
+    <string name="settings_info_hide">Bilgi gösterim süresi</string>
+    <string name="settings_info_hide_description">Kanal bilgisinin OK veya kanal değişiminden sonra ekranda kaç saniye kalacağı</string>
 </resources>

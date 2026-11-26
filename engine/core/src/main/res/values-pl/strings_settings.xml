@@ -1894,4 +1894,6 @@
     <string name="help_d35">„Szybkie ustawienia” to najpotrzebniejsze ustawienia zebrane w jednym miejscu.</string>
     <string name="help_d36">Pilot Telegram pozwala sterować telewizorem z czatu Telegram na telefonie.</string>
     <string name="help_d37">Synchronizacja przenosi dane między dwoma telewizorami w tej samej sieci Wi-Fi, bez plików i pendrive’ów.</string>
+    <string name="settings_info_hide">Czas wyświetlania informacji</string>
+    <string name="settings_info_hide_description">Ile sekund informacje o kanale zostają na ekranie po OK lub zmianie kanału</string>
 </resources>

@@ -1853,4 +1853,6 @@
     <string name="help_d35">«Rápido» reúne en un solo lugar los ajustes que más necesitas.</string>
     <string name="help_d36">El mando de Telegram permite controlar la TV desde un chat de Telegram en tu móvil.</string>
     <string name="help_d37">La sincronización pasa datos entre dos televisores en el mismo Wi-Fi, sin archivos ni memorias USB.</string>
+    <string name="settings_info_hide">Duración de la información</string>
+    <string name="settings_info_hide_description">Cuántos segundos queda en pantalla la información del canal tras OK o un cambio de canal</string>
 </resources>

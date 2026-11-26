@@ -1813,4 +1813,6 @@
     <string name="help_d35">”Snabbinställningar” är de inställningar du behöver mest, samlade på ett ställe.</string>
     <string name="help_d36">Telegram-fjärrstyrningen låter dig styra tv:n från en Telegram-chatt på mobilen.</string>
     <string name="help_d37">Synk flyttar data mellan två tv-apparater på samma Wi-Fi, utan filer eller USB-minnen.</string>
+    <string name="settings_info_hide">Visningstid för info</string>
+    <string name="settings_info_hide_description">Hur många sekunder kanalinfon syns efter OK eller ett kanalbyte</string>
 </resources>

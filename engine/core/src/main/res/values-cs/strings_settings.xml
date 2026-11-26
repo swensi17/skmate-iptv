@@ -1894,4 +1894,6 @@
     <string name="help_d35">„Rychlé nastavení“ jsou nejpotřebnější nastavení shromážděná na jednom místě.</string>
     <string name="help_d36">Telegram ovladač umožňuje ovládat televizi z chatu Telegramu v telefonu.</string>
     <string name="help_d37">Synchronizace přenáší data mezi dvěma televizemi ve stejné síti Wi-Fi, bez souborů a USB disků.</string>
+    <string name="settings_info_hide">Doba zobrazení informací</string>
+    <string name="settings_info_hide_description">Kolik sekund zůstanou informace o kanálu na obrazovce po OK nebo přepnutí kanálu</string>
 </resources>

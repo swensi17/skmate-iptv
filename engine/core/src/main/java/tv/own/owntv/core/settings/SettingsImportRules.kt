@@ -24,6 +24,7 @@ internal object SettingsImportRules {
 
     fun int(name: String, v: Int): Int? = when (name) {
         "seek_step_sec" -> v.takeIf { it in SeekSteps.SEEK_CHOICES }
+        "info_hide_secs" -> v.takeIf { it in InfoHide.CHOICES }
         "live_rewind_step_sec" -> v.takeIf { it in SeekSteps.LIVE_REWIND_CHOICES }
         "audio_delay_ms" -> v.coerceIn(-AUDIO_DELAY_LIMIT_MS, AUDIO_DELAY_LIMIT_MS)
         else -> v

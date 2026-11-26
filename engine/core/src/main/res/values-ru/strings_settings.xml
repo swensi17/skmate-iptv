@@ -2040,4 +2040,6 @@
     <string name="help_d35">«Быстрые настройки» — это ваши самые нужные настройки, собранные в одном месте.</string>
     <string name="help_d36">Пульт Telegram позволяет управлять телевизором из чата Telegram на телефоне.</string>
     <string name="help_d37">Синхронизация переносит данные между двумя телевизорами в одной сети Wi-Fi без файлов и флешек.</string>
+    <string name="settings_info_hide">Время показа информации</string>
+    <string name="settings_info_hide_description">Сколько секунд информация о канале держится на экране после OK или переключения</string>
 </resources>

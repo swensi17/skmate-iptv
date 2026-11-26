@@ -1774,4 +1774,6 @@
     <string name="help_d35">“빠른 설정”은 가장 자주 쓰는 설정을 한곳에 모아 둔 것입니다.</string>
     <string name="help_d36">Telegram 리모컨을 사용하면 휴대폰의 Telegram 채팅에서 TV를 제어할 수 있습니다.</string>
     <string name="help_d37">동기화는 같은 Wi-Fi에 있는 두 TV 사이에서 파일이나 USB 메모리 없이 데이터를 옮깁니다.</string>
+    <string name="settings_info_hide">정보 표시 시간</string>
+    <string name="settings_info_hide_description">OK를 누르거나 채널을 바꾼 뒤 채널 정보가 화면에 남아 있는 시간(초)</string>
 </resources>

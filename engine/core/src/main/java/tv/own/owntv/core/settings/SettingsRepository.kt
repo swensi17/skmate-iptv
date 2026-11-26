@@ -286,6 +286,14 @@ object ChNavLimits {
     const val DEFAULT_SKIP = 10
 }
 
+/** How long a channel's info stays on screen before it hides by itself. */
+object InfoHide {
+    const val DEFAULT_SECS = 5
+    val CHOICES = listOf(3, 5, 8, 15, 30)
+
+    fun of(secs: Int?): Int = secs?.takeIf { it in CHOICES } ?: DEFAULT_SECS
+}
+
 /** Seek/rewind step choices. Top-level so the settings UI and the defaults share one list. */
 object SeekSteps {
     /** Rewind/forward inside a movie or episode — the player's long-standing 10 s. */
@@ -466,6 +474,7 @@ class SettingsRepository(private val context: Context, private val localeStore: 
         val DEFAULT_ZOOM = stringPreferencesKey("default_zoom")
         val DEFAULT_VOLUME = intPreferencesKey("default_volume")
         val SEEK_STEP_SEC = intPreferencesKey("seek_step_sec")
+        val INFO_HIDE_SECS = intPreferencesKey("info_hide_secs")
         val LIVE_REWIND_STEP_SEC = intPreferencesKey("live_rewind_step_sec")
         /** Legacy single subtitle size, superseded by the two per-engine keys below but still read as
          *  their default so an existing size survives an upgrade — and still written by nothing. */
@@ -1891,6 +1900,13 @@ class SettingsRepository(private val context: Context, private val localeStore: 
         context.dataStore.edit { it[Keys.SEEK_STEP_SEC] = seconds }
     }
 
+    /** Seconds the channel info stays up before it hides by itself; only [InfoHide.CHOICES] are kept. */
+    val infoHideSecs: Flow<Int> = prefsFlow { InfoHide.of(it[Keys.INFO_HIDE_SECS]) }
+
+    suspend fun setInfoHideSecs(seconds: Int) {
+        context.dataStore.edit { it[Keys.INFO_HIDE_SECS] = InfoHide.of(seconds) }
+    }
+
     /** How far one press of Rewind/Forward moves inside a live channel's catch-up archive. */
     val liveRewindStepSec: Flow<Int> = prefsFlow { it[Keys.LIVE_REWIND_STEP_SEC] ?: SeekSteps.DEFAULT_LIVE_REWIND_STEP_SEC }
 
@@ -3267,7 +3283,9 @@ class SettingsRepository(private val context: Context, private val localeStore: 
             // The two quality limits; the readers accept only their own choices.
             Keys.MAX_VIDEO_HEIGHT, Keys.MOBILE_DATA_MAX_VIDEO_HEIGHT,
             // The saved-copy length; the reader accepts only its own choices.
-            Keys.TIMESHIFT_WINDOW_MINUTES)
+            Keys.TIMESHIFT_WINDOW_MINUTES,
+            // How long the channel info stays up; the reader accepts only its own choices.
+            Keys.INFO_HIDE_SECS)
         val bools = listOf(
             Keys.GUIDE_SHOW_EMPTY, Keys.GUIDE_PREVIEW, Keys.ADULT_LOCK,
             Keys.LIVE_PREVIEW, Keys.LIVE_PREVIEW_AUDIO, Keys.PROGRAMME_POSTERS, Keys.HERO_PREVIEW, Keys.PREFER_SDR, Keys.AUTO_FRAME_RATE, Keys.AFR_MATCH_RESOLUTION, Keys.AUTO_FRAME_RATE_PROMPTED, Keys.PLAYER_CLOCK, Keys.ANDROID_TV_HOME, Keys.HW_DECODING, Keys.SOFTWARE_DECODE_ABOVE_1080P,

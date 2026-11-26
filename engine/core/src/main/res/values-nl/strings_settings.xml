@@ -1814,4 +1814,6 @@
     <string name="help_d35">“Snelle instellingen” zijn de instellingen die je het meest nodig hebt, verzameld op één plek.</string>
     <string name="help_d36">Met de Telegram-afstandsbediening bedien je de tv vanuit een Telegram-chat op je telefoon.</string>
     <string name="help_d37">Synchronisatie verplaatst gegevens tussen twee tv’s op hetzelfde Wi-Fi-netwerk, zonder bestanden of USB-sticks.</string>
+    <string name="settings_info_hide">Duur van de info</string>
+    <string name="settings_info_hide_description">Hoeveel seconden de zenderinfo in beeld blijft na OK of een zenderwissel</string>
 </resources>

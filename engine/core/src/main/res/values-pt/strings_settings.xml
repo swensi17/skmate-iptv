@@ -1854,4 +1854,6 @@
     <string name="help_d35">“Configurações rápidas” são as configurações de que você mais precisa, reunidas em um só lugar.</string>
     <string name="help_d36">O controle pelo Telegram permite comandar a TV a partir de um chat do Telegram no celular.</string>
     <string name="help_d37">A sincronização leva dados entre duas TVs no mesmo Wi-Fi, sem arquivos nem pen drives.</string>
+    <string name="settings_info_hide">Tempo das informações</string>
+    <string name="settings_info_hide_description">Quantos segundos as informações do canal ficam na tela depois de OK ou de trocar de canal</string>
 </resources>

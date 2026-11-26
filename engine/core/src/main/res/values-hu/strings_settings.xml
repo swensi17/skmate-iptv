@@ -1813,4 +1813,6 @@
     <string name="help_d35">A „Gyorsbeállítások” a legtöbbet használt beállítások egy helyre gyűjtve.</string>
     <string name="help_d36">A Telegram-távirányító lehetővé teszi, hogy a tévét a telefonján lévő Telegram-csevegésből irányítsa.</string>
     <string name="help_d37">A szinkron két, ugyanazon a Wi-Fi-n lévő tévé között mozgat adatot, fájlok és USB-meghajtók nélkül.</string>
+    <string name="settings_info_hide">Infó megjelenítési ideje</string>
+    <string name="settings_info_hide_description">Hány másodpercig marad a képernyőn a csatorna infója OK vagy csatornaváltás után</string>
 </resources>

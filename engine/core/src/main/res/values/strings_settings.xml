@@ -3442,4 +3442,6 @@
     <string name="help_d35">“Quick settings” are the settings you need most, gathered in one place.</string>
     <string name="help_d36">The Telegram remote lets you control the TV from a Telegram chat on your phone.</string>
     <string name="help_d37">Sync moves data between two TVs on the same Wi-Fi, with no files or USB sticks.</string>
+    <string name="settings_info_hide">Info display time</string>
+    <string name="settings_info_hide_description">How many seconds the channel info stays on screen after OK or a channel change</string>
 </resources>

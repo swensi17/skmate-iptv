@@ -19,6 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -502,11 +503,16 @@ fun PlayerHud(
         player.setBitrateTrackingEnabled(showInfo)
         onDispose { player.setBitrateTrackingEnabled(false) }
     }
-    LaunchedEffect(controlsVisible, wakeTick, forceShow, inert, tvSeek, tvActions) {
+    // How long the info stays up by itself, as the viewer set it under Live and buffer.
+    val hudSettings: tv.own.owntv.core.settings.SettingsRepository = org.koin.compose.koinInject()
+    val infoHideSecs by remember(hudSettings) { hudSettings.infoHideSecs }
+        .collectAsState(tv.own.owntv.core.settings.InfoHide.DEFAULT_SECS)
+    LaunchedEffect(controlsVisible, wakeTick, forceShow, inert, tvSeek, tvActions, infoHideSecs) {
         // Don't auto-hide under an overlay — hiding is what triggers the catch-all focus grab below.
         if (controlsVisible && !forceShow && !inert) {
             // On the timeline or the tiles the viewer is in the middle of something: more time to look.
-            delay(if (tvSeek || tvActions) TV_BOX_BUSY_HIDE_MS else 4500)
+            val shownMs = infoHideSecs * MS_PER_SECOND
+            delay(if (tvSeek || tvActions) maxOf(TV_BOX_BUSY_HIDE_MS, shownMs) else shownMs)
             // Paused, the info stays up with its pause mark until playing again.
             snapshotFlow { !tvLive || player.isPlaying.value || player.buffering.value }.first { it }
             controlsVisible = false
@@ -748,11 +754,20 @@ fun PlayerHud(
                     wakeTick++
                     true
                 }
-                // OK on the info pauses, and OK again carries on from the same moment (a new channel starts live).
+                // OK on the info hides it again, as on a TV's own player; paused, OK carries on from the same moment.
+                // Pausing stays on the play key and the tiles a ▼ away: a second OK that froze the picture was the
+                // complaint.
                 tvLive && error == null && controlsVisible && !tvActions &&
                     (e.key == Key.DirectionCenter || e.key == Key.Enter || e.key == Key.NumPadEnter) -> {
-                    if (e.nativeKeyEvent.repeatCount == 0) player.togglePlayPause()
-                    wakeTick++
+                    if (e.nativeKeyEvent.repeatCount == 0) {
+                        // On the timeline OK still pauses and carries on, as a film's seek bar does.
+                        if (tvSeek || (!player.isPlaying.value && !player.buffering.value)) {
+                            player.togglePlayPause()
+                            wakeTick++
+                        } else {
+                            controlsVisible = false
+                        }
+                    }
                     true
                 }
                 // In the archive ◀ ▶ always move through it, shown or hidden: they opened the channel lists there, and
@@ -1337,6 +1352,7 @@ private const val SEEK_HOLD_5M = 40
 
 /** TV-box live: how long the timeline or the tiles stay up after the last key. */
 private const val TV_BOX_BUSY_HIDE_MS = 8_000L
+private const val MS_PER_SECOND = 1_000L
 
 private val LIVE_KEY_REPEATS = setOf(
     LiveKeyAction.NEXT_CHANNEL,

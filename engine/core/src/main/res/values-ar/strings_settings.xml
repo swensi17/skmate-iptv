@@ -1973,4 +1973,6 @@
     <string name="help_d35">“إعدادات سريعة” هي الإعدادات التي تحتاجها أكثر، مجموعة في مكان واحد.</string>
     <string name="help_d36">ريموت تيليجرام يتيح لك التحكم بالتلفاز من محادثة Telegram على هاتفك.</string>
     <string name="help_d37">المزامنة تنقل البيانات بين تلفازين على شبكة Wi-Fi نفسها، دون ملفات أو ذاكرات USB.</string>
+    <string name="settings_info_hide">مدة عرض المعلومات</string>
+    <string name="settings_info_hide_description">عدد الثواني التي تبقى فيها معلومات القناة على الشاشة بعد OK أو تغيير القناة</string>
 </resources>
