@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
-import { detectPlatform, remoteKey } from "./index";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { detectPlatform, exitApp, remoteKey } from "./index";
 
 describe("detectPlatform", () => {
   it("recognises webOS and Tizen", () => {
@@ -25,5 +25,33 @@ describe("remoteKey", () => {
     expect(key(0, "3")).toEqual({ digit: 3 });
     expect(key(0, "PageUp")).toBe("chUp");
     expect(key(0, "x")).toBeNull();
+  });
+});
+
+describe("exitApp (Back on the entry screen must leave the app: LG and Samsung store rules)", () => {
+  // The tests run in Node: a stand-in window object is enough for exitApp.
+  const g = globalThis as unknown as Record<string, unknown>;
+  if (!g.window) g.window = Object.assign(globalThis, { close: () => undefined });
+  const w = g.window as Record<string, unknown>;
+  afterEach(() => { delete w.tizen; delete w.webOS; delete w.PalmSystem; });
+  it("closes the application on Tizen", () => {
+    const exit = vi.fn();
+    w.tizen = { application: { getCurrentApplication: () => ({ exit }) } };
+    expect(exitApp("tizen")).toBe(true);
+    expect(exit).toHaveBeenCalledOnce();
+  });
+  it("calls webOS.platformBack, else PalmSystem.platformBack, on webOS", () => {
+    const back = vi.fn();
+    w.webOS = { platformBack: back };
+    expect(exitApp("webos")).toBe(true);
+    expect(back).toHaveBeenCalledOnce();
+    delete w.webOS;
+    const palm = vi.fn();
+    w.PalmSystem = { platformBack: palm };
+    expect(exitApp("webos")).toBe(true);
+    expect(palm).toHaveBeenCalledOnce();
+  });
+  it("leaves a desktop browser page alone", () => {
+    expect(exitApp("browser")).toBe(false);
   });
 });

@@ -27,7 +27,7 @@ import { GuideView } from "./views/GuideView";
 import { LiveView, primeLive, type LiveEntry } from "./views/LiveView";
 import { StageIcon, type StageIconName } from "./views/GroupIcon";
 import { HomeStatus } from "./views/HomeStatus";
-import { detectPlatform } from "./platform";
+import { detectPlatform, exitApp } from "./platform";
 import { PlayerView } from "./views/PlayerView";
 import { SearchView } from "./views/SearchView";
 import { SettingsSheet, type Page } from "./views/SettingsSheet";
@@ -54,14 +54,7 @@ const NAV: Array<[Section, StageIconName, Key]> = [
 /** A second Back on the channels screen within this leaves the app (OwnTVShell.kt ExitBackWindowMs). */
 const EXIT_BACK_MS = 2000;
 
-/** Leaves the app the TV's way: Tizen's own exit; elsewhere false, and the platform's Back does it. */
-function exitApp(): boolean {
-  if (detectPlatform() !== "tizen") return false;
-  try {
-    (window as unknown as { tizen?: { application?: { getCurrentApplication(): { exit(): void } } } }).tizen?.application?.getCurrentApplication().exit();
-    return true;
-  } catch { return false; }
-}
+// Leaving the app on the second Back is platform/index.ts exitApp: Tizen exits, webOS calls platformBack (a store rule).
 
 /** sessionStorage: the profile just opened with its PIN, so the restart that follows does not ask again. */
 const UNLOCKED_KEY = "skmate.unlocked";

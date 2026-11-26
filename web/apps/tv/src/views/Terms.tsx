@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "preact/hooks";
 import { Button, focusFirst, isBack } from "@skmate/ui";
 import { t, type Key } from "../i18n";
 import "./wizard.css";
+import { exitApp as leaveApp } from "../platform";
 
 /** Bumped when the terms change materially: everyone is asked again, once (Android TermsOfUseScreen.kt TERMS_VERSION). */
 export const TERMS_VERSION = 1;
@@ -26,11 +27,9 @@ function accepted(): boolean {
   try { return Number(localStorage.getItem(KEY) ?? "0") >= TERMS_VERSION; } catch { return false; }
 }
 
-/** Declining closes the app, as Android's finishAffinity(): Tizen has its own call, webOS and a browser close the window. */
+/** Declining closes the app, as Android's finishAffinity(): the TV's own exit (platform exitApp), in a browser the window. */
 function exitApp(): void {
-  const tizen = (window as unknown as { tizen?: { application?: { getCurrentApplication(): { exit(): void } } } }).tizen;
-  try { if (tizen?.application) { tizen.application.getCurrentApplication().exit(); return; } } catch { /* fall through */ }
-  window.close();
+  if (!leaveApp()) window.close();
 }
 
 /**

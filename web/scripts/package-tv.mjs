@@ -57,5 +57,6 @@ const info = JSON.parse(readFileSync(join(platform, "webos/appinfo.json"), "utf8
 writeFileSync(join(webos, "appinfo.json"), JSON.stringify({ ...info, version }, null, 2) + "\n");
 cpSync(join(platform, "icon.png"), join(webos, "icon.png"));
 cpSync(join(platform, "icon-large.png"), join(webos, "icon-large.png"));
+cpSync(join(platform, "splash.png"), join(webos, "splash.png"));
 
 console.log(`packed v${version} into ${relative(process.cwd(), out) || out}`);

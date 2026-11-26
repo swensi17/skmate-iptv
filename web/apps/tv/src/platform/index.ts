@@ -66,3 +66,29 @@ export function remoteKey(e: KeyboardEvent): RemoteKey | null {
   if (code >= 96 && code <= 105) return { digit: code - 96 }; // the number pad of a keyboard
   return CODES[code] ?? null;
 }
+
+interface WebOsApi { platformBack?(): void }
+interface PalmSystemApi { platformBack?(): void }
+
+/**
+ * Leaves the app the TV's way, as the stores require for Back on the entry screen (LG App Self Checklist, Samsung QA):
+ * Tizen closes the application; webOS (appinfo `disableBackHistoryAPI: true`, so the app owns Back) calls
+ * `webOS.platformBack()` — webOSTV.js, or the system's own `PalmSystem` when that library is not loaded — which on
+ * webOS 6+ shows the system's exit question and on older webOS returns to the launcher; `window.close()` as the last
+ * resort. In a desktop browser there is nothing to leave to: false, and the page stays.
+ */
+export function exitApp(platform: PlatformId = detectPlatform()): boolean {
+  const w = window as unknown as { tizen?: { application?: { getCurrentApplication(): { exit(): void } } }; webOS?: WebOsApi; PalmSystem?: PalmSystemApi };
+  try {
+    if (platform === "tizen") { w.tizen?.application?.getCurrentApplication().exit(); return true; }
+    if (platform === "webos") {
+      if (w.webOS?.platformBack) { w.webOS.platformBack(); return true; }
+      if (w.PalmSystem?.platformBack) { w.PalmSystem.platformBack(); return true; }
+      window.close();
+      return true;
+    }
+  } catch { /* fall through: try closing the window */ }
+  if (platform === "browser") return false;
+  try { window.close(); } catch { /* nothing else to try */ }
+  return true;
+}
