@@ -2,7 +2,8 @@
 //   SkMate-IPTV-web-vX.Y.Z.zip      the app for any web server (GitHub Pages, a NAS, a hosted TV app)
 //   SkMate-IPTV-tizen-vX.Y.Z.wgt    Samsung Tizen widget, unsigned: sign it with your own Samsung
 //                                   certificate (Tizen Studio) before it installs on a TV
-//   webos/                          the webOS app folder; `ares-package web/release/webos` turns it into an .ipk
+//   webos/                          the webOS app folder; `ares-package --no-minify web/release/webos` turns it into an .ipk
+//                                   (--no-minify: the packer would otherwise rewrite the built code)
 // The version comes from apps/tv/package.json and is written into config.xml and appinfo.json here,
 // so the three never disagree. Source maps, tests and dev files never get in: only dist and the icons.
 import { mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync, cpSync } from "node:fs";
