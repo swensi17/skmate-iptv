@@ -1132,10 +1132,15 @@
 1	technical	app/src/main/java/tv/own/owntv/player/RecordingBadge.kt	rec
 1	technical	app/src/main/java/tv/own/owntv/player/RecordingBadge.kt	recPulse
 1	technical	app/src/main/java/tv/own/owntv/player/TvBoxStreamCorner.kt	$ch.0
-1	technical	app/src/main/java/tv/own/owntv/player/TvBoxStreamCorner.kt	${h}p
+1	technical	app/src/main/java/tv/own/owntv/player/TvBoxStreamCorner.kt	$grade ${line}p
 1	technical	app/src/main/java/tv/own/owntv/player/TvBoxStreamCorner.kt	%.1f
+1	technical	app/src/main/java/tv/own/owntv/player/TvBoxStreamCorner.kt	2K
 1	technical	app/src/main/java/tv/own/owntv/player/TvBoxStreamCorner.kt	EEE, d MMM
-1	compiler	app/src/main/java/tv/own/owntv/player/TvBoxStreamCorner.kt	MagicNumber
+1	technical	app/src/main/java/tv/own/owntv/player/TvBoxStreamCorner.kt	FHD
+1	technical	app/src/main/java/tv/own/owntv/player/TvBoxStreamCorner.kt	HD
+2	technical	app/src/main/java/tv/own/owntv/player/TvBoxStreamCorner.kt	MagicNumber
+1	technical	app/src/main/java/tv/own/owntv/player/TvBoxStreamCorner.kt	SD
+1	technical	app/src/main/java/tv/own/owntv/player/TvBoxStreamCorner.kt	UHD
 1	technical	app/src/main/java/tv/own/owntv/player/TvBoxStreamCorner.kt	tnum
 1	file-path	app/src/main/java/tv/own/owntv/ui/components/BackgroundImageChooserDialog.kt	background_${System.currentTimeMillis()}.$ext
 1	file-path	app/src/main/java/tv/own/owntv/ui/components/BackgroundImageChooserDialog.kt	png

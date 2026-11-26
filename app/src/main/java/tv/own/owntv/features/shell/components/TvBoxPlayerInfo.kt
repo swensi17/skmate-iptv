@@ -70,7 +70,11 @@ fun TvBoxPlayerInfo(channel: ChannelEntity?, nowNext: EpgNowNext?, chips: List<S
                 } else {
                     GuideStatusText(stringResource(R.string.content_no_guide), stageText(34, 700), Color.White)
                 }
-                Row(horizontalArrangement = Arrangement.spacedBy(16.mpx), verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.mpx),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
                     if (current != null) {
                         Text(range(formatTime, current), style = stageText(20, 500), color = Soft, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                         MiniBar(((watching - current.startMs).toFloat() / (current.stopMs - current.startMs).coerceAtLeast(1)).coerceIn(0f, 1f))
@@ -83,7 +87,14 @@ fun TvBoxPlayerInfo(channel: ChannelEntity?, nowNext: EpgNowNext?, chips: List<S
                             Text(channel.name, style = stageText(20, 700), color = Color.White, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         }
                     }
-                    chips.take(MaxChips).forEach { Chip(it) }
+                    // The stream's line on the right says it in full: the chips stand in only while it is missing.
+                    val factsShown = tv.own.owntv.player.LocalTvBoxStreamFacts.current != null
+                    if (!factsShown) chips.take(MaxChips).forEach { Chip(it) }
+                    // With nothing to follow there is no next line: the stream's tags sit level with the channel.
+                    if (next == null && factsShown) {
+                        androidx.compose.foundation.layout.Spacer(Modifier.weight(1f))
+                        tv.own.owntv.player.LocalTvBoxStreamFacts.current?.let { tv.own.owntv.player.tvBoxStreamFacts(it) }
+                    }
                 }
                 art?.let { programmeAbout(it) }
                 nextLine(next, formatTime)
@@ -107,7 +118,7 @@ fun TvBoxPlayerInfo(channel: ChannelEntity?, nowNext: EpgNowNext?, chips: List<S
 @Composable
 private fun nextLine(next: XtEpgEntry?, formatTime: (Long) -> String) {
     val facts = tv.own.owntv.player.LocalTvBoxStreamFacts.current
-    if (next == null && facts == null) return
+    if (next == null) return
     Row(
         Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(16.mpx),

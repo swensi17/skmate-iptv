@@ -161,8 +161,6 @@ fun PlayerHud(
     // D-pad focus off the overlay. The existing dialog guard below covers only the HUD's OWN dialogs;
     // shell-level overlays need this flag. Default false = no behavior change for other callers.
     inert: Boolean = false,
-    /** Where the picture is while the HUD is inert: the channel panel's window, so its error sits in it. */
-    errorFrame: Modifier = Modifier.fillMaxSize(),
     onChannelUp: (() -> Unit)? = null,
     onChannelDown: (() -> Unit)? = null,
     // Live: open the channel-list overlay (Left while the controls are hidden). Null = not a live channel.
@@ -1089,7 +1087,7 @@ fun PlayerHud(
             // In the panel's window it stands in the middle of that window, the picture and its headline only.
             error != null && inert -> Box(Modifier.fillMaxSize().background(Color(0xFF0B0F14))) {
                 val art = error?.let { errorArtOf(it) } ?: tv.own.owntv.ui.stage.ErrorArt.SIGNAL
-                Box(errorFrame, contentAlignment = Alignment.Center) {
+                Box(LocalHudErrorFrame.current ?: Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         tv.own.owntv.ui.stage.ErrorIllustration(art, size = QUIET_ERROR_SIZE.dp)
                         Spacer(Modifier.height(QUIET_ERROR_GAP.dp))
@@ -1312,6 +1310,13 @@ internal fun errorArtOf(failure: PlaybackFailure): tv.own.owntv.ui.stage.ErrorAr
 
 /** The failure mark behind open panels: small and faded, so it reads as a state, not a message. */
 private const val QUIET_ERROR_SIZE = 96
+
+/**
+ * Where the picture is while the HUD is inert (the channel panel's window), so a failed channel's error sits in it.
+ * A local, not a parameter: one more parameter on [PlayerHud] made R8 emit code the device refused to load.
+ */
+val LocalHudErrorFrame = androidx.compose.runtime.compositionLocalOf<Modifier?> { null }
+
 private const val QUIET_ERROR_GAP = 14
 private const val QUIET_ERROR_TEXT = 26
 

@@ -1,10 +1,11 @@
 package tv.own.owntv.player
 
-import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -60,39 +61,41 @@ internal fun tvBoxStreamCorner(modifier: Modifier = Modifier) {
 }
 
 /**
- * "1080p · 50 fps · H.264 · Stereo · 4.7 Mbps" on the right of the info's last line, refreshed every two seconds.
- * Figures of even width, so the line keeps its place as the bitrate moves.
+ * "FHD 1080p", "50 fps", "H.264", "Stereo", "4.7 Mbps" on the right of the info's last line, each in the same white
+ * outlined tag (as the preview's LIVE mark), refreshed every two seconds. Figures of even width, so the tags keep their
+ * place as the bitrate moves.
  */
 @Composable
 fun tvBoxStreamFacts(facts: StreamFacts) {
     val locale = androidx.compose.ui.platform.LocalConfiguration.current.locales[0]
-    Row(horizontalArrangement = Arrangement.spacedBy(10.mpx), verticalAlignment = Alignment.CenterVertically) {
-        facts.height?.let { h ->
-            Text(
-                "${h}p", style = stageText(FACT_TEXT, BOLD), color = Color.White,
-                maxLines = 1, overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.background(Badge, tv.own.owntv.ui.stage.FocusBarShape)
-                    .padding(horizontal = 9.mpx, vertical = 3.mpx),
-            )
-        }
-        // Figures of even width change in place: the line does not shift or blink as the bitrate moves.
-        Text(
-            factsLine(facts, locale), style = stageText(FACT_TEXT, MEDIUM).copy(fontFeatureSettings = TABULAR),
-            color = Color.White.copy(alpha = FACTS_ALPHA), maxLines = 1, overflow = TextOverflow.Ellipsis,
-        )
+    Row(horizontalArrangement = Arrangement.spacedBy(8.mpx), verticalAlignment = Alignment.CenterVertically) {
+        factParts(facts, locale).forEach { factTag(it) }
     }
 }
 
-/** "25 fps · H.265 · Stereo · 2.6 Mbps", leaving out what is not known yet. */
+/** One figure of the stream: white text in a thin white frame. */
 @Composable
-private fun factsLine(facts: StreamFacts, locale: Locale): String {
+private fun factTag(text: String) {
+    Text(
+        text, style = stageText(FACT_TEXT, BOLD).copy(fontFeatureSettings = TABULAR), color = Color.White,
+        maxLines = 1, overflow = TextOverflow.Ellipsis,
+        modifier = Modifier
+            .border(FACT_FRAME.mpx, Color.White.copy(alpha = FACT_FRAME_ALPHA), RoundedCornerShape(FACT_CORNER.mpx))
+            .padding(horizontal = 9.mpx, vertical = 2.mpx),
+    )
+}
+
+/** The resolution, frames, codec, sound and speed, leaving out what is not known yet. */
+@Composable
+private fun factParts(facts: StreamFacts, locale: Locale): List<String> {
     val sound = when (val ch = facts.channels) {
         null -> null
         1 -> stringResource(R.string.player_audio_mono)
         2 -> stringResource(R.string.player_audio_stereo)
         else -> "$ch.0"
     }?.replaceFirstChar { it.titlecase(locale) }
-    val parts = listOfNotNull(
+    return listOfNotNull(
+        facts.height?.let(::resolutionLabel),
         facts.fps?.let(::standardFps)?.let { stringResource(R.string.player_stream_fps_whole, it) },
         facts.codec,
         sound,
@@ -100,7 +103,6 @@ private fun factsLine(facts: StreamFacts, locale: Locale): String {
             stringResource(R.string.player_stream_mbps, String.format(locale, "%.1f", it / KBPS_PER_MBPS))
         },
     )
-    return parts.joinToString(stringResource(R.string.content_epg_bits_separator))
 }
 
 /**
@@ -110,15 +112,39 @@ private fun factsLine(facts: StreamFacts, locale: Locale): String {
 internal fun standardFps(fps: Float): Int? =
     STANDARD_FPS.firstOrNull { kotlin.math.abs(fps - it) / it < FPS_SNAP }
 
+/**
+ * "FHD 1080p", "UHD 2160p": the picture's height as TVs name it (1088 is 1080), with its class in front. A height
+ * near no standard one is shown as it is.
+ */
+internal fun resolutionLabel(height: Int): String {
+    val line = STANDARD_HEIGHTS.firstOrNull { kotlin.math.abs(height - it).toFloat() / it < HEIGHT_SNAP } ?: height
+    val grade = when {
+        line >= UHD_LINES -> "UHD"
+        line >= QHD_LINES -> "2K"
+        line >= FHD_LINES -> "FHD"
+        line >= HD_LINES -> "HD"
+        else -> "SD"
+    }
+    return "$grade ${line}p"
+}
+
+@Suppress("MagicNumber")
+private val STANDARD_HEIGHTS = listOf(240, 288, 360, 480, 540, 576, 720, 1080, 1440, 2160, 4320)
+private const val HEIGHT_SNAP = 0.03f
+private const val UHD_LINES = 2160
+private const val QHD_LINES = 1440
+private const val FHD_LINES = 1080
+private const val HD_LINES = 720
+
 /** The frame rates television uses (film, PAL, NTSC and their doubles). */
 @Suppress("MagicNumber")
 private val STANDARD_FPS = listOf(24, 25, 30, 50, 60)
 private const val FPS_SNAP = 0.06f
-private const val FACTS_ALPHA = 0.62f
+private const val FACT_FRAME = 2
+private const val FACT_FRAME_ALPHA = 0.85f
+private const val FACT_CORNER = 6
 private const val TABULAR = "tnum"
 private val Soft = Color.White.copy(alpha = 0.8f)
-private val Badge = Color(BADGE_ARGB)
-private const val BADGE_ARGB = 0xFF1E6FD9
 private const val MINUTE_MS = 60_000L
 private const val DATE_PATTERN = "EEE, d MMM"
 private const val SHADOW_ALPHA = 0.6f

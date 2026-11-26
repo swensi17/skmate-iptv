@@ -495,13 +495,20 @@ fun SettingsSheet(
     var sheetHasFocus by remember { androidx.compose.runtime.mutableStateOf(false) }
     var firstFocus by remember { androidx.compose.runtime.mutableStateOf(true) }
     val windowFocused = androidx.compose.ui.platform.LocalWindowInfo.current.isWindowFocused
+    val hostView = androidx.compose.ui.platform.LocalView.current
     androidx.compose.runtime.LaunchedEffect(sheetHasFocus, windowFocused) {
+        // Once the sheet has held focus it has been opened: losing it later is never the first time again.
+        if (sheetHasFocus) firstFocus = false
         if (sheetHasFocus || !windowFocused) return@LaunchedEffect
+        // After the first time, focus elsewhere is the viewer's doing (◀ opened the side menu): it is left there.
+        // Only a mouse click (touch mode, where the request is refused) keeps the sheet asking.
+        if (!firstFocus && !hostView.isInTouchMode) return@LaunchedEffect
         kotlinx.coroutines.delay(if (firstFocus) SHEET_FIRST_FOCUS_MS else SHEET_REFOCUS_MS)
+        val first = firstFocus
         firstFocus = false
         // Opened with a mouse or an air-mouse click, the screen is in touch mode and the request is refused;
         // the first key on the remote leaves touch mode, and the next try lands, so the remote works again.
-        while (!sheetHasFocus) {
+        while (!sheetHasFocus && (first || hostView.isInTouchMode)) {
             runCatching { sheetFocus.requestFocus() }
             kotlinx.coroutines.delay(SHEET_REFOCUS_MS)
         }

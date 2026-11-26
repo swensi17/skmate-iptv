@@ -1413,7 +1413,14 @@ fun OwnTVShell(
                                     translationX = (1f - sheetProgress) * size.width
                                     alpha = sheetProgress.coerceIn(0f, 1f)
                                 }
-                                .then(if (sheetOn) Modifier else Modifier.focusProperties { canFocus = false }),
+                                .then(if (sheetOn) Modifier else Modifier.focusProperties { canFocus = false })
+                                // ◀ the sheet's rows leave alone opens the side menu, as from any screen; found by a
+                                // focus search it landed behind the sheet, where nothing showed it.
+                                .onKeyEvent { e ->
+                                    if (TvBoxNav && sheetOn && e.type == androidx.compose.ui.input.key.KeyEventType.KeyDown &&
+                                        e.key == androidx.compose.ui.input.key.Key.DirectionLeft
+                                    ) { focusRail(); true } else false
+                                },
                         ) {
                             when (sheetSection) {
                                 MainSection.SETTINGS ->
@@ -2031,6 +2038,10 @@ fun OwnTVShell(
                 }
                 // In the system's Picture-in-Picture window the picture stands alone: no controls in the corner.
                 if (!pipActive) {
+                  // With the channel panel open the picture is in its window, and so is its error.
+                  androidx.compose.runtime.CompositionLocalProvider(
+                      tv.own.owntv.player.LocalHudErrorFrame provides (if (docked) videoDock else null),
+                  ) {
                     PlayerHud(
                         player = if (liveOnExo) liveVm.previewEngine else mpvEngine, // HUD drives the active engine
                         onBack = exitPlayer,
@@ -2041,8 +2052,6 @@ fun OwnTVShell(
                         inert = showChannelList || showHistoryList || showCategoryBrowser || showSubtitleSearch || showLocalSubPicker || showOtherChannels || showGuideOverlay ||
                             // The menu opened over the picture owns the D-pad: the HUD must not pull focus back to itself.
                             (railHasFocus && playerMode == PlayerMode.FULLSCREEN) || menuPending,
-                        // With the channel panel open the picture is in its window, and so is its error.
-                        errorFrame = if (docked) videoDock else Modifier.fillMaxSize(),
                         onChannelUp = zap?.let { z -> { z(-1) } },
                         onChannelDown = zap?.let { z -> { z(1) } },
                         onOpenChannelList = if (isTunedLive && liveCanZap) { { showChannelList = true } } else null,
@@ -2178,6 +2187,7 @@ fun OwnTVShell(
                         // The controls stay out of the way while the picture grows or shrinks.
                         modifier = Modifier.fillMaxSize().graphicsLayer { alpha = if (collapsingFull) 0f else ((grow.value - 0.7f) / 0.3f).coerceIn(0f, 1f) },
                     )
+                  }
                 }
                 goalToast?.let { a ->
                     tv.own.owntv.features.sports.GoalToast(a, Modifier.align(androidx.compose.ui.Alignment.TopEnd).padding(top = 45.mpx, end = 60.mpx))

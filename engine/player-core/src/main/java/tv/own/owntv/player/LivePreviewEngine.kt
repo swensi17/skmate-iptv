@@ -128,6 +128,10 @@ class LivePreviewEngine(
 
     /** When [lastRead] was taken: the bitrate is the bytes read between two of the watchdog's looks. */
     private var lastReadAt = 0L
+    /** Media's cached track list (kept by the app's ProGuard rules for org.videolan). */
+    private val tracksField: java.lang.reflect.Field? by lazy {
+        runCatching { Media::class.java.getDeclaredField("mNativeTracks").apply { isAccessible = true } }.getOrNull()
+    }
     private val _videoFps = MutableStateFlow<Float?>(null)
     val videoFps: StateFlow<Float?> = _videoFps.asStateFlow()
     /** Bumped when the video surface must be rebuilt; libVLC never needs it, kept for the surface composables. */
@@ -335,6 +339,7 @@ class LivePreviewEngine(
         _state.value = State.LOADING; _buffering.value = true; _isPlaying.value = false
         lastShown = 0; lastRead = 0L; stuckChecks = 0; sawLife = false; bufferedOnce = false
         _streamFacts.value = null // the last channel's facts are not this one's
+        _videoSize.value = null // nor its picture's size: this channel's is read afresh
         _pictureReady.value = false
         openedAt = SystemClock.elapsedRealtime()
         main.removeCallbacks(watchdog)
@@ -478,7 +483,16 @@ class LivePreviewEngine(
                 ctl.post {
                     val snap = runCatching {
                         // Released at once: the watchdog asks every second, and each ask retained the Media.
-                        val stats = p.media?.let { m -> try { m.stats } finally { m.release() } }
+                        val stats = p.media?.let { m ->
+                            try {
+                                // Size still unknown: libVLC keeps the track list it read first, when many streams
+                                // had no size yet, so it is read afresh until the picture's size is there.
+                                if (p.currentVideoTrack?.height == 0) forgetTracks(m)
+                                m.stats
+                            } finally {
+                                m.release()
+                            }
+                        }
                         if (stats == null) null else Snapshot(
                             maxOf(stats.decodedVideo, stats.displayedPictures),
                             stats.demuxReadBytes.toLong(), p.videoTracksCount, p.audioTracksCount,
@@ -528,6 +542,15 @@ class LivePreviewEngine(
      * zero for good, so the frames a second are measured from decoded pictures (see [noteRates]) and the size is
      * shown only once it is known; the codec and the sound come from the tracks.
      */
+    /**
+     * Drops the track list libVLC's Media keeps after its first read (only a re-parse renews it): a stream whose
+     * size the demuxer learns later, as many TS and HLS streams do, otherwise reports height 0 for good.
+     */
+    private fun forgetTracks(m: org.videolan.libvlc.interfaces.IMedia) {
+        val field = tracksField ?: return
+        synchronized(m) { runCatching { field.set(m, null) } }
+    }
+
     private fun noteFacts(p: MediaPlayer, video: org.videolan.libvlc.interfaces.IMedia.VideoTrack) {
         // getMedia() retains the native Media: it is released here, or every channel's stayed in memory.
         val channels = p.media?.let { m ->
