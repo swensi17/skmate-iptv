@@ -1817,7 +1817,6 @@
     <string name="settings_short_content">Categorias</string>
     <string name="settings_programme_posters_description">Um filme ou série no ar mostra o pôster do TMDB no lugar do logotipo do canal</string>
     <string name="settings_sources_enable">Ativar</string>
-    <string name="help_intro">Respostas curtas, passo a passo, sobre como usar o SkMate: adicionar uma playlist, assistir canais e o arquivo, configurar o app e o que fazer quando algo não funciona. Escolha uma pergunta e pressione OK.</string>
     <string name="help_d1">Uma lista de reprodução é a sua lista de canais do provedor: um link M3U, os dados de Xtream Codes ou um portal Stalker. Sem ela não há o que assistir.</string>
     <string name="help_d2">O player é a tela em que um canal é reproduzido. As setas e o OK do controle o comandam, e todos os botões ficam na linha de baixo.</string>
     <string name="help_d3">Favoritos é a sua própria lista dos canais que você mais assiste. É sempre a primeira entre as categorias.</string>

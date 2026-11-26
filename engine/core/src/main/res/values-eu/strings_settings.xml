@@ -1776,7 +1776,6 @@
     <string name="settings_programme_posters">Filmen posterrak</string>
     <string name="settings_programme_posters_description">Emititzen ari den film edo telesail batek TMDBko bere posterra erakusten du kanalaren logotipoaren ordez</string>
     <string name="settings_sources_enable">Aktibatu</string>
-    <string name="help_intro">SkMate nola erabili urratsez urrats azaltzen duten erantzun laburrak: erreprodukzio-zerrenda gehitu, kanalak eta artxiboa ikusi, aplikazioa konfiguratu eta zerbait ez dabilenean zer egin. Aukeratu galdera bat eta sakatu OK.</string>
     <string name="help_d1">Erreprodukzio-zerrenda hornitzailearen kanalen zure zerrenda da: M3U esteka bat, Xtream Codes datuak edo Stalker ataria. Hau gabe ez dago ezer ikusterik.</string>
     <string name="help_d2">Erreproduzigailua kanal bat erreproduzitzen den pantaila da. Aginteko geziek eta OK botoiak kontrolatzen dute, eta botoi guztiak beheko lerroan daude.</string>
     <string name="help_d3">Gogokoak gehien ikusten dituzun kanalen zure zerrenda propioa da. Kategorien artean beti lehena da.</string>

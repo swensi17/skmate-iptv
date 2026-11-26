@@ -1776,7 +1776,6 @@
     <string name="settings_sources_disable">Ausschalten, behalten</string>
     <string name="settings_tg_remote">Telegram-Fernbedienung</string>
     <string name="settings_sources_enable">Einschalten</string>
-    <string name="help_intro">Kurze Antworten Schritt für Schritt zur Nutzung von SkMate: Playlist hinzufügen, Sender und Archiv ansehen, die App einrichten und was zu tun ist, wenn etwas nicht funktioniert. Frage wählen und OK drücken.</string>
     <string name="help_d1">Eine Wiedergabeliste ist deine Senderliste vom Anbieter: ein M3U-Link, Xtream-Codes-Daten oder ein Stalker-Portal. Ohne sie gibt es nichts zu sehen.</string>
     <string name="help_d2">Der Player ist der Bildschirm, auf dem ein Sender läuft. Pfeiltasten und OK steuern ihn, und alle Schaltflächen liegen in der unteren Reihe.</string>
     <string name="help_d3">„Favoriten“ ist deine eigene Liste der Sender, die du am häufigsten schaust. Sie steht immer ganz vorn unter den Kategorien.</string>

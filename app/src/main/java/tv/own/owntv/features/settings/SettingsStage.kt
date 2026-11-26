@@ -539,8 +539,10 @@ fun SettingsSheet(
                         androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(tv.own.owntv.ui.theme.MotionPrefs.dur(SideInMs))),
                 ) {
                     Column {
-                        // The title on the sheet itself, no band behind it.
-                        Row(
+                        // The title on the sheet itself, no band behind it; a sheet with no title starts with its rows.
+                        if (title.isEmpty() && headerTools == null) {
+                            androidx.compose.foundation.layout.Spacer(Modifier.height(UNTITLED_TOP.mpx))
+                        } else Row(
                             Modifier.fillMaxWidth().padding(start = 30.mpx, end = 24.mpx, top = 36.mpx, bottom = 14.mpx),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(12.mpx),
@@ -1672,6 +1674,7 @@ private const val CHOICE_TEXT_SHEET = 24
 
 private const val SHEET_FIRST_FOCUS_MS = 250L
 private const val SHEET_REFOCUS_MS = 700L
+private const val UNTITLED_TOP = 28
 private const val CHOICE_HEADING_SHEET = 22
 private const val CHOICE_LINE_SHEET = 18f
 private const val CHOICE_LINE = 14.5f

@@ -271,7 +271,8 @@ fun MoreScreen(
                 MoreItem.BACKUP -> InSheet(sheetOnly, stringResource(R.string.settings_backup_restore)) { BackupScreen(entry = pageTarget, modifier = Modifier.fillMaxSize()) }
                 MoreItem.LOCAL_SYNC -> InSheet(sheetOnly, stringResource(R.string.local_sync_title)) { LocalSyncScreen(entry = pageTarget, modifier = Modifier.fillMaxSize()) }
                 MoreItem.ABOUT -> InSheet(sheetOnly, stringResource(R.string.settings_about), trailing = tv.own.owntv.BuildConfig.VERSION_NAME.substringBefore('-'), edgeToEdge = true) { AboutPage(vm = vm, entry = pageTarget) }
-                MoreItem.HELP -> InSheet(sheetOnly, stringResource(R.string.help_title), edgeToEdge = true) {
+                // The questions speak for themselves: no title over them.
+                MoreItem.HELP -> InSheet(sheetOnly, "", edgeToEdge = true) {
                     helpPage(pageTarget)
                 }
                 MoreItem.TELEGRAM -> Box(Modifier.focusRequester(pageTarget).focusGroup()) {

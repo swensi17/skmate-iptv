@@ -3405,7 +3405,6 @@
     <string name="help_a36">Settings › Telegram remote.\n\n1. Open it and follow the steps on screen.\n2. Connect the TV to Telegram on your phone.\n\n✓ Once connected, the TV is controlled from a Telegram chat.</string>
     <string name="help_q37">How do I sync two TVs at home?</string>
     <string name="help_a37">Settings › TV sync.\n\n1. Open it on both devices; they must be on the same Wi-Fi.\n2. On one press “Find a device” and choose the other, or scan its QR code.\n3. Enter the PIN shown on the other device.\n4. Choose: send your data there, get theirs here, or merge.\n\nGood to know:\n• A paired device is remembered; next time no PIN is needed.\n\n✓ After a merge both devices have everything.</string>
-    <string name="help_intro">Short step-by-step answers on how to use SkMate: adding a playlist, watching channels and catch-up, setting up the app, and what to do when something does not work. Pick a question and press OK.</string>
     <string name="help_d1">A playlist is your list of channels from the provider: an M3U link, Xtream Codes details or a Stalker portal. Without one there is nothing to watch.</string>
     <string name="help_d2">The player is the screen where a channel plays. The arrows and OK on the remote control it, and every button sits in its bottom row.</string>
     <string name="help_d3">Favorites is your own list of the channels you watch most. It is always first among the categories.</string>

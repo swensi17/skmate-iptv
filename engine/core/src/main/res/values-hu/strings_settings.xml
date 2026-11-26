@@ -1776,7 +1776,6 @@
     <string name="settings_programme_posters">Filmplakátok</string>
     <string name="settings_programme_posters_description">Az adásban lévő film vagy sorozat a csatornalogó helyett a TMDB-ből származó plakátját mutatja</string>
     <string name="settings_sources_enable">Bekapcsolás</string>
-    <string name="help_intro">Rövid, lépésenkénti válaszok a SkMate használatáról: lejátszási lista hozzáadása, csatornák és archívum nézése, az alkalmazás beállítása, és mi a teendő, ha valami nem működik. Válasszon kérdést, és nyomja meg az OK gombot.</string>
     <string name="help_d1">A lejátszási lista a szolgáltatótól kapott csatornalistája: M3U-hivatkozás, Xtream Codes adatok vagy Stalker-portál. Nélküle nincs mit nézni.</string>
     <string name="help_d2">A lejátszó az a képernyő, ahol a csatorna megy. A távirányító nyilai és az OK vezérlik, minden gombja az alsó sorban van.</string>
     <string name="help_d3">A Kedvencek a legtöbbet nézett csatornáinak saját listája. A kategóriák között mindig az első.</string>

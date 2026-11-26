@@ -1776,7 +1776,6 @@
     <string name="settings_programme_posters">Filmplakater</string>
     <string name="settings_programme_posters_description">En film eller serie, der sendes, viser sin plakat fra TMDB i stedet for kanallogoet</string>
     <string name="settings_sources_enable">Slå til</string>
-    <string name="help_intro">Korte svar trin for trin om, hvordan du bruger SkMate: tilføje en playliste, se kanaler og arkiv, indstille appen og hvad du gør, når noget ikke virker. Vælg et spørgsmål, og tryk på OK.</string>
     <string name="help_d1">En afspilningsliste er din liste over kanaler fra udbyderen: et M3U-link, Xtream Codes-oplysninger eller en Stalker-portal. Uden en er der intet at se.</string>
     <string name="help_d2">Afspilleren er skærmen, hvor en kanal afspilles. Pilene og OK på fjernbetjeningen styrer den, og alle knapper ligger i den nederste række.</string>
     <string name="help_d3">Favoritter er din egen liste over de kanaler, du ser mest. Den står altid først blandt kategorierne.</string>

@@ -1737,7 +1737,6 @@
     <string name="settings_tg_remote">Telegram 遥控</string>
     <string name="settings_short_sound">音频</string>
     <string name="settings_sources_enable">启用</string>
-    <string name="help_intro">分步骤简要说明如何使用 SkMate：添加播放列表、观看频道和回看、设置应用，以及出现问题时怎么办。选择一个问题并按 OK。</string>
     <string name="help_d1">播放列表是服务商提供的频道清单，可通过 M3U 链接、Xtream Codes 信息或 Stalker 门户添加。没有播放列表就没有可看的内容。</string>
     <string name="help_d2">播放器是播放频道的画面。遥控器上的方向键和 OK 用来操作它，所有按钮都在底部一行。</string>
     <string name="help_d3">“收藏夹”是你自己收录常看频道的列表，始终排在分类的第一位。</string>

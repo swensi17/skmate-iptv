@@ -1816,7 +1816,6 @@
     <string name="settings_sources_disable">Disattiva, conserva</string>
     <string name="settings_tg_remote">Telecomando Telegram</string>
     <string name="settings_sources_enable">Attiva</string>
-    <string name="help_intro">Risposte brevi, passo dopo passo, su come usare SkMate: aggiungere una playlist, guardare canali e archivio, impostare l’app e cosa fare se qualcosa non funziona. Scegli una domanda e premi OK.</string>
     <string name="help_d1">Una playlist è il tuo elenco di canali del provider: un link M3U, i dati di Xtream Codes o un portale Stalker. Senza non c’è nulla da guardare.</string>
     <string name="help_d2">Il player è la schermata in cui va in onda un canale. Le frecce e OK del telecomando lo controllano, e tutti i pulsanti sono nella sua riga in basso.</string>
     <string name="help_d3">«Preferiti» è il tuo elenco dei canali che guardi di più. È sempre la prima tra le categorie.</string>

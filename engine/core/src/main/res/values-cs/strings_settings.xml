@@ -1857,7 +1857,6 @@
     <string name="settings_short_content">Kategorie</string>
     <string name="settings_programme_posters_description">Film nebo seriál ve vysílání zobrazí plakát z TMDB místo loga kanálu</string>
     <string name="settings_sources_enable">Zapnout</string>
-    <string name="help_intro">Krátké odpovědi krok za krokem, jak používat SkMate: přidat playlist, sledovat kanály a archiv, nastavit aplikaci a co dělat, když něco nefunguje. Vyberte otázku a stiskněte OK.</string>
     <string name="help_d1">Playlist je váš seznam kanálů od poskytovatele: odkaz M3U, údaje Xtream Codes nebo portál Stalker. Bez něj není co sledovat.</string>
     <string name="help_d2">Přehrávač je obrazovka, na které kanál běží. Ovládají ho šipky a OK na ovladači a všechna tlačítka jsou ve spodní řadě.</string>
     <string name="help_d3">Oblíbené jsou váš vlastní seznam kanálů, které sledujete nejčastěji. Jsou vždy první mezi kategoriemi.</string>

@@ -1905,7 +1905,6 @@
     <string name="help_a37">Ayarlar › TV eşitleme.\n\n1. İki cihazda da açın; aynı Wi-Fi ağında olmaları gerekir.\n2. Birinde “Cihaz bul”a basıp diğerini seçin ya da QR kodunu tarayın.\n3. Diğer cihazda görünen PIN’i girin.\n4. Seçin: verilerinizi oraya gönderin, onunkini buraya alın ya da birleştirin.\n\nBilmekte fayda var:\n• Eşleşen cihaz hatırlanır; bir dahaki sefere PIN gerekmez.\n\n✓ Birleştirmeden sonra iki cihazda da her şey olur.</string>
     <string name="settings_programme_posters">Film afişleri</string>
     <string name="settings_programme_posters_description">Yayındaki bir film veya dizi, kanal logosu yerine TMDB’den gelen afişini gösterir</string>
-    <string name="help_intro">SkMate’in nasıl kullanılacağına dair adım adım kısa yanıtlar: oynatma listesi eklemek, kanalları ve arşivi izlemek, uygulamayı ayarlamak ve bir şey çalışmadığında ne yapılacağı. Bir soru seçin ve OK’a basın.</string>
     <string name="help_d1">Oynatma listesi, sağlayıcıdan gelen kanal listenizdir: bir M3U bağlantısı, Xtream Codes bilgileri ya da bir Stalker portalı. Olmadan izleyecek bir şey yoktur.</string>
     <string name="help_d2">Oynatıcı, kanalın oynadığı ekrandır. Kumandanın okları ve OK tuşu onu yönetir, tüm düğmeler alt satırındadır.</string>
     <string name="help_d3">Favoriler, en çok izlediğiniz kanalların kendi listenizdir. Kategoriler arasında her zaman ilk sıradadır.</string>

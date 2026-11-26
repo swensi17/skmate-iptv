@@ -1777,7 +1777,6 @@
     <string name="settings_short_content">Categorieën</string>
     <string name="settings_programme_posters_description">Een film of serie die wordt uitgezonden toont de poster van TMDB in plaats van het zenderlogo</string>
     <string name="settings_sources_enable">Inschakelen</string>
-    <string name="help_intro">Korte antwoorden, stap voor stap, over het gebruik van SkMate: een playlist toevoegen, zenders en terugkijken bekijken, de app instellen en wat te doen als iets niet werkt. Kies een vraag en druk op OK.</string>
     <string name="help_d1">Een afspeellijst is je lijst met zenders van de provider: een M3U-link, Xtream Codes-gegevens of een Stalker-portaal. Zonder is er niets te kijken.</string>
     <string name="help_d2">De speler is het scherm waarop een zender wordt afgespeeld. De pijltjes en OK op de afstandsbediening sturen hem aan, en alle knoppen staan in de onderste rij.</string>
     <string name="help_d3">Favorieten is je eigen lijst met de zenders die je het meest kijkt. Het is altijd de eerste van de categorieën.</string>

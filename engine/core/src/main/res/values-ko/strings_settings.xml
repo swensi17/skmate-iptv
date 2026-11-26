@@ -1737,7 +1737,6 @@
     <string name="settings_tg_remote">Telegram 리모컨</string>
     <string name="settings_short_sound">오디오</string>
     <string name="settings_sources_enable">켜기</string>
-    <string name="help_intro">SkMate 사용법을 단계별로 짧게 안내합니다. 재생 목록 추가, 채널과 아카이브 시청, 앱 설정, 문제가 생겼을 때의 해결 방법. 질문을 선택하고 OK를 누르세요.</string>
     <string name="help_d1">플레이리스트는 제공업체에서 받은 채널 목록입니다. M3U 링크, Xtream Codes 정보 또는 Stalker 포털로 추가합니다. 플레이리스트가 없으면 볼 것이 없습니다.</string>
     <string name="help_d2">플레이어는 채널이 재생되는 화면입니다. 리모컨의 방향키와 OK 로 조작하며, 모든 버튼은 아래 줄에 있습니다.</string>
     <string name="help_d3">“즐겨찾기”는 가장 자주 보는 채널만 모은 나만의 목록입니다. 카테고리 중 항상 맨 앞에 있습니다.</string>

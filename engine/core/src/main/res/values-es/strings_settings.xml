@@ -1816,7 +1816,6 @@
     <string name="settings_sources_disable">Desactivar, conservar</string>
     <string name="settings_tg_remote">Mando de Telegram</string>
     <string name="settings_sources_enable">Activar</string>
-    <string name="help_intro">Respuestas breves paso a paso sobre cómo usar SkMate: añadir una lista, ver canales y el archivo, configurar la aplicación y qué hacer si algo no funciona. Elige una pregunta y pulsa OK.</string>
     <string name="help_d1">Una lista de reproducción es tu lista de canales del proveedor: un enlace M3U, datos de Xtream Codes o un portal Stalker. Sin ella no hay nada que ver.</string>
     <string name="help_d2">El reproductor es la pantalla donde se emite un canal. Las flechas y OK del mando lo controlan, y todos los botones están en su fila inferior.</string>
     <string name="help_d3">«Favoritos» es tu propia lista de los canales que más ves. Siempre es la primera entre las categorías.</string>

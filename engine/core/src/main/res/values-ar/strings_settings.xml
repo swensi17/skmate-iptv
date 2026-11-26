@@ -1936,7 +1936,6 @@
     <string name="settings_programme_posters">ملصقات الأفلام</string>
     <string name="settings_programme_posters_description">يعرض الفيلم أو المسلسل الجاري بثه ملصقه من TMDB بدلًا من شعار القناة</string>
     <string name="settings_sources_enable">تشغيل</string>
-    <string name="help_intro">إجابات قصيرة خطوة بخطوة عن استخدام SkMate: إضافة قائمة تشغيل، ومشاهدة القنوات والأرشيف، وضبط التطبيق، وما العمل إذا لم يعمل شيء. اختر سؤالًا واضغط OK.</string>
     <string name="help_d1">قائمة التشغيل هي قائمة قنواتك من المزوّد: رابط M3U أو بيانات Xtream Codes أو بوابة Stalker. وبدونها لا يوجد ما يُشاهد.</string>
     <string name="help_d2">المشغّل هو الشاشة التي تُعرض فيها القناة. تتحكم به الأسهم وOK في جهاز التحكم، وكل أزراره في صفه السفلي.</string>
     <string name="help_d3">المفضّلة هي قائمتك الخاصة بالقنوات التي تشاهدها أكثر. وهي دائمًا أولى الفئات.</string>

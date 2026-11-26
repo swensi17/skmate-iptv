@@ -18,6 +18,7 @@
 1	app/src/main/java/tv/own/owntv/features/customize/CustomizeViewModel.kt	Custom
 1	app/src/main/java/tv/own/owntv/features/customize/MoveToCategoryDialog.kt	new
 1	app/src/main/java/tv/own/owntv/features/live/LiveStage.kt	Mbps
+1	app/src/main/java/tv/own/owntv/features/more/MoreScreen.kt	\0
 1	app/src/main/java/tv/own/owntv/features/remote/OwnTelegramBot.kt	code_at
 1	app/src/main/java/tv/own/owntv/features/remote/OwnTelegramBot.kt	data
 2	app/src/main/java/tv/own/owntv/features/remote/OwnTelegramBot.kt	deleteMessage

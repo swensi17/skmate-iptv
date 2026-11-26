@@ -1737,7 +1737,6 @@
     <string name="settings_tg_remote">Telegramリモコン</string>
     <string name="settings_short_sound">音声</string>
     <string name="settings_sources_enable">オンにする</string>
-    <string name="help_intro">SkMate の使い方を手順ごとに短く説明します。プレイリストの追加、チャンネルとアーカイブの視聴、アプリの設定、うまく動かないときの対処。質問を選んで OK を押してください。</string>
     <string name="help_d1">プレイリストは、プロバイダーから届くチャンネルの一覧です。M3U リンク、Xtream Codes の情報、Stalker ポータルのいずれかで追加します。プレイリストがないと、見るものがありません。</string>
     <string name="help_d2">プレーヤーは、チャンネルを再生する画面です。リモコンの矢印キーと OK で操作し、すべてのボタンは下の行にあります。</string>
     <string name="help_d3">「お気に入り」は、よく見るチャンネルを集めた自分だけの一覧です。カテゴリの中でいつも先頭にあります。</string>

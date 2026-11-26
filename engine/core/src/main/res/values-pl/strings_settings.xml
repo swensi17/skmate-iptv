@@ -1857,7 +1857,6 @@
     <string name="settings_short_content">Kategorie</string>
     <string name="settings_programme_posters_description">Film lub serial na antenie pokazuje plakat z TMDB zamiast logo kanału</string>
     <string name="settings_sources_enable">Włącz</string>
-    <string name="help_intro">Krótkie odpowiedzi krok po kroku, jak korzystać ze SkMate: dodać playlistę, oglądać kanały i archiwum, ustawić aplikację i co zrobić, gdy coś nie działa. Wybierz pytanie i naciśnij OK.</string>
     <string name="help_d1">Playlista to Twoja lista kanałów od dostawcy: link M3U, dane Xtream Codes albo portal Stalker. Bez niej nie ma czego oglądać.</string>
     <string name="help_d2">Odtwarzacz to ekran, na którym gra kanał. Strzałki i OK na pilocie nim sterują, a wszystkie przyciski są w dolnym rzędzie.</string>
     <string name="help_d3">Ulubione to Twoja własna lista kanałów, które oglądasz najczęściej. Zawsze jest pierwsza wśród kategorii.</string>

@@ -152,12 +152,6 @@ internal fun helpPage(entry: FocusRequester) {
     var open by remember { mutableStateOf<HelpItem?>(null) }
     val requesters = remember { HelpTopics.flatMap { it.items }.associateWith { FocusRequester() } }
     Column(Modifier.fillMaxSize().focusGroup().verticalScroll(rememberScrollState()).padding(bottom = BOTTOM.mpx)) {
-        // What this page is, in one paragraph, before the questions.
-        Text(
-            stringResource(R.string.help_intro),
-            style = stageText(INTRO_TEXT, REGULAR).copy(lineHeight = (INTRO_TEXT * ANSWER_LINE).mpxSp),
-            color = StageColors.Muted, modifier = Modifier.padding(start = 30.mpx, end = 30.mpx, top = 4.mpx, bottom = 6.mpx),
-        )
         val collator = remember { java.text.Collator.getInstance() }
         HelpTopics.forEachIndexed { t, topic ->
             topicTitle(stringResource(topic.label), first = t == 0)
@@ -458,7 +452,6 @@ private class HelpAnswer(val lines: List<Line>, val path: List<String>, val keys
 }
 
 private const val BOTTOM = 40
-private const val INTRO_TEXT = 18
 private const val SEMI = 600
 private const val POINT_INSET = 6
 private const val ANSWER_TEXT = 26

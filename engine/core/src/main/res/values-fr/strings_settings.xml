@@ -1816,7 +1816,6 @@
     <string name="settings_sources_disable">Désactiver, conserver</string>
     <string name="settings_tg_remote">Télécommande Telegram</string>
     <string name="settings_sources_enable">Activer</string>
-    <string name="help_intro">Des réponses courtes, étape par étape, pour utiliser SkMate : ajouter une playlist, regarder les chaînes et le replay, régler l’application et que faire quand quelque chose ne marche pas. Choisissez une question et appuyez sur OK.</string>
     <string name="help_d1">Une liste de lecture est votre liste de chaînes fournie par l’opérateur : un lien M3U, des identifiants Xtream Codes ou un portail Stalker. Sans elle, il n’y a rien à regarder.</string>
     <string name="help_d2">Le lecteur est l’écran où une chaîne est diffusée. Les flèches et OK de la télécommande le pilotent, et tous les boutons se trouvent dans sa rangée du bas.</string>
     <string name="help_d3">« Favoris » est votre propre liste des chaînes que vous regardez le plus. Elle est toujours en premier parmi les catégories.</string>
