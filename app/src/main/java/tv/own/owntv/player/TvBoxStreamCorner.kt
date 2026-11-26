@@ -41,7 +41,7 @@ internal fun tvBoxStreamCorner(modifier: Modifier = Modifier) {
             now = System.currentTimeMillis()
         }
     }
-    val locale = Locale.getDefault()
+    val locale = androidx.compose.ui.platform.LocalConfiguration.current.locales[0]
     val time = remember(locale) { DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT).withLocale(locale) }
     val date = remember(locale) { DateTimeFormatter.ofPattern(DATE_PATTERN, locale) }
     val at = Instant.ofEpochMilli(now).atZone(ZoneId.systemDefault())
@@ -65,7 +65,7 @@ internal fun tvBoxStreamCorner(modifier: Modifier = Modifier) {
  */
 @Composable
 fun tvBoxStreamFacts(facts: StreamFacts) {
-    val locale = Locale.getDefault()
+    val locale = androidx.compose.ui.platform.LocalConfiguration.current.locales[0]
     Row(horizontalArrangement = Arrangement.spacedBy(10.mpx), verticalAlignment = Alignment.CenterVertically) {
         facts.height?.let { h ->
             Text(
