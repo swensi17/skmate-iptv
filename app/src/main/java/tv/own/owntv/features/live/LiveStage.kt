@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.ui.draw.drawWithContent
 import tv.own.owntv.ui.components.reportOkHeld
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -305,6 +306,7 @@ private fun detailsLine(now: XtEpgEntry, details: EpgDetails?): String {
  * progress and time left, the synopsis, and what is on next (accent time) and later. ▶ from the list
  * enters next / later ([scheduleFocus]); OK on one opens it through [onOpenProgramme].
  */
+@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
 internal fun LiveStagePane(
     channel: ChannelEntity?,
@@ -353,8 +355,25 @@ internal fun LiveStagePane(
     val surfaceAlpha by androidx.compose.animation.core.animateFloatAsState(if (skeleton) 0f else 1f, androidx.compose.animation.core.tween(if (skeleton) 0 else tv.own.owntv.ui.theme.MotionPrefs.dur(260)), label = "previewSurface")
     val videoR = 28.mpx
     val videoShadow = tv.own.owntv.ui.theme.stageShadow(0.55f)
+    // TV-box look: the whole pane is one block that scrolls as the guide below is read, the picture and the
+    // title going up out of the way, as the channel panel in the player does; back on the list it returns.
+    val tvBox = tv.own.owntv.features.shell.TvBoxNav
+    val paneScroll = androidx.compose.foundation.rememberScrollState()
+    val paneScope = androidx.compose.runtime.rememberCoroutineScope()
+    LaunchedEffect(channel?.id) { paneScroll.scrollTo(0) }
     // The last place the preview was is kept when this screen goes: full screen shrinks back into it.
-    Column(modifier) {
+    androidx.compose.runtime.CompositionLocalProvider(
+        androidx.compose.foundation.gestures.LocalBringIntoViewSpec provides edgeScrollSpec,
+    ) {
+    Column(
+        modifier.then(
+            if (tvBox) {
+                Modifier.paneTopFade(paneScroll.value > 0).verticalScroll(paneScroll)
+            } else {
+                Modifier
+            },
+        ),
+    ) {
         Box(
             Modifier
                 .fillMaxWidth()
@@ -479,8 +498,8 @@ internal fun LiveStagePane(
             }
             val next = nowNext?.next
             val later = nowNext?.upcoming?.firstOrNull()
-            // TV-box look: the rest of the evening too, one under the other, scrolling when long.
-            val more = if (tv.own.owntv.features.shell.TvBoxNav) nowNext?.upcoming.orEmpty().drop(1).take(6) else emptyList()
+            // TV-box look: the rest of the evening too, one under the other; the pane scrolls to reach them.
+            val more = if (tvBox) nowNext?.upcoming.orEmpty().drop(1).take(TV_BOX_MORE_ROWS) else emptyList()
             if (next != null) {
                 // Next and later one under the other, as a schedule reads.
                 Column(
@@ -488,8 +507,19 @@ internal fun LiveStagePane(
                         .padding(top = 18.mpx)
                         .offset(x = (-12).mpx)
                         .fillMaxWidth()
-                        .heightIn(max = 240.mpx)
-                        .verticalScroll(androidx.compose.foundation.rememberScrollState())
+                        .then(
+                            if (tvBox) {
+                                // Back on the channel list the pane slides back to its top.
+                                Modifier.onFocusChanged {
+                                    if (!it.hasFocus && paneScroll.value > 0) {
+                                        paneScope.launch { paneScroll.animateScrollTo(0) }
+                                    }
+                                }
+                            } else {
+                                Modifier.heightIn(max = 240.mpx)
+                                    .verticalScroll(androidx.compose.foundation.rememberScrollState())
+                            },
+                        )
                         .focusGroup(),
                     verticalArrangement = Arrangement.spacedBy(2.mpx),
                 ) {
@@ -500,11 +530,26 @@ internal fun LiveStagePane(
                             if (e.type == KeyEventType.KeyDown && e.key == Key.DirectionLeft) { onBackToList(); true } else false
                         },
                     )
-                    if (later != null) LiveScheduleItem(later, accentTime = false, onClick = { onOpenProgramme(later) })
-                    more.forEach { p -> LiveScheduleItem(p, accentTime = false, onClick = { onOpenProgramme(p) }) }
+                    // ▼ on the last line stays there: it went on out of the pane, which then slid back down.
+                    val stopDown = Modifier.onPreviewKeyEvent { e ->
+                        e.type == KeyEventType.KeyDown && e.key == Key.DirectionDown
+                    }
+                    if (later != null) {
+                        LiveScheduleItem(
+                            later, accentTime = false, onClick = { onOpenProgramme(later) },
+                            modifier = if (tvBox && more.isEmpty()) stopDown else Modifier,
+                        )
+                    }
+                    more.forEachIndexed { i, p ->
+                        LiveScheduleItem(
+                            p, accentTime = false, onClick = { onOpenProgramme(p) },
+                            modifier = if (tvBox && i == more.lastIndex) stopDown else Modifier,
+                        )
+                    }
                 }
             }
         }
+    }
     }
 }
 
@@ -532,6 +577,24 @@ private fun LiveScheduleItem(p: XtEpgEntry, accentTime: Boolean, onClick: () -> 
         )
     }
 }
+
+/**
+ * The pane's top edge fading out while it is scrolled, so the picture slides under it softly instead of being cut;
+ * a mask on the drawn pane, whatever the backdrop behind it.
+ */
+private fun Modifier.paneTopFade(on: Boolean): Modifier = if (!on) this else this
+    .graphicsLayer { compositingStrategy = androidx.compose.ui.graphics.CompositingStrategy.Offscreen }
+    .drawWithContent {
+        drawContent()
+        drawRect(
+            Brush.verticalGradient(listOf(Color.Transparent, Color.Black), endY = PANE_FADE.mpx.toPx()),
+            size = androidx.compose.ui.geometry.Size(size.width, PANE_FADE.mpx.toPx()),
+            blendMode = androidx.compose.ui.graphics.BlendMode.DstIn,
+        )
+    }
+
+private const val TV_BOX_MORE_ROWS = 14
+private const val PANE_FADE = 36
 
 /** Scroll only as far as the focused item, plus one row of room, needs (the TV default pins it a third down). */
 @OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
