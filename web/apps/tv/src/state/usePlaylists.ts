@@ -5,6 +5,7 @@ import { cacheDrop, cacheGet, cachePut, fetchPlaylist, PlaylistError } from "./f
 import { playlistOpener } from "./guideTransport";
 import { fileDrop, fileGet, filePut, isLocal, localUrl, readPlaylistFile } from "./localFiles";
 import { demoText } from "./playlist";
+import { AUTHOR_CHECK_MS, AUTHOR_URL, AUTHOR_VERSION_URL, needsReload, versionOf, type AuthorVersion } from "./authorPlaylist";
 import { desktop } from "./desktop";
 import { addPlaylist, updatePlaylist, isStalker, xtreamGuide, loadStore, nextActive, normalizeUrl, playlistFromSearch, removePlaylist, saveStore, type PlaylistStore } from "./playlists";
 
@@ -81,6 +82,41 @@ export function usePlaylists() {
       },
     );
     return () => { live = false; };
+  }, [active?.id, active?.url]);
+
+  // The author's playlist stays current while the app is open, as on Android: its fingerprint is asked every few
+  // seconds (a few bytes). The author's own change brings the whole list at once; what the background checks change
+  // comes now and then (needsReload). Nothing is asked while the screen is off.
+  useEffect(() => {
+    if (!active || active.url !== AUTHOR_URL) return;
+    const id = active.id;
+    let seen: AuthorVersion | null = null;
+    let loadedAt = Date.now();
+    let busy = false;
+    const check = async () => {
+      if (busy || (typeof document !== "undefined" && document.hidden)) return;
+      busy = true;
+      try {
+        const res = await fetch(AUTHOR_VERSION_URL, { cache: "no-store" });
+        const v = res.ok ? versionOf(await res.json()) : null;
+        if (!v) return;
+        if (seen === null) { seen = v; return; } // the list loaded at start is this version or one just before it
+        if (!needsReload(seen, v, Date.now() - loadedAt)) { if (v.v === seen.v) seen = v; return; }
+        const text = await fetchPlaylist(AUTHOR_URL, playlistOpener());
+        loadedAt = Date.now();
+        if (text !== cacheGet(id)) {
+          cachePut(id, text);
+          setChannels(parseM3U(text));
+          setHeaderGuides(guidesInHeader(text));
+        }
+        seen = v;
+      } catch { /* offline for a moment: asked again on the next round */ } finally {
+        busy = false;
+      }
+    };
+    void check();
+    const timer = setInterval(() => { void check(); }, AUTHOR_CHECK_MS);
+    return () => clearInterval(timer);
   }, [active?.id, active?.url]);
 
   /** Returns an error text when the link is not usable, null when the playlist was added. */

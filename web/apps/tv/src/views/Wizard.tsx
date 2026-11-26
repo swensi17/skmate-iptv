@@ -19,6 +19,7 @@ import { SyncDialog } from "./SyncDialog";
 import { TextEntry } from "./TextEntry";
 import { WelcomeTv } from "./WelcomeTv";
 import "./wizard.css";
+import { AUTHOR_NAME, AUTHOR_URL } from "../state/authorPlaylist";
 
 /** The terms of use come with the wizard (the host mounts both side by side). */
 export { Terms } from "./Terms";
@@ -57,9 +58,6 @@ const PAGES = ["welcome", "display", "choice", "profile", "playlist", "remote", 
 type Page = (typeof PAGES)[number];
 const STEP_OF: Record<Page, number> = { welcome: 0, display: 1, choice: 2, profile: 2, playlist: 3, remote: 3, type: 3, importing: 3, failed: 3, ready: 4, restoreFailed: 2 };
 
-/** The author's playlist (Android OwnTVApp.kt CoreBuildInfo.authorPlaylistUrl, core/setup/AuthorPlaylist.kt). */
-const AUTHOR_URL = "https://nutrokstore.xyz/skmate/playlist.m3u8";
-const AUTHOR_NAME = "SkMate";
 /** Below this Android asks once before zooming out (UiZoom.LOW_RAM_WARN). */
 const LOW_RAM_WARN = 85;
 const THEMES: Array<Settings["theme"]> = ["system", "dark", "light"];
