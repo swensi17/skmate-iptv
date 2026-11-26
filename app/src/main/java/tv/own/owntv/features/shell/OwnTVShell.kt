@@ -2041,6 +2041,8 @@ fun OwnTVShell(
                         inert = showChannelList || showHistoryList || showCategoryBrowser || showSubtitleSearch || showLocalSubPicker || showOtherChannels || showGuideOverlay ||
                             // The menu opened over the picture owns the D-pad: the HUD must not pull focus back to itself.
                             (railHasFocus && playerMode == PlayerMode.FULLSCREEN) || menuPending,
+                        // With the channel panel open the picture is in its window, and so is its error.
+                        errorFrame = if (docked) videoDock else Modifier.fillMaxSize(),
                         onChannelUp = zap?.let { z -> { z(-1) } },
                         onChannelDown = zap?.let { z -> { z(1) } },
                         onOpenChannelList = if (isTunedLive && liveCanZap) { { showChannelList = true } } else null,

@@ -48,6 +48,7 @@ import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.tv.material3.Text
@@ -160,6 +161,8 @@ fun PlayerHud(
     // D-pad focus off the overlay. The existing dialog guard below covers only the HUD's OWN dialogs;
     // shell-level overlays need this flag. Default false = no behavior change for other callers.
     inert: Boolean = false,
+    /** Where the picture is while the HUD is inert: the channel panel's window, so its error sits in it. */
+    errorFrame: Modifier = Modifier.fillMaxSize(),
     onChannelUp: (() -> Unit)? = null,
     onChannelDown: (() -> Unit)? = null,
     // Live: open the channel-list overlay (Left while the controls are hidden). Null = not a live channel.
@@ -1083,10 +1086,19 @@ fun PlayerHud(
             // The engine's raw wording stays out of sight in release builds (a debug build still shows it).
             // Behind the channel panels the failure is only a quiet mark: the panels are what the viewer is
             // using, and the headline, reason and Retry showed through them as clutter.
+            // In the panel's window it stands in the middle of that window, the picture and its headline only.
             error != null && inert -> Box(Modifier.fillMaxSize().background(Color(0xFF0B0F14))) {
                 val art = error?.let { errorArtOf(it) } ?: tv.own.owntv.ui.stage.ErrorArt.SIGNAL
-                Box(Modifier.align(Alignment.Center).graphicsLayer { alpha = QUIET_ERROR_ALPHA }) {
-                    tv.own.owntv.ui.stage.ErrorIllustration(art, size = QUIET_ERROR_SIZE.dp)
+                Box(errorFrame, contentAlignment = Alignment.Center) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        tv.own.owntv.ui.stage.ErrorIllustration(art, size = QUIET_ERROR_SIZE.dp)
+                        Spacer(Modifier.height(QUIET_ERROR_GAP.dp))
+                        Text(
+                            stringResource(errorTitleOf(art)),
+                            style = tv.own.owntv.ui.theme.stageText(QUIET_ERROR_TEXT, 700), color = Color.White,
+                            textAlign = TextAlign.Center, maxLines = 2, overflow = TextOverflow.Ellipsis,
+                        )
+                    }
                 }
             }
             error != null -> Box(Modifier.fillMaxSize().background(Color(0xFF0B0F14))) {
@@ -1098,13 +1110,7 @@ fun PlayerHud(
                 tv.own.owntv.ui.stage.ErrorIllustration(art, size = 190.dp)
                 Spacer(Modifier.height(26.dp))
                 Text(
-                    stringResource(
-                        when (art) {
-                            tv.own.owntv.ui.stage.ErrorArt.SIGNAL -> R.string.player_error_title_signal
-                            tv.own.owntv.ui.stage.ErrorArt.NO_INTERNET -> R.string.player_error_title_internet
-                            tv.own.owntv.ui.stage.ErrorArt.DEVICE -> R.string.player_error_title_device
-                        },
-                    ),
+                    stringResource(errorTitleOf(art)),
                     style = tv.own.owntv.ui.theme.stageText(40, 700), color = Color.White, textAlign = TextAlign.Center,
                 )
                 Spacer(Modifier.height(10.dp))
@@ -1306,7 +1312,15 @@ internal fun errorArtOf(failure: PlaybackFailure): tv.own.owntv.ui.stage.ErrorAr
 
 /** The failure mark behind open panels: small and faded, so it reads as a state, not a message. */
 private const val QUIET_ERROR_SIZE = 96
-private const val QUIET_ERROR_ALPHA = 0.6f
+private const val QUIET_ERROR_GAP = 14
+private const val QUIET_ERROR_TEXT = 26
+
+/** The headline under an error's picture. */
+private fun errorTitleOf(art: tv.own.owntv.ui.stage.ErrorArt): Int = when (art) {
+    tv.own.owntv.ui.stage.ErrorArt.SIGNAL -> R.string.player_error_title_signal
+    tv.own.owntv.ui.stage.ErrorArt.NO_INTERNET -> R.string.player_error_title_internet
+    tv.own.owntv.ui.stage.ErrorArt.DEVICE -> R.string.player_error_title_device
+}
 
 /**
  * Runs the job a viewer gave one of the remote's keys on a channel, from [jobs]: what the player can
