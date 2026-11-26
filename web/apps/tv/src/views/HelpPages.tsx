@@ -1,15 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
-import { Button, focusFirst, useOwnBack } from "@skmate/ui";
+import { focusFirst, useOwnBack } from "@skmate/ui";
 import { t, type Key } from "../i18n";
-import { highlight, parseAnswer, plainFirstLine, type AnswerLine, type HelpAnswer } from "./helpAnswer";
+import { highlight, parseAnswer, type AnswerLine } from "./helpAnswer";
 import { OverSheet, SRow, useSheet } from "./SettingsKit";
 
 /*
- * Как пользоваться (Android 2.5.4, features/more/HelpPage.kt): the questions as settings rows under their topics, in the
- * alphabet of the app's language inside each topic. OK opens a window over the page with the answer laid out: a sketch
- * of where to go (the path through the screens with the item to press lit, or the remote with its keys lit, or the
- * stream line) beside the numbered steps, keys and «menu items» picked out. OK, Back or a click beside it close it and
- * the focus returns to the question.
+ * Как пользоваться (Android 2.5.8, features/more/HelpPage.kt): the questions as settings rows under their topics, in the
+ * alphabet of the app's language inside each topic, each with a line on what it is about. OK opens the answer in a window
+ * in the middle of the screen (HelpCard).
  */
 
 interface Item { icon: string; n: number }
@@ -37,6 +35,7 @@ const TOPICS: Topic[] = [
 
 const q = (n: number) => t(`sa_help_q${n}` as Key);
 const a = (n: number) => t(`sa_help_a${n}` as Key);
+const d = (n: number) => t(`sa_help_d${n}` as Key);
 const lang = () => (typeof document !== "undefined" && document.documentElement.lang) || "en";
 
 /** The page: a topic's label (StageGroupLabel, sheet), then its questions as rows; the first question takes the focus. */
@@ -51,47 +50,50 @@ export function HelpPage() {
       {topics.map(({ tp, items }) => [
         <div key={tp.label} class="hlp-topic">{t(tp.label)}</div>,
         ...items.map(({ it, title }) => (
-          <SRow key={it.n} id={`help-${it.n}`} icon={it.icon} title={title} line={plainFirstLine(a(it.n))} onOk={() => setOpen({ topic: tp, item: it })} />
+          <SRow key={it.n} id={`help-${it.n}`} icon={it.icon} title={title} line={d(it.n)} onOk={() => setOpen({ topic: tp, item: it })} />
         )),
       ])}
       {open ? (
-        <HelpCard icon={open.item.icon} topic={t(open.topic.label)} question={q(open.item.n)} answer={a(open.item.n)}
+        <HelpCard question={q(open.item.n)} about={d(open.item.n)} answer={a(open.item.n)}
           onClose={() => { const n = open.item.n; setOpen(null); sheet.focus(`help-${n}`); }} />
       ) : null}
     </div>
   );
 }
 
-/** The answer in a window of its own, fading and growing in (220 ms, 0.94 → 1); "Понятно" at the bottom right waits for OK. */
-function HelpCard(p: { icon: string; topic: string; question: string; answer: string; onClose: () => void }) {
+/**
+ * The answer in a window of its own in the middle of the screen (2.5.7, HelpPage.kt helpCard): the question with a ✕
+ * at the top right, what this is in one paragraph, where to go, the steps numbered 1, 2, 3 and one closing paragraph.
+ * ▲ ▼ scroll a long answer; OK on ✕, Back or a click beside it close it and the focus returns to the question.
+ */
+function HelpCard(p: { question: string; about: string; answer: string; onClose: () => void }) {
   const root = useRef<HTMLDivElement>(null);
   const text = useRef<HTMLDivElement>(null);
   useOwnBack(root, p.onClose);
-  useEffect(() => { setTimeout(() => focusFirst(root.current ?? document, "hlp-ok"), 0); }, []);
-  // Where every path starts, in the app's language ("Настройки", "Каналы"), so the sketch is drawn in all of them.
+  useEffect(() => { setTimeout(() => focusFirst(root.current ?? document, "hlp-close"), 0); }, []);
+  // Where every path starts, in the app's language ("Настройки", "Каналы").
   const parts = useMemo(() => parseAnswer(p.answer, new Set([t("sa_settings_title"), t("sa_content_key_channels")])), [p.answer]);
-  const sketch = parts.path.length >= 2 || parts.keys.length > 0 || p.icon === "VIDEO";
-  // ▲ ▼ scroll an answer taller than the window (the only control is the button; Android has no such case at 1080p).
   const onKey = (e: KeyboardEvent) => {
     const d = e.key === "ArrowUp" || e.keyCode === 38 ? -1 : e.key === "ArrowDown" || e.keyCode === 40 ? 1 : 0;
     const box = text.current;
     if (d === 0 || !box) return;
     e.preventDefault();
     e.stopPropagation();
-    box.scrollTop += d * 120;
+    box.scrollTop += d * SCROLL_STEP;
   };
   return (
     <OverSheet>
       <div ref={root}>
         <div class="st-layer hlp-layer" data-modal onClick={p.onClose}>
           <div class="hlp-card" role="dialog" aria-label={p.question} onClick={(e) => e.stopPropagation()} onKeyDown={onKey as never}>
-            <div class="hlp-eyebrow">{p.topic.toLocaleUpperCase(lang())}</div>
-            <div class="hlp-title">{p.question}</div>
-            <div class="hlp-body">
-              {sketch ? <div class="hlp-sketch"><Sketch answer={parts} /></div> : null}
-              <div class="hlp-text" ref={text}>{parts.lines.map((l, i) => <Line key={i} line={l} />)}</div>
+            <div class="hlp-head">
+              <div class="hlp-title">{p.question}</div>
+              <button class="st-focusable hlp-close" data-focus="hlp-close" aria-label={t("tbClose")} onClick={p.onClose}>✕</button>
             </div>
-            <div class="hlp-foot"><Button small id="hlp-ok" text={t("sa_help_got_it")} onClick={p.onClose} /></div>
+            <div class="hlp-text" ref={text}>
+              {p.about ? <div class="hlp-line plain">{p.about}</div> : null}
+              {parts.lines.map((l, i) => <Line key={i} line={l} />)}
+            </div>
           </div>
         </div>
       </div>
@@ -99,68 +101,14 @@ function HelpCard(p: { icon: string; topic: string; question: string; answer: st
   );
 }
 
-function Sketch({ answer }: { answer: HelpAnswer }) {
-  if (answer.path.length >= 2) return <PathSketch path={answer.path} />;
-  if (answer.keys.length > 0) return <RemoteSketch keys={answer.keys} />;
-  return <StreamSketch />;
-}
-
-/** A small settings sheet: the first screen's name, then each step down to the item to press, lit as focus is. */
-function PathSketch({ path }: { path: string[] }) {
-  return (
-    <div class="hlp-path">
-      <div class="hlp-path-title">{path[0]}</div>
-      {path.slice(1).map((step, i) => {
-        const last = i === path.length - 2;
-        return (
-          <div key={i} class={`hlp-path-row${last ? " last" : ""}`} style={{ marginLeft: `${i * 10}px` }}>
-            <span class="hlp-path-text">{step}</span>
-            {last ? <KeyChip label="OK" lit /> : <span class="hlp-path-chev">›</span>}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-/** The remote's arrows and OK, the ones the answer uses lit. */
-function RemoteSketch({ keys }: { keys: string[] }) {
-  const on = (k: string) => keys.indexOf(k) >= 0;
-  return (
-    <div class="hlp-remote">
-      <span class="hlp-remote-up"><KeyChip label="▲" lit={on("▲")} /></span>
-      <span class="hlp-remote-down"><KeyChip label="▼" lit={on("▼")} /></span>
-      <span class="hlp-remote-left"><KeyChip label="◀" lit={on("◀")} /></span>
-      <span class="hlp-remote-right"><KeyChip label="▶" lit={on("▶")} /></span>
-      <KeyChip label="OK" lit={on("OK")} big />
-    </div>
-  );
-}
-
-function KeyChip(p: { label: string; lit: boolean; big?: boolean }) {
-  return <span class={`hlp-key-chip${p.lit ? " lit" : ""}${p.big ? " big" : ""}`}>{p.label}</span>;
-}
-
-/** A sample of the info's stream line, as it reads under the picture (TvBoxStreamCorner.kt tvBoxStreamFacts). */
-function StreamSketch() {
-  const l = lang();
-  const stereo = t("sa_help_sample_stereo");
-  const mbps = (4700 / 1000).toLocaleString(l, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-  const facts = [t("sa_help_sample_fps", { 1: 50 }), "H.264", stereo.charAt(0).toLocaleUpperCase(l) + stereo.slice(1), t("sa_help_sample_mbps", { 1: mbps })]
-    .join(t("sa_content_epg_bits_separator"));
-  return (
-    <div class="hlp-stream">
-      <div class="hlp-stream-next">{t("sa_help_sample_next")}</div>
-      <div class="hlp-stream-facts"><span class="hlp-stream-res">1080p</span><span class="hlp-stream-line">{facts}</span></div>
-    </div>
-  );
-}
+/** How far ▲ ▼ move a long answer. */
+const SCROLL_STEP = 160;
 
 /** One line of the answer: a numbered step, a point, or plain text; keys and «menu items» picked out. */
 function Line({ line }: { line: AnswerLine }) {
   const body = highlight(line.text).map((x, i) => (x.kind === "plain" ? x.text : <b key={i} class={x.kind === "key" ? "hlp-k" : "hlp-i"}>{x.text}</b>));
   if (line.kind === "step") return <div class="hlp-line step"><span class="hlp-step">{line.mark}</span><span class="hlp-line-text">{body}</span></div>;
-  if (line.kind === "point") return <div class="hlp-line point"><span class="hlp-dot" /><span class="hlp-line-text">{body}</span></div>;
+  if (line.kind === "path") return <div class="hlp-line path">{body}</div>;
   return <div class="hlp-line plain">{body}</div>;
 }
 

@@ -171,7 +171,12 @@ export function App() {
     const early = (e: KeyboardEvent) => { if (isLeft(e)) before = document.activeElement; };
     const late = (e: KeyboardEvent) => {
       if (!isLeft(e) || document.activeElement !== before || !before) return;
-      if (before instanceof HTMLInputElement || !before.closest(".content") || document.querySelector("[data-modal]")) return;
+      if (before instanceof HTMLInputElement) return;
+      // 2.5.9: ◀ on the settings sheet's own rows opens the menu too, the sheet staying where it is; a dialog or an
+      // editor over the sheet keeps ◀ for itself.
+      const sheetLayer = before.closest(".st-sheet-layer");
+      const onSheet = !!sheetLayer && !!before.closest(".st-sheet-body") && document.querySelectorAll("[data-modal]").length === 1;
+      if (!onSheet && (!before.closest(".content") || document.querySelector("[data-modal]"))) return;
       document.querySelector<HTMLElement>(".tb-rail [data-focus]")?.focus(); // the menu puts it on the open place
     };
     window.addEventListener("keydown", early, true);

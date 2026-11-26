@@ -19,10 +19,12 @@ import { detectPlatform } from "../platform";
  * a channel is started full screen would keep it from the player.
  */
 const TV_REST_MS = detectPlatform() === "browser" ? 0 : 800;
+/** Room kept above and below the focused line when the pane scrolls to it. */
+const PANE_EDGE = 40;
 /** The text skeleton stands while a new channel's programme is looked up (LiveStage.kt: 1500 ms). */
 const TEXT_WAIT_MS = 1500;
-/** Next, later, and up to six more (the TV-box look), LiveStage.kt LiveStagePane. */
-const SCHEDULE_MAX = 8;
+/** Next, later and more, the whole pane scrolling (2.5.6, LiveStage.kt TV_BOX_MORE_ROWS). */
+const SCHEDULE_MAX = 14;
 
 /**
  * The stage beside the channel list (Android LiveStage.kt LiveStagePane, TV-box look): the muted preview on a 16:9
@@ -74,20 +76,28 @@ export function PreviewPane(p: {
     e.preventDefault(); e.stopPropagation();
     const all = Array.from((e.currentTarget as HTMLElement).querySelectorAll<HTMLElement>("[data-focus]"));
     const at = all.indexOf(document.activeElement as HTMLElement);
-    all[Math.max(0, Math.min(all.length - 1, at + dir))]?.focus();
+    all[Math.max(0, Math.min(all.length - 1, at + dir))]?.focus(); // ▼ on the last line stays there
+    if (dir < 0 && at === 0 && pane.current) { pane.current.scrollTop = 0; setScrolled(false); } // back up to the card
   };
-  const sched = useRef<HTMLDivElement>(null);
-  // The schedule is a short scrolling column (max 240): the focused line is brought into it, the page never scrolls.
+  // 2.5.6: the card, the programme and its schedule scroll as one block, so going down the schedule carries the
+  // picture up and the lines get the room; a soft shade at the top while it is scrolled. The page never scrolls.
+  const pane = useRef<HTMLElement>(null);
+  const [scrolled, setScrolled] = useState(false);
   const reveal = (e: FocusEvent) => {
-    const box = sched.current;
+    const box = pane.current;
     const el = e.target as HTMLElement;
     if (!box) return;
-    if (el.offsetTop < box.scrollTop) box.scrollTop = el.offsetTop;
-    else if (el.offsetTop + el.offsetHeight > box.scrollTop + box.clientHeight) box.scrollTop = el.offsetTop + el.offsetHeight - box.clientHeight;
+    const top = el.getBoundingClientRect().top - box.getBoundingClientRect().top + box.scrollTop;
+    const bottom = top + el.offsetHeight;
+    if (bottom > box.scrollTop + box.clientHeight) box.scrollTop = bottom - box.clientHeight + PANE_EDGE;
+    else if (top < box.scrollTop + PANE_EDGE) box.scrollTop = Math.max(0, top - PANE_EDGE);
+    setScrolled(box.scrollTop > 0);
   };
+  useEffect(() => { if (pane.current) pane.current.scrollTop = 0; setScrolled(false); }, [channel?.id]);
 
   return (
-    <aside class="hp-pane" aria-label={t("setPreview")}>
+    <aside class="hp-pane" ref={pane} aria-label={t("setPreview")}>
+      {scrolled ? <div class="hp-pane-fade" /> : null}
       <div class={`hp-card${channel ? "" : " empty"}`}>
         {channel ? (
           <>
@@ -125,7 +135,7 @@ export function PreviewPane(p: {
           </>
         ) : null}
         {channel && upcoming.length > 0 ? (
-          <div class="hp-sched" ref={sched} onKeyDown={onSchedKey as unknown as (e: Event) => void} onFocusIn={reveal as unknown as (e: Event) => void}>
+          <div class="hp-sched" onKeyDown={onSchedKey as unknown as (e: Event) => void} onFocusIn={reveal as unknown as (e: Event) => void}>
             {upcoming.map((x, i) => (
               <button key={x.start} class={`st-focusable hp-sched-item${i === 0 ? " next" : ""}`} data-focus={`sched-${i}`}
                 onClick={() => p.onProgramme?.(channel, x)}>

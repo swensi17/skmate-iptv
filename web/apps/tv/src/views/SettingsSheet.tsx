@@ -330,7 +330,9 @@ export function SettingsSheet(p: Props) {
     <SheetCtx.Provider value={api}>
       <div ref={root}>
         <Drawer
-          variant="sheet" label={title} onClose={() => (page ? p.onBack() : p.onClose())} closing={!p.show} returnFocus title={title}
+          variant="sheet" label={title} onClose={() => (page ? p.onBack() : p.onClose())} closing={!p.show} returnFocus
+          // 2.5.8: How to use has no title of its own: the questions start at once.
+          title={page === "help" && !sub ? undefined : title}
           className={page && !sub ? `set-page-${page}` : undefined}
           tools={page === "about" && !sub ? <span class="set-version">{__APP_VERSION__.split("-")[0]}</span> : undefined}
         >

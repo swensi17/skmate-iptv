@@ -33,6 +33,29 @@ export function StreamCorner() {
   );
 }
 
+/** The heights TVs name: a picture near one of them is shown as it (1088 is 1080). */
+const STANDARD_HEIGHTS = [240, 288, 360, 480, 540, 576, 720, 1080, 1440, 2160, 4320];
+
+/** "FHD 1080p", "UHD 2160p" (2.5.9, TvBoxStreamCorner.resolutionLabel): the height as TVs name it, its class in front. */
+export function resolutionLabel(height: number): string {
+  const line = STANDARD_HEIGHTS.find((h) => Math.abs(height - h) / h < 0.03) ?? height;
+  const grade = line >= 2160 ? "UHD" : line >= 1440 ? "2K" : line >= 1080 ? "FHD" : line >= 720 ? "HD" : "SD";
+  return `${grade} ${line}p`;
+}
+
+/** The resolution, frames, codec, sound and speed, leaving out what is not known yet (2.5.9 factParts). */
+export function factParts(f: StreamFacts): string[] {
+  const sound = f.channels == null ? null : f.channels === 1 ? t("plMono") : f.channels === 2 ? t("plStereo") : `${f.channels}.0`;
+  const fps = standardFps(f.fps);
+  return [
+    f.height ? resolutionLabel(f.height) : null,
+    fps != null ? t("plFps", { n: fps }) : null,
+    f.codec,
+    sound ? sound.charAt(0).toLocaleUpperCase() + sound.slice(1) : null,
+    f.kbps != null && f.kbps > 0 ? t("plMbps", { v: (f.kbps / 1000).toFixed(1) }) : null,
+  ].filter((x): x is string => !!x);
+}
+
 /** "50 fps · H.264 · Stereo · 4.7 Mbps", leaving out what is not known yet (factsLine). */
 export function factsText(f: StreamFacts): string {
   const sound = f.channels == null ? null : f.channels === 1 ? t("plMono") : f.channels === 2 ? t("plStereo") : `${f.channels}.0`;
@@ -46,13 +69,11 @@ export function factsText(f: StreamFacts): string {
   return parts.filter((x): x is string => !!x).join(" · ");
 }
 
-/** The badge and the line on the right of what follows: figures of even width, so the line keeps its place. */
+/** Each figure of the stream in the same thin white frame (2.5.9), figures of even width so the tags keep their place. */
 export function StreamFactsLine({ facts }: { facts: StreamFacts }) {
-  const text = factsText(facts);
   return (
     <span class="tb-facts">
-      {facts.height ? <span class="tb-badge">{facts.height}p</span> : null}
-      {text ? <span class="tb-facts-text">{text}</span> : null}
+      {factParts(facts).map((x) => <span class="tb-tag" key={x}>{x}</span>)}
     </span>
   );
 }

@@ -175,66 +175,38 @@
 /* How to use (Android 2.5.4 HelpPage.kt): topics (StageGroupLabel, sheet: 13/800 +0.12em dim, 16 in) over the questions as
    settings rows; OK opens the answer window (OwnTVPopup over the sheet, so the sheet's SkMate blue is its accent). */
 .hlp-page { padding-bottom: 40px; }
-.hlp-topic { padding: 14px 16px 6px; font-size: 13px; font-weight: 800; letter-spacing: 0.12em; color: var(--st-dim);
+/* 2.5.7: the topics' names white and larger. */
+.hlp-topic { padding: 22px 16px 8px; font-size: 22px; font-weight: 800; color: var(--st-text);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .hlp-layer { z-index: 60; display: flex; align-items: center; justify-content: center; background: var(--st-scrim);
   --st-accent: var(--st-blue); --st-on-accent: #ffffff; --st-accent-on-plate: var(--st-blue);
   animation: hlp-fade 220ms var(--st-ease) both; }
 @keyframes hlp-fade { from { opacity: 0; } to { opacity: 1; } }
 /* 1240 wide, radius 30, 40 inside, never closer than 40 to the screen's edge; grows from 0.94 as it fades in. Popup size and popup text size apply. */
-.hlp-card { --fs: var(--fs-popup, 1); zoom: var(--popup-zoom, 1); display: flex; flex-direction: column; width: 1240px; max-width: calc(100% - 80px);
-  max-height: calc(100% - 80px); padding: 40px; border-radius: var(--st-r-popup); background: var(--st-card-fill); color: var(--st-text);
+/* 2.5.7: the answer's window in the middle of the screen: the question with ✕, then the text, 26 px, scrolled by ▲ ▼. */
+.hlp-card { --fs: var(--fs-popup, 1); zoom: var(--popup-zoom, 1); display: flex; flex-direction: column; width: 1180px; max-width: calc(100% - 80px);
+  max-height: calc(100% - 120px); padding: 40px 44px 44px; border-radius: 28px; background: var(--st-page);
   box-shadow: var(--st-card-shadow); font-family: var(--st-font); animation: hlp-grow 220ms var(--st-ease) both; }
 @keyframes hlp-grow { from { transform: scale(0.94); } to { transform: none; } }
-.hlp-eyebrow { flex: none; font-size: 14px; font-weight: 800; color: var(--st-accent); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.hlp-title { flex: none; margin: 6px 0 24px; font-size: 32px; font-weight: 800; line-height: 1.25; color: var(--st-text); }
-.hlp-body { flex: 0 1 auto; display: flex; align-items: flex-start; min-height: 260px; overflow: hidden; }
-.hlp-sketch { flex: none; display: flex; justify-content: center; width: 400px; margin-right: 36px; }
-.hlp-text { flex: 1 1 0%; min-width: 0; align-self: stretch; overflow-y: auto; scrollbar-width: none; }
+.hlp-head { flex: none; display: flex; align-items: flex-start; margin-bottom: 26px; }
+.hlp-title { flex: 1 1 0%; min-width: 0; font-size: 34px; font-weight: 800; line-height: 1.25; color: var(--st-text); }
+button.hlp-close { flex: none; display: flex; align-items: center; justify-content: center; width: 56px; height: 56px; margin: -6px -8px 0 24px;
+  border: 0; border-radius: 14px; background: rgba(var(--st-ink-rgb), 0.08); color: var(--st-text); font: 700 26px var(--st-font); cursor: pointer; }
+button.hlp-close:focus { background: #fff; color: #16181d; outline: none; }
+.hlp-text { flex: 0 1 auto; min-height: 0; overflow-y: auto; scrollbar-width: none; }
 .hlp-text::-webkit-scrollbar { display: none; }
-.hlp-line { font-size: 19px; font-weight: 500; line-height: 1.4; color: var(--st-text); }
-.hlp-line + .hlp-line { margin-top: 12px; }
-.hlp-line.plain { color: var(--st-muted); }
-.hlp-line.step, .hlp-line.point { display: flex; align-items: flex-start; }
+.hlp-line { font-size: 26px; font-weight: 400; line-height: 1.45; color: var(--st-text); }
+.hlp-line + .hlp-line { margin-top: 18px; }
+.hlp-line.path { font-weight: 700; }
+.hlp-line.step { display: flex; align-items: flex-start; }
 .hlp-line-text { flex: 1 1 0%; min-width: 0; }
-.hlp-step { flex: none; display: flex; align-items: center; justify-content: center; width: 30px; height: 30px; margin-right: 12px; border-radius: 50%;
-  background: var(--st-accent); color: #ffffff; font-size: 15px; font-weight: 800; }
-.hlp-dot { flex: none; width: 8px; height: 8px; margin: 10px 12px 0 0; border-radius: 50%; background: var(--st-accent); }
-.hlp-k { font-weight: 700; color: var(--st-accent); }
-.hlp-i { font-weight: 700; }
-.hlp-foot { flex: none; display: flex; justify-content: flex-end; padding-top: 26px; }
+.hlp-step { flex: none; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; margin: -1px 16px 0 0; border-radius: 50%;
+  background: var(--st-accent); color: #fff; font-size: 22px; font-weight: 800; }
+.hlp-k, .hlp-i { font-weight: 700; }
 /* The path sketch: the first screen's name, then a row per step (each 10 further in), the last lit white with OK. */
-.hlp-path { width: 100%; }
-.hlp-path-title { margin-bottom: 14px; font-size: 20px; font-weight: 800; color: var(--st-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.hlp-path-row { display: flex; align-items: center; padding: 10px 12px; border-radius: var(--st-r-focus); background: rgba(var(--st-ink-rgb), 0.07); }
-.hlp-path-row + .hlp-path-row { margin-top: 6px; }
-.hlp-path-row.last { background: #ffffff; }
-.hlp-path-text { flex: 1 1 0%; min-width: 0; margin-right: 10px; font-size: 17px; font-weight: 600; color: var(--st-text);
-  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.hlp-path-row.last .hlp-path-text { font-weight: 800; color: #16181d; }
-.hlp-path-chev { flex: none; font-size: 17px; font-weight: 800; color: var(--st-dim); }
 /* The remote: a 240 ring, the arrows (52) 10 in from its edge, OK (76) in the middle; the keys the answer uses in the accent. */
-.hlp-remote { position: relative; width: 240px; height: 240px; border-radius: 50%; background: rgba(var(--st-ink-rgb), 0.06); }
-.hlp-remote > * { position: absolute; }
-.hlp-remote-up { left: 94px; top: 10px; }
-.hlp-remote-down { left: 94px; bottom: 10px; }
-.hlp-remote-left { left: 10px; top: 94px; }
-.hlp-remote-right { right: 10px; top: 94px; }
-.hlp-remote > .hlp-key-chip.big { left: 82px; top: 82px; }
-.hlp-key-chip { display: flex; align-items: center; justify-content: center; width: 52px; height: 52px; border-radius: 50%;
-  background: rgba(var(--st-ink-rgb), 0.06); box-shadow: inset 0 0 0 1px rgba(var(--st-ink-rgb), 0.18);
-  font-size: 20px; font-weight: 800; color: var(--st-muted); white-space: nowrap; }
-.hlp-key-chip.big { width: 76px; height: 76px; font-size: 22px; }
-.hlp-key-chip.lit { background: var(--st-accent); box-shadow: none; color: #ffffff; }
-.hlp-path-row > .hlp-key-chip { flex: none; }
 /* The stream line, right-aligned as under the picture: the next programme, then 1080p on blue and the figures. */
-.hlp-stream { width: 100%; display: flex; flex-direction: column; align-items: flex-end; }
-.hlp-stream-next { align-self: stretch; margin-bottom: 14px; font-size: 17px; font-weight: 600; color: var(--st-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.hlp-stream-facts { display: flex; align-items: center; max-width: 100%; }
-.hlp-stream-res { flex: none; margin-right: 10px; padding: 3px 9px; border-radius: var(--st-r-focus); background: #1e6fd9; color: #ffffff; font-size: 20px; font-weight: 700; }
-.hlp-stream-line { min-width: 0; font-size: 20px; font-weight: 500; color: rgba(255, 255, 255, 0.62); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 /* Android draws this line white on the card in either theme; on a light card that would not show, so it takes the ink there. */
-:root[data-theme="light"] .hlp-stream-line { color: rgba(18, 18, 18, 0.62); }
 .set-divider { height: 1px; margin: 0 30px; background: rgba(var(--st-ink-rgb), 0.12); }
 .set-divider.inset24 { margin: 0 24px; }
 

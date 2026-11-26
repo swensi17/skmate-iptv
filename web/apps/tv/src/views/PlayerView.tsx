@@ -532,6 +532,9 @@ export function PlayerView(p: Props) {
         return;
       }
       swallow(e);
+      // 2.5.8 (Android PlayerHud): OK on the info hides it again, as on a TV's own player; paused, OK carries on.
+      // On the timeline OK still pauses and carries on, as a film's seek bar does.
+      if (k === "ok" && step === "info") { if (!e.repeat) { if (paused) playPause(); else hide(); } return; }
       if (k === "ok") { if (!e.repeat) playPause(); wake(); return; }
       if (step === "seek") {
         if (k === "left" || k === "right") { scrub(k === "left", rep); return; }
@@ -648,11 +651,14 @@ export function PlayerView(p: Props) {
             {cur ? <span class="tb-mini"><i style={{ width: `${Math.round(progress * 100)}%` }} /></span> : null}
             {cur ? <span>{t("tbMinutes", { n: Math.max(0, Math.floor((cur.stop - watching) / 60_000)) })}</span> : null}
             <span class="tb-ch">{number ? <span class="tb-num">{number}</span> : null}{channel.name}</span>
-            {chips.slice(0, 4).map((c) => <span class="tb-chip" key={c}>{c}</span>)}
+            {/* The stream's tags on the right say the resolution: no chip for it beside the channel (2.5.9). */}
+            {chips.filter((c) => !streamFacts || c !== resolutionChip(video.current?.videoHeight ?? 0)).slice(0, 4).map((c) => <span class="tb-chip" key={c}>{c}</span>)}
+            {/* With nothing to follow there is no next line: the tags sit level with the channel (2.5.9). */}
+            {!at.next && streamFacts ? <><span class="tb-grow" /><StreamFactsLine facts={streamFacts} /></> : null}
           </div>
           {about ? <div class="tb-about">{about}</div> : null}
           {/* What follows on the left; on its right, level with it, what the stream is (2.5.4 nextLine). */}
-          {at.next || streamFacts ? (
+          {at.next ? (
             <div class="tb-line tb-next">
               {at.next ? <span>{t("tbRange", { a: clock(at.next.start), b: clock(at.next.stop) })}</span> : null}
               <span class="tb-next-title">{at.next ? at.next.title : ""}</span>
@@ -796,7 +802,7 @@ export function PlayerView(p: Props) {
         </Presence>
       )}
 
-      {failed ? <PlayerError quiet={panel !== null} onRetry={retry} retryId="pl-retry" reason={reason} /> : null}
+      {failed ? <PlayerError quiet={panel !== null} frame={dock} onRetry={retry} retryId="pl-retry" reason={reason} /> : null}
 
       <Presence show={panel !== null}>
         {(out) => (

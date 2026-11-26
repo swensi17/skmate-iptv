@@ -33,7 +33,7 @@ export function PlayerSettingRows({ settings: s, onChange }: Props) {
         options={[{ value: 10, label: t("bufSmall") }, { value: 30, label: t("bufNormal") }, { value: 60, label: t("bufLarge") }]} />
       <SettingRow id="s-timeout" title="setOpenTimeout" hint="setOpenTimeoutHint" value={s.openTimeout} onPick={set("openTimeout")}
         options={secs([8, 12, 20]) as never} />
-      <SettingRow id="s-osd" title="setOsd" hint="setOsdHint" value={s.osdSeconds} onPick={set("osdSeconds")} options={secs([3, 5, 8]) as never} />
+      <SettingRow id="s-osd" title="setOsd" hint="setOsdHint" value={s.osdSeconds} onPick={set("osdSeconds")} options={secs([3, 5, 8, 15, 30]) as never} />
       <SettingRow id="s-showengine" title="setShowEngine" hint="setShowEngineHint" value={s.showEngine} onPick={set("showEngine")} options={onOff()} />
       <SettingRow id="s-restart" title="setAutoRestart" hint="setAutoRestartHint" value={s.autoRestart} onPick={set("autoRestart")} options={onOff()} />
       {players.length > 0 ? (

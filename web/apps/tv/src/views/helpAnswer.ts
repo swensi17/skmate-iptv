@@ -4,7 +4,7 @@
  * каналов › «Добавить источник»"), drawn as a sketch, and the remote's keys it uses, lit on a drawn remote.
  */
 
-export type LineKind = "step" | "point" | "text";
+export type LineKind = "path" | "heading" | "step" | "point" | "text" | "done";
 export interface AnswerLine { kind: LineKind; mark: string; text: string }
 export interface HelpAnswer { lines: AnswerLine[]; path: string[]; keys: string[] }
 
@@ -13,6 +13,30 @@ export const OPEN_QUOTES = "«“„「『";
 export const CLOSE_QUOTES = "»”“」』";
 const STEP = /^(\d+)\.\s+(.*)$/;
 const POINT = "• ";
+const DONE = "✓ ";
+const HEADING_MAX = 48;
+const COLONS = ":：";
+/** "Good to know:": a short line that ends in a colon and says nothing after it heads what follows. */
+const isHeading = (line: string) => line.length <= HEADING_MAX && COLONS.indexOf(line.charAt(line.length - 1)) >= 0
+  && line.slice(0, -1).split("").every((c) => COLONS.indexOf(c) < 0);
+
+/**
+ * 2.5.7 (HelpPage.kt plain): every answer laid out the same way: where to go, the steps numbered one after another
+ * (also across what were separate blocks), and one closing paragraph that gathers the points and the conclusion.
+ * Headings are left out: the steps and the paragraph say it plainly.
+ */
+function plain(lines: AnswerLine[]): AnswerLine[] {
+  const out: AnswerLine[] = [];
+  const closing: string[] = [];
+  let step = 0;
+  for (const line of lines) {
+    if (line.kind === "step") { step++; out.push({ kind: "step", mark: String(step), text: line.text }); }
+    else if (line.kind === "point" || line.kind === "done") closing.push(line.text);
+    else if (line.kind !== "heading") out.push(line);
+  }
+  if (closing.length > 0) out.push({ kind: "done", mark: "", text: closing.join(" ") });
+  return out;
+}
 const SEP = " › ";
 const LEAD_MARK = /^(?:\d+\.\s+|•\s+)/;
 /** How far into the answer a path may start: a path that only comes up at the end matters less than the keys. */
@@ -67,18 +91,21 @@ export function parseAnswer(answer: string, roots: ReadonlySet<string>): HelpAns
   let path: string[] = [];
   for (const line of raw.slice(0, PATH_LINES)) { const p = pathIn(line, roots); if (p) { path = p; break; } }
   const bare = path.join(SEP);
-  // A line that is nothing but the path is drawn as the sketch and not written out again.
-  const lines = raw.filter((x) => !(path.length > 0 && unquoted(x).replace(/\.+$/, "") === bare)).map((line): AnswerLine => {
+  const lines = raw.map((line): AnswerLine => {
+    // A line that is nothing but the path is where to go: picked out on its own.
+    if (path.length > 0 && unquoted(line).replace(/\.+$/, "") === bare) return { kind: "path", mark: "", text: line };
     const step = STEP.exec(line);
     if (step) return { kind: "step", mark: step[1]!, text: step[2]! };
     if (line.indexOf(POINT) === 0) return { kind: "point", mark: "", text: line.slice(POINT.length) };
+    if (line.indexOf(DONE) === 0) return { kind: "done", mark: "", text: line.slice(DONE.length) };
+    if (isHeading(line)) return { kind: "heading", mark: "", text: line };
     return { kind: "text", mark: "", text: line };
   });
   const keys = KEYS.filter((k) => raw.some((line) => {
     for (let i = 0; i < line.length; i++) if (startsAt(line, k, i) && isWholeKey(line, i, k)) return true;
     return false;
   }));
-  return { lines, path, keys };
+  return { lines: plain(lines), path, keys };
 }
 
 /** Pieces of a line for drawing: the remote's keys and «menu items» picked out, the rest plain. */

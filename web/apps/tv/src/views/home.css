@@ -136,7 +136,9 @@ button.lrow { position: relative; display: flex; align-items: center; width: 100
 :root[data-theme="light"] .home-skel i, :root[data-theme="light"] .hp-skel i { background: rgba(18, 18, 18, 0.075); }
 
 /* --- The stage (LiveStage.kt LiveStagePane): x 882, top 120, 820.8 wide --- */
-.hp-pane { position: absolute; left: 882px; top: 120px; width: 820.8px; }
+.hp-pane { position: absolute; left: 882px; top: 120px; bottom: 0; width: 820.8px; overflow: hidden; }
+/* 2.5.6: a soft shade at the top while the pane is scrolled down the schedule. */
+.hp-pane-fade { position: sticky; top: 0; z-index: 3; height: 50px; margin-bottom: -50px; background: linear-gradient(var(--st-page), transparent); pointer-events: none; }
 .hp-card { position: relative; width: 100%; height: 461.7px; border-radius: 28px; overflow: hidden; background: #000;
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35); }
 :root[data-theme="light"] .hp-card { box-shadow: 0 16px 40px rgba(0, 0, 0, 0.08); }
@@ -175,7 +177,7 @@ button.lrow { position: relative; display: flex; align-items: center; width: 100
   display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
 :root[data-theme="light"] .hp-desc { color: var(--st-body); }
 /* Next and later: one line each, 20 px; next with the accent time and full-colour title, the rest muted. Max 240 high. */
-.hp-sched { margin: 18px 12px 0 -12px; max-height: 240px; overflow: hidden; }
+.hp-sched { margin: 18px 12px 40px -12px; }
 .hp-sched > * + * { margin-top: 2px; }
 button.hp-sched-item { display: block; width: 100%; padding: 6px 12px; border: 0; background: none; font: 400 20px var(--st-font);
   color: var(--st-muted); text-align: left; white-space: pre; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }

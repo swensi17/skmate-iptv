@@ -112,10 +112,21 @@ const REASON_TEXT: Record<FailureReason, Key> = {
   http400: "plReason400", ssl: "plReasonSsl", format: "plReasonFormat", network: "plReasonNetwork",
 };
 
-export function PlayerError(p: { quiet?: boolean; onRetry: () => void; retryId: string; reason?: FailureReason | null }) {
+export function PlayerError(p: { quiet?: boolean; onRetry: () => void; retryId: string; reason?: FailureReason | null; frame?: { x: number; y: number; w: number; h: number } | null }) {
   const offline = typeof navigator !== "undefined" && navigator.onLine === false;
   const kind = offline ? "internet" : "signal";
-  if (p.quiet) return <div class="pv-error quiet"><ErrorArt kind={kind} /></div>;
+  // 2.5.8: behind the channel panel the failure stands in the middle of the picture's window, its mark and headline.
+  if (p.quiet) {
+    const at = p.frame ? { left: `${p.frame.x}px`, top: `${p.frame.y}px`, width: `${p.frame.w}px`, height: `${p.frame.h}px` } : undefined;
+    return (
+      <div class="pv-error quiet">
+        <div class={`pv-error-frame${at ? " framed" : ""}`} style={at}>
+          <ErrorArt kind={kind} />
+          <div class="pv-error-quiet-title">{t(offline ? "tbErrInternet" : "tbErrSignal")}</div>
+        </div>
+      </div>
+    );
+  }
   return (
     <div class="pv-error" data-modal>
       <div class="pv-error-col">

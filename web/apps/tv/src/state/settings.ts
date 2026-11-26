@@ -19,7 +19,7 @@ export interface Settings {
   /** Seconds an engine may take to show the first frame. */
   openTimeout: 8 | 12 | 20;
   /** Seconds before the player panel hides. */
-  osdSeconds: 3 | 5 | 8;
+  osdSeconds: 3 | 5 | 8 | 15 | 30;
   showEngine: boolean;
   autoRestart: boolean;
   /** A live window beside the channel list. */

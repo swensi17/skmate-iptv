@@ -365,6 +365,9 @@ export function buildRows(c: RowsCtx, close: () => void): Record<string, RowDef>
   // screens 2.5.4 (Android VideoPlayerSettingsScreen vp_programme_posters): a film's poster from TMDB in the logo's place.
   add({ key: "vp_programme_posters", icon: "IMAGE", title: t("sa_settings_programme_posters"), line: t("sa_settings_programme_posters_description"),
     end: sw(s.programmePosters), ok: () => set({ programmePosters: !s.programmePosters }) });
+  // 2.5.8 (Android vp_info_hide): how long the channel info stays up; the same setting as the player panel's.
+  add({ key: "vp_info_hide", icon: "CLOCK", title: t("sa_settings_info_hide"), line: t("seconds", { n: s.osdSeconds }),
+    editor: choice(([3, 5, 8, 15, 30] as const).map((n) => ({ value: n, label: t("seconds", { n }), recommended: n === 5 })), s.osdSeconds, (v) => set({ osdSeconds: v })) });
 
   // ---- Мультиэкран
   const tiles = (n: number) => {
@@ -562,7 +565,7 @@ export const GROUP_ITEMS: Record<string, Item[]> = {
     "clock_size", "clock_weight", "clock_bg", "clock_color", "clock_alpha"],
   picture: [{ h: "sa_settings_vp_cat_picture", first: true }, "vp_zoom", "vp_reset_zoom", { h: "sa_settings_vp_cat_frame_rate" }, "vp_afr", "vp_afr_pause", "vp_afr_resolution"],
   live: [{ h: "sa_settings_vp_cat_live_tuning", first: true }, "vp_live_latency", "vp_latency_sources", "vp_tune_timeout", "vp_tune_timeout_sources",
-    { h: "sa_settings_vp_cat_streaming" }, "vp_vod_buffer", { h: "sa_settings_live_tv" }, "vp_channel_numbers", "vp_live_preview", "vp_preview_audio", "vp_programme_posters"],
+    { h: "sa_settings_vp_cat_streaming" }, "vp_vod_buffer", { h: "sa_settings_live_tv" }, "vp_channel_numbers", "vp_live_preview", "vp_preview_audio", "vp_programme_posters", "vp_info_hide"],
   // The Resume part has no rows left, so its heading is gone and this one is drawn as a second heading (26 above).
   watching: [{ h: "sa_settings_vp_cat_multiview" }, "vp_multiview", "vp_multiview_tiles", "vp_mini",
     // screens 2.5.4 (Android a8ce6c4 RecordingSettingsRows): the recording rows after the watching ones. A TV browser cannot
