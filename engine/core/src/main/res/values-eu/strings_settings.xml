@@ -483,6 +483,8 @@
     <string name="settings_language_vietnamese">Vietnamera</string>
     <string name="settings_hardware_decoding">Hardware bidezko deskodetzea</string>
     <string name="settings_hardware_decoding_description">Erabili telebistaren hardware-deskodetzailea. Desaktibatu jario batzuk eten-etenka badabiltza edo artefaktuak erakusten badituzte.</string>
+    <string name="settings_player_recents">Erreproduzitzailean duela gutxi ikusiak</string>
+    <string name="settings_player_recents_description">Azken kanalen errenkada, programazioarekin eta historiarekin, zuzenekoaren azpian</string>
     <string name="settings_software_decode_above_1080p">Software bidezko deskodetzea 1080p gainetik</string>
     <string name="settings_software_decode_above_1080p_description">4K eta 1080p gaineko beste bideo batzuk software bidez erreproduzitzen ditu telebistaren hardware-deskodetzailea desaktibatuta dagoenean edo huts egiten duenean. Prozesadore azkarra behar du: telebista gehienetan eten-etenka dabil.</string>
     <string name="settings_movies_series_player">Filmen eta Telesailen erreproduzigailua</string>

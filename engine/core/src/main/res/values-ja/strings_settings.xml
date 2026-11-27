@@ -406,6 +406,8 @@
     <string name="settings_language_vietnamese">ベトナム語</string>
     <string name="settings_hardware_decoding">ハードウェアデコード</string>
     <string name="settings_hardware_decoding_description">TVのハードウェアデコーダーを使用します。一部のストリームで映像が途切れたり、表示が乱れたりする場合はオフにしてください。</string>
+    <string name="settings_player_recents">プレーヤーの最近見たチャンネル</string>
+    <string name="settings_player_recents_description">ライブ映像の下に番組表・履歴と最近のチャンネルを表示</string>
     <string name="settings_software_decode_above_1080p">1080p超のソフトウェアデコード</string>
     <string name="settings_software_decode_above_1080p_description">TVのハードウェアデコーダーがオフまたは失敗したとき、4Kなど1080pを超える映像をソフトウェアで再生します。高速なプロセッサーが必要です。ほとんどのTVでは映像が途切れます。</string>
     <string name="settings_movies_series_player">映画とシリーズのプレーヤー</string>

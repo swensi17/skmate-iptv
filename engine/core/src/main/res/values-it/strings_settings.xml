@@ -410,6 +410,8 @@
     <string name="settings_language_vietnamese">Vietnamita</string>
     <string name="settings_hardware_decoding">Decodifica hardware</string>
     <string name="settings_hardware_decoding_description">Usa il decoder hardware della TV. Disattiva l\'opzione se alcuni flussi vanno a scatti o mostrano artefatti.</string>
+    <string name="settings_player_recents">Visti di recente nel player</string>
+    <string name="settings_player_recents_description">Riga dei canali recenti con guida e cronologia sotto la diretta</string>
     <string name="settings_software_decode_above_1080p">Decodifica software oltre 1080p</string>
     <string name="settings_software_decode_above_1080p_description">Riproduce via software i video 4K e gli altri oltre 1080p quando il decoder hardware della TV è disattivato o non funziona. Richiede un processore veloce: sulla maggior parte delle TV va a scatti.</string>
     <string name="settings_movies_series_player">Player per film e serie</string>

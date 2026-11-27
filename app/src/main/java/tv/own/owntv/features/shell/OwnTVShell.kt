@@ -2045,11 +2045,16 @@ fun OwnTVShell(
                 }
                 // In the system's Picture-in-Picture window the picture stands alone: no controls in the corner.
                 if (!pipActive) {
+                  // The viewer may switch the recently watched row off: the tools then open straight away.
+                  val repository = koinInject<tv.own.owntv.core.settings.SettingsRepository>()
+                  val showRecents by repository.playerRecents.collectAsStateWithLifecycle(true)
                   // With the channel panel open the picture is in its window, and so is its error.
                   androidx.compose.runtime.CompositionLocalProvider(
                       tv.own.owntv.player.LocalHudErrorFrame provides (if (docked) videoDock else null),
-                      tv.own.owntv.player.LocalTvBoxRecent provides remember(recentChannels, overlayProgrammes) {
-                          recentChannels.map { ch ->
+                      tv.own.owntv.player.LocalTvBoxRecent provides remember(
+                          recentChannels, overlayProgrammes, showRecents,
+                      ) {
+                          recentChannels.takeIf { showRecents }.orEmpty().map { ch ->
                               val on = overlayProgrammes[ch.id]
                               tv.own.owntv.player.TvBoxRecent(
                                   ch.id, ch.name, ch.displayLogoUrl, on?.title, on?.startMs ?: 0L, on?.stopMs ?: 0L,

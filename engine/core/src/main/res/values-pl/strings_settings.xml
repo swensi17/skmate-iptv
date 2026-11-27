@@ -412,6 +412,8 @@
     <string name="settings_language_vietnamese">Wietnamski</string>
     <string name="settings_hardware_decoding">Dekodowanie sprzętowe</string>
     <string name="settings_hardware_decoding_description">Używaj dekodera sprzętowego telewizora. Wyłącz, jeśli niektóre strumienie się zacinają lub wyświetlają artefakty.</string>
+    <string name="settings_player_recents">Ostatnio oglądane w odtwarzaczu</string>
+    <string name="settings_player_recents_description">Rząd ostatnich kanałów z programem i historią pod obrazem na żywo</string>
     <string name="settings_software_decode_above_1080p">Dekodowanie programowe powyżej 1080p</string>
     <string name="settings_software_decode_above_1080p_description">Odtwarza programowo wideo 4K i inne powyżej 1080p, gdy dekoder sprzętowy telewizora jest wyłączony lub zawodzi. Wymaga szybkiego procesora: na większości telewizorów obraz się zacina.</string>
     <string name="settings_movies_series_player">Odtwarzacz filmów i seriali</string>

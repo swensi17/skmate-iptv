@@ -408,6 +408,8 @@
     <string name="settings_language_vietnamese">Vietnamesisk</string>
     <string name="settings_hardware_decoding">Hardwareafkodning</string>
     <string name="settings_hardware_decoding_description">Brug tv\'ets hardwaredekoder. Slå dette fra, hvis nogle streams hakker eller viser billedfejl.</string>
+    <string name="settings_player_recents">Senest sete i afspilleren</string>
+    <string name="settings_player_recents_description">Række med seneste kanaler, programoversigt og historik under live-tv</string>
     <string name="settings_software_decode_above_1080p">Softwareafkodning over 1080p</string>
     <string name="settings_software_decode_above_1080p_description">Afspiller 4K og anden video over 1080p i software, når tv\'ets hardwaredekoder er slået fra eller fejler. Kræver en hurtig processor: på de fleste tv\'er hakker det.</string>
     <string name="settings_movies_series_player">Afspiller til film og serier</string>

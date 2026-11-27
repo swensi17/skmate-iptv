@@ -408,6 +408,8 @@
     <string name="settings_language_vietnamese">Vietnamesisch</string>
     <string name="settings_hardware_decoding">Hardwaredecodierung</string>
     <string name="settings_hardware_decoding_description">Den Hardwaredecoder des Fernsehers verwenden. Deaktivieren Sie diese Option, wenn einige Streams ruckeln oder Bildfehler zeigen.</string>
+    <string name="settings_player_recents">Zuletzt gesehen im Player</string>
+    <string name="settings_player_recents_description">Reihe der letzten Sender mit Programm und Verlauf unter dem Live-Bild</string>
     <string name="settings_software_decode_above_1080p">Softwaredecodierung über 1080p</string>
     <string name="settings_software_decode_above_1080p_description">Spielt 4K und anderes Video über 1080p per Software ab, wenn der Hardwaredecoder des Fernsehers aus ist oder versagt. Braucht einen schnellen Prozessor: Auf den meisten Fernsehern ruckelt es.</string>
     <string name="settings_movies_series_player">Player für Filme und Serien</string>

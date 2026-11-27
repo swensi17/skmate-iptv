@@ -410,6 +410,8 @@
     <string name="settings_language_vietnamese">Vietnamita</string>
     <string name="settings_hardware_decoding">Decodificación por hardware</string>
     <string name="settings_hardware_decoding_description">Usa el decodificador por hardware del televisor. Desactívalo si algunas transmisiones presentan tirones o defectos visuales.</string>
+    <string name="settings_player_recents">Vistos recientemente en el reproductor</string>
+    <string name="settings_player_recents_description">Fila de canales recientes con guía e historial bajo la señal en vivo</string>
     <string name="settings_software_decode_above_1080p">Decodificación por software por encima de 1080p</string>
     <string name="settings_software_decode_above_1080p_description">Reproduce por software video 4K y otros de más de 1080p cuando el decodificador por hardware del televisor está desactivado o falla. Requiere un procesador rápido: en la mayoría de los televisores presenta tirones.</string>
     <string name="settings_movies_series_player">Reproductor de películas y series</string>

@@ -49,6 +49,7 @@ class GuideAutoLink(
         // guide still on its way looked unmatched, was linked by name to another guide, and that link then
         // overrode the playlist's id for good: the programme shown was not what the channel played.
         if (epgSources.getAll().any { it.lastSyncAt == null && it.lastError == null }) return 0
+        clearOldLinks(pid, playlistIds)
         val cust = customize.observe(pid, MediaType.LIVE).first()
         // At start-up it only runs when something changed since the last scan: channels that never match
         // were scored against the whole guide on every launch, minutes of every core on a weak TV.
@@ -134,6 +135,29 @@ class GuideAutoLink(
         Log.i(TAG, "${outdated.size} links by name dropped: the channel's own guide id has programmes now")
     }
 
+    /**
+     * Once per profile: links made before this version were not recorded, so a name link from a guide in another
+     * time zone stayed over the playlist's own id for ever. Every link on a channel whose own id has programmes
+     * is taken off, and kept aside.
+     */
+    private suspend fun clearOldLinks(pid: Long, playlistIds: List<Long>) {
+        if (pid.toString() in settings.clearedGuideProfiles()) return
+        val withProgrammes = guideCandidates().all().filter { it.hasProgrammes }
+            .mapTo(HashSet()) { it.epgChannelId.trim().lowercase() }
+        if (withProgrammes.isEmpty()) return // nothing downloaded yet: try again later
+        val matches = customize.observe(pid, MediaType.LIVE).first().epgMatches
+        val channels = channelDao.allForSources(playlistIds, MAX_RELINK_SCAN)
+        if (channels.isEmpty()) return
+        val over = linksOverOwnId(
+            channels.map { tv.own.owntv.core.customize.CustomizeKeys.channel(it) to it.epgChannelId },
+            matches,
+            withProgrammes,
+        )
+        if (over.isNotEmpty()) customize.update(pid, MediaType.LIVE) { it.copy(epgMatches = it.epgMatches - over) }
+        settings.markGuideCleared(pid.toString(), over.mapTo(HashSet()) { "$pid\t$it\t${matches[it]}" })
+        Log.i(TAG, "${over.size} old guide links over the playlist's own id removed")
+    }
+
     private suspend fun remember(pid: Long, links: Map<String, String>) {
         val fresh = links.map { (key, id) -> "$pid\t$key\t$id" }
         val kept = settings.guideAutoMatches().filterNot { entry ->
@@ -142,8 +166,19 @@ class GuideAutoLink(
         settings.setGuideAutoMatches(kept.toSet() + fresh)
     }
 
-    private companion object {
-        const val MAX_RELINK_SCAN = 20_000
-        const val TAG = "GuideAutoLink"
+    companion object {
+        /** The channels (key to own id) whose link hides an own id that has programmes. */
+        internal fun linksOverOwnId(
+            channels: List<Pair<String, String?>>,
+            matches: Map<String, String>,
+            withProgrammes: Set<String>,
+        ): Set<String> = channels.mapNotNullTo(HashSet()) { (key, tvg) ->
+            val own = tvg?.trim()?.lowercase().orEmpty()
+            val linked = matches[key]?.trim()?.lowercase()
+            key.takeIf { linked != null && linked != own && own in withProgrammes }
+        }
+
+        private const val MAX_RELINK_SCAN = 20_000
+        private const val TAG = "GuideAutoLink"
     }
 }

@@ -410,6 +410,8 @@
     <string name="settings_language_vietnamese">Vietnamien</string>
     <string name="settings_hardware_decoding">Décodage matériel</string>
     <string name="settings_hardware_decoding_description">Utiliser le décodeur matériel du téléviseur. Désactivez cette option si certains flux saccadent ou présentent des artefacts.</string>
+    <string name="settings_player_recents">Vus récemment dans le lecteur</string>
+    <string name="settings_player_recents_description">Rangée des dernières chaînes avec guide et historique sous le direct</string>
     <string name="settings_software_decode_above_1080p">Décodage logiciel au-delà de 1080p</string>
     <string name="settings_software_decode_above_1080p_description">Lit la 4K et les autres vidéos au-delà de 1080p par logiciel lorsque le décodeur matériel du téléviseur est désactivé ou échoue. Nécessite un processeur rapide : sur la plupart des téléviseurs, la lecture saccade.</string>
     <string name="settings_movies_series_player">Lecteur pour les films et les séries</string>

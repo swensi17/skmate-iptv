@@ -185,6 +185,8 @@ private val RemovedVideoRows = setOf(
 /** Every row of this screen that can be pinned to Quick, in the order the sections show them. */
 private val PLAYER_CLOCK_TITLE = R.string.settings_player_clock
 private val PLAYER_CLOCK_DESC = R.string.settings_player_clock_description
+private val RECENTS_TITLE = R.string.settings_player_recents
+private val RECENTS_DESC = R.string.settings_player_recents_description
 
 internal val VIDEO_QUICK_ROWS: List<VideoQuickRef> = listOf(
     VideoQuickRef("vp_live_engine", SECTION_PLAYER, OwnTVIcon.PLAY, R.string.settings_live_tv_player, R.string.settings_live_player_description),
@@ -202,6 +204,7 @@ internal val VIDEO_QUICK_ROWS: List<VideoQuickRef> = listOf(
     VideoQuickRef("vp_zoom", SECTION_PICTURE, OwnTVIcon.ASPECT, R.string.settings_default_zoom, R.string.settings_default_zoom_description),
     VideoQuickRef("vp_reset_zoom", SECTION_PICTURE, OwnTVIcon.ASPECT, R.string.settings_reset_saved_zoom, R.string.settings_reset_saved_zoom_description),
     VideoQuickRef("vp_clock", SECTION_CONTROLS, OwnTVIcon.CLOCK, PLAYER_CLOCK_TITLE, PLAYER_CLOCK_DESC),
+    VideoQuickRef("vp_recents", SECTION_CONTROLS, OwnTVIcon.HISTORY, RECENTS_TITLE, RECENTS_DESC),
     VideoQuickRef("vp_afr", SECTION_FRAME_RATE, OwnTVIcon.VIDEO, R.string.settings_auto_frame_rate, R.string.settings_auto_frame_rate_description),
     VideoQuickRef("vp_afr_pause", SECTION_FRAME_RATE, OwnTVIcon.PAUSE, R.string.settings_afr_pause, R.string.settings_afr_pause_description),
     VideoQuickRef("vp_afr_resolution", SECTION_FRAME_RATE, OwnTVIcon.ASPECT, R.string.settings_afr_resolution, R.string.settings_afr_resolution_description),
@@ -318,6 +321,10 @@ internal fun videoQuickBinding(key: String, vm: SettingsViewModel): VideoQuickBi
         "vp_clock" -> {
             val on by vm.playerClock.collectAsStateWithLifecycle()
             toggle(onOff(on), on) { vm.setPlayerClock(!on) }
+        }
+        "vp_recents" -> {
+            val on by vm.playerRecents.collectAsStateWithLifecycle()
+            toggle(onOff(on), on) { vm.setPlayerRecents(!on) }
         }
         "vp_afr" -> {
             val on by vm.autoFrameRate.collectAsStateWithLifecycle()
@@ -654,6 +661,7 @@ internal fun VideoPlayerGroupRows(
     val hdr by vm.preferSdr.collectAsStateWithLifecycle()
     val autoFrameRate by vm.autoFrameRate.collectAsStateWithLifecycle()
     val playerClock by vm.playerClock.collectAsStateWithLifecycle()
+    val playerRecents by vm.playerRecents.collectAsStateWithLifecycle()
     val multiviewEnabled by vm.multiviewEnabled.collectAsStateWithLifecycle()
     val multiviewTiles by vm.multiviewTiles.collectAsStateWithLifecycle()
     val multiviewWarningAccepted by vm.multiviewWarningAccepted.collectAsStateWithLifecycle()
@@ -1223,6 +1231,14 @@ internal fun VideoPlayerGroupRows(
             onClick = { vm.setPlayerClock(!playerClock) },
         )
         if (playerClock) ClockStyleRows(vm)
+        KeyedSettingRow(
+            quickKey = "vp_recents",
+            icon = OwnTVIcon.HISTORY,
+            title = stringResource(R.string.settings_player_recents),
+            desc = stringResource(R.string.settings_player_recents_description),
+            value = SettingValue.Switch(playerRecents),
+            onClick = { vm.setPlayerRecents(!playerRecents) },
+        )
         KeyedSettingRow(
             quickKey = "vp_seek_step",
             choices = tv.own.owntv.core.settings.SeekSteps.SEEK_CHOICES.map { stringResource(R.string.settings_live_buffer_seconds, it) },

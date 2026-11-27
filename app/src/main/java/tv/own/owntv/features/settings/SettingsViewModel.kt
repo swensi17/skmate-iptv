@@ -323,6 +323,11 @@ class SettingsViewModel(
         viewModelScope.launch { settings.setAutoFrameRate(enabled) }
     }
 
+    val playerRecents: StateFlow<Boolean> = settings.playerRecents
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), true)
+
+    fun setPlayerRecents(enabled: Boolean) { viewModelScope.launch { settings.setPlayerRecents(enabled) } }
+
     val playerClock: StateFlow<Boolean> = settings.playerClock
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
 

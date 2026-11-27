@@ -460,6 +460,8 @@
     <string name="settings_language_vietnamese">Vietnami</string>
     <string name="settings_hardware_decoding">Hardveres dekódolás</string>
     <string name="settings_hardware_decoding_description">A TV hardveres dekóderének használata. Kapcsold ki, ha egyes adatfolyamok akadoznak vagy képhibásak.</string>
+    <string name="settings_player_recents">Nemrég nézett a lejátszóban</string>
+    <string name="settings_player_recents_description">A legutóbbi csatornák sora műsorújsággal és előzményekkel az élő adás alatt</string>
     <string name="settings_software_decode_above_1080p">Szoftveres dekódolás 1080p felett</string>
     <string name="settings_software_decode_above_1080p_description">A 4K-s és más, 1080p feletti videókat szoftveresen játssza le, ha a TV hardveres dekódere ki van kapcsolva vagy hibázik. Gyors processzor kell hozzá: a legtöbb TV-n akadozik.</string>
     <string name="settings_movies_series_player">Filmek és sorozatok lejátszója</string>

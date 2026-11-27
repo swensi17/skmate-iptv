@@ -410,6 +410,8 @@
     <string name="settings_language_vietnamese">Vietnamita</string>
     <string name="settings_hardware_decoding">Descodificación por hardware</string>
     <string name="settings_hardware_decoding_description">Usa el descodificador por hardware del televisor. Desactívalo si algunas transmisiones se entrecortan o muestran artefactos.</string>
+    <string name="settings_player_recents">Vistos recientemente en el reproductor</string>
+    <string name="settings_player_recents_description">Fila de canales recientes con guía e historial bajo el directo</string>
     <string name="settings_software_decode_above_1080p">Descodificación por software por encima de 1080p</string>
     <string name="settings_software_decode_above_1080p_description">Reproduce por software vídeo 4K y otros de más de 1080p cuando el descodificador por hardware del televisor está desactivado o falla. Requiere un procesador rápido: en la mayoría de los televisores se entrecorta.</string>
     <string name="settings_movies_series_player">Reproductor para películas y series</string>

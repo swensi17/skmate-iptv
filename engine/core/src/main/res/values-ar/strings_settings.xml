@@ -416,6 +416,8 @@
     <string name="settings_language_vietnamese">الفيتنامية</string>
     <string name="settings_hardware_decoding">فك الترميز بالأجهزة</string>
     <string name="settings_hardware_decoding_description">استخدام وحدة فك الترميز بالأجهزة في التلفزيون. عطّل هذا الخيار إذا تقطعت بعض عمليات البث أو ظهرت بها عيوب مرئية.</string>
+    <string name="settings_player_recents">المشاهدة مؤخرًا في المشغل</string>
+    <string name="settings_player_recents_description">صف القنوات الأخيرة مع دليل البرامج والسجل أسفل البث المباشر</string>
     <string name="settings_software_decode_above_1080p">فك الترميز البرمجي فوق 1080p</string>
     <string name="settings_software_decode_above_1080p_description">تشغيل فيديو 4K وغيره من الفيديو الأعلى من 1080p برمجيًا عندما تكون وحدة فك الترميز بالأجهزة في التلفزيون معطّلة أو تفشل. يحتاج إلى معالج سريع، إذ يتقطع التشغيل على معظم أجهزة التلفزيون.</string>
     <string name="settings_movies_series_player">مشغّل الأفلام والمسلسلات</string>
