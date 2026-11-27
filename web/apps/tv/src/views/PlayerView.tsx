@@ -544,6 +544,10 @@ export function PlayerView(p: Props) {
       if (!tvLive) { classicKey(e, k, back); return; }
 
       // The info that came up by itself: any arrow does what it does with nothing on screen (2.6.0).
+      // Watching a recording or behind live: ▲ ▼ on the info bring the timeline with its keys, not another channel
+      // (a recording left by ▲ closed the player under the viewer's hand).
+      const timeline = canScrub && (!!archive || offsetSec > 1);
+      if ((!shown || step === "info") && timeline && !back && (k === "up" || k === "down")) { swallow(e); show("seek"); return; }
       const passiveArrow = shown && step === "info" && hud.current.passive && (k === "up" || k === "down" || k === "left" || k === "right");
       if (passiveArrow) hide();
       const hidden = !shown || passiveArrow;
