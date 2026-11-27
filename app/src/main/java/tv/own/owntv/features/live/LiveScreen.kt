@@ -196,6 +196,12 @@ fun LiveScreen(
         }
     }
 
+    // Leaving the app: where the cursor is goes to disk at once. Waiting for the preview's rest and the save's
+    // own delay, a viewer who moved and left straight away came back to the old place.
+    androidx.lifecycle.compose.LifecycleEventEffect(androidx.lifecycle.Lifecycle.Event.ON_STOP) {
+        vm.rememberCursor(pendingPreview.value)
+    }
+
     // TV-box look: back from full screen the preview takes the channel again at once, wherever focus lands —
     // into the menu, say, where no row focus would ask for it and the pane stayed black.
     LaunchedEffect(effectivePreview) {

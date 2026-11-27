@@ -146,14 +146,14 @@
     <file name="app/src/main/java/tv/own/owntv/features/live/LiveScreen.kt">
         <error line="3" column="1" source="standard:import-ordering" />
         <error line="149" column="5" source="standard:spacing-between-declarations-with-comments" />
-        <error line="344" column="5" source="standard:spacing-between-declarations-with-comments" />
-        <error line="448" column="5" source="standard:spacing-between-declarations-with-comments" />
-        <error line="544" column="5" source="standard:spacing-between-declarations-with-comments" />
-        <error line="1871" column="19" source="standard:property-naming" />
-        <error line="1874" column="19" source="standard:property-naming" />
-        <error line="1875" column="19" source="standard:property-naming" />
-        <error line="1878" column="19" source="standard:property-naming" />
-        <error line="1894" column="1" source="standard:no-consecutive-blank-lines" />
+        <error line="350" column="5" source="standard:spacing-between-declarations-with-comments" />
+        <error line="454" column="5" source="standard:spacing-between-declarations-with-comments" />
+        <error line="550" column="5" source="standard:spacing-between-declarations-with-comments" />
+        <error line="1877" column="19" source="standard:property-naming" />
+        <error line="1880" column="19" source="standard:property-naming" />
+        <error line="1881" column="19" source="standard:property-naming" />
+        <error line="1884" column="19" source="standard:property-naming" />
+        <error line="1900" column="1" source="standard:no-consecutive-blank-lines" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/live/LiveStage.kt">
         <error line="3" column="1" source="standard:import-ordering" />
@@ -173,21 +173,21 @@
         <error line="654" column="5" source="standard:spacing-between-declarations-with-comments" />
         <error line="883" column="30" source="standard:wrapping" />
         <error line="885" column="37" source="standard:wrapping" />
-        <error line="1224" column="1" source="standard:no-consecutive-blank-lines" />
-        <error line="1253" column="5" source="standard:kdoc" />
-        <error line="1254" column="5" source="standard:spacing-between-declarations-with-comments" />
-        <error line="1327" column="5" source="standard:spacing-between-declarations-with-comments" />
-        <error line="1462" column="5" source="standard:kdoc" />
-        <error line="1465" column="5" source="standard:spacing-between-declarations-with-comments" />
-        <error line="1876" column="5" source="standard:kdoc" />
-        <error line="1881" column="5" source="standard:spacing-between-declarations-with-comments" />
-        <error line="2039" column="30" source="standard:no-multi-spaces" />
-        <error line="2040" column="41" source="standard:no-multi-spaces" />
-        <error line="2420" column="5" source="standard:kdoc" />
-        <error line="2421" column="5" source="standard:spacing-between-declarations-with-comments" />
-        <error line="2490" column="9" source="standard:spacing-between-declarations-with-comments" />
-        <error line="2494" column="9" source="standard:spacing-between-declarations-with-comments" />
-        <error line="2514" column="9" source="standard:kdoc" />
+        <error line="1233" column="1" source="standard:no-consecutive-blank-lines" />
+        <error line="1262" column="5" source="standard:kdoc" />
+        <error line="1263" column="5" source="standard:spacing-between-declarations-with-comments" />
+        <error line="1336" column="5" source="standard:spacing-between-declarations-with-comments" />
+        <error line="1471" column="5" source="standard:kdoc" />
+        <error line="1474" column="5" source="standard:spacing-between-declarations-with-comments" />
+        <error line="1885" column="5" source="standard:kdoc" />
+        <error line="1890" column="5" source="standard:spacing-between-declarations-with-comments" />
+        <error line="2048" column="30" source="standard:no-multi-spaces" />
+        <error line="2049" column="41" source="standard:no-multi-spaces" />
+        <error line="2429" column="5" source="standard:kdoc" />
+        <error line="2430" column="5" source="standard:spacing-between-declarations-with-comments" />
+        <error line="2499" column="9" source="standard:spacing-between-declarations-with-comments" />
+        <error line="2503" column="9" source="standard:spacing-between-declarations-with-comments" />
+        <error line="2523" column="9" source="standard:kdoc" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/live/LiveZapList.kt">
         <error line="3" column="1" source="standard:import-ordering" />

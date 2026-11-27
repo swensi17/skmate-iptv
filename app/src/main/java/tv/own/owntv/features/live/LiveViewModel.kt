@@ -1188,6 +1188,15 @@ class LiveViewModel(
         _search.value = query
     }
 
+    /** Saves the channel under the cursor ([resting] not yet previewed, else the previewed one) and its category. */
+    fun rememberCursor(resting: ChannelEntity?) {
+        val channel = resting ?: _previewChannel.value
+        viewModelScope.launch {
+            if (lockedKey == null) settings.setLastLiveCategory(_selected.value.serialize())
+            channel?.let { settings.setLastLiveChannelId(it.id) }
+        }
+    }
+
     fun onChannelFocused(channel: ChannelEntity) {
         _previewArmed.value = true // a real user focus — the in-pane preview may now play
         _previewChannel.value = channel
