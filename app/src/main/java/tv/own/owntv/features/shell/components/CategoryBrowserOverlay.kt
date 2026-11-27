@@ -73,6 +73,8 @@ fun CategoryBrowserOverlay(
     /** ◀ opens the app menu instead of going back to the channels (the player's panel). */
     onOpenMenu: (() -> Unit)? = null,
     paused: Boolean = false,
+    /** The channel list beside the sheet follows the cursor (no OK needed). */
+    onFollow: ((LiveKey) -> Unit)? = null,
 ) {
     val layoutDirection = LocalLayoutDirection.current
     val (entries, groupsHeading) = liveCategoryEntries(railItems, railCounts)
@@ -116,6 +118,7 @@ fun CategoryBrowserOverlay(
             onSelect = { onSelect(entries[it].item.key) },
             onLongSelect = { onLongSelect(entries[it].item) },
             paused = paused,
+            onFollow = onFollow?.let { follow -> { index: Int -> entries.getOrNull(index)?.let { follow(it.item.key) } } },
             // TV-box look: ▶ goes back to the channel list beside it.
             onNavigateRight = { if (tv.own.owntv.features.shell.TvBoxNav) onDismiss() },
             focusRequester = listFocus,
@@ -169,9 +172,11 @@ fun TvBoxCategoryColumn(
     onLongSelect: (LiveRailItem) -> Unit = {},
     onOpenMenu: (() -> Unit)? = null,
     paused: Boolean = false,
+    onFollow: ((LiveKey) -> Unit)? = null,
 ) {
     CategoryBrowserOverlay(
         railItems = railItems, railCounts = railCounts, currentKey = currentKey, onSelect = onSelect, onDismiss = onDismiss,
         modifier = modifier, width = width, onLongSelect = onLongSelect, onOpenMenu = onOpenMenu, paused = paused,
+        onFollow = onFollow,
     )
 }

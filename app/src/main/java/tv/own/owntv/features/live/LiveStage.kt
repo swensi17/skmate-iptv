@@ -30,6 +30,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -679,6 +680,9 @@ internal fun liveCategoryEntries(railItems: List<LiveRailItem>, railCounts: Map<
     return labelled to heading
 }
 
+/** How long the cursor rests on a group before the list beside it follows. */
+private const val FOLLOW_REST_MS = 300L
+
 /**
  * The categories: the glass sheet (450 wide, radius 32, "Categories · Live TV") or the flat
  * column (the Movies column). Search, the fixed entries with icons and counts, then
@@ -716,6 +720,8 @@ internal fun LiveCategories(
     onSearchEditingChange: (Boolean) -> Unit = {},
     /** A menu of a group is open: nothing may open by itself meanwhile. */
     paused: Boolean = false,
+    /** The list beside the categories follows the cursor: called when focus rests on a group, the sheet staying. */
+    onFollow: ((Int) -> Unit)? = null,
 ) {
     var localQuery by remember { mutableStateOf("") }
     val query = searchQuery ?: localQuery
@@ -731,7 +737,8 @@ internal fun LiveCategories(
     var hasFocus by remember { mutableStateOf(false) }
     LaunchedEffect(selectedIndex) {
         val pos = visible.indexOf(selectedIndex)
-        if (!hasFocus || pos < 0) return@LaunchedEffect
+        // With the list following the cursor the "selection" is the row already under it: leave it where it is.
+        if (!hasFocus || pos < 0 || onFollow != null) return@LaunchedEffect
         runCatching { listState.scrollToItem(pos + 1) } // +1: the search field is item 0
         withFrameNanos { }
         runCatching { rowFocusers[pos].requestFocus() }
@@ -769,12 +776,21 @@ internal fun LiveCategories(
     var okHeld by remember { mutableStateOf(false) }
     val countdown = tv.own.owntv.ui.components.rememberDwellCountdown(
         focusKey = dwellIndex,
-        armed = sheet && tv.own.owntv.features.shell.TvBoxNav && dwellIndex != null && dwellIndex != selectedIndex,
+        armed = onFollow == null && sheet && tv.own.owntv.features.shell.TvBoxNav && dwellIndex != null && dwellIndex != selectedIndex,
         paused = paused || okHeld,
         quietMs = tv.own.owntv.ui.components.DwellTiming.CategoryQuietMs,
         stepMs = tv.own.owntv.ui.components.DwellTiming.StepMs,
         onFire = { dwellIndex?.let(onSelect) },
     )
+    // A short rest before the list follows: every row passed on the way would otherwise load its channels.
+    var followed by remember { mutableIntStateOf(selectedIndex) }
+    LaunchedEffect(dwellIndex, paused, okHeld) {
+        val index = dwellIndex ?: return@LaunchedEffect
+        if (onFollow == null || paused || okHeld || index == followed) return@LaunchedEffect
+        kotlinx.coroutines.delay(FOLLOW_REST_MS)
+        followed = index
+        onFollow(index)
+    }
     // The TV-box strip: rows from edge to edge with the text 30 in, as in Settings; the search field keeps room.
     val edgeRows = sheet && tv.own.owntv.features.shell.TvBoxNav
     // Room for the 2 px outer focus ring, which the list would otherwise clip; none where rows span the strip.

@@ -149,19 +149,19 @@
         <error line="350" column="5" source="standard:spacing-between-declarations-with-comments" />
         <error line="454" column="5" source="standard:spacing-between-declarations-with-comments" />
         <error line="550" column="5" source="standard:spacing-between-declarations-with-comments" />
-        <error line="1877" column="19" source="standard:property-naming" />
-        <error line="1880" column="19" source="standard:property-naming" />
-        <error line="1881" column="19" source="standard:property-naming" />
-        <error line="1884" column="19" source="standard:property-naming" />
-        <error line="1900" column="1" source="standard:no-consecutive-blank-lines" />
+        <error line="1882" column="19" source="standard:property-naming" />
+        <error line="1885" column="19" source="standard:property-naming" />
+        <error line="1886" column="19" source="standard:property-naming" />
+        <error line="1889" column="19" source="standard:property-naming" />
+        <error line="1905" column="1" source="standard:no-consecutive-blank-lines" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/live/LiveStage.kt">
         <error line="3" column="1" source="standard:import-ordering" />
-        <error line="176" column="23" source="standard:wrapping" />
-        <error line="179" column="31" source="standard:wrapping" />
-        <error line="1049" column="19" source="standard:property-naming" />
-        <error line="1052" column="19" source="standard:property-naming" />
-        <error line="1055" column="19" source="standard:property-naming" />
+        <error line="177" column="23" source="standard:wrapping" />
+        <error line="180" column="31" source="standard:wrapping" />
+        <error line="1065" column="19" source="standard:property-naming" />
+        <error line="1068" column="19" source="standard:property-naming" />
+        <error line="1071" column="19" source="standard:property-naming" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/live/LiveViewModel.kt">
         <error line="5" column="1" source="standard:import-ordering" />

@@ -32,6 +32,7 @@ class CatalogSyncWorker(
     private val epgRepository: tv.own.owntv.core.repository.EpgRepository,
     private val settings: SettingsRepository,
     private val watchSession: tv.own.owntv.core.live.WatchSession,
+    private val guideAutoLink: tv.own.owntv.core.epg.GuideAutoLink,
 ) : CoroutineWorker(context, params) {
 
     override suspend fun doWork(): Result {
@@ -113,6 +114,9 @@ class CatalogSyncWorker(
                 runCatching { epgRepository.fillGuideGapsForSource(source.id) }
                     .onSuccess { if (it > 0) Log.i(TAG, "Guide gap fill sourceId=${source.id} channels=$it ms=${SystemClock.elapsedRealtime() - gapFillStartedAt}") }
                     .onFailure { Log.w(TAG, "Guide gap fill failed sourceId=${source.id}", it) }
+                // New channels without a guide id of their own are matched by name now, not at the next start:
+                // until then they showed no programme, or the old links no longer fitted the refreshed list.
+                guideAutoLink.run(force = false)
                 sourceDao.profileIdsForSource(source.id).forEach { profileId ->
                     val launcherStartedAt = SystemClock.elapsedRealtime()
                     runCatching { launcherIntegrationRepository.refreshProfile(profileId) }

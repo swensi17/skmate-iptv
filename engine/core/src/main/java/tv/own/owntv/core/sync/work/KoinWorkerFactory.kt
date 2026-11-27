@@ -47,6 +47,7 @@ class KoinWorkerFactory : WorkerFactory() {
                 koin.get(),
                 koin.get(),
                 koin.get(),
+                koin.get(),
             )
             CatalogBackfillWorker::class.java.name -> CatalogBackfillWorker(
                 appContext,

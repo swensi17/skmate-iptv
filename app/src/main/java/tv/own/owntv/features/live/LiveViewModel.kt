@@ -1353,8 +1353,8 @@ class LiveViewModel(
     fun hideCategoryBrowser() { _showCategoryBrowser.value = false }
 
     /** Load channels for a category picked in the browser into the zap list. */
-    fun loadChannelsForCategory(key: LiveKey) {
-        val close = { _showCategoryBrowser.value = false }
+    fun loadChannelsForCategory(key: LiveKey, keepOpen: Boolean = false) {
+        val close = { if (!keepOpen) _showCategoryBrowser.value = false }
         when (key) {
             is LiveKey.Folder -> zapList.armForCategory(key.id, close)
             is LiveKey.Custom -> {

@@ -99,6 +99,7 @@ internal fun TvBoxPlayerPanels(
             railCounts = railCounts,
             currentKey = categoryKey,
             onSelect = { key -> liveVm.loadChannelsForCategory(key) },
+            onFollow = { key -> liveVm.loadChannelsForCategory(key, keepOpen = true) },
             onDismiss = { liveVm.hideCategoryBrowser() },
             width = categoriesWidth,
             onLongSelect = { categoryMenu = it },

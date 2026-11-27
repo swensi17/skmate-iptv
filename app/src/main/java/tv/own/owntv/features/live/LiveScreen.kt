@@ -1144,6 +1144,11 @@ fun LiveScreen(
                 onSelect = onCategorySelect,
                 onLongSelect = onCategoryLongSelect,
                 paused = contextCategory != null || categoryMoveState != null,
+                onFollow = if (tv.own.owntv.features.shell.TvBoxNav) {
+                    { idx -> railItems.getOrNull(idx)?.let { vm.select(it.key) } }
+                } else {
+                    null
+                },
                 onNavigateRight = { categoriesOpen = false; focusChannelList() },
                 focusRequester = railFocus,
                 focusRowIndex = railFocusRow,
