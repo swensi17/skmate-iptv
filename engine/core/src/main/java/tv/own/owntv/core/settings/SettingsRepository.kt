@@ -367,6 +367,7 @@ class SettingsRepository(private val context: Context, private val localeStore: 
         val DEFAULT_SOURCE = longPreferencesKey("default_source_id")
         val DOWNLOAD_ROOT = stringPreferencesKey("download_root")
         val REFRESH_SOURCE_IDS = stringSetPreferencesKey("refresh_source_ids")
+        val GUIDE_AUTO_MATCHES = stringSetPreferencesKey("guide_auto_matches")
         // Per-source auto-refresh selections (JSON maps: { "<sourceId>": "<EnumName>" }). Replace the
         // binary refresh-on-startup set with Off/Startup + staleness thresholds. Migration-safe: the legacy
         // REFRESH_SOURCE_IDS set is read once (see migrateLegacyRefreshFlags) then ignored.
@@ -2674,6 +2675,13 @@ class SettingsRepository(private val context: Context, private val localeStore: 
 
     suspend fun setPlayerClock(enabled: Boolean) {
         context.dataStore.edit { it[Keys.PLAYER_CLOCK] = enabled }
+    }
+
+    /** The links the auto-matcher made itself, as "profile\tchannel\tguide id": only those may be undone by it. */
+    suspend fun guideAutoMatches(): Set<String> = context.dataStore.data.first()[Keys.GUIDE_AUTO_MATCHES].orEmpty()
+
+    suspend fun setGuideAutoMatches(entries: Set<String>) {
+        context.dataStore.edit { it[Keys.GUIDE_AUTO_MATCHES] = entries }
     }
 
     /** What the guide auto-link last scored (playlists, channels, guide): unchanged means nothing new to link. */

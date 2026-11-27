@@ -44,6 +44,11 @@ class GuideAutoLink(
             ?: return 0
         val playlistIds = sourceDao.sourceIdsForProfile(pid)
         if (playlistIds.isEmpty()) return 0
+        dropOutdated(pid, playlistIds)
+        // Not until every guide has been downloaded once (or has failed). A channel whose own id lives in a
+        // guide still on its way looked unmatched, was linked by name to another guide, and that link then
+        // overrode the playlist's id for good: the programme shown was not what the channel played.
+        if (epgSources.getAll().any { it.lastSyncAt == null && it.lastError == null }) return 0
         val cust = customize.observe(pid, MediaType.LIVE).first()
         // At start-up it only runs when something changed since the last scan: channels that never match
         // were scored against the whole guide on every launch, minutes of every core on a weak TV.
@@ -63,6 +68,7 @@ class GuideAutoLink(
         }.toMap()
         if (matches.isEmpty()) return 0
         customize.update(pid, MediaType.LIVE) { it.copy(epgMatches = it.epgMatches + matches) }
+        remember(pid, matches)
         // The download kept only programmes of channels linked at that moment; fill the new links from
         // the guide file it left in the cache (no network).
         epgRepository.storeProgrammesForIdsFromCache(matches.values.toSet())
@@ -98,8 +104,42 @@ class GuideAutoLink(
             }.toMap()
         if (moved.isEmpty()) return 0
         customize.update(pid, MediaType.LIVE) { it.copy(epgMatches = it.epgMatches + moved) }
+        remember(pid, moved)
         epgRepository.storeProgrammesForIdsFromCache(moved.values.toSet())
         return moved.size
+    }
+
+    /**
+     * Undoes the links this class made for channels whose own id from the playlist has programmes by now:
+     * the guide carrying it arrived after the link, or the playlist changed the id. A link the user picked
+     * is not on the list, and stays.
+     */
+    private suspend fun dropOutdated(pid: Long, playlistIds: List<Long>) {
+        val mine = settings.guideAutoMatches().filter { it.startsWith("$pid\t") }
+        if (mine.isEmpty()) return
+        val byKey = mine.associate { entry -> entry.split('\t').let { it[1] to it.last() } }
+        val matches = customize.observe(pid, MediaType.LIVE).first().epgMatches
+        val withProgrammes = guideCandidates().all().filter { it.hasProgrammes }
+            .mapTo(HashSet()) { it.epgChannelId.trim().lowercase() }
+        val outdated = channelDao.allForSources(playlistIds, MAX_RELINK_SCAN).mapNotNull { ch ->
+            val key = tv.own.owntv.core.customize.CustomizeKeys.channel(ch)
+            val linked = byKey[key] ?: return@mapNotNull null
+            val own = ch.epgChannelId?.trim()?.lowercase().orEmpty()
+            key.takeIf { matches[key] == linked && own != linked && own in withProgrammes }
+        }.toSet()
+        if (outdated.isEmpty()) return
+        customize.update(pid, MediaType.LIVE) { it.copy(epgMatches = it.epgMatches - outdated) }
+        val gone = outdated.mapTo(HashSet()) { "$pid\t$it\t${byKey[it]}" }
+        settings.setGuideAutoMatches(settings.guideAutoMatches() - gone)
+        Log.i(TAG, "${outdated.size} links by name dropped: the channel's own guide id has programmes now")
+    }
+
+    private suspend fun remember(pid: Long, links: Map<String, String>) {
+        val fresh = links.map { (key, id) -> "$pid\t$key\t$id" }
+        val kept = settings.guideAutoMatches().filterNot { entry ->
+            entry.startsWith("$pid\t") && entry.substringAfter('\t').substringBeforeLast('\t') in links
+        }
+        settings.setGuideAutoMatches(kept.toSet() + fresh)
     }
 
     private companion object {

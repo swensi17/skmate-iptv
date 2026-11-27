@@ -2061,6 +2061,10 @@
 1	preference-key	core/src/main/java/tv/own/owntv/core/epg/EpgSourceStore.kt	next_id
 1	technical	core/src/main/java/tv/own/owntv/core/epg/EpgSourceStore.kt	owntv_epg_sources
 1	preference-key	core/src/main/java/tv/own/owntv/core/epg/EpgSourceStore.kt	sources
+2	technical	core/src/main/java/tv/own/owntv/core/epg/GuideAutoLink.kt	$pid
+1	technical	core/src/main/java/tv/own/owntv/core/epg/GuideAutoLink.kt	$pid $it ${byKey[it]}
+1	technical	core/src/main/java/tv/own/owntv/core/epg/GuideAutoLink.kt	$pid $key $id
+1	log	core/src/main/java/tv/own/owntv/core/epg/GuideAutoLink.kt	${outdated.size} links by name dropped: the channel's own guide id has programmes now
 1	log	core/src/main/java/tv/own/owntv/core/epg/GuideAutoLink.kt	GuideAutoLink
 1	log	core/src/main/java/tv/own/owntv/core/epg/GuideAutoLink.kt	auto-link failed
 1	log	core/src/main/java/tv/own/owntv/core/epg/GuideAutoLink.kt	linked ${matches.size} channels by name, $relinked moved off empty guide entries (review left: ${outcome.review.size})
@@ -3230,6 +3234,7 @@
 1	preference-key	core/src/main/java/tv/own/owntv/core/settings/SettingsRepository.kt	gesture_sensitivity_pct
 1	preference-key	core/src/main/java/tv/own/owntv/core/settings/SettingsRepository.kt	glass_alpha
 1	preference-key	core/src/main/java/tv/own/owntv/core/settings/SettingsRepository.kt	glass_scope
+1	preference-key	core/src/main/java/tv/own/owntv/core/settings/SettingsRepository.kt	guide_auto_matches
 1	preference-key	core/src/main/java/tv/own/owntv/core/settings/SettingsRepository.kt	guide_autolink_key
 1	log	core/src/main/java/tv/own/owntv/core/settings/SettingsRepository.kt	guide_days_to_keep
 1	preference-key	core/src/main/java/tv/own/owntv/core/settings/SettingsRepository.kt	guide_density_pct

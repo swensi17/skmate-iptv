@@ -5,8 +5,8 @@ import org.junit.Test
 import tv.own.owntv.core.database.entity.EpgProgrammeEntity
 
 /**
- * A channel two guide feeds carry, where the feeds disagree. The EPG Sources list order decides: the
- * feed nearer the top is drawn in full, and one further down only fills the time it leaves empty.
+ * A channel several guide feeds carry. One feed answers for it: the one nearest the top of the EPG Sources
+ * list that still has programmes. Feeds are never mixed.
  */
 class GuidePriorityTest {
 
@@ -39,16 +39,23 @@ class GuidePriorityTest {
     }
 
     @Test
-    fun `a lower feed fills a gap it fits in, and is dropped where it would overlap`() {
+    fun `a lower feed never fills the gaps of the top one`() {
         val rows = listOf(
             row(1, first, 18 * h, 20 * h, "Film One"),
             row(2, first, 21 * h, 22 * h, "Late Show"),
             row(3, second, 20 * h, 21 * h, "Documentary"),
-            row(4, second, 19 * h, 20 * h, "Cartoons"),
-            row(5, second, 22 * h, 23 * h, "Weather"),
+            row(4, second, 22 * h, 23 * h, "Weather"),
         )
-        val out = GuidePriority.of(listOf(first, second)).resolve(rows)
-        assertEquals(listOf(1L, 3L, 2L, 5L), ids(out))
+        assertEquals(listOf(1L, 2L), ids(GuidePriority.of(listOf(first, second)).resolve(rows, now = 19 * h)))
+    }
+
+    @Test
+    fun `a top feed that has run out gives way to one that has not`() {
+        val rows = listOf(
+            row(1, first, 10 * h, 11 * h, "Yesterday"),
+            row(2, second, 20 * h, 21 * h, "Tonight"),
+        )
+        assertEquals(listOf(2L), ids(GuidePriority.of(listOf(first, second)).resolve(rows, now = 20 * h)))
     }
 
     @Test
@@ -86,20 +93,20 @@ class GuidePriorityTest {
     }
 
     @Test
-    fun `sources off the list rank the same, so their overlaps stay as they were`() {
+    fun `two feeds off the list are not mixed either`() {
         val a = row(1, playlist, 20 * h, 21 * h, "Provider Listing")
-        val b = row(2, 8L, 20 * h, 21 * h, "Other Listing")
-        assertEquals(listOf(1L, 2L), ids(GuidePriority.of(listOf(first)).resolve(listOf(a, b))))
+        val b = row(2, 8L, 21 * h, 22 * h, "Other Listing")
+        assertEquals(listOf(1L), ids(GuidePriority.of(listOf(first)).resolve(listOf(a, b), now = 20 * h)))
     }
 
     @Test
     fun `the result is in start order whatever order the rows came in`() {
         val rows = listOf(
             row(3, second, 2 * h, 3 * h, "C"),
-            row(1, first, 0, h, "A"),
+            row(1, second, 0, h, "A"),
             row(2, second, h, 2 * h, "B"),
         )
-        assertEquals(listOf(1L, 2L, 3L), ids(GuidePriority.of(listOf(first, second)).resolve(rows)))
+        assertEquals(listOf(1L, 2L, 3L), ids(GuidePriority.of(listOf(first, second)).resolve(rows, now = 0)))
     }
 
     @Test
