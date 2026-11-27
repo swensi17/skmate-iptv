@@ -629,6 +629,7 @@ export const ko: Record<keyof typeof en, string> = {
   gssAllChannels: "채널 {n}개 모두",
   // player (Android)
   tbNoGuide: "No TV guide for this channel",
+  homeArchiveDays: "▶ 날짜별 편성표와 다시보기",
   tbNoGuideShort: "No TV guide",
   tbRange: "{a} – {b}",
   tbMinutes: "{n}분",

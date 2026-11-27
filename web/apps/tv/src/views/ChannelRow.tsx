@@ -124,7 +124,7 @@ export function ChannelRow(props: {
             <span class="lrow-end">
               {props.watched && !props.previewing ? <span class="lrow-seen"><StageIcon name="history" size={20} /></span> : null}
               {props.previewing ? <span class="lrow-playing"><StageIcon name="pause_fill" size={30} /></span> : null}
-              {props.favorite ? <span class="lrow-fav"><StageIcon name="favorite_fill" size={22} /></span> : null}
+              {props.favorite && !props.previewing ? <span class="lrow-fav"><StageIcon name="favorite_fill" size={22} /></span> : null}
             </span>
           ) : null}
           {channel.catchupDays ? <span class="st-archive corner">{daysText(channel.catchupDays)}</span> : null}

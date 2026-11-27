@@ -252,3 +252,4 @@ button.home-cat:focus, button.home-cat:focus > .st-icon, button.home-cat:focus .
 .gs-about { padding: 4px 12px 10px 86px; font-size: 16px; line-height: 1.35; color: rgba(255, 255, 255, .7); display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
 .gs-none { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; font-size: 22px; color: rgba(255, 255, 255, .7); outline: none; }
 .lrow-seen { display: flex; opacity: .55; }
+.hp-hint { margin-top: 12px; font-size: 17px; font-weight: 600; color: var(--st-accent, #0086fc); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

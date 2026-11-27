@@ -131,6 +131,8 @@ export function PreviewPane(p: {
               <span class="st-progress"><i style={{ width: `${(nn.progress * 100).toFixed(1)}%` }} /></span>
               <span class="hp-left">{timeLeftText(nn.now.stop, now)}</span>
             </div>
+            {/* The archive by day lives behind ▶: a channel that has one says so, or nobody finds it (2.6.2). */}
+            {(channel?.catchupDays ?? 0) > 0 ? <div class="hp-hint">{t("homeArchiveDays")}</div> : null}
             {nn.now.desc ? <div class="hp-desc">{nn.now.desc}</div> : null}
           </>
         ) : null}

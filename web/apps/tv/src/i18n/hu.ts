@@ -629,6 +629,7 @@ export const hu: Record<keyof typeof en, string> = {
   gssAllChannels: "Mind a {n} csatorna",
   // player (Android)
   tbNoGuide: "No TV guide for this channel",
+  homeArchiveDays: "▶ Műsor és archívum naponként",
   tbNoGuideShort: "No TV guide",
   tbRange: "{a} – {b}",
   tbMinutes: "{n} p",

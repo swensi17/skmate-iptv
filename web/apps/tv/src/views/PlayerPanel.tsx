@@ -1,3 +1,4 @@
+import { isFavorite } from "../state/favorites";
 import { useContext, useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { groupsOf, type Channel } from "@skmate/core";
 import type { Programme } from "@skmate/epg";
@@ -99,7 +100,7 @@ export function PlayerPanel(p: {
 
   // The categories (LiveCategories): Favourites, Recently watched, Catch-up, All channels, then the provider's groups.
   const cats = useMemo<CatItem[]>(() => {
-    const favs = p.catalog.filter((c) => p.favorites.has(channelKey(c)));
+    const favs = p.catalog.filter((c) => isFavorite(p.favorites, c));
     const archive = p.catalog.filter((c) => (c.catchupDays ?? 0) > 0);
     return [
       ...(favs.length > 0 ? [{ key: "~fav", label: t("favorites"), count: favs.length, channels: favs }] : []),

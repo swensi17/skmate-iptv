@@ -5,7 +5,7 @@ import type { Programme } from "@skmate/epg";
 import { Icon, installDpad, Presence, watchFrames, type IconName } from "@skmate/ui";
 import { applyLanguage, loadLanguage, t, type Key } from "./i18n";
 import skLogo from "./assets/skmate-sk.png";
-import { channelKey, loadFavorites, saveFavorites, toggle } from "./state/favorites";
+import { channelKey, favKey, loadFavorites, migrateFavorites, saveFavorites, toggle } from "./state/favorites";
 import { applyAll, DEFAULTS, liveSettingsFor, load, save, type Settings } from "./state/settings";
 import { GuideContext } from "./state/GuideContext";
 import { loadHistory, pushRecent, recentChannels, saveHistory } from "./state/history";
@@ -162,6 +162,8 @@ export function App() {
     return () => document.removeEventListener("mousemove", onMove);
   }, []);
   useEffect(() => { saveFavorites(favorites); }, [favorites]);
+  // Favourites saved by the tvg-id alone move to the channel they stood for (2.6.2), once the playlist is in.
+  useEffect(() => { const next = migrateFavorites(favorites, pl.channels); if (next) setFavorites(next); }, [pl.channels]);
   // ◀ with nothing further left on the screen opens the side menu, however the screen was entered (OwnTVShell.kt: the
   // content box's onKeyEvent calls focusRail when moveFocus(Left) fails). Seen after every other handler had its turn:
   // one that took the key stops it, and the D-pad that found a place moved the focus.
@@ -476,7 +478,7 @@ export function App() {
     if (id === "live" && liveEntry.current?.closeBeside()) return;
     closeMenuToContent();
   };
-  const toggleFavorite = (c: Channel) => setFavorites((f) => toggle(f, channelKey(c)));
+  const toggleFavorite = (c: Channel) => setFavorites((f) => toggle(f, favKey(c)));
   const doomed = deleting ? pl.store.list.find((p) => p.id === deleting) : undefined;
   // A programme still to come (the guide, the search, the player's day of a channel): watch its channel or be reminded.
   const programmeDialog = upcoming ? (

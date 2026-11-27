@@ -629,6 +629,7 @@ export const ar: Record<keyof typeof en, string> = {
   gssAllChannels: "كل القنوات الـ {n}",
   // player (Android)
   tbNoGuide: "No TV guide for this channel",
+  homeArchiveDays: "▶ البرنامج والأرشيف حسب الأيام",
   tbNoGuideShort: "No TV guide",
   tbRange: "{a} – {b}",
   tbMinutes: "{n} دقيقة",

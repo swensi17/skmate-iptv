@@ -629,6 +629,7 @@ export const ml: Record<keyof typeof en, string> = {
   gssAllChannels: "എല്ലാ {n} ചാനലുകളും",
   // player (Android)
   tbNoGuide: "No TV guide for this channel",
+  homeArchiveDays: "▶ ദിവസം അനുസരിച്ച് പരിപാടിയും ആർക്കൈവും",
   tbNoGuideShort: "No TV guide",
   tbRange: "{a} – {b}",
   tbMinutes: "{n} മിനിറ്റ്",

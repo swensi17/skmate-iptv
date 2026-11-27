@@ -1,3 +1,4 @@
+import { isFavorite } from "../state/favorites";
 import { GuideSide } from "./GuideSide";
 import type { ArtSettings } from "../state/tmdb";
 import { Fragment } from "preact";
@@ -156,7 +157,7 @@ interface Props {
 
 export function LiveView(p: Props) {
   const groups = useMemo(() => groupsOf(p.channels), [p.channels]);
-  const favs = useMemo(() => p.channels.filter((c) => p.favorites.has(channelKey(c))), [p.channels, p.favorites]);
+  const favs = useMemo(() => p.channels.filter((c) => isFavorite(p.favorites, c)), [p.channels, p.favorites]);
   const numbers = useMemo(() => new Map(p.channels.map((c, i) => [c.id, i + 1])), [p.channels]);
   const [group, setGroupState] = useState<string>(memory.group);
   const [sort, setSortState] = useState<Sort>(loadSort);
@@ -444,7 +445,7 @@ export function LiveView(p: Props) {
                 items={shown} rowHeight={ROW_PITCH} height={LIST_HEIGHT} pageSize={10} room={1} initialIndex={Math.max(0, back)}
                 idOf={(c) => `ch-${c.id}`}
                 renderRow={(c, i) => (
-                  <ChannelRow variant="live" channel={c} index={i} number={numbers.get(c.id)} favorite={p.favorites.has(channelKey(c))}
+                  <ChannelRow variant="live" channel={c} index={i} number={numbers.get(c.id)} favorite={isFavorite(p.favorites, c)}
                     previewing={playing === c.id} watched={watchedIds.has(c.id)}
                     onOpen={(ch) => { clearTimeout(timer.current); p.onOpen(ch, shown); }} onFav={p.onFav} onFocus={onFocusChannel} />
                 )}

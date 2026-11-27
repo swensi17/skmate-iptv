@@ -629,6 +629,7 @@ export const zhCN: Record<keyof typeof en, string> = {
   gssAllChannels: "全部 {n} 个频道",
   // player (Android)
   tbNoGuide: "No TV guide for this channel",
+  homeArchiveDays: "▶ 按日查看节目单和回看",
   tbNoGuideShort: "No TV guide",
   tbRange: "{a} – {b}",
   tbMinutes: "{n} 分钟",

@@ -627,6 +627,7 @@ export const ru = {
   gssAllChannels: "Все {n} каналов",
   // player (Android)
   tbNoGuide: "Нет телепрограммы для этого канала",
+  homeArchiveDays: "▶ Программа и архив по дням",
   tbNoGuideShort: "Телепрограмма отсутствует",
   tbRange: "{a} – {b}",
   tbMinutes: "{n} мин",

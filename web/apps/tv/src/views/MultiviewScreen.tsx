@@ -1,3 +1,4 @@
+import { isFavorite } from "../state/favorites";
 import { Spinner } from "./Spinner";
 import { useContext, useEffect, useMemo, useRef, useState } from "preact/hooks";
 import {
@@ -136,7 +137,7 @@ function Picker(p: { channels: readonly Channel[]; favorites: ReadonlySet<string
           <VirtualList
             key={group} items={list} rowHeight={ROW} height={760} pageSize={8} autofocus
             idOf={(c) => `ch-${c.id}`}
-            renderRow={(c, i) => <ChannelRow channel={c} index={i} favorite={p.favorites.has(channelKey(c))} onOpen={p.onPick} onFav={() => undefined} />}
+            renderRow={(c, i) => <ChannelRow channel={c} index={i} favorite={isFavorite(p.favorites, c)} onOpen={p.onPick} onFav={() => undefined} />}
           />
         )}
       </div>

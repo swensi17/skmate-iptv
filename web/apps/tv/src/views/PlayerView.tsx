@@ -1,3 +1,4 @@
+import { isFavorite } from "../state/favorites";
 import { useContext, useEffect, useMemo, useRef, useState } from "preact/hooks";
 import {
   archiveUrl, behindLive, lagBehind, LIVE_EDGE_S, pickMirrors, startOverUrl, timeshiftPhpAlternate, VOD_SEEK_STEP_S,
@@ -440,7 +441,7 @@ export function PlayerView(p: Props) {
   };
   const canPip = typeof document !== "undefined" && (document as unknown as { pictureInPictureEnabled?: boolean }).pictureInPictureEnabled === true;
   const pip = () => { video.current?.requestPictureInPicture().catch(() => undefined); };
-  const favorite = p.favorites.has(channelKey(channel));
+  const favorite = isFavorite(p.favorites, channel);
 
   // The tiles (PlayerHud.kt:883-912), each only where it can work here.
   const tiles: TileDef[] = [

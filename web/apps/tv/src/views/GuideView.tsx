@@ -1,3 +1,4 @@
+import { isFavorite } from "../state/favorites";
 import { memo } from "preact/compat";
 import { useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "preact/hooks";
 import { hasArchive, type Channel } from "@skmate/core";
@@ -410,7 +411,7 @@ export function GuideView(p: Props) {
       {menu ? (
         <GuideMenu
           menu={menu} number={numberOf.get(menu.channel.id)} now={now}
-          favorite={favorites.has(channelKey(menu.channel))} reminded={menu.programme ? p.reminded(menu.channel, menu.programme) : false}
+          favorite={isFavorite(favorites, menu.channel)} reminded={menu.programme ? p.reminded(menu.channel, menu.programme) : false}
           lead={settings.reminderLead}
           onWatch={() => { closeMenu(); watch(menu.channel); }}
           onFromStart={menu.programme && hasArchive(menu.channel, menu.programme.start, menu.programme.stop, Date.now())
