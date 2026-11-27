@@ -24,7 +24,7 @@ private val logoTints = android.util.LruCache<String, Int>(LOGO_TINT_CACHE)
 fun rememberLogoTint(url: String?): Color? {
     val context = LocalPlatformContext.current
     val known = url?.let { logoTints.get(it) }
-    val tint by produceState(known?.let(::Color), url) {
+    val tint by produceState(known?.takeIf { it != NO_TINT }?.let(::Color), url) {
         if (url == null || known != null) return@produceState
         val argb = withContext(Dispatchers.IO) {
             runCatching {
@@ -32,8 +32,10 @@ fun rememberLogoTint(url: String?): Color? {
                 val bitmap = SingletonImageLoader.get(context).execute(request).image?.toBitmap()
                 bitmap?.let(::logoTint)
             }.getOrNull()
-        } ?: return@produceState
-        logoTints.put(url, argb)
+        }
+        // A logo with no colour of its own is remembered too, or it was decoded again at every showing.
+        logoTints.put(url, argb ?: NO_TINT)
+        if (argb == null) return@produceState
         value = Color(argb)
     }
     return tint
@@ -65,6 +67,9 @@ private fun logoTint(bitmap: android.graphics.Bitmap): Int? {
 }
 
 private const val LOGO_TINT_CACHE = 300
+
+/** Stored for a logo that has no colour of its own (white, black, or unreadable). */
+private const val NO_TINT = 0
 private const val LOGO_TINT_SIZE = 16
 private const val MIN_ALPHA = 0.5
 private const val MIN_WEIGHT = 2.0

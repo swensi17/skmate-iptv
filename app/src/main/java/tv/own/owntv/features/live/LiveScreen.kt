@@ -136,6 +136,8 @@ fun LiveScreen(
     val previewChannel by vm.previewChannel.collectAsStateWithLifecycle()
     // The channels watched before, for the history mark at each row's corner; read again when a channel is tuned.
     val watchedIds by androidx.compose.runtime.produceState(emptySet<Long>(), previewChannel?.id) {
+        // Focus moving down the list changes the preview at every step: read once it rests, not per row.
+        delay(WATCHED_SETTLE_MS)
         value = runCatching { vm.historyChannels(WATCHED_MARK_LIMIT).map { it.channel.id }.toSet() }.getOrDefault(emptySet())
     }
     val previewCategoryName by vm.previewCategoryName.collectAsStateWithLifecycle()
@@ -1869,6 +1871,9 @@ private fun isOkKey(key: androidx.compose.ui.input.key.Key) =
 
 /** How many recently watched channels carry the history mark in the list. */
 private const val WATCHED_MARK_LIMIT = 200
+
+/** How long the preview must rest before the history marks are read again. */
+private const val WATCHED_SETTLE_MS = 1_500L
 
 /** How far the list moves aside while the side guide slides in over it (▶ on a channel). */
 private const val GUIDE_LIST_SHIFT = 120f

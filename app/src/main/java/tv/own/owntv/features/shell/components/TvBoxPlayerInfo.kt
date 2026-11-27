@@ -59,8 +59,11 @@ fun TvBoxPlayerInfo(channel: ChannelEntity?, nowNext: EpgNowNext?, offsetSec: In
     val formatTime = rememberSystemTimeFormatter()
     // The moment on screen: the clock, less how far behind live the archive is.
     val watching = now - (offsetSec ?: 0) * 1000L
-    val current = nowNext?.now?.takeIf { watching < it.stopMs }
-    val next = nowNext?.next
+    // Between two refreshes the programme on air may have ended: the one after it is then what is on.
+    val upNext = nowNext?.next
+    val promoted = upNext?.takeIf { it.startMs <= watching && watching < it.stopMs }
+    val current = nowNext?.now?.takeIf { watching < it.stopMs } ?: promoted
+    val next = upNext.takeIf { promoted == null }
     // A film or a series on air: its poster in the logo's place and what it is about under the times (TMDB).
     val art = tv.own.owntv.ui.components.rememberProgrammeArt(current?.title)
     Column(verticalArrangement = Arrangement.spacedBy(18.mpx)) {

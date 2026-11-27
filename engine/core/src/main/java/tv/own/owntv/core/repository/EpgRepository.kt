@@ -9,6 +9,7 @@ import androidx.room.useWriterConnection
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import tv.own.owntv.core.CorePerf
 import tv.own.owntv.core.database.BulkInsertHelper
@@ -308,6 +309,20 @@ class EpgRepository(
         url: String,
         userAgent: String?,
         onProgress: (channels: Int, programmes: Int) -> Unit = { _, _ -> },
+    ): Int = refreshLock.withLock { refreshUrlLocked(storeId, url, userAgent, onProgress) }
+
+    /**
+     * One guide at a time. Each sync holds a batch of programmes with their descriptions and the parser's
+     * buffers; three sources syncing together after a first playlist ran a 192 MB heap out. The database
+     * takes one writer anyway, so in turn costs almost nothing in total time.
+     */
+    private val refreshLock = kotlinx.coroutines.sync.Mutex()
+
+    private suspend fun refreshUrlLocked(
+        storeId: Long,
+        url: String,
+        userAgent: String?,
+        onProgress: (channels: Int, programmes: Int) -> Unit,
     ): Int = withContext(Dispatchers.IO) {
         // A portal guide is not a download, so it cannot go through the XMLTV path below — but it is
         // stored, pruned, matched and read exactly like one, which is why it is addressed as a URL
@@ -767,7 +782,23 @@ class EpgRepository(
             epgCacheStoreId(f.name)?.let { it to f }
         }
         val storeIds = storeFiles.map { it.first }
+        // Written as it is read, a few thousand at a time: holding every matched channel's programmes (with
+        // their descriptions) until the end ran a 192 MB heap out on a large playlist. A channel's old rows are
+        // cleared once, before its first write, so later batches only add to it.
         val collected = HashMap<String, MutableList<EpgProgrammeEntity>>()
+        val cleared = HashSet<String>()
+        var pending = 0
+        var insertedTotal = 0
+        suspend fun flush() {
+            for ((key, rows) in collected) {
+                if (rows.isEmpty()) continue
+                if (cleared.add(key)) epgDao.clearChannelForSources(key, storeIds)
+                rows.chunked(QUERY_CHUNK).forEach { epgDao.upsertProgrammes(it) }
+                insertedTotal += rows.size
+            }
+            collected.clear()
+            pending = 0
+        }
         for ((storeId, file) in storeFiles) {
             var foundHere = 0
             val feedDedupe = FeedDedupe()
@@ -782,6 +813,7 @@ class EpgRepository(
                                 collected.getOrPut(key) { ArrayList() }
                                     .add(EpgProgrammeEntity(sourceId = storeId, epgChannelId = key, startMs = startMs, stopMs = stopMs, title = title, description = desc).withDetails(details))
                                 foundHere++
+                                if (++pending >= CACHE_FILL_FLUSH) flush()
                             }
                         },
                         channelFilter = keys,
@@ -790,13 +822,7 @@ class EpgRepository(
             }.onFailure { Log.w("EpgRepository", "cacheFill parse failed storeId=$storeId (other sources unaffected)", it) }
         }
 
-        var insertedTotal = 0
-        for ((key, rows) in collected) {
-            if (rows.isEmpty()) continue
-            epgDao.clearChannelForSources(key, storeIds)
-            rows.chunked(QUERY_CHUNK).forEach { epgDao.upsertProgrammes(it) }
-            insertedTotal += rows.size
-        }
+        flush()
         // Report handled ONLY if the cache actually yielded programmes for a requested id. A fresh cache
         // that contains none of them (stale file, or a channel whose programmes weren't in the earlier
         // tee'd download) must fall through to a network re-sync — the match is now persisted, so the
@@ -917,6 +943,9 @@ class EpgRepository(
         // because two days was throwing away most of what providers actually send: the grid could only
         // scroll two days, and two days after a sync the guide was empty. See [guideAheadMs].
         private const val QUERY_CHUNK = 500
+
+        /** Programmes read from the cached feed before they are written and let go. */
+        private const val CACHE_FILL_FLUSH = 2_000
         private const val UPSERT_PROGRAMME_SQL =
             "INSERT OR REPLACE INTO `epg_programmes` (`id`,`sourceId`,`epgChannelId`,`startMs`,`stopMs`,`title`,`description`," +
                 "`contentHash`,`categories`,`year`,`rating`,`lengthMin`,`episode`) VALUES (nullif(?, 0),?,?,?,?,?,?,?,?,?,?,?,?)"
@@ -950,6 +979,54 @@ private sealed interface ProgrammeDecision {
  * programme). The old boxed `HashMap<Long, Pair<Long, Int>>` cost ≈100, which is why the cap had to
  * be 100,000 — and a 135,000-programme guide then rewrote everything past the cap on every sync.
  */
+/** A set of longs on one open-addressed array: about 12 bytes an entry instead of about 50 for HashSet<Long>. */
+private class LongSet {
+    private var keys = LongArray(INITIAL)
+    private var used = BooleanArray(INITIAL)
+    private var size = 0
+
+    /** Adds [value]; false when it was already there. */
+    fun add(value: Long): Boolean {
+        if ((size + 1) * LOAD_DEN > keys.size * LOAD_NUM) grow()
+        var i = slot(value, keys.size)
+        while (used[i]) {
+            if (keys[i] == value) return false
+            i = (i + 1) and (keys.size - 1)
+        }
+        used[i] = true
+        keys[i] = value
+        size++
+        return true
+    }
+
+    private fun grow() {
+        val oldKeys = keys
+        val oldUsed = used
+        keys = LongArray(oldKeys.size * 2)
+        used = BooleanArray(oldKeys.size * 2)
+        for (j in oldKeys.indices) {
+            if (!oldUsed[j]) continue
+            var i = slot(oldKeys[j], keys.size)
+            while (used[i]) i = (i + 1) and (keys.size - 1)
+            used[i] = true
+            keys[i] = oldKeys[j]
+        }
+    }
+
+    private fun slot(value: Long, capacity: Int): Int {
+        val h = (value xor (value ushr HASH_SHIFT)) * HASH_MUL
+        return (h ushr HASH_SHIFT).toInt() and (capacity - 1)
+    }
+
+    private companion object {
+        const val INITIAL = 16
+        const val LOAD_NUM = 3
+        const val LOAD_DEN = 4
+        const val HASH_SHIFT = 32
+        const val HASH_MUL = -0x61c8864680b583ebL
+    }
+}
+
 private class ProgrammeHashTracker(
     private val dao: tv.own.owntv.core.database.dao.EpgDao,
     private val sourceId: Long,
@@ -959,8 +1036,11 @@ private class ProgrammeHashTracker(
     /** One channel's stored rows (sorted by start) plus what this run has seen and added. */
     private class ChannelState(val starts: LongArray, val ids: LongArray, val hashes: IntArray) {
         val seen = BooleanArray(starts.size)
-        /** Start times first met in this run (new rows) — a repeat of one is the feed's own duplicate. */
-        val added = HashSet<Long>()
+        /**
+         * Start times first met in this run (new rows) — a repeat of one is the feed's own duplicate. Primitive:
+         * on a fresh guide every programme lands here, and boxed Longs in a HashSet ran a 192 MB heap out.
+         */
+        val added = LongSet()
         /** The feed delivered at least one programme for this channel this run. */
         var reached = false
     }

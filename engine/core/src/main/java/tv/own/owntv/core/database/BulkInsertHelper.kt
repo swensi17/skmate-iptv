@@ -189,7 +189,8 @@ class BulkInsertHelper(
 
     companion object {
         const val CHUNK = 5_000
-        const val CHUNK_FRESH = 10_000
+        // A batch is held with every programme's description: 5 000 keeps it a few MB on a small heap.
+        const val CHUNK_FRESH = 5_000
 
         private const val TAG = "BulkInsertHelper"
         // Derived, never hand-maintained: restoreIndexes() rebuilds a table from its canonical

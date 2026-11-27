@@ -260,7 +260,8 @@ fun TvBoxChannelPanel(
                             if (onOpenCategories != null) onOpenCategories() else onDismiss()
                             true
                         } else if (e.type == KeyEventType.KeyDown && e.key == Key.DirectionRight) {
-                            sideFor = focused
+                            // A list still loading has no channel to show the guide of: the key waits.
+                            focused?.let { sideFor = it }
                             true
                         } else false
                     }

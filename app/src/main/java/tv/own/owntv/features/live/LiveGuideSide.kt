@@ -92,8 +92,10 @@ internal fun LiveGuideSide(
     refocus: Int = 0,
     /** Hold OK (or Menu) on a programme with a poster: show the poster over the whole screen. */
     onShowPoster: (tv.own.owntv.core.metadata.ProgrammeArt) -> Unit = {},
+    /** False while the guide slides away: Back then belongs to what is under it again. */
+    shown: Boolean = true,
 ) {
-    BackHandler { onClose() }
+    BackHandler(enabled = shown) { onClose() }
     val formatTime = tv.own.owntv.ui.format.rememberSystemTimeFormatter()
     val formatDay = tv.own.owntv.ui.format.rememberBestDateFormatter("EEEEdMMMM")
     val now = remember(channel.id) { System.currentTimeMillis() }
@@ -107,7 +109,11 @@ internal fun LiveGuideSide(
     val lineFocus = remember { FocusRequester() }
     val dayFocus = remember { FocusRequester() }
     val loaded = items
-    val onAirIndex = loaded?.indexOfFirst { it is SideItem.Line && now < it.line.stopMs }?.coerceAtLeast(0) ?: 0
+    // What is on, or — a channel with only its archive — the last aired line; never a day's heading.
+    val onAirIndex = loaded?.let { items ->
+        items.indexOfFirst { it is SideItem.Line && now < it.line.stopMs }
+            .takeIf { it >= 0 } ?: items.indexOfLast { it is SideItem.Line }
+    }?.coerceAtLeast(0) ?: 0
     // The line that takes focus when the guide or a day asks for it: what is on at first, a day's first line after.
     var wantLine by remember(channel.id) { mutableIntStateOf(-1) }
     val target = if (wantLine >= 0) wantLine else onAirIndex
@@ -326,6 +332,7 @@ internal fun LiveGuideSideHost(
             onLeft = onLeft,
             refocus = refocus,
             onShowPoster = onShowPoster,
+            shown = channel != null,
         )
     }
 }
@@ -422,7 +429,7 @@ private fun sideLine(
     Column(
         modifier.fillMaxWidth()
             .background(if (focused) c.focus else Color.Transparent, tv.own.owntv.ui.stage.FocusBarShape)
-            .onFocusChanged { if (it.isFocused) onFocused() }
+            .onFocusChanged { if (it.isFocused) onFocused() else heldOk = false }
             .onPreviewKeyEvent { e ->
                 val ok = e.key == Key.DirectionCenter || e.key == Key.Enter || e.key == Key.NumPadEnter
                 when {
@@ -432,7 +439,9 @@ private fun sideLine(
                     e.type == KeyEventType.KeyDown && e.key == Key.DirectionDown && lastLine -> true
                     // Hold OK, or the remote's Menu key: the poster over the whole screen.
                     e.type == KeyEventType.KeyDown && ok && e.nativeKeyEvent.repeatCount > 0 -> {
-                        if (e.nativeKeyEvent.repeatCount == 1 && poster != null) { heldOk = true; onShowPoster(poster) }
+                        // A held OK never plays the line on release, poster or not.
+                        heldOk = true
+                        if (e.nativeKeyEvent.repeatCount == 1 && poster != null) onShowPoster(poster)
                         true
                     }
                     e.type == KeyEventType.KeyUp && ok && heldOk -> { heldOk = false; true }

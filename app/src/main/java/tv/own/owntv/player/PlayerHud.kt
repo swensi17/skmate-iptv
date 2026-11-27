@@ -372,7 +372,7 @@ fun PlayerHud(
     LaunchedEffect(tvActions) { if (!tvActions) toolsOpen = false }
     val transportPause = remember { FocusRequester() }
     // A panel or the menu over the picture owns focus: the player asks for none while it is there, even mid-step.
-    LaunchedEffect(tvActions, controlsVisible, toolsOpen, tvSeek, inert) {
+    LaunchedEffect(tvActions, controlsVisible, toolsOpen, tvSeek, inert, recentsNow.isEmpty()) {
         if (!tvLive || !controlsVisible || dialog != HudDialog.NONE || inert) return@LaunchedEffect
         delay(16)
         if (inert || !controlsVisible) return@LaunchedEffect
@@ -441,7 +441,15 @@ fun PlayerHud(
         cancelDirectTune()
         (if (d < 0) onChannelUp else onChannelDown)?.invoke()
         // TV-box look: the new channel's info at the bottom, not a card at the top.
-        if (tvLive) { tvActions = false; controlsVisible = !inert; wakeTick++ } else channelFlash++
+        if (tvLive) {
+            tvActions = false
+            tvSeek = false
+            passiveInfo = true
+            controlsVisible = !inert
+            wakeTick++
+        } else {
+            channelFlash++
+        }
     }
 
     // Restartable timeout: each new digit restarts the ~2 s window. On expiry, submit.
@@ -694,7 +702,8 @@ fun PlayerHud(
                 val ok = e.key == Key.DirectionCenter || e.key == Key.Enter || e.key == Key.NumPadEnter
                 val arrow = e.key == Key.DirectionUp || e.key == Key.DirectionDown ||
                     e.key == Key.DirectionLeft || e.key == Key.DirectionRight
-                if (ok && e.nativeKeyEvent.repeatCount == 0) {
+                // A job the viewer gave OK keeps it, here as everywhere.
+                if (ok && e.nativeKeyEvent.repeatCount == 0 && !liveKeys.isCustom(LiveKey.OK)) {
                     passiveInfo = false
                     tvSeek = false
                     tvActions = true
@@ -1004,7 +1013,10 @@ fun PlayerHud(
                                 }
                                 wakeTick++
                             },
-                            onLive = onGoToLive?.takeIf { timeshiftOffset() != null }?.let { live -> { live(); wakeTick++ } },
+                            // Back to live the LIVE key goes away: focus moves to pause first, or it went with it.
+                            onLive = onGoToLive?.takeIf { timeshiftOffset() != null }?.let { live ->
+                                { runCatching { transportPause.requestFocus() }; live(); wakeTick++ }
+                            },
                             onRecord = onRecordThis?.let { rec -> { rec(); wakeTick++ } },
                             recording = recordingThis,
                             onKey = { wakeTick++ },
