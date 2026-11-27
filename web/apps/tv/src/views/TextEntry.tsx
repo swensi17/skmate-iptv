@@ -7,7 +7,7 @@ import { t } from "../i18n";
  * Typing one value with a remote, the way the Android app asks for text (components/TextInputDialog.kt): a popup
  * (`StagePopup`, 820 wide) with the title and what to type, one field row (`StageFieldRow`: the pencil, an optional
  * [label], the text) and Cancel / Done at the bottom right. The field is focused at once, so the TV's keyboard opens
- * on it; the popup sits 40 px from the top edge (Android moves it there while the keyboard is up), so what is being
+ * on it; the popup is centered and sits 40 px from the top edge only while the keyboard is up (as on Android), so what is being
  * typed stays above the keys. OK in the field is Done. Back ends the typing and keeps the text (Android: the field stops
  * being edited, StageControls.kt:153-160); "Cancel" is the button that puts the old text back. In a search field (a
  * [leave] handler is given) Up and Down also end the typing and move on (StageControls.kt:162-175). The rest of the app
@@ -34,6 +34,14 @@ export function TextEntry(p: {
   const [value, setValue] = useState(p.value);
   const [typing, setTyping] = useState(true);
   const input = useRef<HTMLInputElement>(null);
+  // Android moves the popup up only while the keyboard is visible (StagePopup.kt:92); the TV's keyboard shrinks the window.
+  const [keyboard, setKeyboard] = useState(false);
+  useEffect(() => {
+    const full = window.innerHeight;
+    const on = () => setKeyboard(window.innerHeight < full * 0.85);
+    window.addEventListener("resize", on);
+    return () => window.removeEventListener("resize", on);
+  }, []);
   const done = (how: "ok" | "back" | "up" | "down" = "ok") => p.onDone(value.trim(), how);
   const doneRef = useRef(done);
   doneRef.current = done;
@@ -61,7 +69,7 @@ export function TextEntry(p: {
 
   return (
     <OverSheet app>
-      <Popup top width={820} title={p.title} body={p.hint || undefined} onClose={p.onCancel} closing={p.closing}
+      <Popup top={keyboard} width={820} title={p.title} body={p.hint || undefined} onClose={p.onCancel} closing={p.closing}
         buttons={(
           <>
             <Button small id="entry-cancel" text={t("confirmCancel")} onClick={p.onCancel} />

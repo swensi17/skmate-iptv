@@ -26,7 +26,7 @@
  *   .st-side-panel         StageSidePanel: right edge, 620 wide, #1e2228, dim scrim, slide 240 ms (short choice lists).
  *     .st-panel-head > .st-panel-title (34/800) + .st-panel-sub (17/500)   rows: .st-panel-option
  *   .st-popup              StagePopup (dialog): card radius 30, 880 wide by default, centred over --st-scrim;
- *                          .st-popup-layer.top puts it 40 px from the top (the TV keyboard covers the bottom).
+ *                          .st-popup-layer.top puts it 40 px from the top (only while the TV keyboard is up).
  *     .st-popup-head > .st-popup-eyebrow / .st-popup-title (38/800) / .st-popup-body (18/400)
  *     .st-popup-buttons (right-aligned row of .st-button.sm)   .st-divider
  *   .st-menu               StageMenu (☰ menus, channel menu, playlist switcher): card radius 28.
