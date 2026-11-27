@@ -94,7 +94,7 @@
     <ID>CyclomaticComplexMethod:HomeSettingsScreen.kt$@Composable fun HomeSettingsScreen(onBack: () -&gt; Unit, modifier: Modifier = Modifier)</ID>
     <ID>CyclomaticComplexMethod:HomeViewModel.kt$HomeViewModel$private suspend fun resolveContinue( pid: Long, h: tv.own.owntv.core.database.entity.WatchHistoryEntity, ): ContinueTarget?</ID>
     <ID>CyclomaticComplexMethod:LiveEpgCard.kt$@Composable fun LiveEpgCard( epg: EpgNowNext?, modifier: Modifier = Modifier, // ARCHIVE renders the same two slots for a programme being replayed: different labels, a teal // frame matching the "watching" clock, and progress measured against the replayed instant rather // than against now. Two identically-labelled cards a few pixels apart would be unreadable. variant: EpgCardVariant = EpgCardVariant.LIVE, // ARCHIVE only: the wall-clock instant on screen, which drives the progress bar and "x min left". atMs: Long? = null, )</ID>
-    <ID>CyclomaticComplexMethod:LiveGuideSide.kt$@Composable internal fun LiveGuideSide( channel: ChannelEntity, scheduleFor: suspend (ChannelEntity) -&gt; EpgNowNext?, archiveFor: suspend (ChannelEntity) -&gt; List&lt;EpgProgrammeEntity&gt;, onWatch: () -&gt; Unit, onPlayArchive: (EpgProgrammeEntity) -&gt; Unit, onClose: () -&gt; Unit, modifier: Modifier = Modifier, /** ◀: the categories beside it, the guide staying; null closes the guide as Back does. */ onLeft: (() -&gt; Unit)? = null, /** Bumped when focus should come back into the guide (the categories closed beside it). */ refocus: Int = 0, /** Hold OK (or Menu) on a programme with a poster: show the poster over the whole screen. */ onShowPoster: (tv.own.owntv.core.metadata.ProgrammeArt) -&gt; Unit = {}, /** False while the guide slides away: Back then belongs to what is under it again. */ shown: Boolean = true, )</ID>
+    <ID>CyclomaticComplexMethod:LiveGuideSide.kt$@Composable internal fun LiveGuideSide( channel: ChannelEntity, scheduleFor: suspend (ChannelEntity) -&gt; EpgNowNext?, archiveFor: suspend (ChannelEntity) -&gt; List&lt;EpgProgrammeEntity&gt;, onWatch: () -&gt; Unit, onPlayArchive: (EpgProgrammeEntity) -&gt; Unit, onClose: () -&gt; Unit, modifier: Modifier = Modifier, /** ◀: the categories beside it, the guide staying; null closes the guide as Back does. */ onLeft: (() -&gt; Unit)? = null, /** Bumped when focus should come back into the guide (the categories closed beside it). */ refocus: Int = 0, /** Hold OK (or Menu) on a programme with a poster: show the poster over the whole screen. */ onShowPoster: (tv.own.owntv.core.metadata.ProgrammeArt) -&gt; Unit = {}, /** False while the guide slides away: Back then belongs to what is under it again. */ shown: Boolean = true, /** False while the channel list beside it holds the focus and the guide only follows along. */ takeFocus: Boolean = true, )</ID>
     <ID>CyclomaticComplexMethod:LiveGuideSide.kt$@Composable private fun dayCell( day: Long, now: Long, lit: Boolean, first: Boolean, last: Boolean, onFocused: () -&gt; Unit, onEnter: () -&gt; Unit, modifier: Modifier, )</ID>
     <ID>CyclomaticComplexMethod:LiveGuideSide.kt$@Composable private fun sideLine( firstLine: Boolean, lastLine: Boolean, line: SideLine, now: Long, formatTime: (Long) -&gt; String, poster: tv.own.owntv.core.metadata.ProgrammeArt?, onShowPoster: (tv.own.owntv.core.metadata.ProgrammeArt) -&gt; Unit, onFocused: () -&gt; Unit, onRight: (() -&gt; Unit)?, onPick: (SideLine) -&gt; Unit, modifier: Modifier, )</ID>
     <ID>CyclomaticComplexMethod:LiveScreen.kt$@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class) @Composable fun LiveScreen( onFullscreen: () -&gt; Unit, onChildFocused: () -&gt; Unit, previewEnabled: Boolean = true, restoreFocus: Boolean = false, onRestored: () -&gt; Unit = {}, modifier: Modifier = Modifier, /** * Pins the list to one folder and takes the category rail away — how More → Favourites and * More → History show channels without a second copy of this list existing. */ lockedKey: LiveKey? = null, /** Guide view (Live TV tool row): opens the TV Guide until an in-place guide exists. */ onOpenGuide: () -&gt; Unit = {}, /** Hands the shell what leaving the menu does here: back into the open categories, if any. */ onEntryHook: (((() -&gt; Boolean)?) -&gt; Unit)? = null, )</ID>
@@ -378,8 +378,8 @@
     <ID>FunctionNaming:LiveEpgCard.kt$@Composable fun LiveEpgCard( epg: EpgNowNext?, modifier: Modifier = Modifier, // ARCHIVE renders the same two slots for a programme being replayed: different labels, a teal // frame matching the "watching" clock, and progress measured against the replayed instant rather // than against now. Two identically-labelled cards a few pixels apart would be unreadable. variant: EpgCardVariant = EpgCardVariant.LIVE, // ARCHIVE only: the wall-clock instant on screen, which drives the progress bar and "x min left". atMs: Long? = null, )</ID>
     <ID>FunctionNaming:LiveEpgCard.kt$@Composable fun ZapGuideLines(epg: EpgNowNext?, modifier: Modifier = Modifier)</ID>
     <ID>FunctionNaming:LiveEpgCard.kt$@Composable private fun SlotLabel(text: String, color: Color)</ID>
-    <ID>FunctionNaming:LiveGuideSide.kt$@Composable internal fun LiveGuideSide( channel: ChannelEntity, scheduleFor: suspend (ChannelEntity) -&gt; EpgNowNext?, archiveFor: suspend (ChannelEntity) -&gt; List&lt;EpgProgrammeEntity&gt;, onWatch: () -&gt; Unit, onPlayArchive: (EpgProgrammeEntity) -&gt; Unit, onClose: () -&gt; Unit, modifier: Modifier = Modifier, /** ◀: the categories beside it, the guide staying; null closes the guide as Back does. */ onLeft: (() -&gt; Unit)? = null, /** Bumped when focus should come back into the guide (the categories closed beside it). */ refocus: Int = 0, /** Hold OK (or Menu) on a programme with a poster: show the poster over the whole screen. */ onShowPoster: (tv.own.owntv.core.metadata.ProgrammeArt) -&gt; Unit = {}, /** False while the guide slides away: Back then belongs to what is under it again. */ shown: Boolean = true, )</ID>
-    <ID>FunctionNaming:LiveGuideSide.kt$@Composable internal fun LiveGuideSideHost( channel: ChannelEntity?, scheduleFor: suspend (ChannelEntity) -&gt; EpgNowNext?, archiveFor: suspend (ChannelEntity) -&gt; List&lt;EpgProgrammeEntity&gt;, onWatch: (ChannelEntity) -&gt; Unit, onPlayArchive: (ChannelEntity, EpgProgrammeEntity) -&gt; Unit, onClose: () -&gt; Unit, modifier: Modifier = Modifier, onLeft: (() -&gt; Unit)? = null, refocus: Int = 0, onShowPoster: (tv.own.owntv.core.metadata.ProgrammeArt) -&gt; Unit = {}, )</ID>
+    <ID>FunctionNaming:LiveGuideSide.kt$@Composable internal fun LiveGuideSide( channel: ChannelEntity, scheduleFor: suspend (ChannelEntity) -&gt; EpgNowNext?, archiveFor: suspend (ChannelEntity) -&gt; List&lt;EpgProgrammeEntity&gt;, onWatch: () -&gt; Unit, onPlayArchive: (EpgProgrammeEntity) -&gt; Unit, onClose: () -&gt; Unit, modifier: Modifier = Modifier, /** ◀: the categories beside it, the guide staying; null closes the guide as Back does. */ onLeft: (() -&gt; Unit)? = null, /** Bumped when focus should come back into the guide (the categories closed beside it). */ refocus: Int = 0, /** Hold OK (or Menu) on a programme with a poster: show the poster over the whole screen. */ onShowPoster: (tv.own.owntv.core.metadata.ProgrammeArt) -&gt; Unit = {}, /** False while the guide slides away: Back then belongs to what is under it again. */ shown: Boolean = true, /** False while the channel list beside it holds the focus and the guide only follows along. */ takeFocus: Boolean = true, )</ID>
+    <ID>FunctionNaming:LiveGuideSide.kt$@Composable internal fun LiveGuideSideHost( channel: ChannelEntity?, scheduleFor: suspend (ChannelEntity) -&gt; EpgNowNext?, archiveFor: suspend (ChannelEntity) -&gt; List&lt;EpgProgrammeEntity&gt;, onWatch: (ChannelEntity) -&gt; Unit, onPlayArchive: (ChannelEntity, EpgProgrammeEntity) -&gt; Unit, onClose: () -&gt; Unit, modifier: Modifier = Modifier, onLeft: (() -&gt; Unit)? = null, refocus: Int = 0, onShowPoster: (tv.own.owntv.core.metadata.ProgrammeArt) -&gt; Unit = {}, takeFocus: Boolean = true, )</ID>
     <ID>FunctionNaming:LiveScreen.kt$@Composable internal fun EpgMatchDialog( channelName: String, currentMatch: String?, loadChannels: suspend (String) -&gt; List&lt;tv.own.owntv.core.epg.GuideCandidate&gt;, onPick: (String) -&gt; Unit, onClear: () -&gt; Unit, onDismiss: () -&gt; Unit, )</ID>
     <ID>FunctionNaming:LiveScreen.kt$@Composable internal fun EpgOffsetDialog( channelName: String, currentMinutes: Int?, globalMinutes: Int, onSet: (Int?) -&gt; Unit, onDismiss: () -&gt; Unit, )</ID>
     <ID>FunctionNaming:LiveScreen.kt$@Composable private fun CatchupDialog( channelName: String, loadProgrammes: suspend () -&gt; List&lt;tv.own.owntv.core.database.entity.EpgProgrammeEntity&gt;, onPick: (tv.own.owntv.core.database.entity.EpgProgrammeEntity) -&gt; Unit, // Fallback for a channel with an archive but no guide: there are no programmes to name, but the // archive is still there, so offer times instead of a dead-end "go match your EPG" message. jumpOffsetsSec: List&lt;Int&gt;, jumpWindowSec: Int, onJump: (Int) -&gt; Unit, onDismiss: () -&gt; Unit, )</ID>
@@ -867,7 +867,7 @@
     <ID>LongMethod:HomeScreen.kt$@OptIn(ExperimentalFoundationApi::class) @Composable fun HomeScreen( vm: HomeViewModel, onPlayMovie: (movieId: Long, positionMs: Long) -&gt; Unit, onPlayEpisode: (seriesId: Long, episodeId: Long, positionMs: Long) -&gt; Unit, onPlayChannel: (channelId: Long, zapChannels: List&lt;ChannelEntity&gt;) -&gt; Unit, onActivateTrending: (TrendingHomeItem, onUnavailable: () -&gt; Unit) -&gt; Unit, onOpenMovie: (MovieEntity) -&gt; Unit, onOpenSeries: (SeriesEntity) -&gt; Unit, onOpenTrendingSearch: (String) -&gt; Unit, onChildFocused: () -&gt; Unit, restoreFocus: Boolean = false, restoreTrendingSearchFocus: Boolean = false, onRestored: () -&gt; Unit = {}, previewEnabled: Boolean = true, firstRowFocusRequester: FocusRequester? = null, /** The content's left edge: beside the resting capsule (150), or 64 inside a docked rail's reserve. */ contentStart: Dp = 150.mpx, /** * Hands the shell Home's own way in, for ▶ out of the rail: the control that last had focus, or Play. * (A plain request on the content area drills to the nearest card instead.) Null on leaving. */ onEntryHook: (((() -&gt; Boolean)?) -&gt; Unit)? = null, /** Sports Hub: ▶ on a Live sports card opens its match page. */ onOpenMatch: (tv.own.owntv.core.sports.model.Match) -&gt; Unit = {}, modifier: Modifier = Modifier, sportsVm: tv.own.owntv.features.sports.SportsViewModel = org.koin.androidx.compose.koinViewModel(), )</ID>
     <ID>LongMethod:HomeSettingsScreen.kt$@Composable fun HomeSettingsScreen(onBack: () -&gt; Unit, modifier: Modifier = Modifier)</ID>
     <ID>LongMethod:LiveEpgCard.kt$@Composable fun LiveEpgCard( epg: EpgNowNext?, modifier: Modifier = Modifier, // ARCHIVE renders the same two slots for a programme being replayed: different labels, a teal // frame matching the "watching" clock, and progress measured against the replayed instant rather // than against now. Two identically-labelled cards a few pixels apart would be unreadable. variant: EpgCardVariant = EpgCardVariant.LIVE, // ARCHIVE only: the wall-clock instant on screen, which drives the progress bar and "x min left". atMs: Long? = null, )</ID>
-    <ID>LongMethod:LiveGuideSide.kt$@Composable internal fun LiveGuideSide( channel: ChannelEntity, scheduleFor: suspend (ChannelEntity) -&gt; EpgNowNext?, archiveFor: suspend (ChannelEntity) -&gt; List&lt;EpgProgrammeEntity&gt;, onWatch: () -&gt; Unit, onPlayArchive: (EpgProgrammeEntity) -&gt; Unit, onClose: () -&gt; Unit, modifier: Modifier = Modifier, /** ◀: the categories beside it, the guide staying; null closes the guide as Back does. */ onLeft: (() -&gt; Unit)? = null, /** Bumped when focus should come back into the guide (the categories closed beside it). */ refocus: Int = 0, /** Hold OK (or Menu) on a programme with a poster: show the poster over the whole screen. */ onShowPoster: (tv.own.owntv.core.metadata.ProgrammeArt) -&gt; Unit = {}, /** False while the guide slides away: Back then belongs to what is under it again. */ shown: Boolean = true, )</ID>
+    <ID>LongMethod:LiveGuideSide.kt$@Composable internal fun LiveGuideSide( channel: ChannelEntity, scheduleFor: suspend (ChannelEntity) -&gt; EpgNowNext?, archiveFor: suspend (ChannelEntity) -&gt; List&lt;EpgProgrammeEntity&gt;, onWatch: () -&gt; Unit, onPlayArchive: (EpgProgrammeEntity) -&gt; Unit, onClose: () -&gt; Unit, modifier: Modifier = Modifier, /** ◀: the categories beside it, the guide staying; null closes the guide as Back does. */ onLeft: (() -&gt; Unit)? = null, /** Bumped when focus should come back into the guide (the categories closed beside it). */ refocus: Int = 0, /** Hold OK (or Menu) on a programme with a poster: show the poster over the whole screen. */ onShowPoster: (tv.own.owntv.core.metadata.ProgrammeArt) -&gt; Unit = {}, /** False while the guide slides away: Back then belongs to what is under it again. */ shown: Boolean = true, /** False while the channel list beside it holds the focus and the guide only follows along. */ takeFocus: Boolean = true, )</ID>
     <ID>LongMethod:LiveGuideSide.kt$@Composable private fun sideLine( firstLine: Boolean, lastLine: Boolean, line: SideLine, now: Long, formatTime: (Long) -&gt; String, poster: tv.own.owntv.core.metadata.ProgrammeArt?, onShowPoster: (tv.own.owntv.core.metadata.ProgrammeArt) -&gt; Unit, onFocused: () -&gt; Unit, onRight: (() -&gt; Unit)?, onPick: (SideLine) -&gt; Unit, modifier: Modifier, )</ID>
     <ID>LongMethod:LiveScreen.kt$@Composable internal fun EpgMatchDialog( channelName: String, currentMatch: String?, loadChannels: suspend (String) -&gt; List&lt;tv.own.owntv.core.epg.GuideCandidate&gt;, onPick: (String) -&gt; Unit, onClear: () -&gt; Unit, onDismiss: () -&gt; Unit, )</ID>
     <ID>LongMethod:LiveScreen.kt$@Composable private fun ChannelContextMenu( channel: ChannelEntity, title: String, subtitle: String?, isFavorite: Boolean, canMove: Boolean, isHistory: Boolean, epgMatchManual: Boolean, epgShiftMinutes: Int?, onToggleFavorite: () -&gt; Unit, onRename: () -&gt; Unit, onChangeLogo: () -&gt; Unit, onHide: () -&gt; Unit, onMatchEpg: () -&gt; Unit, onEpgOffset: () -&gt; Unit, onCatchup: () -&gt; Unit, // A recording of this channel is running: Record becomes Stop recording. isRecording: Boolean, onRecord: () -&gt; Unit, onScheduleRecord: () -&gt; Unit, onPlayExternal: () -&gt; Unit, // Null unless Multiview is switched on: keep this channel for the grid. onAddToMultiview: (() -&gt; Unit)?, onMove: () -&gt; Unit, // "Move to category…": send this channel into a user's combined category. onMoveToCategory: () -&gt; Unit, onRemoveFromHistory: () -&gt; Unit, // Only inside a custom category: take the channel out of that category alone. onRemoveFromCategory: (() -&gt; Unit)?, onDismiss: () -&gt; Unit, )</ID>
@@ -1027,8 +1027,8 @@
     <ID>LongParameterList:HomeScreen.kt$( vm: HomeViewModel, onPlayMovie: (movieId: Long, positionMs: Long) -&gt; Unit, onPlayEpisode: (seriesId: Long, episodeId: Long, positionMs: Long) -&gt; Unit, onPlayChannel: (channelId: Long, zapChannels: List&lt;ChannelEntity&gt;) -&gt; Unit, onActivateTrending: (TrendingHomeItem, onUnavailable: () -&gt; Unit) -&gt; Unit, onOpenMovie: (MovieEntity) -&gt; Unit, onOpenSeries: (SeriesEntity) -&gt; Unit, onOpenTrendingSearch: (String) -&gt; Unit, onChildFocused: () -&gt; Unit, restoreFocus: Boolean = false, restoreTrendingSearchFocus: Boolean = false, onRestored: () -&gt; Unit = {}, previewEnabled: Boolean = true, firstRowFocusRequester: FocusRequester? = null, /** The content's left edge: beside the resting capsule (150), or 64 inside a docked rail's reserve. */ contentStart: Dp = 150.mpx, /** * Hands the shell Home's own way in, for ▶ out of the rail: the control that last had focus, or Play. * (A plain request on the content area drills to the nearest card instead.) Null on leaving. */ onEntryHook: (((() -&gt; Boolean)?) -&gt; Unit)? = null, /** Sports Hub: ▶ on a Live sports card opens its match page. */ onOpenMatch: (tv.own.owntv.core.sports.model.Match) -&gt; Unit = {}, modifier: Modifier = Modifier, sportsVm: tv.own.owntv.features.sports.SportsViewModel = org.koin.androidx.compose.koinViewModel(), )</ID>
     <ID>LongParameterList:HomeViewModel.kt$HomeViewModel$( private val feed: HomeFeedReader, private val movieDao: MovieDao, private val seriesDao: SeriesDao, private val channelDao: ChannelDao, private val categoryDao: CategoryDao, private val sourceDao: SourceDao, private val settings: SettingsRepository, private val profileDao: ProfileDao, private val heroPreviewEngine: HeroPreviewEngine, private val historyDao: tv.own.owntv.core.database.dao.HistoryDao, private val progressDao: tv.own.owntv.core.database.dao.ProgressDao, private val metadata: MetadataRepository, private val trendingDao: TrendingDao, private val favoriteDao: tv.own.owntv.core.database.dao.FavoriteDao, private val userDataWriter: tv.own.owntv.core.backup.UserDataWriter, )</ID>
     <ID>LongParameterList:LanguageSettingsScreen.kt$( icon: OwnTVIcon, title: String, line: String, coverage: Int?, selected: Boolean, help: SettingHelp, onClick: () -&gt; Unit, modifier: Modifier = Modifier, )</ID>
-    <ID>LongParameterList:LiveGuideSide.kt$( channel: ChannelEntity, scheduleFor: suspend (ChannelEntity) -&gt; EpgNowNext?, archiveFor: suspend (ChannelEntity) -&gt; List&lt;EpgProgrammeEntity&gt;, onWatch: () -&gt; Unit, onPlayArchive: (EpgProgrammeEntity) -&gt; Unit, onClose: () -&gt; Unit, modifier: Modifier = Modifier, /** ◀: the categories beside it, the guide staying; null closes the guide as Back does. */ onLeft: (() -&gt; Unit)? = null, /** Bumped when focus should come back into the guide (the categories closed beside it). */ refocus: Int = 0, /** Hold OK (or Menu) on a programme with a poster: show the poster over the whole screen. */ onShowPoster: (tv.own.owntv.core.metadata.ProgrammeArt) -&gt; Unit = {}, /** False while the guide slides away: Back then belongs to what is under it again. */ shown: Boolean = true, )</ID>
-    <ID>LongParameterList:LiveGuideSide.kt$( channel: ChannelEntity?, scheduleFor: suspend (ChannelEntity) -&gt; EpgNowNext?, archiveFor: suspend (ChannelEntity) -&gt; List&lt;EpgProgrammeEntity&gt;, onWatch: (ChannelEntity) -&gt; Unit, onPlayArchive: (ChannelEntity, EpgProgrammeEntity) -&gt; Unit, onClose: () -&gt; Unit, modifier: Modifier = Modifier, onLeft: (() -&gt; Unit)? = null, refocus: Int = 0, onShowPoster: (tv.own.owntv.core.metadata.ProgrammeArt) -&gt; Unit = {}, )</ID>
+    <ID>LongParameterList:LiveGuideSide.kt$( channel: ChannelEntity, scheduleFor: suspend (ChannelEntity) -&gt; EpgNowNext?, archiveFor: suspend (ChannelEntity) -&gt; List&lt;EpgProgrammeEntity&gt;, onWatch: () -&gt; Unit, onPlayArchive: (EpgProgrammeEntity) -&gt; Unit, onClose: () -&gt; Unit, modifier: Modifier = Modifier, /** ◀: the categories beside it, the guide staying; null closes the guide as Back does. */ onLeft: (() -&gt; Unit)? = null, /** Bumped when focus should come back into the guide (the categories closed beside it). */ refocus: Int = 0, /** Hold OK (or Menu) on a programme with a poster: show the poster over the whole screen. */ onShowPoster: (tv.own.owntv.core.metadata.ProgrammeArt) -&gt; Unit = {}, /** False while the guide slides away: Back then belongs to what is under it again. */ shown: Boolean = true, /** False while the channel list beside it holds the focus and the guide only follows along. */ takeFocus: Boolean = true, )</ID>
+    <ID>LongParameterList:LiveGuideSide.kt$( channel: ChannelEntity?, scheduleFor: suspend (ChannelEntity) -&gt; EpgNowNext?, archiveFor: suspend (ChannelEntity) -&gt; List&lt;EpgProgrammeEntity&gt;, onWatch: (ChannelEntity) -&gt; Unit, onPlayArchive: (ChannelEntity, EpgProgrammeEntity) -&gt; Unit, onClose: () -&gt; Unit, modifier: Modifier = Modifier, onLeft: (() -&gt; Unit)? = null, refocus: Int = 0, onShowPoster: (tv.own.owntv.core.metadata.ProgrammeArt) -&gt; Unit = {}, takeFocus: Boolean = true, )</ID>
     <ID>LongParameterList:LiveGuideSide.kt$( day: Long, now: Long, lit: Boolean, first: Boolean, last: Boolean, onFocused: () -&gt; Unit, onEnter: () -&gt; Unit, modifier: Modifier, )</ID>
     <ID>LongParameterList:LiveGuideSide.kt$( firstLine: Boolean, lastLine: Boolean, line: SideLine, now: Long, formatTime: (Long) -&gt; String, poster: tv.own.owntv.core.metadata.ProgrammeArt?, onShowPoster: (tv.own.owntv.core.metadata.ProgrammeArt) -&gt; Unit, onFocused: () -&gt; Unit, onRight: (() -&gt; Unit)?, onPick: (SideLine) -&gt; Unit, modifier: Modifier, )</ID>
     <ID>LongParameterList:LiveScreen.kt$( channel: ChannelEntity, title: String, subtitle: String?, isFavorite: Boolean, canMove: Boolean, isHistory: Boolean, epgMatchManual: Boolean, epgShiftMinutes: Int?, onToggleFavorite: () -&gt; Unit, onRename: () -&gt; Unit, onChangeLogo: () -&gt; Unit, onHide: () -&gt; Unit, onMatchEpg: () -&gt; Unit, onEpgOffset: () -&gt; Unit, onCatchup: () -&gt; Unit, // A recording of this channel is running: Record becomes Stop recording. isRecording: Boolean, onRecord: () -&gt; Unit, onScheduleRecord: () -&gt; Unit, onPlayExternal: () -&gt; Unit, // Null unless Multiview is switched on: keep this channel for the grid. onAddToMultiview: (() -&gt; Unit)?, onMove: () -&gt; Unit, // "Move to category…": send this channel into a user's combined category. onMoveToCategory: () -&gt; Unit, onRemoveFromHistory: () -&gt; Unit, // Only inside a custom category: take the channel out of that category alone. onRemoveFromCategory: (() -&gt; Unit)?, onDismiss: () -&gt; Unit, )</ID>
@@ -1194,18 +1194,18 @@
     <ID>MagicNumber:AccentPopup.kt$120</ID>
     <ID>MagicNumber:AccentPopup.kt$13</ID>
     <ID>MagicNumber:AccentPopup.kt$14</ID>
-    <ID>MagicNumber:AccentPopup.kt$15</ID>
     <ID>MagicNumber:AccentPopup.kt$15.5f</ID>
+    <ID>MagicNumber:AccentPopup.kt$15</ID>
     <ID>MagicNumber:AccentPopup.kt$19</ID>
-    <ID>MagicNumber:AccentPopup.kt$3</ID>
     <ID>MagicNumber:AccentPopup.kt$360</ID>
     <ID>MagicNumber:AccentPopup.kt$360f</ID>
     <ID>MagicNumber:AccentPopup.kt$38</ID>
+    <ID>MagicNumber:AccentPopup.kt$3</ID>
     <ID>MagicNumber:AccentPopup.kt$4f</ID>
     <ID>MagicNumber:AccentPopup.kt$500</ID>
-    <ID>MagicNumber:AccentPopup.kt$6</ID>
-    <ID>MagicNumber:AccentPopup.kt$60</ID>
     <ID>MagicNumber:AccentPopup.kt$600</ID>
+    <ID>MagicNumber:AccentPopup.kt$60</ID>
+    <ID>MagicNumber:AccentPopup.kt$6</ID>
     <ID>MagicNumber:AccentPopup.kt$700</ID>
     <ID>MagicNumber:AccentPopup.kt$800</ID>
     <ID>MagicNumber:AddSourceScreen.kt$0xFF1FA34A</ID>
@@ -1222,8 +1222,8 @@
     <ID>MagicNumber:AppIconPicker.kt$34</ID>
     <ID>MagicNumber:AppIconPicker.kt$38</ID>
     <ID>MagicNumber:AppIconPicker.kt$400</ID>
-    <ID>MagicNumber:AppIconPicker.kt$5</ID>
     <ID>MagicNumber:AppIconPicker.kt$500</ID>
+    <ID>MagicNumber:AppIconPicker.kt$5</ID>
     <ID>MagicNumber:AppIconPicker.kt$60</ID>
     <ID>MagicNumber:AppIconPicker.kt$800</ID>
     <ID>MagicNumber:AudioNowPlayingBar.kt$0.12f</ID>
@@ -1235,19 +1235,19 @@
     <ID>MagicNumber:AudioNowPlayingBar.kt$18</ID>
     <ID>MagicNumber:AudioNowPlayingBar.kt$19</ID>
     <ID>MagicNumber:AudioNowPlayingBar.kt$3</ID>
-    <ID>MagicNumber:AudioNowPlayingBar.kt$4</ID>
     <ID>MagicNumber:AudioNowPlayingBar.kt$420</ID>
+    <ID>MagicNumber:AudioNowPlayingBar.kt$4</ID>
     <ID>MagicNumber:AudioNowPlayingBar.kt$5</ID>
-    <ID>MagicNumber:AudioNowPlayingBar.kt$6</ID>
     <ID>MagicNumber:AudioNowPlayingBar.kt$600</ID>
-    <ID>MagicNumber:AudioNowPlayingBar.kt$7</ID>
+    <ID>MagicNumber:AudioNowPlayingBar.kt$6</ID>
     <ID>MagicNumber:AudioNowPlayingBar.kt$700</ID>
+    <ID>MagicNumber:AudioNowPlayingBar.kt$7</ID>
     <ID>MagicNumber:AudioNowPlayingBar.kt$800</ID>
     <ID>MagicNumber:AudioNowPlayingBar.kt$90</ID>
     <ID>MagicNumber:AudioOnlyBadge.kt$0.9f</ID>
     <ID>MagicNumber:AudioOnlyBadge.kt$25</ID>
-    <ID>MagicNumber:AudioOnlyBadge.kt$40</ID>
     <ID>MagicNumber:AudioOnlyBadge.kt$400</ID>
+    <ID>MagicNumber:AudioOnlyBadge.kt$40</ID>
     <ID>MagicNumber:AudioOnlyBadge.kt$600</ID>
     <ID>MagicNumber:AvatarPickerDialog.kt$19</ID>
     <ID>MagicNumber:AvatarPickerDialog.kt$5</ID>
@@ -1268,13 +1268,13 @@
     <ID>MagicNumber:BackupScreen.kt$17</ID>
     <ID>MagicNumber:BackupScreen.kt$24</ID>
     <ID>MagicNumber:BackupScreen.kt$42</ID>
-    <ID>MagicNumber:BackupScreen.kt$50</ID>
     <ID>MagicNumber:BackupScreen.kt$500</ID>
-    <ID>MagicNumber:BackupScreen.kt$60</ID>
+    <ID>MagicNumber:BackupScreen.kt$50</ID>
     <ID>MagicNumber:BackupScreen.kt$600</ID>
+    <ID>MagicNumber:BackupScreen.kt$60</ID>
     <ID>MagicNumber:BackupScreen.kt$700</ID>
-    <ID>MagicNumber:BackupScreen.kt$80</ID>
     <ID>MagicNumber:BackupScreen.kt$800</ID>
+    <ID>MagicNumber:BackupScreen.kt$80</ID>
     <ID>MagicNumber:BlurredPoster.kt$160</ID>
     <ID>MagicNumber:BlurredPoster.kt$200</ID>
     <ID>MagicNumber:BlurredPoster.kt$8</ID>
@@ -1294,8 +1294,8 @@
     <ID>MagicNumber:BulkRenameDialogs.kt$19</ID>
     <ID>MagicNumber:BulkRenameDialogs.kt$400</ID>
     <ID>MagicNumber:BulkRenameDialogs.kt$500</ID>
-    <ID>MagicNumber:BulkRenameDialogs.kt$60</ID>
     <ID>MagicNumber:BulkRenameDialogs.kt$600</ID>
+    <ID>MagicNumber:BulkRenameDialogs.kt$60</ID>
     <ID>MagicNumber:BulkRenameDialogs.kt$700</ID>
     <ID>MagicNumber:CatchupJumpDialog.kt$60</ID>
     <ID>MagicNumber:CatchupManualTimeDialog.kt$1.6f</ID>
@@ -1328,21 +1328,21 @@
     <ID>MagicNumber:ChannelListOverlay.kt$247</ID>
     <ID>MagicNumber:ChannelListOverlay.kt$26</ID>
     <ID>MagicNumber:ChannelListOverlay.kt$400</ID>
-    <ID>MagicNumber:ChannelListOverlay.kt$5</ID>
     <ID>MagicNumber:ChannelListOverlay.kt$500</ID>
+    <ID>MagicNumber:ChannelListOverlay.kt$5</ID>
     <ID>MagicNumber:ChannelListOverlay.kt$6</ID>
     <ID>MagicNumber:ChannelListOverlay.kt$700</ID>
     <ID>MagicNumber:ChannelListOverlay.kt$800</ID>
     <ID>MagicNumber:ChannelLogoTile.kt$0.05f</ID>
     <ID>MagicNumber:ChannelLogoTile.kt$0.5f</ID>
     <ID>MagicNumber:ChannelLogoTile.kt$0.9</ID>
-    <ID>MagicNumber:ChannelLogoTile.kt$0xFF</ID>
     <ID>MagicNumber:ChannelLogoTile.kt$0xFF161C24</ID>
+    <ID>MagicNumber:ChannelLogoTile.kt$0xFF</ID>
     <ID>MagicNumber:ChannelLogoTile.kt$0xFFEDF1F5</ID>
     <ID>MagicNumber:ChannelLogoTile.kt$10</ID>
     <ID>MagicNumber:ChannelLogoTile.kt$16</ID>
-    <ID>MagicNumber:ChannelLogoTile.kt$24</ID>
     <ID>MagicNumber:ChannelLogoTile.kt$240</ID>
+    <ID>MagicNumber:ChannelLogoTile.kt$24</ID>
     <ID>MagicNumber:ChannelLogoTile.kt$255</ID>
     <ID>MagicNumber:ChannelLogoTile.kt$48</ID>
     <ID>MagicNumber:ChannelLogoTile.kt$8</ID>
@@ -1352,8 +1352,8 @@
     <ID>MagicNumber:ContentMenuSettingsScreen.kt$17</ID>
     <ID>MagicNumber:ContentMenuSettingsScreen.kt$18</ID>
     <ID>MagicNumber:ContentMenuSettingsScreen.kt$500</ID>
-    <ID>MagicNumber:ContentMenuSettingsScreen.kt$60</ID>
     <ID>MagicNumber:ContentMenuSettingsScreen.kt$600</ID>
+    <ID>MagicNumber:ContentMenuSettingsScreen.kt$60</ID>
     <ID>MagicNumber:ContentMenuSettingsScreen.kt$700</ID>
     <ID>MagicNumber:CountdownRing.kt$15</ID>
     <ID>MagicNumber:CountdownRing.kt$2.5f</ID>
@@ -1369,8 +1369,8 @@
     <ID>MagicNumber:CustomizeScreen.kt$500</ID>
     <ID>MagicNumber:CustomizeScreen.kt$60</ID>
     <ID>MagicNumber:CustomizeScreen.kt$700</ID>
-    <ID>MagicNumber:CustomizeScreen.kt$80</ID>
     <ID>MagicNumber:CustomizeScreen.kt$800</ID>
+    <ID>MagicNumber:CustomizeScreen.kt$80</ID>
     <ID>MagicNumber:CustomizeViewModel.kt$CustomizeViewModel$5_000</ID>
     <ID>MagicNumber:DatabaseRecoveryScreen.kt$0xFF0B0B0D</ID>
     <ID>MagicNumber:DatabaseRecoveryScreen.kt$0xFF8A8A94</ID>
@@ -1380,9 +1380,9 @@
     <ID>MagicNumber:DeveloperScreen.kt$800</ID>
     <ID>MagicNumber:DisplaySizeViewModel.kt$DisplaySizeViewModel$5_000</ID>
     <ID>MagicNumber:DnsSettingsScreen.kt$16</ID>
-    <ID>MagicNumber:DnsSettingsScreen.kt$5</ID>
     <ID>MagicNumber:DnsSettingsScreen.kt$500</ID>
     <ID>MagicNumber:DnsSettingsScreen.kt$53</ID>
+    <ID>MagicNumber:DnsSettingsScreen.kt$5</ID>
     <ID>MagicNumber:DownloadWatchPrompt.kt$60</ID>
     <ID>MagicNumber:DownloadsScreen.kt$0xFFEF4444</ID>
     <ID>MagicNumber:DownloadsScreen.kt$0xFFFFB74D</ID>
@@ -1395,8 +1395,8 @@
     <ID>MagicNumber:DownloadsScreen.kt$15</ID>
     <ID>MagicNumber:DownloadsScreen.kt$16</ID>
     <ID>MagicNumber:DownloadsScreen.kt$17</ID>
-    <ID>MagicNumber:DownloadsScreen.kt$18</ID>
     <ID>MagicNumber:DownloadsScreen.kt$1856</ID>
+    <ID>MagicNumber:DownloadsScreen.kt$18</ID>
     <ID>MagicNumber:DownloadsScreen.kt$1920f</ID>
     <ID>MagicNumber:DownloadsScreen.kt$1_000</ID>
     <ID>MagicNumber:DownloadsScreen.kt$1_048_576.0</ID>
@@ -1409,8 +1409,8 @@
     <ID>MagicNumber:DownloadsScreen.kt$46</ID>
     <ID>MagicNumber:DownloadsScreen.kt$500</ID>
     <ID>MagicNumber:DownloadsScreen.kt$526</ID>
-    <ID>MagicNumber:DownloadsScreen.kt$60</ID>
     <ID>MagicNumber:DownloadsScreen.kt$60.0</ID>
+    <ID>MagicNumber:DownloadsScreen.kt$60</ID>
     <ID>MagicNumber:DownloadsScreen.kt$700</ID>
     <ID>MagicNumber:DownloadsScreen.kt$800</ID>
     <ID>MagicNumber:DownloadsViewModel.kt$DownloadsViewModel$5_000</ID>
@@ -1420,8 +1420,8 @@
     <ID>MagicNumber:EpgScreen.kt$11f</ID>
     <ID>MagicNumber:EpgScreen.kt$16</ID>
     <ID>MagicNumber:EpgScreen.kt$18</ID>
-    <ID>MagicNumber:EpgScreen.kt$19</ID>
     <ID>MagicNumber:EpgScreen.kt$1920f</ID>
+    <ID>MagicNumber:EpgScreen.kt$19</ID>
     <ID>MagicNumber:EpgScreen.kt$24</ID>
     <ID>MagicNumber:EpgScreen.kt$30</ID>
     <ID>MagicNumber:EpgScreen.kt$30_000L</ID>
@@ -1432,14 +1432,14 @@
     <ID>MagicNumber:EpgScreen.kt$400</ID>
     <ID>MagicNumber:EpgScreen.kt$450</ID>
     <ID>MagicNumber:EpgScreen.kt$48</ID>
-    <ID>MagicNumber:EpgScreen.kt$60</ID>
     <ID>MagicNumber:EpgScreen.kt$600</ID>
+    <ID>MagicNumber:EpgScreen.kt$60</ID>
     <ID>MagicNumber:EpgScreen.kt$60_000f</ID>
     <ID>MagicNumber:EpgScreen.kt$64</ID>
     <ID>MagicNumber:EpgScreen.kt$68</ID>
     <ID>MagicNumber:EpgScreen.kt$700</ID>
-    <ID>MagicNumber:EpgScreen.kt$80</ID>
     <ID>MagicNumber:EpgScreen.kt$800</ID>
+    <ID>MagicNumber:EpgScreen.kt$80</ID>
     <ID>MagicNumber:EpgScreen.kt$8_000</ID>
     <ID>MagicNumber:EpgScreen.kt$8f</ID>
     <ID>MagicNumber:EpgSourceForm.kt$17</ID>
@@ -1455,8 +1455,8 @@
     <ID>MagicNumber:EpgSyncPrompt.kt$1_800</ID>
     <ID>MagicNumber:EpgSyncPrompt.kt$36</ID>
     <ID>MagicNumber:EpgSyncPrompt.kt$400</ID>
-    <ID>MagicNumber:EpgSyncPrompt.kt$80</ID>
     <ID>MagicNumber:EpgSyncPrompt.kt$800</ID>
+    <ID>MagicNumber:EpgSyncPrompt.kt$80</ID>
     <ID>MagicNumber:EpgViewModel.kt$EpgViewModel$1000</ID>
     <ID>MagicNumber:EpgViewModel.kt$EpgViewModel$1_000</ID>
     <ID>MagicNumber:EpgViewModel.kt$EpgViewModel$24L</ID>
@@ -1474,28 +1474,27 @@
     <ID>MagicNumber:ErrorIllustration.kt$0xFF4FC3F7</ID>
     <ID>MagicNumber:ErrorIllustration.kt$0xFFE8EDF3</ID>
     <ID>MagicNumber:ErrorIllustration.kt$0xFFFFB454</ID>
-    <ID>MagicNumber:ErrorIllustration.kt$10</ID>
     <ID>MagicNumber:ErrorIllustration.kt$100f</ID>
-    <ID>MagicNumber:ErrorIllustration.kt$12</ID>
+    <ID>MagicNumber:ErrorIllustration.kt$10</ID>
     <ID>MagicNumber:ErrorIllustration.kt$120f</ID>
+    <ID>MagicNumber:ErrorIllustration.kt$12</ID>
     <ID>MagicNumber:ErrorIllustration.kt$12f</ID>
-    <ID>MagicNumber:ErrorIllustration.kt$13</ID>
     <ID>MagicNumber:ErrorIllustration.kt$130f</ID>
+    <ID>MagicNumber:ErrorIllustration.kt$13</ID>
     <ID>MagicNumber:ErrorIllustration.kt$140f</ID>
     <ID>MagicNumber:ErrorIllustration.kt$150f</ID>
     <ID>MagicNumber:ErrorIllustration.kt$16</ID>
     <ID>MagicNumber:ErrorIllustration.kt$17</ID>
     <ID>MagicNumber:ErrorIllustration.kt$18</ID>
     <ID>MagicNumber:ErrorIllustration.kt$19</ID>
-    <ID>MagicNumber:ErrorIllustration.kt$20</ID>
     <ID>MagicNumber:ErrorIllustration.kt$205f</ID>
+    <ID>MagicNumber:ErrorIllustration.kt$20</ID>
     <ID>MagicNumber:ErrorIllustration.kt$21f</ID>
     <ID>MagicNumber:ErrorIllustration.kt$22</ID>
     <ID>MagicNumber:ErrorIllustration.kt$23</ID>
     <ID>MagicNumber:ErrorIllustration.kt$24</ID>
     <ID>MagicNumber:ErrorIllustration.kt$26</ID>
     <ID>MagicNumber:ErrorIllustration.kt$290f</ID>
-    <ID>MagicNumber:ErrorIllustration.kt$3</ID>
     <ID>MagicNumber:ErrorIllustration.kt$3.4f</ID>
     <ID>MagicNumber:ErrorIllustration.kt$3.5f</ID>
     <ID>MagicNumber:ErrorIllustration.kt$30</ID>
@@ -1504,6 +1503,7 @@
     <ID>MagicNumber:ErrorIllustration.kt$34</ID>
     <ID>MagicNumber:ErrorIllustration.kt$36</ID>
     <ID>MagicNumber:ErrorIllustration.kt$39</ID>
+    <ID>MagicNumber:ErrorIllustration.kt$3</ID>
     <ID>MagicNumber:ErrorIllustration.kt$42</ID>
     <ID>MagicNumber:ErrorIllustration.kt$44</ID>
     <ID>MagicNumber:ErrorIllustration.kt$46</ID>
@@ -1514,20 +1514,20 @@
     <ID>MagicNumber:ErrorIllustration.kt$56</ID>
     <ID>MagicNumber:ErrorIllustration.kt$58</ID>
     <ID>MagicNumber:ErrorIllustration.kt$5f</ID>
-    <ID>MagicNumber:ErrorIllustration.kt$6</ID>
     <ID>MagicNumber:ErrorIllustration.kt$62</ID>
     <ID>MagicNumber:ErrorIllustration.kt$64</ID>
     <ID>MagicNumber:ErrorIllustration.kt$66</ID>
+    <ID>MagicNumber:ErrorIllustration.kt$6</ID>
     <ID>MagicNumber:ErrorIllustration.kt$700</ID>
     <ID>MagicNumber:ErrorIllustration.kt$74</ID>
     <ID>MagicNumber:ErrorIllustration.kt$76</ID>
     <ID>MagicNumber:ErrorIllustration.kt$78</ID>
-    <ID>MagicNumber:ErrorIllustration.kt$8</ID>
     <ID>MagicNumber:ErrorIllustration.kt$80</ID>
     <ID>MagicNumber:ErrorIllustration.kt$82</ID>
     <ID>MagicNumber:ErrorIllustration.kt$84</ID>
     <ID>MagicNumber:ErrorIllustration.kt$86</ID>
     <ID>MagicNumber:ErrorIllustration.kt$88</ID>
+    <ID>MagicNumber:ErrorIllustration.kt$8</ID>
     <ID>MagicNumber:ErrorIllustration.kt$92</ID>
     <ID>MagicNumber:FontSettingsScreen.kt$4</ID>
     <ID>MagicNumber:FrameRateController.kt$1_000L</ID>
@@ -1565,8 +1565,8 @@
     <ID>MagicNumber:GenreColor.kt$ChannelGenre.SERIES$0xFF3D5AFE</ID>
     <ID>MagicNumber:GenreColor.kt$ChannelGenre.SPORT$0xFF4CAF50</ID>
     <ID>MagicNumber:GlassEffectPage.kt$0xFF05080A</ID>
-    <ID>MagicNumber:GlassEffectPage.kt$10</ID>
     <ID>MagicNumber:GlassEffectPage.kt$100</ID>
+    <ID>MagicNumber:GlassEffectPage.kt$10</ID>
     <ID>MagicNumber:GlassEffectPage.kt$15</ID>
     <ID>MagicNumber:GlassEffectPage.kt$16f</ID>
     <ID>MagicNumber:GlassEffectPage.kt$18</ID>
@@ -1575,12 +1575,12 @@
     <ID>MagicNumber:GlassEffectPage.kt$22</ID>
     <ID>MagicNumber:GlassEffectPage.kt$46</ID>
     <ID>MagicNumber:GlassEffectPage.kt$46f</ID>
-    <ID>MagicNumber:GlassEffectPage.kt$5</ID>
     <ID>MagicNumber:GlassEffectPage.kt$500</ID>
+    <ID>MagicNumber:GlassEffectPage.kt$5</ID>
     <ID>MagicNumber:GlassEffectPage.kt$6</ID>
     <ID>MagicNumber:GlassEffectPage.kt$700</ID>
-    <ID>MagicNumber:GlassEffectPage.kt$8</ID>
     <ID>MagicNumber:GlassEffectPage.kt$800</ID>
+    <ID>MagicNumber:GlassEffectPage.kt$8</ID>
     <ID>MagicNumber:GlassEffectPage.kt$9</ID>
     <ID>MagicNumber:GlassEffectPage.kt$9f</ID>
     <ID>MagicNumber:GuideCore.kt$0.5f</ID>
@@ -1593,16 +1593,16 @@
     <ID>MagicNumber:GuideCore.kt$18</ID>
     <ID>MagicNumber:GuideCore.kt$2.5f</ID>
     <ID>MagicNumber:GuideCore.kt$28</ID>
-    <ID>MagicNumber:GuideCore.kt$3</ID>
     <ID>MagicNumber:GuideCore.kt$3.75f</ID>
     <ID>MagicNumber:GuideCore.kt$34</ID>
-    <ID>MagicNumber:GuideCore.kt$4</ID>
+    <ID>MagicNumber:GuideCore.kt$3</ID>
     <ID>MagicNumber:GuideCore.kt$400</ID>
     <ID>MagicNumber:GuideCore.kt$44</ID>
+    <ID>MagicNumber:GuideCore.kt$4</ID>
     <ID>MagicNumber:GuideCore.kt$4f</ID>
     <ID>MagicNumber:GuideCore.kt$500</ID>
-    <ID>MagicNumber:GuideCore.kt$6</ID>
     <ID>MagicNumber:GuideCore.kt$60_000f</ID>
+    <ID>MagicNumber:GuideCore.kt$6</ID>
     <ID>MagicNumber:GuideCore.kt$700</ID>
     <ID>MagicNumber:GuideCore.kt$8</ID>
     <ID>MagicNumber:GuideStage.kt$0.55f</ID>
@@ -1661,31 +1661,31 @@
     <ID>MagicNumber:HomeScreen.kt$112</ID>
     <ID>MagicNumber:HomeScreen.kt$1500f</ID>
     <ID>MagicNumber:HomeScreen.kt$16f</ID>
-    <ID>MagicNumber:HomeScreen.kt$18</ID>
     <ID>MagicNumber:HomeScreen.kt$189</ID>
+    <ID>MagicNumber:HomeScreen.kt$18</ID>
     <ID>MagicNumber:HomeScreen.kt$1920f</ID>
     <ID>MagicNumber:HomeScreen.kt$1_000_000L</ID>
     <ID>MagicNumber:HomeScreen.kt$20</ID>
-    <ID>MagicNumber:HomeScreen.kt$21</ID>
     <ID>MagicNumber:HomeScreen.kt$216</ID>
+    <ID>MagicNumber:HomeScreen.kt$21</ID>
     <ID>MagicNumber:HomeScreen.kt$22</ID>
     <ID>MagicNumber:HomeScreen.kt$24</ID>
     <ID>MagicNumber:HomeScreen.kt$24L</ID>
     <ID>MagicNumber:HomeScreen.kt$25</ID>
     <ID>MagicNumber:HomeScreen.kt$29</ID>
-    <ID>MagicNumber:HomeScreen.kt$3</ID>
     <ID>MagicNumber:HomeScreen.kt$30</ID>
     <ID>MagicNumber:HomeScreen.kt$336</ID>
     <ID>MagicNumber:HomeScreen.kt$384</ID>
+    <ID>MagicNumber:HomeScreen.kt$3</ID>
     <ID>MagicNumber:HomeScreen.kt$3_000L</ID>
-    <ID>MagicNumber:HomeScreen.kt$40</ID>
     <ID>MagicNumber:HomeScreen.kt$400</ID>
+    <ID>MagicNumber:HomeScreen.kt$40</ID>
     <ID>MagicNumber:HomeScreen.kt$40L</ID>
     <ID>MagicNumber:HomeScreen.kt$520L</ID>
     <ID>MagicNumber:HomeScreen.kt$560f</ID>
     <ID>MagicNumber:HomeScreen.kt$59_999L</ID>
-    <ID>MagicNumber:HomeScreen.kt$60</ID>
     <ID>MagicNumber:HomeScreen.kt$600</ID>
+    <ID>MagicNumber:HomeScreen.kt$60</ID>
     <ID>MagicNumber:HomeScreen.kt$60L</ID>
     <ID>MagicNumber:HomeScreen.kt$60_000L</ID>
     <ID>MagicNumber:HomeScreen.kt$700</ID>
@@ -1726,28 +1726,28 @@
     <ID>MagicNumber:LiveScreen.kt$12</ID>
     <ID>MagicNumber:LiveScreen.kt$14</ID>
     <ID>MagicNumber:LiveScreen.kt$15</ID>
-    <ID>MagicNumber:LiveScreen.kt$18</ID>
     <ID>MagicNumber:LiveScreen.kt$180f</ID>
+    <ID>MagicNumber:LiveScreen.kt$18</ID>
     <ID>MagicNumber:LiveScreen.kt$1920f</ID>
-    <ID>MagicNumber:LiveScreen.kt$20</ID>
     <ID>MagicNumber:LiveScreen.kt$200</ID>
+    <ID>MagicNumber:LiveScreen.kt$20</ID>
     <ID>MagicNumber:LiveScreen.kt$230f</ID>
     <ID>MagicNumber:LiveScreen.kt$24</ID>
-    <ID>MagicNumber:LiveScreen.kt$250</ID>
     <ID>MagicNumber:LiveScreen.kt$2500</ID>
+    <ID>MagicNumber:LiveScreen.kt$250</ID>
     <ID>MagicNumber:LiveScreen.kt$26</ID>
     <ID>MagicNumber:LiveScreen.kt$28</ID>
-    <ID>MagicNumber:LiveScreen.kt$3</ID>
     <ID>MagicNumber:LiveScreen.kt$30</ID>
     <ID>MagicNumber:LiveScreen.kt$34</ID>
     <ID>MagicNumber:LiveScreen.kt$350</ID>
     <ID>MagicNumber:LiveScreen.kt$36</ID>
+    <ID>MagicNumber:LiveScreen.kt$3</ID>
     <ID>MagicNumber:LiveScreen.kt$450</ID>
     <ID>MagicNumber:LiveScreen.kt$456f</ID>
     <ID>MagicNumber:LiveScreen.kt$48</ID>
-    <ID>MagicNumber:LiveScreen.kt$5</ID>
-    <ID>MagicNumber:LiveScreen.kt$50</ID>
     <ID>MagicNumber:LiveScreen.kt$500</ID>
+    <ID>MagicNumber:LiveScreen.kt$50</ID>
+    <ID>MagicNumber:LiveScreen.kt$5</ID>
     <ID>MagicNumber:LiveScreen.kt$60</ID>
     <ID>MagicNumber:LiveScreen.kt$60_000</ID>
     <ID>MagicNumber:LiveScreen.kt$620</ID>
@@ -1755,11 +1755,11 @@
     <ID>MagicNumber:LiveScreen.kt$64</ID>
     <ID>MagicNumber:LiveScreen.kt$700L</ID>
     <ID>MagicNumber:LiveScreen.kt$766</ID>
-    <ID>MagicNumber:LiveScreen.kt$8</ID>
     <ID>MagicNumber:LiveScreen.kt$800</ID>
-    <ID>MagicNumber:LiveScreen.kt$84</ID>
     <ID>MagicNumber:LiveScreen.kt$846</ID>
     <ID>MagicNumber:LiveScreen.kt$846f</ID>
+    <ID>MagicNumber:LiveScreen.kt$84</ID>
+    <ID>MagicNumber:LiveScreen.kt$8</ID>
     <ID>MagicNumber:LiveScreen.kt$912</ID>
     <ID>MagicNumber:LiveSportsRow.kt$26</ID>
     <ID>MagicNumber:LiveSportsRow.kt$800</ID>
@@ -1768,9 +1768,9 @@
     <ID>MagicNumber:LiveStage.kt$0.25f</ID>
     <ID>MagicNumber:LiveStage.kt$0.45f</ID>
     <ID>MagicNumber:LiveStage.kt$0.4f</ID>
-    <ID>MagicNumber:LiveStage.kt$0.5</ID>
     <ID>MagicNumber:LiveStage.kt$0.55f</ID>
     <ID>MagicNumber:LiveStage.kt$0.58f</ID>
+    <ID>MagicNumber:LiveStage.kt$0.5</ID>
     <ID>MagicNumber:LiveStage.kt$0.5f</ID>
     <ID>MagicNumber:LiveStage.kt$0.75f</ID>
     <ID>MagicNumber:LiveStage.kt$0.7f</ID>
@@ -1788,30 +1788,30 @@
     <ID>MagicNumber:LiveStage.kt$12.5f</ID>
     <ID>MagicNumber:LiveStage.kt$1300</ID>
     <ID>MagicNumber:LiveStage.kt$14</ID>
-    <ID>MagicNumber:LiveStage.kt$15</ID>
     <ID>MagicNumber:LiveStage.kt$1500</ID>
+    <ID>MagicNumber:LiveStage.kt$15</ID>
     <ID>MagicNumber:LiveStage.kt$16f</ID>
     <ID>MagicNumber:LiveStage.kt$17</ID>
-    <ID>MagicNumber:LiveStage.kt$18</ID>
     <ID>MagicNumber:LiveStage.kt$18.5f</ID>
+    <ID>MagicNumber:LiveStage.kt$18</ID>
     <ID>MagicNumber:LiveStage.kt$19</ID>
     <ID>MagicNumber:LiveStage.kt$20</ID>
     <ID>MagicNumber:LiveStage.kt$22</ID>
     <ID>MagicNumber:LiveStage.kt$23</ID>
-    <ID>MagicNumber:LiveStage.kt$26</ID>
     <ID>MagicNumber:LiveStage.kt$260</ID>
-    <ID>MagicNumber:LiveStage.kt$4</ID>
+    <ID>MagicNumber:LiveStage.kt$26</ID>
     <ID>MagicNumber:LiveStage.kt$400</ID>
     <ID>MagicNumber:LiveStage.kt$42</ID>
     <ID>MagicNumber:LiveStage.kt$46</ID>
-    <ID>MagicNumber:LiveStage.kt$50</ID>
+    <ID>MagicNumber:LiveStage.kt$4</ID>
     <ID>MagicNumber:LiveStage.kt$500</ID>
+    <ID>MagicNumber:LiveStage.kt$50</ID>
     <ID>MagicNumber:LiveStage.kt$59_999</ID>
     <ID>MagicNumber:LiveStage.kt$600</ID>
     <ID>MagicNumber:LiveStage.kt$60_000</ID>
     <ID>MagicNumber:LiveStage.kt$700</ID>
-    <ID>MagicNumber:LiveStage.kt$8</ID>
     <ID>MagicNumber:LiveStage.kt$800</ID>
+    <ID>MagicNumber:LiveStage.kt$8</ID>
     <ID>MagicNumber:LiveStage.kt$900</ID>
     <ID>MagicNumber:LiveStage.kt$9f</ID>
     <ID>MagicNumber:LiveViewModel.kt$LiveViewModel$150</ID>
@@ -1843,8 +1843,8 @@
     <ID>MagicNumber:LocalSyncScreen.kt$54</ID>
     <ID>MagicNumber:LocalSyncScreen.kt$600</ID>
     <ID>MagicNumber:LocalSyncScreen.kt$700</ID>
-    <ID>MagicNumber:LocalSyncScreen.kt$80</ID>
     <ID>MagicNumber:LocalSyncScreen.kt$800</ID>
+    <ID>MagicNumber:LocalSyncScreen.kt$80</ID>
     <ID>MagicNumber:LocalSyncScreen.kt$900</ID>
     <ID>MagicNumber:LogoTint.kt$255.0</ID>
     <ID>MagicNumber:LogoTint.kt$3</ID>
@@ -1852,16 +1852,16 @@
     <ID>MagicNumber:MainActivity.kt$0.5f</ID>
     <ID>MagicNumber:MainActivity.kt$0.82f</ID>
     <ID>MagicNumber:MainActivity.kt$1.06f</ID>
-    <ID>MagicNumber:MainActivity.kt$10</ID>
     <ID>MagicNumber:MainActivity.kt$1024L</ID>
+    <ID>MagicNumber:MainActivity.kt$10</ID>
     <ID>MagicNumber:MainActivity.kt$255f</ID>
     <ID>MagicNumber:MainActivity.kt$256L</ID>
     <ID>MagicNumber:MainActivity.kt$384</ID>
     <ID>MagicNumber:MainActivity.kt$448</ID>
     <ID>MagicNumber:MainActivity.kt$4f</ID>
     <ID>MagicNumber:MainActivity.kt$MainActivity$16</ID>
-    <ID>MagicNumber:MainActivity.kt$MainActivity$3</ID>
     <ID>MagicNumber:MainActivity.kt$MainActivity$33</ID>
+    <ID>MagicNumber:MainActivity.kt$MainActivity$3</ID>
     <ID>MagicNumber:MainActivity.kt$MainActivity$4</ID>
     <ID>MagicNumber:MainActivity.kt$MainActivity$5</ID>
     <ID>MagicNumber:MainActivity.kt$MainActivity$6</ID>
@@ -1874,8 +1874,8 @@
     <ID>MagicNumber:ManageSourcesScreen.kt$30</ID>
     <ID>MagicNumber:ManageSourcesScreen.kt$38</ID>
     <ID>MagicNumber:ManageSourcesScreen.kt$400</ID>
-    <ID>MagicNumber:ManageSourcesScreen.kt$50</ID>
     <ID>MagicNumber:ManageSourcesScreen.kt$500</ID>
+    <ID>MagicNumber:ManageSourcesScreen.kt$50</ID>
     <ID>MagicNumber:ManageSourcesScreen.kt$60</ID>
     <ID>MagicNumber:ManageSourcesScreen.kt$700</ID>
     <ID>MagicNumber:ManageSourcesScreen.kt$800</ID>
@@ -1890,12 +1890,12 @@
     <ID>MagicNumber:MediaDetailsScreen.kt$18</ID>
     <ID>MagicNumber:MediaDetailsScreen.kt$21</ID>
     <ID>MagicNumber:MediaDetailsScreen.kt$22</ID>
-    <ID>MagicNumber:MediaDetailsScreen.kt$26</ID>
     <ID>MagicNumber:MediaDetailsScreen.kt$260f</ID>
+    <ID>MagicNumber:MediaDetailsScreen.kt$26</ID>
     <ID>MagicNumber:MediaDetailsScreen.kt$3f</ID>
     <ID>MagicNumber:MediaDetailsScreen.kt$400</ID>
-    <ID>MagicNumber:MediaDetailsScreen.kt$60</ID>
     <ID>MagicNumber:MediaDetailsScreen.kt$600</ID>
+    <ID>MagicNumber:MediaDetailsScreen.kt$60</ID>
     <ID>MagicNumber:MediaDetailsScreen.kt$64</ID>
     <ID>MagicNumber:MediaDetailsScreen.kt$800</ID>
     <ID>MagicNumber:MediaDetailsScreen.kt$9f</ID>
@@ -1906,11 +1906,11 @@
     <ID>MagicNumber:MetadataSettingsScreen.kt$22</ID>
     <ID>MagicNumber:MetadataSettingsScreen.kt$4</ID>
     <ID>MagicNumber:MetadataSettingsScreen.kt$500</ID>
-    <ID>MagicNumber:MetadataSettingsScreen.kt$60</ID>
     <ID>MagicNumber:MetadataSettingsScreen.kt$600</ID>
-    <ID>MagicNumber:MetadataSettingsScreen.kt$8</ID>
-    <ID>MagicNumber:MetadataSettingsScreen.kt$80</ID>
+    <ID>MagicNumber:MetadataSettingsScreen.kt$60</ID>
     <ID>MagicNumber:MetadataSettingsScreen.kt$800</ID>
+    <ID>MagicNumber:MetadataSettingsScreen.kt$80</ID>
+    <ID>MagicNumber:MetadataSettingsScreen.kt$8</ID>
     <ID>MagicNumber:MiniPlayer.kt$0.62f</ID>
     <ID>MagicNumber:MiniPlayer.kt$0.6f</ID>
     <ID>MagicNumber:MiniPlayer.kt$160</ID>
@@ -1919,10 +1919,10 @@
     <ID>MagicNumber:MiniPlayerSettingsDialog.kt$0.12f</ID>
     <ID>MagicNumber:MiniPlayerSettingsDialog.kt$14</ID>
     <ID>MagicNumber:MiniPlayerSettingsDialog.kt$180f</ID>
-    <ID>MagicNumber:MiniPlayerSettingsDialog.kt$3</ID>
     <ID>MagicNumber:MiniPlayerSettingsDialog.kt$30</ID>
-    <ID>MagicNumber:MiniPlayerSettingsDialog.kt$80</ID>
+    <ID>MagicNumber:MiniPlayerSettingsDialog.kt$3</ID>
     <ID>MagicNumber:MiniPlayerSettingsDialog.kt$800</ID>
+    <ID>MagicNumber:MiniPlayerSettingsDialog.kt$80</ID>
     <ID>MagicNumber:MoreCountsViewModel.kt$MoreCountsViewModel$5_000</ID>
     <ID>MagicNumber:MorePages.kt$10</ID>
     <ID>MagicNumber:MorePages.kt$11</ID>
@@ -1935,8 +1935,8 @@
     <ID>MagicNumber:MorePages.kt$24</ID>
     <ID>MagicNumber:MorePages.kt$25</ID>
     <ID>MagicNumber:MorePages.kt$26</ID>
-    <ID>MagicNumber:MorePages.kt$3</ID>
     <ID>MagicNumber:MorePages.kt$30</ID>
+    <ID>MagicNumber:MorePages.kt$3</ID>
     <ID>MagicNumber:MorePages.kt$400</ID>
     <ID>MagicNumber:MorePages.kt$42</ID>
     <ID>MagicNumber:MorePages.kt$500</ID>
@@ -1944,21 +1944,21 @@
     <ID>MagicNumber:MorePages.kt$60</ID>
     <ID>MagicNumber:MorePages.kt$60_000L</ID>
     <ID>MagicNumber:MorePages.kt$700</ID>
-    <ID>MagicNumber:MorePages.kt$8</ID>
     <ID>MagicNumber:MorePages.kt$800</ID>
+    <ID>MagicNumber:MorePages.kt$8</ID>
     <ID>MagicNumber:MorePages.kt$9</ID>
     <ID>MagicNumber:MoreScreen.kt$0.3f</ID>
     <ID>MagicNumber:MoreScreen.kt$1.1f</ID>
     <ID>MagicNumber:MoreScreen.kt$10</ID>
-    <ID>MagicNumber:MoreScreen.kt$12</ID>
     <ID>MagicNumber:MoreScreen.kt$12.5f</ID>
-    <ID>MagicNumber:MoreScreen.kt$15</ID>
+    <ID>MagicNumber:MoreScreen.kt$12</ID>
     <ID>MagicNumber:MoreScreen.kt$15.5f</ID>
+    <ID>MagicNumber:MoreScreen.kt$15</ID>
     <ID>MagicNumber:MoreScreen.kt$24</ID>
     <ID>MagicNumber:MoreScreen.kt$32</ID>
     <ID>MagicNumber:MoreScreen.kt$40</ID>
-    <ID>MagicNumber:MoreScreen.kt$50</ID>
     <ID>MagicNumber:MoreScreen.kt$500</ID>
+    <ID>MagicNumber:MoreScreen.kt$50</ID>
     <ID>MagicNumber:MoreScreen.kt$60</ID>
     <ID>MagicNumber:MoreScreen.kt$700</ID>
     <ID>MagicNumber:MoreScreen.kt$800</ID>
@@ -1973,13 +1973,13 @@
     <ID>MagicNumber:MovieViewModel.kt$MovieViewModel$250</ID>
     <ID>MagicNumber:MovieViewModel.kt$MovieViewModel$2_000</ID>
     <ID>MagicNumber:MovieViewModel.kt$MovieViewModel$300</ID>
-    <ID>MagicNumber:MovieViewModel.kt$MovieViewModel$500</ID>
     <ID>MagicNumber:MovieViewModel.kt$MovieViewModel$5000</ID>
+    <ID>MagicNumber:MovieViewModel.kt$MovieViewModel$500</ID>
     <ID>MagicNumber:MovieViewModel.kt$MovieViewModel$5_000</ID>
     <ID>MagicNumber:MovieViewModel.kt$MovieViewModel$800</ID>
     <ID>MagicNumber:MoviesScreen.kt$0.36f</ID>
-    <ID>MagicNumber:MoviesScreen.kt$100</ID>
     <ID>MagicNumber:MoviesScreen.kt$1000</ID>
+    <ID>MagicNumber:MoviesScreen.kt$100</ID>
     <ID>MagicNumber:MoviesScreen.kt$100f</ID>
     <ID>MagicNumber:MoviesScreen.kt$10_000</ID>
     <ID>MagicNumber:MoviesScreen.kt$1880</ID>
@@ -1992,15 +1992,15 @@
     <ID>MagicNumber:MoviesScreen.kt$3600</ID>
     <ID>MagicNumber:MoviesScreen.kt$40</ID>
     <ID>MagicNumber:MoviesScreen.kt$450</ID>
-    <ID>MagicNumber:MoviesScreen.kt$50</ID>
     <ID>MagicNumber:MoviesScreen.kt$500</ID>
+    <ID>MagicNumber:MoviesScreen.kt$50</ID>
     <ID>MagicNumber:MoviesScreen.kt$550</ID>
     <ID>MagicNumber:MoviesScreen.kt$60</ID>
     <ID>MagicNumber:MoviesScreen.kt$64</ID>
     <ID>MagicNumber:MoviesScreen.kt$68</ID>
-    <ID>MagicNumber:MoviesScreen.kt$8</ID>
     <ID>MagicNumber:MoviesScreen.kt$84</ID>
     <ID>MagicNumber:MoviesScreen.kt$860</ID>
+    <ID>MagicNumber:MoviesScreen.kt$8</ID>
     <ID>MagicNumber:MoviesScreen.kt$900</ID>
     <ID>MagicNumber:MultiviewScreen.kt$0.55f</ID>
     <ID>MagicNumber:MultiviewScreen.kt$25</ID>
@@ -2009,14 +2009,14 @@
     <ID>MagicNumber:MultiviewScreen.kt$600</ID>
     <ID>MagicNumber:NavigationSettingsPopup.kt$1000</ID>
     <ID>MagicNumber:NetworkSettingsScreen.kt$16</ID>
-    <ID>MagicNumber:NetworkSettingsScreen.kt$5</ID>
     <ID>MagicNumber:NetworkSettingsScreen.kt$500</ID>
+    <ID>MagicNumber:NetworkSettingsScreen.kt$5</ID>
     <ID>MagicNumber:NetworkSettingsScreen.kt$6</ID>
     <ID>MagicNumber:NumberInputDialog.kt$15</ID>
     <ID>MagicNumber:NumberInputDialog.kt$600</ID>
     <ID>MagicNumber:OpenSubtitlesAccountScreen.kt$10_000_000_000L</ID>
-    <ID>MagicNumber:OpenSubtitlesAccountScreen.kt$15</ID>
     <ID>MagicNumber:OpenSubtitlesAccountScreen.kt$150</ID>
+    <ID>MagicNumber:OpenSubtitlesAccountScreen.kt$15</ID>
     <ID>MagicNumber:OpenSubtitlesAccountScreen.kt$1_000L</ID>
     <ID>MagicNumber:OpenSubtitlesAccountScreen.kt$3</ID>
     <ID>MagicNumber:OpenSubtitlesAccountScreen.kt$3_600L</ID>
@@ -2211,8 +2211,8 @@
     <ID>MagicNumber:OwnTelegramBot.kt$OwnTelegramBot$1_000L</ID>
     <ID>MagicNumber:OwnTelegramBot.kt$OwnTelegramBot$300</ID>
     <ID>MagicNumber:OwnTelegramBot.kt$OwnTelegramBot$30_000L</ID>
-    <ID>MagicNumber:OwnTelegramBot.kt$OwnTelegramBot$40</ID>
     <ID>MagicNumber:OwnTelegramBot.kt$OwnTelegramBot$401</ID>
+    <ID>MagicNumber:OwnTelegramBot.kt$OwnTelegramBot$40</ID>
     <ID>MagicNumber:OwnTelegramBot.kt$OwnTelegramBot$5</ID>
     <ID>MagicNumber:OwnTelegramBot.kt$OwnTelegramBot$60</ID>
     <ID>MagicNumber:OwnTelegramBot.kt$OwnTelegramBot$900_000</ID>
@@ -2226,8 +2226,8 @@
     <ID>MagicNumber:PanelWidthSettingsScreen.kt$500</ID>
     <ID>MagicNumber:PanelWidthSettingsScreen.kt$600</ID>
     <ID>MagicNumber:PanelWidthSettingsScreen.kt$700</ID>
-    <ID>MagicNumber:PanelWidthSettingsScreen.kt$80</ID>
     <ID>MagicNumber:PanelWidthSettingsScreen.kt$800</ID>
+    <ID>MagicNumber:PanelWidthSettingsScreen.kt$80</ID>
     <ID>MagicNumber:PanelWidths.kt$1.8f</ID>
     <ID>MagicNumber:PanelWidths.kt$100f</ID>
     <ID>MagicNumber:PanelWidths.kt$2.8f</ID>
@@ -2253,13 +2253,13 @@
     <ID>MagicNumber:PlayerHud.kt$1800</ID>
     <ID>MagicNumber:PlayerHud.kt$22</ID>
     <ID>MagicNumber:PlayerHud.kt$25</ID>
-    <ID>MagicNumber:PlayerHud.kt$30</ID>
     <ID>MagicNumber:PlayerHud.kt$3000</ID>
+    <ID>MagicNumber:PlayerHud.kt$30</ID>
     <ID>MagicNumber:PlayerHud.kt$30_000L</ID>
-    <ID>MagicNumber:PlayerHud.kt$40</ID>
     <ID>MagicNumber:PlayerHud.kt$400</ID>
-    <ID>MagicNumber:PlayerHud.kt$6</ID>
+    <ID>MagicNumber:PlayerHud.kt$40</ID>
     <ID>MagicNumber:PlayerHud.kt$600</ID>
+    <ID>MagicNumber:PlayerHud.kt$6</ID>
     <ID>MagicNumber:PlayerHud.kt$6_000</ID>
     <ID>MagicNumber:PlayerHud.kt$700</ID>
     <ID>MagicNumber:PlayerHud.kt$8_000L</ID>
@@ -2272,14 +2272,14 @@
     <ID>MagicNumber:PlayerHudChrome.kt$20</ID>
     <ID>MagicNumber:PlayerHudChrome.kt$22</ID>
     <ID>MagicNumber:PlayerHudChrome.kt$25</ID>
-    <ID>MagicNumber:PlayerHudChrome.kt$3</ID>
     <ID>MagicNumber:PlayerHudChrome.kt$32</ID>
+    <ID>MagicNumber:PlayerHudChrome.kt$3</ID>
     <ID>MagicNumber:PlayerHudChrome.kt$400</ID>
     <ID>MagicNumber:PlayerHudChrome.kt$43</ID>
-    <ID>MagicNumber:PlayerHudChrome.kt$50</ID>
     <ID>MagicNumber:PlayerHudChrome.kt$500</ID>
-    <ID>MagicNumber:PlayerHudChrome.kt$600</ID>
+    <ID>MagicNumber:PlayerHudChrome.kt$50</ID>
     <ID>MagicNumber:PlayerHudChrome.kt$60000</ID>
+    <ID>MagicNumber:PlayerHudChrome.kt$600</ID>
     <ID>MagicNumber:PlayerHudChrome.kt$700</ID>
     <ID>MagicNumber:PlayerHudControls.kt$0.42f</ID>
     <ID>MagicNumber:PlayerHudControls.kt$0.55f</ID>
@@ -2295,8 +2295,8 @@
     <ID>MagicNumber:PlayerHudControls.kt$20</ID>
     <ID>MagicNumber:PlayerHudControls.kt$22</ID>
     <ID>MagicNumber:PlayerHudControls.kt$25</ID>
-    <ID>MagicNumber:PlayerHudControls.kt$50</ID>
     <ID>MagicNumber:PlayerHudControls.kt$500</ID>
+    <ID>MagicNumber:PlayerHudControls.kt$50</ID>
     <ID>MagicNumber:PlayerHudControls.kt$600</ID>
     <ID>MagicNumber:PlayerHudControls.kt$60_000L</ID>
     <ID>MagicNumber:PlayerHudControls.kt$700</ID>
@@ -2308,14 +2308,14 @@
     <ID>MagicNumber:PlayerHudDialogs.kt$0.75</ID>
     <ID>MagicNumber:PlayerHudDialogs.kt$1.25</ID>
     <ID>MagicNumber:PlayerHudDialogs.kt$1.5</ID>
-    <ID>MagicNumber:PlayerHudDialogs.kt$10</ID>
     <ID>MagicNumber:PlayerHudDialogs.kt$1000.0</ID>
+    <ID>MagicNumber:PlayerHudDialogs.kt$10</ID>
     <ID>MagicNumber:PlayerHudDialogs.kt$18</ID>
     <ID>MagicNumber:PlayerHudDialogs.kt$400</ID>
     <ID>MagicNumber:PlayerHudDialogs.kt$44</ID>
     <ID>MagicNumber:PlayerHudDialogs.kt$4_000L</ID>
-    <ID>MagicNumber:PlayerHudDialogs.kt$5</ID>
     <ID>MagicNumber:PlayerHudDialogs.kt$50</ID>
+    <ID>MagicNumber:PlayerHudDialogs.kt$5</ID>
     <ID>MagicNumber:PlayerHudDialogs.kt$60_000L</ID>
     <ID>MagicNumber:PlayerHudDialogs.kt$800</ID>
     <ID>MagicNumber:ProfileComponents.kt$17</ID>
@@ -2380,10 +2380,10 @@
     <ID>MagicNumber:ScheduleRecordingDialog.kt$16</ID>
     <ID>MagicNumber:ScheduleRecordingDialog.kt$17</ID>
     <ID>MagicNumber:ScheduleRecordingDialog.kt$30</ID>
-    <ID>MagicNumber:ScheduleRecordingDialog.kt$5</ID>
     <ID>MagicNumber:ScheduleRecordingDialog.kt$59</ID>
-    <ID>MagicNumber:ScheduleRecordingDialog.kt$60</ID>
+    <ID>MagicNumber:ScheduleRecordingDialog.kt$5</ID>
     <ID>MagicNumber:ScheduleRecordingDialog.kt$600</ID>
+    <ID>MagicNumber:ScheduleRecordingDialog.kt$60</ID>
     <ID>MagicNumber:ScheduleRecordingDialog.kt$700</ID>
     <ID>MagicNumber:ScheduleRecordingDialog.kt$800</ID>
     <ID>MagicNumber:SearchScreen.kt$0.35f</ID>
@@ -2401,25 +2401,25 @@
     <ID>MagicNumber:SearchScreen.kt$15</ID>
     <ID>MagicNumber:SearchScreen.kt$16</ID>
     <ID>MagicNumber:SearchScreen.kt$16f</ID>
-    <ID>MagicNumber:SearchScreen.kt$19</ID>
     <ID>MagicNumber:SearchScreen.kt$1920f</ID>
+    <ID>MagicNumber:SearchScreen.kt$19</ID>
     <ID>MagicNumber:SearchScreen.kt$21</ID>
     <ID>MagicNumber:SearchScreen.kt$22</ID>
-    <ID>MagicNumber:SearchScreen.kt$3</ID>
     <ID>MagicNumber:SearchScreen.kt$30</ID>
-    <ID>MagicNumber:SearchScreen.kt$40</ID>
+    <ID>MagicNumber:SearchScreen.kt$3</ID>
     <ID>MagicNumber:SearchScreen.kt$400</ID>
+    <ID>MagicNumber:SearchScreen.kt$40</ID>
     <ID>MagicNumber:SearchScreen.kt$44</ID>
     <ID>MagicNumber:SearchScreen.kt$46</ID>
     <ID>MagicNumber:SearchScreen.kt$5</ID>
-    <ID>MagicNumber:SearchScreen.kt$60</ID>
     <ID>MagicNumber:SearchScreen.kt$600</ID>
+    <ID>MagicNumber:SearchScreen.kt$60</ID>
     <ID>MagicNumber:SearchScreen.kt$64</ID>
     <ID>MagicNumber:SearchScreen.kt$700</ID>
     <ID>MagicNumber:SearchScreen.kt$800</ID>
     <ID>MagicNumber:SearchScreen.kt$826</ID>
-    <ID>MagicNumber:SearchScreen.kt$84</ID>
     <ID>MagicNumber:SearchScreen.kt$846</ID>
+    <ID>MagicNumber:SearchScreen.kt$84</ID>
     <ID>MagicNumber:SearchScreen.kt$912</ID>
     <ID>MagicNumber:SearchScreen.kt$944</ID>
     <ID>MagicNumber:SearchScreen.kt$9f</ID>
@@ -2447,8 +2447,8 @@
     <ID>MagicNumber:SeriesScreen.kt$26</ID>
     <ID>MagicNumber:SeriesScreen.kt$30</ID>
     <ID>MagicNumber:SeriesScreen.kt$350</ID>
-    <ID>MagicNumber:SeriesScreen.kt$40</ID>
     <ID>MagicNumber:SeriesScreen.kt$400</ID>
+    <ID>MagicNumber:SeriesScreen.kt$40</ID>
     <ID>MagicNumber:SeriesScreen.kt$450</ID>
     <ID>MagicNumber:SeriesScreen.kt$500</ID>
     <ID>MagicNumber:SeriesScreen.kt$52</ID>
@@ -2467,40 +2467,40 @@
     <ID>MagicNumber:SeriesViewModel.kt$SeriesViewModel$10_000</ID>
     <ID>MagicNumber:SeriesViewModel.kt$SeriesViewModel$250</ID>
     <ID>MagicNumber:SeriesViewModel.kt$SeriesViewModel$300</ID>
-    <ID>MagicNumber:SeriesViewModel.kt$SeriesViewModel$500</ID>
     <ID>MagicNumber:SeriesViewModel.kt$SeriesViewModel$5000</ID>
+    <ID>MagicNumber:SeriesViewModel.kt$SeriesViewModel$500</ID>
     <ID>MagicNumber:SeriesViewModel.kt$SeriesViewModel$5_000</ID>
     <ID>MagicNumber:SeriesViewModel.kt$SeriesViewModel$800</ID>
     <ID>MagicNumber:SetTmdbNameDialog.kt$0.5</ID>
     <ID>MagicNumber:SetTmdbNameDialog.kt$14</ID>
     <ID>MagicNumber:SetTmdbNameDialog.kt$18</ID>
     <ID>MagicNumber:SetTmdbNameDialog.kt$34</ID>
-    <ID>MagicNumber:SetTmdbNameDialog.kt$4</ID>
     <ID>MagicNumber:SetTmdbNameDialog.kt$400</ID>
+    <ID>MagicNumber:SetTmdbNameDialog.kt$4</ID>
     <ID>MagicNumber:SetTmdbNameDialog.kt$800</ID>
     <ID>MagicNumber:SettingsScreen.kt$0.12f</ID>
     <ID>MagicNumber:SettingsScreen.kt$0xFFFFFF</ID>
-    <ID>MagicNumber:SettingsScreen.kt$10</ID>
     <ID>MagicNumber:SettingsScreen.kt$1000</ID>
+    <ID>MagicNumber:SettingsScreen.kt$10</ID>
     <ID>MagicNumber:SettingsScreen.kt$14</ID>
     <ID>MagicNumber:SettingsScreen.kt$15</ID>
     <ID>MagicNumber:SettingsScreen.kt$16</ID>
     <ID>MagicNumber:SettingsScreen.kt$17</ID>
-    <ID>MagicNumber:SettingsScreen.kt$18</ID>
     <ID>MagicNumber:SettingsScreen.kt$180f</ID>
+    <ID>MagicNumber:SettingsScreen.kt$18</ID>
     <ID>MagicNumber:SettingsScreen.kt$19</ID>
-    <ID>MagicNumber:SettingsScreen.kt$3</ID>
     <ID>MagicNumber:SettingsScreen.kt$30</ID>
+    <ID>MagicNumber:SettingsScreen.kt$3</ID>
     <ID>MagicNumber:SettingsScreen.kt$4</ID>
-    <ID>MagicNumber:SettingsScreen.kt$50</ID>
     <ID>MagicNumber:SettingsScreen.kt$500</ID>
-    <ID>MagicNumber:SettingsScreen.kt$6</ID>
-    <ID>MagicNumber:SettingsScreen.kt$60</ID>
+    <ID>MagicNumber:SettingsScreen.kt$50</ID>
     <ID>MagicNumber:SettingsScreen.kt$600</ID>
+    <ID>MagicNumber:SettingsScreen.kt$60</ID>
+    <ID>MagicNumber:SettingsScreen.kt$6</ID>
     <ID>MagicNumber:SettingsScreen.kt$700</ID>
-    <ID>MagicNumber:SettingsScreen.kt$8</ID>
-    <ID>MagicNumber:SettingsScreen.kt$80</ID>
     <ID>MagicNumber:SettingsScreen.kt$800</ID>
+    <ID>MagicNumber:SettingsScreen.kt$80</ID>
+    <ID>MagicNumber:SettingsScreen.kt$8</ID>
     <ID>MagicNumber:SettingsStage.kt$0.02f</ID>
     <ID>MagicNumber:SettingsStage.kt$0.37f</ID>
     <ID>MagicNumber:SettingsStage.kt$0.64f</ID>
@@ -2514,37 +2514,37 @@
     <ID>MagicNumber:SettingsStage.kt$1060</ID>
     <ID>MagicNumber:SettingsStage.kt$120</ID>
     <ID>MagicNumber:SettingsStage.kt$13</ID>
-    <ID>MagicNumber:SettingsStage.kt$15</ID>
     <ID>MagicNumber:SettingsStage.kt$15.5f</ID>
-    <ID>MagicNumber:SettingsStage.kt$16</ID>
+    <ID>MagicNumber:SettingsStage.kt$15</ID>
     <ID>MagicNumber:SettingsStage.kt$160</ID>
+    <ID>MagicNumber:SettingsStage.kt$16</ID>
     <ID>MagicNumber:SettingsStage.kt$17</ID>
-    <ID>MagicNumber:SettingsStage.kt$18</ID>
     <ID>MagicNumber:SettingsStage.kt$180f</ID>
-    <ID>MagicNumber:SettingsStage.kt$19</ID>
+    <ID>MagicNumber:SettingsStage.kt$18</ID>
     <ID>MagicNumber:SettingsStage.kt$1920f</ID>
+    <ID>MagicNumber:SettingsStage.kt$19</ID>
     <ID>MagicNumber:SettingsStage.kt$20</ID>
     <ID>MagicNumber:SettingsStage.kt$21</ID>
     <ID>MagicNumber:SettingsStage.kt$26</ID>
-    <ID>MagicNumber:SettingsStage.kt$3</ID>
     <ID>MagicNumber:SettingsStage.kt$30</ID>
     <ID>MagicNumber:SettingsStage.kt$32</ID>
     <ID>MagicNumber:SettingsStage.kt$36</ID>
     <ID>MagicNumber:SettingsStage.kt$38</ID>
+    <ID>MagicNumber:SettingsStage.kt$3</ID>
     <ID>MagicNumber:SettingsStage.kt$400</ID>
     <ID>MagicNumber:SettingsStage.kt$42</ID>
     <ID>MagicNumber:SettingsStage.kt$46f</ID>
     <ID>MagicNumber:SettingsStage.kt$500</ID>
-    <ID>MagicNumber:SettingsStage.kt$60</ID>
     <ID>MagicNumber:SettingsStage.kt$600</ID>
     <ID>MagicNumber:SettingsStage.kt$600L</ID>
+    <ID>MagicNumber:SettingsStage.kt$60</ID>
     <ID>MagicNumber:SettingsStage.kt$696</ID>
-    <ID>MagicNumber:SettingsStage.kt$7</ID>
     <ID>MagicNumber:SettingsStage.kt$700</ID>
-    <ID>MagicNumber:SettingsStage.kt$80</ID>
+    <ID>MagicNumber:SettingsStage.kt$7</ID>
     <ID>MagicNumber:SettingsStage.kt$800</ID>
-    <ID>MagicNumber:SettingsViewModel.kt$SettingsViewModel$10</ID>
+    <ID>MagicNumber:SettingsStage.kt$80</ID>
     <ID>MagicNumber:SettingsViewModel.kt$SettingsViewModel$100</ID>
+    <ID>MagicNumber:SettingsViewModel.kt$SettingsViewModel$10</ID>
     <ID>MagicNumber:SettingsViewModel.kt$SettingsViewModel$180</ID>
     <ID>MagicNumber:SettingsViewModel.kt$SettingsViewModel$1_800</ID>
     <ID>MagicNumber:SettingsViewModel.kt$SettingsViewModel$204</ID>
@@ -2558,8 +2558,8 @@
     <ID>MagicNumber:SetupWizard.kt$24</ID>
     <ID>MagicNumber:SetupWizard.kt$4</ID>
     <ID>MagicNumber:SetupWizard.kt$500</ID>
-    <ID>MagicNumber:SetupWizard.kt$6</ID>
     <ID>MagicNumber:SetupWizard.kt$60</ID>
+    <ID>MagicNumber:SetupWizard.kt$6</ID>
     <ID>MagicNumber:SetupWizard.kt$700</ID>
     <ID>MagicNumber:SetupWizard.kt$8</ID>
     <ID>MagicNumber:ShellViewModel.kt$ShellViewModel$30</ID>
@@ -2591,8 +2591,8 @@
     <ID>MagicNumber:SolidAmbientBackdrop.kt$0.45f</ID>
     <ID>MagicNumber:SolidAmbientBackdrop.kt$0.46f</ID>
     <ID>MagicNumber:SolidAmbientBackdrop.kt$0.54f</ID>
-    <ID>MagicNumber:SportsBoard.kt$15</ID>
     <ID>MagicNumber:SportsBoard.kt$1560f</ID>
+    <ID>MagicNumber:SportsBoard.kt$15</ID>
     <ID>MagicNumber:SportsBoard.kt$18</ID>
     <ID>MagicNumber:SportsBoard.kt$1920f</ID>
     <ID>MagicNumber:SportsBoard.kt$20</ID>
@@ -2600,8 +2600,8 @@
     <ID>MagicNumber:SportsBoard.kt$400</ID>
     <ID>MagicNumber:SportsBoard.kt$46</ID>
     <ID>MagicNumber:SportsBoard.kt$500</ID>
-    <ID>MagicNumber:SportsBoard.kt$60</ID>
     <ID>MagicNumber:SportsBoard.kt$600</ID>
+    <ID>MagicNumber:SportsBoard.kt$60</ID>
     <ID>MagicNumber:SportsBoard.kt$700</ID>
     <ID>MagicNumber:SportsBoard.kt$800</ID>
     <ID>MagicNumber:SportsFilterPanel.kt$0.12f</ID>
@@ -2610,8 +2610,8 @@
     <ID>MagicNumber:SportsFilterPanel.kt$21</ID>
     <ID>MagicNumber:SportsFilterPanel.kt$33</ID>
     <ID>MagicNumber:SportsFilterPanel.kt$400</ID>
-    <ID>MagicNumber:SportsFilterPanel.kt$60</ID>
     <ID>MagicNumber:SportsFilterPanel.kt$600</ID>
+    <ID>MagicNumber:SportsFilterPanel.kt$60</ID>
     <ID>MagicNumber:SportsFilterPanel.kt$700</ID>
     <ID>MagicNumber:SportsFilterPanel.kt$800</ID>
     <ID>MagicNumber:SportsHubScreen.kt$0.075f</ID>
@@ -2622,34 +2622,34 @@
     <ID>MagicNumber:SportsHubScreen.kt$1.5f</ID>
     <ID>MagicNumber:SportsHubScreen.kt$10</ID>
     <ID>MagicNumber:SportsHubScreen.kt$12</ID>
-    <ID>MagicNumber:SportsHubScreen.kt$16</ID>
     <ID>MagicNumber:SportsHubScreen.kt$16.5f</ID>
+    <ID>MagicNumber:SportsHubScreen.kt$16</ID>
     <ID>MagicNumber:SportsHubScreen.kt$17</ID>
     <ID>MagicNumber:SportsHubScreen.kt$17f</ID>
     <ID>MagicNumber:SportsHubScreen.kt$18</ID>
     <ID>MagicNumber:SportsHubScreen.kt$18f</ID>
-    <ID>MagicNumber:SportsHubScreen.kt$19</ID>
     <ID>MagicNumber:SportsHubScreen.kt$19.5f</ID>
+    <ID>MagicNumber:SportsHubScreen.kt$19</ID>
     <ID>MagicNumber:SportsHubScreen.kt$20</ID>
     <ID>MagicNumber:SportsHubScreen.kt$21</ID>
     <ID>MagicNumber:SportsHubScreen.kt$21f</ID>
     <ID>MagicNumber:SportsHubScreen.kt$22</ID>
     <ID>MagicNumber:SportsHubScreen.kt$25.5f</ID>
     <ID>MagicNumber:SportsHubScreen.kt$27f</ID>
-    <ID>MagicNumber:SportsHubScreen.kt$3</ID>
     <ID>MagicNumber:SportsHubScreen.kt$30</ID>
     <ID>MagicNumber:SportsHubScreen.kt$324</ID>
-    <ID>MagicNumber:SportsHubScreen.kt$4</ID>
+    <ID>MagicNumber:SportsHubScreen.kt$3</ID>
     <ID>MagicNumber:SportsHubScreen.kt$400</ID>
     <ID>MagicNumber:SportsHubScreen.kt$42</ID>
     <ID>MagicNumber:SportsHubScreen.kt$48</ID>
-    <ID>MagicNumber:SportsHubScreen.kt$5</ID>
+    <ID>MagicNumber:SportsHubScreen.kt$4</ID>
     <ID>MagicNumber:SportsHubScreen.kt$500</ID>
     <ID>MagicNumber:SportsHubScreen.kt$51</ID>
-    <ID>MagicNumber:SportsHubScreen.kt$6</ID>
-    <ID>MagicNumber:SportsHubScreen.kt$60</ID>
+    <ID>MagicNumber:SportsHubScreen.kt$5</ID>
     <ID>MagicNumber:SportsHubScreen.kt$600</ID>
+    <ID>MagicNumber:SportsHubScreen.kt$60</ID>
     <ID>MagicNumber:SportsHubScreen.kt$648</ID>
+    <ID>MagicNumber:SportsHubScreen.kt$6</ID>
     <ID>MagicNumber:SportsHubScreen.kt$700</ID>
     <ID>MagicNumber:SportsHubScreen.kt$800</ID>
     <ID>MagicNumber:SportsHubScreen.kt$900</ID>
@@ -2660,8 +2660,8 @@
     <ID>MagicNumber:SportsLeagueScreen.kt$25.5f</ID>
     <ID>MagicNumber:SportsLeagueScreen.kt$400</ID>
     <ID>MagicNumber:SportsLeagueScreen.kt$48</ID>
-    <ID>MagicNumber:SportsLeagueScreen.kt$60</ID>
     <ID>MagicNumber:SportsLeagueScreen.kt$600</ID>
+    <ID>MagicNumber:SportsLeagueScreen.kt$60</ID>
     <ID>MagicNumber:SportsLeagueScreen.kt$700</ID>
     <ID>MagicNumber:SportsLeagueScreen.kt$800</ID>
     <ID>MagicNumber:SportsMatchScreen.kt$0.01f</ID>
@@ -2679,17 +2679,17 @@
     <ID>MagicNumber:SportsMatchScreen.kt$21</ID>
     <ID>MagicNumber:SportsMatchScreen.kt$22.5f</ID>
     <ID>MagicNumber:SportsMatchScreen.kt$24</ID>
-    <ID>MagicNumber:SportsMatchScreen.kt$3</ID>
     <ID>MagicNumber:SportsMatchScreen.kt$30f</ID>
-    <ID>MagicNumber:SportsMatchScreen.kt$4</ID>
+    <ID>MagicNumber:SportsMatchScreen.kt$3</ID>
     <ID>MagicNumber:SportsMatchScreen.kt$400</ID>
-    <ID>MagicNumber:SportsMatchScreen.kt$5</ID>
+    <ID>MagicNumber:SportsMatchScreen.kt$4</ID>
     <ID>MagicNumber:SportsMatchScreen.kt$500</ID>
     <ID>MagicNumber:SportsMatchScreen.kt$51f</ID>
-    <ID>MagicNumber:SportsMatchScreen.kt$60</ID>
+    <ID>MagicNumber:SportsMatchScreen.kt$5</ID>
     <ID>MagicNumber:SportsMatchScreen.kt$600</ID>
-    <ID>MagicNumber:SportsMatchScreen.kt$7</ID>
+    <ID>MagicNumber:SportsMatchScreen.kt$60</ID>
     <ID>MagicNumber:SportsMatchScreen.kt$700</ID>
+    <ID>MagicNumber:SportsMatchScreen.kt$7</ID>
     <ID>MagicNumber:SportsMatchScreen.kt$800</ID>
     <ID>MagicNumber:SportsMatchScreen.kt$81f</ID>
     <ID>MagicNumber:SportsMatchScreen.kt$93</ID>
@@ -2707,8 +2707,8 @@
     <ID>MagicNumber:SportsPlayerParts.kt$19</ID>
     <ID>MagicNumber:SportsPlayerParts.kt$20</ID>
     <ID>MagicNumber:SportsPlayerParts.kt$28.5f</ID>
-    <ID>MagicNumber:SportsPlayerParts.kt$3</ID>
     <ID>MagicNumber:SportsPlayerParts.kt$33</ID>
+    <ID>MagicNumber:SportsPlayerParts.kt$3</ID>
     <ID>MagicNumber:SportsPlayerParts.kt$400</ID>
     <ID>MagicNumber:SportsPlayerParts.kt$60</ID>
     <ID>MagicNumber:SportsPlayerParts.kt$700</ID>
@@ -2717,15 +2717,15 @@
     <ID>MagicNumber:SportsSettingsScreen.kt$3</ID>
     <ID>MagicNumber:SportsSettingsScreen.kt$4</ID>
     <ID>MagicNumber:SportsSettingsScreen.kt$5</ID>
-    <ID>MagicNumber:SportsSettingsScreen.kt$6</ID>
     <ID>MagicNumber:SportsSettingsScreen.kt$60</ID>
+    <ID>MagicNumber:SportsSettingsScreen.kt$6</ID>
     <ID>MagicNumber:SportsSettingsViewModel.kt$SportsSettingsViewModel$30</ID>
     <ID>MagicNumber:SportsSettingsViewModel.kt$SportsSettingsViewModel$5_000</ID>
     <ID>MagicNumber:SportsTable.kt$16.5f</ID>
     <ID>MagicNumber:SportsTable.kt$19</ID>
     <ID>MagicNumber:SportsTable.kt$30</ID>
-    <ID>MagicNumber:SportsTable.kt$5</ID>
     <ID>MagicNumber:SportsTable.kt$500</ID>
+    <ID>MagicNumber:SportsTable.kt$5</ID>
     <ID>MagicNumber:SportsTable.kt$600</ID>
     <ID>MagicNumber:SportsTable.kt$700</ID>
     <ID>MagicNumber:SportsTable.kt$800</ID>
@@ -2759,35 +2759,35 @@
     <ID>MagicNumber:StageComponents.kt$1.08f</ID>
     <ID>MagicNumber:StageComponents.kt$1.5f</ID>
     <ID>MagicNumber:StageComponents.kt$11</ID>
-    <ID>MagicNumber:StageComponents.kt$12</ID>
     <ID>MagicNumber:StageComponents.kt$12.5f</ID>
+    <ID>MagicNumber:StageComponents.kt$12</ID>
     <ID>MagicNumber:StageComponents.kt$13</ID>
     <ID>MagicNumber:StageComponents.kt$14</ID>
-    <ID>MagicNumber:StageComponents.kt$15</ID>
     <ID>MagicNumber:StageComponents.kt$15.5f</ID>
+    <ID>MagicNumber:StageComponents.kt$15</ID>
     <ID>MagicNumber:StageComponents.kt$16</ID>
-    <ID>MagicNumber:StageComponents.kt$17</ID>
     <ID>MagicNumber:StageComponents.kt$170</ID>
+    <ID>MagicNumber:StageComponents.kt$17</ID>
     <ID>MagicNumber:StageComponents.kt$17f</ID>
     <ID>MagicNumber:StageComponents.kt$18</ID>
     <ID>MagicNumber:StageComponents.kt$19</ID>
     <ID>MagicNumber:StageComponents.kt$2.5f</ID>
-    <ID>MagicNumber:StageComponents.kt$20</ID>
     <ID>MagicNumber:StageComponents.kt$200</ID>
+    <ID>MagicNumber:StageComponents.kt$20</ID>
     <ID>MagicNumber:StageComponents.kt$22</ID>
     <ID>MagicNumber:StageComponents.kt$23</ID>
-    <ID>MagicNumber:StageComponents.kt$3</ID>
     <ID>MagicNumber:StageComponents.kt$30</ID>
-    <ID>MagicNumber:StageComponents.kt$4</ID>
-    <ID>MagicNumber:StageComponents.kt$40</ID>
+    <ID>MagicNumber:StageComponents.kt$3</ID>
     <ID>MagicNumber:StageComponents.kt$400</ID>
+    <ID>MagicNumber:StageComponents.kt$40</ID>
     <ID>MagicNumber:StageComponents.kt$44</ID>
+    <ID>MagicNumber:StageComponents.kt$4</ID>
     <ID>MagicNumber:StageComponents.kt$500</ID>
-    <ID>MagicNumber:StageComponents.kt$60</ID>
     <ID>MagicNumber:StageComponents.kt$600</ID>
+    <ID>MagicNumber:StageComponents.kt$60</ID>
     <ID>MagicNumber:StageComponents.kt$700</ID>
-    <ID>MagicNumber:StageComponents.kt$8</ID>
     <ID>MagicNumber:StageComponents.kt$800</ID>
+    <ID>MagicNumber:StageComponents.kt$8</ID>
     <ID>MagicNumber:StageControls.kt$0xFF121212</ID>
     <ID>MagicNumber:StageControls.kt$0xFFE0E2E4</ID>
     <ID>MagicNumber:StageControls.kt$0xFFE7EFEC</ID>
@@ -2852,8 +2852,8 @@
     <ID>MagicNumber:StagePopup.kt$38</ID>
     <ID>MagicNumber:StagePopup.kt$400</ID>
     <ID>MagicNumber:StagePopup.kt$500</ID>
-    <ID>MagicNumber:StagePopup.kt$60</ID>
     <ID>MagicNumber:StagePopup.kt$600</ID>
+    <ID>MagicNumber:StagePopup.kt$60</ID>
     <ID>MagicNumber:StagePopup.kt$700</ID>
     <ID>MagicNumber:StagePopup.kt$800</ID>
     <ID>MagicNumber:StageRail.kt$0.9f</ID>
@@ -2869,8 +2869,8 @@
     <ID>MagicNumber:StageRail.kt$19</ID>
     <ID>MagicNumber:StageRail.kt$21</ID>
     <ID>MagicNumber:StageRail.kt$24</ID>
-    <ID>MagicNumber:StageRail.kt$28</ID>
     <ID>MagicNumber:StageRail.kt$280</ID>
+    <ID>MagicNumber:StageRail.kt$28</ID>
     <ID>MagicNumber:StageRail.kt$300</ID>
     <ID>MagicNumber:StageRail.kt$340</ID>
     <ID>MagicNumber:StageRail.kt$400</ID>
@@ -2888,15 +2888,15 @@
     <ID>MagicNumber:StageSidePanel.kt$500</ID>
     <ID>MagicNumber:StageSidePanel.kt$700</ID>
     <ID>MagicNumber:StageSidePanel.kt$800</ID>
-    <ID>MagicNumber:StageStatus.kt$0.5</ID>
     <ID>MagicNumber:StageStatus.kt$0.55f</ID>
+    <ID>MagicNumber:StageStatus.kt$0.5</ID>
     <ID>MagicNumber:StageStatus.kt$1.2f</ID>
     <ID>MagicNumber:StageStatus.kt$15_000</ID>
     <ID>MagicNumber:StageStatus.kt$17</ID>
     <ID>MagicNumber:StageStatus.kt$19</ID>
     <ID>MagicNumber:StageStatus.kt$32</ID>
-    <ID>MagicNumber:StageStatus.kt$40</ID>
     <ID>MagicNumber:StageStatus.kt$400</ID>
+    <ID>MagicNumber:StageStatus.kt$40</ID>
     <ID>MagicNumber:StageStatus.kt$5</ID>
     <ID>MagicNumber:StageStatus.kt$600</ID>
     <ID>MagicNumber:StageStatus.kt$700</ID>
@@ -2971,8 +2971,8 @@
     <ID>MagicNumber:TelegramWelcome.kt$32</ID>
     <ID>MagicNumber:TelegramWelcome.kt$500</ID>
     <ID>MagicNumber:TelegramWelcome.kt$600</ID>
-    <ID>MagicNumber:TelegramWelcome.kt$80</ID>
     <ID>MagicNumber:TelegramWelcome.kt$800</ID>
+    <ID>MagicNumber:TelegramWelcome.kt$80</ID>
     <ID>MagicNumber:TelegramWelcome.kt$TelegramWelcomePrefs$24</ID>
     <ID>MagicNumber:TelegramWelcome.kt$TelegramWelcomePrefs$3_600_000L</ID>
     <ID>MagicNumber:TextInputDialog.kt$80</ID>
@@ -2990,18 +2990,18 @@
     <ID>MagicNumber:TrailerPlayerScreen.kt$18</ID>
     <ID>MagicNumber:TrailerPlayerScreen.kt$1920f</ID>
     <ID>MagicNumber:TrailerPlayerScreen.kt$20</ID>
-    <ID>MagicNumber:TrailerPlayerScreen.kt$3</ID>
     <ID>MagicNumber:TrailerPlayerScreen.kt$30</ID>
     <ID>MagicNumber:TrailerPlayerScreen.kt$320</ID>
+    <ID>MagicNumber:TrailerPlayerScreen.kt$3</ID>
     <ID>MagicNumber:TrailerPlayerScreen.kt$400</ID>
     <ID>MagicNumber:TrailerPlayerScreen.kt$46</ID>
     <ID>MagicNumber:TrailerPlayerScreen.kt$5</ID>
-    <ID>MagicNumber:TrailerPlayerScreen.kt$6</ID>
     <ID>MagicNumber:TrailerPlayerScreen.kt$60</ID>
+    <ID>MagicNumber:TrailerPlayerScreen.kt$6</ID>
     <ID>MagicNumber:TrailerPlayerScreen.kt$700</ID>
-    <ID>MagicNumber:TrailerPlayerScreen.kt$8</ID>
     <ID>MagicNumber:TrailerPlayerScreen.kt$800</ID>
     <ID>MagicNumber:TrailerPlayerScreen.kt$84</ID>
+    <ID>MagicNumber:TrailerPlayerScreen.kt$8</ID>
     <ID>MagicNumber:TvBoxChannelPanel.kt$0x1A000000</ID>
     <ID>MagicNumber:TvBoxChannelPanel.kt$0x1FFFFFFF</ID>
     <ID>MagicNumber:TvBoxChannelPanel.kt$0x8C16181D</ID>
@@ -3038,8 +3038,8 @@
     <ID>MagicNumber:TvBoxPlayerInfo.kt$34</ID>
     <ID>MagicNumber:TvBoxPlayerInfo.kt$3600</ID>
     <ID>MagicNumber:TvBoxPlayerInfo.kt$500</ID>
-    <ID>MagicNumber:TvBoxPlayerInfo.kt$60</ID>
     <ID>MagicNumber:TvBoxPlayerInfo.kt$600</ID>
+    <ID>MagicNumber:TvBoxPlayerInfo.kt$60</ID>
     <ID>MagicNumber:TvBoxPlayerInfo.kt$60_000L</ID>
     <ID>MagicNumber:TvBoxPlayerInfo.kt$700</ID>
     <ID>MagicNumber:TvBoxPlayerInfo.kt$800</ID>
@@ -3071,21 +3071,21 @@
     <ID>MagicNumber:VideoPlayerSettingsScreen.kt$0xFF7A5C3E</ID>
     <ID>MagicNumber:VideoPlayerSettingsScreen.kt$1.3f</ID>
     <ID>MagicNumber:VideoPlayerSettingsScreen.kt$1.6f</ID>
-    <ID>MagicNumber:VideoPlayerSettingsScreen.kt$10</ID>
     <ID>MagicNumber:VideoPlayerSettingsScreen.kt$100</ID>
+    <ID>MagicNumber:VideoPlayerSettingsScreen.kt$10</ID>
     <ID>MagicNumber:VideoPlayerSettingsScreen.kt$150</ID>
     <ID>MagicNumber:VideoPlayerSettingsScreen.kt$20</ID>
     <ID>MagicNumber:VideoPlayerSettingsScreen.kt$25</ID>
     <ID>MagicNumber:VideoPlayerSettingsScreen.kt$29</ID>
     <ID>MagicNumber:VideoPlayerSettingsScreen.kt$3</ID>
     <ID>MagicNumber:VideoPlayerSettingsScreen.kt$400</ID>
-    <ID>MagicNumber:VideoPlayerSettingsScreen.kt$5</ID>
-    <ID>MagicNumber:VideoPlayerSettingsScreen.kt$50</ID>
-    <ID>MagicNumber:VideoPlayerSettingsScreen.kt$500</ID>
     <ID>MagicNumber:VideoPlayerSettingsScreen.kt$5000</ID>
+    <ID>MagicNumber:VideoPlayerSettingsScreen.kt$500</ID>
+    <ID>MagicNumber:VideoPlayerSettingsScreen.kt$50</ID>
+    <ID>MagicNumber:VideoPlayerSettingsScreen.kt$5</ID>
     <ID>MagicNumber:VideoPlayerSettingsScreen.kt$60</ID>
-    <ID>MagicNumber:VideoPlayerSettingsScreen.kt$8</ID>
     <ID>MagicNumber:VideoPlayerSettingsScreen.kt$80</ID>
+    <ID>MagicNumber:VideoPlayerSettingsScreen.kt$8</ID>
     <ID>MagicNumber:VideoPlayerSettingsScreen.kt$9</ID>
     <ID>MagicNumber:VideoZoom.kt$16f</ID>
     <ID>MagicNumber:VideoZoom.kt$3f</ID>
@@ -3117,18 +3117,18 @@
     <ID>MagicNumber:VodStage.kt$21</ID>
     <ID>MagicNumber:VodStage.kt$22</ID>
     <ID>MagicNumber:VodStage.kt$24</ID>
-    <ID>MagicNumber:VodStage.kt$3</ID>
     <ID>MagicNumber:VodStage.kt$300</ID>
     <ID>MagicNumber:VodStage.kt$3600</ID>
-    <ID>MagicNumber:VodStage.kt$4</ID>
+    <ID>MagicNumber:VodStage.kt$3</ID>
     <ID>MagicNumber:VodStage.kt$400</ID>
     <ID>MagicNumber:VodStage.kt$420</ID>
     <ID>MagicNumber:VodStage.kt$46</ID>
-    <ID>MagicNumber:VodStage.kt$5</ID>
+    <ID>MagicNumber:VodStage.kt$4</ID>
     <ID>MagicNumber:VodStage.kt$500</ID>
-    <ID>MagicNumber:VodStage.kt$6</ID>
-    <ID>MagicNumber:VodStage.kt$60</ID>
+    <ID>MagicNumber:VodStage.kt$5</ID>
     <ID>MagicNumber:VodStage.kt$600</ID>
+    <ID>MagicNumber:VodStage.kt$60</ID>
+    <ID>MagicNumber:VodStage.kt$6</ID>
     <ID>MagicNumber:VodStage.kt$700</ID>
     <ID>MagicNumber:VodStage.kt$720f</ID>
     <ID>MagicNumber:VodStage.kt$800</ID>
@@ -3158,8 +3158,8 @@
     <ID>MagicNumber:WeatherConditionIcon.kt$1.15f</ID>
     <ID>MagicNumber:WeatherConditionIcon.kt$1.25f</ID>
     <ID>MagicNumber:WeatherConditionIcon.kt$1.8f</ID>
-    <ID>MagicNumber:WeatherConditionIcon.kt$10</ID>
     <ID>MagicNumber:WeatherConditionIcon.kt$100f</ID>
+    <ID>MagicNumber:WeatherConditionIcon.kt$10</ID>
     <ID>MagicNumber:WeatherConditionIcon.kt$10f</ID>
     <ID>MagicNumber:WeatherConditionIcon.kt$12f</ID>
     <ID>MagicNumber:WeatherConditionIcon.kt$13f</ID>
@@ -3175,18 +3175,18 @@
     <ID>MagicNumber:WeatherConditionIcon.kt$24f</ID>
     <ID>MagicNumber:WeatherConditionIcon.kt$26f</ID>
     <ID>MagicNumber:WeatherConditionIcon.kt$28f</ID>
-    <ID>MagicNumber:WeatherConditionIcon.kt$3</ID>
     <ID>MagicNumber:WeatherConditionIcon.kt$30f</ID>
     <ID>MagicNumber:WeatherConditionIcon.kt$32f</ID>
     <ID>MagicNumber:WeatherConditionIcon.kt$35f</ID>
     <ID>MagicNumber:WeatherConditionIcon.kt$36f</ID>
     <ID>MagicNumber:WeatherConditionIcon.kt$38f</ID>
     <ID>MagicNumber:WeatherConditionIcon.kt$39f</ID>
+    <ID>MagicNumber:WeatherConditionIcon.kt$3</ID>
     <ID>MagicNumber:WeatherConditionIcon.kt$3f</ID>
-    <ID>MagicNumber:WeatherConditionIcon.kt$4</ID>
     <ID>MagicNumber:WeatherConditionIcon.kt$40f</ID>
     <ID>MagicNumber:WeatherConditionIcon.kt$46f</ID>
     <ID>MagicNumber:WeatherConditionIcon.kt$48f</ID>
+    <ID>MagicNumber:WeatherConditionIcon.kt$4</ID>
     <ID>MagicNumber:WeatherConditionIcon.kt$4f</ID>
     <ID>MagicNumber:WeatherConditionIcon.kt$50f</ID>
     <ID>MagicNumber:WeatherConditionIcon.kt$52f</ID>
@@ -3303,9 +3303,9 @@
     <ID>MaxLineLength:AppIconPicker.kt$stringResource(R.string.settings_app_icon_summary)</ID>
     <ID>MaxLineLength:AppIconPicker.kt$tv.own.owntv.ui.stage.StageButton(stringResource(R.string.update_later), onClick = onDismiss, height = 56.mpx, textSize = 19)</ID>
     <ID>MaxLineLength:AudioNowPlayingBar.kt$AsyncImage(model = logo, contentDescription = null, contentScale = ContentScale.Fit, modifier = Modifier.fillMaxSize().padding(6.mpx))</ID>
-    <ID>MaxLineLength:AudioNowPlayingBar.kt$AudioBtn</ID>
     <ID>MaxLineLength:AudioNowPlayingBar.kt$AudioBtn(1, if (isPlaying) OwnTVIcon.PAUSE else OwnTVIcon.PLAY, active, true, requesters, { focusedSlot = it }, big = true) { player.togglePlayPause() }</ID>
     <ID>MaxLineLength:AudioNowPlayingBar.kt$AudioBtn(4, if (volume &lt;= 0) OwnTVIcon.VOLUME_MUTE else OwnTVIcon.VOLUME_HIGH, active, true, requesters, { focusedSlot = it }) { player.toggleMute() }</ID>
+    <ID>MaxLineLength:AudioNowPlayingBar.kt$AudioBtn</ID>
     <ID>MaxLineLength:AudioNowPlayingBar.kt$Modifier.stageGlass(r, overContent = true).drawBehind { drawInnerRing(accent.accent, 2.mpx.toPx(), r.toPx()) }</ID>
     <ID>MaxLineLength:AudioNowPlayingBar.kt$Row</ID>
     <ID>MaxLineLength:AudioNowPlayingBar.kt$Text(meta.title ?: "", style = stageText(18, 700), color = StageColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
@@ -3336,7 +3336,6 @@
     <ID>MaxLineLength:BackupScreen.kt$Text(stringResource(R.string.settings_backup_working), style = stageText(17, 500), color = StageColors.Muted)</ID>
     <ID>MaxLineLength:BackupScreen.kt$confirmLabel = if (exportToRemote) stringResource(R.string.settings_backup_continue) else stringResource(R.string.settings_backup_choose_folder_action)</ID>
     <ID>MaxLineLength:BackupScreen.kt$confirmLabel = if (need.sealed) stringResource(R.string.settings_backup_unlock) else stringResource(R.string.settings_backup_restore_action)</ID>
-    <ID>MaxLineLength:BackupScreen.kt$if</ID>
     <ID>MaxLineLength:BackupScreen.kt$if (!tv.own.owntv.ui.theme.LocalInSettingsSheet.current) Text(stringResource(R.string.settings_backup_title), style = stageText(42, 800, (-1).mpxSp), color = StageColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:BackupScreen.kt$if (s.invalidLocale) Text(stringResource(R.string.settings_backup_invalid_locale), style = stageText(16, 500), color = StageColors.Muted)</ID>
     <ID>MaxLineLength:BackupScreen.kt$if (s.passwordsOmitted) Text(stringResource(R.string.settings_backup_restore_password_note), style = stageText(16, 500), color = StageColors.Muted)</ID>
@@ -3344,6 +3343,7 @@
     <ID>MaxLineLength:BackupScreen.kt$if (sections == null) vm.unlock(need.file, pass) else vm.import(need.file, sections, pass, need.deviceSettings)</ID>
     <ID>MaxLineLength:BackupScreen.kt$if (skipLabel != null) tv.own.owntv.ui.stage.StageButton(skipLabel, onClick = onSkip, height = 56.mpx, textSize = 19)</ID>
     <ID>MaxLineLength:BackupScreen.kt$if (wrong) Text(stringResource(R.string.settings_backup_pin_incorrect), style = stageText(17, 600), color = StageColors.Danger, modifier = Modifier.padding(top = 10.mpx))</ID>
+    <ID>MaxLineLength:BackupScreen.kt$if</ID>
     <ID>MaxLineLength:BackupScreen.kt$label = if (p.id == activeId) stringResource(R.string.settings_backup_profile_current, p.name) else p.name</ID>
     <ID>MaxLineLength:BackupScreen.kt$onClick = { if (!working) { dialogReturn = restoreBtnFocus; browser = BrowseMode.FILE; showBrowser = true } }</ID>
     <ID>MaxLineLength:BackupScreen.kt$onConfirm = { chosen -&gt; vm.beginImport(choose.file, chosen, choose.encrypted, choose.password, deviceSettings.value) }</ID>
@@ -3360,8 +3360,8 @@
     <ID>MaxLineLength:BackupScreen.kt$tv.own.owntv.ui.stage.StageButton(confirmLabel, onClick = { if (selected.isNotEmpty()) onConfirm(selected) }, height = 56.mpx, textSize = 19, tinted = true)</ID>
     <ID>MaxLineLength:BackupScreen.kt$tv.own.owntv.ui.stage.StageButton(stringResource(R.string.common_cancel), onClick = onDismiss, height = 56.mpx, textSize = 19)</ID>
     <ID>MaxLineLength:BackupScreen.kt$tv.own.owntv.ui.stage.StageButton(stringResource(R.string.settings_backup_continue), onClick = { if (ticked.isNotEmpty()) onConfirm(ticked) }, height = 56.mpx, textSize = 19, tinted = true)</ID>
-    <ID>MaxLineLength:BackupScreen.kt$val</ID>
     <ID>MaxLineLength:BackupScreen.kt$val status = @Composable { text: String, color: Color -&gt; Text(text, style = stageText(17, 500), color = color, modifier = Modifier.padding(top = 20.mpx)) }</ID>
+    <ID>MaxLineLength:BackupScreen.kt$val</ID>
     <ID>MaxLineLength:BackupViewModel.kt$BackupViewModel$_state.value = State.Done(DoneKind.EXPORTED, path = it, passwordsOmitted = backupPassword.isNullOrBlank())</ID>
     <ID>MaxLineLength:BackupViewModel.kt$BackupViewModel$fun</ID>
     <ID>MaxLineLength:BackupViewModel.kt$BackupViewModel$onSuccess = { _state.value = State.ChooseRestore(file, it.sections, it.encrypted, fromOtherDevice = it.fromOtherDevice) }</ID>
@@ -3512,8 +3512,8 @@
     <ID>MaxLineLength:DownloadsScreen.kt$/** Its file (finished or partial) is no longer on the drive. Finished: only Delete; stopped: Resume/Retry start over. */</ID>
     <ID>MaxLineLength:DownloadsScreen.kt$?:</ID>
     <ID>MaxLineLength:DownloadsScreen.kt$AsyncImage(model = info?.artUrl ?: d.posterUrl, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())</ID>
-    <ID>MaxLineLength:DownloadsScreen.kt$Box</ID>
     <ID>MaxLineLength:DownloadsScreen.kt$Box(Modifier.padding(top = 28.mpx, bottom = 22.mpx).fillMaxWidth().height(1.mpx).background(StageColors.Ink.copy(alpha = 0.1f)))</ID>
+    <ID>MaxLineLength:DownloadsScreen.kt$Box</ID>
     <ID>MaxLineLength:DownloadsScreen.kt$DownloadItem(d, details[d.id], active?.takeIf { it.id == d.id }, downloading, vm, onFullscreen, externalPlayerOn, focusOf(d.id), acted, rowFocused, wentExternal, gone = d.filePath in missing)</ID>
     <ID>MaxLineLength:DownloadsScreen.kt$DownloadItem(d, details[d.id], null, downloading, vm, onFullscreen, externalPlayerOn, focusOf(d.id), acted, rowFocused, wentExternal, gone = d.filePath in missing)</ID>
     <ID>MaxLineLength:DownloadsScreen.kt$DownloadStatus.COMPLETED -&gt; listOf(StageAction(stringResource(R.string.content_downloads_external), OwnTVIcon.EXTERNAL) { wentExternal(); vm.playExternal(d) }, delete)</ID>
@@ -3537,9 +3537,9 @@
     <ID>MaxLineLength:DownloadsScreen.kt$downloadGroup</ID>
     <ID>MaxLineLength:DownloadsScreen.kt$else</ID>
     <ID>MaxLineLength:DownloadsScreen.kt$fraction?.let { withStyle(SpanStyle(color = StageColors.Text, fontWeight = androidx.compose.ui.text.font.FontWeight.ExtraBold)) { append(stringResource(R.string.content_progress_percent, (it * 100).toInt())) } }</ID>
-    <ID>MaxLineLength:DownloadsScreen.kt$if</ID>
     <ID>MaxLineLength:DownloadsScreen.kt$if (gone) StatusLine(stringResource(R.string.content_downloads_file_missing), FailColor) else DownloadStatusText(d, live, queue)</ID>
     <ID>MaxLineLength:DownloadsScreen.kt$if (recorded == 0) stringResource(R.string.recording_card_empty_title) else pluralStringResource(R.plurals.recording_card_count, recorded, recorded)</ID>
+    <ID>MaxLineLength:DownloadsScreen.kt$if</ID>
     <ID>MaxLineLength:DownloadsScreen.kt$listOf(DownloadsTab.MOVIES to movies.size, DownloadsTab.SERIES to series.size, DownloadsTab.RECORDINGS to recorded)</ID>
     <ID>MaxLineLength:DownloadsScreen.kt$live?.bytesPerSecond?.takeIf { it &gt; 0 }?.let { add(stringResource(R.string.content_downloads_speed, decimal(it / 1_048_576.0))) }</ID>
     <ID>MaxLineLength:DownloadsScreen.kt$live?.secondsLeft?.let { add(stringResource(R.string.home_time_left, vodRuntime(maxOf(60, (ceil(it / 60.0) * 60).toInt())))) }</ID>
@@ -3605,7 +3605,6 @@
     <ID>MaxLineLength:EpgScreen.kt$state.loading -&gt; Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { OwnTVSpinner(sizeDp = 44) }</ID>
     <ID>MaxLineLength:EpgScreen.kt$text = null</ID>
     <ID>MaxLineLength:EpgScreen.kt$text = stringResource(R.string.content_live_list_view)</ID>
-    <ID>MaxLineLength:EpgScreen.kt$val</ID>
     <ID>MaxLineLength:EpgScreen.kt$val catchupIds = remember(progs, channel, now) { progs.filter { vm.canCatchup(channel, it, now) }.mapTo(HashSet()) { it.id } }</ID>
     <ID>MaxLineLength:EpgScreen.kt$val idx = (focusChannelId ?: vm.lastTunedChannelId)?.let { id -&gt; state.channels.indexOfFirst { it.id == id } }?.takeIf { it &gt;= 0 } ?: 0</ID>
     <ID>MaxLineLength:EpgScreen.kt$val labelW = guideWidthShares?.let { (screenW - fx(112)) * (it.channels / 100f) } ?: (screenW * GuideGridDefaults.ChannelColShare)</ID>
@@ -3614,6 +3613,7 @@
     <ID>MaxLineLength:EpgScreen.kt$val remindersByChannel = remember(reminderRows) { reminderRows.groupBy({ it.channelId }, { it.startMs }).mapValues { it.value.toSet() } }</ID>
     <ID>MaxLineLength:EpgScreen.kt$val rest = prefix?.let { p -&gt; name.takeIf { it.startsWith("$p ", ignoreCase = true) }?.substring(p.length)?.trim() }</ID>
     <ID>MaxLineLength:EpgScreen.kt$val top = selected ?: state.channels.getOrNull(focusedRow)?.let { ch -&gt; cacheRevision.let { ch to programmeAt(vm.cachedProgrammes(ch), liveNow) } }</ID>
+    <ID>MaxLineLength:EpgScreen.kt$val</ID>
     <ID>MaxLineLength:EpgScreen.kt$windowStart = state.windowStart</ID>
     <ID>MaxLineLength:EpgSemiAutoSync.kt$setState(if (e != null &amp;&amp; !anySucceeded) EpgSyncUi.Failed(classifySyncFailure(e.message, online = true)) else EpgSyncUi.Done)</ID>
     <ID>MaxLineLength:EpgSourceForm.kt$LaunchedEffect(options) { if (!options.isNullOrEmpty()) { kotlinx.coroutines.delay(60); runCatching { firstFocus.requestFocus() } } }</ID>
@@ -3703,8 +3703,8 @@
     <ID>MaxLineLength:GuideCore.kt$buttons = { tv.own.owntv.ui.stage.StagePopupButton(stringResource(R.string.common_cancel), onClick = onDismiss, primary = false) }</ID>
     <ID>MaxLineLength:GuideCore.kt$drawRoundRect(a.focus, Offset(x0 - px, -px), Size(w + 2 * px, h + 2 * px), CornerRadius(r.x + px), style = Stroke(2 * px))</ID>
     <ID>MaxLineLength:GuideCore.kt$drawRoundRect(colour, Offset(x0 - out, -out), Size(w + 2 * out, h + 2 * out), CornerRadius(r.x + out), style = Stroke(2.5f * px))</ID>
-    <ID>MaxLineLength:GuideCore.kt$if</ID>
     <ID>MaxLineLength:GuideCore.kt$if (p.startMs in recordingStarts) glyph(OwnTVIcon.REC, if (focused) a.onAccent else recRed.copy(alpha = fade), filled = true)</ID>
+    <ID>MaxLineLength:GuideCore.kt$if</ID>
     <ID>MaxLineLength:GuideCore.kt$programmes.map { String.format(java.util.Locale.ROOT, rangeTemplate, formatTime(it.startMs), formatTime(it.stopMs)) }</ID>
     <ID>MaxLineLength:GuideCore.kt$stringResource(if (isFavorite) R.string.content_epg_unfavourite else R.string.content_epg_favourite)</ID>
     <ID>MaxLineLength:GuideCore.kt$style = if (compact) tv.own.owntv.ui.theme.stageText(15, 500) else tv.own.owntv.ui.theme.stageText(18, 400)</ID>
@@ -3775,11 +3775,11 @@
     <ID>MaxLineLength:GuideStage.kt$text = stringResource(if (actions.reminderSet) R.string.content_reminder_set else R.string.content_remind_me)</ID>
     <ID>MaxLineLength:GuideStage.kt$text = stringResource(if (actions.seriesActive) R.string.recording_stop_series else R.string.recording_record_series)</ID>
     <ID>MaxLineLength:GuideStage.kt$text = stringResource(if (isFavorite) R.string.content_epg_remove_favourite else R.string.content_epg_add_favourite)</ID>
-    <ID>MaxLineLength:GuideStage.kt$title</ID>
     <ID>MaxLineLength:GuideStage.kt$title = listOfNotNull(channel.number?.toString(), tv.own.owntv.core.live.ProviderTags.parse(channel.name).name).joinToString(" · ")</ID>
-    <ID>MaxLineLength:GuideStage.kt$val</ID>
+    <ID>MaxLineLength:GuideStage.kt$title</ID>
     <ID>MaxLineLength:GuideStage.kt$val a = if (tv.own.owntv.features.shell.TvBoxNav) stageAccent.copy(accent = tv.own.owntv.ui.brand.SkMateBlue) else stageAccent</ID>
     <ID>MaxLineLength:GuideStage.kt$val length = ((p.stopMs - p.startMs) / 60_000L).toInt().takeIf { it &gt; 0 }?.let { stringResource(R.string.player_duration_minutes, it) }</ID>
+    <ID>MaxLineLength:GuideStage.kt$val</ID>
     <ID>MaxLineLength:GuideWidthSettingsScreen.kt$Box</ID>
     <ID>MaxLineLength:GuideWidthSettingsScreen.kt$GuideWidthDialog(savedEnabled = enabled, savedShares = current, onSave = vm::setGuideWidths, onDismiss = { showDialog = false })</ID>
     <ID>MaxLineLength:GuideWidthSettingsScreen.kt$StepRow</ID>
@@ -3854,8 +3854,8 @@
     <ID>MaxLineLength:LanguageSettingsScreen.kt$help = SettingHelp(systemLabel, stringResource(R.string.settings_language_system_help, systemName), hints = hints)</ID>
     <ID>MaxLineLength:LanguageSettingsScreen.kt$tv.own.owntv.ui.stage</ID>
     <ID>MaxLineLength:LanguageSettingsScreen.kt$value = SettingValue.Choice(selectedLocale?.endonym ?: stringResource(R.string.settings_language_system_default))</ID>
-    <ID>MaxLineLength:LiveEpgCard.kt$Box</ID>
     <ID>MaxLineLength:LiveEpgCard.kt$Box(Modifier.fillMaxWidth(progress).height(2.dp).clip(RoundedCornerShape(1.dp)).background(tv.own.owntv.ui.theme.stageAccent.accent))</ID>
+    <ID>MaxLineLength:LiveEpgCard.kt$Box</ID>
     <ID>MaxLineLength:LiveEpgCard.kt$SlotLabel(stringResource(if (archive) R.string.content_archive_playing else R.string.content_live_now), tv.own.owntv.ui.theme.stageAccent.accent)</ID>
     <ID>MaxLineLength:LiveEpgCard.kt$SlotLabel(stringResource(if (archive) R.string.content_archive_then else R.string.content_live_next), hudInk.copy(alpha = 0.45f))</ID>
     <ID>MaxLineLength:LiveEpgCard.kt$Text(entry.title, style = tv.own.owntv.ui.theme.stageText(22, 700), color = hudInk.copy(alpha = 0.72f), maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
@@ -3873,6 +3873,7 @@
     <ID>MaxLineLength:LiveGuideSide.kt$exit</ID>
     <ID>MaxLineLength:LiveGuideSide.kt$formatTime(line.startMs)</ID>
     <ID>MaxLineLength:LiveGuideSide.kt$if (e.type == KeyEventType.KeyDown &amp;&amp; e.key == Key.DirectionLeft) { (onLeft ?: onClose)(); true } else false</ID>
+    <ID>MaxLineLength:LiveGuideSide.kt$if (loaded.isNotEmpty() &amp;&amp; !hasFocus) runCatching { list.scrollToItem((onAirIndex - LINES_ABOVE).coerceAtLeast(0)) }</ID>
     <ID>MaxLineLength:LiveGuideSide.kt$itemsIndexed</ID>
     <ID>MaxLineLength:LiveGuideSide.kt$maxLines = if (posterUrl != null) ABOUT_LINES_POSTER else ABOUT_LINES</ID>
     <ID>MaxLineLength:LiveGuideSide.kt$modifier = Modifier.border(2.mpx, ink, RoundedCornerShape(6.mpx)).padding(horizontal = 8.mpx, vertical = 1.mpx)</ID>
@@ -3904,7 +3905,6 @@
     <ID>MaxLineLength:LiveScreen.kt$canMove = selectedKey is LiveKey.Folder || selectedKey is LiveKey.Custom || selectedKey == LiveKey.Favorites</ID>
     <ID>MaxLineLength:LiveScreen.kt$contentPadding = androidx.compose.foundation.layout.PaddingValues(start = glowRoom, end = glowRoom, bottom = 16.mpx)</ID>
     <ID>MaxLineLength:LiveScreen.kt$else</ID>
-    <ID>MaxLineLength:LiveScreen.kt$if</ID>
     <ID>MaxLineLength:LiveScreen.kt$if (!effectivePreview || previewState != tv.own.owntv.player.LivePreviewEngine.State.ERROR) return@LaunchedEffect</ID>
     <ID>MaxLineLength:LiveScreen.kt$if (channel.catchup) add(MenuAction("catchup", stringResource(R.string.content_catchup), OwnTVIcon.REWIND, group = watch, onClick = onCatchup))</ID>
     <ID>MaxLineLength:LiveScreen.kt$if (currentMatch != null) tv.own.owntv.ui.stage.StageButton(stringResource(R.string.content_clear_match), onClick = onClear, height = 56.mpx, textSize = 19)</ID>
@@ -3915,11 +3915,11 @@
     <ID>MaxLineLength:LiveScreen.kt$if (isHistory) add(MenuAction("remove_history", stringResource(R.string.content_remove_history), OwnTVIcon.HISTORY, group = chan, onClick = onRemoveFromHistory))</ID>
     <ID>MaxLineLength:LiveScreen.kt$if (query.isBlank()) stringResource(R.string.content_no_epg_data) else stringResource(R.string.content_no_guide_channels, query)</ID>
     <ID>MaxLineLength:LiveScreen.kt$if (targetChannelId == null || !focusCurrentRow()) runCatching { firstItemFocus.requestFocus() }</ID>
+    <ID>MaxLineLength:LiveScreen.kt$if</ID>
     <ID>MaxLineLength:LiveScreen.kt$leading = { tv.own.owntv.ui.stage.StagePopupIcon(tv.own.owntv.ui.components.OwnTVIcon.CATCHUP) }</ID>
     <ID>MaxLineLength:LiveScreen.kt$list == null -&gt; androidx.compose.foundation.layout.Box(Modifier.fillMaxWidth().height(120.mpx), contentAlignment = Alignment.Center) { OwnTVSpinner(sizeDp = 24) }</ID>
     <ID>MaxLineLength:LiveScreen.kt$listW = if (separate) fx(620) else if (tv.own.owntv.features.shell.TvBoxNav) row - stageW - gapStage else fx(846)</ID>
     <ID>MaxLineLength:LiveScreen.kt$minWidth = constraints.minWidth + extra * 2</ID>
-    <ID>MaxLineLength:LiveScreen.kt$modifier = Modifier.fillMaxHeight().width((screenW - margin - stageW - GUIDE_GAP.mpx).coerceAtLeast(0.mpx))</ID>
     <ID>MaxLineLength:LiveScreen.kt$modifier = Modifier.padding(start = if (tv.own.owntv.features.shell.TvBoxNav) fx(48) else fx(84), top = if (tv.own.owntv.features.shell.TvBoxNav) 28.mpx else 52.mpx).width(listX - (if (tv.own.owntv.features.shell.TvBoxNav) fx(48) else fx(84)) + listWidth)</ID>
     <ID>MaxLineLength:LiveScreen.kt$modifier = if (epg == list.first()) Modifier.focusRequester(firstItemFocus) else Modifier</ID>
     <ID>MaxLineLength:LiveScreen.kt$multiviewToast.show(multiviewRes.getString(R.string.recording_scheduled_for, scheduledDay(at) + " " + scheduledTime(at)))</ID>
@@ -3942,7 +3942,6 @@
     <ID>MaxLineLength:LiveScreen.kt$tv.own.owntv.ui.stage.StageButton(stringResource(R.string.common_cancel), onClick = onDismiss, height = 56.mpx, textSize = 19)</ID>
     <ID>MaxLineLength:LiveScreen.kt$tv.own.owntv.ui.stage.StageButton(stringResource(R.string.common_done), onClick = { onSet(minutes); onDismiss() }, height = 56.mpx, textSize = 19, tinted = true)</ID>
     <ID>MaxLineLength:LiveScreen.kt$tv.own.owntv.ui.stage.StageButton(stringResource(R.string.content_close), onClick = onDismiss, height = 56.mpx, textSize = 19, tinted = true)</ID>
-    <ID>MaxLineLength:LiveScreen.kt$val</ID>
     <ID>MaxLineLength:LiveScreen.kt$val catchupValue = channel.catchupDays.takeIf { it &gt; 0 }?.let { pluralStringResource(R.plurals.settings_epg_guide_days_value, it, it) }</ID>
     <ID>MaxLineLength:LiveScreen.kt$val emptyText = if (searchQuery.isNotBlank()) stringResource(R.string.content_no_channels_found, searchQuery.trim()) else if (!hasLiveSources) stringResource(R.string.live_no_playlist) else stringResource(R.string.content_no_channels_here)</ID>
     <ID>MaxLineLength:LiveScreen.kt$val fullyVisible = row != null &amp;&amp; row.offset &gt;= info.viewportStartOffset &amp;&amp; row.offset + row.size &lt;= info.viewportEndOffset</ID>
@@ -3951,6 +3950,7 @@
     <ID>MaxLineLength:LiveScreen.kt$val offsetValue = epgShiftMinutes?.let { liveEpgShiftLabel(it) } ?: stringResource(R.string.content_epg_offset_global_short)</ID>
     <ID>MaxLineLength:LiveScreen.kt$val restorePlan by produceState&lt;CategoryRestorePlan?&gt;(null, item.key) { value = vm.categoryRestorePlan(item.key) }</ID>
     <ID>MaxLineLength:LiveScreen.kt$val settled = android.os.SystemClock.uptimeMillis() - categoriesClosedAt &gt; GUIDE_AFTER_SHEET_MS</ID>
+    <ID>MaxLineLength:LiveScreen.kt$val</ID>
     <ID>MaxLineLength:LiveScreen.kt$value = runCatching { vm.historyChannels(WATCHED_MARK_LIMIT).map { it.channel.id }.toSet() }.getOrDefault(emptySet())</ID>
     <ID>MaxLineLength:LiveSortMenu.kt$StageMenuHeader(title = stringResource(R.string.live_sort_title), subtitle = stringResource(R.string.content_sort_applies_hint))</ID>
     <ID>MaxLineLength:LiveSortMenu.kt$internal</ID>
@@ -3961,8 +3961,8 @@
     <ID>MaxLineLength:LiveSportsRow.kt$Text(stringResource(R.string.sports_title), style = stageText(26, 800), color = StageColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:LiveStage.kt$(if (playing) streamChips.filterNot { it.contains(':') || it.endsWith("Mbps") } else emptyList())</ID>
     <ID>MaxLineLength:LiveStage.kt$.</ID>
-    <ID>MaxLineLength:LiveStage.kt$Box</ID>
     <ID>MaxLineLength:LiveStage.kt$Box(Modifier.fillMaxSize().drawBehind { drawInnerRing(Color.White.copy(alpha = 0.08f), 1.mpx.toPx(), videoR.toPx()) })</ID>
+    <ID>MaxLineLength:LiveStage.kt$Box</ID>
     <ID>MaxLineLength:LiveStage.kt$Column</ID>
     <ID>MaxLineLength:LiveStage.kt$LiveColumnItem(entry, selected, onClick = { onSelect(index) }, onLongClick = { onLongSelect(index) }, modifier = rowModifier)</ID>
     <ID>MaxLineLength:LiveStage.kt$Modifier.align(Alignment.BottomEnd).padding(end = WATCHED_MARK_INSET.mpx, bottom = WATCHED_MARK_INSET.mpx)</ID>
@@ -3988,7 +3988,6 @@
     <ID>MaxLineLength:LiveStage.kt$fact.uppercase()</ID>
     <ID>MaxLineLength:LiveStage.kt$groupsHeading</ID>
     <ID>MaxLineLength:LiveStage.kt$icon = entry.icon ?: if (tv.own.owntv.features.shell.TvBoxNav) tv.own.owntv.ui.components.OwnTVIcon.LIVE_TV else null</ID>
-    <ID>MaxLineLength:LiveStage.kt$if</ID>
     <ID>MaxLineLength:LiveStage.kt$if (!tv.own.owntv.features.shell.TvBoxNav) Text(sheetHint, style = stageText(17, 400), color = StageColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(start = 16.mpx))</ID>
     <ID>MaxLineLength:LiveStage.kt$if (channel != null) Box(Modifier.fillMaxSize().background(Brush.verticalGradient(0.58f to Color.Transparent, 1f to Color.Black.copy(alpha = 0.72f))))</ID>
     <ID>MaxLineLength:LiveStage.kt$if (e.type == KeyEventType.KeyDown &amp;&amp; e.key == Key.DirectionLeft) { onBackToList(); true } else false</ID>
@@ -3997,8 +3996,9 @@
     <ID>MaxLineLength:LiveStage.kt$if (q.isEmpty()) entries.indices.toList() else entries.indices.filter { entries[it].label.contains(q, ignoreCase = true) }</ID>
     <ID>MaxLineLength:LiveStage.kt$if (tags.isNotEmpty()) Row(horizontalArrangement = Arrangement.spacedBy(6.mpx)) { tags.forEach { StageTag(it, onAccent = on) } }</ID>
     <ID>MaxLineLength:LiveStage.kt$if (tv.own.owntv.features.shell.TvBoxNav &amp;&amp; channel != null) OwnTVSpinner(sizeDp = 36, color = Color.White.copy(alpha = 0.85f))</ID>
-    <ID>MaxLineLength:LiveStage.kt$internal</ID>
+    <ID>MaxLineLength:LiveStage.kt$if</ID>
     <ID>MaxLineLength:LiveStage.kt$internal fun minutesLeft(p: XtEpgEntry): Long</ID>
+    <ID>MaxLineLength:LiveStage.kt$internal</ID>
     <ID>MaxLineLength:LiveStage.kt$it</ID>
     <ID>MaxLineLength:LiveStage.kt$listOf(stringResource(R.string.content_live_time_range_plain, formatTime(now.startMs), formatTime(now.stopMs)))</ID>
     <ID>MaxLineLength:LiveStage.kt$modifier = Modifier.align(Alignment.Center).background(Color.Black.copy(alpha = 0.7f), RoundedCornerShape(8.mpx)).padding(horizontal = 12.mpx, vertical = 6.mpx)</ID>
@@ -4010,10 +4010,10 @@
     <ID>MaxLineLength:LiveStage.kt$style = stageText(if (tvBox) 18 else 17, 400)</ID>
     <ID>MaxLineLength:LiveStage.kt$trailing = if (counting) { _ -&gt; tv.own.owntv.ui.components.CountdownRing(countdown, tv.own.owntv.ui.components.DwellTiming.CategoryTotalMs) } else entry.mark?.let { m -&gt; { _ -&gt; StagePlaylistMark(m) } }</ID>
     <ID>MaxLineLength:LiveStage.kt$tv.own.owntv.ui.components.OwnTVIcon(tv.own.owntv.ui.components.OwnTVIcon.PLAY_CIRCLE, StageColors.Dim, Modifier.size(44.mpx))</ID>
-    <ID>MaxLineLength:LiveStage.kt$val</ID>
     <ID>MaxLineLength:LiveStage.kt$val firstGroup = entries.indexOfFirst { it.item.key is tv.own.owntv.core.live.LiveKey.Folder || it.item.key is tv.own.owntv.core.live.LiveKey.Custom }</ID>
     <ID>MaxLineLength:LiveStage.kt$val parsed = if (item.key is tv.own.owntv.core.live.LiveKey.Folder || item.key is tv.own.owntv.core.live.LiveKey.Custom) ProviderTags.parse(label) else null</ID>
     <ID>MaxLineLength:LiveStage.kt$val surfaceAlpha by androidx.compose.animation.core.animateFloatAsState(if (skeleton) 0f else 1f, androidx.compose.animation.core.tween(if (skeleton) 0 else tv.own.owntv.ui.theme.MotionPrefs.dur(260)), label = "previewSurface")</ID>
+    <ID>MaxLineLength:LiveStage.kt$val</ID>
     <ID>MaxLineLength:LiveStage.kt$withStyle</ID>
     <ID>MaxLineLength:LiveStage.kt$}</ID>
     <ID>MaxLineLength:LiveViewModel.kt$LiveViewModel$*</ID>
@@ -4025,31 +4025,31 @@
     <ID>MaxLineLength:LiveViewModel.kt$LiveViewModel$LiveKey.Favorites -&gt; channelDao.snapshotFavoritesManual(pid, contextKey, ctx.value.sourceIds.ifEmpty { listOf(-1L) }, 5000)</ID>
     <ID>MaxLineLength:LiveViewModel.kt$LiveViewModel$Log.i(ENGINE_TAG, "catch-up '${ch.name}' prog='${programme.title}' -&gt; ${tv.own.owntv.core.network.HttpClient.redactUrl(url)}")</ID>
     <ID>MaxLineLength:LiveViewModel.kt$LiveViewModel$cats.filter { CustomizeKeys.category(it) in cust.hiddenCategories }.forEach { activeHiddenCats += it.id }</ID>
-    <ID>MaxLineLength:LiveViewModel.kt$LiveViewModel$combine</ID>
     <ID>MaxLineLength:LiveViewModel.kt$LiveViewModel$combine(_previewChannel, live.localTimeshift) { ch, copy -&gt; ch?.catchup == true || (ch != null &amp;&amp; copy != null) }</ID>
     <ID>MaxLineLength:LiveViewModel.kt$LiveViewModel$combine(single + folders) { parts -&gt; parts.fold(emptyMap&lt;LiveKey, Int&gt;()) { acc, m -&gt; acc + m } }.throttleLatest()</ID>
+    <ID>MaxLineLength:LiveViewModel.kt$LiveViewModel$combine</ID>
     <ID>MaxLineLength:LiveViewModel.kt$LiveViewModel$else</ID>
     <ID>MaxLineLength:LiveViewModel.kt$LiveViewModel$ensurePlaying(custom.value.itemNames[CustomizeKeys.channel(channel)]?.let { channel.copy(name = it) } ?: channel)</ID>
-    <ID>MaxLineLength:LiveViewModel.kt$LiveViewModel$if</ID>
     <ID>MaxLineLength:LiveViewModel.kt$LiveViewModel$if (!tv.own.owntv.core.content.AdultCategoryClassifier.allows(current.profileId, channel.categoryId, profileDao, categoryDao)) return false</ID>
     <ID>MaxLineLength:LiveViewModel.kt$LiveViewModel$if (!tv.own.owntv.core.content.AdultCategoryClassifier.allows(pid, ch.categoryId, profileDao, categoryDao)) return@launch</ID>
     <ID>MaxLineLength:LiveViewModel.kt$LiveViewModel$if (!tv.own.owntv.core.content.AdultCategoryClassifier.allows(pid, channel.categoryId, profileDao, categoryDao)) return</ID>
     <ID>MaxLineLength:LiveViewModel.kt$LiveViewModel$if (!tv.own.owntv.core.content.AdultCategoryClassifier.allows(pid, channel.categoryId, profileDao, categoryDao)) return@launch</ID>
+    <ID>MaxLineLength:LiveViewModel.kt$LiveViewModel$if</ID>
     <ID>MaxLineLength:LiveViewModel.kt$LiveViewModel$is LiveKey.Custom -&gt; customCategoryDao.snapshotChannels(pid, key.id, ctx.value.sourceIds.ifEmpty { listOf(-1L) }, 5000)</ID>
     <ID>MaxLineLength:LiveViewModel.kt$LiveViewModel$kotlinx.coroutines.withTimeoutOrNull(2_000) { railItems.first { list -&gt; list.any { it.key == folder } } } != null</ID>
     <ID>MaxLineLength:LiveViewModel.kt$LiveViewModel$liveCountFlow(item.key, c.profileId, c.sourceIds, hidden, channelDao, customCategoryDao).map { mapOf(item.key to it) }</ID>
     <ID>MaxLineLength:LiveViewModel.kt$LiveViewModel$liveOnExo.collect { fullScreen -&gt; previewEngine.setMaxVideoHeight(if (fullScreen) null else PREVIEW_MAX_HEIGHT) }</ID>
     <ID>MaxLineLength:LiveViewModel.kt$LiveViewModel$originKey == ContentOrderEntity.FAV_CONTEXT -&gt; userDataWriter.removeFavorite(pid, MediaType.LIVE, itemId)</ID>
-    <ID>MaxLineLength:LiveViewModel.kt$LiveViewModel$private</ID>
     <ID>MaxLineLength:LiveViewModel.kt$LiveViewModel$private fun cachedNowPlaying(): Map&lt;Long, tv.own.owntv.core.parser.XtEpgEntry?&gt;</ID>
+    <ID>MaxLineLength:LiveViewModel.kt$LiveViewModel$private</ID>
     <ID>MaxLineLength:LiveViewModel.kt$LiveViewModel$restoreCategoryToDefault(customize, contentOrderDao, pid, MediaType.LIVE, contextKey, categoryRestorePlan(key))</ID>
     <ID>MaxLineLength:LiveViewModel.kt$LiveViewModel$suspend</ID>
     <ID>MaxLineLength:LiveViewModel.kt$LiveViewModel$tv.own.owntv.ui.components.TvNotices.show(appContext.getString(tv.own.owntv.R.string.live_cleanup_done, list.size))</ID>
     <ID>MaxLineLength:LiveViewModel.kt$LiveViewModel$tv.own.owntv.ui.components.TvNotices.show(appContext.getString(tv.own.owntv.R.string.live_mirror_switched, mirror.name))</ID>
     <ID>MaxLineLength:LiveViewModel.kt$LiveViewModel$url</ID>
     <ID>MaxLineLength:LiveViewModel.kt$LiveViewModel$userAgent = sourceUa</ID>
-    <ID>MaxLineLength:LiveViewModel.kt$LiveViewModel$val</ID>
     <ID>MaxLineLength:LiveViewModel.kt$LiveViewModel$val mirror = tv.own.owntv.core.live.ChannelMirrors.pick(channel, candidates, mirrorsTried).firstOrNull() ?: return</ID>
+    <ID>MaxLineLength:LiveViewModel.kt$LiveViewModel$val</ID>
     <ID>MaxLineLength:LiveViewModel.kt$LiveViewModel.&lt;no name provided&gt;$override fun removeEldestEntry(eldest: MutableMap.MutableEntry&lt;Long, tv.own.owntv.core.parser.XtEpgEntry?&gt;?)</ID>
     <ID>MaxLineLength:LiveViewModel.kt$LiveViewModel.PickState$data</ID>
     <ID>MaxLineLength:LiveZapListTest.kt$LiveZapListTest$private val list = (1L..5L).map { ChannelEntity(id = it, sourceId = 1, categoryId = 10, name = "Ch $it", streamUrl = "http://x/$it.ts", remoteId = "$it") }</ID>
@@ -4079,10 +4079,10 @@
     <ID>MaxLineLength:LocalSyncScreen.kt$title = codes[device.id]?.let { stringResource(R.string.local_sync_device_with_code, device.name, it) } ?: device.name</ID>
     <ID>MaxLineLength:LocalSyncScreen.kt$tv.own.owntv.features.more.RowAction(stringResource(R.string.more_sync_unpair), OwnTVIcon.CLOSE) { vm.unpair(device) }</ID>
     <ID>MaxLineLength:LocalSyncScreen.kt$tv.own.owntv.features.more.RowAction(stringResource(R.string.settings_sync_now), OwnTVIcon.REFRESH) { stepFocus.value = rowFocus; vm.chooseDevice(device) }</ID>
-    <ID>MaxLineLength:LocalSyncScreen.kt$tv.own.owntv.ui.stage</ID>
     <ID>MaxLineLength:LocalSyncScreen.kt$tv.own.owntv.ui.stage.StageButton(stringResource(R.string.settings_close), onClick = vm::dismissError, modifier = Modifier.padding(top = 8.mpx))</ID>
     <ID>MaxLineLength:LocalSyncScreen.kt$tv.own.owntv.ui.stage.StagePopupButton(stringResource(R.string.common_cancel), onClick = vm::cancel, primary = false)</ID>
     <ID>MaxLineLength:LocalSyncScreen.kt$tv.own.owntv.ui.stage.StagePopupButton(stringResource(R.string.common_done), onClick = vm::cancel, primary = false)</ID>
+    <ID>MaxLineLength:LocalSyncScreen.kt$tv.own.owntv.ui.stage</ID>
     <ID>MaxLineLength:LocalSyncScreen.kt$value = SettingValue.Custom { Text("…", style = tv.own.owntv.ui.theme.stageText(18, 700), color = tv.own.owntv.ui.theme.StageColors.Dim) }</ID>
     <ID>MaxLineLength:LocalSyncViewModel.kt$LocalSyncViewModel$current.device</ID>
     <ID>MaxLineLength:LogoTint.kt$r += android.graphics.Color.red(p) * w</ID>
@@ -4145,9 +4145,9 @@
     <ID>MaxLineLength:MetadataSettingsScreen.kt$Text(stringResource(R.string.settings_metadata_shared_worker_description), style = stageText(16, 500), color = StageColors.Muted, modifier = Modifier.padding(top = 8.mpx))</ID>
     <ID>MaxLineLength:MetadataSettingsScreen.kt$Text(stringResource(metadataTierLabelRes(tier)), style = stageText(22, 800), color = StageColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:MetadataSettingsScreen.kt$buttons = { tv.own.owntv.ui.stage.StageButton(stringResource(R.string.common_cancel), onClick = onDismiss, height = 56.mpx, textSize = 19, modifier = Modifier.focusRequester(closeFocus)) }</ID>
-    <ID>MaxLineLength:MetadataSettingsScreen.kt$help</ID>
     <ID>MaxLineLength:MetadataSettingsScreen.kt$help = SettingHelp(advTitle, stringResource(R.string.settings_metadata_remote_advanced_description), hints = listOf(stringResource(R.string.common_ok) to stringResource(R.string.settings_key_open), back to content))</ID>
     <ID>MaxLineLength:MetadataSettingsScreen.kt$help = SettingHelp(langTitle, stringResource(R.string.settings_metadata_language_description), hints = listOf(stringResource(R.string.common_ok) to stringResource(R.string.settings_key_change), back to content))</ID>
+    <ID>MaxLineLength:MetadataSettingsScreen.kt$help</ID>
     <ID>MaxLineLength:MetadataSettingsScreen.kt$if (detail != null) Text(detail, style = stageText(17, 500), color = StageColors.Dim, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:MetadataSettingsScreen.kt$if (tier == MetadataConfig.Tier.DEFAULT_WORKER) stringResource(R.string.settings_shared) else stringResource(metadataTierLabelRes(tier))</ID>
     <ID>MaxLineLength:MetadataSettingsScreen.kt$is SettingsViewModel.MetadataFailure.NoMatch -&gt; stringResource(R.string.settings_metadata_no_match, failure.query)</ID>
@@ -4174,11 +4174,11 @@
     <ID>MaxLineLength:MoreCountsViewModel.kt$MoreCountsViewModel$val</ID>
     <ID>MaxLineLength:MorePages.kt$!e.art.isNullOrBlank() -&gt; AsyncImage(model = e.art, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())</ID>
     <ID>MaxLineLength:MorePages.kt$(rows.getOrNull(i + 1) ?: rows.getOrNull(i - 1))?.let { n -&gt; runCatching { focusOf(n.id).requestFocus() } }</ID>
-    <ID>MaxLineLength:MorePages.kt$Box</ID>
     <ID>MaxLineLength:MorePages.kt$Box(Modifier.fillMaxWidth().padding(horizontal = AboutInset).height(1.mpx).background(StageColors.Text.copy(alpha = 0.12f)))</ID>
+    <ID>MaxLineLength:MorePages.kt$Box</ID>
     <ID>MaxLineLength:MorePages.kt$Column</ID>
-    <ID>MaxLineLength:MorePages.kt$GroupLine</ID>
     <ID>MaxLineLength:MorePages.kt$GroupLine(e.icon, e.title, Modifier.then(if (lastOpenedExtra == i) Modifier.focusRequester(entry) else Modifier), onClick = { lastOpenedCard = null; lastOpenedExtra = i; e.onClick() })</ID>
+    <ID>MaxLineLength:MorePages.kt$GroupLine</ID>
     <ID>MaxLineLength:MorePages.kt$LaunchedEffect(showClear) { if (showClear) clearWasOpen = true else if (clearWasOpen) { clearWasOpen = false; withFrameNanos { }; runCatching { clearFocus.requestFocus() } } }</ID>
     <ID>MaxLineLength:MorePages.kt$LaunchedEffect(showUpdate) { if (showUpdate) updateWasOpen = true else if (updateWasOpen) { updateWasOpen = false; withFrameNanos { }; runCatching { updateFocus.requestFocus() } } }</ID>
     <ID>MaxLineLength:MorePages.kt$LazyRow</ID>
@@ -4224,16 +4224,16 @@
     <ID>MaxLineLength:MorePages.kt$e.durationMs &gt; 0 &amp;&amp; e.positionMs &gt; 0 -&gt; timeLeftText(((e.durationMs - e.positionMs).coerceAtLeast(0L) + 59_999L) / 60_000L)</ID>
     <ID>MaxLineLength:MorePages.kt$e.episode?.let { ep -&gt; stringResource(R.string.content_season_episode, ep.seasonNumber, ep.episodeNumber) + (ep.name.takeIf { it.isNotBlank() }?.let { " $it" } ?: "") }</ID>
     <ID>MaxLineLength:MorePages.kt$e.positionMs &gt; 0 -&gt; (e.positionMs / 60_000L).let { m -&gt; stringResource(R.string.content_watched_duration, String.format(androidx.compose.ui.platform.LocalConfiguration.current.locales[0], "%d:%02d", m / 60, m % 60)) }</ID>
-    <ID>MaxLineLength:MorePages.kt$else</ID>
     <ID>MaxLineLength:MorePages.kt$else -&gt; OwnTVIcon(if (e.type == MediaType.MOVIE) OwnTVIcon.MOVIES else OwnTVIcon.SERIES, StageColors.Dim, Modifier.size(36.mpx))</ID>
+    <ID>MaxLineLength:MorePages.kt$else</ID>
     <ID>MaxLineLength:MorePages.kt$iconContent = { androidx.compose.foundation.Image(androidx.compose.ui.res.painterResource(mark), null, Modifier.size(44.mpx)) }</ID>
-    <ID>MaxLineLength:MorePages.kt$if</ID>
     <ID>MaxLineLength:MorePages.kt$if (body != null) Text(body, style = stageText(18, 500), color = StageColors.Muted, modifier = Modifier.padding(top = 8.mpx))</ID>
     <ID>MaxLineLength:MorePages.kt$if (counts.total &gt; 0) StageTool(stringResource(R.string.settings_clear_history), onClick = { showClear = true }, icon = OwnTVIcon.TRASH, danger = true, modifier = Modifier.focusRequester(clearFocus))</ID>
     <ID>MaxLineLength:MorePages.kt$if (extras.isNotEmpty()) Box(Modifier.padding(horizontal = 24.mpx, vertical = 10.mpx).fillMaxWidth().height(1.mpx).background(StageColors.Text.copy(alpha = 0.12f)))</ID>
     <ID>MaxLineLength:MorePages.kt$if (line != null) Text(line, style = stageText(17, 400), color = StageColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 4.mpx))</ID>
     <ID>MaxLineLength:MorePages.kt$if (menu == null &amp;&amp; move == null) returnTo?.let { withFrameNanos { }; runCatching { it.requestFocus() }; returnTo = null }</ID>
     <ID>MaxLineLength:MorePages.kt$if (small != null) Text(small, style = stageText(17, 700), color = StageColors.Dim, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.alignByBaseline())</ID>
+    <ID>MaxLineLength:MorePages.kt$if</ID>
     <ID>MaxLineLength:MorePages.kt$internal</ID>
     <ID>MaxLineLength:MorePages.kt$items</ID>
     <ID>MaxLineLength:MorePages.kt$line = stringResource(if (type == MediaType.MOVIE) R.string.search_movie else R.string.search_series)</ID>
@@ -4282,21 +4282,21 @@
     <ID>MaxLineLength:MovieViewModel.kt$MovieViewModel$LiveKey.Favorites -&gt; movieDao.snapshotFavoritesManual(pid, contextKey, ctx.value.sourceIds.ifEmpty { listOf(-1L) }, 5000)</ID>
     <ID>MaxLineLength:MovieViewModel.kt$MovieViewModel$PlaybackProgressEntity(profileId = pid, mediaType = MediaType.MOVIE, itemId = m.id, positionMs = pos, durationMs = dur)</ID>
     <ID>MaxLineLength:MovieViewModel.kt$MovieViewModel$PlaybackProgressEntity(profileId = pid, mediaType = MediaType.MOVIE, itemId = movie.id, positionMs = 1L, durationMs = 1L)</ID>
-    <ID>MaxLineLength:MovieViewModel.kt$MovieViewModel$combine</ID>
     <ID>MaxLineLength:MovieViewModel.kt$MovieViewModel$combine(single + folders) { parts -&gt; parts.fold(emptyMap&lt;LiveKey, Int&gt;()) { acc, m -&gt; acc + m } }.throttleLatest()</ID>
+    <ID>MaxLineLength:MovieViewModel.kt$MovieViewModel$combine</ID>
     <ID>MaxLineLength:MovieViewModel.kt$MovieViewModel$else</ID>
     <ID>MaxLineLength:MovieViewModel.kt$MovieViewModel$fileName = "${StorageAccess.sanitize(movie.name)}.${movie.containerExt ?: StorageAccess.extOf(movie.streamUrl)}"</ID>
     <ID>MaxLineLength:MovieViewModel.kt$MovieViewModel$historyDao.record(WatchHistoryEntity(profileId = pid, mediaType = MediaType.MOVIE, itemId = movie.id))</ID>
-    <ID>MaxLineLength:MovieViewModel.kt$MovieViewModel$if</ID>
     <ID>MaxLineLength:MovieViewModel.kt$MovieViewModel$if (!tv.own.owntv.core.content.AdultCategoryClassifier.allows(pid, movie.categoryId, profileDao, categoryDao)) return@launch</ID>
     <ID>MaxLineLength:MovieViewModel.kt$MovieViewModel$if (pid != null &amp;&amp; !tv.own.owntv.core.content.AdultCategoryClassifier.allows(pid, movie.categoryId, profileDao, categoryDao)) return@launch</ID>
+    <ID>MaxLineLength:MovieViewModel.kt$MovieViewModel$if</ID>
     <ID>MaxLineLength:MovieViewModel.kt$MovieViewModel$is LiveKey.Custom -&gt; customCategoryDao.snapshotMovies(pid, key.id, ctx.value.sourceIds.ifEmpty { listOf(-1L) }, 5000)</ID>
     <ID>MaxLineLength:MovieViewModel.kt$MovieViewModel$kotlinx.coroutines.withTimeoutOrNull(2_000) { railItems.first { list -&gt; list.any { it.key == folder } } } != null</ID>
     <ID>MaxLineLength:MovieViewModel.kt$MovieViewModel$originKey == ContentOrderEntity.FAV_CONTEXT -&gt; userDataWriter.removeFavorite(pid, MediaType.MOVIE, itemId)</ID>
     <ID>MaxLineLength:MovieViewModel.kt$MovieViewModel$private</ID>
     <ID>MaxLineLength:MovieViewModel.kt$MovieViewModel$restoreCategoryToDefault(customize, contentOrderDao, pid, MediaType.MOVIE, contextKey, categoryRestorePlan(key))</ID>
-    <ID>MaxLineLength:MovieViewModel.kt$MovieViewModel$val</ID>
     <ID>MaxLineLength:MovieViewModel.kt$MovieViewModel$val single = items.filter { it.key !is LiveKey.Folder }.map { item -&gt; countFlow(item.key, c, hidden).map { mapOf(item.key to it) } }</ID>
+    <ID>MaxLineLength:MovieViewModel.kt$MovieViewModel$val</ID>
     <ID>MaxLineLength:MovieViewModel.kt$MovieViewModel$}</ID>
     <ID>MaxLineLength:MoviesScreen.kt$.</ID>
     <ID>MaxLineLength:MoviesScreen.kt$// Panel widths › Categories sheet (Cinematic): its own % of the screen, as Live TV's Stage sheet.</ID>
@@ -4310,8 +4310,8 @@
     <ID>MaxLineLength:MoviesScreen.kt$StageTool(text = null, icon = OwnTVIcon.SORT, value = vodSortLabel(sortMode), trailingIcon = OwnTVIcon.CHEVRON_DOWN, onClick = { sortOpen = true }, modifier = Modifier.focusRequester(sortFocus))</ID>
     <ID>MaxLineLength:MoviesScreen.kt$StageTool(text = stringResource(R.string.content_category_browser_title), icon = OwnTVIcon.LIST, onClick = { categoriesOpen = true })</ID>
     <ID>MaxLineLength:MoviesScreen.kt$Text(emptyText, style = stageText(20, 500), color = StageColors.Muted, modifier = Modifier.padding(start = fx(84), top = 60.mpx))</ID>
-    <ID>MaxLineLength:MoviesScreen.kt$add</ID>
     <ID>MaxLineLength:MoviesScreen.kt$add(MenuAction("hide", stringResource(R.string.common_hide), OwnTVIcon.EYE_OFF, group = VodGroupOrganise) { vm.hideMovie(m); contextMovie = null })</ID>
+    <ID>MaxLineLength:MoviesScreen.kt$add</ID>
     <ID>MaxLineLength:MoviesScreen.kt$contentPadding = PaddingValues(start = fx(84), end = fx(64), top = 14.mpx, bottom = glowRoom)</ID>
     <ID>MaxLineLength:MoviesScreen.kt$contentPadding = PaddingValues(start = glowRoom, end = glowRoom, top = 12.mpx, bottom = 24.mpx)</ID>
     <ID>MaxLineLength:MoviesScreen.kt$contextMovieSubs = contextMovie?.let { runCatching { vm.downloadedSubtitles(it) }.getOrDefault(emptyList()) } ?: emptyList()</ID>
@@ -4328,7 +4328,6 @@
     <ID>MaxLineLength:MoviesScreen.kt$runCatching { firstItemFocus.requestFocus() }</ID>
     <ID>MaxLineLength:MoviesScreen.kt$section = stringResource(R.string.common_nav_movies)</ID>
     <ID>MaxLineLength:MoviesScreen.kt$titleInfo?.let { VodHero(it, Modifier.padding(start = fx(84), top = 122.mpx).width(fx(1000)).height(heroH)) }</ID>
-    <ID>MaxLineLength:MoviesScreen.kt$val</ID>
     <ID>MaxLineLength:MoviesScreen.kt$val effectiveGridState = if (rememberMovies) perCategoryGrid.getOrPut(selectedKey) { LazyGridState() } else gridState</ID>
     <ID>MaxLineLength:MoviesScreen.kt$val effectiveListState = if (rememberMovies) perCategoryList.getOrPut(selectedKey) { LazyListState() } else listState</ID>
     <ID>MaxLineLength:MoviesScreen.kt$val emptyText = if (searchQuery.isNotBlank()) stringResource(R.string.content_no_movies_found, searchQuery.trim()) else stringResource(R.string.content_no_movies_here)</ID>
@@ -4341,14 +4340,15 @@
     <ID>MaxLineLength:MoviesScreen.kt$val restorePlan by produceState&lt;CategoryRestorePlan?&gt;(null, item.key) { value = vm.categoryRestorePlan(item.key) }</ID>
     <ID>MaxLineLength:MoviesScreen.kt$val selectedLabel = selectedItem?.displayLabel(R.string.content_category_all_movies) ?: stringResource(R.string.content_category_all_movies)</ID>
     <ID>MaxLineLength:MoviesScreen.kt$val targetIdx = targetId?.let { id -&gt; movies.itemSnapshotList.items.indexOfFirst { it.id == id }.takeIf { it &gt;= 0 } } ?: 0</ID>
+    <ID>MaxLineLength:MoviesScreen.kt$val</ID>
     <ID>MaxLineLength:MoviesScreen.kt$var contextMovieSubs by remember { mutableStateOf&lt;List&lt;tv.own.owntv.core.database.dao.LinkedSubtitle&gt;&gt;(emptyList()) }</ID>
-    <ID>MaxLineLength:MpvVideoSurface.kt$&lt;no name provided&gt;$override</ID>
     <ID>MaxLineLength:MpvVideoSurface.kt$&lt;no name provided&gt;$override fun onSurfaceTextureSizeChanged(texture: SurfaceTexture, width: Int, height: Int)</ID>
+    <ID>MaxLineLength:MpvVideoSurface.kt$&lt;no name provided&gt;$override</ID>
     <ID>MaxLineLength:MpvVideoSurface.kt$&lt;no name provided&gt;$surface = Surface(texture).also { engine.setSurface(it); engine.setSurfaceSize(width, height) }</ID>
     <ID>MaxLineLength:MpvVideoSurface.kt$AutoFrameRateEffect(fps, autoFrameRate, film = film, videoSize = videoSize, matchResolution = afrMatchResolution, holdSecs = afrHoldSecs)</ID>
     <ID>MaxLineLength:MpvVideoSurface.kt$private</ID>
-    <ID>MaxLineLength:MpvVideoSurface.kt$val</ID>
     <ID>MaxLineLength:MpvVideoSurface.kt$val bgOpacity by settings.subtitleBgOpacity.collectAsStateWithLifecycle(initialValue = SubtitleStyle.OPACITY_DEFAULT)</ID>
+    <ID>MaxLineLength:MpvVideoSurface.kt$val</ID>
     <ID>MaxLineLength:MultiviewScreen.kt$color = if (focused) tv.own.owntv.ui.theme.stageAccent.accent else tv.own.owntv.ui.theme.StageColors.Ink.copy(alpha = 0.08f)</ID>
     <ID>MaxLineLength:NavigationSettingsPopup.kt$*</ID>
     <ID>MaxLineLength:NavigationSettingsPopup.kt$pluralStringResource(R.plurals.settings_nav_hide_after_seconds, hideAfterMs / 1000, hideAfterMs / 1000)</ID>
@@ -4425,7 +4425,6 @@
     <ID>MaxLineLength:OwnTVShell.kt$currentKey = zapListKey ?: previewChannel?.categoryId?.let { tv.own.owntv.core.live.LiveKey.Folder(it) }</ID>
     <ID>MaxLineLength:OwnTVShell.kt$else</ID>
     <ID>MaxLineLength:OwnTVShell.kt$grow.animateTo(0f, androidx.compose.animation.core.tween(FullShrinkMs, easing = androidx.compose.animation.core.FastOutSlowInEasing))</ID>
-    <ID>MaxLineLength:OwnTVShell.kt$if</ID>
     <ID>MaxLineLength:OwnTVShell.kt$if (!(TvBoxNav &amp;&amp; (selectedSection == MainSection.LIVE_TV || selectedSection == MainSection.SEARCH || selectedSection == MainSection.SPORTS))) focusRail()</ID>
     <ID>MaxLineLength:OwnTVShell.kt$if (TvBoxNav &amp;&amp; selectedSection in tv.own.owntv.features.shell.components.TvBoxHiddenSections) onSelectSection(MainSection.LIVE_TV)</ID>
     <ID>MaxLineLength:OwnTVShell.kt$if (e.key == Key.DirectionLeft || e.key == Key.DirectionRight) railKeyAt = android.os.SystemClock.uptimeMillis()</ID>
@@ -4436,6 +4435,7 @@
     <ID>MaxLineLength:OwnTVShell.kt$if (selectedSection != MainSection.LIVE_TV &amp;&amp; selectedSection != MainSection.EPG &amp;&amp; !settingsOverLive &amp;&amp; playerMode == PlayerMode.NONE) liveVm.stopPreview()</ID>
     <ID>MaxLineLength:OwnTVShell.kt$if (seriesVm.playFromHomeAsync(target.seriesId, target.episodeId, target.positionMs) &amp;&amp; !seriesVm.externalPlayerOn.value) openFullscreen(MainSection.SERIES)</ID>
     <ID>MaxLineLength:OwnTVShell.kt$if (tv.own.owntv.features.shell.components.TvBoxPanels.besideOpen) tv.own.owntv.features.shell.components.TvBoxPanels.closeBeside++</ID>
+    <ID>MaxLineLength:OwnTVShell.kt$if</ID>
     <ID>MaxLineLength:OwnTVShell.kt$inert</ID>
     <ID>MaxLineLength:OwnTVShell.kt$java.text.NumberFormat.getPercentInstance(androidx.compose.ui.platform.LocalConfiguration.current.locales[0]).format(it)</ID>
     <ID>MaxLineLength:OwnTVShell.kt$jumpBackOptions = if (isTunedLive &amp;&amp; previewChannel?.catchup == true) liveVm::currentJumpOptions else null</ID>
@@ -4456,8 +4456,8 @@
     <ID>MaxLineLength:OwnTVShell.kt$onToggleCompatMode = if (isTunedLive &amp;&amp; (!timeshifted || onLocalCopy) &amp;&amp; previewChannel?.drmConfig == null) liveVm::toggleForceMpv else null</ID>
     <ID>MaxLineLength:OwnTVShell.kt$onTuneToNumber = if (directTuneEnabled &amp;&amp; isTunedLive &amp;&amp; isLiveStream &amp;&amp; !timeshifted &amp;&amp; previewChannel != null) liveVm::tuneByNumber else null</ID>
     <ID>MaxLineLength:OwnTVShell.kt$pillsFocusable = focusedLayer == ShellLayer.SIDEBAR || clusterFocused || selectedSection == MainSection.HOME</ID>
-    <ID>MaxLineLength:OwnTVShell.kt$private</ID>
     <ID>MaxLineLength:OwnTVShell.kt$private val FullShrinkMs: Int get() = if (tv.own.owntv.ui.theme.MotionPrefs.smoothPlayer) tv.own.owntv.ui.theme.MotionPrefs.ms(260) else 0</ID>
+    <ID>MaxLineLength:OwnTVShell.kt$private</ID>
     <ID>MaxLineLength:OwnTVShell.kt$profileName = profileName.ifBlank { stringResource(R.string.common_own_tv_user) }</ID>
     <ID>MaxLineLength:OwnTVShell.kt$selectedSection == MainSection.LIVE_TV &amp;&amp; liveView == tv.own.owntv.core.settings.SettingsRepository.LiveView.GUIDE</ID>
     <ID>MaxLineLength:OwnTVShell.kt$settingsStart = tv.own.owntv.features.shell.components.SettingsStart(group, search)</ID>
@@ -4470,7 +4470,6 @@
     <ID>MaxLineLength:OwnTVShell.kt$tv.own.owntv.features.home.ContinueAction.NEXT_UP -&gt; R.string.content_action_next_episode</ID>
     <ID>MaxLineLength:OwnTVShell.kt$tv.own.owntv.features.sports.GoalToast(a, Modifier.align(androidx.compose.ui.Alignment.TopEnd).padding(top = 45.mpx, end = 60.mpx))</ID>
     <ID>MaxLineLength:OwnTVShell.kt$tv.own.owntv.ui.theme.LocalStagePalette provides if (TvBoxNav) tv.own.owntv.ui.theme.StagePalette.Dark else tv.own.owntv.ui.theme.LocalStagePalette.current</ID>
-    <ID>MaxLineLength:OwnTVShell.kt$val</ID>
     <ID>MaxLineLength:OwnTVShell.kt$val clock by produceState(System.currentTimeMillis()) { while (true) { kotlinx.coroutines.delay(1_000); value = System.currentTimeMillis() } }</ID>
     <ID>MaxLineLength:OwnTVShell.kt$val clockColors by settingsRepo.clockColors.collectAsStateWithLifecycle(initialValue = tv.own.owntv.core.settings.ClockColors())</ID>
     <ID>MaxLineLength:OwnTVShell.kt$val contentLtr = androidx.compose.ui.platform.LocalLayoutDirection.current == androidx.compose.ui.unit.LayoutDirection.Ltr</ID>
@@ -4491,6 +4490,7 @@
     <ID>MaxLineLength:OwnTVShell.kt$val title = stringResource(R.string.shell_rail_detail_episode, e.series, stringResource(R.string.content_season_episode, e.season, e.episode))</ID>
     <ID>MaxLineLength:OwnTVShell.kt$val wantTimeline = playerMode == PlayerMode.FULLSCREEN &amp;&amp; zapSource == MainSection.LIVE_TV &amp;&amp; !catchupActive &amp;&amp; canRewindLive</ID>
     <ID>MaxLineLength:OwnTVShell.kt$val widenDocked = navStyle == tv.own.owntv.core.settings.SettingsRepository.NavStyle.DOCKED &amp;&amp; navSize == tv.own.owntv.core.settings.SettingsRepository.NavSize.COMPACT &amp;&amp; navWiden != null &amp;&amp; railFocused</ID>
+    <ID>MaxLineLength:OwnTVShell.kt$val</ID>
     <ID>MaxLineLength:OwnTVShell.kt${ tv.own.owntv.features.sports.MatchScoreLine(sportsPlayback, s.match, sportsConfig.spoilerFree) }</ID>
     <ID>MaxLineLength:OwnTelegramBot.kt$OwnTelegramBot$"gr" -&gt; item?.let { wait = WAIT_REPLACE + it.optLong("id"); show(chat, s(R.string.tg_bot_send_guide), back(SCR_GUIDES)) }</ID>
     <ID>MaxLineLength:OwnTelegramBot.kt$OwnTelegramBot$"gx" -&gt; item?.let { openList(chat, SCR_GUIDES, resultNote(commands.execute(CMD_EPG_DELETE, JSONObject().put("id", it.optLong("id"))), R.string.tg_bot_deleted)) }</ID>
@@ -4507,9 +4507,9 @@
     <ID>MaxLineLength:OwnTelegramBot.kt$OwnTelegramBot$val r = call("editMessageText", JSONObject().put("chat_id", chat).put("message_id", messageId).put("rich_message", rich).put("reply_markup", markup))</ID>
     <ID>MaxLineLength:OwnTelegramBot.kt$OwnTelegramBot$val r = call("getUpdates", JSONObject().put("offset", offset).put("timeout", POLL_S).put("allowed_updates", JSONArray().put("message").put("callback_query")))</ID>
     <ID>MaxLineLength:OwnTelegramBot.kt$OwnTelegramBot$val r = call("sendRichMessage", JSONObject().put("chat_id", chat).put("rich_message", rich).put("reply_markup", markup))</ID>
-    <ID>MaxLineLength:OwnTelegramBot.kt$OwnTelegramBot.Companion$fun</ID>
     <ID>MaxLineLength:OwnTelegramBot.kt$OwnTelegramBot.Companion$fun JSONArray?.toList(): List&lt;JSONObject&gt;</ID>
     <ID>MaxLineLength:OwnTelegramBot.kt$OwnTelegramBot.Companion$fun rows(vararg r: List&lt;JSONObject&gt;)</ID>
+    <ID>MaxLineLength:OwnTelegramBot.kt$OwnTelegramBot.Companion$fun</ID>
     <ID>MaxLineLength:OwnTelegramBot.kt$SecretPrefs$android.security.keystore.KeyGenParameterSpec.Builder(ALIAS, android.security.keystore.KeyProperties.PURPOSE_ENCRYPT or android.security.keystore.KeyProperties.PURPOSE_DECRYPT)</ID>
     <ID>MaxLineLength:OwnTelegramBot.kt$SecretPrefs$val gen = javax.crypto.KeyGenerator.getInstance(android.security.keystore.KeyProperties.KEY_ALGORITHM_AES, STORE)</ID>
     <ID>MaxLineLength:PanelFills.kt$Color(if (tv.own.owntv.ui.theme.LocalStagePalette.current.isLight) OwnTVPalette.LightContentPanel else OwnTVPalette.DarkContentPanel)</ID>
@@ -4521,10 +4521,10 @@
     <ID>MaxLineLength:PanelWidthSettingsScreen.kt$Box(Modifier.weight(w.preview.toFloat()).fillMaxHeight().clip(RoundedCornerShape(6.dp)).background(tv.own.owntv.ui.theme.StageColors.Ink.copy(alpha = 0.12f)))</ID>
     <ID>MaxLineLength:PanelWidthSettingsScreen.kt$OwnTVIcon(OwnTVIcon.CHEVRON, if (value &gt; minimum) tv.own.owntv.ui.theme.StageColors.Muted else tv.own.owntv.ui.theme.StageColors.Dim, Modifier.size(20.mpx).graphicsLayer { rotationZ = 180f })</ID>
     <ID>MaxLineLength:PanelWidthSettingsScreen.kt$OwnTVIcon(OwnTVIcon.CHEVRON, if (value &lt; maximum) tv.own.owntv.ui.theme.StageColors.Muted else tv.own.owntv.ui.theme.StageColors.Dim, Modifier.size(20.mpx))</ID>
-    <ID>MaxLineLength:PanelWidthSettingsScreen.kt$StepRow</ID>
     <ID>MaxLineLength:PanelWidthSettingsScreen.kt$StepRow(listLabel(section, cinematic), draft.list, maximum = PanelWidthLimits.listMax(draft.preview)) { draft = draft.copy(list = it) }</ID>
     <ID>MaxLineLength:PanelWidthSettingsScreen.kt$StepRow(stringResource(R.string.settings_panel_width_category), draft.category) { draft = draft.copy(category = it) }</ID>
     <ID>MaxLineLength:PanelWidthSettingsScreen.kt$StepRow(stringResource(R.string.settings_panel_width_details_height), detailsHeight, minimum = 0, maximum = CINEMATIC_DETAILS_MAX) { detailsHeight = it }</ID>
+    <ID>MaxLineLength:PanelWidthSettingsScreen.kt$StepRow</ID>
     <ID>MaxLineLength:PanelWidthSettingsScreen.kt$Text(label, style = tv.own.owntv.ui.theme.stageText(19, 600), color = tv.own.owntv.ui.theme.StageColors.Text, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, modifier = Modifier.weight(1f))</ID>
     <ID>MaxLineLength:PanelWidthSettingsScreen.kt$Text(stringResource(R.string.settings_panel_width_cinematic_sheet_hint), style = hint, color = muted, modifier = Modifier.padding(horizontal = 22.mpx, vertical = 6.mpx))</ID>
     <ID>MaxLineLength:PanelWidthSettingsScreen.kt$Text(stringResource(R.string.settings_panel_width_details_hint), style = hint, color = muted, modifier = Modifier.padding(horizontal = 22.mpx, vertical = 6.mpx))</ID>
@@ -4804,8 +4804,8 @@
     <ID>MaxLineLength:PlayerHudChrome.kt$CtrlButton(OwnTVIcon.VIDEO, active = pick != null, label = stringResource(R.string.player_tool_quality)) { onOpenDialog(HudDialog.QUALITY) }</ID>
     <ID>MaxLineLength:PlayerHudChrome.kt$CtrlButton(volumeIcon(volume), label = stringResource(R.string.player_tool_volume)) { onOpenDialog(HudDialog.VOLUME) }</ID>
     <ID>MaxLineLength:PlayerHudChrome.kt$PlayerControl.ASPECT</ID>
-    <ID>MaxLineLength:PlayerHudChrome.kt$Row</ID>
     <ID>MaxLineLength:PlayerHudChrome.kt$Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) { LiveStateBadge(timeshiftOffsetSec) }</ID>
+    <ID>MaxLineLength:PlayerHudChrome.kt$Row</ID>
     <ID>MaxLineLength:PlayerHudChrome.kt$SeekBar(positionMs = pos, durationMs = duration, bufferedMs = buffered, stepMs = seekStep, onSeek = { player.seekBy(it) }, focusRequester = seekFocus)</ID>
     <ID>MaxLineLength:PlayerHudChrome.kt$SpeedButton(label = speedLabel, active = speedLabel != stringResource(R.string.player_speed_normal_short), toolLabel = stringResource(R.string.player_tool_speed)) { onOpenDialog(HudDialog.SPEED) }</ID>
     <ID>MaxLineLength:PlayerHudChrome.kt$Text(displayTitle, style = tv.own.owntv.ui.theme.stageText(32, 600), color = hudInk, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
@@ -4815,15 +4815,15 @@
     <ID>MaxLineLength:PlayerHudChrome.kt$Text(title ?: "", style = tv.own.owntv.ui.theme.stageText(25, 500), color = hudInk, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:PlayerHudChrome.kt$TimeCap(stringResource(R.string.player_time_remaining, formatTime((duration - pos).coerceAtLeast(0))), Alignment.End)</ID>
     <ID>MaxLineLength:PlayerHudChrome.kt$else</ID>
-    <ID>MaxLineLength:PlayerHudChrome.kt$if</ID>
     <ID>MaxLineLength:PlayerHudChrome.kt$if (timeshiftOffsetSec &lt;= 1) stringResource(R.string.player_at_live_edge) else stringResource(R.string.player_behind_live, mmss(timeshiftOffsetSec))</ID>
+    <ID>MaxLineLength:PlayerHudChrome.kt$if</ID>
     <ID>MaxLineLength:PlayerHudChrome.kt$internal</ID>
     <ID>MaxLineLength:PlayerHudChrome.kt$modifier = modifier.widthIn(max = if (guide != null) 420.dp else 340.dp).clip(RoundedCornerShape(14.dp)).background(hudShade(0.55f)).padding(14.dp)</ID>
     <ID>MaxLineLength:PlayerHudChrome.kt$onScrubLive: ((Int) -&gt; Unit)?</ID>
     <ID>MaxLineLength:PlayerHudChrome.kt$rewindMode &amp;&amp; timeshifting -&gt; CircleButton(OwnTVIcon.FORWARD, size = 44) { onForwardLive?.invoke() }</ID>
     <ID>MaxLineLength:PlayerHudChrome.kt$val sleepRunning by androidx.compose.runtime.remember { androidx.compose.runtime.derivedStateOf { sleepLeft.value != null } }</ID>
-    <ID>MaxLineLength:PlayerHudControls.kt$Box</ID>
     <ID>MaxLineLength:PlayerHudControls.kt$Box(Modifier.fillMaxWidth(bufferedFrac).fillMaxHeight().clip(RoundedCornerShape(50)).background(hudInk.copy(alpha = 0.28f)))</ID>
+    <ID>MaxLineLength:PlayerHudControls.kt$Box</ID>
     <ID>MaxLineLength:PlayerHudControls.kt$Column</ID>
     <ID>MaxLineLength:PlayerHudControls.kt$Modifier.align(Alignment.TopEnd).offset(x = 8.dp, y = (-4).dp).size(16.dp).clip(CircleShape).background(hudAccent)</ID>
     <ID>MaxLineLength:PlayerHudControls.kt$Modifier.atFraction(frac).offset(y = (-32).dp).clip(RoundedCornerShape(8.dp)).background(hudShade(0.9f)).padding(horizontal = 8.dp, vertical = 3.dp)</ID>
@@ -4856,11 +4856,11 @@
     <ID>MaxLineLength:PlayerHudDialogs.kt$label = stringResource(if (kind == SleepTimer.EndKind.EPISODE) R.string.player_sleep_timer_end_of_episode else R.string.player_sleep_timer_end_of_movie)</ID>
     <ID>MaxLineLength:PlayerHudDialogs.kt$private</ID>
     <ID>MaxLineLength:PlayerHudDialogs.kt$stringResource(R.string.player_sleep_timer_remaining, stringResource(R.string.player_duration_minutes, SleepTimer.minutesLeft(it)))</ID>
-    <ID>MaxLineLength:PlayerHudDialogs.kt$tv.own.owntv.ui.stage</ID>
     <ID>MaxLineLength:PlayerHudDialogs.kt$tv.own.owntv.ui.stage.StageButton(label, onClick = { if (enabled) onClick() }, round = true, height = 72.mpx, textSize = 30, modifier = modifier.alpha(if (enabled) 1f else 0.45f))</ID>
     <ID>MaxLineLength:PlayerHudDialogs.kt$tv.own.owntv.ui.stage.StageButton(stringResource(R.string.common_done), onClick = onDismiss, height = 56.mpx, textSize = 19, tinted = true)</ID>
     <ID>MaxLineLength:PlayerHudDialogs.kt$tv.own.owntv.ui.stage.StageButton(stringResource(if (volume == 0) R.string.player_unmute else R.string.player_mute), onClick = { player.toggleMute() }, height = 56.mpx, textSize = 19)</ID>
     <ID>MaxLineLength:PlayerHudDialogs.kt$tv.own.owntv.ui.stage.StagePopupOption(title = label, onClick = onClick, leading = { tv.own.owntv.ui.stage.StagePopupIcon(icon) })</ID>
+    <ID>MaxLineLength:PlayerHudDialogs.kt$tv.own.owntv.ui.stage</ID>
     <ID>MaxLineLength:PlayerHudDialogs.kt$val ask = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { allowed = screenOff.isAllowed() }</ID>
     <ID>MaxLineLength:PlayerModule.kt$single { tv.own.owntv.player.SleepTimer(active = get&lt;tv.own.owntv.player.PlaybackSession&gt;().active, screenOff = get(), itemEnd = get&lt;OwnTVPlayer&gt;()) }</ID>
     <ID>MaxLineLength:PlayingMark.kt$/** The one "this channel is playing" mark, wherever a list shows it: a still, blue pause-style icon from the icon pack. */</ID>
@@ -4942,9 +4942,9 @@
     <ID>MaxLineLength:SearchScreen.kt$(if (cap) results.channels.take(ALL_TAB_CHANNELS) else results.channels).forEach { add(Entry.Channel(it)) }</ID>
     <ID>MaxLineLength:SearchScreen.kt$.</ID>
     <ID>MaxLineLength:SearchScreen.kt$/** `.srow`: 84 high, 18 padding and gap; art, title 21/700, a 16 px muted line, then tags and the playlist mark. Focused = FX. */</ID>
-    <ID>MaxLineLength:SearchScreen.kt$Box</ID>
     <ID>MaxLineLength:SearchScreen.kt$Box(Modifier.fillMaxSize().drawBehind { drawInnerRing(Color.White.copy(alpha = 0.08f), 1.mpx.toPx(), videoR.toPx()) })</ID>
     <ID>MaxLineLength:SearchScreen.kt$Box(Modifier.fillMaxSize().gradientWash(true, 0f to Color.Transparent, 0.58f to Color.Transparent, 1f to Color.Black.copy(alpha = 0.72f)))</ID>
+    <ID>MaxLineLength:SearchScreen.kt$Box</ID>
     <ID>MaxLineLength:SearchScreen.kt$GroupHeading(stringResource(R.string.search_recent).uppercase(locale), Modifier.padding(top = 8.mpx, bottom = 6.mpx))</ID>
     <ID>MaxLineLength:SearchScreen.kt$HeadlineTitle.of(info.title)</ID>
     <ID>MaxLineLength:SearchScreen.kt$OwnTVIcon(OwnTVIcon.HISTORY, if (focused) tv.own.owntv.ui.theme.stageAccent.onAccent else StageColors.Muted, Modifier.size(20.mpx))</ID>
@@ -4987,15 +4987,15 @@
     <ID>MaxLineLength:SearchScreen.kt$val</ID>
     <ID>MaxLineLength:SearchScreen.kt$vm.focusVod(if (!showingResults) null else when (active) { is Entry.Movie -&gt; active.movie; is Entry.Series -&gt; active.series; else -&gt; null })</ID>
     <ID>MaxLineLength:SearchViewModel.kt$SearchViewModel$.</ID>
-    <ID>MaxLineLength:SearchViewModel.kt$SearchViewModel$val</ID>
     <ID>MaxLineLength:SearchViewModel.kt$SearchViewModel$val r = runCatching { searchReader.search(pid, c, term, limit = 3) }.getOrNull() ?: return@associateWith null</ID>
+    <ID>MaxLineLength:SearchViewModel.kt$SearchViewModel$val</ID>
     <ID>MaxLineLength:SearchViewModel.kt$SearchViewModel$when (item) { is MovieEntity -&gt; metadata.resolveMovie(item); is SeriesEntity -&gt; metadata.resolveSeries(item); else -&gt; null }</ID>
     <ID>MaxLineLength:SeriesScreen.kt$.</ID>
     <ID>MaxLineLength:SeriesScreen.kt$// Panel widths › Categories sheet (Cinematic): its own % of the screen, as Live TV's Stage sheet.</ID>
     <ID>MaxLineLength:SeriesScreen.kt$// Step by row number: a held key outran the paged list and stopped (playbook 2).</ID>
     <ID>MaxLineLength:SeriesScreen.kt$AsyncImage(model = url, contentDescription = null, contentScale = ContentScale.Crop, colorFilter = filter, modifier = Modifier.fillMaxSize())</ID>
-    <ID>MaxLineLength:SeriesScreen.kt$Box</ID>
     <ID>MaxLineLength:SeriesScreen.kt$Box(Modifier.fillMaxSize().gradientWash(true, 0f to wash.copy(alpha = 0f), 0.6f to wash.copy(alpha = 0f), 0.97f to wash.copy(alpha = 0.9f), 1f to wash.copy(alpha = 0.9f)))</ID>
+    <ID>MaxLineLength:SeriesScreen.kt$Box</ID>
     <ID>MaxLineLength:SeriesScreen.kt$Key.DirectionDown -&gt; (stepper.target ?: index).let { from -&gt; from + 1 &lt; series.itemCount &amp;&amp; run { stepper.stepTo(from + 1); true } }</ID>
     <ID>MaxLineLength:SeriesScreen.kt$Key.DirectionLeft -&gt; !locked &amp;&amp; run { runCatching { railFocus.requestFocus() }; true }</ID>
     <ID>MaxLineLength:SeriesScreen.kt$Key.DirectionLeft -&gt; index % columns == 0 &amp;&amp; run { categoriesOpen = true; true }</ID>
@@ -5008,8 +5008,8 @@
     <ID>MaxLineLength:SeriesScreen.kt$StageTool(text = stringResource(R.string.content_category_browser_title), icon = OwnTVIcon.LIST, onClick = { categoriesOpen = true })</ID>
     <ID>MaxLineLength:SeriesScreen.kt$Text(emptyText, style = stageText(20, 500), color = StageColors.Muted, modifier = Modifier.padding(start = fx(84), top = 60.mpx))</ID>
     <ID>MaxLineLength:SeriesScreen.kt$Text(it, style = stageText(21, 700), color = tv.own.owntv.ui.theme.stageAccent.accent, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
-    <ID>MaxLineLength:SeriesScreen.kt$add</ID>
     <ID>MaxLineLength:SeriesScreen.kt$add(MenuAction("hide", stringResource(R.string.common_hide), OwnTVIcon.EYE_OFF, group = VodGroupOrganise) { vm.hideSeries(s); contextSeries = null })</ID>
+    <ID>MaxLineLength:SeriesScreen.kt$add</ID>
     <ID>MaxLineLength:SeriesScreen.kt$contentPadding = PaddingValues(start = fx(84), end = fx(64), top = 14.mpx, bottom = glowRoom)</ID>
     <ID>MaxLineLength:SeriesScreen.kt$contentPadding = PaddingValues(start = glowRoom, end = glowRoom, top = 12.mpx, bottom = 24.mpx)</ID>
     <ID>MaxLineLength:SeriesScreen.kt$contentTitle = stringResource(R.string.content_season_episode_title, ep.seasonNumber, ep.episodeNumber, episodeDisplayTitle(ep))</ID>
@@ -5044,7 +5044,6 @@
     <ID>MaxLineLength:SeriesScreen.kt$titleInfo?.let { VodHero(it, Modifier.padding(start = fx(84), top = 122.mpx).width(fx(1000)).height(heroH)) }</ID>
     <ID>MaxLineLength:SeriesScreen.kt$trailerVideoKey?.let { key -&gt; TrailerPlayerScreen(videoKey = key, title = series.name, onExit = { trailerVideoKey = null }) }</ID>
     <ID>MaxLineLength:SeriesScreen.kt$trailing = secondsLeft(target)?.let { "· " + stringResource(R.string.home_time_left, vodRuntime(it)) }</ID>
-    <ID>MaxLineLength:SeriesScreen.kt$val</ID>
     <ID>MaxLineLength:SeriesScreen.kt$val choices = listOf(stringResource(R.string.content_oldest_first), stringResource(R.string.content_newest_first))</ID>
     <ID>MaxLineLength:SeriesScreen.kt$val code = stringResource(R.string.content_season_episode, target.seasonNumber, target.episodeNumber)</ID>
     <ID>MaxLineLength:SeriesScreen.kt$val effectiveGridState = if (rememberSeries) perCategoryGrid.getOrPut(selectedKey) { androidx.compose.foundation.lazy.grid.LazyGridState() } else gridState</ID>
@@ -5066,6 +5065,7 @@
     <ID>MaxLineLength:SeriesScreen.kt$val targetIdx = targetId?.let { id -&gt; series.itemSnapshotList.items.indexOfFirst { it.id == id }.takeIf { it &gt;= 0 } } ?: 0</ID>
     <ID>MaxLineLength:SeriesScreen.kt$val targetSeriesId = if (rememberSeries) perCategorySeriesIds[selectedKey] ?: selectedSeries?.id else selectedSeries?.id</ID>
     <ID>MaxLineLength:SeriesScreen.kt$val title = if (tmdbWins) meta?.title?.takeIf { it.isNotBlank() } ?: episodeDisplayTitle(ep) else episodeDisplayTitle(ep)</ID>
+    <ID>MaxLineLength:SeriesScreen.kt$val</ID>
     <ID>MaxLineLength:SeriesScreen.kt$value = stringResource(if (seriesOrder.episodesDescending) R.string.content_newest_first else R.string.content_oldest_first)</ID>
     <ID>MaxLineLength:SeriesScreen.kt$var contextEpisodeSubs by remember { mutableStateOf&lt;List&lt;tv.own.owntv.core.database.dao.LinkedSubtitle&gt;&gt;(emptyList()) }</ID>
     <ID>MaxLineLength:SeriesScreen.kt$vm.setEpisodeViewMode(if (i == 0) SettingsRepository.VodViewMode.GRID else SettingsRepository.VodViewMode.LIST)</ID>
@@ -5078,8 +5078,8 @@
     <ID>MaxLineLength:SeriesViewModel.kt$SeriesViewModel$Log.w(TAG, "playEpisodeQueue series history record failed seriesId=${episode.seriesId} profile=$pid", t)</ID>
     <ID>MaxLineLength:SeriesViewModel.kt$SeriesViewModel$PlaybackProgressEntity(profileId = pid, mediaType = MediaType.EPISODE, itemId = ep.id, positionMs = pos, durationMs = dur)</ID>
     <ID>MaxLineLength:SeriesViewModel.kt$SeriesViewModel$PlaybackProgressEntity(profileId = pid, mediaType = MediaType.EPISODE, itemId = episode.id, positionMs = 1L, durationMs = 1L)</ID>
-    <ID>MaxLineLength:SeriesViewModel.kt$SeriesViewModel$combine</ID>
     <ID>MaxLineLength:SeriesViewModel.kt$SeriesViewModel$combine(single + folders) { parts -&gt; parts.fold(emptyMap&lt;LiveKey, Int&gt;()) { acc, m -&gt; acc + m } }.throttleLatest()</ID>
+    <ID>MaxLineLength:SeriesViewModel.kt$SeriesViewModel$combine</ID>
     <ID>MaxLineLength:SeriesViewModel.kt$SeriesViewModel$else</ID>
     <ID>MaxLineLength:SeriesViewModel.kt$SeriesViewModel$fileName = "${StorageAccess.sanitize(episode.name.ifBlank { "episode-${episode.episodeNumber}" })}.$ext"</ID>
     <ID>MaxLineLength:SeriesViewModel.kt$SeriesViewModel$fun</ID>
@@ -5087,19 +5087,19 @@
     <ID>MaxLineLength:SeriesViewModel.kt$SeriesViewModel$historyDao.record(WatchHistoryEntity(profileId = pid, mediaType = MediaType.SERIES, itemId = episode.seriesId))</ID>
     <ID>MaxLineLength:SeriesViewModel.kt$SeriesViewModel$httpHeaders = tv.own.owntv.core.settings.SourceOverrides.headersWithReferer(ep.httpHeaders, source)</ID>
     <ID>MaxLineLength:SeriesViewModel.kt$SeriesViewModel$httpHeaders = tv.own.owntv.core.settings.SourceOverrides.headersWithReferer(episode.httpHeaders, source)</ID>
-    <ID>MaxLineLength:SeriesViewModel.kt$SeriesViewModel$if</ID>
     <ID>MaxLineLength:SeriesViewModel.kt$SeriesViewModel$if (!tv.own.owntv.core.content.AdultCategoryClassifier.allows(pid, actualShow?.categoryId, profileDao, categoryDao)) return@launch</ID>
     <ID>MaxLineLength:SeriesViewModel.kt$SeriesViewModel$if (!tv.own.owntv.core.content.AdultCategoryClassifier.allows(pid, series.categoryId, profileDao, categoryDao)) return@launch</ID>
     <ID>MaxLineLength:SeriesViewModel.kt$SeriesViewModel$if (!tv.own.owntv.core.content.AdultCategoryClassifier.allows(pid, show.categoryId, profileDao, categoryDao)) return false</ID>
     <ID>MaxLineLength:SeriesViewModel.kt$SeriesViewModel$if (pid != null &amp;&amp; !tv.own.owntv.core.content.AdultCategoryClassifier.allows(pid, show.categoryId, profileDao, categoryDao)) return@launch</ID>
+    <ID>MaxLineLength:SeriesViewModel.kt$SeriesViewModel$if</ID>
     <ID>MaxLineLength:SeriesViewModel.kt$SeriesViewModel$is LiveKey.Custom -&gt; customCategoryDao.snapshotSeries(pid, key.id, ctx.value.sourceIds.ifEmpty { listOf(-1L) }, 5000)</ID>
     <ID>MaxLineLength:SeriesViewModel.kt$SeriesViewModel$originKey == ContentOrderEntity.FAV_CONTEXT -&gt; userDataWriter.removeFavorite(pid, MediaType.SERIES, itemId)</ID>
     <ID>MaxLineLength:SeriesViewModel.kt$SeriesViewModel$private</ID>
     <ID>MaxLineLength:SeriesViewModel.kt$SeriesViewModel$restoreCategoryToDefault(customize, contentOrderDao, pid, MediaType.SERIES, contextKey, categoryRestorePlan(key))</ID>
     <ID>MaxLineLength:SeriesViewModel.kt$SeriesViewModel$seriesDao.episodesBySeries(series.id).first().filter { season == null || it.seasonNumber == season }</ID>
-    <ID>MaxLineLength:SeriesViewModel.kt$SeriesViewModel$val</ID>
     <ID>MaxLineLength:SeriesViewModel.kt$SeriesViewModel$val queue = seriesDao.episodesBySeries(show.id).first().sortedWith(tv.own.owntv.core.content.EpisodeOrder.episodes)</ID>
     <ID>MaxLineLength:SeriesViewModel.kt$SeriesViewModel$val single = items.filter { it.key !is LiveKey.Folder }.map { item -&gt; countFlow(item.key, c, hidden).map { mapOf(item.key to it) } }</ID>
+    <ID>MaxLineLength:SeriesViewModel.kt$SeriesViewModel$val</ID>
     <ID>MaxLineLength:SeriesViewModel.kt$SeriesViewModel$}</ID>
     <ID>MaxLineLength:SetTmdbNameDialog.kt$StageButton(stringResource(R.string.common_cancel), onClick = onDismiss, height = 56.mpx, textSize = 19)</ID>
     <ID>MaxLineLength:SetTmdbNameDialog.kt$if (hasOverride) StageButton(stringResource(R.string.common_clear), onClick = onClear, height = 56.mpx, textSize = 19)</ID>
@@ -5116,8 +5116,8 @@
     <ID>MaxLineLength:SettingsScreen.kt$// Settings inside a sub-screen, by their own names (kept out of line: this function is at the JVM size limit).</ID>
     <ID>MaxLineLength:SettingsScreen.kt$BackHandler</ID>
     <ID>MaxLineLength:SettingsScreen.kt$CatchupSourceValueHost</ID>
-    <ID>MaxLineLength:SettingsScreen.kt$LaunchedEffect</ID>
     <ID>MaxLineLength:SettingsScreen.kt$LaunchedEffect(tier) { if (tier == tv.own.owntv.core.metadata.MetadataConfig.Tier.DEFAULT_WORKER) vm.refreshMetadataBudget() }</ID>
+    <ID>MaxLineLength:SettingsScreen.kt$LaunchedEffect</ID>
     <ID>MaxLineLength:SettingsScreen.kt$OwnTVIcon(OwnTVIcon.CHEVRON, tv.own.owntv.ui.theme.StageColors.Muted, Modifier.size(24.mpx).graphicsLayer { rotationZ = 180f })</ID>
     <ID>MaxLineLength:SettingsScreen.kt$PartDef(R.string.settings_part_navigation, OwnTVIcon.MENU, setOf("navigation", "live_layout", "live_opens_in", "tab_CH_NAV"))</ID>
     <ID>MaxLineLength:SettingsScreen.kt$PartDef(R.string.settings_part_theme, OwnTVIcon.PALETTE, setOf("theme", "accent", "focus_highlight", "tab_GLASS_EFFECT", "ambient_glow"))</ID>
@@ -5177,7 +5177,6 @@
     <ID>MaxLineLength:SettingsScreen.kt$SettingsSearchEntry(tv.own.owntv.features.settings.videoRowPath("vp_mini"), stringResource(R.string.settings_mini_player_root), stringResource(R.string.settings_search_keywords_mini), OwnTVIcon.PIP, TileTone.TERTIARY) { openMiniPlayer = true; jumpVideo("vp_mini", false) }</ID>
     <ID>MaxLineLength:SettingsScreen.kt$SettingsSearchEntry(tv.own.owntv.features.settings.videoRowPath("vp_preroll"), stringResource(R.string.settings_live_preroll), stringResource(R.string.settings_search_keywords_live_preroll), OwnTVIcon.LIVE_TV, TileTone.TERTIARY) { jumpVideo("vp_preroll", false) }</ID>
     <ID>MaxLineLength:SettingsScreen.kt$SettingsSearchEntry(tv.own.owntv.features.settings.videoRowPath("vp_sub_style"), stringResource(R.string.settings_subtitle_appearance), stringResource(R.string.settings_search_keywords_subtitle_appearance), OwnTVIcon.SUBTITLE, TileTone.TERTIARY) { open(SettingsTab.SUBTITLE_STYLE) }</ID>
-    <ID>MaxLineLength:SettingsScreen.kt$SettingsTab</ID>
     <ID>MaxLineLength:SettingsScreen.kt$SettingsTab.BROWSING -&gt; tv.own.owntv.features.settings.BrowsingListsSettingsScreen(onBack = { tab = SettingsTab.ROOT }, modifier = modifier)</ID>
     <ID>MaxLineLength:SettingsScreen.kt$SettingsTab.CH_NAV -&gt; { tv.own.owntv.features.settings.ChNavSettingsScreen(onBack = { tab = SettingsTab.ROOT }, modifier = modifier) }</ID>
     <ID>MaxLineLength:SettingsScreen.kt$SettingsTab.CONTENT_MENUS -&gt; { tv.own.owntv.features.settings.ContentMenuSettingsScreen(onBack = { tab = SettingsTab.ROOT }, modifier = modifier) }</ID>
@@ -5193,6 +5192,7 @@
     <ID>MaxLineLength:SettingsScreen.kt$SettingsTab.SUBTITLE_STYLE -&gt; tv.own.owntv.features.settings.SubtitleStylePage(onBack = { tab = SettingsTab.ROOT }, modifier = modifier)</ID>
     <ID>MaxLineLength:SettingsScreen.kt$SettingsTab.TG_REMOTE -&gt; { tv.own.owntv.features.settings.TelegramRemoteScreen(onBack = { tab = SettingsTab.ROOT }, modifier = modifier) }</ID>
     <ID>MaxLineLength:SettingsScreen.kt$SettingsTab.WEATHER -&gt; { tv.own.owntv.features.settings.WeatherSettingsScreen(onBack = { tab = SettingsTab.ROOT }, modifier = modifier) }</ID>
+    <ID>MaxLineLength:SettingsScreen.kt$SettingsTab</ID>
     <ID>MaxLineLength:SettingsScreen.kt$Text(f.name, style = tv.own.owntv.ui.theme.stageText(18, 700), color = tv.own.owntv.ui.theme.StageColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))</ID>
     <ID>MaxLineLength:SettingsScreen.kt$Text(focusWidthLabel(focusWidth), style = valueStyle, color = current, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:SettingsScreen.kt$Text(hex, style = valueStyle, color = current, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(start = 6.mpx))</ID>
@@ -5226,14 +5226,13 @@
     <ID>MaxLineLength:SettingsScreen.kt$choices = listOf(stringResource(R.string.settings_nav_floating), stringResource(R.string.settings_nav_docked))</ID>
     <ID>MaxLineLength:SettingsScreen.kt$color = if (isSelected || focused) tv.own.owntv.ui.theme.StageColors.Text else tv.own.owntv.ui.theme.StageColors.Muted</ID>
     <ID>MaxLineLength:SettingsScreen.kt$color = tv.own.owntv.ui.theme.StageColors.Dim</ID>
-    <ID>MaxLineLength:SettingsScreen.kt$desc</ID>
     <ID>MaxLineLength:SettingsScreen.kt$desc = stringResource(R.string.settings_pinned_from, stringResource(SettingsGroup.of(tv.own.owntv.features.settings.videoGroupOf(ref.section)).titleRes))</ID>
+    <ID>MaxLineLength:SettingsScreen.kt$desc</ID>
     <ID>MaxLineLength:SettingsScreen.kt$else</ID>
     <ID>MaxLineLength:SettingsScreen.kt$extra = { Box(Modifier.fillMaxWidth().padding(top = 18.mpx), contentAlignment = Alignment.Center) { tv.own.owntv.features.settings.PopupSizeSample(font.popupSizePercent) } }</ID>
     <ID>MaxLineLength:SettingsScreen.kt$for (attempt in 0 until 10) { kotlinx.coroutines.delay(50); if (runCatching { searchFieldFocus.requestFocus() }.getOrDefault(false)) break }</ID>
     <ID>MaxLineLength:SettingsScreen.kt$fun jumpTo(ref: tv.own.owntv.features.settings.VideoQuickRef): () -&gt; Unit</ID>
     <ID>MaxLineLength:SettingsScreen.kt$help</ID>
-    <ID>MaxLineLength:SettingsScreen.kt$if</ID>
     <ID>MaxLineLength:SettingsScreen.kt$if (!ref.remoteId.isNullOrBlank() &amp;&amp; !channel.remoteId.isNullOrBlank()) ref.remoteId == channel.remoteId else ref.name == channel.name</ID>
     <ID>MaxLineLength:SettingsScreen.kt$if (group == SettingsGroup.APP) VideoPlayerGroupRows(VideoGroup.DIAGNOSTICS, pageScroll, firstHeading = false)</ID>
     <ID>MaxLineLength:SettingsScreen.kt$if (inQuick &amp;&amp; item.key.startsWith("vp_")) tv.own.owntv.features.settings.SettingWords(it.title, item.desc) else it</ID>
@@ -5247,6 +5246,7 @@
     <ID>MaxLineLength:SettingsScreen.kt$if (style == tv.own.owntv.core.theme.BackgroundStyle.PICTURE &amp;&amp; bgImagePath.isBlank()) showBackgroundChooser = true</ID>
     <ID>MaxLineLength:SettingsScreen.kt$if (videoRowKey == null) for (attempt in 0 until 10) { withFrameNanos { }; if (runCatching { rowsFocus.requestFocus() }.getOrDefault(false)) break }</ID>
     <ID>MaxLineLength:SettingsScreen.kt$if (view == tv.own.owntv.core.settings.SettingsRepository.LiveView.GUIDE) R.string.content_live_guide_view else R.string.content_live_list_view</ID>
+    <ID>MaxLineLength:SettingsScreen.kt$if</ID>
     <ID>MaxLineLength:SettingsScreen.kt$leading = { tv.own.owntv.ui.stage.StagePopupIcon(icon, if (all) tv.own.owntv.ui.theme.StageColors.Danger else tv.own.owntv.ui.theme.StageColors.Text) }</ID>
     <ID>MaxLineLength:SettingsScreen.kt$line(stringResource(R.string.player_subtitles_downloads), pluralStringResource(R.plurals.player_subtitles_remaining_short, r, r))</ID>
     <ID>MaxLineLength:SettingsScreen.kt$line(stringResource(R.string.settings_allowance_day), pluralStringResource(R.plurals.settings_allowance_value, b.remainingDay, b.remainingDay, b.limitDay))</ID>
@@ -5333,7 +5333,6 @@
     <ID>MaxLineLength:SettingsScreen.kt$tv.own.owntv.ui.stage.StagePopup(onDismiss = onDismiss, title = stringResource(R.string.settings_startup_specific_channel), scroll = false, content = list)</ID>
     <ID>MaxLineLength:SettingsScreen.kt$tv.own.owntv.ui.stage.StagePopup(onDismiss = onDismiss, title = stringResource(R.string.settings_ui_zoom), body = stringResource(R.string.settings_ui_zoom_range, UiZoom.MIN, UiZoom.MAX)) { stepper() }</ID>
     <ID>MaxLineLength:SettingsScreen.kt$utcOffsetLabel(offsetMinutes)</ID>
-    <ID>MaxLineLength:SettingsScreen.kt$val</ID>
     <ID>MaxLineLength:SettingsScreen.kt$val anyDialogOpen = showZoom || showPopupSize || showTheme || showAccent || showUpdate || showCatchupTime || showCatchupSources || showCatchupSourceValue || showEpgOffset || showGuideDays || showAnimations || showStartup || showStartupChannelPicker || showAfrWarning || showLivePreviewPanelWarning || showBgImageChooser || showBgPicker || showAmbientGlow || showFocusHighlight || showBgRemote || showVodLayout || showNavigation || showLiveLayout || stageSettings.open != null</ID>
     <ID>MaxLineLength:SettingsScreen.kt$val hex = if (customAccent.isNotBlank()) customAccent.uppercase() else String.format(java.util.Locale.ROOT, "#%06X", 0xFFFFFF and current.toArgb())</ID>
     <ID>MaxLineLength:SettingsScreen.kt$val openSearch: () -&gt; Unit = { lastTab = null; searchQuery = ""; searchMode = true; searchFromMore = false; searchAutoEdit = true; tab = SettingsTab.ROOT }</ID>
@@ -5342,9 +5341,10 @@
     <ID>MaxLineLength:SettingsScreen.kt$val panelWidthSeries by settingsVm.panelWidthEnabled.getValue(tv.own.owntv.core.settings.PanelSection.SERIES).collectAsStateWithLifecycle()</ID>
     <ID>MaxLineLength:SettingsScreen.kt$val under = selectedRows.drop(i).let { rest -&gt; 1 + rest.drop(1).takeWhile { it.heading == null }.size }</ID>
     <ID>MaxLineLength:SettingsScreen.kt$val vodLayouts = listOf(tv.own.owntv.core.settings.SettingsRepository.VodLayout.CINEMATIC, tv.own.owntv.core.settings.SettingsRepository.VodLayout.SEPARATE)</ID>
+    <ID>MaxLineLength:SettingsScreen.kt$val</ID>
     <ID>MaxLineLength:SettingsScreen.kt$vm.setAccent(if (customAccent.isNotBlank()) (if (step &gt; 0) presets.first() else presets.last()) else cycle(presets, accent, step))</ID>
-    <ID>MaxLineLength:SettingsSearchCoverageTest.kt$SettingsSearchCoverageTest$val</ID>
     <ID>MaxLineLength:SettingsSearchCoverageTest.kt$SettingsSearchCoverageTest$val skipped = setOf("BackupScreen.kt", "LocalSyncScreen.kt", "RemoteBackupRestoreScreen.kt", "VideoPlayerSettingsScreen.kt")</ID>
+    <ID>MaxLineLength:SettingsSearchCoverageTest.kt$SettingsSearchCoverageTest$val</ID>
     <ID>MaxLineLength:SettingsSearchRowsTest.kt$SettingsSearchRowsTest$Regex("""(?:title|Title) = stringResource\((?:if \(.*?\) R\.string\.[a-z_0-9]+ else )?R\.string\.([a-z_0-9]+)""").findAll(source)</ID>
     <ID>MaxLineLength:SettingsSearchRowsTest.kt$SettingsSearchRowsTest$fun</ID>
     <ID>MaxLineLength:SettingsStage.kt$((if (settingsRoot) listOf(stringResource(R.string.common_nav_settings)) else emptyList()) + parents).takeLast(1)</ID>
@@ -5352,11 +5352,11 @@
     <ID>MaxLineLength:SettingsStage.kt$/** The panel while a row's editor is open: the row's heading and text, a line, then the editor. Back closes it; focus returns to the row after. */</ID>
     <ID>MaxLineLength:SettingsStage.kt$/** When the last settings sheet left the screen (uptime ms): a new one right after it is the next page, not a new opening. */</ID>
     <ID>MaxLineLength:SettingsStage.kt$// The path before the title shortens first (it is measured last); the tools and the search never move.</ID>
-    <ID>MaxLineLength:SettingsStage.kt$Box</ID>
     <ID>MaxLineLength:SettingsStage.kt$Box(Modifier.padding(start = 6.mpx)) { StageTag(stringResource(R.string.settings_panel_recommended).uppercase()) }</ID>
     <ID>MaxLineLength:SettingsStage.kt$Box(Modifier.padding(top = 18.mpx, bottom = 14.mpx).fillMaxWidth().height(1.mpx).background(StageColors.Ink.copy(alpha = 0.1f)))</ID>
     <ID>MaxLineLength:SettingsStage.kt$Box(Modifier.padding(top = 22.mpx, bottom = 16.mpx).fillMaxWidth().height(1.mpx).background(StageColors.Ink.copy(alpha = 0.1f)))</ID>
     <ID>MaxLineLength:SettingsStage.kt$Box(modifier.fillMaxWidth().then(if (plain) Modifier else Modifier.background(StageColors.ControlFill, shape))) { content() }</ID>
+    <ID>MaxLineLength:SettingsStage.kt$Box</ID>
     <ID>MaxLineLength:SettingsStage.kt$BoxWithConstraints</ID>
     <ID>MaxLineLength:SettingsStage.kt$CompositionLocalProvider</ID>
     <ID>MaxLineLength:SettingsStage.kt$Modifier.fillMaxWidth().padding(start = 30.mpx, end = 24.mpx, top = 36.mpx, bottom = 14.mpx)</ID>
@@ -5401,7 +5401,6 @@
     <ID>MaxLineLength:SettingsStage.kt$fontScale = base.fontScale / tv.own.owntv.ui.theme.LocalUiFontScaleFactor.current * tv.own.owntv.ui.theme.LocalPopupFontScaleFactor.current</ID>
     <ID>MaxLineLength:SettingsStage.kt$fun</ID>
     <ID>MaxLineLength:SettingsStage.kt$idle = if (marked || keepPanel || (panel?.editor != null &amp;&amp; panel.opener === self)) Modifier.background(StageColors.Text.copy(alpha = 0.07f), tv.own.owntv.ui.stage.FocusBarShape) else Modifier</ID>
-    <ID>MaxLineLength:SettingsStage.kt$if</ID>
     <ID>MaxLineLength:SettingsStage.kt$if (!on) drawCircle(Color.Black.copy(alpha = 0.25f), radius = r - px, style = androidx.compose.ui.graphics.drawscope.Stroke(2 * px))</ID>
     <ID>MaxLineLength:SettingsStage.kt$if (!value.isNullOrBlank()) Text(value, style = stageText(18, 600), color = StageColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:SettingsStage.kt$if ((focused || editing) &amp;&amp; panel != null &amp;&amp; help != null) androidx.compose.runtime.SideEffect { panel.help = help.copy(hints = hints) }</ID>
@@ -5418,6 +5417,7 @@
     <ID>MaxLineLength:SettingsStage.kt$if (search != null &amp;&amp; parent == null) Box(Modifier.padding(start = 24.mpx, end = 24.mpx, bottom = 8.mpx)) { search() }</ID>
     <ID>MaxLineLength:SettingsStage.kt$if (tools != null) Row(horizontalArrangement = Arrangement.spacedBy(8.mpx), verticalAlignment = Alignment.CenterVertically, content = tools)</ID>
     <ID>MaxLineLength:SettingsStage.kt$if (windowed) Modifier.background(windowScrim()).pointerInput(Unit) { detectTapGestures { onBack() } } else Modifier</ID>
+    <ID>MaxLineLength:SettingsStage.kt$if</ID>
     <ID>MaxLineLength:SettingsStage.kt$is SettingValue.Action -&gt; Text(value.text, style = valueStyle, color = StageColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:SettingsStage.kt$is SettingValue.Segmented -&gt; SegmentedDisplay(value.options, value.selected, onStep?.let { step -&gt; { i: Int -&gt; if (i != value.selected) step(i - value.selected) } })</ID>
     <ID>MaxLineLength:SettingsStage.kt$keyboardType = if (password &amp;&amp; keyboardType == androidx.compose.ui.text.input.KeyboardType.Text) androidx.compose.ui.text.input.KeyboardType.Password else keyboardType</ID>
@@ -5443,7 +5443,6 @@
     <ID>MaxLineLength:SettingsViewModel.kt$SettingsViewModel$(!existing.syncLive &amp;&amp; syncLive) || (!existing.syncMovies &amp;&amp; syncMovies) || (!existing.syncSeries &amp;&amp; syncSeries)</ID>
     <ID>MaxLineLength:SettingsViewModel.kt$SettingsViewModel$.</ID>
     <ID>MaxLineLength:SettingsViewModel.kt$SettingsViewModel$_sourceTest.value = SourceTestUi.Measuring(source.name, tv.own.owntv.core.live.ProbeProgress(1, 1, tv.own.owntv.core.live.MAX_PROBE_STREAMS))</ID>
-    <ID>MaxLineLength:SettingsViewModel.kt$SettingsViewModel$fun</ID>
     <ID>MaxLineLength:SettingsViewModel.kt$SettingsViewModel$fun setAnimationLevel(level: tv.own.owntv.core.theme.AnimationLevel)</ID>
     <ID>MaxLineLength:SettingsViewModel.kt$SettingsViewModel$fun setBackgroundStyle(style: tv.own.owntv.core.theme.BackgroundStyle)</ID>
     <ID>MaxLineLength:SettingsViewModel.kt$SettingsViewModel$fun setClockColor(part: tv.own.owntv.core.settings.ClockPart, value: String)</ID>
@@ -5467,6 +5466,7 @@
     <ID>MaxLineLength:SettingsViewModel.kt$SettingsViewModel$fun setTimeshiftWindowMinutes(minutes: Int)</ID>
     <ID>MaxLineLength:SettingsViewModel.kt$SettingsViewModel$fun setVodLayout(layout: tv.own.owntv.core.settings.SettingsRepository.VodLayout)</ID>
     <ID>MaxLineLength:SettingsViewModel.kt$SettingsViewModel$fun setWeatherFahrenheit(fahrenheit: Boolean)</ID>
+    <ID>MaxLineLength:SettingsViewModel.kt$SettingsViewModel$fun</ID>
     <ID>MaxLineLength:SettingsViewModel.kt$SettingsViewModel$msg.contains("UnknownHostException", ignoreCase = true) || msg.contains("unknown host", ignoreCase = true)</ID>
     <ID>MaxLineLength:SettingsViewModel.kt$SettingsViewModel$onFailure = { MetadataTestState.Fail(MetadataFailure.Unknown(it.message?.takeIf { m -&gt; m.isNotBlank() })) }</ID>
     <ID>MaxLineLength:SettingsViewModel.kt$SettingsViewModel$private</ID>
@@ -5493,7 +5493,6 @@
     <ID>MaxLineLength:SettingsViewModel.kt$SettingsViewModel$settings.setTimeshiftResumeMode(runCatching { SettingsRepository.ResumeMode.valueOf(name) }.getOrDefault(SettingsRepository.ResumeMode.ASK))</ID>
     <ID>MaxLineLength:SettingsViewModel.kt$SettingsViewModel$settings.timeshiftResumeMode.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SettingsRepository.ResumeMode.ASK)</ID>
     <ID>MaxLineLength:SettingsViewModel.kt$SettingsViewModel$settings.vodLayout.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), tv.own.owntv.core.settings.SettingsRepository.VodLayout.SEPARATE)</ID>
-    <ID>MaxLineLength:SettingsViewModel.kt$SettingsViewModel$val</ID>
     <ID>MaxLineLength:SettingsViewModel.kt$SettingsViewModel$val accent: StateFlow&lt;AccentColor&gt; = settings.accent.stateIn(viewModelScope, SharingStarted.Eagerly, AccentColor.INK)</ID>
     <ID>MaxLineLength:SettingsViewModel.kt$SettingsViewModel$val afrMatchResolution: StateFlow&lt;Boolean&gt; = settings.afrMatchResolution.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)</ID>
     <ID>MaxLineLength:SettingsViewModel.kt$SettingsViewModel$val afrPauseSecs: StateFlow&lt;Int&gt; = settings.afrPauseSecs.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0)</ID>
@@ -5529,9 +5528,10 @@
     <ID>MaxLineLength:SettingsViewModel.kt$SettingsViewModel$val vodNetworkTimeoutSecs: StateFlow&lt;Int&gt; = settings.vodNetworkTimeoutSecs.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0)</ID>
     <ID>MaxLineLength:SettingsViewModel.kt$SettingsViewModel$val vodReconnects: StateFlow&lt;Int&gt; = settings.vodReconnects.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 1)</ID>
     <ID>MaxLineLength:SettingsViewModel.kt$SettingsViewModel$val volumeLevelling: StateFlow&lt;Boolean&gt; = settings.volumeLevelling.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)</ID>
+    <ID>MaxLineLength:SettingsViewModel.kt$SettingsViewModel$val</ID>
     <ID>MaxLineLength:SettingsViewModel.kt$SettingsViewModel$viewModelScope</ID>
-    <ID>MaxLineLength:SetupViewModel.kt$SetupViewModel$fun</ID>
     <ID>MaxLineLength:SetupViewModel.kt$SetupViewModel$fun dismissPendingEpg()</ID>
+    <ID>MaxLineLength:SetupViewModel.kt$SetupViewModel$fun</ID>
     <ID>MaxLineLength:SetupViewModel.kt$SetupViewModel$importer.xtream(name, server, username, password, userAgent, epgUrl, autoRefresh, live, movies, series, preferHls, httpReferer = httpReferer)</ID>
     <ID>MaxLineLength:SetupViewModel.kt$SetupViewModel$private val _epgSync = MutableStateFlow&lt;tv.own.owntv.features.settings.EpgSyncUi&gt;(tv.own.owntv.features.settings.EpgSyncUi.Hidden)</ID>
     <ID>MaxLineLength:SetupViewModel.kt$SetupViewModel$tv.own.owntv.features.settings.runSemiAutoEpgSync(src, epgRepository, epgSourceStore) { _epgSync.value = it }</ID>
@@ -5540,7 +5540,6 @@
     <ID>MaxLineLength:SetupWizard.kt$OwnTVIcon.PENCIL</ID>
     <ID>MaxLineLength:SetupWizard.kt$Step</ID>
     <ID>MaxLineLength:SetupWizard.kt$Text(it, style = stageText(18, 500), color = StageColors.Muted, textAlign = androidx.compose.ui.text.style.TextAlign.Center)</ID>
-    <ID>MaxLineLength:SetupWizard.kt$WizardCard</ID>
     <ID>MaxLineLength:SetupWizard.kt$WizardCard(OwnTVIcon.DOWNLOADS, stringResource(R.string.setup_import), stringResource(R.string.setup_restore_backup_file), onImport)</ID>
     <ID>MaxLineLength:SetupWizard.kt$WizardCard(OwnTVIcon.FOLDER, stringResource(R.string.setup_local_file), stringResource(R.string.setup_pick_backup_local)) { step = Step.IMPORT_BACKUP }</ID>
     <ID>MaxLineLength:SetupWizard.kt$WizardCard(OwnTVIcon.PENCIL, stringResource(R.string.settings_add_type_here), stringResource(R.string.settings_line_add_type_here), onType)</ID>
@@ -5548,6 +5547,7 @@
     <ID>MaxLineLength:SetupWizard.kt$WizardCard(OwnTVIcon.PHONE, stringResource(R.string.setup_from_phone), stringResource(R.string.setup_phone_card_line), onPhone)</ID>
     <ID>MaxLineLength:SetupWizard.kt$WizardCard(OwnTVIcon.PHONE, stringResource(R.string.setup_from_phone), stringResource(R.string.setup_upload_from_wifi_device)) { step = Step.IMPORT_BACKUP_REMOTE }</ID>
     <ID>MaxLineLength:SetupWizard.kt$WizardCard(OwnTVIcon.PHONE, stringResource(R.string.setup_sync_device), stringResource(R.string.setup_sync_device_description)) { step = Step.SYNC_DEVICE }</ID>
+    <ID>MaxLineLength:SetupWizard.kt$WizardCard</ID>
     <ID>MaxLineLength:SetupWizard.kt$androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(tv.own.owntv.ui.theme.MotionPrefs.dur(StepSlideMs)))</ID>
     <ID>MaxLineLength:SetupWizard.kt$androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(tv.own.owntv.ui.theme.MotionPrefs.dur(StepSlideMs / 2)))</ID>
     <ID>MaxLineLength:SetupWizard.kt$androidx.compose.animation.slideInHorizontally(androidx.compose.animation.core.tween(tv.own.owntv.ui.theme.MotionPrefs.dur(StepSlideMs))) { w -&gt; dir * w / 8 }</ID>
@@ -5647,10 +5647,10 @@
     <ID>MaxLineLength:SportsHubScreen.kt$ch.name + sep + stringResource(R.string.content_epg_time_range, timeText(item.startMs), timeText(item.stopMs))</ID>
     <ID>MaxLineLength:SportsHubScreen.kt$contentPadding = PaddingValues(start = contentStart, end = 64.mpx, top = 6.mpx, bottom = 6.mpx)</ID>
     <ID>MaxLineLength:SportsHubScreen.kt$else</ID>
-    <ID>MaxLineLength:SportsHubScreen.kt$if</ID>
     <ID>MaxLineLength:SportsHubScreen.kt$if (hint != null) Text(hint, style = stageText(18, 400), color = StageColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:SportsHubScreen.kt$if (t.shortName.length &lt;= 4 &amp;&amp; t.shortName == t.shortName.uppercase() &amp;&amp; t.name.length &gt; t.shortName.length) t.name else t.shortName</ID>
     <ID>MaxLineLength:SportsHubScreen.kt$if (text.isNotEmpty()) Text(text, style = stageText(19.5f, 600), color = color, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
+    <ID>MaxLineLength:SportsHubScreen.kt$if</ID>
     <ID>MaxLineLength:SportsHubScreen.kt$item { SportsChip("+${followedSports.size - SPORT_CHIPS}", false, dim = true) { showAllSports = true } }</ID>
     <ID>MaxLineLength:SportsHubScreen.kt$item { SportsChip(stringResource(R.string.content_epg_all), activeLeagues.isEmpty()) { leagues = emptySet() } }</ID>
     <ID>MaxLineLength:SportsHubScreen.kt$item { SportsChip(stringResource(R.string.content_epg_all), chips.isEmpty(), Modifier.focusRequester(chipFocus)) { chips = emptySet(); leagues = emptySet() } }</ID>
@@ -5661,9 +5661,9 @@
     <ID>MaxLineLength:SportsHubScreen.kt$reminded = SportsViewModel.reminderKey(m.startMs, MatchNotifications.pair(context, m)) in state.reminders</ID>
     <ID>MaxLineLength:SportsHubScreen.kt$stringResource(if (unreachable) R.string.sports_empty_unreachable else R.string.sports_empty_nothing)</ID>
     <ID>MaxLineLength:SportsHubScreen.kt$tv.own.owntv.ui.components.OwnTVIcon(tv.own.owntv.ui.components.OwnTVIcon.LIVE_TV, StageColors.Muted, Modifier.size(26.mpx))</ID>
-    <ID>MaxLineLength:SportsHubScreen.kt$val</ID>
     <ID>MaxLineLength:SportsHubScreen.kt$val league = listOfNotNull(leagueName(m), m.subtitle?.takeIf { featured }, day).joinToString(stringResource(R.string.content_epg_bits_separator))</ID>
     <ID>MaxLineLength:SportsHubScreen.kt$val name = if (l.key == "cricket/all") stringResource(R.string.sports_sport_cricket) else l.name</ID>
+    <ID>MaxLineLength:SportsHubScreen.kt$val</ID>
     <ID>MaxLineLength:SportsLeagueScreen.kt$SportsChip</ID>
     <ID>MaxLineLength:SportsLeagueScreen.kt$Text(league?.name ?: state.leagueKey, style = stageText(48, 800), color = StageColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:SportsLeagueScreen.kt$Text(stringResource(R.string.sports_this_matchday), style = stageText(25.5f, 800), color = StageColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(start = 18.mpx, bottom = 9.mpx))</ID>
@@ -5683,9 +5683,9 @@
     <ID>MaxLineLength:SportsMatchScreen.kt$/** *Watch live* before a search: what Find channels does, and the button — or, while it runs, "Searching your channels…". */</ID>
     <ID>MaxLineLength:SportsMatchScreen.kt$/** Each side's last five games, side by side: the result (W D L, in the table's letters), the opponent with ⌂ for a home game, the score. */</ID>
     <ID>MaxLineLength:SportsMatchScreen.kt$// Before kick-off ESPN's text is US-styled ("10/16 - 9:00 PM EDT"); the day in the user's own words instead.</ID>
-    <ID>MaxLineLength:SportsMatchScreen.kt$Box</ID>
     <ID>MaxLineLength:SportsMatchScreen.kt$Box(Modifier.weight((1f - share).coerceIn(0.01f, 0.99f)).fillMaxSize().background(StageColors.Ink.copy(alpha = 0.18f), RoundedCornerShape(3.mpx)))</ID>
     <ID>MaxLineLength:SportsMatchScreen.kt$Box(Modifier.weight(share.coerceIn(0.01f, 0.99f)).fillMaxSize().background(accent, RoundedCornerShape(3.mpx)))</ID>
+    <ID>MaxLineLength:SportsMatchScreen.kt$Box</ID>
     <ID>MaxLineLength:SportsMatchScreen.kt$Column</ID>
     <ID>MaxLineLength:SportsMatchScreen.kt$FindChannels(busy = s == ChannelSearch.Searching || s == ChannelSearch.Checking, searching = s == ChannelSearch.Searching, onFind = vm::findChannels)</ID>
     <ID>MaxLineLength:SportsMatchScreen.kt$LazyColumn</ID>
@@ -5738,12 +5738,12 @@
     <ID>MaxLineLength:SportsMatchScreen.kt$guide == null -&gt; Text(stringResource(R.string.sports_broadcasts_find_first), style = stageText(18, 400), color = StageColors.Muted, maxLines = 2, overflow = TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:SportsMatchScreen.kt$guide.isEmpty() -&gt; Text(stringResource(R.string.sports_broadcasts_none), style = stageText(18, 400), color = StageColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:SportsMatchScreen.kt$home!!.score!!.periods.zip(away?.score?.periods.orEmpty()).joinToString(" ") { (h, a) -&gt; "${h.value}–${a.value}" }</ID>
-    <ID>MaxLineLength:SportsMatchScreen.kt$if</ID>
     <ID>MaxLineLength:SportsMatchScreen.kt$if (filter.minQuality != tv.own.owntv.core.sports.MinQuality.ANY) SportsChip(qualityLabel(filter.minQuality), on = true, icon = OwnTVIcon.VIDEO, onClick = onOpen)</ID>
     <ID>MaxLineLength:SportsMatchScreen.kt$if (g.home) OwnTVIcon(OwnTVIcon.HOME, StageColors.Muted, Modifier.size(18.mpx)) else Spacer(Modifier.size(18.mpx))</ID>
     <ID>MaxLineLength:SportsMatchScreen.kt$if (m.broadcasts.isEmpty()) Text(stringResource(R.string.sports_broadcasts_none), style = stageText(18, 400), color = StageColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:SportsMatchScreen.kt$if (m.state == MatchState.PRE) dayOf(m.startMs, LocalConfiguration.current.locales[0]) ?: stringResource(R.string.content_epg_today) else m.statusText</ID>
     <ID>MaxLineLength:SportsMatchScreen.kt$if (sub.isNotEmpty()) Text(sub, style = stageText(18, 400), color = StageColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
+    <ID>MaxLineLength:SportsMatchScreen.kt$if</ID>
     <ID>MaxLineLength:SportsMatchScreen.kt$internal</ID>
     <ID>MaxLineLength:SportsMatchScreen.kt$m.sport == tv.own.owntv.core.sports.model.Sport.TENNIS &amp;&amp; !home?.score?.periods.isNullOrEmpty()</ID>
     <ID>MaxLineLength:SportsMatchScreen.kt$o.tier == WatchTier.EVENT -&gt; Triple(TierEvent, OwnTVIcon.LIVE_TV, stringResource(R.string.sports_reason_event))</ID>
@@ -5763,8 +5763,8 @@
     <ID>MaxLineLength:SportsParts.kt$AsyncImage(model = url, contentDescription = null, contentScale = ContentScale.Fit, modifier = Modifier.fillMaxSize().padding((size * 0.1f).mpx))</ID>
     <ID>MaxLineLength:SportsParts.kt$Box(Modifier.size(10.mpx).drawBehind { drawBoxShadow(SportsLive.copy(alpha = 0.25f), 4.mpx.toPx(), size.minDimension / 2f); drawCircle(SportsLive) })</ID>
     <ID>MaxLineLength:SportsParts.kt$Text(text, style = stageText(textSize, 800, 0.06.em), color = StageColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
-    <ID>MaxLineLength:SportsParts.kt$internal</ID>
     <ID>MaxLineLength:SportsParts.kt$internal fun isToday(ms: Long): Boolean</ID>
+    <ID>MaxLineLength:SportsParts.kt$internal</ID>
     <ID>MaxLineLength:SportsParts.kt$m.sport == Sport.TENNIS &amp;&amp; clock != null &amp;&amp; clock.period &gt; 0 -&gt; stringResource(R.string.sports_set, clock.period)</ID>
     <ID>MaxLineLength:SportsParts.kt$style = stageText(size * 0.3f, 800)</ID>
     <ID>MaxLineLength:SportsParts.kt$val pattern = if (date.isBefore(today.plusDays(7))) "EEE" else android.text.format.DateFormat.getBestDateTimePattern(locale, "EEEd")</ID>
@@ -5779,12 +5779,12 @@
     <ID>MaxLineLength:SportsScreen.kt$SportsFilterPanel(page, onFilter = vm::setFilter, onRemember = vm::setRememberFilters, onDismiss = { filters = false })</ID>
     <ID>MaxLineLength:SportsSettingsScreen.kt$(sports.take(4).map { sportLabel(it) } + pluralStringResource(R.plurals.sports_league_count, leagues.size, leagues.size)).joinToString(sep)</ID>
     <ID>MaxLineLength:SportsSettingsScreen.kt$MoveList$private</ID>
-    <ID>MaxLineLength:SportsSettingsScreen.kt$Row</ID>
     <ID>MaxLineLength:SportsSettingsScreen.kt$Row(OwnTVIcon.BELL, stringResource(R.string.sports_channel_goal_alerts), stringResource(R.string.sports_goal_alerts_description), SettingValue.Opens(alertsSummary(c))) { open(SportsSettingsPage.ALERTS) }</ID>
     <ID>MaxLineLength:SportsSettingsScreen.kt$Row(OwnTVIcon.PLAYLIST, stringResource(R.string.sports_remembered_channels), rememberedLine, SettingValue.Opens(c.rememberedChannels.size.toString())) { open(SportsSettingsPage.REMEMBERED) }</ID>
     <ID>MaxLineLength:SportsSettingsScreen.kt$Row(OwnTVIcon.SPORTS, stringResource(R.string.sports_about), stringResource(R.string.sports_about_summary), SettingValue.Opens(null)) { open(SportsSettingsPage.ABOUT) }</ID>
     <ID>MaxLineLength:SportsSettingsScreen.kt$Row(OwnTVIcon.STAR, stringResource(R.string.sports_my_teams), c.teams.joinToString(", ") { it.name }.ifBlank { null }, SettingValue.Opens(c.teams.size.toString())) { open(SportsSettingsPage.TEAMS) }</ID>
     <ID>MaxLineLength:SportsSettingsScreen.kt$Row(OwnTVIcon.TILES, stringResource(R.string.sports_show_in_menu), stringResource(R.string.sports_show_in_menu_description), SettingValue.Switch(shown)) { vm.setShownInMenu(!shown) }</ID>
+    <ID>MaxLineLength:SportsSettingsScreen.kt$Row</ID>
     <ID>MaxLineLength:SportsSettingsScreen.kt$SettingValue.Opens(c.countries.joinToString(", ").ifBlank { stringResource(R.string.sports_any) })</ID>
     <ID>MaxLineLength:SportsSettingsScreen.kt$SettingValue.Opens(if (chosenLists.isEmpty()) stringResource(R.string.sports_all_playlists) else chosenLists.joinToString(", ") { it.second })</ID>
     <ID>MaxLineLength:SportsSettingsScreen.kt$SettingValue.Opens(langs.joinToString(", ").ifBlank { stringResource(R.string.sports_any) })</ID>
@@ -5797,22 +5797,22 @@
     <ID>MaxLineLength:SportsSettingsScreen.kt$androidx.compose.runtime.LaunchedEffect(c.leagues) { if (reorderPending) { reorderPending = false; orderVersion++ } }</ID>
     <ID>MaxLineLength:SportsSettingsScreen.kt$c.teams.forEach { t -&gt; Row(OwnTVIcon.STAR, t.name, sportLabel(t.sport), SettingValue.Switch(true)) { vm.toggleTeam(t) } }</ID>
     <ID>MaxLineLength:SportsSettingsScreen.kt$codes.forEach { code -&gt; Row(OwnTVIcon.LANGUAGE, label(code), code, SettingValue.Switch(code in chosen)) { onToggle(code) } }</ID>
-    <ID>MaxLineLength:SportsSettingsScreen.kt$else</ID>
     <ID>MaxLineLength:SportsSettingsScreen.kt$else -&gt; SportsRefreshPolicy.hoursOf(mode).let { h -&gt; pluralStringResource(R.plurals.sports_auto_rebuild_hours, h, h) }</ID>
+    <ID>MaxLineLength:SportsSettingsScreen.kt$else</ID>
     <ID>MaxLineLength:SportsSettingsScreen.kt$fun</ID>
     <ID>MaxLineLength:SportsSettingsScreen.kt$h.copy(hints = listOf(stringResource(R.string.common_ok) to stringResource(R.string.settings_key_open), holdOk to move, back))</ID>
     <ID>MaxLineLength:SportsSettingsScreen.kt$if (!carried || e.type != androidx.compose.ui.input.key.KeyEventType.KeyDown) return@onPreviewKeyEvent false</ID>
     <ID>MaxLineLength:SportsSettingsScreen.kt$if (left &amp;&amp; e.type == androidx.compose.ui.input.key.KeyEventType.KeyDown) runCatching { sportFocus.getValue(selected).requestFocus() }</ID>
     <ID>MaxLineLength:SportsSettingsScreen.kt$if (rebuilding) stringResource(R.string.sports_rebuilding) else last?.let { stringResource(R.string.sports_last_updated, it) }</ID>
     <ID>MaxLineLength:SportsSettingsScreen.kt$leading = { _ -&gt; tv.own.owntv.ui.stage.StagePopupIcon(OwnTVIcon.MOVE, if (carried) accent else tv.own.owntv.ui.theme.StageColors.Dim) }</ID>
-    <ID>MaxLineLength:SportsSettingsScreen.kt$modifier</ID>
     <ID>MaxLineLength:SportsSettingsScreen.kt$modifier = Modifier.focusRequester(sportFocus.getValue(s)).onFocusChanged { if (it.isFocused) selected = s }</ID>
+    <ID>MaxLineLength:SportsSettingsScreen.kt$modifier</ID>
     <ID>MaxLineLength:SportsSettingsScreen.kt$moving?.let { list -&gt; MovePopup(list, move, onDone = { moving = null; reorderPending = true }, onCancel = { moving = null }) }</ID>
     <ID>MaxLineLength:SportsSettingsScreen.kt$onDismiss = onCancel</ID>
     <ID>MaxLineLength:SportsSettingsScreen.kt$private</ID>
     <ID>MaxLineLength:SportsSettingsScreen.kt$startMove</ID>
-    <ID>MaxLineLength:SportsSettingsScreen.kt$tv.own.owntv.ui.stage</ID>
     <ID>MaxLineLength:SportsSettingsScreen.kt$tv.own.owntv.ui.stage.StageButton(stringResource(R.string.common_cancel), onClick = onCancel, height = 56.mpx, textSize = 19)</ID>
+    <ID>MaxLineLength:SportsSettingsScreen.kt$tv.own.owntv.ui.stage</ID>
     <ID>MaxLineLength:SportsSettingsScreen.kt$val buttons = listOf(stringResource(R.string.sports_sport_buttons_mine), stringResource(R.string.sports_sport_buttons_all))</ID>
     <ID>MaxLineLength:SportsSettingsScreen.kt$val last = rebuiltAt?.let { at -&gt; (dayOf(at, locale) ?: stringResource(R.string.content_epg_today)) + sep + timeText(at) }</ID>
     <ID>MaxLineLength:SportsSettingsScreen.kt$val line = if (s.team != null) pluralStringResource(R.plurals.sports_watched_matches, s.plays, s.plays) else stringResource(R.string.sports_league_label)</ID>
@@ -5838,8 +5838,8 @@
     <ID>MaxLineLength:SportsViewModel.kt$SportsViewModel$emit(ChannelSearch.Found(watchReader.watchFor(listOf(m)) { SportsMemory.rememberedFor(c, it) }[m.key].orEmpty()))</ID>
     <ID>MaxLineLength:SportsViewModel.kt$SportsViewModel$if (pid &lt; 0) flowOf(emptySet()) else reminders.observe(pid).map { list -&gt; list.map { reminderKey(it.startMs, it.title) }.toSet() }</ID>
     <ID>MaxLineLength:SportsViewModel.kt$SportsViewModel$return config.orderSports(SportsCatalog.sports.filter { s -&gt; keys.any { SportsCatalog.league(it)?.sport == s } })</ID>
-    <ID>MaxLineLength:SportsViewModel.kt$SportsViewModel$val</ID>
     <ID>MaxLineLength:SportsViewModel.kt$SportsViewModel$val matches = (b.today[key].orEmpty() + b.tomorrow[key].orEmpty()).distinctBy { it.key }.sortedBy { it.startMs }</ID>
+    <ID>MaxLineLength:SportsViewModel.kt$SportsViewModel$val</ID>
     <ID>MaxLineLength:StageComponents.kt$&lt;no name provided&gt;$override</ID>
     <ID>MaxLineLength:StageComponents.kt$&lt;no name provided&gt;$return androidx.compose.ui.graphics.Outline.Rounded(androidx.compose.ui.geometry.RoundRect(0f, 0f, size.width, size.height, CornerRadius(r)))</ID>
     <ID>MaxLineLength:StageComponents.kt$(focusStyle == StageFocus.FX &amp;&amp; (tv.own.owntv.ui.theme.LocalInSettingsSheet.current || (tvBox &amp;&amp; (!palette.isLight || !pill))))</ID>
@@ -5870,7 +5870,6 @@
     <ID>MaxLineLength:StageComponents.kt$get</ID>
     <ID>MaxLineLength:StageComponents.kt$horizontalArrangement = if (centered) Arrangement.spacedBy(8.mpx, Alignment.CenterHorizontally) else Arrangement.spacedBy(10.mpx)</ID>
     <ID>MaxLineLength:StageComponents.kt$idle = if (boxed) Modifier.background(StageColors.ControlFill, if (tvBox) FocusBarShape else RoundedCornerShape(r)) else Modifier</ID>
-    <ID>MaxLineLength:StageComponents.kt$if</ID>
     <ID>MaxLineLength:StageComponents.kt$if (count != null) Text(count, style = stageText(16, 600), color = on ?: StageColors.Dim, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:StageComponents.kt$if (e.type == androidx.compose.ui.input.pointer.PointerEventType.Press) runCatching { self.requestFocus() }</ID>
     <ID>MaxLineLength:StageComponents.kt$if (line != null) Text(line, style = stageText(15, 400), color = StageColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
@@ -5878,8 +5877,9 @@
     <ID>MaxLineLength:StageComponents.kt$if (text != null) Text(text, style = stageText(18, 700), color = color, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:StageComponents.kt$if (text != null) Text(text, style = stageText(textSize, 700), color = color, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:StageComponents.kt$if (value != null) Text(value, style = stageText(18, 700), color = if (focused) tv.own.owntv.ui.theme.stageAccent.onAccent else if (valueAccent) a.accent else StageColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
-    <ID>MaxLineLength:StageComponents.kt$modifier</ID>
+    <ID>MaxLineLength:StageComponents.kt$if</ID>
     <ID>MaxLineLength:StageComponents.kt$modifier = Modifier.weight(1f).height(46.mpx).then(if (on &amp;&amp; focusRequester != null) Modifier.focusRequester(focusRequester) else Modifier)</ID>
+    <ID>MaxLineLength:StageComponents.kt$modifier</ID>
     <ID>MaxLineLength:StageComponents.kt$private</ID>
     <ID>MaxLineLength:StageComponents.kt$style = if (line != null) stageText(18, 700) else stageText(if (compact) 15.5f else 17f, if (focused) 700 else 600)</ID>
     <ID>MaxLineLength:StageComponents.kt$val color = if (focused) tv.own.owntv.ui.theme.stageAccent.onAccent else if (danger) StageColors.Danger else StageColors.Muted</ID>
@@ -5965,12 +5965,12 @@
     <ID>MaxLineLength:StorageBrowser.kt$Text(stringResource(R.string.setup_new_folder), style = tv.own.owntv.ui.theme.stageText(38, 800), color = tv.own.owntv.ui.theme.StageColors.Text, modifier = Modifier.padding(bottom = 22.mpx))</ID>
     <ID>MaxLineLength:StorageBrowser.kt$Text(title, style = tv.own.owntv.ui.theme.stageText(34, 800), color = tv.own.owntv.ui.theme.StageColors.Text, maxLines = 2, overflow = TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:StorageBrowser.kt$children.filter { it.isFile &amp;&amp; (fileExtensions == null || it.extension.lowercase() in fileExtensions) }</ID>
-    <ID>MaxLineLength:StorageBrowser.kt$if</ID>
     <ID>MaxLineLength:StorageBrowser.kt$if (!atOnlyRoot) item { BrowserRow(OwnTVIcon.BACK, stringResource(R.string.setup_from_current_folder), Modifier.focusRequester(firstFocus)) { up(dir) } }</ID>
-    <ID>MaxLineLength:StorageBrowser.kt$tv.own.owntv.ui.stage</ID>
+    <ID>MaxLineLength:StorageBrowser.kt$if</ID>
     <ID>MaxLineLength:StorageBrowser.kt$tv.own.owntv.ui.stage.StageButton(stringResource(R.string.common_cancel), onClick = onDismiss, height = 56.mpx, textSize = 19)</ID>
     <ID>MaxLineLength:StorageBrowser.kt$tv.own.owntv.ui.stage.StageButton(stringResource(R.string.common_create), onClick = { if (name.isNotBlank()) onCreate(name) }, height = 56.mpx, textSize = 19, tinted = true)</ID>
     <ID>MaxLineLength:StorageBrowser.kt$tv.own.owntv.ui.stage.StageButton(stringResource(R.string.setup_use_folder), onClick = { current?.let(onPick) }, icon = OwnTVIcon.CHECK, height = 56.mpx, textSize = 19, tinted = true, modifier = Modifier.fillMaxWidth().padding(bottom = 10.mpx))</ID>
+    <ID>MaxLineLength:StorageBrowser.kt$tv.own.owntv.ui.stage</ID>
     <ID>MaxLineLength:SubtitleDeletePopup.kt$LazyColumn</ID>
     <ID>MaxLineLength:SubtitleDeletePopup.kt$buttons = { tv.own.owntv.ui.stage.StageButton(stringResource(R.string.settings_close), onClick = onDismiss, height = 56.mpx, textSize = 19) }</ID>
     <ID>MaxLineLength:SubtitleDeletePopup.kt$leading = { tv.own.owntv.ui.stage.StagePopupIcon(OwnTVIcon.TRASH, tv.own.owntv.ui.theme.StageColors.Danger) }</ID>
@@ -6245,10 +6245,10 @@
     <ID>MaxLineLength:VideoPlayerSettingsScreen.kt$else</ID>
     <ID>MaxLineLength:VideoPlayerSettingsScreen.kt$help = SettingHelp(reset, stringResource(R.string.settings_subtitle_customize_description), hints = settingHints(null, pinnable = false))</ID>
     <ID>MaxLineLength:VideoPlayerSettingsScreen.kt$help = settingHelp(null, custom, stringResource(R.string.settings_subtitle_customize_description), customValue, pinnable = false)</ID>
-    <ID>MaxLineLength:VideoPlayerSettingsScreen.kt$if</ID>
     <ID>MaxLineLength:VideoPlayerSettingsScreen.kt$if (height &lt;= 0) stringResource(R.string.settings_auto) else stringResource(R.string.settings_video_quality_lines, height)</ID>
     <ID>MaxLineLength:VideoPlayerSettingsScreen.kt$if (onlyPart == null &amp;&amp; group.parts.size &gt; 1 &amp;&amp; shown &gt; 0) StageSettingsHeading(stringResource(headingRes), shown, first = firstHeading &amp;&amp; partIndex == 0)</ID>
     <ID>MaxLineLength:VideoPlayerSettingsScreen.kt$if (tunnelingFailed &amp;&amp; !tunneledPlayback) " " + stringResource(R.string.settings_tunneled_playback_failed) else ""</ID>
+    <ID>MaxLineLength:VideoPlayerSettingsScreen.kt$if</ID>
     <ID>MaxLineLength:VideoPlayerSettingsScreen.kt$internal</ID>
     <ID>MaxLineLength:VideoPlayerSettingsScreen.kt$it.toString() to if (it &lt;= 0) stringResource(R.string.common_never) else stringResource(R.string.settings_live_buffer_seconds, it)</ID>
     <ID>MaxLineLength:VideoPlayerSettingsScreen.kt$it.toString() to if (it &lt;= 0) stringResource(R.string.common_off) else stringResource(R.string.settings_video_seconds, it)</ID>
@@ -6266,8 +6266,8 @@
     <ID>MaxLineLength:VideoPlayerSettingsScreen.kt$options = vm.vodReconnectChoices.map { it.toString() to stringResource(R.string.settings_vod_reconnects_value, it) }</ID>
     <ID>MaxLineLength:VideoPlayerSettingsScreen.kt$panelTop = { Box(Modifier.padding(bottom = 20.mpx)) { SubtitlePreview(enabled = enabled, scale = scaleExo, font = font, color = color, position = position, bgOpacity = bgOpacity) } }</ID>
     <ID>MaxLineLength:VideoPlayerSettingsScreen.kt$presets</ID>
-    <ID>MaxLineLength:VideoPlayerSettingsScreen.kt$private</ID>
     <ID>MaxLineLength:VideoPlayerSettingsScreen.kt$private val SUB_SIZES = listOf(0.8f to R.string.settings_subtitle_small, 1.0f to R.string.settings_subtitle_normal, 1.3f to R.string.settings_subtitle_large, 1.6f to R.string.settings_subtitle_extra_large)</ID>
+    <ID>MaxLineLength:VideoPlayerSettingsScreen.kt$private</ID>
     <ID>MaxLineLength:VideoPlayerSettingsScreen.kt$recommended = tv.own.owntv.core.settings.SeekSteps.LIVE_REWIND_CHOICES.indexOf(tv.own.owntv.core.settings.SeekSteps.DEFAULT_LIVE_REWIND_STEP_SEC)</ID>
     <ID>MaxLineLength:VideoPlayerSettingsScreen.kt$recommended = tv.own.owntv.core.settings.SeekSteps.SEEK_CHOICES.indexOf(tv.own.owntv.core.settings.SeekSteps.DEFAULT_SEEK_STEP_SEC)</ID>
     <ID>MaxLineLength:VideoPlayerSettingsScreen.kt$recommended = tv.own.owntv.core.timeshift.TimeshiftRules.WINDOW_CHOICES_MINUTES.indexOf(tv.own.owntv.core.timeshift.TimeshiftRules.DEFAULT_WINDOW_MINUTES)</ID>
@@ -6282,16 +6282,16 @@
     <ID>MaxLineLength:VideoPlayerSettingsScreen.kt$val audioOutput by tv.own.owntv.core.player.AudioOutputWatch.current(LocalContext.current).collectAsStateWithLifecycle()</ID>
     <ID>MaxLineLength:VideoPlayerSettingsScreen.kt$val fonts = listOf("" to stringResource(R.string.settings_subtitle_default)) + AppFontFamily.entries.map { it.name to subtitleFontFamilyLabel(it) }</ID>
     <ID>MaxLineLength:VideoPlayerSettingsScreen.kt$val output by tv.own.owntv.core.player.AudioOutputWatch.current(LocalContext.current).collectAsStateWithLifecycle()</ID>
-    <ID>MaxLineLength:VideoPlayerSettingsScreen.kt$value</ID>
     <ID>MaxLineLength:VideoPlayerSettingsScreen.kt$value = SettingValue.Choice(if (liveLatency == tv.own.owntv.core.settings.LiveLatency.CUSTOM) stringResource(R.string.settings_live_buffer_seconds, liveCustomSecs) else stringResource(liveLatencyLabelRes(liveLatency)))</ID>
     <ID>MaxLineLength:VideoPlayerSettingsScreen.kt$value = SettingValue.Choice(stringResource(R.string.settings_multiview_tiles_max_value, multiviewTiles))</ID>
+    <ID>MaxLineLength:VideoPlayerSettingsScreen.kt$value</ID>
     <ID>MaxLineLength:VideoPlayerSettingsScreen.kt${ src?.let { vm.setSourceLiveLatency(it.id, name, FOLLOW_GLOBAL_LATENCY_SECS) }; latencySource = null }</ID>
     <ID>MaxLineLength:VodStage.kt$/** `.cast`: photos 64 round with a 2 px white-14% ring, the initials on the mint→blue gradient when there is no photo. */</ID>
     <ID>MaxLineLength:VodStage.kt$AsyncImage(model = posterUrl, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())</ID>
     <ID>MaxLineLength:VodStage.kt$AsyncImage(model = u, contentDescription = null, contentScale = ContentScale.Crop, alignment = focus, modifier = Modifier.fillMaxSize())</ID>
     <ID>MaxLineLength:VodStage.kt$AsyncImage(model = url, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())</ID>
-    <ID>MaxLineLength:VodStage.kt$Box</ID>
     <ID>MaxLineLength:VodStage.kt$Box(Modifier.fillMaxSize().gradientWash(true, 0f to Color.Transparent, 0.45f to Color.Transparent, 1f to Color.Black.copy(alpha = 0.7f)))</ID>
+    <ID>MaxLineLength:VodStage.kt$Box</ID>
     <ID>MaxLineLength:VodStage.kt$HeadlineTitle.of(info.title)</ID>
     <ID>MaxLineLength:VodStage.kt$StageRow</ID>
     <ID>MaxLineLength:VodStage.kt$Text("· $count", style = stageText(20, 500), color = StageColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>

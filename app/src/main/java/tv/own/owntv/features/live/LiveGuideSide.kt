@@ -94,6 +94,8 @@ internal fun LiveGuideSide(
     onShowPoster: (tv.own.owntv.core.metadata.ProgrammeArt) -> Unit = {},
     /** False while the guide slides away: Back then belongs to what is under it again. */
     shown: Boolean = true,
+    /** False while the channel list beside it holds the focus and the guide only follows along. */
+    takeFocus: Boolean = true,
 ) {
     BackHandler(enabled = shown) { onClose() }
     val formatTime = tv.own.owntv.ui.format.rememberSystemTimeFormatter()
@@ -136,9 +138,10 @@ internal fun LiveGuideSide(
     val days = remember(loaded) { loaded.orEmpty().filterIsInstance<SideItem.Day>().map { it.startMs } }
     // Focus comes over from the list: asked again for a moment, since the list can still hold it while the panel
     // slides in. With no guide it rests on the channel's name, so ◀ and Back still answer.
-    LaunchedEffect(loaded) {
+    LaunchedEffect(loaded, takeFocus) {
         if (loaded == null) return@LaunchedEffect
-        if (loaded.isNotEmpty()) runCatching { list.scrollToItem((onAirIndex - LINES_ABOVE).coerceAtLeast(0)) }
+        if (loaded.isNotEmpty() && !hasFocus) runCatching { list.scrollToItem((onAirIndex - LINES_ABOVE).coerceAtLeast(0)) }
+        if (!takeFocus) return@LaunchedEffect
         repeat(FOCUS_TRIES) {
             if (hasFocus) return@LaunchedEffect
             androidx.compose.runtime.withFrameNanos { }
@@ -306,6 +309,7 @@ internal fun LiveGuideSideHost(
     onLeft: (() -> Unit)? = null,
     refocus: Int = 0,
     onShowPoster: (tv.own.owntv.core.metadata.ProgrammeArt) -> Unit = {},
+    takeFocus: Boolean = true,
 ) {
     val slide = tv.own.owntv.ui.theme.MotionPrefs.slideMs(GUIDE_SLIDE_MS)
     val fade = tv.own.owntv.ui.theme.MotionPrefs.dur(GUIDE_SLIDE_MS)
@@ -325,6 +329,7 @@ internal fun LiveGuideSideHost(
             channel = ch,
             scheduleFor = scheduleFor,
             archiveFor = archiveFor,
+            takeFocus = takeFocus,
             onWatch = { onWatch(ch) },
             onPlayArchive = { onPlayArchive(ch, it) },
             onClose = onClose,

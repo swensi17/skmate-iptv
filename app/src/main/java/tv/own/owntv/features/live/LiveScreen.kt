@@ -51,6 +51,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.zIndex
 import androidx.compose.ui.layout.layout
 import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.ui.focus.FocusRequester as RowFocus
@@ -552,6 +553,8 @@ fun LiveScreen(
     val scheduleFocus = remember { FocusRequester() }
     // TV-box look: ▶ on a channel puts its guide in the list's place; ◀ brings the list back.
     var guideChannel by remember { mutableStateOf<ChannelEntity?>(null) }
+    // The guide is a column beside the list: this says which of the two has the remote.
+    var inGuide by remember { mutableStateOf(false) }
     var guideRefocus by remember { mutableIntStateOf(0) }
     var guidePoster by remember { mutableStateOf<tv.own.owntv.core.metadata.ProgrammeArt?>(null) }
     // The categories closed beside the guide: focus back into it. Another category picked: its list, not the guide.
@@ -762,11 +765,6 @@ fun LiveScreen(
             ),
             label = "liveListPush",
         )
-        val guideShift by androidx.compose.animation.core.animateFloatAsState(
-            if (guideChannel != null) 1f else 0f,
-            androidx.compose.animation.core.tween(tv.own.owntv.ui.theme.MotionPrefs.slideMs(GUIDE_SLIDE_MS)),
-            label = "liveGuideShift",
-        )
         Box(
             Modifier
                 .fillMaxSize()
@@ -792,7 +790,6 @@ fun LiveScreen(
                     .padding(start = listX, top = 118.mpx)
                     .width(listWidth)
                     .fillMaxHeight()
-                    .graphicsLayer { translationX = -guideShift * GUIDE_LIST_SHIFT * density; alpha = 1f - guideShift }
                     .onFocusChanged { channelPaneFocused = it.hasFocus; if (!it.hasFocus) pendingPreview.value = null }
                     .chNavPaging(
                         enabled = chNavEnabled,
@@ -1009,7 +1006,12 @@ fun LiveScreen(
                                             androidx.compose.ui.input.key.Key.DirectionRight -> {
                                                 if (tv.own.owntv.features.shell.TvBoxNav) {
                                                     val settled = android.os.SystemClock.uptimeMillis() - categoriesClosedAt > GUIDE_AFTER_SHEET_MS
-                                                    if (!categoriesOpen && settled) guideChannel = channel
+                                                    if (!categoriesOpen && settled) {
+                                                        // Into the column: opened if it was not there yet.
+                                                        guideChannel = channel
+                                                        inGuide = true
+                                                        guideRefocus++
+                                                    }
                                                 } else {
                                                     runCatching { scheduleFocus.requestFocus() }
                                                 }
@@ -1024,6 +1026,9 @@ fun LiveScreen(
                                     },
                                     onFocus = {
                                         focusedRowId[0] = channel.id
+                                        // The column follows the list while the list has the remote.
+                                        inGuide = false
+                                        if (guideChannel != null) guideChannel = channel
                                         if (tv.own.owntv.features.shell.TvBoxNav) {
                                             pendingPreview.value = channel
                                         } else {
@@ -1032,6 +1037,7 @@ fun LiveScreen(
                                         if (rememberLive) perCategoryChannelIds[selectedKey] = channel.id
                                     },
                                     onClick = {
+                                        guideChannel = null
                                         vm.watchFullscreen(channel, channels.itemSnapshotList.items.filterNotNull())
                                         if (!externalPlayerOn) onFullscreen()
                                     },
@@ -1054,14 +1060,14 @@ fun LiveScreen(
             }
 
             // Under the preview, bottom right, so the list runs down to the bottom edge.
-            if (lockedKey == null && previewShown) {
+            if (lockedKey == null && previewShown && guideChannel == null) {
                 tv.own.owntv.ui.stage.StageKeyHints(
                     liveHints,
                     modifier = Modifier.align(Alignment.BottomEnd).padding(end = margin, bottom = 40.mpx),
                 )
             }
 
-            // The guide of the channel ▶ was pressed on, sliding in where the list was; the preview stays.
+            // The guide of the focused channel as a third column, over the preview; the list stays beside it.
             LiveGuideSideHost(
                 channel = guideChannel,
                 scheduleFor = vm::scheduleFor,
@@ -1077,9 +1083,15 @@ fun LiveScreen(
                     if (!externalPlayerOn) onFullscreen()
                 },
                 onClose = { guideChannel = null; focusCurrentRow() },
+                onLeft = { inGuide = false; focusCurrentRow() },
+                takeFocus = inGuide,
                 refocus = guideRefocus,
                 onShowPoster = { guidePoster = it },
-                modifier = Modifier.fillMaxHeight().width((screenW - margin - stageW - GUIDE_GAP.mpx).coerceAtLeast(0.mpx)),
+                modifier = Modifier
+                    .zIndex(1f)
+                    .padding(start = (screenW - margin - stageW).coerceAtLeast(0.mpx), top = 112.mpx)
+                    .fillMaxHeight()
+                    .width(stageW + margin),
             )
 
             if (previewShown) {
@@ -1879,9 +1891,6 @@ private const val WATCHED_MARK_LIMIT = 200
 /** How long the preview must rest before the history marks are read again. */
 private const val WATCHED_SETTLE_MS = 1_500L
 
-/** How far the list moves aside while the side guide slides in over it (▶ on a channel). */
-private const val GUIDE_LIST_SHIFT = 120f
 
 /** After the categories close, a ▶ this soon is the one that closed them, not a request for the guide. */
 private const val GUIDE_AFTER_SHEET_MS = 350L
-private const val GUIDE_GAP = 30
