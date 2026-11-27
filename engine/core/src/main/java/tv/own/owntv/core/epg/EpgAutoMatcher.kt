@@ -89,7 +89,9 @@ class EpgAutoMatcher(
             // Narrow before scoring: the scan is channels × candidates, which is millions of
             // comparisons on a full lineup and minutes of spinner on TV silicon if it runs unfiltered.
             val unmatched = channels.filter { needsMatch(it, cust, idsWithProgrammes) }
-            val best = EpgMatcher.bestEpgMatchBulk(unmatched.map { it.matchName }, prepared)
+            val exact = GuideCandidates.exactIndex(candidates)
+            val scored = EpgMatcher.bestEpgMatchBulk(unmatched.map { it.matchName }, prepared)
+            val best = unmatched.mapIndexed { i, ch -> exactResult(exact, ch.matchName) ?: scored[i] }
 
             val applied = mutableListOf<Pair<String, String>>()
             val review = mutableListOf<AutoMatchSuggestion>()
@@ -135,7 +137,8 @@ class EpgAutoMatcher(
         if (candidates.isEmpty()) return null
         val hasProgrammesById = candidates.associate { it.epgChannelId to it.hasProgrammes }
         return withContext(Dispatchers.Default) {
-            val best = EpgMatcher.bestEpgMatchPrepared(channel.matchName, prepareWithProgrammesFirst(candidates))
+            val best = exactResult(GuideCandidates.exactIndex(candidates), channel.matchName)
+                ?: EpgMatcher.bestEpgMatchPrepared(channel.matchName, prepareWithProgrammesFirst(candidates))
             best?.toSuggestion(channel, hasProgrammesById[best.epgChannelId] == true)
         }
     }
@@ -162,6 +165,9 @@ class EpgAutoMatcher(
     private fun prepareWithProgrammesFirst(candidates: List<GuideCandidate>) = EpgMatcher.prepare(
         candidates.sortedByDescending { it.hasProgrammes }.map { EpgMatcher.Candidate(it.epgChannelId, it.displayName) },
     )
+
+    private fun exactResult(index: Map<String, GuideCandidate>, name: String): EpgMatcher.Result? =
+        index[GuideCandidates.exactKey(name)]?.let { EpgMatcher.Result(it.epgChannelId, it.displayName, 1.0) }
 
     private fun EpgMatcher.Result.toSuggestion(channel: ChannelEntity, hasProgrammes: Boolean) =
         AutoMatchSuggestion(

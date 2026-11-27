@@ -130,4 +130,29 @@ class GuideCandidatesTest {
         assertEquals("", merged.single().normName)
         assertEquals(EpgMatcher.normalizeForEpg("itv.one.uk"), merged.single().normId)
     }
+
+    @Test
+    fun theExactNameWinsOverTheSameNameWithoutHd() {
+        val merged = GuideCandidates.merge(
+            listOf(
+                EpgChannelName("1649", "ТНТ4", null, null, sourceId = 1),
+                EpgChannelName("ch014", "ТНТ4 HD", null, null, sourceId = 2),
+            ),
+            listOf("1649", "ch014"),
+        ) { it.toInt() }
+        val exact = GuideCandidates.exactIndex(merged)
+        assertEquals("ch014", exact[GuideCandidates.exactKey("ТНТ4  hd")]?.epgChannelId)
+        assertEquals("1649", exact[GuideCandidates.exactKey("ТНТ4")]?.epgChannelId)
+    }
+
+    @Test
+    fun theGuideHigherInTheListWinsTheSameName() {
+        val rows = listOf(
+            EpgChannelName("low", "Первый", null, null, sourceId = 7),
+            EpgChannelName("top", "Первый", null, null, sourceId = 9),
+        )
+        val merged = GuideCandidates.merge(rows, listOf("low", "top")) { if (it == 9L) 0 else 1 }
+        assertEquals("top", merged.first().epgChannelId)
+        assertEquals("top", GuideCandidates.exactIndex(merged)[GuideCandidates.exactKey("первый")]?.epgChannelId)
+    }
 }

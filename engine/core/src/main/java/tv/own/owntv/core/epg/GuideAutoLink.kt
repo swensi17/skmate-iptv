@@ -30,7 +30,10 @@ class GuideAutoLink(
     private val epgDao: EpgDao,
     private val epgRepository: EpgRepository,
     private val profileDao: ProfileDao,
+    private val epgSources: EpgSourceStore,
 ) {
+    private fun guideCandidates() = GuideCandidates(epgDao) { epgSources.priority() }
+
     /** Links what it can and returns how many channels it linked. Never throws. */
     suspend fun run(force: Boolean = true): Int = runCatching {
         // Right after onboarding the first guide finishes before the new profile is marked active; the
@@ -48,11 +51,11 @@ class GuideAutoLink(
             pid,
             playlistIds.sorted(),
             channelDao.countAll(playlistIds).first(),
-            GuideCandidates(epgDao).all().size,
+            guideCandidates().all().size,
             cust.epgMatches.size,
         ).joinToString("|")
         if (!force && settings.guideAutoLinkKey() == key) return 0
-        val outcome = EpgAutoMatcher(channelDao, GuideCandidates(epgDao))
+        val outcome = EpgAutoMatcher(channelDao, guideCandidates())
             .run(cust, playlistIds, applyWithoutProgrammes = true)
         settings.setGuideAutoLinkKey(key)
         val matches = outcome.applied.mapNotNull { (key, epgId) ->
@@ -77,18 +80,21 @@ class GuideAutoLink(
      * best entry that has programmes, and that entry's programmes are filled the same way.
      */
     private suspend fun relinkEmpty(pid: Long, playlistIds: List<Long>, linked: Map<String, String>): Int {
-        val candidates = GuideCandidates(epgDao).all()
+        val candidates = guideCandidates().all()
         val withProgrammes = candidates.filter { it.hasProgrammes }
         val full = withProgrammes.mapTo(HashSet()) { it.epgChannelId.trim().lowercase() }
         val emptyKeys = linked.filterValues { it !in full }.keys
         if (emptyKeys.isEmpty() || withProgrammes.isEmpty()) return 0
         val prepared = EpgMatcher.prepare(withProgrammes.map { EpgMatcher.Candidate(it.epgChannelId, it.displayName) })
+        val exact = GuideCandidates.exactIndex(withProgrammes)
         val moved = channelDao.allForSources(playlistIds, MAX_RELINK_SCAN)
             .filter { tv.own.owntv.core.customize.CustomizeKeys.channel(it) in emptyKeys }
             .mapNotNull { ch ->
-                val best = EpgMatcher.bestEpgMatchPrepared(ch.matchName, prepared) ?: return@mapNotNull null
-                if (best.score < EpgMatcher.AUTO_THRESHOLD) return@mapNotNull null
-                tv.own.owntv.core.customize.CustomizeKeys.channel(ch) to best.epgChannelId.trim().lowercase()
+                val id = exact[GuideCandidates.exactKey(ch.matchName)]?.epgChannelId
+                    ?: EpgMatcher.bestEpgMatchPrepared(ch.matchName, prepared)
+                        ?.takeIf { it.score >= EpgMatcher.AUTO_THRESHOLD }?.epgChannelId
+                    ?: return@mapNotNull null
+                tv.own.owntv.core.customize.CustomizeKeys.channel(ch) to id.trim().lowercase()
             }.toMap()
         if (moved.isEmpty()) return 0
         customize.update(pid, MediaType.LIVE) { it.copy(epgMatches = it.epgMatches + moved) }

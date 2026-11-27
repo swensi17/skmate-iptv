@@ -33,7 +33,7 @@ class GuidePriority private constructor(private val rankBySource: Map<Long, Int>
     }
 
     /** The source's place in the list; any source not on it (an old playlist guide) ranks last. */
-    private fun rankOf(sourceId: Long): Int = rankBySource[sourceId] ?: Int.MAX_VALUE
+    fun rankOf(sourceId: Long): Int = rankBySource[sourceId] ?: Int.MAX_VALUE
 
     private fun EpgProgrammeEntity.overlaps(other: EpgProgrammeEntity): Boolean =
         startMs < other.stopMs && other.startMs < stopMs

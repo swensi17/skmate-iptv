@@ -1198,13 +1198,13 @@
 1	sql	core/src/main/java/tv/own/owntv/core/database/dao/EpgDao.kt	SELECT MAX(id) FROM epg_programmes
 1	room-schema	core/src/main/java/tv/own/owntv/core/database/dao/EpgDao.kt	SELECT description FROM epg_programmes WHERE id = :programmeId LIMIT 1
 1	room-schema	core/src/main/java/tv/own/owntv/core/database/dao/EpgDao.kt	SELECT epgChannelId FROM epg_channels WHERE sourceId = :sourceId
-1	room-schema	core/src/main/java/tv/own/owntv/core/database/dao/EpgDao.kt	SELECT epgChannelId, displayName, normName, normId FROM epg_channels LIMIT :limit
 1	sql	core/src/main/java/tv/own/owntv/core/database/dao/EpgDao.kt	SELECT epgChannelId, iconUrl FROM epg_channels WHERE iconUrl IS NOT NULL AND iconUrl != ''
 1	room-schema	core/src/main/java/tv/own/owntv/core/database/dao/EpgDao.kt	SELECT epgChannelId, iconUrl FROM epg_channels WHERE sourceId IN (:sourceIds) AND iconUrl IS NOT NULL AND iconUrl != ''
 1	sql	core/src/main/java/tv/own/owntv/core/database/dao/EpgDao.kt	SELECT id, description FROM epg_programmes WHERE id IN (:ids) AND description IS NOT NULL
 1	room-schema	core/src/main/java/tv/own/owntv/core/database/dao/EpgDao.kt	SELECT id, epgChannelId, startMs, contentHash FROM epg_programmes WHERE sourceId = :sourceId AND epgChannelId = :epgChannelId
 1	sql	core/src/main/java/tv/own/owntv/core/database/dao/EpgDao.kt	SELECT id, epgChannelId, startMs, stopMs, title, categories FROM epg_programmes
 3	sql	core/src/main/java/tv/own/owntv/core/database/dao/EpgDao.kt	SELECT id, sourceId, epgChannelId, startMs, stopMs, title, NULL AS description, 0 AS contentHash,
+1	sql	core/src/main/java/tv/own/owntv/core/database/dao/EpgDao.kt	SELECT sourceId, epgChannelId, displayName, normName, normId FROM epg_channels LIMIT :limit
 1	sql	core/src/main/java/tv/own/owntv/core/database/dao/EpgDao.kt	WHERE startMs >= :from AND startMs < :to AND +stopMs > :minStop LIMIT :limit
 1	room-schema	core/src/main/java/tv/own/owntv/core/database/dao/FavoriteDao.kt	(:type = 'LIVE' AND itemId NOT IN (SELECT id FROM channels)) OR
 1	room-schema	core/src/main/java/tv/own/owntv/core/database/dao/FavoriteDao.kt	(:type = 'MOVIE' AND itemId NOT IN (SELECT id FROM movies)) OR
@@ -2065,7 +2065,7 @@
 1	log	core/src/main/java/tv/own/owntv/core/epg/GuideAutoLink.kt	auto-link failed
 1	log	core/src/main/java/tv/own/owntv/core/epg/GuideAutoLink.kt	linked ${matches.size} channels by name, $relinked moved off empty guide entries (review left: ${outcome.review.size})
 1	technical	core/src/main/java/tv/own/owntv/core/epg/GuideAutoLink.kt	|
-2	empty	core/src/main/java/tv/own/owntv/core/epg/GuideCandidates.kt	\0
+3	empty	core/src/main/java/tv/own/owntv/core/epg/GuideCandidates.kt	\0
 1	log	core/src/main/java/tv/own/owntv/core/epg/GuideCandidates.kt	Guide candidate limit $limit reached (named=${named.size} withProgrammes=${withProgrammes.size}) — list truncated
 1	log	core/src/main/java/tv/own/owntv/core/epg/GuideCandidates.kt	GuideCandidates
 1	log	core/src/main/java/tv/own/owntv/core/epg/GuideCandidates.kt	emptyGuide=${candidates.count { !it.hasProgrammes }}

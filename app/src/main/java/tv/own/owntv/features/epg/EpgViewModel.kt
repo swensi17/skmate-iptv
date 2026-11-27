@@ -126,7 +126,7 @@ class EpgViewModel(
     fun setCategoryQuery(query: String) { _categoryQuery.value = query }
 
     /** The one candidate set the picker and both auto-match paths read — see [GuideCandidates]. */
-    private val guideCandidates = GuideCandidates(epgDao)
+    private val guideCandidates = GuideCandidates(epgDao) { epgSourceStore.priority() }
 
     /** The match scan itself — core's, so the television, the phone and the single-channel run agree. */
     private val autoMatcher = EpgAutoMatcher(channelDao, guideCandidates)

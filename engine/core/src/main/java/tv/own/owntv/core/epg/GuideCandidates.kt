@@ -27,6 +27,10 @@ data class GuideCandidate(
      */
     val normName: String = "",
     val normId: String = "",
+    /** The best place in the EPG Sources list among the guides naming this channel (0 = the top one). */
+    val rank: Int = Int.MAX_VALUE,
+    /** Every name the guides give it, as [GuideCandidates.exactKey] writes them. */
+    val names: Set<String> = emptySet(),
 )
 
 /**
@@ -48,7 +52,10 @@ data class GuideCandidate(
  * Takes only an [EpgDao] — no source store, no profile — because after the two points above there is
  * nothing else to take. That is also what makes it constructible from either app without ceremony.
  */
-class GuideCandidates(private val epgDao: EpgDao) {
+class GuideCandidates(
+    private val epgDao: EpgDao,
+    private val priority: suspend () -> GuidePriority? = { null },
+) {
 
     /**
      * Every guide channel, at most [limit] of each underlying table.
@@ -65,7 +72,8 @@ class GuideCandidates(private val epgDao: EpgDao) {
         val named = epgDao.guideChannelNames(limit)
         val withProgrammes = epgDao.guideProgrammeChannelIds(limit)
         val queriedAt = SystemClock.elapsedRealtime()
-        val candidates = merge(named, withProgrammes)
+        val order = priority()
+        val candidates = merge(named, withProgrammes) { order?.rankOf(it) ?: Int.MAX_VALUE }
         CorePerf.log {
             "guide_candidates named=${named.size} withProgrammes=${withProgrammes.size} " +
                 "merged=${candidates.size} nameless=${candidates.count { it.displayName == null }} " +
@@ -120,6 +128,25 @@ class GuideCandidates(private val epgDao: EpgDao) {
     }
 
     companion object {
+        private val SPACES = Regex("\\s+")
+
+        /** A name as written, only case and spacing evened out: "ТНТ4  HD" and "тнт4 hd" are the same. */
+        fun exactKey(name: String): String = name.trim().lowercase().replace('ё', 'е').replace(SPACES, " ")
+
+        /**
+         * The guide channel that carries [channelName] to the letter, from the guide highest in the user's
+         * list. The scorer drops "HD" and the like, so "ТНТ4 HD" and another feed's "ТНТ4" scored the same
+         * and whichever was read first won, with a schedule that was not what the channel showed.
+         */
+        fun exactIndex(candidates: List<GuideCandidate>): Map<String, GuideCandidate> {
+            val index = HashMap<String, GuideCandidate>()
+            // Best rank first; within one rank an entry with programmes before an empty one.
+            for (c in candidates.sortedWith(compareBy<GuideCandidate> { it.rank }.thenByDescending { it.hasProgrammes })) {
+                for (name in c.names) index.putIfAbsent(name, c)
+            }
+            return index
+        }
+
         /**
          * The two table reads combined into one candidate list — pure, so it is tested on the JVM
          * rather than only through a database.
@@ -133,12 +160,17 @@ class GuideCandidates(private val epgDao: EpgDao) {
         internal fun merge(
             named: List<EpgChannelName>,
             withProgrammes: List<String>,
+            rankOf: (Long) -> Int = { Int.MAX_VALUE },
         ): List<GuideCandidate> {
             val programmeIds = withProgrammes.toHashSet()
             val bestName = HashMap<String, String>(named.size)
+            val ranks = HashMap<String, Int>(named.size)
+            val names = HashMap<String, HashSet<String>>(named.size)
             for (row in named) {
+                ranks.merge(row.epgChannelId, rankOf(row.sourceId), ::minOf)
                 val name = row.displayName?.trim().orEmpty()
                 if (name.isEmpty()) continue
+                names.getOrPut(row.epgChannelId) { HashSet(2) }.add(exactKey(name))
                 val current = bestName[row.epgChannelId]
                 if (current == null || name.length > current.length) bestName[row.epgChannelId] = name
             }
@@ -166,8 +198,11 @@ class GuideCandidates(private val epgDao: EpgDao) {
                     normName = storedNormName[id]
                         ?: displayName?.let(EpgMatcher::normalizeForEpg).orEmpty(),
                     normId = storedNormId[id] ?: EpgMatcher.normalizeForEpg(id),
+                    rank = ranks[id] ?: Int.MAX_VALUE,
+                    names = names[id].orEmpty(),
                 )
-            }
+            // The matcher keeps the first of equal scores: the user's top guide must come first.
+            }.sortedBy { it.rank }
         }
 
         /** Per table. Large enough for any real feed; a ceiling rather than a page size. */

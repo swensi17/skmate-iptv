@@ -109,6 +109,8 @@ data class EpgChannelName(
     val displayName: String?,
     val normName: String?,
     val normId: String?,
+    /** The guide that named it: [tv.own.owntv.core.epg.GuidePriority] ranks candidates by it. */
+    val sourceId: Long = 0,
 )
 
 /**
