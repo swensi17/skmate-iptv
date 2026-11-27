@@ -25,7 +25,18 @@ async function reachable(url: string, fetchFn: typeof fetch): Promise<boolean> {
   } catch { return false; }
 }
 
-export async function fetchPlaylist(url: string, fetchFn: typeof fetch = fetch, timeoutMs = FETCH_TIMEOUT_MS): Promise<string> {
+/**
+ * The playlist proxy's address (a Cloudflare Worker, web/proxy), empty when none is set. Used only on a web page, and only
+ * after the provider itself was refused by the browser: the packaged TV apps never need it.
+ */
+export const PLAYLIST_PROXY: string = (import.meta as unknown as { env?: { VITE_PLAYLIST_PROXY?: string } }).env?.VITE_PLAYLIST_PROXY ?? "";
+
+/** A web page (http/https), not a packaged TV app (file:, app:, widget: ...). */
+function onWebPage(): boolean {
+  return typeof location !== "undefined" && /^https?:$/.test(location.protocol);
+}
+
+export async function fetchPlaylist(url: string, fetchFn: typeof fetch = fetch, timeoutMs = FETCH_TIMEOUT_MS, proxy: string = PLAYLIST_PROXY): Promise<string> {
   const ctl = typeof AbortController !== "undefined" ? new AbortController() : null;
   const timer = setTimeout(() => ctl?.abort(), timeoutMs);
   try {
@@ -39,8 +50,30 @@ export async function fetchPlaylist(url: string, fetchFn: typeof fetch = fetch, 
     if (ctl?.signal.aborted) throw new PlaylistError("timeout", String(e));
     // A blocked cross-origin request and a dead server look the same to a page. A "no-cors" request tells them apart:
     // it cannot be read, but it succeeds when the server is there, so then the server only refuses the browser.
-    if (await reachable(url, fetchFn)) throw new PlaylistError("cors", String(e));
+    if (await reachable(url, fetchFn)) {
+      // The server is there and only refuses the browser: the same address once more through the proxy, if there is one.
+      if (proxy && onWebPage() && /^https?:/i.test(url)) return viaProxy(url, proxy, fetchFn, timeoutMs, e);
+      throw new PlaylistError("cors", String(e));
+    }
     throw new PlaylistError("network", String(e));
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/** The playlist through the proxy; its refusal is the same "cors" the viewer would have seen without it. */
+async function viaProxy(url: string, proxy: string, fetchFn: typeof fetch, timeoutMs: number, first: unknown): Promise<string> {
+  const ctl = typeof AbortController !== "undefined" ? new AbortController() : null;
+  const timer = setTimeout(() => ctl?.abort(), timeoutMs);
+  try {
+    const res = await fetchFn(`${proxy}?url=${encodeURIComponent(url)}`, ctl ? { signal: ctl.signal } : undefined);
+    if (!res.ok) throw new PlaylistError(res.status === 403 || res.status === 404 ? "http" : "cors", String(res.status));
+    const text = await res.text();
+    if (!looksLikeM3U(text)) throw new PlaylistError("invalid");
+    return text;
+  } catch (e) {
+    if (e instanceof PlaylistError) throw e;
+    throw new PlaylistError("cors", String(first));
   } finally {
     clearTimeout(timer);
   }
