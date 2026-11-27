@@ -70,10 +70,22 @@ export async function syncGuides(o: SyncOptions): Promise<{ data: GuideData; out
   const unlinked = new Map(o.channels.map((c) => [c.id, c]));
   // Linked by a likeness of the name only: a later source that has the exact name takes them over (2.6.4).
   const loose = new Map<string, Channel>();
+  /** Linked by an exact name only: a later guide's tvg-id still takes them over (a fuzzy one, its exact name too). */
+  const exactOnly = new Set<string>();
   const outcomes: SourceOutcome[] = [];
+  const byId = new Map(o.channels.map((c) => [c.id, c]));
+  // Guide channels that have something on now or ahead. One guide per channel (2.6.6, GuidePriority): the topmost
+  // that still has a programme now or ahead; a lower guide takes a channel only when the one above has run dry, and
+  // never fills the gaps of another, so two schedules are never mixed.
+  const live = new Set<string>();
+  const dry = () => {
+    const out: Channel[] = [];
+    data.links.forEach((epg, chId) => { if (!live.has(epg)) { const c = byId.get(chId); if (c) out.push(c); } });
+    return out;
+  };
 
   for (const source of o.sources) {
-    if ((unlinked.size === 0 && loose.size === 0) || o.isCancelled?.()) break;
+    if ((unlinked.size === 0 && loose.size === 0 && dry().length === 0) || o.isCancelled?.()) break;
     const outcome: SourceOutcome = { source, ok: false, guideChannels: 0, linked: 0, programmes: 0 };
     outcomes.push(outcome);
     try {
@@ -88,6 +100,7 @@ export async function syncGuides(o: SyncOptions): Promise<{ data: GuideData; out
 
       const accept = (id: string, p: Programme) => {
         if (!wanted?.has(id) || p.stop <= from || p.start >= until) return;
+        if (p.stop > o.now) live.add(id);
         if (sink) { sink.add(id, p); outcome.programmes++; return; }
         const list = taken.get(id);
         if (list) list.push(p); else taken.set(id, [p]);
@@ -116,10 +129,20 @@ export async function syncGuides(o: SyncOptions): Promise<{ data: GuideData; out
         const exactOf = (name?: string) => (name ? exact.get(exactName(name)) ?? null : null);
         const found = new Set<string>();
         const iconOf = new Map(guideChannels.filter((c) => c.icon).map((c) => [c.id, c.icon as string]));
-        // Those a likeness linked before: taken over only by this source's exact name.
+        const take = (ch: Channel, id: string) => {
+          data.links.set(ch.id, id);
+          found.add(id);
+          const icon = iconOf.get(id);
+          if (icon && !data.logos.has(id)) data.logos.set(id, icon);
+          outcome.linked++;
+        };
+        // Those a likeness linked before: taken over by this source's tvg-id (a name match must not beat a tvg-id
+        // whose guide was read later, 2.6.6) or exact name.
         for (const ch of Array.from(loose.values())) {
-          const id = exactOf(ch.name) ?? exactOf(ch.tvgName);
+          const byTvg = (ch.tvgId && ids.get(ch.tvgId.toLowerCase())) || null;
+          const id = byTvg ?? (exactOnly.has(ch.id) ? null : exactOf(ch.name) ?? exactOf(ch.tvgName));
           if (!id) continue;
+          exactOnly.delete(ch.id);
           data.links.set(ch.id, id);
           loose.delete(ch.id);
           found.add(id);
@@ -127,14 +150,26 @@ export async function syncGuides(o: SyncOptions): Promise<{ data: GuideData; out
           if (icon && !data.logos.has(id)) data.logos.set(id, icon);
           outcome.linked++;
         }
+        // Those whose guide above has nothing now or ahead: this source takes them whole, by any match.
+        for (const ch of dry()) {
+          const sure = ((ch.tvgId && ids.get(ch.tvgId.toLowerCase())) || null) ?? exactOf(ch.name) ?? exactOf(ch.tvgName);
+          const id = sure ?? index.best(ch.name, AUTO_THRESHOLD)?.id ?? null;
+          if (!id || id === data.links.get(ch.id)) continue;
+          take(ch, id);
+          loose.delete(ch.id);
+          if (!sure) loose.set(ch.id, ch);
+        }
         const todo = Array.from(unlinked.values());
         for (let i = 0; i < todo.length; i += MATCH_CHUNK) {
           for (const ch of todo.slice(i, i + MATCH_CHUNK)) {
             await breathe(); // a match by name can take milliseconds: the thread is given back as soon as a slice is used
             const direct = (ch.tvgId && ids.get(ch.tvgId.toLowerCase())) || null;
-            const sure = direct ?? exactOf(ch.name) ?? exactOf(ch.tvgName);
+            const exactId = direct ? null : exactOf(ch.name) ?? exactOf(ch.tvgName);
+            const sure = direct ?? exactId;
             const byName = sure ?? index.best(ch.name, AUTO_THRESHOLD)?.id ?? (ch.tvgName ? index.best(ch.tvgName, AUTO_THRESHOLD)?.id : null) ?? null;
             if (byName && !sure) loose.set(ch.id, ch);
+            // A channel with a tvg-id this guide does not have: its name match holds only until a guide below has it.
+            if (byName && exactId && ch.tvgId) { loose.set(ch.id, ch); exactOnly.add(ch.id); }
             if (byName) {
               data.links.set(ch.id, byName);
               unlinked.delete(ch.id);

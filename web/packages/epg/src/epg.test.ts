@@ -211,3 +211,41 @@ describe("syncGuides: the exact name first (2.6.4)", () => {
     expect(data.links.get("2")).toBe("tnt4.it");
   });
 });
+
+describe("syncGuides: one guide per channel (2.6.6)", () => {
+  const now = Date.UTC(2026, 10, 27, 12, 0);
+  const at = (ms: number) => `${new Date(ms).toISOString().replace(/[-:T]|\..*/g, "")} +0000`;
+  const prog = (id: string, a: number, b: number, t: string) => `<programme start="${at(a)}" stop="${at(b)}" channel="${id}"><title>${t}</title></programme>`;
+  const guide = (id: string, name: string, rows: string) => `<tv><channel id="${id}"><display-name>${name}</display-name></channel>${rows}</tv>`;
+  const run = (bodies: string[], channels: Channel[]) => syncGuides({
+    sources: bodies.map((_, i) => ({ id: String(i), name: `g${i}`, url: `http://g/${i}` })), channels, now,
+    open: async (url) => new Response(bodies[Number(url.slice(-1))] as string),
+  });
+
+  it("a tvg-id in a guide below beats a name match in the guide above", async () => {
+    const { data } = await run([
+      guide("other", "Матч ТВ", prog("other", now - 600_000, now + 600_000, "Не то")),
+      guide("m1", "Matchbox", prog("m1", now - 600_000, now + 600_000, "То")),
+    ], [ch("1", "Матч ТВ", { tvgId: "m1" })]);
+    expect(data.links.get("1")).toBe("m1");
+    expect(data.nowNext("1", now).now?.title).toBe("То");
+  });
+
+  it("the guide above with nothing now or ahead gives the channel to the one below, whole", async () => {
+    const { data } = await run([
+      guide("a", "Канал", prog("a", now - 7_200_000, now - 3_600_000, "Старое")),
+      guide("b", "Канал", prog("b", now - 600_000, now + 600_000, "Сейчас")),
+    ], [ch("1", "Канал")]);
+    expect(data.links.get("1")).toBe("b");
+    expect(data.of("1").map((p) => p.title)).toEqual(["Сейчас"]);
+  });
+
+  it("the guide above with something ahead keeps the channel; the one below never fills its gaps", async () => {
+    const { data } = await run([
+      guide("a", "Канал", prog("a", now + 3_600_000, now + 7_200_000, "Вечером")),
+      guide("b", "Канал", prog("b", now - 600_000, now + 600_000, "Сейчас")),
+    ], [ch("1", "Канал")]);
+    expect(data.links.get("1")).toBe("a");
+    expect(data.of("1").map((p) => p.title)).toEqual(["Вечером"]);
+  });
+});
