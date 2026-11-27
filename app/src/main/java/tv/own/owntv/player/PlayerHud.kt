@@ -311,10 +311,21 @@ fun PlayerHud(
     val showNextCard = !isLive && error == null && nav.hasNext && nextUpTitle != null && !stopsAtItemEnd &&
         nextCardDue && !autoNextDismissed
 
-    var controlsVisible by remember { mutableStateOf(true) }
+    // Opened under a panel (a channel switched from the channel list): nothing of the player's own shows yet.
+    var controlsVisible by remember { mutableStateOf(!inert) }
     // TV-box live steps: the info (controls visible), then ▼ again for the tile row.
     val tvLive = tv.own.owntv.features.shell.TvBoxNav && isLive && tvBoxInfo != null
     var tvActions by remember { mutableStateOf(false) }
+    // Focus on the recently watched channels under the tiles: ▲ there goes back to the tiles, not out of them.
+    var recentFocused by remember { mutableStateOf(false) }
+    // The tiles' step opens on the recently watched channels; ▼ there brings the tools in under them.
+    var toolsOpen by remember { mutableStateOf(false) }
+    // The info a channel shows by itself (opened, switched to) is only to read: the keys still do what they do with
+    // nothing on screen. OK is what opens the controls, as a TV's own player does.
+    var passiveInfo by remember { mutableStateOf(true) }
+    LaunchedEffect(controlsVisible) { if (!controlsVisible) passiveInfo = true }
+    val recentsNow = LocalTvBoxRecent.current
+    val recentFocus = remember { FocusRequester() }
     // Between the info and the tiles: the timeline itself, where ◀ ▶ rewind. Only ▼ goes there, so ◀ ▶ on
     // a channel just opened never move the picture back by surprise.
     var tvSeek by remember { mutableStateOf(false) }
@@ -354,13 +365,25 @@ fun PlayerHud(
     // while an error/dialog is up (a dialog handles its own Back; an error should exit).
     BackHandler(enabled = controlsVisible && !forceShow) { controlsVisible = false }
     // Back from the tiles steps back to the info, the way ▲ does.
-    BackHandler(enabled = tvActions && !forceShow) { tvActions = false }
+    // Back from the row under the info puts everything away at once, not one step at a time.
+    BackHandler(enabled = tvActions && !forceShow) { tvActions = false; controlsVisible = false }
     // Back from the timeline steps back to the info.
     BackHandler(enabled = tvSeek && !tvActions && !forceShow) { tvSeek = false }
-    LaunchedEffect(tvActions, controlsVisible) {
-        if (!tvLive || !controlsVisible || dialog != HudDialog.NONE) return@LaunchedEffect
+    LaunchedEffect(tvActions) { if (!tvActions) toolsOpen = false }
+    val transportPause = remember { FocusRequester() }
+    // A panel or the menu over the picture owns focus: the player asks for none while it is there, even mid-step.
+    LaunchedEffect(tvActions, controlsVisible, toolsOpen, tvSeek, inert) {
+        if (!tvLive || !controlsVisible || dialog != HudDialog.NONE || inert) return@LaunchedEffect
         delay(16)
-        runCatching { if (tvActions) tvActionFocus.requestFocus() else playFocus.requestFocus() }
+        if (inert || !controlsVisible) return@LaunchedEffect
+        runCatching {
+            when {
+                !tvActions && tvSeek -> transportPause.requestFocus()
+                !tvActions -> playFocus.requestFocus()
+                toolsOpen || recentsNow.isEmpty() -> tvActionFocus.requestFocus()
+                else -> recentFocus.requestFocus()
+            }
+        }
     }
     // Channel zap (live only): a brief "now watching" card on up/down without revealing the full HUD.
     val canZap = onChannelUp != null && onChannelDown != null
@@ -418,7 +441,7 @@ fun PlayerHud(
         cancelDirectTune()
         (if (d < 0) onChannelUp else onChannelDown)?.invoke()
         // TV-box look: the new channel's info at the bottom, not a card at the top.
-        if (tvLive) { tvActions = false; controlsVisible = true; wakeTick++ } else channelFlash++
+        if (tvLive) { tvActions = false; controlsVisible = !inert; wakeTick++ } else channelFlash++
     }
 
     // Restartable timeout: each new digit restarts the ~2 s window. On expiry, submit.
@@ -498,6 +521,9 @@ fun PlayerHud(
     val hudScope = androidx.compose.runtime.rememberCoroutineScope()
 
     LaunchedEffect(forceShow) { if (forceShow) controlsVisible = true }
+    // A panel or the menu over the picture owns the keys: the info under it stays down, or it showed through the
+    // picture's window beside the channel list.
+    LaunchedEffect(inert) { if (inert && !forceShow) { controlsVisible = false; tvActions = false; tvSeek = false } }
     LaunchedEffect(controlsVisible, player) { if (controlsVisible) player.refreshStreamChips() }
     DisposableEffect(showInfo, player) {
         if (showInfo) player.refreshStreamChips()
@@ -660,6 +686,23 @@ fun PlayerHud(
             }
             // OK and the arrows the viewer gave another job on a channel. A key left alone falls through
             // to the handling below, so the usual behaviour stays exactly as it was.
+            // The info that came up by itself: OK opens the controls on the row under it, any arrow does what it does
+            // with nothing on screen (▲ ▼ switch channel, ◀ ▶ the lists), so a channel just opened never holds keys.
+            if (tvLive && controlsVisible && passiveInfo && error == null && !inert && dialog == HudDialog.NONE &&
+                !digitsActive && e.type == KeyEventType.KeyDown
+            ) {
+                val ok = e.key == Key.DirectionCenter || e.key == Key.Enter || e.key == Key.NumPadEnter
+                val arrow = e.key == Key.DirectionUp || e.key == Key.DirectionDown ||
+                    e.key == Key.DirectionLeft || e.key == Key.DirectionRight
+                if (ok && e.nativeKeyEvent.repeatCount == 0) {
+                    passiveInfo = false
+                    tvSeek = false
+                    tvActions = true
+                    wakeTick++
+                    return@onPreviewKeyEvent true
+                }
+                if (arrow) { controlsVisible = false; tvActions = false; tvSeek = false }
+            }
             val liveKeysApply = isLive && error == null && !inert && dialog == HudDialog.NONE && !digitsActive
             if (liveKeysApply) {
                 val liveKey = when (e.key) {
@@ -675,7 +718,7 @@ fun PlayerHud(
                 // On the info line OK and ◀ ▶ keep the viewer's jobs as well: rewinding is on the timeline, a ▼ away.
                 val onInfo = tvLive && controlsVisible && !tvActions && !tvSeek
                 val free = !controlsVisible || (onInfo && liveKey != LiveKey.UP && liveKey != LiveKey.DOWN) ||
-                    (tvLive && !tvActions && liveKey == LiveKey.OK)
+                    (tvLive && !tvActions && !tvSeek && liveKey == LiveKey.OK)
                 if (liveKey != null && free && liveKeys.isCustom(liveKey)) {
                     val ok = liveKey == LiveKey.OK
                     val run = if (ok) {
@@ -685,7 +728,7 @@ fun PlayerHud(
                         e.type == KeyEventType.KeyDown
                     }
                     val jobs = buildMap<LiveKeyAction, () -> Unit> {
-                        put(LiveKeyAction.INFO) { controlsVisible = true }
+                        put(LiveKeyAction.INFO) { controlsVisible = true; passiveInfo = false; tvSeek = false; tvActions = true }
                         onOpenChannelList?.let { open ->
                             put(LiveKeyAction.CHANNEL_LIST) { controlsVisible = false; open() }
                         }
@@ -733,8 +776,15 @@ fun PlayerHud(
                 // (where the channel can be rewound) and ▼ again to the tiles; ▲ and Back step back up.
                 // ◀ ▶ rewind on the timeline only; on the info they do what they do with it hidden.
                 // With it hidden, ▲ ▼ change channel (below) and OK shows the info.
+                // OK with nothing on screen opens the controls: the info, and focus on the row under it.
                 tvLive && error == null && !controlsVisible && !inert &&
-                    (e.key == Key.DirectionCenter || e.key == Key.Enter || e.key == Key.NumPadEnter) -> { controlsVisible = true; true }
+                    (e.key == Key.DirectionCenter || e.key == Key.Enter || e.key == Key.NumPadEnter) -> {
+                    controlsVisible = true
+                    passiveInfo = false
+                    tvSeek = false
+                    tvActions = true
+                    true
+                }
                 tvLive && error == null && controlsVisible && !tvActions && !tvSeek && onScrubLive != null && liveProgrammes.isNotEmpty() &&
                     e.key == Key.DirectionDown -> { tvSeek = true; wakeTick++; true }
                 tvLive && error == null && controlsVisible && !tvActions && e.key == Key.DirectionDown -> {
@@ -749,6 +799,18 @@ fun PlayerHud(
                     true
                 }
                 tvLive && error == null && controlsVisible && !tvActions && e.key == Key.DirectionUp -> { controlsVisible = false; true }
+                // ▼ on the recently watched channels brings the tools in under them; ▲ on the tools takes them away.
+                tvLive && error == null && controlsVisible && tvActions && recentFocused && e.key == Key.DirectionDown -> {
+                    if (toolsOpen) runCatching { tvActionFocus.requestFocus() } else toolsOpen = true
+                    wakeTick++
+                    true
+                }
+                tvLive && error == null && controlsVisible && tvActions && toolsOpen && !recentFocused &&
+                    recentsNow.isNotEmpty() && e.key == Key.DirectionUp -> {
+                    toolsOpen = false
+                    wakeTick++
+                    true
+                }
                 tvLive && error == null && controlsVisible && tvActions && e.key == Key.DirectionUp -> {
                     tvActions = false
                     tvSeek = onScrubLive != null && liveProgrammes.isNotEmpty()
@@ -758,7 +820,7 @@ fun PlayerHud(
                 // OK on the info hides it again, as on a TV's own player; paused, OK carries on from the same moment.
                 // Pausing stays on the play key and the tiles a ▼ away: a second OK that froze the picture was the
                 // complaint.
-                tvLive && error == null && controlsVisible && !tvActions &&
+                tvLive && error == null && controlsVisible && !tvActions && !tvSeek &&
                     (e.key == Key.DirectionCenter || e.key == Key.Enter || e.key == Key.NumPadEnter) -> {
                     if (e.nativeKeyEvent.repeatCount == 0) {
                         // On the timeline OK still pauses and carries on, as a film's seek bar does.
@@ -773,7 +835,7 @@ fun PlayerHud(
                 }
                 // In the archive ◀ ▶ always move through it, shown or hidden: they opened the channel lists there, and
                 // "seeking does not work in the archive" was the complaint.
-                tvLive && error == null && !tvActions && onScrubLive != null && timeshiftOffset() != null &&
+                tvLive && error == null && !tvActions && !tvSeek && onScrubLive != null && timeshiftOffset() != null &&
                     (e.key == Key.DirectionLeft || e.key == Key.DirectionRight) -> {
                     scrubArchive(e.key == Key.DirectionLeft, e.nativeKeyEvent.repeatCount)
                     controlsVisible = true
@@ -783,12 +845,9 @@ fun PlayerHud(
                 }
                 // A channel with no programme data has nothing to scrub: ◀ ▶ then fall through to the lists below,
                 // instead of rewinding into nothing and looking dead.
-                tvLive && error == null && controlsVisible && !tvActions && tvSeek && onScrubLive != null && liveProgrammes.isNotEmpty() &&
-                    (e.key == Key.DirectionLeft || e.key == Key.DirectionRight) -> {
-                    scrubArchive(e.key == Key.DirectionLeft, e.nativeKeyEvent.repeatCount)
-                    wakeTick++
-                    true
-                }
+                // On the timeline ◀ ▶ walk the transport's keys (they take focus there); OK presses the one in focus.
+                tvLive && error == null && controlsVisible && !tvActions && tvSeek &&
+                    (e.key == Key.DirectionLeft || e.key == Key.DirectionRight) -> { wakeTick++; false }
                 // On the info line: ◀ ▶ open the channel list and history, as with it hidden.
                 tvLive && error == null && controlsVisible && !tvActions && onOpenChannelList != null &&
                     e.key.horizontalDirection(layoutDirection) == HorizontalDirection.START -> { controlsVisible = false; onOpenChannelList(); true }
@@ -836,7 +895,7 @@ fun PlayerHud(
         if (!controlsVisible && !showNextCard) {
             Box(
                 Modifier.fillMaxSize().focusRequester(catchFocus).focusable()
-                    .onKeyEvent { e -> if (e.type == KeyEventType.KeyDown && e.key != Key.Back) { controlsVisible = true; true } else false },
+                    .onKeyEvent { e -> if (e.type == KeyEventType.KeyDown && e.key != Key.Back && !inert) { controlsVisible = true; true } else false },
             )
         }
 
@@ -903,8 +962,10 @@ fun PlayerHud(
             // TV-box look: no transport, no top bar — the channel info at the bottom over a soft shade,
             // and under it, after ▼, the tiles.
             // A soft see-through fall-off, never a dark band: the picture stays visible behind the text.
-            Box(Modifier.align(Alignment.BottomStart).fillMaxWidth().height(if (tvActions) 560.dp else 420.dp)
-                .gradientWash(vertical = true, 0.0f to Color.Transparent, 0.5f to TvBoxShade.copy(alpha = 0.35f), 1.0f to TvBoxShade))
+            Box(
+                Modifier.align(Alignment.BottomStart).fillMaxWidth().height(if (tvActions) 760.dp else 420.dp)
+                    .gradientWash(vertical = true, 0.0f to Color.Transparent, 0.5f to TvBoxShade.copy(alpha = 0.35f), 1.0f to TvBoxShade),
+            )
             // Top right, as on other TV players: the clock, the date and what the stream is (1080p · 25 fps · H.265).
             tvBoxStreamCorner(Modifier.align(Alignment.TopEnd).padding(top = 32.dp, end = 44.dp))
             Column(
@@ -913,6 +974,44 @@ fun PlayerHud(
             ) {
                 androidx.compose.runtime.CompositionLocalProvider(
                     LocalTvBoxSeeking provides tvSeek,
+                    LocalTvBoxPaused provides (!player.isPlaying.collectAsState().value && !player.buffering.collectAsState().value),
+                    LocalTvBoxTransport provides if (tvSeek && onScrubLive != null) {
+                        val watching = System.currentTimeMillis() - (timeshiftOffset() ?: 0) * MS_PER_SECOND
+                        val on = liveProgrammes.firstOrNull { watching in it.startMs until it.stopMs }
+                        TvBoxTransport(
+                            pauseFocus = transportPause,
+                            onPrevious = {
+                                // A few seconds in: back to this programme's start; at its start, the one before.
+                                val into = on?.let { ((watching - it.startMs) / MS_PER_SECOND).toInt() }
+                                val before = liveProgrammes.lastOrNull { it.stopMs <= (on?.startMs ?: watching) }
+                                val back = when {
+                                    into != null && into > PROGRAMME_START_GRACE_SEC -> into
+                                    before != null -> ((watching - before.startMs) / MS_PER_SECOND).toInt()
+                                    else -> null
+                                }
+                                back?.let { onScrubLive(it) }
+                                wakeTick++
+                            },
+                            onBack = { r -> scrubArchive(true, r); wakeTick++ },
+                            onPause = { player.togglePlayPause(); wakeTick++ },
+                            onForward = { r -> scrubArchive(false, r); wakeTick++ },
+                            onNext = {
+                                val next = liveProgrammes.firstOrNull { it.startMs > watching }
+                                if (next != null && next.startMs < System.currentTimeMillis()) {
+                                    onScrubLive(-((next.startMs - watching) / MS_PER_SECOND).toInt())
+                                } else {
+                                    onGoToLive?.invoke()
+                                }
+                                wakeTick++
+                            },
+                            onLive = onGoToLive?.takeIf { timeshiftOffset() != null }?.let { live -> { live(); wakeTick++ } },
+                            onRecord = onRecordThis?.let { rec -> { rec(); wakeTick++ } },
+                            recording = recordingThis,
+                            onKey = { wakeTick++ },
+                        )
+                    } else {
+                        null
+                    },
                     // Seconds the run has moved, + toward live: the counter over the dot.
                     LocalTvBoxSeekRun provides seekRunMoved,
                     LocalTvBoxStreamFacts provides streamFacts,
@@ -920,6 +1019,21 @@ fun PlayerHud(
                     tvBoxInfo!!(streamChips.ifEmpty { listOfNotNull(videoRes) }, timeshiftOffset())
                 }
                 if (tvActions) {
+                    if (recentsNow.isNotEmpty()) {
+                        TvBoxRecentRow(
+                            recentsNow, recentFocus,
+                            lead = listOfNotNull(
+                                onOpenGuide?.let { TvBoxAction(stringResource(R.string.settings_seg_guide), OwnTVIcon.EPG, { controlsVisible = false; it() }) },
+                                onOpenHistoryList?.let { TvBoxAction(stringResource(R.string.content_category_history), OwnTVIcon.HISTORY, { controlsVisible = false; it() }) },
+                            ),
+                            onFocusIn = { recentFocused = it; wakeTick++ },
+                        ) { r ->
+                            controlsVisible = false
+                            r.onClick()
+                        }
+                    }
+                    val qualityCount = player.videoQualities.collectAsState().value.size
+                    if (toolsOpen || recentsNow.isEmpty()) {
                     TvBoxActionRow(
                         listOfNotNull(
                             onOpenGuide?.let { TvBoxAction(stringResource(R.string.settings_seg_guide), OwnTVIcon.EPG, { controlsVisible = false; it() }) },
@@ -940,7 +1054,11 @@ fun PlayerHud(
                                     OwnTVIcon.REC, it, active = recordingThis,
                                 )
                             },
-                            TvBoxAction(stringResource(R.string.player_tool_audio), OwnTVIcon.AUDIO, { dialog = HudDialog.AUDIO }).takeIf { audioCount > 1 },
+                            // The sound's track and its delay live in one sheet: shown whenever either can be changed.
+                            TvBoxAction(stringResource(R.string.player_tool_audio), OwnTVIcon.AUDIO, { dialog = HudDialog.AUDIO })
+                                .takeIf { audioCount > 1 || player.audioDelayAvailable() },
+                            TvBoxAction(stringResource(R.string.player_tool_quality), OwnTVIcon.VIDEO, { dialog = HudDialog.QUALITY })
+                                .takeIf { qualityCount > 1 },
                             TvBoxAction(stringResource(R.string.player_tool_subtitles), OwnTVIcon.SUBTITLE, { dialog = HudDialog.SUBS }).takeIf { subCount > 0 },
                             TvBoxAction(stringResource(R.string.player_tool_aspect), OwnTVIcon.ASPECT, { dialog = HudDialog.ZOOM }),
                             onPip?.let { TvBoxAction(stringResource(R.string.player_tool_mini), OwnTVIcon.PIP, { controlsVisible = false; it() }) },
@@ -950,6 +1068,7 @@ fun PlayerHud(
                         ),
                         firstFocus = tvActionFocus,
                     )
+                    }
                 } else {
                     TvBoxInfoFocus(playFocus)
                 }
@@ -1341,6 +1460,29 @@ private fun runLiveKey(action: LiveKeyAction, firstPress: Boolean, jobs: Map<Liv
 /** TV-box live: whether ▼ has put the viewer on the timeline, where ◀ ▶ rewind; the info draws it raised. */
 val LocalTvBoxSeeking = androidx.compose.runtime.compositionLocalOf { false }
 
+/**
+ * The keys of the transport under the timeline: back to the programme's start (or the one before), back, pause,
+ * forward, on to the next programme (or live), live and record. [pauseFocus] is where focus lands on the timeline.
+ */
+class TvBoxTransport(
+    val pauseFocus: FocusRequester,
+    val onPrevious: () -> Unit,
+    val onBack: (repeat: Int) -> Unit,
+    val onPause: () -> Unit,
+    val onForward: (repeat: Int) -> Unit,
+    val onNext: () -> Unit,
+    val onLive: (() -> Unit)?,
+    val onRecord: (() -> Unit)?,
+    val recording: Boolean,
+    val onKey: () -> Unit,
+)
+
+/** The transport's keys while the timeline step is up; null elsewhere. */
+val LocalTvBoxTransport = androidx.compose.runtime.compositionLocalOf<TvBoxTransport?> { null }
+
+/** The channel is paused: the transport under the timeline shows play instead of pause. */
+val LocalTvBoxPaused = androidx.compose.runtime.compositionLocalOf { false }
+
 /** The archive seek run in progress: seconds moved so far (+ toward live), or null when none is. */
 val LocalTvBoxSeekRun = androidx.compose.runtime.compositionLocalOf<Int?> { null }
 
@@ -1372,6 +1514,9 @@ private const val SEEK_HOLD_5M = 40
 /** TV-box live: how long the timeline or the tiles stay up after the last key. */
 private const val TV_BOX_BUSY_HIDE_MS = 8_000L
 private const val MS_PER_SECOND = 1_000L
+
+/** Into a programme by more than this, |◀ goes back to its start; within it, to the programme before. */
+private const val PROGRAMME_START_GRACE_SEC = 10
 
 private val LIVE_KEY_REPEATS = setOf(
     LiveKeyAction.NEXT_CHANNEL,

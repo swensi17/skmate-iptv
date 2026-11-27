@@ -376,4 +376,5 @@
     <string name="content_poster_size">Taille des affiches</string>
     <string name="content_vod_more_in">Plus dans <xliff:g id="category">%1$s</xliff:g></string>
     <string name="content_channel_logo">Logo de la chaîne</string>
+    <string name="content_guide_days">Jours</string>
 </resources>

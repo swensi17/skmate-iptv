@@ -145,22 +145,22 @@
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/live/LiveScreen.kt">
         <error line="3" column="1" source="standard:import-ordering" />
-        <error line="141" column="5" source="standard:spacing-between-declarations-with-comments" />
-        <error line="336" column="5" source="standard:spacing-between-declarations-with-comments" />
-        <error line="440" column="5" source="standard:spacing-between-declarations-with-comments" />
-        <error line="536" column="5" source="standard:spacing-between-declarations-with-comments" />
-        <error line="1794" column="19" source="standard:property-naming" />
-        <error line="1797" column="19" source="standard:property-naming" />
-        <error line="1798" column="19" source="standard:property-naming" />
-        <error line="1801" column="19" source="standard:property-naming" />
+        <error line="146" column="5" source="standard:spacing-between-declarations-with-comments" />
+        <error line="341" column="5" source="standard:spacing-between-declarations-with-comments" />
+        <error line="445" column="5" source="standard:spacing-between-declarations-with-comments" />
+        <error line="541" column="5" source="standard:spacing-between-declarations-with-comments" />
+        <error line="1853" column="19" source="standard:property-naming" />
+        <error line="1856" column="19" source="standard:property-naming" />
+        <error line="1857" column="19" source="standard:property-naming" />
+        <error line="1860" column="19" source="standard:property-naming" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/live/LiveStage.kt">
         <error line="3" column="1" source="standard:import-ordering" />
-        <error line="174" column="23" source="standard:wrapping" />
-        <error line="177" column="31" source="standard:wrapping" />
-        <error line="1027" column="19" source="standard:property-naming" />
-        <error line="1030" column="19" source="standard:property-naming" />
-        <error line="1033" column="19" source="standard:property-naming" />
+        <error line="176" column="23" source="standard:wrapping" />
+        <error line="179" column="31" source="standard:wrapping" />
+        <error line="1038" column="19" source="standard:property-naming" />
+        <error line="1041" column="19" source="standard:property-naming" />
+        <error line="1044" column="19" source="standard:property-naming" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/live/LiveViewModel.kt">
         <error line="5" column="1" source="standard:import-ordering" />
@@ -577,11 +577,11 @@
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt">
         <error line="3" column="1" source="standard:import-ordering" />
-        <error line="2073" column="35" source="standard:wrapping" />
-        <error line="2644" column="19" source="standard:property-naming" />
-        <error line="2656" column="1" source="standard:kdoc" />
-        <error line="2662" column="19" source="standard:property-naming" />
-        <error line="2663" column="19" source="standard:property-naming" />
+        <error line="2088" column="35" source="standard:wrapping" />
+        <error line="2659" column="19" source="standard:property-naming" />
+        <error line="2671" column="1" source="standard:kdoc" />
+        <error line="2677" column="19" source="standard:property-naming" />
+        <error line="2678" column="19" source="standard:property-naming" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/shell/ShellViewModel.kt">
         <error line="3" column="1" source="standard:import-ordering" />
@@ -650,13 +650,13 @@
         <error line="407" column="1" source="standard:no-consecutive-blank-lines" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/shell/components/TvBoxChannelPanel.kt">
-        <error line="128" column="9" source="standard:property-naming" />
         <error line="129" column="9" source="standard:property-naming" />
-        <error line="683" column="1" source="standard:spacing-between-declarations-with-comments" />
-        <error line="694" column="19" source="standard:property-naming" />
+        <error line="130" column="9" source="standard:property-naming" />
+        <error line="795" column="1" source="standard:spacing-between-declarations-with-comments" />
+        <error line="806" column="19" source="standard:property-naming" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/shell/components/TvBoxPlayerInfo.kt">
-        <error line="281" column="19" source="standard:property-naming" />
+        <error line="3" column="1" source="standard:import-ordering" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/shell/components/VodStage.kt">
         <error line="3" column="1" source="standard:import-ordering" />
@@ -767,18 +767,16 @@
     </file>
     <file name="app/src/main/java/tv/own/owntv/player/PlayerHud.kt">
         <error line="3" column="1" source="standard:import-ordering" />
-        <error line="388" column="69" source="standard:wrapping" />
-        <error line="390" column="6" source="standard:wrapping" />
-        <error line="391" column="65" source="standard:wrapping" />
-        <error line="393" column="6" source="standard:wrapping" />
-        <error line="431" column="9" source="standard:keyword-spacing" />
-        <error line="906" column="17" source="standard:wrapping" />
-        <error line="907" column="133" source="standard:wrapping" />
-        <error line="964" column="17" source="standard:wrapping" />
-        <error line="970" column="17" source="standard:wrapping" />
-        <error line="971" column="17" source="standard:wrapping" />
-        <error line="977" column="17" source="standard:wrapping" />
-        <error line="1299" column="19" source="standard:property-naming" />
+        <error line="411" column="69" source="standard:wrapping" />
+        <error line="413" column="6" source="standard:wrapping" />
+        <error line="414" column="65" source="standard:wrapping" />
+        <error line="416" column="6" source="standard:wrapping" />
+        <error line="454" column="9" source="standard:keyword-spacing" />
+        <error line="1083" column="17" source="standard:wrapping" />
+        <error line="1089" column="17" source="standard:wrapping" />
+        <error line="1090" column="17" source="standard:wrapping" />
+        <error line="1096" column="17" source="standard:wrapping" />
+        <error line="1418" column="19" source="standard:property-naming" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/player/PlayerHudChrome.kt">
         <error line="3" column="1" source="standard:import-ordering" />
@@ -1087,5 +1085,11 @@
     </file>
     <file name="app/src/main/java/tv/own/owntv/ui/components/ProgrammeArtView.kt">
         <error line="3" column="1" source="standard:import-ordering" />
+    </file>
+    <file name="app/src/main/java/tv/own/owntv/features/live/LiveGuideSide.kt">
+        <error line="3" column="1" source="standard:import-ordering" />
+    </file>
+    <file name="app/src/main/java/tv/own/owntv/ui/components/LogoTint.kt">
+        <error line="46" column="38" source="standard:multiline-loop" />
     </file>
 </baseline>

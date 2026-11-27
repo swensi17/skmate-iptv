@@ -463,6 +463,13 @@ fun OwnTVShell(
         value = runCatching { liveVm.historyChannels() }.getOrDefault(emptyList())
     }
     val historyChannels = remember(historyEntries) { historyEntries.map { it.channel } }
+    // The channels watched before this one, for the row under the player's tiles: read again after each zap.
+    val recentChannels by produceState(emptyList<tv.own.owntv.core.database.entity.ChannelEntity>(), previewChannel?.id) {
+        value = runCatching { liveVm.historyChannels() }.getOrDefault(emptyList()).map { it.channel }
+            .filter { it.id != previewChannel?.id }.take(tv.own.owntv.player.TV_BOX_RECENT_MAX)
+    }
+    // What is on them comes from the same guide reads the channel lists use: no extra request of its own.
+    LaunchedEffect(recentChannels) { liveVm.ensureNowPlaying(recentChannels) }
     val historyWatchedAt = remember(historyEntries) { historyEntries.associate { it.channel.id to it.watchedAt } }
     val historyNowPlaying = overlayNowPlaying // one shared map; the history rail adds to it below
     LaunchedEffect(historyChannels) { liveVm.ensureNowPlaying(historyChannels) }
@@ -2041,6 +2048,14 @@ fun OwnTVShell(
                   // With the channel panel open the picture is in its window, and so is its error.
                   androidx.compose.runtime.CompositionLocalProvider(
                       tv.own.owntv.player.LocalHudErrorFrame provides (if (docked) videoDock else null),
+                      tv.own.owntv.player.LocalTvBoxRecent provides remember(recentChannels, overlayProgrammes) {
+                          recentChannels.map { ch ->
+                              val on = overlayProgrammes[ch.id]
+                              tv.own.owntv.player.TvBoxRecent(
+                                  ch.id, ch.name, ch.displayLogoUrl, on?.title, on?.startMs ?: 0L, on?.stopMs ?: 0L,
+                              ) { liveVm.ensurePlaying(ch) }
+                          }
+                      },
                   ) {
                     PlayerHud(
                         player = if (liveOnExo) liveVm.previewEngine else mpvEngine, // HUD drives the active engine
@@ -2130,7 +2145,7 @@ fun OwnTVShell(
                         // Every live channel, also in the beat between two of them when the engine has not yet said it is live:
                         // the old full control bar must never show there.
                         liveChannel = isTunedLive,
-                        tvBoxInfo = if (TvBoxNav && !catchupActive) { chips, offset ->
+                        tvBoxInfo = if (TvBoxNav && !catchupActive) { _, offset ->
                             val epg by liveVm.nowNext.collectAsStateWithLifecycle()
                             val archiveEpg by liveVm.archiveNowNext.collectAsStateWithLifecycle()
                             val clock by produceState(System.currentTimeMillis()) { while (true) { kotlinx.coroutines.delay(1_000); value = System.currentTimeMillis() } }
@@ -2140,7 +2155,7 @@ fun OwnTVShell(
                             // watched instant as the clock took the offset off twice, the dot twice as far back.
                             val inArchive = offset != null && archiveEpg != null
                             tv.own.owntv.features.shell.components.TvBoxPlayerInfo(
-                                previewChannel, if (inArchive) archiveEpg else epg, chips, offset, clock,
+                                previewChannel, if (inArchive) archiveEpg else epg, offset, clock,
                             )
                         } else null,
                         onOpenGuide = if (TvBoxNav && (isTunedLive || (isLiveStream && !catchupActive))) { { showGuideOverlay = true } } else null,

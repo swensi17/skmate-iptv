@@ -24,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
@@ -133,6 +134,10 @@ fun LiveScreen(
     val externalPlayerOn by vm.externalPlayerOn.collectAsStateWithLifecycle()
     val catchupPlayer by vm.catchupPlayer.collectAsStateWithLifecycle()
     val previewChannel by vm.previewChannel.collectAsStateWithLifecycle()
+    // The channels watched before, for the history mark at each row's corner; read again when a channel is tuned.
+    val watchedIds by androidx.compose.runtime.produceState(emptySet<Long>(), previewChannel?.id) {
+        value = runCatching { vm.historyChannels(WATCHED_MARK_LIMIT).map { it.channel.id }.toSet() }.getOrDefault(emptySet())
+    }
     val previewCategoryName by vm.previewCategoryName.collectAsStateWithLifecycle()
     val previewArmed by vm.previewArmed.collectAsStateWithLifecycle()
     val previewBlockedSingleSession by vm.previewBlockedSingleSession.collectAsStateWithLifecycle()
@@ -543,6 +548,17 @@ fun LiveScreen(
     val railCounts by (if (categoriesVisible) vm.railCounts else remember { kotlinx.coroutines.flow.MutableStateFlow(emptyMap<LiveKey, Int>()) })
         .collectAsStateWithLifecycle()
     val scheduleFocus = remember { FocusRequester() }
+    // TV-box look: ▶ on a channel puts its guide in the list's place; ◀ brings the list back.
+    var guideChannel by remember { mutableStateOf<ChannelEntity?>(null) }
+    var guideRefocus by remember { mutableIntStateOf(0) }
+    var guidePoster by remember { mutableStateOf<tv.own.owntv.core.metadata.ProgrammeArt?>(null) }
+    // The categories closed beside the guide: focus back into it. Another category picked: its list, not the guide.
+    LaunchedEffect(selectedKey) { guideChannel = null }
+    // The categories and the guide are never open together; the ▶ that closed the categories does not also open it.
+    var categoriesClosedAt by remember { androidx.compose.runtime.mutableLongStateOf(0L) }
+    LaunchedEffect(categoriesOpen) {
+        if (categoriesOpen) guideChannel = null else categoriesClosedAt = android.os.SystemClock.uptimeMillis()
+    }
     var openProgramme by remember { mutableStateOf<Pair<ChannelEntity, tv.own.owntv.core.parser.XtEpgEntry>?>(null) }
     // Back closes the sheet: one level out.
     // TV-box style only while focus is in the categories: Back on the menu beside them closes the menu first.
@@ -743,6 +759,11 @@ fun LiveScreen(
             ),
             label = "liveListPush",
         )
+        val guideShift by androidx.compose.animation.core.animateFloatAsState(
+            if (guideChannel != null) 1f else 0f,
+            androidx.compose.animation.core.tween(tv.own.owntv.ui.theme.MotionPrefs.slideMs(GUIDE_SLIDE_MS)),
+            label = "liveGuideShift",
+        )
         Box(
             Modifier
                 .fillMaxSize()
@@ -768,6 +789,7 @@ fun LiveScreen(
                     .padding(start = listX, top = 118.mpx)
                     .width(listWidth)
                     .fillMaxHeight()
+                    .graphicsLayer { translationX = -guideShift * GUIDE_LIST_SHIFT * density; alpha = 1f - guideShift }
                     .onFocusChanged { channelPaneFocused = it.hasFocus; if (!it.hasFocus) pendingPreview.value = null }
                     .chNavPaging(
                         enabled = chNavEnabled,
@@ -952,6 +974,7 @@ fun LiveScreen(
                                     showNumber = showChannelNumbers,
                                     mark = playlistMarks[channel.sourceId],
                                     playing = isPreviewed && effectivePreview,
+                                    watched = channel.id in watchedIds,
                                     modifier = Modifier.gridFocusTarget(
                                         itemId = channel.id, index = index,
                                         contextId = contextChannelId, contextFocus = contextFocus,
@@ -973,12 +996,22 @@ fun LiveScreen(
                                             androidx.compose.ui.input.key.Key.Menu -> { contextChannel = channel; contextChannelId = channel.id; true }
                                             // ◀ Categories: the sheet (Stage) or the column (Separate); pinned lists have none.
                                             androidx.compose.ui.input.key.Key.DirectionLeft -> when {
+                                                // The guide is over the list: ◀ takes it away, back onto this channel.
+                                                guideChannel != null -> { guideChannel = null; true }
                                                 lockedKey != null -> false
                                                 separate -> { runCatching { railFocus.requestFocus() }; true }
                                                 else -> { categoriesOpen = true; true }
                                             }
                                             // ▶ Schedule: next / later under the stage; nothing else to the right.
-                                            androidx.compose.ui.input.key.Key.DirectionRight -> { runCatching { scheduleFocus.requestFocus() }; true }
+                                            androidx.compose.ui.input.key.Key.DirectionRight -> {
+                                                if (tv.own.owntv.features.shell.TvBoxNav) {
+                                                    val settled = android.os.SystemClock.uptimeMillis() - categoriesClosedAt > GUIDE_AFTER_SHEET_MS
+                                                    if (!categoriesOpen && settled) guideChannel = channel
+                                                } else {
+                                                    runCatching { scheduleFocus.requestFocus() }
+                                                }
+                                                true
+                                            }
                                             // ▲/▼ step by row number, not by focus search: a held key outran the
                                             // lazy list at the edge or a page boundary and stopped.
                                             androidx.compose.ui.input.key.Key.DirectionDown -> (stepTarget ?: index).let { from -> from + 1 < channels.itemCount && run { stepTo(from + 1); true } }
@@ -1024,6 +1057,27 @@ fun LiveScreen(
                     modifier = Modifier.align(Alignment.BottomEnd).padding(end = margin, bottom = 40.mpx),
                 )
             }
+
+            // The guide of the channel ▶ was pressed on, sliding in where the list was; the preview stays.
+            LiveGuideSideHost(
+                channel = guideChannel,
+                scheduleFor = vm::scheduleFor,
+                archiveFor = vm::catchupProgrammes,
+                onWatch = { target ->
+                    guideChannel = null
+                    vm.watchFullscreen(target, channels.itemSnapshotList.items.filterNotNull())
+                    if (!externalPlayerOn) onFullscreen()
+                },
+                onPlayArchive = { target, p ->
+                    guideChannel = null
+                    vm.playCatchupProgramme(target, p)
+                    if (!externalPlayerOn) onFullscreen()
+                },
+                onClose = { guideChannel = null; focusCurrentRow() },
+                refocus = guideRefocus,
+                onShowPoster = { guidePoster = it },
+                modifier = Modifier.fillMaxHeight().width((screenW - margin - stageW - GUIDE_GAP.mpx).coerceAtLeast(0.mpx)),
+            )
 
             if (previewShown) {
                 LiveStagePane(
@@ -1080,6 +1134,11 @@ fun LiveScreen(
             )
         }
     }
+    }
+
+    // The side guide's poster over the whole screen (held OK on a programme); focus goes back into the guide.
+    guidePoster?.let { art ->
+        tv.own.owntv.ui.components.programmePosterViewer(art) { guidePoster = null; guideRefocus++ }
     }
 
     // A next / later programme opened from the schedule under the stage (▶ Schedule): the TV Guide's
@@ -1807,3 +1866,13 @@ private fun isOkKey(key: androidx.compose.ui.input.key.Key) =
     key == androidx.compose.ui.input.key.Key.DirectionCenter ||
         key == androidx.compose.ui.input.key.Key.Enter ||
         key == androidx.compose.ui.input.key.Key.NumPadEnter
+
+/** How many recently watched channels carry the history mark in the list. */
+private const val WATCHED_MARK_LIMIT = 200
+
+/** How far the list moves aside while the side guide slides in over it (▶ on a channel). */
+private const val GUIDE_LIST_SHIFT = 120f
+
+/** After the categories close, a ▶ this soon is the one that closed them, not a request for the guide. */
+private const val GUIDE_AFTER_SHEET_MS = 350L
+private const val GUIDE_GAP = 30

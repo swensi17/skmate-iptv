@@ -202,6 +202,16 @@ internal fun rememberVideoDock(
         )
     }
     androidx.compose.runtime.LaunchedEffect(docked) { progress.animateTo(if (docked) 1f else 0f, spec) }
+    // The panel's guide open over the list: the picture steps right and narrows with it, in the guide's own time.
+    val guideShift by androidx.compose.animation.core.animateDpAsState(
+        if (docked && tv.own.owntv.features.shell.components.TvBoxPanels.guideOpen) {
+            tv.own.owntv.features.shell.components.TvBoxGuideDockShift
+        } else {
+            Dp(0f)
+        },
+        androidx.compose.animation.core.tween(tv.own.owntv.ui.theme.MotionPrefs.slideMs(tv.own.owntv.features.live.GUIDE_SLIDE_MS)),
+        label = "dockGuideShift",
+    )
     return Modifier.fillMaxSize().layout { measurable, constraints ->
         val w = constraints.maxWidth
         val h = constraints.maxHeight
@@ -214,11 +224,11 @@ internal fun rememberVideoDock(
             val dock = tv.own.owntv.features.shell.components.TvBoxDock
             // The menu pushes the panels aside: the picture narrows to stay on screen, and the panel's window
             // narrows with it (TvBoxChannelPanel's menuShift), so the two never part.
-            val dockW = dock.width(w.toDp(), inset.value + menuShift())
+            val dockW = dock.width(w.toDp(), inset.value + menuShift() + guideShift)
             val dw = lerp(w.toFloat(), dockW.toPx()).roundToInt().coerceAtLeast(1)
             val dh = lerp(h.toFloat(), (dockW * 9f / 16f).toPx()).roundToInt().coerceAtLeast(1)
             val p = measurable.measure(androidx.compose.ui.unit.Constraints.fixed(dw, dh))
-            val x = lerp(0f, (dock.Left + inset.value + menuShift()).toPx()).roundToInt()
+            val x = lerp(0f, (dock.Left + inset.value + menuShift() + guideShift).toPx()).roundToInt()
             layout(w, h) { p.place(x, lerp(0f, dock.Top.toPx()).roundToInt()) }
         }
     }

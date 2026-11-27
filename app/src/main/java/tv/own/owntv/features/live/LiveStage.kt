@@ -159,6 +159,8 @@ internal fun LiveStageRow(
     trailing: (@Composable () -> Unit)? = null,
     /** This channel is the one in the preview: a small blue "playing" mark at the row's end (TV-box look). */
     playing: Boolean = false,
+    /** Watched before on this profile: the history mark in the row's bottom-right corner, under the archive tag. */
+    watched: Boolean = false,
 ) {
     val tvBox = tv.own.owntv.features.shell.TvBoxNav
     val lite = tv.own.owntv.ui.theme.DevicePerf.lite
@@ -215,6 +217,13 @@ internal fun LiveStageRow(
             }
         }
         archiveTag?.let { ArchiveCornerTag(it, Modifier.align(Alignment.TopEnd)) }
+        if (watched && tvBox && trailing == null) {
+            OwnTVIcon(
+                OwnTVIcon.HISTORY, StageColors.Dim,
+                Modifier.align(Alignment.BottomEnd).padding(end = WATCHED_MARK_INSET.mpx, bottom = WATCHED_MARK_INSET.mpx)
+                    .size(WATCHED_MARK.mpx),
+            )
+        }
     }
 }
 
@@ -243,6 +252,8 @@ private fun ArchiveCornerTag(text: String, modifier: Modifier = Modifier) {
     }
 }
 
+private const val WATCHED_MARK = 20
+private const val WATCHED_MARK_INSET = 12
 private const val ARCHIVE_TAG_RADIUS = 10
 private const val ARCHIVE_TAG_EDGE_RADIUS = 4
 private const val ARCHIVE_TAG_TEXT_SIZE = 14

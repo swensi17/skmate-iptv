@@ -362,4 +362,5 @@
     <string name="content_poster_size">पोस्टर का आकार</string>
     <string name="content_vod_more_in"><xliff:g id="category">%1$s</xliff:g> में और</string>
     <string name="content_channel_logo">चैनल लोगो</string>
+    <string name="content_guide_days">दिन</string>
 </resources>

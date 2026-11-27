@@ -2,6 +2,15 @@ package tv.own.owntv.features.shell.components
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.foundation.layout.offset
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.input.key.type
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -41,12 +50,12 @@ import tv.own.owntv.ui.theme.stageText
 
 /**
  * The TV-box player's channel info, at the bottom of the picture: the logo, what is on, its times with
- * a short bar and the minutes left, the channel, the stream's chips, what is on next, and under it all
+ * a short bar and the minutes left, the channel, what is on next with the stream's tags, and under it all
  * the timeline — the programme's span with the moment being watched ([offsetSec] behind live) marked.
  * With no guide it still says the channel and that there is no programme, so the bar never looks empty.
  */
 @Composable
-fun TvBoxPlayerInfo(channel: ChannelEntity?, nowNext: EpgNowNext?, chips: List<String>, offsetSec: Int?, now: Long) {
+fun TvBoxPlayerInfo(channel: ChannelEntity?, nowNext: EpgNowNext?, offsetSec: Int?, now: Long) {
     val formatTime = rememberSystemTimeFormatter()
     // The moment on screen: the clock, less how far behind live the archive is.
     val watching = now - (offsetSec ?: 0) * 1000L
@@ -87,9 +96,8 @@ fun TvBoxPlayerInfo(channel: ChannelEntity?, nowNext: EpgNowNext?, chips: List<S
                             Text(channel.name, style = stageText(20, 700), color = Color.White, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         }
                     }
-                    // The stream's line on the right says it in full: the chips stand in only while it is missing.
+                    // What the stream is shows once, in the tags at the bottom right: no chips beside the channel.
                     val factsShown = tv.own.owntv.player.LocalTvBoxStreamFacts.current != null
-                    if (!factsShown) chips.take(MaxChips).forEach { Chip(it) }
                     // With nothing to follow there is no next line: the stream's tags sit level with the channel.
                     if (next == null && factsShown) {
                         androidx.compose.foundation.layout.Spacer(Modifier.weight(1f))
@@ -110,6 +118,15 @@ fun TvBoxPlayerInfo(channel: ChannelEntity?, nowNext: EpgNowNext?, chips: List<S
                 seeking = tv.own.owntv.player.LocalTvBoxSeeking.current,
             )
             tv.own.owntv.player.LocalTvBoxSeekRun.current?.let { moved -> seekCounter(progress, moved, watching) }
+        }
+        // On the timeline: how far into the programme, and back, pause and forward as the keys there use them.
+        if (tv.own.owntv.player.LocalTvBoxSeeking.current) {
+            transportRow(
+                elapsedMs = current?.let { (watching - it.startMs).coerceAtLeast(0) },
+                totalMs = current?.let { it.stopMs - it.startMs },
+                paused = tv.own.owntv.player.LocalTvBoxPaused.current,
+                moved = tv.own.owntv.player.LocalTvBoxSeekRun.current,
+            )
         }
     }
 }
@@ -154,14 +171,152 @@ private fun MiniBar(progress: Float) {
     )
 }
 
-/** A stream fact ("FHD", "25 FPS", "STEREO") in a thin outlined box. */
+/**
+ * Under the timeline: "49:55 / 1:00:00" on the left; in the middle |◀ ◀◀ ⏸ ▶▶ ▶|, on the right live and record, as
+ * keys focus walks with ◀ ▶ and OK presses (◀◀ ▶▶ held go on moving). The key in focus shows its name under it; the
+ * one a run of presses is moving lights up.
+ */
 @Composable
-private fun Chip(text: String) {
-    Text(
-        text.uppercase(), style = stageText(14, 700), color = Color.White.copy(alpha = 0.85f), maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
-        modifier = Modifier.border(1.mpx, Color.White.copy(alpha = 0.45f), RoundedCornerShape(5.mpx)).padding(horizontal = 7.mpx, vertical = 2.mpx),
-    )
+private fun transportRow(elapsedMs: Long?, totalMs: Long?, paused: Boolean, moved: Int?) {
+    val t = tv.own.owntv.player.LocalTvBoxTransport.current
+    Box(Modifier.fillMaxWidth().height(TRANSPORT_H.mpx)) {
+        if (elapsedMs != null && totalMs != null) {
+            Text(
+                clockOf(elapsedMs) + " / " + clockOf(totalMs),
+                style = stageText(TRANSPORT_TIME, 600).copy(fontFeatureSettings = "tnum"), color = Color.White,
+                maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.align(Alignment.CenterStart),
+            )
+        }
+        Row(
+            Modifier.align(Alignment.Center),
+            horizontalArrangement = Arrangement.spacedBy(TRANSPORT_GAP.mpx),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            transportKey(tv.own.owntv.ui.components.OwnTVIcon.SKIP_PREVIOUS, null, first = true, onPress = t?.let { { _: Int -> it.onPrevious() } }, onKey = t?.onKey)
+            transportKey(tv.own.owntv.ui.components.OwnTVIcon.REWIND, null, lit = moved != null && moved < 0, repeats = true, onPress = t?.onBack, onKey = t?.onKey)
+            transportKey(
+                if (paused) tv.own.owntv.ui.components.OwnTVIcon.PLAY else tv.own.owntv.ui.components.OwnTVIcon.PAUSE, null,
+                big = true, focus = t?.pauseFocus, onPress = t?.let { { _: Int -> it.onPause() } }, onKey = t?.onKey,
+            )
+            transportKey(tv.own.owntv.ui.components.OwnTVIcon.FORWARD, null, lit = moved != null && moved > 0, repeats = true, onPress = t?.onForward, onKey = t?.onKey)
+            transportKey(
+                tv.own.owntv.ui.components.OwnTVIcon.SKIP_PREVIOUS, null, mirrored = true,
+                last = t?.onLive == null && t?.onRecord == null, onPress = t?.let { { _: Int -> it.onNext() } }, onKey = t?.onKey,
+            )
+        }
+        Row(
+            Modifier.align(Alignment.CenterEnd),
+            horizontalArrangement = Arrangement.spacedBy(TRANSPORT_GAP.mpx),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            t?.onLive?.let { live ->
+                transportKey(
+                    tv.own.owntv.ui.components.OwnTVIcon.LIVE_DOT, null, badge = stringResource(R.string.player_live),
+                    last = t.onRecord == null, onPress = { _ -> live() }, onKey = t.onKey,
+                )
+            }
+            t?.onRecord?.let { rec ->
+                transportKey(
+                    tv.own.owntv.ui.components.OwnTVIcon.REC,
+                    stringResource(if (t.recording) R.string.recording_stop else R.string.recording_record),
+                    lit = t.recording, last = true, onPress = { _ -> rec() }, onKey = t.onKey,
+                )
+            }
+        }
+    }
 }
+
+/**
+ * One transport key: the glyph on a white disc while it has focus (or is [lit]), alone otherwise; [label] shows under
+ * it in focus. The row's ends are walls, so ◀ on the first and ▶ on the last stay put.
+ */
+@Composable
+private fun transportKey(
+    icon: tv.own.owntv.ui.components.OwnTVIcon,
+    label: String?,
+    lit: Boolean = false,
+    big: Boolean = false,
+    first: Boolean = false,
+    last: Boolean = false,
+    repeats: Boolean = false,
+    mirrored: Boolean = false,
+    /** A word in a frame in place of the glyph (LIVE). */
+    badge: String? = null,
+    focus: androidx.compose.ui.focus.FocusRequester? = null,
+    onPress: ((Int) -> Unit)?,
+    onKey: (() -> Unit)?,
+) {
+    val size = if (big) TRANSPORT_BIG else TRANSPORT_KEY
+    val interaction = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+    val focused by interaction.collectIsFocusedAsState()
+    val on = focused || lit
+    val ink = if (on) Color(0xFF16181D) else Color.White
+    // Every key on one line: the same slot height whatever its size, the name hung under it without moving it.
+    Box(Modifier.height(TRANSPORT_BIG.mpx), contentAlignment = Alignment.Center) {
+        Box(
+            Modifier
+                .then(if (badge != null) Modifier.height(TRANSPORT_KEY.mpx) else Modifier.size(size.mpx))
+                .then(if (focus != null) Modifier.focusRequester(focus) else Modifier)
+                .onPreviewKeyEvent { e ->
+                    if (e.type != androidx.compose.ui.input.key.KeyEventType.KeyDown) return@onPreviewKeyEvent false
+                    onKey?.invoke()
+                    val ok = e.key == androidx.compose.ui.input.key.Key.DirectionCenter ||
+                        e.key == androidx.compose.ui.input.key.Key.Enter || e.key == androidx.compose.ui.input.key.Key.NumPadEnter
+                    when {
+                        ok -> {
+                            val r = e.nativeKeyEvent.repeatCount
+                            if (r == 0 || repeats) onPress?.invoke(r)
+                            true
+                        }
+                        e.key == androidx.compose.ui.input.key.Key.DirectionLeft -> first
+                        e.key == androidx.compose.ui.input.key.Key.DirectionRight -> last
+                        else -> false
+                    }
+                }
+                .focusable(interactionSource = interaction)
+                .background(
+                    if (on) Color.White else Color.Transparent,
+                    if (badge != null) RoundedCornerShape(TRANSPORT_KEY.mpx / 2) else androidx.compose.foundation.shape.CircleShape,
+                )
+                .then(if (badge != null) Modifier.padding(horizontal = 18.mpx) else Modifier),
+            contentAlignment = Alignment.Center,
+        ) {
+            if (badge != null) {
+                Text(
+                    badge, style = stageText(TRANSPORT_BADGE, 800), color = ink, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.border(2.mpx, ink, RoundedCornerShape(6.mpx)).padding(horizontal = 8.mpx, vertical = 1.mpx),
+                )
+            } else {
+                tv.own.owntv.ui.components.OwnTVIcon(
+                    icon, ink,
+                    Modifier.size((size * TRANSPORT_GLYPH).mpx).then(if (mirrored) Modifier.graphicsLayer { scaleX = -1f } else Modifier),
+                )
+            }
+        }
+        if (label != null && focused) {
+            Text(
+                label, style = stageText(TRANSPORT_LABEL, 600), color = Color.White, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.align(Alignment.BottomCenter).offset(y = (TRANSPORT_LABEL + 10).mpx),
+            )
+        }
+    }
+}
+
+/** "49:55" or "1:00:00". */
+private fun clockOf(ms: Long): String {
+    val s = ms / 1000
+    val h = s / 3600; val m = s % 3600 / 60; val sec = s % 60
+    return if (h > 0) "%d:%02d:%02d".format(java.util.Locale.ROOT, h, m, sec) else "%d:%02d".format(java.util.Locale.ROOT, m, sec)
+}
+
+private const val TRANSPORT_H = 96
+private const val TRANSPORT_TIME = 22
+private const val TRANSPORT_GAP = 34
+private const val TRANSPORT_KEY = 60
+private const val TRANSPORT_BIG = 76
+private const val TRANSPORT_GLYPH = 0.46f
+private const val TRANSPORT_BADGE = 16
+private const val TRANSPORT_LABEL = 15
 
 /**
  * The full-width line under the info: the programme's span and the watched moment as a dot. Raised
@@ -278,4 +433,3 @@ private const val SEC_PER_HOUR = 3600
 
 private val Soft = Color.White.copy(alpha = 0.8f)
 private val Faint = Color.White.copy(alpha = 0.62f)
-private const val MaxChips = 4

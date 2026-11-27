@@ -556,7 +556,13 @@ object TvBoxPanels {
     var closeBeside by androidx.compose.runtime.mutableIntStateOf(0)
     /** Where the channels screen's preview is, in root pixels: full screen grows out of it and back into it. */
     var previewRect by androidx.compose.runtime.mutableStateOf<androidx.compose.ui.geometry.Rect?>(null)
+
+    /** The channel panel's guide is open over its list: the picture beside it steps right and narrows to give room. */
+    var guideOpen by androidx.compose.runtime.mutableStateOf(false)
 }
+
+/** How far the docked picture steps right (and narrows) while the panel's guide is open. */
+val TvBoxGuideDockShift = 300.mpx
 
 /** The light side panels: the soft grey the screen's backdrop shows beside them. */
 val TvBoxPanelLight = androidx.compose.ui.graphics.Color(0xFFEFF2F5)

@@ -369,4 +369,5 @@
     <string name="content_channel_logo_hint">PNG veya JPG bağlantısı yapıştırın. Orijinali geri yüklemek için boş bırakın</string>
     <string name="content_channel_logo_link">Görsel bağlantısı</string>
     <string name="content_epg_match_linked">Bağlandı</string>
+    <string name="content_guide_days">Günler</string>
 </resources>

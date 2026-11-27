@@ -1,6 +1,7 @@
 package tv.own.owntv.features.shell.components
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -189,6 +190,24 @@ fun TvBoxChannelPanel(
         value = runCatching { read(ch) }.getOrDefault(emptyList())
     }
     val lines = remember(entries, archive) { scheduleLines(entries, archive, System.currentTimeMillis()) }
+    // ▶ on a channel: its guide where the list is, the same panel as on the channels screen; ◀ brings the list back.
+    var sideFor by remember { mutableStateOf<ChannelEntity?>(null) }
+    // Back from the categories beside the guide: focus into the guide again, after the list has taken it.
+    var sideRefocus by remember { mutableIntStateOf(0) }
+    LaunchedEffect(active) {
+        if (active && sideFor != null) {
+            delay(SIDE_REFOCUS_MS)
+            sideRefocus++
+        }
+    }
+    // The picture beside steps right and narrows while the guide is open (the shell moves the video the same way).
+    LaunchedEffect(sideFor != null) { TvBoxPanels.guideOpen = sideFor != null }
+    androidx.compose.runtime.DisposableEffect(Unit) { onDispose { TvBoxPanels.guideOpen = false } }
+    val guideShift by androidx.compose.animation.core.animateDpAsState(
+        if (sideFor != null) TvBoxGuideDockShift else 0.mpx,
+        androidx.compose.animation.core.tween(tv.own.owntv.ui.theme.MotionPrefs.slideMs(tv.own.owntv.features.live.GUIDE_SLIDE_MS)),
+        label = "panelGuideShift",
+    )
     val onAirFocus = remember { FocusRequester() }
     var bigPoster by remember { mutableStateOf<tv.own.owntv.core.metadata.ProgrammeArt?>(null) }
     // The block under the picture follows focus once it rests, like the guide: a held ▼ would otherwise
@@ -201,7 +220,7 @@ fun TvBoxChannelPanel(
     androidx.compose.foundation.layout.BoxWithConstraints(modifier.fillMaxSize()) {
         val screenW = maxWidth
         // Dark over everything but the picture's corner, which stays a clear window onto the video.
-        val dockW = TvBoxDock.width(screenW, inset + menuShift)
+        val dockW = TvBoxDock.width(screenW, inset + menuShift + guideShift)
         Box(
             Modifier.fillMaxSize()
                 .graphicsLayer { compositingStrategy = androidx.compose.ui.graphics.CompositingStrategy.Offscreen }
@@ -211,7 +230,7 @@ fun TvBoxChannelPanel(
                     val t = dockProgress()
                     fun lerp(a: Float, b: Float) = a + (b - a) * t
                     drawRect(c.fill.copy(alpha = c.fill.alpha * t))
-                    val left = lerp(0f, (TvBoxDock.Left + inset).toPx())
+                    val left = lerp(0f, (TvBoxDock.Left + inset + guideShift).toPx())
                     val top = lerp(0f, TvBoxDock.Top.toPx())
                     drawRoundRect(
                         Color.Transparent,
@@ -226,7 +245,7 @@ fun TvBoxChannelPanel(
         if (loading) {
             Box(
                 Modifier
-                    .padding(start = (TvBoxDock.Left + inset).coerceAtLeast(0.mpx), top = TvBoxDock.Top)
+                    .padding(start = (TvBoxDock.Left + inset + guideShift).coerceAtLeast(0.mpx), top = TvBoxDock.Top)
                     .size(dockW, dockW * 9f / 16f),
                 contentAlignment = Alignment.Center,
             ) { tv.own.owntv.ui.components.OwnTVSpinner(sizeDp = 44, color = Color.White.copy(alpha = 0.9f)) }
@@ -241,7 +260,7 @@ fun TvBoxChannelPanel(
                             if (onOpenCategories != null) onOpenCategories() else onDismiss()
                             true
                         } else if (e.type == KeyEventType.KeyDown && e.key == Key.DirectionRight) {
-                            runCatching { if (art != null) posterFocus.requestFocus() else onAirFocus.requestFocus() }
+                            sideFor = focused
                             true
                         } else false
                     }
@@ -278,13 +297,17 @@ fun TvBoxChannelPanel(
         // carries the channel's name and the poster up out of the way and the programmes get the room.
         Box(
             Modifier.padding(
-                start = (TvBoxDock.Left + inset).coerceAtLeast(0.mpx),
-                top = TvBoxDock.Top + TvBoxDock.height(screenW, inset + menuShift) + 24.mpx,
+                start = (TvBoxDock.Left + inset + guideShift).coerceAtLeast(0.mpx),
+                top = TvBoxDock.Top + TvBoxDock.height(screenW, inset + menuShift + guideShift) + 24.mpx,
             )
                 .width(dockW).fillMaxHeight(),
         ) {
             val head = shown
-            if (head != null) {
+            // The guide is open on the left: no second schedule here, only the channel, a larger poster with what it
+            // is about, and what is on now.
+            if (head != null && sideFor != null) {
+                guideCompanion(head, art, onAir, now, formatTime)
+            } else if (head != null) {
                 val scheduleState = rememberLazyListState()
                 val onAirIndex = lines.indexOfFirst { now < it.stopMs }.coerceAtLeast(0)
                 // The guide starts at the programme before what is on; ▲ at its top brings earlier ones
@@ -385,11 +408,25 @@ fun TvBoxChannelPanel(
                 }
             }
         }
+        // The focused channel's guide over the list, as on the channels screen; the picture stays in its window.
+        tv.own.owntv.features.live.LiveGuideSideHost(
+            channel = sideFor,
+            scheduleFor = scheduleFor,
+            archiveFor = { ch -> archiveFor?.invoke(ch).orEmpty() },
+            onWatch = { ch -> sideFor = null; onSelect(ch) },
+            onPlayArchive = { ch, p -> sideFor = null; onPlayArchive?.invoke(ch, p) },
+            onClose = { sideFor = null; runCatching { firstFocus.requestFocus() } },
+            refocus = sideRefocus,
+            onShowPoster = { bigPoster = it },
+            modifier = Modifier.padding(start = inset.coerceAtLeast(0.mpx)).fillMaxHeight()
+                .width((TvBoxDock.Left + guideShift - SIDE_GAP.mpx).coerceAtLeast(0.mpx)),
+        )
         // The poster over the whole screen, from OK on it; focus goes back to it when it closes.
         bigPoster?.let { a ->
             tv.own.owntv.ui.components.programmePosterViewer(a) {
                 bigPoster = null
-                runCatching { posterFocus.requestFocus() }
+                // From the guide: back into it; from the poster under the picture: back onto that poster.
+                if (sideFor != null) sideRefocus++ else runCatching { posterFocus.requestFocus() }
             }
         }
     }
@@ -480,6 +517,8 @@ private data class ScheduleLine(
     val stopMs: Long,
     val title: String,
     val archive: tv.own.owntv.core.database.entity.EpgProgrammeEntity?,
+    /** What the programme is about, from the guide; shown under the line while it has focus. */
+    val description: String? = null,
 )
 
 /** The archive's last aired programmes, then what is on and what comes, in time order. */
@@ -489,11 +528,65 @@ private fun scheduleLines(
     now: Long,
 ): List<ScheduleLine> {
     val aired = archive.filter { it.stopMs <= now }.sortedBy { it.startMs }.takeLast(AIRED_LINES)
-        .map { ScheduleLine(it.startMs, it.stopMs, it.title, it) }
+        .map { ScheduleLine(it.startMs, it.stopMs, it.title, it, it.description) }
     val rest = entries.filter { aired.isEmpty() || it.stopMs > now }
-        .map { ScheduleLine(it.startMs, it.stopMs, it.title, null) }
+        .map { ScheduleLine(it.startMs, it.stopMs, it.title, null, it.description) }
     return (aired + rest).distinctBy { it.startMs }.sortedBy { it.startMs }
 }
+
+/** Under the picture while the guide is open: the channel, its programme's poster and story, and what is on now. */
+@Composable
+private fun guideCompanion(
+    head: ChannelEntity,
+    art: tv.own.owntv.core.metadata.ProgrammeArt?,
+    onAir: XtEpgEntry?,
+    now: Long,
+    formatTime: (Long) -> String,
+) {
+    val c = tvBoxPanelColors()
+    Column(verticalArrangement = Arrangement.spacedBy(18.mpx)) {
+        panelHeader(head, c.text, c.soft)
+        if (onAir != null) {
+            Row(horizontalArrangement = Arrangement.spacedBy(16.mpx), verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    stringResource(R.string.content_live_time_range_plain, formatTime(onAir.startMs), formatTime(onAir.stopMs)),
+                    style = stageText(SCHEDULE_TEXT, SEMI), color = SkMateBlue, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                )
+                Text(
+                    onAir.title, style = stageText(SCHEDULE_TEXT, BOLD), color = c.text,
+                    maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f),
+                )
+                val done = ((now - onAir.startMs).toFloat() / (onAir.stopMs - onAir.startMs).coerceAtLeast(1)).coerceIn(0f, 1f)
+                Bar(done, COMPANION_BAR.mpx, base = c.text)
+                Text(durationLeft(onAir.stopMs - now), style = stageText(LEFT_TEXT, SEMI), color = c.soft, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
+        }
+        val about = listOfNotNull(art?.year?.toString(), art?.overview ?: onAir?.description)
+            .joinToString(stringResource(R.string.content_epg_bits_separator))
+        Row(horizontalArrangement = Arrangement.spacedBy(20.mpx)) {
+            art?.let { tv.own.owntv.ui.components.programmePoster(it.posterUrl, COMPANION_POSTER.mpx) }
+            // Beside a poster the story runs down to its foot: a short one set larger, a long one cut off there.
+            Column(
+                if (art != null) Modifier.height((COMPANION_POSTER * ART_POSTER_RATIO).mpx) else Modifier,
+                verticalArrangement = Arrangement.spacedBy(8.mpx),
+            ) {
+                art?.let { Text(it.title, style = stageText(ART_TITLE_TEXT, BOLD), color = c.text, maxLines = 2, overflow = TextOverflow.Ellipsis) }
+                if (about.isNotBlank()) {
+                    if (art != null) {
+                        fittedAbout(about, c.soft, Modifier.weight(1f))
+                    } else {
+                        Text(about, style = stageText(COMPANION_TEXT, MEDIUM), color = c.soft, maxLines = COMPANION_LINES, overflow = TextOverflow.Ellipsis)
+                    }
+                }
+            }
+        }
+    }
+}
+
+private const val COMPANION_POSTER = 170
+private const val COMPANION_TEXT = 19
+private const val COMPANION_LINES = 9
+private const val COMPANION_BAR = 140
 
 /** The focused channel's logo, number and name, over its poster and guide. */
 @Composable
@@ -537,8 +630,9 @@ private fun scheduleLine(
         past -> c.faint
         else -> c.text
     }
-    Row(
-        modifier.fillMaxWidth().height(SCHEDULE_LINE.mpx)
+    val about = line.description?.trim()?.takeIf { focused && it.isNotEmpty() }
+    Column(
+        modifier.fillMaxWidth()
             .background(if (focused) c.focus else Color.Transparent, tv.own.owntv.ui.stage.FocusBarShape)
             .onFocusChanged { if (it.isFocused) onFocused() }
             .onPreviewKeyEvent { e ->
@@ -551,7 +645,11 @@ private fun scheduleLine(
                 }
             }
             .clickable(interactionSource = interaction, indication = null) { onPick(line) }
-            .padding(horizontal = SCHEDULE_INSET.mpx),
+            .padding(horizontal = SCHEDULE_INSET.mpx)
+            .animateContentSize(),
+    ) {
+    Row(
+        Modifier.fillMaxWidth().height(SCHEDULE_LINE.mpx),
         horizontalArrangement = Arrangement.spacedBy(20.mpx),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -573,7 +671,21 @@ private fun scheduleLine(
             )
         }
     }
+    // The focused programme tells what it is about, as a guide does: a few lines, the rest cut off.
+    if (about != null) {
+        Text(
+            about, style = stageText(ABOUT_TEXT, MEDIUM), color = c.focusInk.copy(alpha = ABOUT_ALPHA),
+            maxLines = ABOUT_LINES, overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.padding(bottom = ABOUT_BOTTOM.mpx),
+        )
+    }
+    }
 }
+
+private const val ABOUT_TEXT = 18
+private const val ABOUT_ALPHA = 0.78f
+private const val ABOUT_LINES = 4
+private const val ABOUT_BOTTOM = 14
 
 private const val AIRED_LINES = 3000
 private const val SCROLL_FADE = 28
@@ -692,6 +804,8 @@ internal fun tvBoxPanelColors(): TvBoxPanelColors =
         TvBoxPanelColors(Color(0xF2232629), Color.White, Color.White.copy(alpha = 0.8f), Color.White.copy(alpha = 0.55f), Color(0xFF3A3F45), Color.White, Color(0x1FFFFFFF))
     }
 private const val ScheduleSettleMs = 250L
+private const val SIDE_GAP = 24
+private const val SIDE_REFOCUS_MS = 40L
 private const val HEADER_SETTLE_MS = 120L
 private const val NOW_TICK_MS = 30_000L
 
