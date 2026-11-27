@@ -141,7 +141,7 @@ function ColorEnd({ label, css }: { label: string; css: string }) {
 const KEY_ACTIONS: Key[] = [
   "sa_settings_live_key_action_info", "sa_settings_live_key_action_list", "sa_settings_live_key_action_history", "sa_settings_live_key_action_next",
   "sa_settings_live_key_action_previous", "sa_settings_live_key_action_last", "sa_settings_live_key_action_rewind", "sa_settings_live_key_action_forward",
-  "sa_settings_live_key_action_pause", "sa_settings_live_key_action_nothing",
+  "sa_settings_live_key_action_pause", "sa_settings_live_key_action_describe", "sa_settings_live_key_action_nothing",
 ];
 /** The usual action of each key on a channel (LiveKeyLabels.kt): OK info, ▲ ▼ next/previous, ◀ ▶ list/history. */
 const LIVE_KEYS: Array<[string, Key, Key]> = [
@@ -150,7 +150,7 @@ const LIVE_KEYS: Array<[string, Key, Key]> = [
   ["right", "sa_settings_live_key_right", "sa_settings_live_key_action_history"],
 ];
 
-/** Кнопки пульта (ChNavSettingsScreen.kt). Stored: the web player keeps its own keys. */
+/** Кнопки пульта (ChNavSettingsScreen.kt): what OK and the arrows do on a channel with nothing on screen (2.7.1). */
 export function ChNavPage({ s, set }: P) {
   const sheet = useSheet();
   const [editing, setEditing] = useState<string | null>(null);

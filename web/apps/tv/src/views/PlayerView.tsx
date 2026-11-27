@@ -246,7 +246,7 @@ export function PlayerView(p: Props) {
   const setToolsOpen = (v: boolean) => { hud.current.tools = v; setToolsOpenState(v); };
   const [panel, setPanel] = useState<PanelTab | null>(null);
   const [sheet, setSheet] = useState(false);
-  const [dialog, setDialog] = useState<"aspect" | "sleep" | "audio" | "subs" | null>(null);
+  const [dialog, setDialog] = useState<"aspect" | "sleep" | "audio" | "subs" | "about" | null>(null);
   // Zoom (OwnTVPlayer setZoomModeByUser): each channel starts at the default zoom unless one was picked for it.
   const zoomFor = (key: string): ZoomMode => itemPrefs.get(key)?.zoom ?? defaultZoom(settings.zoomMode, settings.aspect);
   const [aspect, setAspect] = useState<ZoomMode>(() => zoomFor(itemKey));
@@ -454,6 +454,7 @@ export function PlayerView(p: Props) {
     // Audio with a choice to make (more than one track), subtitles with any (PlayerHud.kt:903-904).
     ...(showAudioTile(tracks.audio) ? [{ id: "tb-audio", icon: "volume_high" as IconName, glyph: "audio" as const, label: t("pfAudio"), run: () => setDialog("audio") }] : []),
     ...(showSubtitleTile(tracks.subs) ? [{ id: "tb-subs", icon: "info" as IconName, glyph: "subtitle" as const, label: t("pfSubtitles"), run: () => setDialog("subs") }] : []),
+    ...(at.now ? [{ id: "tb-about", icon: "info" as IconName, label: t("sa_settings_live_key_action_describe"), run: () => setDialog("about") }] : []),
     { id: "tb-aspect", icon: "aspect", label: t("tbAspect"), run: () => setDialog("aspect") },
     ...(canPip ? [{ id: "tb-mini", icon: "pip" as IconName, label: t("tbMini"), run: () => { hide(); pip(); } }] : []),
     ...(settings.multiview && !archive ? [{ id: "tb-mv", icon: "grid" as IconName, label: t("tbMultiview"), run: () => { hide(); p.onMultiview(channel); } }] : []),
@@ -501,8 +502,26 @@ export function PlayerView(p: Props) {
     setTimeout(() => focusFirst(document, id), 16);
   }, [shown, step, inert, toolsOpen]);
   // The timeline step lands on pause (2.6.0).
-  useEffect(() => { if (shown && step === "seek" && !inert) setTimeout(() => focusFirst(document, "tp-pause"), 16); }, [shown, step, inert]);
+  // The timeline step lands on the bar itself (#674): ◀ ▶ there wind; ▼ goes down to the keys under it.
+  useEffect(() => { if (shown && step === "seek" && !inert) setTimeout(() => focusFirst(document, "tp-bar"), 16); }, [shown, step, inert]);
   const runTile = (x: TileDef) => { lastTile.current = x.id; x.run(); };
+
+  /** A job from Settings › remote keys (SettingsPages KEY_ACTIONS). */
+  const runKey = (action: string, rep: number) => {
+    switch (action.replace("sa_settings_live_key_action_", "")) {
+      case "info": show("tiles"); return;
+      case "list": openPanel("channels"); return;
+      case "history": openPanel("history"); return;
+      case "next": zap(-1); return;
+      case "previous": zap(1); return;
+      case "last": goPrevious(); return;
+      case "rewind": if (canScrub) scrub(true, rep); return;
+      case "forward": if (canScrub) scrub(false, rep); return;
+      case "pause": playPause(); show("info"); return;
+      case "describe": setDialog("about"); return;
+      default: return; // nothing
+    }
+  };
 
   // ---- Remote keys. Capture phase: the player decides first; a panel, a dialog or the sheet takes its own. ----
   const okDownOn = useRef<string | null>(null);
@@ -560,6 +579,9 @@ export function PlayerView(p: Props) {
       }
       if (hidden) {
         swallow(e);
+        // Settings › remote keys (#696): a key given its own job does that, whatever is usual.
+        const own = k === "ok" || k === "up" || k === "down" || k === "left" || k === "right" ? settings.liveKeys[k] : undefined;
+        if (own) { if (!e.repeat || own.endsWith("rewind") || own.endsWith("forward")) runKey(own, rep); return; }
         if (k === "up") { zap(1); return; }
         if (k === "down") { zap(-1); return; }
         if (k === "left" || k === "right") {
@@ -602,6 +624,16 @@ export function PlayerView(p: Props) {
         // ◀ ▶ walk the transport's keys, OK presses the one in focus; held, ◀◀ ▶▶ wind faster (2.6.0).
         const ids = transport.map((x) => x.id);
         const focused = (document.activeElement as HTMLElement | null)?.dataset.focus ?? "";
+        // On the bar: ◀ ▶ move along it (held, faster), OK pauses and plays, ▼ the keys, ▲ the info.
+        if (focused === "tp-bar" || !ids.includes(focused)) {
+          if (k === "left" || k === "right") { scrub(k === "left", rep); return; }
+          if (k === "ok") { if (!e.repeat) playPause(); wake(true); return; }
+          if (k === "down") { focusFirst(document, "tp-pause"); wake(true); return; }
+          if (k === "up") { show("info"); return; }
+          wake(true);
+          return;
+        }
+        if (k === "up") { focusFirst(document, "tp-bar"); wake(true); return; }
         const at = Math.max(0, ids.indexOf(focused));
         if (k === "left" || k === "right") {
           const to = Math.max(0, Math.min(ids.length - 1, at + (k === "left" ? -1 : 1)));
@@ -614,7 +646,6 @@ export function PlayerView(p: Props) {
           if (key && (!e.repeat || key.id === "tp-back" || key.id === "tp-fwd")) key.run(rep);
           return;
         }
-        if (k === "up") { show("info"); return; }
         if (k === "down") { show("tiles"); return; }
         wake(true);
         return;
@@ -744,7 +775,7 @@ export function PlayerView(p: Props) {
           ) : null}
         </div>
       </div>
-      <div class={`tb-time${step === "seek" ? " seeking" : ""}`}>
+      <div class={`tb-time${step === "seek" ? " seeking" : ""}`} data-focus={step === "seek" ? "tp-bar" : undefined} tabIndex={step === "seek" ? -1 : undefined}>
         <div class="tb-track"><i style={{ width: `${(progress * 100).toFixed(2)}%` }} /></div>
         <div class={`tb-dot${offsetSec > 1 || (run && run.moved < 0) ? " behind" : ""}`} style={{ left: `${(progress * 100).toFixed(2)}%` }} />
         {run && Date.now() - runAt.current <= SEEK_RUN_SHOW_MS + 100 ? (
@@ -926,6 +957,7 @@ export function PlayerView(p: Props) {
         <TrackDialog kind={dialog === "audio" ? "audio" : "subtitle"} tracks={dialog === "audio" ? tracks.audio : tracks.subs} onClose={() => setDialog(null)}
           onPick={(x) => { setDialog(null); if (dialog === "audio") { if (x) selectAudio(x); } else selectSubtitle(x); }} />
       ) : null}
+      {dialog === "about" ? <AboutProgramme channel={channel} at={watching} onClose={() => setDialog(null)} /> : null}
       {dialog === "sleep" ? (
         <SleepDialog
           leftMs={sleepAt !== null ? sleepAt - Date.now() : null}
@@ -972,5 +1004,34 @@ function RecentCard({ card, now }: { card: RowCard; now: number }) {
       <span class="tr-name">{on ? on.title : card.label}</span>
       {on ? <span class="tr-bar"><i style={{ width: `${(done * 100).toFixed(1)}%` }} /></span> : null}
     </button>
+  );
+}
+
+/**
+ * The whole description of what is on (#683, #695): the title in full, its time and what is left, the description and
+ * what follows. Opened by a remote key given that job, or by OK on the info; OK or Back close it.
+ */
+function AboutProgramme({ channel, at, onClose }: { channel: Channel; at: number; onClose: () => void }) {
+  const guide = useContext(GuideContext);
+  const { now: cur, next } = guide.data.nowNext(channel.id, at);
+  const [desc, setDesc] = useState<string | undefined>(cur?.desc);
+  useEffect(() => {
+    let live = true;
+    if (cur) guide.data.describe(channel.id, cur).then((d) => { if (live) setDesc(d); });
+    return () => { live = false; };
+  }, [cur?.start, channel.id]);
+  useEffect(() => { const id = setTimeout(() => focusFirst(document, "about-close"), 16); return () => clearTimeout(id); }, []);
+  const left = cur ? Math.max(0, Math.round((cur.stop - Date.now()) / 60_000)) : 0;
+  return (
+    <div class="pv-about" data-modal role="dialog" aria-label={cur?.title ?? channel.name}>
+      <div class="pv-about-card">
+        <div class="pv-about-ch"><span class="pv-about-logo"><ChannelLogo channel={channel} /></span>{channel.name}</div>
+        <div class="pv-about-title">{cur ? cur.title : t("tbNoGuide")}</div>
+        {cur ? <div class="pv-about-time">{t("tbRange", { a: clock(cur.start), b: clock(cur.stop) })} · {t("tbMinutes", { n: left })}</div> : null}
+        {desc ? <div class="pv-about-desc">{desc}</div> : null}
+        {next ? <div class="pv-about-next">{t("tbRange", { a: clock(next.start), b: clock(next.stop) })} {next.title}</div> : null}
+        <button class="st-focusable pv-about-close" data-focus="about-close" onClick={onClose}><Icon name="close" size={22} /></button>
+      </div>
+    </div>
   );
 }

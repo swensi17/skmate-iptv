@@ -1149,6 +1149,7 @@ export const tr: Record<keyof typeof en, string> = {
   sa_settings_live_key_action_last: "Son izlenen kanal",
   sa_settings_live_key_action_list: "Kanal listesi",
   sa_settings_live_key_action_next: "Sonraki kanal",
+  sa_settings_live_key_action_describe: "Program açıklaması",
   sa_settings_live_key_action_nothing: "Hiçbiri",
   sa_settings_live_key_action_pause: "Duraklat",
   sa_settings_live_key_action_previous: "Önceki kanal",
