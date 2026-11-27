@@ -27,6 +27,9 @@ export function usePlaylists(every = -1) {
   const [tick, setTick] = useState(0);
   const forced = useRef(false);
   const refresh = useCallback(() => { forced.current = true; setTick((n) => n + 1); }, []);
+  /** Bumped when the playlist read from its link differs from the kept copy, or was asked for by "Update now":
+   *  the guide is downloaded again after it (#668). */
+  const [renewed, setRenewed] = useState(0);
   const [store, setStore] = useState<PlaylistStore>(() => {
     const stored = loadStore();
     const fromAddress = typeof location === "undefined" ? null : playlistFromSearch(location.search);
@@ -81,6 +84,7 @@ export function usePlaylists(every = -1) {
     address.then((u) => (u ? fetchPlaylist(u, playlistOpener()) : Promise.reject(new PlaylistError("network")))).then(
       (text) => {
         if (!live) return;
+        if (force || (cached !== null && text !== cached)) setRenewed((n) => n + 1);
         cachePut(active.id, text);
         setChannels(parseM3U(text));
         // An Xtream login brings its own guide for the same account, even when the list does not name it.
@@ -203,5 +207,5 @@ export function usePlaylists(every = -1) {
     });
   }, []);
 
-  return { store, active, channels, status, headerGuides, add, addFile, addDemo, select, update, remove, refresh };
+  return { store, active, channels, status, headerGuides, add, addFile, addDemo, select, update, remove, refresh, renewed };
 }

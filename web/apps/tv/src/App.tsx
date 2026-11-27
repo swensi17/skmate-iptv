@@ -152,6 +152,8 @@ export function App() {
   const firstDue = rem.due[0] ?? null;
   const prompt = unlocked && settings.reminderMode === "ask" ? firstDue : null;
   const guide = useGuide(pl.channels, pl.active, pl.headerGuides, settings);
+  // The playlist was read again and changed (or "Update now"): the guide follows it (#668).
+  useEffect(() => { if (pl.renewed > 0) void guide.sync(); }, [pl.renewed]);
   const guideValue = useMemo(() => ({ data: guide.data, now: guide.now }), [guide.data, guide.now]);
   applyLanguage(settings.language); // before anything is drawn: the whole screen speaks one language
   // Another language chosen: its table is fetched, then the screen is drawn again in it.
