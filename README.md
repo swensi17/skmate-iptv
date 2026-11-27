@@ -35,27 +35,27 @@ M3U и Xtream Codes, телегид (EPG), архив, профили — упр
 
 
 <p align="center">
-  <a href="https://github.com/swensi17/skmate-iptv/releases/latest"><img alt="Release v2.5.9" src="https://img.shields.io/badge/release-v2.5.9-1e88e5"></a>
-  <a href="https://github.com/swensi17/skmate-iptv/releases"><img alt="Downloads 1.1k" src="https://img.shields.io/badge/downloads-1.1k-43a047"></a>
-  <a href="https://github.com/swensi17/skmate-iptv#%D0%B1%D0%B5%D0%B7%D0%BE%D0%BF%D0%B0%D1%81%D0%BD%D0%BE%D1%81%D1%82%D1%8C"><img alt="VirusTotal" src="https://img.shields.io/badge/VirusTotal-apk%3A%200%20threats-2ecc71?logo=virustotal&logoColor=white"></a>
-  <a href="LICENSE"><img alt="License GPL-3.0" src="https://img.shields.io/badge/license-GPL--3.0-blue"></a>
+  <a href="https://github.com/swensi17/skmate-iptv/releases/latest"><img alt="Release v2.5.9" src="docs/badges/release-v2-5-9.svg"></a>
+  <a href="https://github.com/swensi17/skmate-iptv/releases"><img alt="Downloads 1.1k" src="docs/badges/downloads-1-1k.svg"></a>
+  <a href="https://github.com/swensi17/skmate-iptv#%D0%B1%D0%B5%D0%B7%D0%BE%D0%BF%D0%B0%D1%81%D0%BD%D0%BE%D1%81%D1%82%D1%8C"><img alt="VirusTotal" src="docs/badges/virustotal.svg"></a>
+  <a href="LICENSE"><img alt="License GPL-3.0" src="docs/badges/license-gpl-3-0.svg"></a>
 </p>
 
 <p align="center">
-  <img alt="Android TV" src="https://img.shields.io/badge/Android%20TV-8.0%2B-3ddc84?logo=android&logoColor=white">
-  <img alt="Google TV" src="https://img.shields.io/badge/Google%20TV-supported-4285f4?logo=googletv&logoColor=white">
-  <img alt="Fire TV" src="https://img.shields.io/badge/Fire%20TV-supported-ff9900?logo=android&logoColor=white">
-  <a href="https://github.com/swensi17/skmate-tv"><img alt="LG webOS" src="https://img.shields.io/badge/LG%20webOS-4.0%2B-a50034?logo=lg&logoColor=white"></a>
-  <a href="https://github.com/swensi17/skmate-tv"><img alt="Samsung Tizen" src="https://img.shields.io/badge/Samsung%20Tizen-4.0%2B-1428a0?logo=samsung&logoColor=white"></a>
+  <img alt="Android TV" src="docs/badges/android-tv.svg">
+  <img alt="Google TV" src="docs/badges/google-tv.svg">
+  <img alt="Fire TV" src="docs/badges/fire-tv.svg">
+  <a href="https://github.com/swensi17/skmate-tv"><img alt="LG webOS" src="docs/badges/lg-webos.svg"></a>
+  <a href="https://github.com/swensi17/skmate-tv"><img alt="Samsung Tizen" src="docs/badges/samsung-tizen.svg"></a>
 </p>
 
 <p align="center">
-  <img alt="Kotlin" src="https://img.shields.io/badge/Kotlin-Compose%20for%20TV-7f52ff?logo=kotlin&logoColor=white">
-  <img alt="libVLC" src="https://img.shields.io/badge/engine-libVLC-ff8800?logo=vlcmediaplayer&logoColor=white">
-  <img alt="mpv" src="https://img.shields.io/badge/engine-mpv-691f69?logo=mpv&logoColor=white">
-  <img alt="M3U" src="https://img.shields.io/badge/M3U%20%7C%20Xtream%20%7C%20Stalker-sources-555">
-  <img alt="EPG" src="https://img.shields.io/badge/EPG-XMLTV-555">
-  <img alt="No ads" src="https://img.shields.io/badge/ads-none-2ecc71">
+  <img alt="Kotlin" src="docs/badges/kotlin.svg">
+  <img alt="libVLC" src="docs/badges/libvlc.svg">
+  <img alt="mpv" src="docs/badges/mpv.svg">
+  <img alt="M3U" src="docs/badges/m3u.svg">
+  <img alt="EPG" src="docs/badges/epg.svg">
+  <img alt="No ads" src="docs/badges/no-ads.svg">
 </p>
 
 <p align="center"><a href="https://github.com/swensi17/skmate-iptv/releases/latest/download/SkMate-IPTV.apk"><b>⬇ Скачать APK для Android TV</b></a> — последняя подписанная версия</p>
