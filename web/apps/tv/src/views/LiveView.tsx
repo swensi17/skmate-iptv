@@ -42,10 +42,8 @@ const DWELL_MS = 1000;
 const TYPING_PAUSE_MS = 180;
 /** The categories need a search field only past this many entries (LiveStage.kt CategorySearchMin). */
 const CATEGORY_SEARCH_MIN = 20;
-/** Focus resting on another category this long starts the 3-2-1 countdown that opens it (DwellCountdown.kt). */
-const CATEGORY_QUIET_MS = 7000;
-const CATEGORY_STEP_MS = 1000;
-const CATEGORY_STEPS = 3;
+/** Focus resting on another category this long shows its channels beside (2.6.9). */
+const CATEGORY_FOLLOW_MS = 300;
 
 /** LiveSort.kt LiveSortModes, in Android's order. */
 type Sort = "provider" | "az" | "za" | "number" | "recent";
@@ -101,11 +99,23 @@ let lastKey: string | null = null;
 /** The key restored at start, until the playlist is there to find it in. */
 let pendingKey: string | null = null;
 let primed = false;
+function writeLast(): void {
+  clearTimeout(saveTimer);
+  saveTimer = undefined;
+  try { localStorage.setItem(scoped(LAST_KEY), JSON.stringify({ group: memory.group, channel: lastKey })); } catch { /* not remembered */ }
+}
 function saveLast(): void {
   clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => {
-    try { localStorage.setItem(scoped(LAST_KEY), JSON.stringify({ group: memory.group, channel: lastKey })); } catch { /* not remembered */ }
-  }, SAVE_MS);
+  saveTimer = setTimeout(writeLast, SAVE_MS);
+}
+// Leaving the app (Home, another input, power off) writes the place at once: one moved just before must not be lost
+// to the timer (2.6.9, #650).
+if (typeof window !== "undefined") {
+  const flush = () => { if (saveTimer !== undefined) writeLast(); };
+  window.addEventListener("pagehide", flush);
+  window.addEventListener("beforeunload", flush);
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") flush(); });
+  document.addEventListener("webOSRelaunch", flush);
 }
 
 /** Before the channels screen first opens: where it starts. Off = "All channels", at the top (Android LiveKey.All). */
@@ -246,6 +256,7 @@ export function LiveView(p: Props) {
   // A playlist that arrives after the screen opened: the preview starts on the remembered (or the first) channel.
   useEffect(() => { if (!preview && shown.length > 0) setPreview((back >= 0 ? shown[back] : shown[0]) ?? null); }, [shown.length > 0]);
   useEffect(() => {
+    if (catsRef.current) return; // the list follows the category the cursor is on (2.6.9): the cursor stays there
     const id = back >= 0 ? memory.channel : shown[0]?.id;
     focusFirst(document, id ? `ch-${id}` : "live-search");
   }, [group, p.channels.length === 0]);
@@ -317,22 +328,14 @@ export function LiveView(p: Props) {
     timer.current = setTimeout(() => setDwelled(c), DWELL_MS);
   };
 
-  // A category the cursor rests on opens by itself after 7 s and a 3-2-1 countdown (the TV-box look).
+  // 2.6.9 (#651): the list beside follows the category the cursor rests on, after a short pause (not on every step),
+  // the categories staying open; OK or ▶ go into the list.
   const [catFocus, setCatFocus] = useState<string | null>(null);
-  const [countdown, setCountdown] = useState(0);
+  const countdown = 0;
   useEffect(() => {
-    setCountdown(0);
     if (!catsOpen || catFocus === null || catFocus === group || menu !== null) return;
-    let step = CATEGORY_STEPS;
-    let tick: ReturnType<typeof setTimeout>;
-    const next = () => {
-      if (step === 0) { pickCategory(catFocus); return; }
-      setCountdown(step);
-      step -= 1;
-      tick = setTimeout(next, CATEGORY_STEP_MS);
-    };
-    tick = setTimeout(next, CATEGORY_QUIET_MS);
-    return () => clearTimeout(tick);
+    const id = setTimeout(() => { memory.channel = null; setGroup(catFocus); }, CATEGORY_FOLLOW_MS);
+    return () => clearTimeout(id);
   }, [catFocus, catsOpen, group, menu]);
   const pickCategory = (key: string) => {
     if (key !== group) { memory.channel = preview?.id ?? null; setGroup(key); }
