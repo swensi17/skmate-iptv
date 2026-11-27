@@ -46,8 +46,6 @@ const CATEGORY_SEARCH_MIN = 20;
 const CATEGORY_QUIET_MS = 7000;
 const CATEGORY_STEP_MS = 1000;
 const CATEGORY_STEPS = 3;
-/** Sheet in 280 ms, out 240 ms (LiveScreen.kt SHEET_SLIDE_MS / SHEET_HIDE_MS). */
-const SHEET_HIDE_MS = 240;
 
 /** LiveSort.kt LiveSortModes, in Android's order. */
 type Sort = "provider" | "az" | "za" | "number" | "recent";
@@ -459,9 +457,9 @@ export function LiveView(p: Props) {
           onProgramme={(c, prog) => p.onUpcoming?.(c, prog, shown)} />
       </div>
 
-      <Presence show={catsOpen} ms={SHEET_HIDE_MS}>
-        {(out) => (
-          <aside class={`home-cats${out ? " out" : ""}`} onKeyDown={onCatsKey as unknown as (e: Event) => void}
+      {/* Built once and only slid in and out (2.6.3): no long first frame on ◀, the list and the panel move as one. */}
+      {(
+          <aside class={`home-cats${catsOpen ? " open" : ""}`} aria-hidden={!catsOpen} onKeyDown={onCatsKey as unknown as (e: Event) => void}
             onFocusIn={onCatsFocus as unknown as (e: Event) => void} onFocusOut={() => setCatFocus(null)}>
             <div class="home-cats-title">{t("homeCategories")}</div>
             <div class="home-cats-list" ref={catList}>
@@ -489,8 +487,7 @@ export function LiveView(p: Props) {
               })}
             </div>
           </aside>
-        )}
-      </Presence>
+      )}
 
       <Presence show={menu === "sort"}>
         {(out) => (

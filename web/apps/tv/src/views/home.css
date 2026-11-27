@@ -194,11 +194,11 @@ button.hp-sched-item:focus, button.hp-sched-item:focus > b { color: #121212; }
    (a90e933): the rows span the strip from edge to edge, their text 30 in as the settings rows; the search keeps 28 each side. --- */
 .home-cats { position: absolute; left: 0; top: 0; bottom: 0; z-index: 3; width: 405px; display: flex; flex-direction: column; padding: 30px 0;
   background: var(--st-page); box-shadow: inset -1px 0 0 rgba(0, 0, 0, 0.08); will-change: transform;
-  animation: home-cats-in 280ms var(--st-ease) both; }
+  /* 2.6.3: always there, slid; the same 280 ms and curve as the list beside it, both ways. Hidden, it takes no focus. */
+  transform: translateX(-100%); visibility: hidden; transition: transform 280ms var(--st-ease), visibility 0s linear 280ms; }
+.home-cats.open { transform: none; visibility: visible; transition: transform 280ms var(--st-ease), visibility 0s; }
 :root[data-theme="light"] .home-cats { background: #eff2f5; }
-.home-cats.out { animation: home-cats-out 240ms var(--st-ease) both; }
-@keyframes home-cats-in { from { transform: translateX(-100%); } to { transform: none; } }
-@keyframes home-cats-out { from { transform: none; } to { transform: translateX(-100%); } }
+:root[data-motion="off"] .home-cats, :root[data-motion="off"] .home-cats.open { transition: none; }
 .home-cats-title { flex: none; padding: 0 14px 16px 30px; font-size: 26px; font-weight: 800; color: var(--st-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .home-cats-list { flex: 1 1 0%; min-height: 0; padding: 4px 0 8px; overflow-x: hidden; overflow-y: auto; scrollbar-width: none; }
 .home-cats-list::-webkit-scrollbar { display: none; }
