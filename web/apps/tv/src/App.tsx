@@ -576,7 +576,7 @@ export function App() {
             onAddPlaylist={() => openSheet("playlists", "screen")} onDemo={pl.addDemo}
             greeting={greeting} playlistName={pl.active?.name ?? null} onPickPlaylist={() => setPicking(true)}
             recents={recents} paused={book === null || redo} /* the wizard covers the screen: no preview stream may hold the TV's only decoder behind it */
-            onGuideView={() => showLiveAs("guide")} onUpcoming={openUpcoming} entry={liveEntry}
+            onGuideView={() => showLiveAs("guide")} onUpcoming={openUpcoming} onArchive={openArchive} entry={liveEntry}
             adultLocked={settings.adultLock ? adultLocked : null} onAdult={toggleAdult}
           />
         ) : null}

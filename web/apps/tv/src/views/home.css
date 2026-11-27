@@ -226,3 +226,29 @@ button.home-cat:focus, button.home-cat:focus > .st-icon, button.home-cat:focus .
 .home-menu .st-menu-item:focus > .st-icon { color: #121212; }
 /* No hairline between the rows: Android leaves it out on a weak TV (DevicePerf.lite), as the reference screenshots show. */
 .home-rows .vrow::after { display: none; }
+
+/* 2.6.0: the channel's guide in the list's place (LiveGuideSide) */
+.gs { position: absolute; left: 0; right: 0; top: 68px; bottom: 0; z-index: 2; display: flex; flex-direction: column; background: var(--st-panel, #24272d); border-radius: 14px; overflow: hidden; animation: gs-in 220ms var(--st-ease) both; }
+@keyframes gs-in { from { transform: translateX(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+.gs-head { display: flex; align-items: center; gap: 14px; padding: 16px 20px 10px; }
+.gs-logo { width: 54px; height: 40px; display: flex; align-items: center; justify-content: center; }
+.gs-logo img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.gs-name { font-size: 24px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gs-body { flex: 1; min-height: 0; display: flex; }
+.gs-days { flex: 0 0 150px; overflow: hidden; padding: 6px 0 6px 12px; display: flex; flex-direction: column; gap: 4px; }
+.gs-day { text-align: left; padding: 10px 12px; border: 0; border-radius: 10px; background: none; color: rgba(255, 255, 255, .6); font: 500 17px/1.2 inherit; font-family: inherit; outline: none; }
+.gs-day.today { color: #0086fc; }
+.gs-day.on { background: rgba(255, 255, 255, .1); color: #fff; }
+.gs-day:focus { background: #fff; color: #16181d; }
+.gs-lines { flex: 1; min-width: 0; overflow: hidden; padding: 6px 16px 40px 10px; }
+.gs-dayhead { padding: 14px 12px 6px; font-size: 16px; font-weight: 700; color: rgba(255, 255, 255, .55); text-transform: capitalize; }
+.gs-line { width: 100%; display: flex; align-items: center; gap: 14px; padding: 10px 12px; border: 0; border-radius: 10px; background: none; color: rgba(255, 255, 255, .86); font-family: inherit; text-align: left; outline: none; }
+.gs-line.gs-gone { color: rgba(255, 255, 255, .4); }
+.gs-line:focus { background: #fff; color: #16181d; }
+.gs-at { flex: 0 0 60px; font-size: 18px; font-variant-numeric: tabular-nums; }
+.gs-t { flex: 1; min-width: 0; font-size: 19px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gs-arch { display: flex; opacity: .7; }
+.gs-live { padding: 2px 8px; border-radius: 6px; background: #e53935; color: #fff; font-size: 13px; font-weight: 700; }
+.gs-about { padding: 4px 12px 10px 86px; font-size: 16px; line-height: 1.35; color: rgba(255, 255, 255, .7); display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+.gs-none { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; font-size: 22px; color: rgba(255, 255, 255, .7); outline: none; }
+.lrow-seen { display: flex; opacity: .55; }

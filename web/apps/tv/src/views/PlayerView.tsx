@@ -4,6 +4,7 @@ import {
   type Channel, type LiveAnchor, type SeekWindow,
 } from "@skmate/core";
 import type { Programme } from "@skmate/epg";
+import { useLogoTint } from "./logoTint";
 import { defaultZoom, itemPrefs, showAudioTile, showSubtitleTile, type ZoomMode } from "@skmate/player";
 import { Drawer, focusFirst, Icon, isBack, Presence, type IconName } from "@skmate/ui";
 import { t } from "../i18n";
@@ -122,6 +123,10 @@ function scrubUrl(channel: Channel, list: readonly Programme[], at: number, now:
 }
 
 type Step = "info" | "seek" | "tiles";
+interface RowCard { id: string; label: string; run: () => void; icon?: IconName; channel?: Channel }
+const RECENT_MAX = 10;
+/** Into a programme by more than this, |◀ goes back to its start; within it, to the programme before. */
+const PROGRAMME_START_GRACE_S = 10;
 interface TileDef { id: string; icon: IconName; label: string; run: () => void; active?: boolean; glyph?: "audio" | "subtitle" }
 
 /**
@@ -232,7 +237,10 @@ export function PlayerView(p: Props) {
   const [shown, setShown] = useState(true);
   const [step, setStep] = useState<Step>("info");
   // The same, written at once: two keys pressed faster than a render must see what the first one did.
-  const hud = useRef<{ shown: boolean; step: Step; panel: PanelTab | null }>({ shown: true, step: "info", panel: null });
+  const hud = useRef<{ shown: boolean; step: Step; panel: PanelTab | null; passive: boolean; tools: boolean }>({ shown: true, step: "info", panel: null, passive: true, tools: false });
+  // 2.6.0: the tiles' step opens on the recently watched row; ▼ there brings the tools in under it.
+  const [toolsOpen, setToolsOpenState] = useState(false);
+  const setToolsOpen = (v: boolean) => { hud.current.tools = v; setToolsOpenState(v); };
   const [panel, setPanel] = useState<PanelTab | null>(null);
   const [sheet, setSheet] = useState(false);
   const [dialog, setDialog] = useState<"aspect" | "sleep" | "audio" | "subs" | null>(null);
@@ -268,7 +276,12 @@ export function PlayerView(p: Props) {
     clearTimeout(hideTimer.current);
     hideTimer.current = setTimeout(() => { hud.current.shown = false; setShown(false); }, busy ? BUSY_HIDE_MS : settings.osdSeconds * 1000);
   };
-  const show = (s: Step = "info") => { if (s !== "tiles") lastTile.current = null; hud.current.shown = true; hud.current.step = s; setShown(true); setStep(s); wake(s !== "info"); };
+  // The info a channel shows by itself is only to read (2.6.0): the keys still do what they do with nothing on
+  // screen, OK opens the controls.
+  const show = (s: Step = "info", passive = s === "info") => {
+    if (s !== "tiles") { lastTile.current = null; setToolsOpen(false); }
+    hud.current.passive = passive; hud.current.shown = true; hud.current.step = s; setShown(true); setStep(s); wake(s !== "info");
+  };
   const hide = () => { lastTile.current = null; clearTimeout(hideTimer.current); hud.current.shown = false; setShown(false); };
   // Every channel opened shows the info, which then goes by itself; a paused picture (TV-box) keeps it.
   useEffect(() => { show("info"); return () => clearTimeout(hideTimer.current); }, [channel.id, archive?.url]);
@@ -445,13 +458,47 @@ export function PlayerView(p: Props) {
     ...(full ? [{ id: "tb-full", icon: (full.on ? "fullscreen_exit" : "fullscreen") as IconName, label: t(full.on ? "fullScreenExit" : "fullScreen"), run: full.toggle }] : []),
     { id: "tb-set", icon: "settings", label: t("playerSettings"), run: () => { hide(); setSheet(true); } },
   ];
+  // 2.6.0 TvBoxRecentRow: the guide, the history, then up to 10 channels watched before this one.
+  const recentRow = p.recents.filter((c) => c.id !== channel.id).slice(0, RECENT_MAX);
+  const rowCards: RowCard[] = recentRow.length === 0 ? [] : [
+    { id: "tr-guide", icon: "epg", label: t("tbGuide"), run: () => { hide(); p.onGo("guide"); } },
+    { id: "tr-history", icon: "history", label: t("tbHistory"), run: () => openPanel("history") },
+    ...recentRow.map((c, i): RowCard => ({ id: `tr-${i}`, channel: c, label: c.name, run: () => { hide(); p.onPick(c, channels.some((x) => x.id === c.id) ? channels : catalog); } })),
+  ];
+  // The keys under the timeline (2.6.0 TvBoxTransport): |◀ ◀◀ ⏸ ▶▶ ▶|, live when behind it, record.
+  const transport: Array<{ id: string; icon: IconName; label: string; run: (rep: number) => void; active?: boolean }> = [
+    { id: "tp-prev", icon: "skip_previous", label: t("tbPrevChannel"), run: () => {
+      // Some way in: back to this programme's start; at its start, the one before.
+      const into = at.now ? (watching - at.now.start) / 1000 : null;
+      const before = programmes.filter((x) => x.stop <= (at.now?.start ?? watching)).pop();
+      const to = into !== null && into > PROGRAMME_START_GRACE_S ? (at.now as { start: number }).start : before?.start;
+      if (to !== undefined) applyScrub(to);
+      wake(true);
+    } },
+    { id: "tp-back", icon: "rewind", label: "◀◀", run: (r) => scrub(true, r) },
+    { id: "tp-pause", icon: paused ? "play" : "pause", label: paused ? "▶" : "⏸", run: () => { playPause(); wake(true); } },
+    { id: "tp-fwd", icon: "fast_forward", label: "▶▶", run: (r) => scrub(false, r) },
+    { id: "tp-next", icon: "skip_next", label: t("tbGoLive"), run: () => {
+      const next = programmes.find((x) => x.start > watching);
+      if (next && next.start < Date.now()) applyScrub(next.start); else toLive();
+      wake(true);
+    } },
+    ...(offsetSec > 1 ? [{ id: "tp-live", icon: "live_tv" as IconName, label: t("tbGoLive"), run: () => {
+      // The live key goes away once live: focus moves to pause first (2.6.1).
+      focusFirst(document, "tp-pause"); toLive(); wake(true);
+    } }] : []),
+    ...(canRecord ? [{ id: "tp-rec", icon: "record" as IconName, label: t(recording ? "tbRecordStop" : "tbRecord"), run: () => { toggleRecord(); wake(true); }, active: recording }] : []),
+  ];
   // The row opens on its first tile; back from a tile's dialog, the focus returns to that tile.
   useEffect(() => {
     if (!shown || step !== "tiles" || inert) return;
-    const id = lastTile.current && tiles.some((x) => x.id === lastTile.current) ? lastTile.current : tiles[0]?.id;
+    const onRow = rowCards.length > 0 && !toolsOpen && !lastTile.current;
+    const id = onRow ? rowCards[0]?.id : lastTile.current && tiles.some((x) => x.id === lastTile.current) ? lastTile.current : tiles[0]?.id;
     lastTile.current = null;
     setTimeout(() => focusFirst(document, id), 16);
-  }, [shown, step, inert]);
+  }, [shown, step, inert, toolsOpen]);
+  // The timeline step lands on pause (2.6.0).
+  useEffect(() => { if (shown && step === "seek" && !inert) setTimeout(() => focusFirst(document, "tp-pause"), 16); }, [shown, step, inert]);
   const runTile = (x: TileDef) => { lastTile.current = x.id; x.run(); };
 
   // ---- Remote keys. Capture phase: the player decides first; a panel, a dialog or the sheet takes its own. ----
@@ -493,12 +540,15 @@ export function PlayerView(p: Props) {
       }
       if (!tvLive) { classicKey(e, k, back); return; }
 
-      const hidden = !shown;
+      // The info that came up by itself: any arrow does what it does with nothing on screen (2.6.0).
+      const passiveArrow = shown && step === "info" && hud.current.passive && (k === "up" || k === "down" || k === "left" || k === "right");
+      if (passiveArrow) hide();
+      const hidden = !shown || passiveArrow;
       if (back) {
         swallow(e);
         if (hidden) p.onExit();
-        else if (step === "info") hide();
-        else show("info"); // from the timeline or the tiles: back to the info
+        else if (step === "seek") show("info");
+        else hide(); // the info, and the row under it: everything goes at once (2.6.0)
         return;
       }
       if (hidden) {
@@ -511,13 +561,19 @@ export function PlayerView(p: Props) {
           return;
         }
         if (k === "channelList") { openPanel("channels"); return; }
-        if (!e.repeat) show("info"); // OK and any other key show the info
+        if (k === "ok") { if (!e.repeat) show("tiles"); return; } // OK opens the controls (2.6.0)
+        if (!e.repeat) show("info"); // any other key shows the info
         return;
       }
       if (k === "playPause" || k === "play" || k === "pause") { swallow(e); if (!e.repeat) playPause(); wake(); return; }
       if (step === "tiles") {
-        const ids = tiles.map((x) => x.id);
-        const at = ids.indexOf((document.activeElement as HTMLElement | null)?.dataset.focus ?? "");
+        const focused = (document.activeElement as HTMLElement | null)?.dataset.focus ?? "";
+        const onRow = focused.startsWith("tr-");
+        const ids = (onRow ? rowCards : tiles).map((x) => x.id);
+        const at = ids.indexOf(focused);
+        if (onRow && k === "down") { swallow(e); setToolsOpen(true); setTimeout(() => focusFirst(document, tiles[0]?.id), 16); wake(true); return; }
+        if (onRow && k === "up") { swallow(e); if (canScrub) show("seek"); else wake(true); return; }
+        if (!onRow && k === "up" && rowCards.length > 0) { swallow(e); setToolsOpen(false); setTimeout(() => focusFirst(document, rowCards[0]?.id), 16); wake(true); return; }
         if (k === "left" || k === "right") {
           swallow(e);
           const to = Math.max(0, Math.min(ids.length - 1, (at < 0 ? 0 : at) + (k === "left" ? -1 : 1))); // the ends are walls
@@ -534,15 +590,29 @@ export function PlayerView(p: Props) {
       swallow(e);
       // 2.5.8 (Android PlayerHud): OK on the info hides it again, as on a TV's own player; paused, OK carries on.
       // On the timeline OK still pauses and carries on, as a film's seek bar does.
-      if (k === "ok" && step === "info") { if (!e.repeat) { if (paused) playPause(); else hide(); } return; }
-      if (k === "ok") { if (!e.repeat) playPause(); wake(); return; }
+      if (k === "ok" && step === "info") { if (!e.repeat) { if (paused) playPause(); else show("tiles"); } return; }
       if (step === "seek") {
-        if (k === "left" || k === "right") { scrub(k === "left", rep); return; }
+        // ◀ ▶ walk the transport's keys, OK presses the one in focus; held, ◀◀ ▶▶ wind faster (2.6.0).
+        const ids = transport.map((x) => x.id);
+        const focused = (document.activeElement as HTMLElement | null)?.dataset.focus ?? "";
+        const at = Math.max(0, ids.indexOf(focused));
+        if (k === "left" || k === "right") {
+          const to = Math.max(0, Math.min(ids.length - 1, at + (k === "left" ? -1 : 1)));
+          focusFirst(document, ids[to]);
+          wake(true);
+          return;
+        }
+        if (k === "ok") {
+          const key = transport[at];
+          if (key && (!e.repeat || key.id === "tp-back" || key.id === "tp-fwd")) key.run(rep);
+          return;
+        }
         if (k === "up") { show("info"); return; }
         if (k === "down") { show("tiles"); return; }
         wake(true);
         return;
       }
+      if (k === "ok") { if (!e.repeat) playPause(); wake(); return; }
       // The info step.
       if (k === "down") { show(canScrub ? "seek" : "tiles"); return; }
       if (k === "up") { hide(); return; }
@@ -582,8 +652,8 @@ export function PlayerView(p: Props) {
       const id = okDownOn.current;
       okDownOn.current = null;
       const el = document.activeElement as HTMLElement | null;
-      const tile = tiles.find((x) => x.id === id);
-      if (el?.dataset.focus === id && tile) { e.preventDefault(); runTile(tile); }
+      const tile = tiles.find((x) => x.id === id) ?? rowCards.find((x) => x.id === id);
+      if (el?.dataset.focus === id && tile) { e.preventDefault(); if (id.startsWith("tr-")) tile.run(); else runTile(tile as TileDef); }
     };
     const onMove = (e: MouseEvent) => { if (!inert && (e.movementX !== 0 || e.movementY !== 0) && state !== "failed") { if (!shown) show(); else wake(); } };
     document.addEventListener("keydown", onKey, true);
@@ -676,6 +746,17 @@ export function PlayerView(p: Props) {
           </div>
         ) : null}
       </div>
+      {step === "seek" ? (
+        <div class="tp-row" role="toolbar">
+          {transport.map((x) => (
+            <button key={x.id} class={`tp-key${x.active ? " active" : ""}${x.id === "tp-live" ? " live" : ""}`} data-focus={x.id} aria-label={x.label}
+              onClick={(ev) => { if ((ev as MouseEvent).detail > 0) x.run(0); }}>
+              {x.id === "tp-live" ? <><i class="tp-dot" />{x.label}</> : <Icon name={x.icon} size={30} />}
+            </button>
+          ))}
+          {cur ? <span class="tp-time">{t("tbRange", { a: clock(cur.start), b: clock(cur.stop) })}</span> : null}
+        </div>
+      ) : null}
     </>
   );
 
@@ -758,7 +839,8 @@ export function PlayerView(p: Props) {
               <StreamCorner />
               <div class="tb-col">
                 {info}
-                {step === "tiles" ? (
+                {step === "tiles" && rowCards.length > 0 ? <RecentRow cards={rowCards} now={tick} /> : null}
+                {step === "tiles" && (toolsOpen || rowCards.length === 0) ? (
                   <div class="tb-tiles" role="toolbar">
                     {tiles.map((x) => (
                       <button key={x.id} class={`tb-tile${x.active ? " active" : ""}`} data-focus={x.id} aria-pressed={x.active} onClick={(ev) => { if ((ev as MouseEvent).detail > 0) runTile(x); }}>
@@ -856,4 +938,32 @@ export function PlayerView(p: Props) {
 function SettingsFocus() {
   useEffect(() => { const id = setTimeout(() => focusFirst(document, "s-engine"), 40); return () => clearTimeout(id); }, []);
   return null;
+}
+
+/** The recently watched row under the info (2.6.0 TvBoxRecentRow): matte cards in the logo's colour, what is on. */
+function RecentRow({ cards, now }: { cards: RowCard[]; now: number }) {
+  return (
+    <div class="tr-wrap">
+      <div class="tr-title">{t("tbRecent")}</div>
+      <div class="tr-row" role="toolbar">
+        {cards.map((c) => <RecentCard key={c.id} card={c} now={now} />)}
+      </div>
+    </div>
+  );
+}
+
+function RecentCard({ card, now }: { card: RowCard; now: number }) {
+  const guide = useContext(GuideContext);
+  const ch = card.channel;
+  const tint = useLogoTint(ch ? ch.logo ?? guide.data.logoOf(ch.id) : undefined);
+  const on = ch ? guide.data.nowNext(ch.id, now).now : null;
+  const done = on ? Math.max(0, Math.min(1, (now - on.start) / Math.max(1, on.stop - on.start))) : 0;
+  return (
+    <button class={`tr-card${ch ? "" : " lead"}`} data-focus={card.id} style={tint ? { background: tint } : undefined}
+      onClick={(ev) => { if ((ev as MouseEvent).detail > 0) card.run(); }}>
+      {ch ? <span class="tr-logo"><ChannelLogo channel={ch} /></span> : <Icon name={card.icon ?? "list"} size={40} />}
+      <span class="tr-name">{on ? on.title : card.label}</span>
+      {on ? <span class="tr-bar"><i style={{ width: `${(done * 100).toFixed(1)}%` }} /></span> : null}
+    </button>
+  );
 }

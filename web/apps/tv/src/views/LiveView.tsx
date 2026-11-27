@@ -1,3 +1,5 @@
+import { GuideSide } from "./GuideSide";
+import type { ArtSettings } from "../state/tmdb";
 import { Fragment } from "preact";
 import { useContext, useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { groupsOf, type Channel } from "@skmate/core";
@@ -142,6 +144,8 @@ interface Props {
   onGuideView?: () => void;
   /** OK on a programme to come in the schedule under the preview: watch or be reminded. */
   onUpcoming?: (c: Channel, p: Programme, list: readonly Channel[]) => void;
+  /** OK on an aired programme in the channel's guide (▶ on a channel, 2.6.0): play it from the archive. */
+  onArchive?: (c: Channel, p: Programme, list: readonly Channel[]) => void;
   /** The shell's hook for the side menu (▶ / Back out of it, OK on Home beside open categories). */
   entry?: { current: LiveEntry | null };
   /** screens 2.5.4 (Android LiveMoreMenu): adult categories; null when the lock is off, true while they are closed. */
@@ -175,6 +179,14 @@ export function LiveView(p: Props) {
   // Only whether it has left the preview's channel is state: the preview's picture stops while it has (one decoder).
   const focusedRef = useRef<Channel | null>(null);
   const [away, setAway] = useState(false);
+  // ▶ on a channel puts its guide in the list's place; ◀ or Back bring the list back (2.6.0 LiveGuideSide).
+  const [guideCh, setGuideCh] = useState<Channel | null>(null);
+  const artSettings = useMemo<ArtSettings>(() => ({
+    metadataOn: p.settings.metadataOn, tmdbKey: p.settings.tmdbKey, tmdbLanguage: p.settings.tmdbLanguage, programmePosters: p.settings.programmePosters,
+  }), [p.settings.metadataOn, p.settings.tmdbKey, p.settings.tmdbLanguage, p.settings.programmePosters]);
+  // The channels watched before carry the history mark; worked out once per history, not on every step (2.6.1).
+  const watchedIds = useMemo(() => new Set(p.recents.slice(0, 200).map((c) => c.id)), [p.recents]);
+  const closeGuide = () => { setGuideCh(null); setTimeout(() => focusCurrentRow(), 30); };
   const [dwelled, setDwelled] = useState<Channel | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout>>();
 
@@ -362,8 +374,7 @@ export function LiveView(p: Props) {
     if (key(e, "ArrowLeft", 37)) { stop(e); openCats(); return; }
     if (key(e, "ArrowRight", 39)) {
       stop(e);
-      const first = document.querySelector<HTMLElement>(".hp-sched [data-focus]");
-      if (first) first.focus();
+      if (focusedRef.current && !catsOpen) setGuideCh(focusedRef.current);
       return;
     }
     if (key(e, "ArrowDown", 40)) stop(e); // the list handles every Down it can; this one is past the last row
@@ -416,7 +427,13 @@ export function LiveView(p: Props) {
               <StageIcon name="more" size={20} />
             </button>
           </div>
-          <div class="home-rows" key={listKey} onKeyDown={onListKey as unknown as (e: Event) => void}>
+          {guideCh ? (
+            <GuideSide channel={guideCh} art={artSettings} onClose={closeGuide}
+              onWatch={(c) => { setGuideCh(null); clearTimeout(timer.current); p.onOpen(c, shown); }}
+              onArchive={(c, prog) => { setGuideCh(null); p.onArchive?.(c, prog, shown); }}
+              onUpcoming={(c, prog) => p.onUpcoming?.(c, prog, shown)} />
+          ) : null}
+          <div class="home-rows" key={listKey} style={guideCh ? { visibility: "hidden" } : undefined} onKeyDown={onListKey as unknown as (e: Event) => void}>
             {p.channels.length === 0 ? <ListSkeleton /> : empty ? (
               <div class="home-empty">
                 <StageIcon name="tv" size={72} />
@@ -428,7 +445,7 @@ export function LiveView(p: Props) {
                 idOf={(c) => `ch-${c.id}`}
                 renderRow={(c, i) => (
                   <ChannelRow variant="live" channel={c} index={i} number={numbers.get(c.id)} favorite={p.favorites.has(channelKey(c))}
-                    previewing={playing === c.id}
+                    previewing={playing === c.id} watched={watchedIds.has(c.id)}
                     onOpen={(ch) => { clearTimeout(timer.current); p.onOpen(ch, shown); }} onFav={p.onFav} onFocus={onFocusChannel} />
                 )}
               />

@@ -44,6 +44,8 @@ export function ChannelRow(props: {
   number?: number;
   /** "live": this channel is in the preview beside the list (the blue pause mark). */
   previewing?: boolean;
+  /** Watched before (2.6.0): the history mark at the row's end. */
+  watched?: boolean;
 }) {
   const { channel } = props;
   const { data, now } = useContext(GuideContext);
@@ -118,8 +120,9 @@ export function ChannelRow(props: {
             {on ? <Marquee class="lrow-prog" text={on.title} tail={left ? ` · ${left}` : ""} on={lit} /> : null}
             {on ? <span class="lrow-bar">{lit ? <i style={{ width: `${(progress * 100).toFixed(1)}%` }} /> : null}</span> : null}
           </span>
-          {props.previewing || props.favorite ? (
+          {props.previewing || props.favorite || props.watched ? (
             <span class="lrow-end">
+              {props.watched && !props.previewing ? <span class="lrow-seen"><StageIcon name="history" size={20} /></span> : null}
               {props.previewing ? <span class="lrow-playing"><StageIcon name="pause_fill" size={30} /></span> : null}
               {props.favorite ? <span class="lrow-fav"><StageIcon name="favorite_fill" size={22} /></span> : null}
             </span>
