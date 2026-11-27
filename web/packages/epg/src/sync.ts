@@ -31,6 +31,12 @@ export interface SyncOptions {
   /** How far back a programme that is over is still kept; 1 h by default. */
   pastMs?: number;
   /**
+   * How far back each channel's aired programmes are kept (its archive's depth); the rest keep [shortPastMs]. Without it
+   * every channel keeps [pastMs]. A large playlist with few archive channels stores days less of the past (2.7.0).
+   */
+  pastFor?: (c: Channel) => number;
+  shortPastMs?: number;
+  /**
    * Where the programmes go as they are read (the IndexedDB writer, see cache.ts). Without it they are collected in
    * the returned GuideData, which is fine for half a day but not for a week of a large playlist.
    */
@@ -78,6 +84,18 @@ export async function syncGuides(o: SyncOptions): Promise<{ data: GuideData; out
   // that still has a programme now or ahead; a lower guide takes a channel only when the one above has run dry, and
   // never fills the gaps of another, so two schedules are never mixed.
   const live = new Set<string>();
+  /** Guide channel -> how far back its programmes are kept (see [SyncOptions.pastFor]). */
+  const pastOf = new Map<string, number>();
+  const notePast = () => {
+    if (!o.pastFor) return;
+    pastOf.clear();
+    data.links.forEach((epg, chId) => {
+      const c = byId.get(chId);
+      const ms = c ? o.pastFor?.(c) ?? 0 : 0;
+      if (ms > (pastOf.get(epg) ?? 0)) pastOf.set(epg, ms);
+    });
+  };
+  const shortFrom = o.now - (o.shortPastMs ?? KEEP_PAST_MS);
   const dry = () => {
     const out: Channel[] = [];
     data.links.forEach((epg, chId) => { if (!live.has(epg)) { const c = byId.get(chId); if (c) out.push(c); } });
@@ -100,6 +118,7 @@ export async function syncGuides(o: SyncOptions): Promise<{ data: GuideData; out
 
       const accept = (id: string, p: Programme) => {
         if (!wanted?.has(id) || p.stop <= from || p.start >= until) return;
+        if (o.pastFor && p.stop <= shortFrom && p.stop <= o.now - (pastOf.get(id) ?? 0)) return;
         if (p.stop > o.now) live.add(id);
         if (sink) { sink.add(id, p); outcome.programmes++; return; }
         const list = taken.get(id);
@@ -181,6 +200,7 @@ export async function syncGuides(o: SyncOptions): Promise<{ data: GuideData; out
           }
         }
         wanted = found;
+        notePast();
         for (const [id, p] of pending) accept(id, p);
         pending.length = 0;
         if (outcome.linked > 0) await o.onLinked?.(data);

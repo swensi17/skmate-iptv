@@ -27,8 +27,7 @@ export function usePlaylists(every = -1) {
   const [tick, setTick] = useState(0);
   const forced = useRef(false);
   const refresh = useCallback(() => { forced.current = true; setTick((n) => n + 1); }, []);
-  /** Bumped when the playlist read from its link differs from the kept copy, or was asked for by "Update now":
-   *  the guide is downloaded again after it (#668). */
+  /** Bumped when the playlist was read again by "Update now": the guide is downloaded again after it (#668). */
   const [renewed, setRenewed] = useState(0);
   const [store, setStore] = useState<PlaylistStore>(() => {
     const stored = loadStore();
@@ -84,7 +83,9 @@ export function usePlaylists(every = -1) {
     address.then((u) => (u ? fetchPlaylist(u, playlistOpener()) : Promise.reject(new PlaylistError("network")))).then(
       (text) => {
         if (!live) return;
-        if (force || (cached !== null && text !== cached)) setRenewed((n) => n + 1);
+        // "Update now" brings the guide too. A list that only differs a little at a start (tokens in Xtream links) does
+        // not: the guide links again by itself when its channels really changed (useGuide, at most every few hours).
+        if (force) setRenewed((n) => n + 1);
         cachePut(active.id, text);
         setChannels(parseM3U(text));
         // An Xtream login brings its own guide for the same account, even when the list does not name it.

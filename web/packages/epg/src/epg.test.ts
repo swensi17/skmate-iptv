@@ -249,3 +249,22 @@ describe("syncGuides: one guide per channel (2.6.6)", () => {
     expect(data.of("1").map((p) => p.title)).toEqual(["Вечером"]);
   });
 });
+
+describe("syncGuides: the past only where there is an archive (2.7.0)", () => {
+  const now = Date.UTC(2026, 10, 28, 12, 0);
+  const at = (ms: number) => `${new Date(ms).toISOString().replace(/[-:T]|\..*/g, "")} +0000`;
+  const prog = (id: string, a: number, b: number, t: string) => `<programme start="${at(a)}" stop="${at(b)}" channel="${id}"><title>${t}</title></programme>`;
+  const day = 86_400_000;
+  const xml = `<tv><channel id="a"><display-name>Архивный</display-name></channel><channel id="b"><display-name>Простой</display-name></channel>${
+    prog("a", now - 2 * day, now - 2 * day + 3_600_000, "Позавчера") + prog("a", now - 600_000, now + 600_000, "Сейчас А")
+    + prog("b", now - 2 * day, now - 2 * day + 3_600_000, "Позавчера Б") + prog("b", now - 600_000, now + 600_000, "Сейчас Б")}</tv>`;
+  it("keeps aired days for a channel with an archive, a few hours for the rest", async () => {
+    const { data } = await syncGuides({
+      sources: [{ id: "1", name: "g", url: "http://g" }], now, open: async () => new Response(xml),
+      channels: [ch("1", "Архивный", { catchupDays: 3 }), ch("2", "Простой")],
+      pastMs: 7 * day, aheadMs: day, pastFor: (c) => (c.catchupDays ?? 0) * day, shortPastMs: 6 * 3_600_000,
+    });
+    expect(data.of("1").map((p) => p.title)).toEqual(["Позавчера", "Сейчас А"]);
+    expect(data.of("2").map((p) => p.title)).toEqual(["Сейчас Б"]);
+  });
+});
