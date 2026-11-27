@@ -216,9 +216,10 @@ export function useGuide(channels: Channel[], active: PlaylistEntry | null, head
       const days = kv.persistent ? settings.guideDays : Math.min(settings.guideDays, MEMORY_DAYS);
       const at = Date.now();
       writer = new GuideWriter(kv, legacyKey(pid), at);
+      writer.past = kv.persistent ? archiveDepthMs(channels) : STORED_PAST_MS;
       const result = await syncGuides({
         sources, channels, now: at, open: guideOpener(settings.proxy),
-        aheadMs: days * DAY_MS, pastMs: STORED_PAST_MS, sink: writer,
+        aheadMs: days * DAY_MS, pastMs: writer.past, sink: writer,
         // Nothing to show yet (a first start): the first source's channels appear while the others still download.
         onSource: async (sofar) => {
           const w = writer;
@@ -287,7 +288,9 @@ export function useGuide(channels: Channel[], active: PlaylistEntry | null, head
     const persistent = kvRef.current?.persistent ?? false;
     const stale = data.linked === 0 || (persistent && m === null)
       || Date.now() - data.updatedAt > settings.epgEvery * 3_600_000
-      || (m !== null && m.days < settings.guideDays && persistent);
+      || (m !== null && m.days < settings.guideDays && persistent)
+      // A guide kept from before 2.6.3 (or for a playlist with a shallower archive) lacks the archive's days.
+      || (m !== null && persistent && (m.past ?? STORED_PAST_MS) < archiveDepthMs(channels));
     if (stale) void sync();
   }, [restored, active?.id, channels.length, sources.length, settings.guideDays]);
 
@@ -305,4 +308,14 @@ export function useGuide(channels: Channel[], active: PlaylistEntry | null, head
   }, [active?.id]);
 
   return { data, status, outcomes, now, sync, clear };
+}
+
+/**
+ * How far back the stored guide reaches: the deepest archive of the playlist's channels (at most a week), so its
+ * programme shows the aired days the archive can play (2.6.3); 6 hours for a playlist without an archive.
+ */
+export function archiveDepthMs(channels: readonly { catchupDays?: number }[]): number {
+  let days = 0;
+  for (const c of channels) if ((c.catchupDays ?? 0) > days) days = c.catchupDays as number;
+  return days > 0 ? Math.min(7, days) * 86_400_000 + 3_600_000 : STORED_PAST_MS;
 }

@@ -69,6 +69,8 @@ export interface GuideMeta {
   blocks: number[];
   /** The last programme's end. */
   until: number;
+  /** How far back aired programmes were kept (the archive's depth, 2.6.3); missing: the 6 hours before it. */
+  past?: number;
   /** Whether descriptions were written (dropped when the disk was full). */
   desc: boolean;
 }
@@ -113,6 +115,9 @@ export class GuideWriter implements GuideSink {
   private until = 0;
   /** Programmes written so far (tests, logs). */
   written = 0;
+
+  /** How far back the download kept aired programmes; written into the meta. */
+  past = STORED_PAST_MS;
 
   constructor(private readonly kv: GuideKv, private readonly pid: string, readonly gen: number = Date.now()) {}
 
@@ -179,6 +184,7 @@ export class GuideWriter implements GuideSink {
     return {
       v: 3, gen: this.gen, at, days, links: Array.from(links), logos: usedLogos,
       ids: Array.from(this.ids), blocks: Array.from(this.blockSet).sort((a, b) => a - b), until: this.until, desc: this.withDesc,
+      past: this.past,
     };
   }
 
@@ -306,7 +312,8 @@ export class GuideCache {
 
   private async readBlock(block: number, now: number): Promise<Map<string, Programme[]>> {
     const shift = this.shiftMin * 60_000;
-    const after = now - MEMORY_PAST_MS;
+    // A block asked for is read whole as far back as the guide keeps: the archive's days come with it (2.6.3).
+    const after = now - Math.max(MEMORY_PAST_MS, this.meta.past ?? 0);
     const out = new Map<string, Programme[]>();
     await this.kv.scan(`b|${safe(this.pid)}|${this.meta.gen}|${block}|`, (_k, v) => {
       if (!isRec(v)) return;
