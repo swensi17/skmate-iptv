@@ -34,7 +34,7 @@ const CAT_ROW = 56;
 const CATS_H = Math.floor((972 - 30 - 50) / CAT_ROW) * CAT_ROW;
 /** DwellTiming: a channel rests 1.5 s before 3-2-1, a category 7 s. */
 const CHANNEL_QUIET_MS = 1500;
-const CATEGORY_QUIET_MS = 7000;
+const CATEGORY_FOLLOW_MS = 300;
 
 export interface DockRect { x: number; y: number; w: number; h: number }
 
@@ -182,8 +182,22 @@ export function PlayerPanel(p: {
     else if (l.start <= Date.now() && Date.now() < l.stop) p.onPick(head, list);
   };
 
-  // Categories: the playing list's category focused first; resting 7 s on another opens it after 3-2-1.
+  // Categories: the playing list's category focused first. 2.6.9 (#667): resting ~300 ms on another shows its channels
+  // beside at once, the categories staying open and the picture playing on; OK or ▶ go into the list.
   const [catFocus, setCatFocus] = useState<string | null>(null);
+  const showCat = (key: string) => {
+    const item = cats.find((c) => c.key === key);
+    if (!item) return;
+    memory.key = key;
+    setCatKey(key);
+    setList(item.channels);
+    setFocused(item.channels.find((c) => c.id === p.playing.id) ?? item.channels[0] ?? null);
+  };
+  useEffect(() => {
+    if (!catsOpen || menuOpen || catFocus === null || catFocus === catKey) return;
+    const id = setTimeout(() => showCat(catFocus), CATEGORY_FOLLOW_MS);
+    return () => clearTimeout(id);
+  }, [catFocus, catsOpen, menuOpen, catKey]);
   const pickCat = (key: string) => {
     const item = cats.find((c) => c.key === key);
     if (!item) return;
@@ -193,7 +207,7 @@ export function PlayerPanel(p: {
     setFocused(item.channels.find((c) => c.id === p.playing.id) ?? item.channels[0] ?? null);
     setCatsOpen(false);
   };
-  const catDwell = useDwell(catFocus, catsOpen && !menuOpen && catFocus !== null && catFocus !== catKey, CATEGORY_QUIET_MS, () => { if (catFocus) pickCat(catFocus); });
+  const catDwell = { n: 0, startedAt: 0 };
 
   const focusRail = () => setTimeout(() => focusFirst(document, "pr-home"), 30);
   const focusCats = () => setTimeout(() => focusFirst(document, `pg:${catKey}`), 30);
