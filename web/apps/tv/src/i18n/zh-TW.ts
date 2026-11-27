@@ -90,6 +90,7 @@ export const zhTW: Record<keyof typeof en, string> = {
   playlistErrHttp: "伺服器沒有提供播放清單",
   playlistErrInvalid: "此連結不是 M3U 播放清單",
   playlistErrTimeout: "伺服器回應逾時",
+  playlistErrCors: "The playlist server does not allow opening it from a browser. Install the app on the TV or use another link",
   playlistBadUrl: "請輸入以 http 或 https 開頭的連結",
   playlistActive: "使用中",
   confirmDeleteTitle: "要刪除播放清單嗎？",

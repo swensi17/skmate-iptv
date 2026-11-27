@@ -90,6 +90,7 @@ export const hu: Record<keyof typeof en, string> = {
   playlistErrHttp: "A kiszolgáló nem adta ki a listát",
   playlistErrInvalid: "Ez a hivatkozás nem M3U lista",
   playlistErrTimeout: "A kiszolgáló túl lassan válaszol",
+  playlistErrCors: "The playlist server does not allow opening it from a browser. Install the app on the TV or use another link",
   playlistBadUrl: "http-vel vagy https-sel kezdődő hivatkozást adj meg",
   playlistActive: "Használatban",
   confirmDeleteTitle: "Törlöd a listát?",

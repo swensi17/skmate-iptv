@@ -90,6 +90,7 @@ export const pl: Record<keyof typeof en, string> = {
   playlistErrHttp: "Serwer nie zwrócił playlisty",
   playlistErrInvalid: "Ten link nie jest playlistą M3U",
   playlistErrTimeout: "Serwer odpowiada zbyt długo",
+  playlistErrCors: "The playlist server does not allow opening it from a browser. Install the app on the TV or use another link",
   playlistBadUrl: "Podaj link zaczynający się od http lub https",
   playlistActive: "W użyciu",
   confirmDeleteTitle: "Usunąć playlistę?",

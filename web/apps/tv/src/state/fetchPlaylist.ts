@@ -1,4 +1,4 @@
-export type FetchFailure = "network" | "http" | "invalid" | "timeout";
+export type FetchFailure = "network" | "http" | "invalid" | "timeout" | "cors";
 
 export class PlaylistError extends Error {
   constructor(readonly kind: FetchFailure, detail?: string) {
@@ -15,6 +15,16 @@ export function looksLikeM3U(text: string): boolean {
   return head.startsWith("#EXTM3U") || head.includes("#EXTINF:");
 }
 
+/** True when the address answers at all, even if a page may not read the answer (the server sends no CORS header). */
+async function reachable(url: string, fetchFn: typeof fetch): Promise<boolean> {
+  if (typeof location === "undefined" || !/^https?:/i.test(url) || /^file:/i.test(location.protocol)) return false;
+  try {
+    const ctl = typeof AbortController !== "undefined" ? new AbortController() : null;
+    const timer = setTimeout(() => ctl?.abort(), 8000);
+    try { await fetchFn(url, { mode: "no-cors", ...(ctl ? { signal: ctl.signal } : {}) }); return true; } finally { clearTimeout(timer); }
+  } catch { return false; }
+}
+
 export async function fetchPlaylist(url: string, fetchFn: typeof fetch = fetch, timeoutMs = FETCH_TIMEOUT_MS): Promise<string> {
   const ctl = typeof AbortController !== "undefined" ? new AbortController() : null;
   const timer = setTimeout(() => ctl?.abort(), timeoutMs);
@@ -26,8 +36,11 @@ export async function fetchPlaylist(url: string, fetchFn: typeof fetch = fetch, 
     return text;
   } catch (e) {
     if (e instanceof PlaylistError) throw e;
-    // A blocked cross-origin request and a dead server look the same to a page: both are "network".
-    throw new PlaylistError(ctl?.signal.aborted ? "timeout" : "network", String(e));
+    if (ctl?.signal.aborted) throw new PlaylistError("timeout", String(e));
+    // A blocked cross-origin request and a dead server look the same to a page. A "no-cors" request tells them apart:
+    // it cannot be read, but it succeeds when the server is there, so then the server only refuses the browser.
+    if (await reachable(url, fetchFn)) throw new PlaylistError("cors", String(e));
+    throw new PlaylistError("network", String(e));
   } finally {
     clearTimeout(timer);
   }

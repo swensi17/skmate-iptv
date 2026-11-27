@@ -90,6 +90,7 @@ export const ko: Record<keyof typeof en, string> = {
   playlistErrHttp: "서버가 플레이리스트를 주지 않았습니다",
   playlistErrInvalid: "이 링크는 M3U 플레이리스트가 아닙니다",
   playlistErrTimeout: "서버 응답이 너무 느립니다",
+  playlistErrCors: "The playlist server does not allow opening it from a browser. Install the app on the TV or use another link",
   playlistBadUrl: "http 또는 https로 시작하는 링크를 입력하세요",
   playlistActive: "사용 중",
   confirmDeleteTitle: "플레이리스트를 삭제할까요?",

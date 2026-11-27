@@ -88,6 +88,7 @@ export const ru = {
   playlistErrHttp: "Сервер не отдал плейлист",
   playlistErrInvalid: "По ссылке не M3U-плейлист",
   playlistErrTimeout: "Сервер отвечает слишком долго",
+  playlistErrCors: "Сервер плейлиста не разрешает открывать его из браузера. Установите приложение на телевизор или возьмите другую ссылку",
   playlistBadUrl: "Введите ссылку, которая начинается с http или https",
   playlistActive: "Используется",
   confirmDeleteTitle: "Удалить плейлист?",

@@ -90,6 +90,7 @@ export const cs: Record<keyof typeof en, string> = {
   playlistErrHttp: "Server playlist nevydal",
   playlistErrInvalid: "Tento odkaz není playlist M3U",
   playlistErrTimeout: "Server odpovídá příliš dlouho",
+  playlistErrCors: "The playlist server does not allow opening it from a browser. Install the app on the TV or use another link",
   playlistBadUrl: "Zadejte odkaz začínající http nebo https",
   playlistActive: "Používá se",
   confirmDeleteTitle: "Odstranit playlist?",

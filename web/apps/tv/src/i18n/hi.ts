@@ -90,6 +90,7 @@ export const hi: Record<keyof typeof en, string> = {
   playlistErrHttp: "सर्वर ने प्लेलिस्ट नहीं दी",
   playlistErrInvalid: "यह लिंक M3U प्लेलिस्ट नहीं है",
   playlistErrTimeout: "सर्वर बहुत देर से जवाब दे रहा है",
+  playlistErrCors: "The playlist server does not allow opening it from a browser. Install the app on the TV or use another link",
   playlistBadUrl: "http या https से शुरू होने वाला लिंक डालें",
   playlistActive: "इस्तेमाल में",
   confirmDeleteTitle: "प्लेलिस्ट हटाएँ?",

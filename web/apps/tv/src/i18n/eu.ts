@@ -90,6 +90,7 @@ export const eu: Record<keyof typeof en, string> = {
   playlistErrHttp: "Zerbitzariak ez du zerrenda eman",
   playlistErrInvalid: "Esteka hori ez da M3U zerrenda bat",
   playlistErrTimeout: "Zerbitzariak gehiegi behar du erantzuteko",
+  playlistErrCors: "The playlist server does not allow opening it from a browser. Install the app on the TV or use another link",
   playlistBadUrl: "Idatzi http edo https-rekin hasten den esteka",
   playlistActive: "Erabiltzen",
   confirmDeleteTitle: "Zerrenda ezabatu?",

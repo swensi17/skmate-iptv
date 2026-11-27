@@ -90,6 +90,7 @@ export const zhCN: Record<keyof typeof en, string> = {
   playlistErrHttp: "服务器未返回播放列表",
   playlistErrInvalid: "该链接不是 M3U 播放列表",
   playlistErrTimeout: "服务器响应超时",
+  playlistErrCors: "The playlist server does not allow opening it from a browser. Install the app on the TV or use another link",
   playlistBadUrl: "请输入以 http 或 https 开头的链接",
   playlistActive: "使用中",
   confirmDeleteTitle: "删除此播放列表？",

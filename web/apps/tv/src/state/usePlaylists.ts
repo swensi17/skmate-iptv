@@ -12,6 +12,7 @@ import { addPlaylist, updatePlaylist, isStalker, xtreamGuide, loadStore, nextAct
 export type Status = { kind: "idle" } | { kind: "loading" } | { kind: "error"; message: string };
 
 const ERRORS: Record<PlaylistError["kind"], Key> = {
+  cors: "playlistErrCors",
   network: "playlistErrNetwork", http: "playlistErrHttp", invalid: "playlistErrInvalid", timeout: "playlistErrTimeout",
 };
 

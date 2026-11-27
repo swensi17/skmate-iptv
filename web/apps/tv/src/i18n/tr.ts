@@ -90,6 +90,7 @@ export const tr: Record<keyof typeof en, string> = {
   playlistErrHttp: "Sunucu listeyi vermedi",
   playlistErrInvalid: "Bu bağlantı bir M3U listesi değil",
   playlistErrTimeout: "Sunucu çok geç yanıt veriyor",
+  playlistErrCors: "The playlist server does not allow opening it from a browser. Install the app on the TV or use another link",
   playlistBadUrl: "http veya https ile başlayan bir bağlantı girin",
   playlistActive: "Kullanımda",
   confirmDeleteTitle: "Liste silinsin mi?",

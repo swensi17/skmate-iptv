@@ -90,6 +90,7 @@ export const nl: Record<keyof typeof en, string> = {
   playlistErrHttp: "De server gaf de afspeellijst niet",
   playlistErrInvalid: "Deze link is geen M3U-afspeellijst",
   playlistErrTimeout: "De server antwoordt te traag",
+  playlistErrCors: "The playlist server does not allow opening it from a browser. Install the app on the TV or use another link",
   playlistBadUrl: "Vul een link in die begint met http of https",
   playlistActive: "In gebruik",
   confirmDeleteTitle: "Afspeellijst verwijderen?",

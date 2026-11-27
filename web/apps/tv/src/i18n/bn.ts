@@ -90,6 +90,7 @@ export const bn: Record<keyof typeof en, string> = {
   playlistErrHttp: "সার্ভার প্লেলিস্ট দেয়নি",
   playlistErrInvalid: "এই লিংকটি M3U প্লেলিস্ট নয়",
   playlistErrTimeout: "সার্ভার উত্তর দিতে খুব দেরি করছে",
+  playlistErrCors: "The playlist server does not allow opening it from a browser. Install the app on the TV or use another link",
   playlistBadUrl: "http বা https দিয়ে শুরু হওয়া লিংক দিন",
   playlistActive: "ব্যবহৃত",
   confirmDeleteTitle: "প্লেলিস্ট মুছবেন?",

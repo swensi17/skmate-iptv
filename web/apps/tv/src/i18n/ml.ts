@@ -90,6 +90,7 @@ export const ml: Record<keyof typeof en, string> = {
   playlistErrHttp: "സെർവർ പ്ലേലിസ്റ്റ് നൽകിയില്ല",
   playlistErrInvalid: "ഈ ലിങ്ക് M3U പ്ലേലിസ്റ്റ് അല്ല",
   playlistErrTimeout: "സെർവർ മറുപടി നൽകാൻ വൈകുന്നു",
+  playlistErrCors: "The playlist server does not allow opening it from a browser. Install the app on the TV or use another link",
   playlistBadUrl: "http അല്ലെങ്കിൽ https-ൽ തുടങ്ങുന്ന ലിങ്ക് നൽകുക",
   playlistActive: "ഉപയോഗത്തിൽ",
   confirmDeleteTitle: "പ്ലേലിസ്റ്റ് ഇല്ലാതാക്കണോ?",

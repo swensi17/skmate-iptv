@@ -90,6 +90,7 @@ export const sv: Record<keyof typeof en, string> = {
   playlistErrHttp: "Servern lämnade inte ut spellistan",
   playlistErrInvalid: "Länken är ingen M3U-spellista",
   playlistErrTimeout: "Servern svarar för långsamt",
+  playlistErrCors: "The playlist server does not allow opening it from a browser. Install the app on the TV or use another link",
   playlistBadUrl: "Ange en länk som börjar med http eller https",
   playlistActive: "Används",
   confirmDeleteTitle: "Ta bort spellistan?",

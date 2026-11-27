@@ -90,6 +90,7 @@ export const ja: Record<keyof typeof en, string> = {
   playlistErrHttp: "サーバーがプレイリストを返しませんでした",
   playlistErrInvalid: "このリンクは M3U プレイリストではありません",
   playlistErrTimeout: "サーバーの応答が遅すぎます",
+  playlistErrCors: "The playlist server does not allow opening it from a browser. Install the app on the TV or use another link",
   playlistBadUrl: "http または https で始まるリンクを入力してください",
   playlistActive: "使用中",
   confirmDeleteTitle: "プレイリストを削除しますか？",

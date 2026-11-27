@@ -90,6 +90,7 @@ export const ar: Record<keyof typeof en, string> = {
   playlistErrHttp: "لم يُرسل الخادم القائمة",
   playlistErrInvalid: "هذا الرابط ليس قائمة M3U",
   playlistErrTimeout: "الخادم يتأخر كثيرًا في الرد",
+  playlistErrCors: "The playlist server does not allow opening it from a browser. Install the app on the TV or use another link",
   playlistBadUrl: "أدخل رابطًا يبدأ بـ http أو https",
   playlistActive: "قيد الاستخدام",
   confirmDeleteTitle: "حذف القائمة؟",
