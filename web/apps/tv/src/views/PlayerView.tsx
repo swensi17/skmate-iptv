@@ -171,8 +171,10 @@ export function PlayerView(p: Props) {
   useEffect(() => { if (state === "failed" && liveBehind > 0) setLiveBehind(0); }, [state, liveBehind]);
 
   // The archive opened by the timeline keeps the TV-box look; one opened from the guide gets the classic HUD.
-  const scrubFrom = archive ? SCRUB_FROM.get(archive.url) : undefined;
-  const tvLive = !archive || scrubFrom !== undefined;
+  // A recording from the guide plays in the same TV-box player as live, from the programme's start (as Android):
+  // the classic HUD is no longer shown.
+  const scrubFrom = archive ? SCRUB_FROM.get(archive.url) ?? archive.programme.start : undefined;
+  const tvLive = true;
   const programmes = guide.data.of(channel.id);
 
   // Position in a recording, read once a second.

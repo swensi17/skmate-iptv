@@ -106,7 +106,7 @@ const AHEAD_LINES = 48;
 export function scheduleLines(channel: Channel, items: readonly Programme[], now: number): ScheduleLine[] {
   const at = items.findIndex((x) => x.stop > now);
   const entries = at < 0 ? [] : items.slice(Math.max(0, at - 1), at + AHEAD_LINES);
-  const aired = items.filter((x) => x.stop <= now && hasArchive(channel, x.start, x.stop, now)).slice(-AIRED_LINES)
+  const aired = items.filter((x) => x.stop <= now && archiveUrl(channel, x.start, x.stop, now) !== null).slice(-AIRED_LINES)
     .map((x): ScheduleLine => ({ start: x.start, stop: x.stop, title: x.title, archive: x }));
   const rest = entries.filter((x) => aired.length === 0 || x.stop > now).map((x): ScheduleLine => ({ start: x.start, stop: x.stop, title: x.title, archive: null }));
   const seen = new Set<number>();
