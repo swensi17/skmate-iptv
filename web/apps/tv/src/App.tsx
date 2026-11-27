@@ -124,6 +124,22 @@ export function App() {
   useEffect(() => { if (!backAt) return; const id = setTimeout(() => setBackAt(0), EXIT_BACK_MS); return () => clearTimeout(id); }, [backAt]);
   const [redo, setRedo] = useState(false);
   const [sheet, setSheet] = useState(false);
+  // Read by the menu's focus entry in the very event that closes the sheet, before the screen is drawn again.
+  const sheetRef = useRef(false);
+  sheetRef.current = sheet;
+  // The sheet closes the moment focus lands on the screen or the picture behind it (a dialog over it keeps it open).
+  useEffect(() => {
+    if (!sheet) return;
+    const away = (e: FocusEvent) => {
+      const el = e.target as HTMLElement | null;
+      if (!el || !el.dataset || !el.dataset.focus) return;
+      if (el.closest(".st-sheet-layer, [data-modal], .tb-rail")) return;
+      sheetRef.current = false;
+      setSheet(false);
+    };
+    document.addEventListener("focusin", away);
+    return () => document.removeEventListener("focusin", away);
+  }, [sheet]);
   const full = useFullScreen();
   // Updates wait for the picture to end: nothing interrupts a channel.
   const update = useUpdates({ auto: settings.autoUpdate, onStart: settings.updateOnStart, every: settings.updateEvery, window: settings.updateWindow }, playing !== null);
@@ -181,8 +197,10 @@ export function App() {
       // 2.5.9: ◀ on the settings sheet's own rows opens the menu too, the sheet staying where it is; a dialog or an
       // editor over the sheet keeps ◀ for itself.
       const sheetLayer = before.closest(".st-sheet-layer");
-      const onSheet = !!sheetLayer && !!before.closest(".st-sheet-body") && document.querySelectorAll("[data-modal]").length === 1;
+      const onSheet = !!sheetLayer && !!before.closest(".st-sheet-body") && (() => { const m = document.querySelectorAll("[data-modal]"); return m[m.length - 1] === sheetLayer; })();
       if (!onSheet && (!before.closest(".content") || document.querySelector("[data-modal]"))) return;
+      // The sheet closes at once with the focus that leaves it (Android: Settings is a screen, ◀ from it is the menu).
+      if (onSheet) { sheetRef.current = false; setSheet(false); }
       document.querySelector<HTMLElement>(".tb-rail [data-focus]")?.focus(); // the menu puts it on the open place
     };
     window.addEventListener("keydown", early, true);
@@ -457,7 +475,7 @@ export function App() {
     setSection(view === "guide" ? "guide" : "live");
   };
   /** The menu's item of the place open now (or the gear while Settings is up): where focus lands on entering the menu. */
-  const railTarget = () => (sheet ? "nav-settings" : `nav-${NAV.some(([id]) => id === railSection) ? railSection : "live"}`);
+  const railTarget = () => (sheetRef.current ? "nav-settings" : `nav-${NAV.some(([id]) => id === railSection) ? railSection : "live"}`);
   const focusRail = () => { document.querySelector<HTMLElement>(`.tb-rail [data-focus="${railTarget()}"]`)?.focus(); };
   /** Closes the menu: focus back into the screen (the channels: the open categories, else the current row). */
   const closeMenuToContent = () => { backToContent(); setRailOpen(false); };
