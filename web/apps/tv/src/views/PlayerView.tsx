@@ -463,7 +463,7 @@ export function PlayerView(p: Props) {
   ];
   // 2.6.0 TvBoxRecentRow: the guide, the history, then up to 10 channels watched before this one.
   const recentRow = p.recents.filter((c) => c.id !== channel.id).slice(0, RECENT_MAX);
-  const rowCards: RowCard[] = recentRow.length === 0 ? [] : [
+  const rowCards: RowCard[] = recentRow.length === 0 || !settings.playerRecents ? [] : [
     { id: "tr-guide", icon: "epg", label: t("tbGuide"), run: () => { hide(); p.onGo("guide"); } },
     { id: "tr-history", icon: "history", label: t("tbHistory"), run: () => openPanel("history") },
     ...recentRow.map((c, i): RowCard => ({ id: `tr-${i}`, channel: c, label: c.name, run: () => { hide(); p.onPick(c, channels.some((x) => x.id === c.id) ? channels : catalog); } })),

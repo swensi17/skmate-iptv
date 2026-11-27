@@ -1219,6 +1219,8 @@ export const hi: Record<keyof typeof en, string> = {
   sa_settings_part_text: "Text & zoom",
   sa_settings_part_theme: "Theme & colours",
   sa_settings_pinned_from: "{1} से पिन किया गया",
+  sa_settings_player_recents: "प्लेयर में हाल ही में देखे गए",
+  sa_settings_player_recents_description: "लाइव के नीचे हाल के चैनलों की पंक्ति; बंद: सीधे नियंत्रण",
   sa_settings_player_clock: "Clock over the video",
   sa_settings_player_clock_description: "Time in the corner of the screen",
   sa_settings_playlists: "प्लेलिस्ट",

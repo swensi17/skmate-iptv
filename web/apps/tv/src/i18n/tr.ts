@@ -1219,6 +1219,8 @@ export const tr: Record<keyof typeof en, string> = {
   sa_settings_part_text: "Metin & yakınlaştırma",
   sa_settings_part_theme: "Tema & renkler",
   sa_settings_pinned_from: "{1} grubundan sabitlendi",
+  sa_settings_player_recents: "Oynatıcıda son izlenenler",
+  sa_settings_player_recents_description: "Yayının altında son kanallar satırı; kapalı: doğrudan kontroller",
   sa_settings_player_clock: "Videonun üzerinde saat",
   sa_settings_player_clock_description: "Ekranın köşesinde saat",
   sa_settings_playlists: "Oynatma listeleri",

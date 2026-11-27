@@ -1219,6 +1219,8 @@ export const da: Record<keyof typeof en, string> = {
   sa_settings_part_text: "Text & zoom",
   sa_settings_part_theme: "Theme & colours",
   sa_settings_pinned_from: "Fastgjort fra {1}",
+  sa_settings_player_recents: "Senest set i afspilleren",
+  sa_settings_player_recents_description: "Række med seneste kanaler under udsendelsen; fra: straks betjeningen",
   sa_settings_player_clock: "Clock over the video",
   sa_settings_player_clock_description: "Time in the corner of the screen",
   sa_settings_playlists: "Afspilningslister",

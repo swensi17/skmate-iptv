@@ -1219,6 +1219,8 @@ export const sv: Record<keyof typeof en, string> = {
   sa_settings_part_text: "Text & zoom",
   sa_settings_part_theme: "Theme & colours",
   sa_settings_pinned_from: "Fäst från {1}",
+  sa_settings_player_recents: "Nyligen sedda i spelaren",
+  sa_settings_player_recents_description: "Rad med senaste kanaler under sändningen; av: direkt till kontrollerna",
   sa_settings_player_clock: "Clock over the video",
   sa_settings_player_clock_description: "Time in the corner of the screen",
   sa_settings_playlists: "Spellistor",

@@ -1217,6 +1217,8 @@ export const ru = {
   sa_settings_part_text: "Текст и масштаб",
   sa_settings_part_theme: "Тема и цвета",
   sa_settings_pinned_from: "Закреплено из раздела «{1}»",
+  sa_settings_player_recents: "Недавно просмотренные в плеере",
+  sa_settings_player_recents_description: "Ряд последних каналов под эфиром; выключено — сразу кнопки управления",
   sa_settings_player_clock: "Часы поверх видео",
   sa_settings_player_clock_description: "Время в углу экрана",
   sa_settings_playlists: "Плейлисты",

@@ -1219,6 +1219,8 @@ export const en: Record<keyof typeof ru, string> = {
   sa_settings_part_text: "Text & zoom",
   sa_settings_part_theme: "Theme & colours",
   sa_settings_pinned_from: "Pinned from {1}",
+  sa_settings_player_recents: "Recently watched in the player",
+  sa_settings_player_recents_description: "A row of recent channels under the live info; off: the controls at once",
   sa_settings_player_clock: "Clock over the video",
   sa_settings_player_clock_description: "Time in the corner of the screen",
   sa_settings_playlists: "Playlists",

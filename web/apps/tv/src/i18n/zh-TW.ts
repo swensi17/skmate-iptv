@@ -1219,6 +1219,8 @@ export const zhTW: Record<keyof typeof en, string> = {
   sa_settings_part_text: "Text & zoom",
   sa_settings_part_theme: "Theme & colours",
   sa_settings_pinned_from: "從「{1}」釘選",
+  sa_settings_player_recents: "播放器中的最近觀看",
+  sa_settings_player_recents_description: "直播下方顯示最近頻道；關閉後直接顯示控制按鈕",
   sa_settings_player_clock: "Clock over the video",
   sa_settings_player_clock_description: "Time in the corner of the screen",
   sa_settings_playlists: "播放清單",
