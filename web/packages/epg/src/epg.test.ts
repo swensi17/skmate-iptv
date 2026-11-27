@@ -178,3 +178,17 @@ describe("syncGuides", () => {
     expect(opened).toBe(1);
   });
 });
+
+describe("GuideData at the junction of programmes (android 2.6.1)", () => {
+  it("shows the next programme as current the moment the previous one ends", () => {
+    const data = new GuideData(new Map([["1", "a"]]), new Map([["a", [
+      { start: 0, stop: 1000, title: "first" },
+      { start: 1000, stop: 2000, title: "second" },
+      { start: 2000, stop: 3000, title: "third" },
+    ]]]));
+    expect(data.nowNext("1", 999).now?.title).toBe("first");
+    const at = data.nowNext("1", 1000);
+    expect(at.now?.title).toBe("second");
+    expect(at.next?.title).toBe("third");
+  });
+});
