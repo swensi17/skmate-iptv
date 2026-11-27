@@ -1220,7 +1220,7 @@ export const ml: Record<keyof typeof en, string> = {
   sa_settings_part_theme: "Theme & colours",
   sa_settings_pinned_from: "{1} എന്നതിൽ നിന്ന് പിൻ ചെയ്തത്",
   sa_settings_player_recents: "പ്ലെയറിൽ അടുത്തിടെ കണ്ടവ",
-  sa_settings_player_recents_description: "ലൈവിന് താഴെ സമീപകാല ചാനലുകളുടെ നിര; ഓഫ്: നേരെ നിയന്ത്രണങ്ങൾ",
+  sa_settings_player_recents_description: "തത്സമയ ടിവിക്ക് താഴെ ഗൈഡും ചരിത്രവും സഹിതം സമീപകാല ചാനലുകൾ",
   sa_settings_player_clock: "Clock over the video",
   sa_settings_player_clock_description: "Time in the corner of the screen",
   sa_settings_playlists: "പ്ലേലിസ്റ്റുകൾ",

@@ -1220,7 +1220,7 @@ export const de: Record<keyof typeof en, string> = {
   sa_settings_part_theme: "Theme & colours",
   sa_settings_pinned_from: "Angeheftet aus {1}",
   sa_settings_player_recents: "Zuletzt gesehen im Player",
-  sa_settings_player_recents_description: "Reihe der letzten Sender unter dem Live-Info; aus: gleich die Bedienelemente",
+  sa_settings_player_recents_description: "Reihe der letzten Sender mit Programm und Verlauf unter dem Live-Bild",
   sa_settings_player_clock: "Clock over the video",
   sa_settings_player_clock_description: "Time in the corner of the screen",
   sa_settings_playlists: "Wiedergabelisten",

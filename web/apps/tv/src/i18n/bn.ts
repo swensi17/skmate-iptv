@@ -1220,7 +1220,7 @@ export const bn: Record<keyof typeof en, string> = {
   sa_settings_part_theme: "Theme & colours",
   sa_settings_pinned_from: "{1} থেকে পিন করা",
   sa_settings_player_recents: "প্লেয়ারে সম্প্রতি দেখা",
-  sa_settings_player_recents_description: "সম্প্রচারের নিচে সাম্প্রতিক চ্যানেলের সারি; বন্ধ: সরাসরি নিয়ন্ত্রণ",
+  sa_settings_player_recents_description: "লাইভ টিভির নিচে গাইড ও ইতিহাসসহ সাম্প্রতিক চ্যানেলের সারি",
   sa_settings_player_clock: "Clock over the video",
   sa_settings_player_clock_description: "Time in the corner of the screen",
   sa_settings_playlists: "প্লেলিস্টগুলো",

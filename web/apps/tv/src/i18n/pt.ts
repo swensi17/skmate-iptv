@@ -1220,7 +1220,7 @@ export const pt: Record<keyof typeof en, string> = {
   sa_settings_part_theme: "Theme & colours",
   sa_settings_pinned_from: "Fixado de {1}",
   sa_settings_player_recents: "Vistos recentemente no player",
-  sa_settings_player_recents_description: "Fila de canais recentes sob a transmissão; desligado: os controles direto",
+  sa_settings_player_recents_description: "Linha de canais recentes com guia e histórico sob o ao vivo",
   sa_settings_player_clock: "Clock over the video",
   sa_settings_player_clock_description: "Time in the corner of the screen",
   sa_settings_playlists: "Listas de reprodução",

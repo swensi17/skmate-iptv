@@ -1220,7 +1220,7 @@ export const zhCN: Record<keyof typeof en, string> = {
   sa_settings_part_theme: "Theme & colours",
   sa_settings_pinned_from: "从“{1}”固定",
   sa_settings_player_recents: "播放器中的最近观看",
-  sa_settings_player_recents_description: "直播下方显示最近频道；关闭后直接显示控制按钮",
+  sa_settings_player_recents_description: "直播画面下方显示节目单、历史和最近频道",
   sa_settings_player_clock: "Clock over the video",
   sa_settings_player_clock_description: "Time in the corner of the screen",
   sa_settings_playlists: "播放列表",

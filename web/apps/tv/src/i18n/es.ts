@@ -1220,7 +1220,7 @@ export const es: Record<keyof typeof en, string> = {
   sa_settings_part_theme: "Theme & colours",
   sa_settings_pinned_from: "Fijado desde {1}",
   sa_settings_player_recents: "Vistos recientemente en el reproductor",
-  sa_settings_player_recents_description: "Fila de canales recientes bajo la emisión; desactivado: los controles directamente",
+  sa_settings_player_recents_description: "Fila de canales recientes con guía e historial bajo el directo",
   sa_settings_player_clock: "Clock over the video",
   sa_settings_player_clock_description: "Time in the corner of the screen",
   sa_settings_playlists: "Listas de reproducción",

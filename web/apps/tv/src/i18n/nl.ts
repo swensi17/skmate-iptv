@@ -1220,7 +1220,7 @@ export const nl: Record<keyof typeof en, string> = {
   sa_settings_part_theme: "Theme & colours",
   sa_settings_pinned_from: "Vastgezet uit {1}",
   sa_settings_player_recents: "Onlangs bekeken in de speler",
-  sa_settings_player_recents_description: "Rij recente zenders onder de uitzending; uit: meteen de bediening",
+  sa_settings_player_recents_description: "Rij recente zenders met gids en geschiedenis onder live tv",
   sa_settings_player_clock: "Clock over the video",
   sa_settings_player_clock_description: "Time in the corner of the screen",
   sa_settings_playlists: "Afspeellijsten",
