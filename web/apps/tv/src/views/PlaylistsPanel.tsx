@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "preact/hooks";
+import { PL_EVERY, RefreshRows } from "./refreshRows";
 import { Drawer, focusFirst, Popup, Presence, useOwnBack } from "@skmate/ui";
 import { t } from "../i18n";
 import { desktop, type CompanionPayload } from "../state/desktop";
@@ -20,6 +21,10 @@ interface Props {
   onSelect: (id: string) => void;
   onEdit: (id: string, name: string, url: string) => string | null;
   onAskDelete: (id: string) => void;
+  /** Settings › playlist update (2.6.9) and "Update now". */
+  every: number;
+  onEvery: (v: number) => void;
+  onRefresh: () => void;
 }
 
 /** The line under a playlist's name: where it comes from, never the whole link (it may carry a login or a token). */
@@ -135,6 +140,9 @@ export function PlaylistsPanel(p: Props) {
             onOk={() => setActions(pl.id)} />
         );
       })}
+      {p.store.list.length > 0 ? (
+        <RefreshRows id="pl-refresh" value={p.every} choices={PL_EVERY} busy={p.status.kind === "loading"} onPick={p.onEvery} onNow={p.onRefresh} />
+      ) : null}
       <SRow id="pl-add-open" icon="ADD" title={t("sa_settings_sources_add")} onOk={() => setAdding(true)} />
       {desktop() ? (
         <SRow id="pl-remote" icon="PHONE" title={t("fromPhone")} line={t("fromPhoneWifi")} onOk={() => { setRemoteError(null); setRemote(true); }} />

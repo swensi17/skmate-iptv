@@ -71,6 +71,8 @@ export interface GuideMeta {
   until: number;
   /** How far back aired programmes were kept (the archive's depth, 2.6.3); missing: the 6 hours before it. */
   past?: number;
+  /** Which channels the links were made for (a fingerprint of their ids): another set links again (2.6.9). */
+  chans?: string;
   /** Whether descriptions were written (dropped when the disk was full). */
   desc: boolean;
 }
@@ -118,6 +120,8 @@ export class GuideWriter implements GuideSink {
 
   /** How far back the download kept aired programmes; written into the meta. */
   past = STORED_PAST_MS;
+  /** See [GuideMeta.chans]. */
+  chans = "";
 
   constructor(private readonly kv: GuideKv, private readonly pid: string, readonly gen: number = Date.now()) {}
 
@@ -184,7 +188,7 @@ export class GuideWriter implements GuideSink {
     return {
       v: 3, gen: this.gen, at, days, links: Array.from(links), logos: usedLogos,
       ids: Array.from(this.ids), blocks: Array.from(this.blockSet).sort((a, b) => a - b), until: this.until, desc: this.withDesc,
-      past: this.past,
+      past: this.past, chans: this.chans,
     };
   }
 

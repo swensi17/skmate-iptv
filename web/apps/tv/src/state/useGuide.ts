@@ -60,6 +60,9 @@ export function useGuide(channels: Channel[], active: PlaylistEntry | null, head
   const [outcomes, setOutcomes] = useState<SourceOutcome[]>([]);
   const [now, setNow] = useState(() => Date.now());
   const [restored, setRestored] = useState(false);
+  // Looked at again every 10 minutes while open, so "every N hours" also comes while the app stays on.
+  const [hourTick, setHourTick] = useState(0);
+  useEffect(() => { const id = setInterval(() => { if (!document.hidden) setHourTick((n) => n + 1); }, 10 * 60_000); return () => clearInterval(id); }, []);
   const running = useRef(false);
   const cache = useRef<GuideCache | null>(null);
   const meta = useRef<GuideMeta | null>(null);
@@ -203,6 +206,7 @@ export function useGuide(channels: Channel[], active: PlaylistEntry | null, head
   const sync = useCallback(async () => {
     if (running.current || !active || channels.length === 0 || sources.length === 0) return;
     running.current = true;
+    syncedThisRun = true;
     const pid = active.id;
     // Nothing stored yet (a new playlist): the guide fills in on screen as it downloads (2.5.2).
     const first = meta.current === null && cache.current === null && linkedNow.current === 0;
@@ -217,6 +221,7 @@ export function useGuide(channels: Channel[], active: PlaylistEntry | null, head
       const at = Date.now();
       writer = new GuideWriter(kv, legacyKey(pid), at);
       writer.past = kv.persistent ? archiveDepthMs(channels) : STORED_PAST_MS;
+      writer.chans = channelsPrint(channels);
       const result = await syncGuides({
         sources, channels, now: at, open: guideOpener(settings.proxy),
         aheadMs: days * DAY_MS, pastMs: writer.past, sink: writer,
@@ -287,12 +292,18 @@ export function useGuide(channels: Channel[], active: PlaylistEntry | null, head
     const m = meta.current;
     const persistent = kvRef.current?.persistent ?? false;
     const stale = data.linked === 0 || (persistent && m === null)
-      || Date.now() - data.updatedAt > settings.epgEvery * 3_600_000
+      // Settings › guide update (2.6.9): never by itself (0), once at each start (-1), or every N hours.
+      || (settings.epgEvery > 0 && Date.now() - data.updatedAt > settings.epgEvery * 3_600_000)
+      || (settings.epgEvery === -1 && !syncedThisRun)
       || (m !== null && m.days < settings.guideDays && persistent)
       // A guide kept from before 2.6.3 (or for a playlist with a shallower archive) lacks the archive's days.
-      || (m !== null && persistent && (m.past ?? STORED_PAST_MS) < archiveDepthMs(channels));
+      || (m !== null && persistent && (m.past ?? STORED_PAST_MS) < archiveDepthMs(channels))
+      // Channels added, removed or renamed since the guide was linked: linked again for this playlist (2.6.9). A guide
+      // linked before channels had lasting ids (by place in the list) is linked again too.
+      || (m !== null && persistent && m.chans !== channelsPrint(channels))
+      || Array.from(data.links.keys()).some((id) => /^\d+$/.test(id));
     if (stale) void sync();
-  }, [restored, active?.id, channels.length, sources.length, settings.guideDays]);
+  }, [restored, active?.id, channels, sources.length, settings.guideDays, settings.epgEvery, hourTick]);
 
   const clear = useCallback(() => {
     if (active) {
@@ -319,3 +330,14 @@ export function archiveDepthMs(channels: readonly { catchupDays?: number }[]): n
   for (const c of channels) if ((c.catchupDays ?? 0) > days) days = c.catchupDays as number;
   return days > 0 ? Math.min(7, days) * 86_400_000 + 3_600_000 : STORED_PAST_MS;
 }
+
+/** A short fingerprint of which channels a playlist has (their lasting ids), whatever their order. */
+export function channelsPrint(channels: readonly { id: string }[]): string {
+  const ids = channels.map((c) => c.id).sort();
+  let h = 0x811c9dc5;
+  for (const id of ids) for (let i = 0; i < id.length; i++) { h ^= id.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }
+  return `${ids.length}:${h.toString(36)}`;
+}
+
+/** Whether the guide was downloaded since the app started (Settings › guide update › at start). */
+let syncedThisRun = false;

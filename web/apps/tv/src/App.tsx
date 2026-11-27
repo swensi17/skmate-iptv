@@ -135,7 +135,7 @@ export function App() {
     if (sheetFrom === "picker") { setSheet(false); setSheetFrom("menu"); setPicking(true); return; }
     setSheetPage(null);
   };
-  const pl = usePlaylists();
+  const pl = usePlaylists(settings.plEvery);
   const rem = useReminders();
   // The reminder whose moment has come first; asked about only in the "ask" mode, and never over the lock screen.
   const firstDue = rem.due[0] ?? null;
@@ -661,7 +661,7 @@ export function App() {
           <SettingsSheet
             show={!out} page={sheetPage} onPage={(pg) => { setSheetFrom("menu"); setSheetPage(pg); }} onClose={() => setSheet(false)} onBack={sheetBack}
             settings={settings} onChange={setSettings} store={pl.store} status={pl.status}
-            onAddPlaylist={pl.add} onAddPlaylistFile={pl.addFile} onSelectPlaylist={pl.select} onEditPlaylist={pl.update} onAskDeletePlaylist={setDeleting}
+            onAddPlaylist={pl.add} onAddPlaylistFile={pl.addFile} onSelectPlaylist={pl.select} onRefreshPlaylist={pl.refresh} onEditPlaylist={pl.update} onAskDeletePlaylist={setDeleting}
             onAskReset={() => setResetting(true)}
             guide={{ data: guide.data, status: guide.status, outcomes: guide.outcomes, onRefresh: () => void guide.sync(), onClear: guide.clear }}
             channelCount={pl.channels.length} active={pl.active} headerGuides={pl.headerGuides}

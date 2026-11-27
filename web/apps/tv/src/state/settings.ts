@@ -27,7 +27,10 @@ export interface Settings {
   /** The guide that comes by itself (playlist, provider, shared), as on Android. */
   epgAuto: boolean;
   /** Hours between downloads of the guide. */
-  epgEvery: 6 | 12 | 24;
+  /** When the guide is downloaded again (2.6.9, Android EpgAutoRefresh): 0 never by itself, -1 at each start, else hours. */
+  epgEvery: number;
+  /** When the playlist is read again from its link (Android PlaylistAutoRefresh): 0 never, -1 at each start, else hours. */
+  plEvery: number;
   /** Guides the user added. */
   epgSources: Array<{ id: string; name: string; url: string }>;
   /** A proxy for guides the TV cannot reach directly; empty = none. */
@@ -182,7 +185,7 @@ const KEY = "skmate.settings.v1";
 export const DEFAULTS: Settings = {
   theme: "system", motion: "auto", language: "auto", engine: "auto", aspect: "fit", buffer: 30,
   openTimeout: 12, osdSeconds: 5, showEngine: true, autoRestart: true, preview: true,
-  epgAuto: true, epgEvery: 12, epgSources: [], proxy: "",
+  epgAuto: true, epgEvery: 12, plEvery: -1, epgSources: [], proxy: "",
   rowSize: 84, uiScale: 100, showLogos: true, showNumbers: true, showProgram: true, interests: [], autoUpdate: false,
   reminderMode: "ask", reminderLead: 5, externalPlayer: "off", multiview: false, multiviewTiles: 2, multiviewWarned: false,
   quickPinned: ["quick_live_preview", "quick_preview_sound", "quick_channel_numbers", "quick_hdr", "quick_autoplay", "quick_check_update"],

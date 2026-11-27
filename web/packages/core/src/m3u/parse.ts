@@ -87,6 +87,7 @@ function correctionMinutes(hours: string | undefined): number | undefined {
 /** Parses an M3U / M3U8 playlist; lines it does not understand are skipped, never fatal. */
 export function parseM3U(text: string): Channel[] {
   const channels: Channel[] = [];
+  const seen = new Map<string, number>();
   let info: string | null = null;
   let group = "";
   let headers: Record<string, string> = {};
@@ -111,7 +112,7 @@ export function parseM3U(text: string): Channel[] {
     } else if (info !== null) {
       const a = attrs(info);
       const name = titleOf(info) || a["tvg-name"] || line;
-      const channel: Channel = { id: String(channels.length), name, url: line, group };
+      const channel: Channel = { id: stableId(a["tvg-id"] ?? "", name, seen), name, url: line, group };
       if (a["tvg-logo"]) channel.logo = a["tvg-logo"];
       if (a["tvg-id"]) channel.tvgId = a["tvg-id"];
       if (a["tvg-name"]) channel.tvgName = a["tvg-name"];
@@ -157,4 +158,20 @@ export function guidesInHeader(text: string): string[] {
     .reduce<string[]>((all, v) => all.concat(v.split(",")), [])
     .map((u) => u.trim())
     .filter((u) => /^https?:\/\//i.test(u));
+}
+
+/**
+ * A channel's id that stays when the playlist is read again with channels added, removed or moved (2.6.9): its
+ * tvg-id and name, not its place in the list, so what is kept by id (the guide's links, the last place) still
+ * points at the same channel. Not the address: an Xtream address renews its token. Copies with the same tvg-id and
+ * name are told apart by their order among themselves.
+ */
+function stableId(tvgId: string, name: string, seen: Map<string, number>): string {
+  const key = `${tvgId}|${name}`;
+  let h = 0x811c9dc5;
+  for (let i = 0; i < key.length; i++) { h ^= key.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }
+  const base = `c${h.toString(36)}`;
+  const n = seen.get(base) ?? 0;
+  seen.set(base, n + 1);
+  return n === 0 ? base : `${base}-${n}`;
 }

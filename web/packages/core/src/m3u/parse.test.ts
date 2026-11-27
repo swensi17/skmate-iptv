@@ -18,7 +18,7 @@ describe("parseM3U", () => {
   const ch = parseM3U(SAMPLE);
   it("reads names, urls, groups and attributes", () => {
     expect(ch).toHaveLength(3);
-    expect(ch[0]).toMatchObject({ id: "0", name: "Первый канал, HD", url: "http://host/1.m3u8", group: "Новости", tvgId: "perviy", logo: "http://x/1.png" });
+    expect(ch[0]).toMatchObject({ name: "Первый канал, HD", url: "http://host/1.m3u8", group: "Новости", tvgId: "perviy", logo: "http://x/1.png" });
   });
   it("keeps player headers", () => {
     expect(ch[0]?.headers).toEqual({ "User-Agent": "SkMate" });
@@ -66,5 +66,18 @@ describe("catch-up days", () => {
       ["flussonic", undefined, undefined, 90],
       [undefined, undefined, undefined, -60],
     ]);
+  });
+});
+
+describe("channel ids (2.6.9)", () => {
+  const line = (name: string, tvg = "") => `#EXTINF:-1${tvg ? ` tvg-id="${tvg}"` : ""},${name}\nhttp://h/${encodeURIComponent(name)}`;
+  it("stay the same when a channel is added before them, and copies are told apart", () => {
+    const before = parseM3U(["#EXTM3U", line("Первый канал HD", "1tv"), line("Первый канал HD orig", "1tv"), line("НТВ")].join("\n"));
+    const after = parseM3U(["#EXTM3U", line("Новый"), line("Первый канал HD", "1tv"), line("Первый канал HD orig", "1tv"), line("НТВ")].join("\n"));
+    const idOf = (list: typeof before, name: string) => list.find((c) => c.name === name)?.id;
+    for (const n of ["Первый канал HD", "Первый канал HD orig", "НТВ"]) expect(idOf(after, n)).toBe(idOf(before, n));
+    expect(new Set(after.map((c) => c.id)).size).toBe(after.length);
+    const twins = parseM3U(["#EXTM3U", line("A"), line("A")].join("\n"));
+    expect(twins[0]?.id).not.toBe(twins[1]?.id);
   });
 });
