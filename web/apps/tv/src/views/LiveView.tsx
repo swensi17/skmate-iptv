@@ -185,7 +185,19 @@ export function LiveView(p: Props) {
   }), [p.settings.metadataOn, p.settings.tmdbKey, p.settings.tmdbLanguage, p.settings.programmePosters]);
   // The channels watched before carry the history mark; worked out once per history, not on every step (2.6.1).
   const watchedIds = useMemo(() => new Set(p.recents.slice(0, 200).map((c) => c.id)), [p.recents]);
-  const closeGuide = () => { setGuideCh(null); setTimeout(() => focusCurrentRow(), 30); };
+  // 2.6.7: the programme is a column in the preview's place; the list stays. ◀ from it back to the list, the column
+  // following the channel the list is on; ▶ into it again; ◀ on the list (or Back) closes it.
+  const [guideActive, setGuideActive] = useState(false);
+  const guideFollow = useRef<ReturnType<typeof setTimeout>>();
+  const closeGuide = () => { setGuideCh(null); setGuideActive(false); setTimeout(() => focusCurrentRow(), 30); };
+  const leaveGuide = () => {
+    setGuideActive(false);
+    const id = guideCh?.id;
+    setTimeout(() => {
+      const row = id ? document.querySelector<HTMLElement>(`.home-rows [data-focus="ch-${CSS.escape ? CSS.escape(id) : id}"]`) : null;
+      if (row) row.focus(); else focusCurrentRow();
+    }, 0);
+  };
   const [dwelled, setDwelled] = useState<Channel | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout>>();
 
@@ -299,6 +311,7 @@ export function LiveView(p: Props) {
     lastKey = rowKey(c);
     saveLast();
     focusedRef.current = c;
+    if (guideCh) { clearTimeout(guideFollow.current); guideFollow.current = setTimeout(() => setGuideCh(c), 150); }
     setAway(!!preview && c.id !== preview.id);
     clearTimeout(timer.current);
     timer.current = setTimeout(() => setDwelled(c), DWELL_MS);
@@ -370,10 +383,11 @@ export function LiveView(p: Props) {
   // A row: ◀ the categories, ▶ the schedule under the preview, ▼ past the last row nowhere (▲ past the first: the toolbar).
   const onListKey = (e: KeyboardEvent) => {
     if (!(e.target as HTMLElement).closest?.("[data-index]")) return;
-    if (key(e, "ArrowLeft", 37)) { stop(e); openCats(); return; }
+    if (key(e, "ArrowLeft", 37)) { stop(e); if (guideCh) closeGuide(); else openCats(); return; }
+    if (isBack(e) && guideCh) { stop(e); closeGuide(); return; }
     if (key(e, "ArrowRight", 39)) {
       stop(e);
-      if (focusedRef.current && !catsOpen) setGuideCh(focusedRef.current);
+      if (focusedRef.current && !catsOpen) { clearTimeout(guideFollow.current); setGuideCh(focusedRef.current); setGuideActive(true); }
       return;
     }
     if (key(e, "ArrowDown", 40)) stop(e); // the list handles every Down it can; this one is past the last row
@@ -426,13 +440,7 @@ export function LiveView(p: Props) {
               <StageIcon name="more" size={20} />
             </button>
           </div>
-          {guideCh ? (
-            <GuideSide channel={guideCh} art={artSettings} onClose={closeGuide}
-              onWatch={(c) => { setGuideCh(null); clearTimeout(timer.current); p.onOpen(c, shown); }}
-              onArchive={(c, prog) => { setGuideCh(null); p.onArchive?.(c, prog, shown); }}
-              onUpcoming={(c, prog) => p.onUpcoming?.(c, prog, shown)} />
-          ) : null}
-          <div class="home-rows" key={listKey} style={guideCh ? { visibility: "hidden" } : undefined} onKeyDown={onListKey as unknown as (e: Event) => void}>
+          <div class="home-rows" key={listKey} onKeyDown={onListKey as unknown as (e: Event) => void}>
             {p.channels.length === 0 ? <ListSkeleton /> : empty ? (
               <div class="home-empty">
                 <StageIcon name="tv" size={72} />
@@ -451,7 +459,13 @@ export function LiveView(p: Props) {
             )}
           </div>
         </div>
-        <PreviewPane channel={p.paused ? null : preview} away={away} settings={p.settings}
+        {guideCh ? (
+          <GuideSide channel={guideCh} art={artSettings} onClose={closeGuide} onLeave={leaveGuide} active={guideActive}
+            onWatch={(c) => { closeGuide(); clearTimeout(timer.current); p.onOpen(c, shown); }}
+            onArchive={(c, prog) => { closeGuide(); p.onArchive?.(c, prog, shown); }}
+            onUpcoming={(c, prog) => p.onUpcoming?.(c, prog, shown)} />
+        ) : null}
+        <PreviewPane channel={p.paused || guideCh ? null : preview} away={away} settings={p.settings}
           number={preview ? numbers.get(preview.id) : undefined}
           onBack={() => focusCurrentRow()}
           onProgramme={(c, prog) => p.onUpcoming?.(c, prog, shown)} />

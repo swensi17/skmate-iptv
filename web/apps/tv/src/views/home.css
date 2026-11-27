@@ -228,7 +228,7 @@ button.home-cat:focus, button.home-cat:focus > .st-icon, button.home-cat:focus .
 .home-rows .vrow::after { display: none; }
 
 /* 2.6.0: the channel's guide in the list's place (LiveGuideSide) */
-.gs { position: absolute; left: 0; right: 0; top: 68px; bottom: 0; z-index: 2; display: flex; flex-direction: column; background: var(--st-panel, #24272d); border-radius: 14px; overflow: hidden; animation: gs-in 220ms var(--st-ease) both; }
+.gs { position: absolute; left: 882px; top: 120px; bottom: 0; width: 820.8px; z-index: 2; display: flex; flex-direction: column; background: var(--st-panel, #24272d); border-radius: 14px; overflow: hidden; animation: gs-in 220ms var(--st-ease) both; }
 @keyframes gs-in { from { transform: translateX(40px); opacity: 0; } to { transform: none; opacity: 1; } }
 .gs-head { display: flex; align-items: center; gap: 14px; padding: 16px 20px 10px; }
 .gs-logo { width: 54px; height: 40px; display: flex; align-items: center; justify-content: center; }
@@ -244,15 +244,7 @@ button.home-cat:focus, button.home-cat:focus > .st-icon, button.home-cat:focus .
 .hp-hint { margin-top: 12px; font-size: 17px; font-weight: 600; color: var(--st-accent, #0086fc); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* 2.6.3: one day at a time, the day on top with ‹ › (as asked in the chat) */
-.gs-days { display: flex; align-items: center; justify-content: center; gap: 18px; padding: 4px 20px 0; }
-.gs-arrow { display: flex; color: rgba(255, 255, 255, .8); }
-.gs-arrow.off { opacity: .25; }
-.gs-day { min-width: 170px; display: flex; flex-direction: column; align-items: center; padding: 8px 18px; border: 0; border-radius: 12px; background: none; color: #fff; font-family: inherit; outline: none; }
-.gs-day:focus { background: #fff; color: #16181d; }
-.gs-day-name { font-size: 19px; font-weight: 700; }
-.gs-day-date { font-size: 16px; opacity: .75; }
 .gs-depth { padding: 8px 32px 4px; font-size: 16px; color: rgba(255, 255, 255, .55); }
-.gs-lines { flex: 1; min-height: 0; overflow: hidden; padding: 4px 16px 40px; }
 .gs-line { align-items: flex-start; }
 .gs-at { flex: 0 0 64px; display: flex; flex-direction: column; gap: 6px; font-size: 18px; font-variant-numeric: tabular-nums; }
 .gs-live { align-self: flex-start; padding: 2px 6px; border-radius: 6px; background: #e53935; color: #fff; font-size: 12px; font-weight: 700; }
@@ -261,3 +253,14 @@ button.home-cat:focus, button.home-cat:focus > .st-icon, button.home-cat:focus .
 .gs-bar { display: block; height: 3px; border-radius: 2px; background: rgba(255, 255, 255, .2); }
 .gs-bar i { display: block; height: 100%; border-radius: 2px; background: currentColor; }
 .gs-about { padding: 2px 12px 10px 90px; font-size: 16px; line-height: 1.35; color: rgba(255, 255, 255, .7); display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+
+/* 2.6.7: the programme as a column in the preview's place, the days right of the programmes */
+.gs-body { flex: 1; min-height: 0; display: flex; }
+.gs-lines { flex: 1; min-width: 0; overflow: hidden; padding: 4px 8px 40px 16px; }
+.gs-days { flex: 0 0 150px; overflow: hidden; padding: 4px 12px 0 4px; display: flex; flex-direction: column; gap: 4px; border-left: 1px solid rgba(255, 255, 255, .08); }
+.gs-day { display: flex; flex-direction: column; align-items: flex-start; padding: 8px 12px; border: 0; border-radius: 10px; background: none; color: rgba(255, 255, 255, .6); font-family: inherit; outline: none; text-align: left; }
+.gs-day.today { color: #0086fc; }
+.gs-day.on { background: rgba(255, 255, 255, .1); color: #fff; }
+.gs-day:focus { background: #fff; color: #16181d; }
+.gs-day-name { font-size: 17px; font-weight: 700; }
+.gs-day-date { font-size: 14px; opacity: .75; }

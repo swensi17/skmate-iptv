@@ -46,6 +46,10 @@ export function GuideSide(p: {
   channel: Channel;
   art: ArtSettings;
   onClose: () => void;
+  /** ◀ from the programmes: focus back to the channels, the column staying (2.6.7). */
+  onLeave: () => void;
+  /** The column has the focus; when it follows the list it must not take it. */
+  active: boolean;
   onWatch: (c: Channel) => void;
   onArchive: (c: Channel, prog: Programme) => void;
   onUpcoming?: (c: Channel, prog: Programme) => void;
@@ -78,14 +82,15 @@ export function GuideSide(p: {
   const [desc, setDesc] = useState<string | undefined>();
   const [big, setBig] = useState<ProgrammeArt | null>(null);
   useEffect(() => { setDay(today); setOnHead(false); }, [ch.id]);
-  const placed = useRef("");
+  useEffect(() => { if (p.active) setOnHead(false); }, [p.active]);
+  // Until the viewer moves, the focus keeps to what is on today (or a day's start), also while the day's programmes
+  // are still being read in from the stored guide.
+  const moved = useRef(false);
+  useEffect(() => { moved.current = false; }, [ch.id, day]);
   useEffect(() => {
-    // A new day (or its first lines arriving): focus on its start, or on what is on today.
-    const key = `${ch.id}|${day}|${lines.length > 0}`;
-    if (placed.current === key) return;
-    placed.current = key;
+    if (moved.current) return;
     setAt(day === today ? startAt(lines) : 0);
-  }, [ch.id, day, lines.length]);
+  }, [ch.id, day, lines]);
   const line = lines[Math.min(at, Math.max(0, lines.length - 1))];
   const art = useProgrammeArt(line?.p.title ?? null, p.art);
   const box = useRef<HTMLDivElement>(null);
@@ -99,10 +104,12 @@ export function GuideSide(p: {
   const head = onHead || lines.length === 0;
   useEffect(() => {
     if (big) return;
-    const el = box.current?.querySelector<HTMLElement>(head ? `[data-focus="gs-day"]` : `[data-focus="gs-${at}"]`);
+    const line = box.current?.querySelector<HTMLElement>(`[data-focus="gs-${at}"]`);
+    line?.scrollIntoView?.({ block: "center" });
+    if (!p.active) return;
+    const el = head ? box.current?.querySelector<HTMLElement>(`[data-focus="gs-day-${day}"]`) : line;
     el?.focus();
-    if (!head) el?.scrollIntoView?.({ block: "center" });
-  }, [at, head, big, day]);
+  }, [at, head, big, day, p.active, lines.length]);
 
   const pressAt = useRef(0);
   const held = useRef(false);
@@ -114,6 +121,7 @@ export function GuideSide(p: {
     else if (l.p.start <= n && n < l.p.stop) p.onWatch(ch);
     else if (l.p.start > n) p.onUpcoming?.(ch, l.p);
   };
+  const days = useMemo(() => { const out: number[] = []; for (let d = firstDay; d <= lastDay; d += DAY) out.push(dayOf(d + 3_600_000)); return out; }, [firstDay, lastDay]);
   const go = (d: number) => setDay((x) => Math.max(firstDay, Math.min(lastDay, x + d * DAY)));
 
   const onKey = (e: KeyboardEvent) => {
@@ -122,16 +130,17 @@ export function GuideSide(p: {
     if (isBack(e)) { stop(); p.onClose(); return; }
     const k = e.key;
     if (head) {
-      if (k === "ArrowLeft") { stop(); if (day > firstDay) go(-1); else p.onClose(); return; }
-      if (k === "ArrowRight") { stop(); go(1); return; }
-      if (k === "ArrowDown") { stop(); if (lines.length > 0) { setOnHead(false); setAt(0); } return; }
-      if (k === "ArrowUp" || k === "Enter") stop();
+      // The days, right of the programmes: ▲ ▼ go to the day before and after, ◀ or OK back to the programmes.
+      if (k === "ArrowUp") { stop(); if (day > firstDay) go(-1); return; }
+      if (k === "ArrowDown") { stop(); if (day < lastDay) go(1); return; }
+      if (k === "ArrowLeft" || k === "Enter") { stop(); if (lines.length > 0) setOnHead(false); else p.onLeave(); return; }
+      if (k === "ArrowRight") stop();
       return;
     }
-    if (k === "ArrowUp") { stop(); if (at === 0) setOnHead(true); else setAt(at - 1); return; }
-    if (k === "ArrowDown") { stop(); if (at < lines.length - 1) setAt(at + 1); return; } // the list's end is a wall
-    if (k === "ArrowLeft") { stop(); p.onClose(); return; }
-    if (k === "ArrowRight") { stop(); setOnHead(true); return; } // ▶ reaches the day at once, its ◀ ▶ walk the days
+    if (k === "ArrowUp") { stop(); moved.current = true; if (at > 0) setAt(at - 1); return; } // the ends are walls
+    if (k === "ArrowDown") { stop(); moved.current = true; if (at < lines.length - 1) setAt(at + 1); return; }
+    if (k === "ArrowLeft") { stop(); p.onLeave(); return; }
+    if (k === "ArrowRight") { stop(); setOnHead(true); return; } // ▶ the days beside
     if (k === "PageUp" || k === "PageDown") { stop(); go(k === "PageUp" ? -1 : 1); return; }
     if (k === "Enter") {
       stop();
@@ -153,22 +162,14 @@ export function GuideSide(p: {
     if (!wasHeld && line) play(line);
   };
 
-  const title = dayTitle(day, today);
   return (
     <div class="gs" ref={box} onKeyDown={onKey as unknown as (e: Event) => void} onKeyUp={onKeyUp as unknown as (e: Event) => void}>
       <div class="gs-head">
         <span class="gs-logo"><ChannelLogo channel={ch} /></span>
         <span class="gs-name">{ch.name}</span>
       </div>
-      <div class="gs-days">
-        <span class={`gs-arrow${day > firstDay ? "" : " off"}`}><Icon name="chevron_left" size={26} /></span>
-        <button class="gs-day" tabIndex={-1} data-focus="gs-day" onClick={(ev) => { if ((ev as MouseEvent).detail > 0) go(1); }}>
-          <span class="gs-day-name">{title.name}</span>
-          <span class="gs-day-date">{title.date}</span>
-        </button>
-        <span class={`gs-arrow${day < lastDay ? "" : " off"}`}><Icon name="chevron" size={26} /></span>
-      </div>
       {depth > 0 ? <div class="gs-depth">{t("groupArchive")} · {daysText(depth)}</div> : null}
+      <div class="gs-body">
       {lines.length === 0 ? (
         // No guide for the day: a picture and one line in the middle (2.6.0).
         <div class="gs-none">
@@ -202,6 +203,19 @@ export function GuideSide(p: {
           })}
         </div>
       )}
+      <div class="gs-days">
+        {days.map((d) => {
+          const tt = dayTitle(d, today);
+          return (
+            <button key={d} tabIndex={-1} data-focus={`gs-day-${d}`} class={`gs-day${d === day ? " on" : ""}${d === today ? " today" : ""}`}
+              onClick={(ev) => { if ((ev as MouseEvent).detail > 0) setDay(d); }}>
+              <span class="gs-day-name">{tt.name}</span>
+              <span class="gs-day-date">{tt.date}</span>
+            </button>
+          );
+        })}
+      </div>
+      </div>
       {big ? <PosterViewer art={big} /> : null}
     </div>
   );
