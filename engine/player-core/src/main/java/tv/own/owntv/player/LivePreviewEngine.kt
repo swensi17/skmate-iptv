@@ -152,7 +152,7 @@ class LivePreviewEngine(
     private var userAgent: String? = null
     private var headers: String? = null
     @Volatile private var liveBufferSecs: Int? = null
-    /** The viewer turned the TV's decoder off in the player settings: live decodes in software too. */
+    /** The viewer turned the TV's decoder off in the player settings: live stops drawing it straight to the screen. */
     @Volatile private var hardwareOff = false
     private var liveBufferOverride: LiveBuffer.Override? = null
     private var hasPlayed = false
@@ -290,7 +290,7 @@ class LivePreviewEngine(
         main.removeCallbacks(watchdog); main.removeCallbacks(reconnectRun)
         val p = player ?: MediaPlayer(vlc).also { player = it; it.setEventListener(::onEvent) }
         surface?.let { attach(p, it) }
-        val software = softwareTried || hardwareOff
+        val software = softwareTried
         _softwareDecoding.value = software
         // A weak box never asks an adaptive stream for more than 1080p: 4K only filled its memory.
         val maxHeight = maxVideoHeight ?: if (lowSpec) LOW_SPEC_MAX_HEIGHT else null
@@ -313,6 +313,10 @@ class LivePreviewEngine(
             // native object leaked per skipped channel, which a box with little memory pays for within minutes.
             val media = Media(vlc, Uri.parse(url)).apply {
                 setHWDecoderEnabled(!software, false)
+                // The TV's decoder turned off: it still decodes, but hands frames over instead of drawing them
+                // straight to the screen (VLC's "decoding only"). The green noise some boxes show comes from
+                // that direct path, and a software decode of full HD made the same boxes stutter.
+                if (!software && hardwareOff) addOption(":no-mediacodec-dr")
                 addOption(":network-caching=$caching")
                 addOption(":http-user-agent=$agent")
                 referer?.let { addOption(":http-referrer=$it") }
