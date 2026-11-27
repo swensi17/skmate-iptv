@@ -35,20 +35,18 @@ M3U и Xtream Codes, телегид (EPG), архив, профили — упр
 
 
 <p align="center">
-  <a href="https://github.com/swensi17/skmate-iptv/releases/latest"><img alt="Release" src="https://img.shields.io/github/v/release/swensi17/skmate-iptv?label=release&color=1e88e5"></a>
-  <a href="https://github.com/swensi17/skmate-iptv/releases"><img alt="Downloads" src="https://img.shields.io/github/downloads/swensi17/skmate-iptv/total?color=43a047"></a>
+  <a href="https://github.com/swensi17/skmate-iptv/releases/latest"><img alt="Release v2.5.9" src="https://img.shields.io/badge/release-v2.5.9-1e88e5"></a>
+  <a href="https://github.com/swensi17/skmate-iptv/releases"><img alt="Downloads 1.1k" src="https://img.shields.io/badge/downloads-1.1k-43a047"></a>
   <a href="https://github.com/swensi17/skmate-iptv#%D0%B1%D0%B5%D0%B7%D0%BE%D0%BF%D0%B0%D1%81%D0%BD%D0%BE%D1%81%D1%82%D1%8C"><img alt="VirusTotal" src="https://img.shields.io/badge/VirusTotal-apk%3A%200%20threats-2ecc71?logo=virustotal&logoColor=white"></a>
   <a href="LICENSE"><img alt="License GPL-3.0" src="https://img.shields.io/badge/license-GPL--3.0-blue"></a>
-  <a href="https://github.com/swensi17/skmate-iptv/actions/workflows/build.yml"><img alt="Build" src="https://img.shields.io/github/actions/workflow/status/swensi17/skmate-iptv/build.yml?branch=main&label=build"></a>
-  <a href="https://github.com/swensi17/skmate-iptv/commits/main"><img alt="Last commit" src="https://img.shields.io/github/last-commit/swensi17/skmate-iptv?color=8e44ad"></a>
-  <a href="https://github.com/swensi17/skmate-iptv/commits/main"><img alt="Commit activity" src="https://img.shields.io/github/commit-activity/m/swensi17/skmate-iptv?color=8e44ad"></a>
-  <a href="https://github.com/swensi17/skmate-iptv/issues"><img alt="Issues" src="https://img.shields.io/github/issues/swensi17/skmate-iptv?color=e67e22"></a>
 </p>
 
 <p align="center">
   <img alt="Android TV" src="https://img.shields.io/badge/Android%20TV-8.0%2B-3ddc84?logo=android&logoColor=white">
   <img alt="Google TV" src="https://img.shields.io/badge/Google%20TV-supported-4285f4?logo=googletv&logoColor=white">
   <img alt="Fire TV" src="https://img.shields.io/badge/Fire%20TV-supported-ff9900?logo=android&logoColor=white">
+  <a href="https://github.com/swensi17/skmate-tv"><img alt="LG webOS" src="https://img.shields.io/badge/LG%20webOS-4.0%2B-a50034?logo=lg&logoColor=white"></a>
+  <a href="https://github.com/swensi17/skmate-tv"><img alt="Samsung Tizen" src="https://img.shields.io/badge/Samsung%20Tizen-4.0%2B-1428a0?logo=samsung&logoColor=white"></a>
 </p>
 
 <p align="center">
