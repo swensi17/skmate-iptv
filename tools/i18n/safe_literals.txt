@@ -133,7 +133,6 @@
 1	preference-key	app/src/main/java/tv/own/owntv/features/live/LiveScreen.kt	hide
 1	technical	app/src/main/java/tv/own/owntv/features/live/LiveScreen.kt	liveGuideShift
 1	technical	app/src/main/java/tv/own/owntv/features/live/LiveScreen.kt	liveListPush
-1	log	app/src/main/java/tv/own/owntv/features/live/LiveScreen.kt	liveSheetSlide
 1	protocol	app/src/main/java/tv/own/owntv/features/live/LiveScreen.kt	logo
 2	technical	app/src/main/java/tv/own/owntv/features/live/LiveScreen.kt	match_epg
 1	preference-key	app/src/main/java/tv/own/owntv/features/live/LiveScreen.kt	move

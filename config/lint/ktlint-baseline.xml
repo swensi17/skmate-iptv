@@ -149,10 +149,10 @@
         <error line="343" column="5" source="standard:spacing-between-declarations-with-comments" />
         <error line="447" column="5" source="standard:spacing-between-declarations-with-comments" />
         <error line="543" column="5" source="standard:spacing-between-declarations-with-comments" />
-        <error line="1865" column="19" source="standard:property-naming" />
-        <error line="1868" column="19" source="standard:property-naming" />
-        <error line="1869" column="19" source="standard:property-naming" />
-        <error line="1872" column="19" source="standard:property-naming" />
+        <error line="1859" column="19" source="standard:property-naming" />
+        <error line="1862" column="19" source="standard:property-naming" />
+        <error line="1863" column="19" source="standard:property-naming" />
+        <error line="1866" column="19" source="standard:property-naming" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/live/LiveStage.kt">
         <error line="3" column="1" source="standard:import-ordering" />

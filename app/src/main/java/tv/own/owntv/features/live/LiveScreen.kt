@@ -1102,26 +1102,20 @@ fun LiveScreen(
             }
         }
 
-        // Composed all along and only slid in and out. Built on ◀, the list of groups cost a long frame of its
-        // own before it could move, and the sheet arrived with a jolt; now ◀ only moves it.
-        val sheetHidden by androidx.compose.animation.core.animateFloatAsState(
-            if (categoriesOpen) 0f else 1f,
-            androidx.compose.animation.core.tween(
-                tv.own.owntv.ui.theme.MotionPrefs.slideMs(if (categoriesOpen) SHEET_SLIDE_MS else SHEET_HIDE_MS),
-                easing = androidx.compose.animation.core.FastOutSlowInEasing,
-            ),
-            label = "liveSheetSlide",
-        )
-        Box(
-            Modifier
-                .graphicsLayer {
-                    translationX = -size.width * sheetHidden
-                    alpha = if (sheetHidden >= 1f) 0f else 1f
-                }
-                .then(
-                    if (categoriesOpen) Modifier
-                    else Modifier.focusProperties { canFocus = false; onEnter = { cancelFocusChange() } }.focusGroup(),
+        androidx.compose.animation.AnimatedVisibility(
+            visible = categoriesOpen,
+            enter = androidx.compose.animation.slideInHorizontally(
+                androidx.compose.animation.core.tween(
+                    tv.own.owntv.ui.theme.MotionPrefs.slideMs(SHEET_SLIDE_MS),
+                    easing = androidx.compose.animation.core.FastOutSlowInEasing,
                 ),
+            ) { -it },
+            exit = androidx.compose.animation.slideOutHorizontally(
+                androidx.compose.animation.core.tween(
+                    tv.own.owntv.ui.theme.MotionPrefs.slideMs(SHEET_HIDE_MS),
+                    easing = androidx.compose.animation.core.FastOutSlowInEasing,
+                ),
+            ) { -it },
         ) {
             LiveCategories(
                 entries = categoryEntries,

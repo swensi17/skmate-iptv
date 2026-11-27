@@ -5949,7 +5949,6 @@
 1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	:http-referrer=$it
 1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	:http-user-agent=$agent
 1	log	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	:network-caching=$caching
-1	uri	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	:no-mediacodec-dr
 1	technical	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	AV1
 3	technical	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	H.264
 4	technical	player-core/src/main/java/tv/own/owntv/player/LivePreviewEngine.kt	H.265
