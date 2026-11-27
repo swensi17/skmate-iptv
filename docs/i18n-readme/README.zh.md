@@ -88,20 +88,68 @@
 
 ## 截图
 
-| | |
-|:-:|:-:|
-| ![直播](../screenshots/live-dark.jpg) | ![电视指南](../screenshots/guide-dark.jpg) |
-| **直播**: 频道列表、实时预览、节目信息 | **电视指南**: 所有频道的节目网格 |
-| ![播放器](../screenshots/player-dark.jpg) | ![播放器中的频道](../screenshots/player-channels-dark.jpg) |
-| **播放器**: 当前节目、时间、进度、下一个节目 | **画面上的频道列表** 附带频道节目表 |
-| ![分类](../screenshots/player-categories-dark.jpg) | ![分类](../screenshots/categories-dark.jpg) |
-| **播放器中的分类**, 画面不中断 | **分类** 频道列表中 |
-| ![设置](../screenshots/settings-dark.jpg) | ![来源与 EPG](../screenshots/settings-sources-dark.jpg) |
-| **设置** — 覆盖在直播上的侧边面板 | **来源与电视节目单 (EPG)**, 回看 |
-| ![外观](../screenshots/settings-appearance-dark.jpg) | ![系统](../screenshots/settings-system-dark.jpg) |
-| **外观**: 主题、强调色、缩放、动画 | **系统**: 语言、自动更新、安装时间 |
-| ![浅色主题](../screenshots/live-light.jpg) | ![浅色电视指南](../screenshots/guide-light.jpg) |
-| **浅色主题** | **浅色主题下的电视指南** |
+### 直播与频道
+
+<table>
+<tr>
+<td align="center" valign="top" width="50%"><a href="../screenshots/live-dark.jpg"><img src="../screenshots/live-dark.jpg" alt="频道列表"></a><br><b>频道列表</b>: 预览、节目与下一档</td>
+<td align="center" valign="top" width="50%"><a href="../screenshots/categories-dark.jpg"><img src="../screenshots/categories-dark.jpg" alt="分类"></a><br><b>分类</b>: 列表随光标切换</td>
+</tr>
+</table>
+
+### 节目单与回看
+
+<table>
+<tr>
+<td align="center" valign="top" width="50%"><a href="../screenshots/archive-dark.jpg"><img src="../screenshots/archive-dark.jpg" alt="节目与回看"></a><br><b>节目与回看</b>: 频道旁的节目栏，右侧选日期</td>
+<td align="center" valign="top" width="50%"><a href="../screenshots/guide-dark.jpg"><img src="../screenshots/guide-dark.jpg" alt="节目单"></a><br><b>节目单</b>: 全部频道的节目表</td>
+</tr>
+</table>
+
+### 播放器
+
+<table>
+<tr>
+<td align="center" valign="top" width="50%"><a href="../screenshots/player-dark.jpg"><img src="../screenshots/player-dark.jpg" alt="节目信息与最近观看"></a><br><b>节目信息与最近观看</b>: 节目、画质、最近频道</td>
+<td align="center" valign="top" width="50%"><a href="../screenshots/player-channels-dark.jpg"><img src="../screenshots/player-channels-dark.jpg" alt="画面上的频道列表"></a><br><b>画面上的频道列表</b>: 附带频道节目单</td>
+</tr>
+<tr>
+<td align="center" valign="top" width="100%" colspan="2"><a href="../screenshots/player-categories-dark.jpg"><img src="../screenshots/player-categories-dark.jpg" alt="播放中的分类" width="50%"></a><br><b>播放中的分类</b>: 画面不中断</td>
+</tr>
+</table>
+
+### 设置
+
+<table>
+<tr>
+<td align="center" valign="top" width="50%"><a href="../screenshots/settings-dark.jpg"><img src="../screenshots/settings-dark.jpg" alt="设置"></a><br><b>设置</b>: 直播画面上的侧边栏</td>
+<td align="center" valign="top" width="50%"><a href="../screenshots/settings-sources-dark.jpg"><img src="../screenshots/settings-sources-dark.jpg" alt="来源与节目单"></a><br><b>来源与节目单</b>: 播放列表、EPG、回看</td>
+</tr>
+<tr>
+<td align="center" valign="top" width="50%"><a href="../screenshots/settings-player-dark.jpg"><img src="../screenshots/settings-player-dark.jpg" alt="播放器"></a><br><b>播放器</b>: 时钟与最近观看</td>
+<td align="center" valign="top" width="50%"><a href="../screenshots/settings-appearance-dark.jpg"><img src="../screenshots/settings-appearance-dark.jpg" alt="外观"></a><br><b>外观</b>: 主题、强调色、缩放</td>
+</tr>
+</table>
+
+### 浅色主题
+
+<table>
+<tr>
+<td align="center" valign="top" width="50%"><a href="../screenshots/live-light.jpg"><img src="../screenshots/live-light.jpg" alt="频道列表"></a><br><b>频道列表</b>: 浅色外观</td>
+<td align="center" valign="top" width="50%"><a href="../screenshots/settings-appearance-light.jpg"><img src="../screenshots/settings-appearance-light.jpg" alt="主题选择"></a><br><b>主题选择</b>: 深色、浅色或跟随系统</td>
+</tr>
+</table>
+
+## 支持的设备
+
+| 设备 | 系统 | 文件 |
+|---|---|---|
+| Android TV、Google TV 电视和盒子 | Android 8.0 及以上 | [APK](https://github.com/swensi17/skmate-iptv/releases/latest/download/SkMate-IPTV.apk) |
+| Amazon Fire TV | Fire OS 6 及以上 | [同一 APK](https://github.com/swensi17/skmate-iptv/releases/latest/download/SkMate-IPTV.apk) |
+| 三星智能电视 | Tizen 4.0 及以上 | [.wgt](https://github.com/swensi17/skmate-tv/releases/latest/download/SkMate-IPTV-tizen.wgt) |
+| LG 智能电视 | webOS 4.0 及以上 | [.ipk](https://github.com/swensi17/skmate-tv/releases/latest/download/SkMate-IPTV-webos.ipk) |
+
+三星和 LG 版本：[swensi17/skmate-tv](https://github.com/swensi17/skmate-tv)。动态：[频道 @skmates](https://t.me/skmates)，提问：[群组 @skmatetv](https://t.me/skmatetv)。
 
 ## 安装
 

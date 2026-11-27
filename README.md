@@ -75,12 +75,16 @@ M3U и Xtream Codes, телегид (EPG), архив, профили — упр
 - XMLTV (`url-tvg`, `.xml`, `.xml.gz`), автоматическая привязка программы по названию канала, даже без `tvg-id`.
 - Сетка передач по всем каналам, описание и «что дальше» прямо в списке каналов.
 - Архив (catch-up) и перемотка эфира там, где их поддерживает провайдер.
+- Программа с архивом колонкой рядом со списком каналов: ▶ открывает, OK включает передачу с начала.
+- Несколько телегидов сразу: у каждого канала один источник программы, порядок задаёте вы.
 
 **Плеер**
 - Прямой эфир играет через **libVLC**: HLS, MPEG-TS, H.264/HEVC, чересстрочное видео 576i, MP2/AC-3 звук. Выбора движка в интерфейсе нет: он один.
 - При обрыве потока — тихое переподключение, без перезапуска всего плеера. Скорость открытия канала на настоящих телевизорах пока не измерялась.
 - Переключение каналов кнопками ▲▼ и CH±, список каналов и категории поверх эфира (картинка не прерывается).
 - Предпросмотр канала прямо в списке, плавное открытие на весь экран.
+- Категории переключаются вслед за курсором, без нажатия OK.
+- Недавно просмотренные каналы под эфиром (можно скрыть); курсор при входе там же, где при выходе.
 
 **Интерфейс**
 - Сделан под пульт: всё доступно стрелками и OK, фокус всегда виден.
@@ -125,7 +129,6 @@ SkMate рядом с самыми известными IPTV-плеерами.
 - **Сделан для телевизора:** Android TV, Google TV, Fire TV и приставки на Android, всё пультом.
 - **Всё нужное в одном месте:** M3U, Xtream Codes и Stalker, телегид, архив, перемотка эфира, запись, мультивид, профили и родительский контроль.
 - **Умные мелочи:** упал канал, включится его копия из другого плейлиста; поиск понимает неверную раскладку, транслит и опечатки; телегид находит канал по названию.
-- **Фильмы и сериалы:** постеры, сезоны и серии, продолжение с того места, где остановились, следующая серия сама.
 - **Смотрите как удобно:** до четырёх каналов на одном экране, картинка в картинке, внешний плеер VLC и mpv, плейлист с телефона по QR-коду.
 - **23 языка интерфейса.**
 
@@ -180,7 +183,7 @@ SkMate рядом с самыми известными IPTV-плеерами.
 ### Поиск, который понимает человека
 - Находит в **любой раскладке** («ntktrfyfk» → «телеканал»), по **транслиту** («kino» → «кино», «toshkent» → «тошкент»), с **опечатками** («dsicovery»), по началу, середине и концу слова.
 - Лучшие совпадения первыми: точное, по началу, по слову, подстрока, похожее.
-- Ищет **не только каналы, но и передачи** по телепрограмме, а также фильмы и сериалы.
+- Ищет **не только каналы, но и передачи** по телепрограмме.
 - Результат открывается сразу, а Назад возвращает в тот же раздел.
 
 ### Знает, что идёт прямо сейчас
@@ -225,22 +228,57 @@ SkMate рядом с самыми известными IPTV-плеерами.
 
 ## Скриншоты
 
-| | |
-|:-:|:-:|
-| ![Прямой эфир](docs/screenshots/live-dark.jpg) | ![Телегид](docs/screenshots/guide-dark.jpg) |
-| **Прямой эфир**: список, предпросмотр, телепрограмма | **Телегид**: сетка передач по всем каналам |
-| ![Плеер](docs/screenshots/player-dark.jpg) | ![Каналы в плеере](docs/screenshots/player-channels-dark.jpg) |
-| **Плеер**: передача, время, прогресс, что дальше | **Каналы поверх эфира** с расписанием канала |
-| ![Категории](docs/screenshots/player-categories-dark.jpg) | ![Категории](docs/screenshots/categories-dark.jpg) |
-| **Категории в плеере**, картинка не прерывается | **Категории** в списке каналов |
-| ![Настройки](docs/screenshots/settings-dark.jpg) | ![Источники и EPG](docs/screenshots/settings-sources-dark.jpg) |
-| **Настройки** — боковая панель поверх эфира | **Источники и телепрограмма (EPG)**, архив |
-| ![Оформление](docs/screenshots/settings-appearance-dark.jpg) | ![Система](docs/screenshots/settings-system-dark.jpg) |
-| **Оформление**: тема, акцент, масштаб, анимации | **Система**: язык, автообновление, расписание установки |
-| ![Светлая тема](docs/screenshots/live-light.jpg) | ![Светлый телегид](docs/screenshots/guide-light.jpg) |
-| **Светлая тема** | **Телегид в светлой теме** |
-| ![Плеер в настройках](docs/screenshots/settings-player-dark.jpg) | ![Светлое оформление](docs/screenshots/settings-appearance-light.jpg) |
-| **Плеер**: часы поверх видео, размер, шрифт, фон, цвет | **Настройки в светлой теме** |
+### Эфир и каналы
+
+<table>
+<tr>
+<td align="center" valign="top" width="50%"><a href="docs/screenshots/live-dark.jpg"><img src="docs/screenshots/live-dark.jpg" alt="Список каналов"></a><br><b>Список каналов</b>: предпросмотр, программа и что дальше</td>
+<td align="center" valign="top" width="50%"><a href="docs/screenshots/categories-dark.jpg"><img src="docs/screenshots/categories-dark.jpg" alt="Категории"></a><br><b>Категории</b>: список меняется вслед за курсором</td>
+</tr>
+</table>
+
+### Телегид и архив
+
+<table>
+<tr>
+<td align="center" valign="top" width="50%"><a href="docs/screenshots/archive-dark.jpg"><img src="docs/screenshots/archive-dark.jpg" alt="Программа и архив"></a><br><b>Программа и архив</b>: колонкой рядом с каналами, дни справа</td>
+<td align="center" valign="top" width="50%"><a href="docs/screenshots/guide-dark.jpg"><img src="docs/screenshots/guide-dark.jpg" alt="Телегид"></a><br><b>Телегид</b>: сетка передач по всем каналам</td>
+</tr>
+</table>
+
+### Плеер
+
+<table>
+<tr>
+<td align="center" valign="top" width="50%"><a href="docs/screenshots/player-dark.jpg"><img src="docs/screenshots/player-dark.jpg" alt="Информация и недавние"></a><br><b>Информация и недавние</b>: передача, качество потока, последние каналы</td>
+<td align="center" valign="top" width="50%"><a href="docs/screenshots/player-channels-dark.jpg"><img src="docs/screenshots/player-channels-dark.jpg" alt="Каналы поверх эфира"></a><br><b>Каналы поверх эфира</b>: с расписанием выбранного канала</td>
+</tr>
+<tr>
+<td align="center" valign="top" width="100%" colspan="2"><a href="docs/screenshots/player-categories-dark.jpg"><img src="docs/screenshots/player-categories-dark.jpg" alt="Категории в плеере" width="50%"></a><br><b>Категории в плеере</b>: эфир не прерывается</td>
+</tr>
+</table>
+
+### Настройки
+
+<table>
+<tr>
+<td align="center" valign="top" width="50%"><a href="docs/screenshots/settings-dark.jpg"><img src="docs/screenshots/settings-dark.jpg" alt="Настройки"></a><br><b>Настройки</b>: боковая панель поверх эфира</td>
+<td align="center" valign="top" width="50%"><a href="docs/screenshots/settings-sources-dark.jpg"><img src="docs/screenshots/settings-sources-dark.jpg" alt="Источники и телегид"></a><br><b>Источники и телегид</b>: плейлисты, EPG, архив</td>
+</tr>
+<tr>
+<td align="center" valign="top" width="50%"><a href="docs/screenshots/settings-player-dark.jpg"><img src="docs/screenshots/settings-player-dark.jpg" alt="Плеер"></a><br><b>Плеер</b>: часы и недавно просмотренные</td>
+<td align="center" valign="top" width="50%"><a href="docs/screenshots/settings-appearance-dark.jpg"><img src="docs/screenshots/settings-appearance-dark.jpg" alt="Внешний вид"></a><br><b>Внешний вид</b>: тема, акцент, масштаб</td>
+</tr>
+</table>
+
+### Светлая тема
+
+<table>
+<tr>
+<td align="center" valign="top" width="50%"><a href="docs/screenshots/live-light.jpg"><img src="docs/screenshots/live-light.jpg" alt="Список каналов"></a><br><b>Список каналов</b>: светлое оформление</td>
+<td align="center" valign="top" width="50%"><a href="docs/screenshots/settings-appearance-light.jpg"><img src="docs/screenshots/settings-appearance-light.jpg" alt="Выбор темы"></a><br><b>Выбор темы</b>: тёмная, светлая или как в системе</td>
+</tr>
+</table>
 
 ## Частые вопросы
 
@@ -249,6 +287,17 @@ SkMate рядом с самыми известными IPTV-плеерами.
 **Как добавить плейлист без набора адреса пультом?** Отсканируйте QR-код на телевизоре телефоном; телефон и ТВ должны быть в одной сети Wi-Fi.
 **А Samsung и LG?** Да, есть версия и для них: [swensi17/skmate-tv](https://github.com/swensi17/skmate-tv). Скачать: [Samsung (.wgt)](https://github.com/swensi17/skmate-tv/releases/latest/download/SkMate-IPTV-tizen.wgt), [LG (.ipk)](https://github.com/swensi17/skmate-tv/releases/latest/download/SkMate-IPTV-webos.ipk). Инструкции: [Samsung](https://github.com/swensi17/skmate-tv/blob/main/docs/install-samsung.md), [LG](https://github.com/swensi17/skmate-tv/blob/main/docs/install-lg.md).
 **Какой нужен Android?** Android TV / Google TV 8.0 и новее, Fire TV, приставки на arm64-v8a и armeabi-v7a.
+
+## Устройства
+
+| Устройство | Система | Файл |
+|---|---|---|
+| Телевизоры и приставки Android TV, Google TV | Android 8.0 и новее | [APK](https://github.com/swensi17/skmate-iptv/releases/latest/download/SkMate-IPTV.apk) |
+| Amazon Fire TV | Fire OS 6 и новее | [тот же APK](https://github.com/swensi17/skmate-iptv/releases/latest/download/SkMate-IPTV.apk) |
+| Samsung Smart TV | Tizen 4.0 и новее | [.wgt](https://github.com/swensi17/skmate-tv/releases/latest/download/SkMate-IPTV-tizen.wgt) |
+| LG Smart TV | webOS 4.0 и новее | [.ipk](https://github.com/swensi17/skmate-tv/releases/latest/download/SkMate-IPTV-webos.ipk) |
+
+Версии для Samsung и LG: [swensi17/skmate-tv](https://github.com/swensi17/skmate-tv). Новости: [канал @skmates](https://t.me/skmates), вопросы: [чат @skmatetv](https://t.me/skmatetv).
 
 ## Установка
 

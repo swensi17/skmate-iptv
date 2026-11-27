@@ -100,7 +100,7 @@ Live TV plays through a single engine, **libVLC**. There is no engine picker in 
 - **The provider's connection limit** is respected.
 
 ### Search that understands people
-Any keyboard layout, transliteration, typos, start / middle / end of a word, best matches first. It finds **programmes**, not only channels, plus movies and series.
+Any keyboard layout, transliteration, typos, start / middle / end of a word, best matches first. It finds **programmes**, not only channels.
 
 ### It knows what is on right now
 **"On now"** (sport, movies, news, kids) from the guide; a **sports board** by country and sport that recognises Russian, Turkish and English sports channels; **reminders** that appear over any screen.
@@ -136,20 +136,68 @@ What is verified and how: [COMPARISON.md](../COMPARISON.md).
 
 ## Screenshots
 
-| | |
-|:-:|:-:|
-| ![Live TV](../screenshots/live-dark.jpg) | ![TV guide](../screenshots/guide-dark.jpg) |
-| **Live TV**: list, live preview, programme info | **TV guide**: programme grid for every channel |
-| ![Player](../screenshots/player-dark.jpg) | ![Channels in player](../screenshots/player-channels-dark.jpg) |
-| **Player**: now, time, progress, up next | **Channels over the picture** with the channel schedule |
-| ![Categories](../screenshots/player-categories-dark.jpg) | ![Categories](../screenshots/categories-dark.jpg) |
-| **Categories in the player**, the picture keeps playing | **Categories** in the channel list |
-| ![Settings](../screenshots/settings-dark.jpg) | ![Sources and EPG](../screenshots/settings-sources-dark.jpg) |
-| **Settings** — side sheet over live TV | **Sources and TV guide (EPG)**, catch-up |
-| ![Appearance](../screenshots/settings-appearance-dark.jpg) | ![System](../screenshots/settings-system-dark.jpg) |
-| **Appearance**: theme, accent, scale, motion | **System**: language, auto-update, install window |
-| ![Light theme](../screenshots/live-light.jpg) | ![Light guide](../screenshots/guide-light.jpg) |
-| **Light theme** | **TV guide in the light theme** |
+### Live TV and channels
+
+<table>
+<tr>
+<td align="center" valign="top" width="50%"><a href="../screenshots/live-dark.jpg"><img src="../screenshots/live-dark.jpg" alt="Channel list"></a><br><b>Channel list</b>: preview, programme and what is next</td>
+<td align="center" valign="top" width="50%"><a href="../screenshots/categories-dark.jpg"><img src="../screenshots/categories-dark.jpg" alt="Categories"></a><br><b>Categories</b>: the list follows the cursor</td>
+</tr>
+</table>
+
+### Guide and catch-up
+
+<table>
+<tr>
+<td align="center" valign="top" width="50%"><a href="../screenshots/archive-dark.jpg"><img src="../screenshots/archive-dark.jpg" alt="Schedule and archive"></a><br><b>Schedule and archive</b>: a column beside the channels, days on the right</td>
+<td align="center" valign="top" width="50%"><a href="../screenshots/guide-dark.jpg"><img src="../screenshots/guide-dark.jpg" alt="TV guide"></a><br><b>TV guide</b>: programme grid for every channel</td>
+</tr>
+</table>
+
+### Player
+
+<table>
+<tr>
+<td align="center" valign="top" width="50%"><a href="../screenshots/player-dark.jpg"><img src="../screenshots/player-dark.jpg" alt="Info and recents"></a><br><b>Info and recents</b>: programme, stream quality, recent channels</td>
+<td align="center" valign="top" width="50%"><a href="../screenshots/player-channels-dark.jpg"><img src="../screenshots/player-channels-dark.jpg" alt="Channels over the picture"></a><br><b>Channels over the picture</b>: with the channel schedule</td>
+</tr>
+<tr>
+<td align="center" valign="top" width="100%" colspan="2"><a href="../screenshots/player-categories-dark.jpg"><img src="../screenshots/player-categories-dark.jpg" alt="Categories in the player" width="50%"></a><br><b>Categories in the player</b>: the picture keeps playing</td>
+</tr>
+</table>
+
+### Settings
+
+<table>
+<tr>
+<td align="center" valign="top" width="50%"><a href="../screenshots/settings-dark.jpg"><img src="../screenshots/settings-dark.jpg" alt="Settings"></a><br><b>Settings</b>: side sheet over live TV</td>
+<td align="center" valign="top" width="50%"><a href="../screenshots/settings-sources-dark.jpg"><img src="../screenshots/settings-sources-dark.jpg" alt="Sources and guide"></a><br><b>Sources and guide</b>: playlists, EPG, catch-up</td>
+</tr>
+<tr>
+<td align="center" valign="top" width="50%"><a href="../screenshots/settings-player-dark.jpg"><img src="../screenshots/settings-player-dark.jpg" alt="Player"></a><br><b>Player</b>: clock and recently watched</td>
+<td align="center" valign="top" width="50%"><a href="../screenshots/settings-appearance-dark.jpg"><img src="../screenshots/settings-appearance-dark.jpg" alt="Appearance"></a><br><b>Appearance</b>: theme, accent, scale</td>
+</tr>
+</table>
+
+### Light theme
+
+<table>
+<tr>
+<td align="center" valign="top" width="50%"><a href="../screenshots/live-light.jpg"><img src="../screenshots/live-light.jpg" alt="Channel list"></a><br><b>Channel list</b>: light appearance</td>
+<td align="center" valign="top" width="50%"><a href="../screenshots/settings-appearance-light.jpg"><img src="../screenshots/settings-appearance-light.jpg" alt="Theme choice"></a><br><b>Theme choice</b>: dark, light or system</td>
+</tr>
+</table>
+
+## Devices
+
+| Device | System | File |
+|---|---|---|
+| Android TV and Google TV sets and boxes | Android 8.0+ | [APK](https://github.com/swensi17/skmate-iptv/releases/latest/download/SkMate-IPTV.apk) |
+| Amazon Fire TV | Fire OS 6+ | [the same APK](https://github.com/swensi17/skmate-iptv/releases/latest/download/SkMate-IPTV.apk) |
+| Samsung Smart TV | Tizen 4.0+ | [.wgt](https://github.com/swensi17/skmate-tv/releases/latest/download/SkMate-IPTV-tizen.wgt) |
+| LG Smart TV | webOS 4.0+ | [.ipk](https://github.com/swensi17/skmate-tv/releases/latest/download/SkMate-IPTV-webos.ipk) |
+
+Samsung and LG builds: [swensi17/skmate-tv](https://github.com/swensi17/skmate-tv). News: [@skmates channel](https://t.me/skmates), questions: [@skmatetv chat](https://t.me/skmatetv).
 
 ## Install
 
