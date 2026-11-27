@@ -1,5 +1,6 @@
 import type Hls from "hls.js";
 import { PlayFailure, type PlayerEngine, type Source } from "../engine";
+import { isDenyClip } from "../diagnose";
 import type { EngineFacts } from "../facts";
 import { hlsTracks, type HlsTrackApi, type TrackSource } from "../tracks";
 
@@ -122,6 +123,14 @@ export class HlsJsEngine implements PlayerEngine {
         const code = (data as { response?: { code?: number } }).response?.code;
         reject(new PlayFailure(this.id, "error", code ? `${data.details} http error ${code}` : data.details));
       });
+      // A provider that sends a "deny" clip instead of the channel: shown as "access refused (403)", not a grey picture.
+      const denied = (u: string | undefined | null) => {
+        if (!isDenyClip(u, source.url)) return;
+        reject(new PlayFailure(this.id, "error", "provider deny clip http error 403"));
+      };
+      hls.on(HlsLib.Events.MANIFEST_LOADED, (_e, d) => denied((d as { networkDetails?: { responseURL?: string } }).networkDetails?.responseURL));
+      hls.on(HlsLib.Events.LEVEL_LOADED, (_e, d) => denied((d as { url?: string }).url));
+      hls.on(HlsLib.Events.FRAG_LOADING, (_e, d) => denied((d as { frag?: { url?: string } }).frag?.url));
       video.addEventListener("playing", () => resolve(), { once: true });
       hls.on(HlsLib.Events.MANIFEST_PARSED, (_e, data) => {
         const cap = this.options.maxHeight;

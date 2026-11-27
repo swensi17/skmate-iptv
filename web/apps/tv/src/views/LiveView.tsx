@@ -287,6 +287,22 @@ export function LiveView(p: Props) {
   }
   useEffect(() => () => { if (p.entry) p.entry.current = null; }, []);
 
+  // The focus must never be lost: if a fast press left it on nothing (a row recycled under it, a list rebuilt), the next
+  // arrow puts it back on the row in the preview, or on the open category, instead of doing nothing.
+  const lost = useRef<() => boolean>(() => false);
+  lost.current = () => (catsRef.current ? focusSelectedCategory() : focusCurrentRow());
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!(e.keyCode >= 37 && e.keyCode <= 40)) return;
+      const a = document.activeElement as HTMLElement | null;
+      if (a && a !== document.body && a.closest("[data-focus]")) return;
+      if (a instanceof HTMLInputElement || document.querySelector("[data-modal]")) return;
+      if (lost.current()) { e.preventDefault(); e.stopImmediatePropagation(); }
+    };
+    document.addEventListener("keydown", onKey, true);
+    return () => document.removeEventListener("keydown", onKey, true);
+  }, []);
+
   // Back while the focus is in the categories: a typed search is cleared first, then the sheet closes (before the
   // app's own Back, which would leave the screen). Back in a toolbar menu closes it and returns to its tool.
   useEffect(() => {

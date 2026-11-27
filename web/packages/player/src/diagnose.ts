@@ -75,3 +75,14 @@ export async function probeFailure(url: string, fetchFn: FetchLike | null = type
     return { reason: "network", raw: "network timeout" };
   }
 }
+
+/**
+ * Some providers do not answer "403": they send a placeholder clip (`/vod/deny4dealer1.mp4/...`) in place of the channel,
+ * so the player plays a grey picture or loops forever. A stream address that has moved to such a clip means "access
+ * refused", the same as a 403. Only an address the playlist did not itself name as "deny" counts.
+ */
+export function isDenyClip(loaded: string | undefined | null, requested: string): boolean {
+  if (!loaded) return false;
+  const rx = /\/deny[a-z0-9_-]*\.(?:mp4|m3u8|ts)\b|\/deny\d*[a-z]*\d*\.mp4/i;
+  return rx.test(loaded) && !rx.test(requested);
+}
