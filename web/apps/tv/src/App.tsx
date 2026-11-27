@@ -38,7 +38,10 @@ import { VodDetails, episodeLabel } from "./views/VodDetails";
 import { VodPlayer } from "./views/VodPlayer";
 import { VodView } from "./views/VodView";
 import { vodSourceOf } from "./state/library";
-import { continueWatching, loadProgress, progressKey, saveProgress, type Progress } from "./state/progress";
+import { continueWatching, loadProgress, migrateStoredProgress, progressKey, saveProgress, type Progress } from "./state/progress";
+import { cacheGet } from "./state/fetchPlaylist";
+import { isStalker, loadStore } from "./state/playlists";
+import { parseM3U, xtreamAccount } from "@skmate/core";
 
 type Section = "live" | "movies" | "series" | "guide" | "sport" | "search";
 /**
@@ -135,6 +138,14 @@ export function App() {
     if (sheetFrom === "picker") { setSheet(false); setSheetFrom("menu"); setPicking(true); return; }
     setSheetPage(null);
   };
+  // Once, before the playlist is read from its link again: what was kept by a channel's old id (its place in the
+  // list) is moved to its lasting id through the copy kept on this device (2.6.9).
+  useState(() => {
+    const st = loadStore();
+    migrateStoredProgress(st.list.map((x) => ({ id: x.id, m3u: !xtreamAccount(x.url) && !isStalker(x.url) })),
+      (pid) => { const text = cacheGet(pid); return text ? parseM3U(text) : null; });
+    return 0;
+  });
   const pl = usePlaylists(settings.plEvery);
   const rem = useReminders();
   // The reminder whose moment has come first; asked about only in the "ask" mode, and never over the lock screen.
