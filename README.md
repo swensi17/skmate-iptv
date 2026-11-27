@@ -35,8 +35,8 @@ M3U и Xtream Codes, телегид (EPG), архив, профили — упр
 
 
 <p align="center">
-  <a href="https://github.com/swensi17/skmate-iptv/releases/latest"><img alt="Release v2.5.9" src="docs/badges/release-v2-5-9.svg"></a>
-  <a href="https://github.com/swensi17/skmate-iptv/releases"><img alt="Downloads 1.1k" src="docs/badges/downloads-1-1k.svg"></a>
+  <a href="https://github.com/swensi17/skmate-iptv/releases/latest"><img alt="Latest release" src="docs/badges/release.svg"></a>
+  <a href="https://github.com/swensi17/skmate-iptv/releases"><img alt="Downloads" src="docs/badges/downloads.svg"></a>
   <a href="https://github.com/swensi17/skmate-iptv#%D0%B1%D0%B5%D0%B7%D0%BE%D0%BF%D0%B0%D1%81%D0%BD%D0%BE%D1%81%D1%82%D1%8C"><img alt="VirusTotal" src="docs/badges/virustotal.svg"></a>
   <a href="LICENSE"><img alt="License GPL-3.0" src="docs/badges/license-gpl-3-0.svg"></a>
 </p>

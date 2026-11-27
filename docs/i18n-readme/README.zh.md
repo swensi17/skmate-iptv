@@ -11,8 +11,8 @@
 支持 M3U 与 Xtream Codes、电视节目单 (EPG)、回看、多用户——专为遥控器设计，无广告，无需账号。</p>
 
 <p align="center">
-  <a href="https://github.com/swensi17/skmate-iptv/releases/latest"><img alt="Release v2.5.9" src="../badges/release-v2-5-9.svg"></a>
-  <a href="https://github.com/swensi17/skmate-iptv/releases"><img alt="Downloads 1.1k" src="../badges/downloads-1-1k.svg"></a>
+  <a href="https://github.com/swensi17/skmate-iptv/releases/latest"><img alt="Latest release" src="../badges/release.svg"></a>
+  <a href="https://github.com/swensi17/skmate-iptv/releases"><img alt="Downloads" src="../badges/downloads.svg"></a>
   <a href="https://www.virustotal.com/gui/file/e6ee399665b8f34d3bccb1faa19768ccd4e7383b434524bcecbbba801573a4cd"><img alt="VirusTotal" src="../badges/virustotal.svg"></a>
   <a href="../../LICENSE"><img alt="License GPL-3.0" src="../badges/license-gpl-3-0.svg"></a>
 </p>

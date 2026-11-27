@@ -11,8 +11,8 @@
 M3U and Xtream Codes, TV guide (EPG), catch-up, profiles — built for the remote, no ads, no accounts.</p>
 
 <p align="center">
-  <a href="https://github.com/swensi17/skmate-iptv/releases/latest"><img alt="Release v2.5.9" src="../badges/release-v2-5-9.svg"></a>
-  <a href="https://github.com/swensi17/skmate-iptv/releases"><img alt="Downloads 1.1k" src="../badges/downloads-1-1k.svg"></a>
+  <a href="https://github.com/swensi17/skmate-iptv/releases/latest"><img alt="Latest release" src="../badges/release.svg"></a>
+  <a href="https://github.com/swensi17/skmate-iptv/releases"><img alt="Downloads" src="../badges/downloads.svg"></a>
   <a href="https://github.com/swensi17/skmate-iptv/blob/main/docs/i18n-readme/README.en.md#security"><img alt="VirusTotal" src="../badges/virustotal.svg"></a>
   <a href="../../LICENSE"><img alt="License GPL-3.0" src="../badges/license-gpl-3-0.svg"></a>
 </p>

@@ -150,3 +150,25 @@ jobs:
           # Uploaded last on purpose: builds up to 2.4.2 update with the first non-x86 APK of the release,
           # and that has to be the arm one, which installs on every TV.
           gh release upload "$TAG" "dist/SkMate-IPTV-v$NAME-arm64.apk" --clobber
+
+      # The README's badges live in the repository (docs/badges): GitHub shows outside badge pictures broken. The
+      # version and the download count are drawn again here, after each release, and land on main by themselves.
+      - name: README badges
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NAME: ${{ steps.ver.outputs.name }}
+        run: |
+          set -euo pipefail
+          git fetch --depth=1 origin main
+          git checkout -B badges FETCH_HEAD
+          total=$(gh api "repos/$GITHUB_REPOSITORY/releases?per_page=100" --paginate -q '.[].assets[].download_count' | awk '{s+=$1} END {print s+0}')
+          if [ "$total" -ge 1000 ]; then shown=$(awk -v n="$total" 'BEGIN {printf "%.1fk", n/1000}'); else shown="$total"; fi
+          curl -fsSL "https://img.shields.io/badge/release-v${NAME}-1e88e5" -o docs/badges/release.svg
+          curl -fsSL "https://img.shields.io/badge/downloads-${shown}-43a047" -o docs/badges/downloads.svg
+          git config user.name swensi17
+          git config user.email swensi17@users.noreply.github.com
+          git add docs/badges/release.svg docs/badges/downloads.svg
+          git diff --cached --quiet && exit 0
+          git commit -m "значки версии"
+          git push origin HEAD:main
