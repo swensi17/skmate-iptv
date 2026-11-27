@@ -9,7 +9,6 @@
 3	core/src/main/java/tv/own/owntv/core/backup/BackupManager.kt	ctx
 1	core/src/main/java/tv/own/owntv/core/backup/BackupManager.kt	movedFrom
 4	core/src/main/java/tv/own/owntv/core/backup/BackupManager.kt	opensub_api_key_enc
-1	core/src/main/java/tv/own/owntv/core/backup/UserDataResolver.kt	oid
 3	core/src/main/java/tv/own/owntv/core/backup/UserDataResolver.kt	pos
 1	core/src/main/java/tv/own/owntv/core/brand/BrandName.kt	SkMate
 1	core/src/main/java/tv/own/owntv/core/brand/BrandName.kt	SkMate IPTV

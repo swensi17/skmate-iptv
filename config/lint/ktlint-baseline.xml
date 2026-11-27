@@ -158,9 +158,9 @@
         <error line="3" column="1" source="standard:import-ordering" />
         <error line="176" column="23" source="standard:wrapping" />
         <error line="179" column="31" source="standard:wrapping" />
-        <error line="1038" column="19" source="standard:property-naming" />
-        <error line="1041" column="19" source="standard:property-naming" />
-        <error line="1044" column="19" source="standard:property-naming" />
+        <error line="1049" column="19" source="standard:property-naming" />
+        <error line="1052" column="19" source="standard:property-naming" />
+        <error line="1055" column="19" source="standard:property-naming" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/live/LiveViewModel.kt">
         <error line="5" column="1" source="standard:import-ordering" />
@@ -487,53 +487,53 @@
         <error line="86" column="5" source="standard:spacing-between-declarations-with-comments" />
         <error line="142" column="1" source="standard:kdoc" />
         <error line="148" column="1" source="standard:spacing-between-declarations-with-comments" />
-        <error line="687" column="5" source="standard:spacing-between-declarations-with-comments" />
-        <error line="692" column="5" source="standard:spacing-between-declarations-with-comments" />
-        <error line="824" column="44" source="standard:wrapping" />
-        <error line="827" column="21" source="standard:wrapping" />
-        <error line="837" column="40" source="standard:wrapping" />
-        <error line="838" column="110" source="standard:wrapping" />
-        <error line="838" column="122" source="standard:wrapping" />
-        <error line="862" column="44" source="standard:wrapping" />
-        <error line="865" column="21" source="standard:wrapping" />
-        <error line="875" column="40" source="standard:wrapping" />
-        <error line="876" column="114" source="standard:wrapping" />
-        <error line="876" column="128" source="standard:wrapping" />
-        <error line="959" column="40" source="standard:wrapping" />
-        <error line="960" column="112" source="standard:wrapping" />
-        <error line="960" column="125" source="standard:wrapping" />
-        <error line="1146" column="44" source="standard:wrapping" />
-        <error line="1149" column="21" source="standard:wrapping" />
-        <error line="1162" column="41" source="standard:wrapping" />
-        <error line="1166" column="17" source="standard:wrapping" />
-        <error line="1176" column="44" source="standard:wrapping" />
-        <error line="1179" column="21" source="standard:wrapping" />
-        <error line="1192" column="41" source="standard:wrapping" />
-        <error line="1196" column="17" source="standard:wrapping" />
-        <error line="1206" column="44" source="standard:wrapping" />
-        <error line="1209" column="21" source="standard:wrapping" />
-        <error line="1299" column="40" source="standard:wrapping" />
-        <error line="1300" column="116" source="standard:wrapping" />
-        <error line="1300" column="131" source="standard:wrapping" />
-        <error line="1378" column="40" source="standard:wrapping" />
-        <error line="1379" column="124" source="standard:wrapping" />
-        <error line="1379" column="143" source="standard:wrapping" />
-        <error line="2366" column="1" source="standard:kdoc" />
-        <error line="2376" column="1" source="standard:spacing-between-declarations-with-comments" />
-        <error line="2378" column="1" source="standard:spacing-between-declarations-with-comments" />
-        <error line="2413" column="25" source="standard:wrapping" />
-        <error line="2414" column="144" source="standard:wrapping" />
-        <error line="2415" column="25" source="standard:wrapping" />
-        <error line="2416" column="144" source="standard:wrapping" />
-        <error line="2418" column="25" source="standard:wrapping" />
-        <error line="2419" column="157" source="standard:wrapping" />
-        <error line="2420" column="25" source="standard:wrapping" />
-        <error line="2421" column="69" source="standard:wrapping" />
-        <error line="2423" column="25" source="standard:wrapping" />
-        <error line="2424" column="111" source="standard:wrapping" />
-        <error line="2425" column="25" source="standard:wrapping" />
-        <error line="2426" column="150" source="standard:wrapping" />
-        <error line="2585" column="1" source="standard:no-consecutive-blank-lines" />
+        <error line="688" column="5" source="standard:spacing-between-declarations-with-comments" />
+        <error line="693" column="5" source="standard:spacing-between-declarations-with-comments" />
+        <error line="825" column="44" source="standard:wrapping" />
+        <error line="828" column="21" source="standard:wrapping" />
+        <error line="838" column="40" source="standard:wrapping" />
+        <error line="839" column="110" source="standard:wrapping" />
+        <error line="839" column="122" source="standard:wrapping" />
+        <error line="863" column="44" source="standard:wrapping" />
+        <error line="866" column="21" source="standard:wrapping" />
+        <error line="876" column="40" source="standard:wrapping" />
+        <error line="877" column="114" source="standard:wrapping" />
+        <error line="877" column="128" source="standard:wrapping" />
+        <error line="960" column="40" source="standard:wrapping" />
+        <error line="961" column="112" source="standard:wrapping" />
+        <error line="961" column="125" source="standard:wrapping" />
+        <error line="1147" column="44" source="standard:wrapping" />
+        <error line="1150" column="21" source="standard:wrapping" />
+        <error line="1163" column="41" source="standard:wrapping" />
+        <error line="1167" column="17" source="standard:wrapping" />
+        <error line="1177" column="44" source="standard:wrapping" />
+        <error line="1180" column="21" source="standard:wrapping" />
+        <error line="1193" column="41" source="standard:wrapping" />
+        <error line="1197" column="17" source="standard:wrapping" />
+        <error line="1207" column="44" source="standard:wrapping" />
+        <error line="1210" column="21" source="standard:wrapping" />
+        <error line="1300" column="40" source="standard:wrapping" />
+        <error line="1301" column="116" source="standard:wrapping" />
+        <error line="1301" column="131" source="standard:wrapping" />
+        <error line="1379" column="40" source="standard:wrapping" />
+        <error line="1380" column="124" source="standard:wrapping" />
+        <error line="1380" column="143" source="standard:wrapping" />
+        <error line="2367" column="1" source="standard:kdoc" />
+        <error line="2377" column="1" source="standard:spacing-between-declarations-with-comments" />
+        <error line="2379" column="1" source="standard:spacing-between-declarations-with-comments" />
+        <error line="2414" column="25" source="standard:wrapping" />
+        <error line="2415" column="144" source="standard:wrapping" />
+        <error line="2416" column="25" source="standard:wrapping" />
+        <error line="2417" column="144" source="standard:wrapping" />
+        <error line="2419" column="25" source="standard:wrapping" />
+        <error line="2420" column="157" source="standard:wrapping" />
+        <error line="2421" column="25" source="standard:wrapping" />
+        <error line="2422" column="69" source="standard:wrapping" />
+        <error line="2424" column="25" source="standard:wrapping" />
+        <error line="2425" column="111" source="standard:wrapping" />
+        <error line="2426" column="25" source="standard:wrapping" />
+        <error line="2427" column="150" source="standard:wrapping" />
+        <error line="2586" column="1" source="standard:no-consecutive-blank-lines" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/settings/WeatherSettingsScreen.kt">
         <error line="222" column="37" source="standard:annotation" />

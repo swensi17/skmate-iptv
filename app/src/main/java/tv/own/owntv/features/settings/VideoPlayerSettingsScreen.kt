@@ -170,8 +170,9 @@ internal val SUBTITLE_APPEARANCE_SEARCH_ROWS: List<Int> = listOf(
 private val RemovedVideoRows = setOf(
     "vp_vod_engine", "vp_vod_engine_sources", "vp_reset_pins", "vp_reset_live_pins", "vp_live_engine_sources", "vp_vod_timeout", "vp_vod_reconnects", "vp_resume", "vp_autoplay",
     // Live plays on the one libVLC engine: there is no engine to pick, and these were ExoPlayer's or mpv's own
-    // knobs, which that engine does not read. Shown, they would change nothing.
-    "vp_live_engine", "vp_hw", "vp_sw_above_1080p", "vp_hdr", "vp_max_quality", "vp_tunneled",
+    // knobs, which that engine does not read. Shown, they would change nothing. The TV's decoder (vp_hw) stays:
+    // libVLC reads it, and on a box that paints hardware-decoded video as green noise it is the way out.
+    "vp_live_engine", "vp_sw_above_1080p", "vp_hdr", "vp_max_quality", "vp_tunneled",
     // Not the live buffer: libVLC reads it as its network cache (LivePreviewEngine.cachingMs), and the archive's
     // buffer (vp_vod_buffer) is mpv's film cache, which an archive programme plays through.
     "vp_preroll", "vp_preroll_sources",

@@ -391,4 +391,5 @@
     <string name="content_vod_more_in">Další v kategorii <xliff:g id="category">%1$s</xliff:g></string>
     <string name="content_channel_logo">Logo kanálu</string>
     <string name="content_guide_days">Dny</string>
+    <string name="content_hint_archive_days">▶ Program a archiv podle dnů</string>
 </resources>

@@ -314,9 +314,27 @@ class UserDataResolver(
         // (M3U clear-then-insert / Xtream stale-prune run concurrently on startup refresh).
         if (purge && snapshot.hasSourceSnapshotIds()) {
             purgeSnapshotOrphans(snapshot)
+            dropMovedFavorites(snapshot)
         }
         if (unresolved.length() > 0) addPending(unresolved)
         resolvePending() // also retries any in-flight backup restore
+    }
+
+    /**
+     * A favorite whose content now sits under another id leaves its old row behind on whatever channel took
+     * that id, a channel the viewer never chose. Only this sync's own snapshot is trusted here: its old ids
+     * are this device's ids, unlike a backup's.
+     */
+    private suspend fun dropMovedFavorites(snapshot: JSONArray) {
+        for (i in 0 until snapshot.length()) {
+            val e = snapshot.getJSONObject(i)
+            if (e.optString("kind") != "fav") continue
+            val type = runCatching { MediaType.valueOf(e.getString("t")) }.getOrNull() ?: continue
+            if (type != MediaType.LIVE && type != MediaType.MOVIE) continue
+            val oid = e.optLong("oid", -1L).takeIf { it > 0 } ?: continue
+            val now = locate(type, e) ?: continue
+            if (now != oid) favoriteDao.remove(e.getLong("p"), type, oid)
+        }
     }
 
     private fun JSONArray.hasSourceSnapshotIds(): Boolean =
@@ -493,8 +511,28 @@ class UserDataResolver(
         val src = e.getLong("src")
         val rid = e.optStringOrNull("rid")
         return when (type) {
-            MediaType.LIVE -> (rid?.let { channelDao.findByRemote(src, it) } ?: channelDao.findByName(src, e.getString("name")))?.id
-            MediaType.MOVIE -> (rid?.let { movieDao.findByRemote(src, it) } ?: movieDao.findByName(src, e.getString("name")))?.id
+            MediaType.LIVE -> {
+                val name = e.getString("name")
+                // The row the record was taken from, still here and still the same channel: it stays put.
+                // Xtream keeps a changed row's local id, so this is the usual case after a re-sync.
+                e.optLong("oid", -1L).takeIf { it > 0 }?.let { channelDao.getById(it) }
+                    ?.takeIf { it.sourceId == src && it.name == name && (rid == null || it.remoteId == rid) }
+                    ?.let { return it.id }
+                // A provider may hand a stream id to another channel. Trusting the id alone moved a favorite
+                // onto that channel while the old row kept its own, and every sync added more: two favorites
+                // grew into seventy. The id counts only when the name agrees, or when no channel has the name
+                // (the provider renamed it).
+                val byRemote = rid?.let { channelDao.findByRemote(src, it) }
+                when {
+                    byRemote != null && byRemote.name == name -> byRemote.id
+                    else -> channelDao.findByName(src, name)?.id ?: byRemote?.id
+                }
+            }
+            MediaType.MOVIE -> {
+                val name = e.getString("name")
+                val byRemote = rid?.let { movieDao.findByRemote(src, it) }
+                if (byRemote != null && byRemote.name == name) byRemote.id else movieDao.findByName(src, name)?.id ?: byRemote?.id
+            }
             MediaType.SERIES -> (rid?.let { seriesDao.findSeriesByRemote(src, it) } ?: seriesDao.findSeriesByName(src, e.getString("name")))?.id
             MediaType.EPISODE -> {
                 val srid = e.optStringOrNull("srid")

@@ -349,4 +349,5 @@
     <string name="content_vod_more_in"><xliff:g id="category">%1$s</xliff:g>のその他の作品</string>
     <string name="content_channel_logo">チャンネルロゴ</string>
     <string name="content_guide_days">日付</string>
+    <string name="content_hint_archive_days">▶ 日別の番組表とアーカイブ</string>
 </resources>

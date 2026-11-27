@@ -261,7 +261,49 @@ class UserDataResolverRelinkTest {
         assertEquals("the movie is gone — the favorite must go with it", 0, db.favoriteDao().getAllOnce().size)
     }
 
+
+    /**
+     * Xtream keeps a changed row's id, and a provider may hand a stream id to another channel. The favorite
+     * used to stay on the row (now someone else's channel) while the record, found by its stream id, added
+     * one more: every sync grew the folder, two favorites became seventy. It must follow the channel by name
+     * and leave nothing behind.
+     */
+    @Test
+    fun favoriteFollowsAChannelWhoseStreamIdWentToAnotherChannel() = runBlocking {
+        val oldId = insertChannel(remoteId = "10", name = "Eurodance 90 HD")
+        insertChannel(remoteId = "20", name = "C-Live HD")
+        db.favoriteDao().add(FavoriteEntity(profileId = profileId, mediaType = MediaType.LIVE, itemId = oldId, addedAt = 7))
+        val snapshot = resolver.exportForSource(sourceId, setOf("fav"))
+
+        // The sync, in place: stream 10 is now another channel, Eurodance comes back under a new stream id.
+        db.channelDao().updateAll(listOf(db.channelDao().getById(oldId)!!.copy(name = "Russian 90 HD")))
+        val movedId = insertChannel(remoteId = "30", name = "Eurodance 90 HD")
+
+        resolver.relinkAfterSync(snapshot)
+        // Later syncs with nothing moving must not add anything either.
+        repeat(3) { resolver.relinkAfterSync(resolver.exportForSource(sourceId, setOf("fav"))) }
+
+        assertEquals(listOf(movedId), db.favoriteDao().getAllOnce().map { it.itemId })
+    }
+
+    /** The common case after an Xtream sync: nothing moved, so nothing may be added. */
+    @Test
+    fun favoriteOnAnUnchangedChannelStaysSingleAcrossSyncs() = runBlocking {
+        val id = insertChannel(remoteId = "10", name = "Eurodance 90 HD")
+        insertChannel(remoteId = "11", name = "Russian 90 HD")
+        db.favoriteDao().add(FavoriteEntity(profileId = profileId, mediaType = MediaType.LIVE, itemId = id, addedAt = 7))
+        repeat(5) { resolver.relinkAfterSync(resolver.exportForSource(sourceId, setOf("fav"))) }
+        assertEquals(listOf(id), db.favoriteDao().getAllOnce().map { it.itemId })
+    }
+
     // --- helpers ---
+
+    private suspend fun insertChannel(remoteId: String?, name: String): Long {
+        db.channelDao().insertAll(
+            listOf(tv.own.owntv.core.database.entity.ChannelEntity(sourceId = sourceId, name = name, streamUrl = "https://portal.test/$name", remoteId = remoteId)),
+        )
+        return db.channelDao().findByName(sourceId, name)!!.id
+    }
 
     private suspend fun insertMovie(remoteId: String?, name: String): Long {
         db.movieDao().insertAll(

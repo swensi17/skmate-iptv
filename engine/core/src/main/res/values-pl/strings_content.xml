@@ -391,4 +391,5 @@
     <string name="content_vod_more_in">Więcej w kategorii <xliff:g id="category">%1$s</xliff:g></string>
     <string name="content_channel_logo">Logo kanału</string>
     <string name="content_guide_days">Dni</string>
+    <string name="content_hint_archive_days">▶ Program i archiwum według dni</string>
 </resources>

@@ -398,4 +398,5 @@
     <string name="content_channel_logo_link">Ссылка на картинку</string>
     <string name="content_epg_match_linked">Привязан</string>
     <string name="content_guide_days">Дни</string>
+    <string name="content_hint_archive_days">▶ Программа и архив по дням</string>
 </resources>

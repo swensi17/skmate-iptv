@@ -363,4 +363,5 @@
     <string name="content_vod_more_in"><xliff:g id="category">%1$s</xliff:g>-এ আরও</string>
     <string name="content_channel_logo">চ্যানেলের লোগো</string>
     <string name="content_guide_days">দিন</string>
+    <string name="content_hint_archive_days">▶ দিন অনুযায়ী অনুষ্ঠানসূচি ও আর্কাইভ</string>
 </resources>

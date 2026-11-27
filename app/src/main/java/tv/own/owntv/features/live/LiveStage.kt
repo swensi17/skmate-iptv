@@ -212,7 +212,10 @@ internal fun LiveStageRow(
                 name.tags.forEach { StageTag(it) }
                 // TV-box look: the archive is the blue corner tag, and no coloured playlist marks.
                 if (channel.catchup && !tvBox) OwnTVIcon(OwnTVIcon.REWIND, StageColors.Dim, Modifier.size(22.mpx))
-                if (isFavorite) OwnTVIcon(OwnTVIcon.FAVORITE, stageAccent.accent, Modifier.size(22.mpx), filled = true)
+                // The channel on air shows only its playing mark: a heart beside it says nothing new.
+                if (isFavorite && !(playing && tvBox)) {
+                    OwnTVIcon(OwnTVIcon.FAVORITE, stageAccent.accent, Modifier.size(22.mpx), filled = true)
+                }
                 if (!tvBox) mark?.let { StagePlaylistMark(it) }
             }
         }
@@ -498,6 +501,14 @@ internal fun LiveStagePane(
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.mpx)) {
                     StageProgress(progressOf(now), Modifier.weight(1f))
                     Text(timeLeftText(minutesLeft(now)), style = stageText(17, 400).copy(fontFeatureSettings = Tabular), color = StageColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                }
+                // The archive by day lives behind ▶; a channel that has one says so, or nobody finds it.
+                if (tvBox && channel?.catchup == true) {
+                    Text(
+                        stringResource(R.string.content_hint_archive_days),
+                        style = stageText(17, 600), color = stageAccent.accent,
+                        maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 12.mpx),
+                    )
                 }
                 now.description?.takeIf { it.isNotBlank() }?.let {
                     Text(

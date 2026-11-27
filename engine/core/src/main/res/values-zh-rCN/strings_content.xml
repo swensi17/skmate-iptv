@@ -349,4 +349,5 @@
     <string name="content_vod_more_in"><xliff:g id="category">%1$s</xliff:g> 中的更多内容</string>
     <string name="content_channel_logo">频道图标</string>
     <string name="content_guide_days">日期</string>
+    <string name="content_hint_archive_days">▶ 按日查看节目单和回看</string>
 </resources>

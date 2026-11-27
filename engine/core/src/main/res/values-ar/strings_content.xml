@@ -419,4 +419,5 @@
     <string name="content_vod_more_in">المزيد في <xliff:g id="category">%1$s</xliff:g></string>
     <string name="content_channel_logo">شعار القناة</string>
     <string name="content_guide_days">الأيام</string>
+    <string name="content_hint_archive_days">▶ البرنامج والأرشيف حسب الأيام</string>
 </resources>

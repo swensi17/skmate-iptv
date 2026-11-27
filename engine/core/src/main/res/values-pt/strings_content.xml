@@ -377,4 +377,5 @@
     <string name="content_vod_more_in">Mais em <xliff:g id="category">%1$s</xliff:g></string>
     <string name="content_channel_logo">Logotipo do canal</string>
     <string name="content_guide_days">Dias</string>
+    <string name="content_hint_archive_days">▶ Programação e arquivo por dia</string>
 </resources>

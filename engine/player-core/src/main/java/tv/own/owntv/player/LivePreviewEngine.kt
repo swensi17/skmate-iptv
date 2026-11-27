@@ -152,6 +152,8 @@ class LivePreviewEngine(
     private var userAgent: String? = null
     private var headers: String? = null
     @Volatile private var liveBufferSecs: Int? = null
+    /** The viewer turned the TV's decoder off in the player settings: live decodes in software too. */
+    @Volatile private var hardwareOff = false
     private var liveBufferOverride: LiveBuffer.Override? = null
     private var hasPlayed = false
     private var gaveUp = false
@@ -183,6 +185,9 @@ class LivePreviewEngine(
                 )
             }.collect { liveBufferSecs = it }
         }
+        // Some boxes paint a hardware-decoded stream as green noise. Frames still arrive, so the stuck-picture
+        // fallback never fires: the setting is the viewer's way out and must reach live, not only films.
+        settingsScope.launch { settings.hwDecoding.collect { hardwareOff = !it } }
     }
 
     // ---- surfaces -----------------------------------------------------------------------------------------
@@ -285,7 +290,7 @@ class LivePreviewEngine(
         main.removeCallbacks(watchdog); main.removeCallbacks(reconnectRun)
         val p = player ?: MediaPlayer(vlc).also { player = it; it.setEventListener(::onEvent) }
         surface?.let { attach(p, it) }
-        val software = softwareTried
+        val software = softwareTried || hardwareOff
         _softwareDecoding.value = software
         // A weak box never asks an adaptive stream for more than 1080p: 4K only filled its memory.
         val maxHeight = maxVideoHeight ?: if (lowSpec) LOW_SPEC_MAX_HEIGHT else null

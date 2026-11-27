@@ -377,4 +377,5 @@
     <string name="content_vod_more_in">Plus dans <xliff:g id="category">%1$s</xliff:g></string>
     <string name="content_channel_logo">Logo de la chaîne</string>
     <string name="content_guide_days">Jours</string>
+    <string name="content_hint_archive_days">▶ Programme et archives par jour</string>
 </resources>

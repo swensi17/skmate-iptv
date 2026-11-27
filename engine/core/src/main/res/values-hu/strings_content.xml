@@ -363,4 +363,5 @@
     <string name="content_vod_more_in">Továbbiak itt: <xliff:g id="category">%1$s</xliff:g></string>
     <string name="content_channel_logo">Csatornalogó</string>
     <string name="content_guide_days">Napok</string>
+    <string name="content_hint_archive_days">▶ Műsor és archívum naponként</string>
 </resources>

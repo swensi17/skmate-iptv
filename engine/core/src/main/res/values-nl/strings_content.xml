@@ -363,4 +363,5 @@
     <string name="content_vod_more_in">Meer in <xliff:g id="category">%1$s</xliff:g></string>
     <string name="content_channel_logo">Zenderlogo</string>
     <string name="content_guide_days">Dagen</string>
+    <string name="content_hint_archive_days">▶ Programma en archief per dag</string>
 </resources>
