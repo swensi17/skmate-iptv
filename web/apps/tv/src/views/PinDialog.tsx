@@ -1,15 +1,21 @@
-import { useEffect, useState } from "preact/hooks";
-import { validPin } from "@skmate/core";
-import { focusFirst, useReturnFocus } from "@skmate/ui";
+import { useEffect, useRef, useState } from "preact/hooks";
+import { focusFirst, Icon, Popup, PopupButton } from "@skmate/ui";
 import { t } from "../i18n";
 
-const MAX_DIGITS = 6;
-const PAD = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "erase", "0", "ok"] as const;
+/** Android PinDialog: digits only, up to 6, OK from 4 (ProfileComponents.kt:60-100). */
+export const PIN_MIN = 4;
+export const PIN_MAX = 6;
+/** What the PIN field accepts: the digits of [raw], at most [PIN_MAX]; null when something else was typed (Android drops that edit). */
+export function pinInput(raw: string): string | null {
+  if (raw.length > PIN_MAX || !/^[0-9]*$/.test(raw)) return null;
+  return raw;
+}
 
 /**
- * Numeric PIN entry, as on Android: the remote's digit keys type straight in, the arrows walk an on-screen pad.
- * [check] says whether the PIN is accepted (a wrong one shakes the dots and clears them); [extra] are more
- * buttons under the pad (another profile, cancel).
+ * PIN entry, as on Android (ProfileComponents.kt PinDialog): a popup (700 wide) with the title, one password field row
+ * ("PIN", the placeholder "····", digits only, 6 at most) and Cancel / OK at the bottom right; OK is dimmed until 4 digits are in.
+ * The field has the focus at once, so the TV's number keyboard opens on it (the remote's digits type straight in).
+ * [check] says whether the PIN is accepted (a wrong one says so and clears the field); [extra] are more buttons (another profile).
  */
 export function PinDialog(props: {
   title: string;
@@ -21,54 +27,46 @@ export function PinDialog(props: {
 }) {
   const [pin, setPin] = useState("");
   const [wrong, setWrong] = useState(false);
-  const root = useReturnFocus();
-  useEffect(() => { focusFirst(document, "pin-1"); }, []);
+  const [typing, setTyping] = useState(true);
+  const input = useRef<HTMLInputElement>(null);
+  useEffect(() => { input.current?.focus(); }, []);
 
-  const submit = (value: string) => {
-    if (!validPin(value)) { setWrong(true); return; }
-    if (props.check(value)) props.onDone(value);
-    else { setWrong(true); setPin(""); }
+  const submit = () => {
+    if (pin.length < PIN_MIN) return;
+    if (props.check(pin)) props.onDone(pin);
+    else { setWrong(true); setPin(""); input.current?.focus(); }
   };
-  const press = (k: (typeof PAD)[number]) => {
-    if (k === "ok") { submit(pin); return; }
-    setWrong(false);
-    if (k === "erase") setPin((p) => p.slice(0, -1));
-    else setPin((p) => (p.length < MAX_DIGITS ? p + k : p));
-  };
-
-  // The remote's digit keys (0–9 and the numeric pad) type, Back erases or leaves.
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      const digit = /^[0-9]$/.test(e.key) ? e.key : e.keyCode >= 96 && e.keyCode <= 105 ? String(e.keyCode - 96) : null;
-      // Typed with the remote's digits, OK then confirms: the focus waits on "Done", not on a digit of the pad.
-      if (digit !== null) { e.preventDefault(); e.stopPropagation(); press(digit as (typeof PAD)[number]); focusFirst(document, "pin-ok"); }
-    };
-    document.addEventListener("keydown", onKey, true);
-    return () => document.removeEventListener("keydown", onKey, true);
-  }, [pin]);
-
+  // The lock screen has no Cancel: Back there is the app's own (it leaves).
+  const dismiss = props.onCancel ?? (() => undefined);
   return (
-    <div class="scrim" data-modal ref={root}>
-      <div class="dialog pin-dialog" role="dialog" aria-label={props.title}>
-        <div class="dialog-title">{props.title}</div>
-        <div class="dialog-body">{wrong ? t("pinWrong") : props.hint ?? t("pinDigits")}</div>
-        <div class={`pin-dots${wrong ? " wrong" : ""}`} aria-label={t("pinEntered", { n: pin.length })}>
-          {Array.from({ length: Math.max(4, pin.length) }, (_, i) => <span class={i < pin.length ? "on" : ""} key={i} />)}
-        </div>
-        <div class="pin-pad">
-          {PAD.map((k) => (
-            <button class={`btn pin-key${k === "ok" ? " ok" : ""}`} key={k} data-focus={`pin-${k}`} onClick={() => press(k)}>
-              {k === "erase" ? t("pinErase") : k === "ok" ? t("pinOk") : k}
-            </button>
-          ))}
-        </div>
-        {props.extra || props.onCancel ? (
-          <div class="dialog-actions">
-            {props.extra}
-            {props.onCancel ? <button class="btn" data-focus="pin-cancel" onClick={props.onCancel}>{t("confirmCancel")}</button> : null}
-          </div>
-        ) : null}
-      </div>
-    </div>
+    <Popup title={props.title} body={wrong ? t("pinWrong") : props.hint ?? undefined} width={700} onClose={dismiss}
+      buttons={(
+        <>
+          {props.onCancel ? <PopupButton id="pin-cancel" primary={false} text={t("sa_common_cancel")} onClick={props.onCancel} /> : null}
+          <PopupButton id="pin-ok" text={t("sa_common_ok")} disabled={pin.length < PIN_MIN} onClick={submit} />
+        </>
+      )}>
+      <label class={`st-field entry-row${typing ? " st-focusable st-lit" : ""}`}>
+        <span class="st-setting-icon"><Icon name="edit" size={32} /></span>
+        <span class="st-setting-body">
+          <span class="st-setting-title">{t("sa_profiles_pin")}</span>
+          <input
+            ref={input} class="st-field-input" data-focus="pin-field" value={pin} placeholder="····" type="password"
+            inputMode="numeric" autocomplete="off" spellcheck={false} maxLength={PIN_MAX}
+            onFocus={() => setTyping(true)} onBlur={() => setTyping(false)}
+            onInput={(e) => {
+              const el = e.currentTarget as HTMLInputElement;
+              const next = pinInput(el.value);
+              if (next === null) { el.value = pin; return; } // a letter or a seventh digit: the edit is dropped
+              setWrong(false);
+              setPin(next);
+            }}
+            onKeyDown={(e) => { if (e.key === "Enter" || e.keyCode === 13) { e.preventDefault(); if (pin.length >= PIN_MIN) submit(); else focusFirst(document, "pin-ok"); } }}
+          />
+        </span>
+      </label>
+      {props.extra ? <div class="dialog-actions pin-extra">{props.extra}</div> : null}
+    </Popup>
   );
 }
+

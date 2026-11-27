@@ -1,6 +1,6 @@
 import { useContext, useEffect, useRef, useState } from "preact/hooks";
 import type { Channel } from "@skmate/core";
-import { focusFirst, Icon, Presence } from "@skmate/ui";
+import { focusFirst, Icon, isMenuKey, Presence } from "@skmate/ui";
 import { t } from "../i18n";
 import { GuideContext } from "../state/GuideContext";
 import { UiContext } from "../state/UiContext";
@@ -10,8 +10,6 @@ import { daysText, leftLabel, timeLeftText } from "./Left";
 import { StageIcon } from "./GroupIcon";
 import "./channel.css";
 
-/** Yellow on webOS (405) and on Tizen (12 once registered); `y` on a keyboard. */
-const isYellow = (e: KeyboardEvent) => e.keyCode === 405 || e.keyCode === 12 || e.key === "y";
 const isEnter = (e: KeyboardEvent) => e.key === "Enter" || e.keyCode === 13;
 /** OK held this long opens the channel's menu instead of the channel. */
 const LONG_MS = 600;
@@ -25,7 +23,7 @@ function archiveShort(n: number): string {
 
 /**
  * One channel in a list. OK opens it; OK held (or a right click) opens its menu: favourite, watch, programme.
- * The yellow key still toggles the favourite.
+ * The Menu key opens the same menu.
  */
 export function ChannelRow(props: {
   channel: Channel; index: number; favorite: boolean;
@@ -64,7 +62,8 @@ export function ChannelRow(props: {
     if (refocus) setTimeout(() => focusFirst(document, `ch-${channel.id}`), 0);
   };
   const onKeyDown = (e: KeyboardEvent) => {
-    if (isYellow(e)) { props.onFav(channel); return; }
+    // The remote's Menu key opens the same menu as holding OK (LiveScreen.kt:999). No colour key does anything (Android has none).
+    if (isMenuKey(e)) { e.preventDefault(); cancel(); setLayer("menu"); return; }
     if (!isEnter(e)) return;
     e.preventDefault(); // no click on the press: the release decides
     if (press.current !== null || layer !== null) return; // a held key repeats

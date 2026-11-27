@@ -1,4 +1,7 @@
 import { useEffect, useRef } from "preact/hooks";
+
+/** Android UpdateDialog.kt: Up / Down scroll the notes by 200 px while focus stays on the buttons; at either end the arrow is left alone. */
+const NOTES_STEP = 200;
 import { Button, focusFirst, Popup, useOwnBack } from "@skmate/ui";
 import { t } from "../i18n";
 import type { Release } from "../state/updates";
@@ -8,13 +11,30 @@ import { tf, OverSheet } from "./SettingsKit";
 
 /** The release's version and notes, as UpdateDialog.kt's Available state draws them. */
 function Notes({ release }: { release: Release }) {
+  const notes = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const el = notes.current;
+      if (!el) return;
+      const down = e.key === "ArrowDown" || e.keyCode === 40;
+      const up = e.key === "ArrowUp" || e.keyCode === 38;
+      if (!down && !up) return;
+      const canForward = el.scrollTop + el.clientHeight < el.scrollHeight - 1;
+      const canBackward = el.scrollTop > 0;
+      if (down ? !canForward : !canBackward) return;
+      e.preventDefault(); e.stopPropagation();
+      el.scrollTop += down ? NOTES_STEP : -NOTES_STEP;
+    };
+    window.addEventListener("keydown", onKey, true);
+    return () => window.removeEventListener("keydown", onKey, true);
+  }, []);
   return (
     <div class="set-update">
       <div class="set-update-version">{tf("sa_update_available_version", release.version)}</div>
       {release.notes ? (
         <>
           <div class="set-label">{t("sa_update_whats_new").toUpperCase()}</div>
-          <div class="set-update-notes">{release.notes}</div>
+          <div class="set-update-notes" ref={notes} style={{ scrollBehavior: "smooth" }}>{release.notes}</div>
         </>
       ) : null}
     </div>

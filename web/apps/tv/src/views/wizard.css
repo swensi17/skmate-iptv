@@ -178,3 +178,10 @@ html.sw-open .loading { display: none; }
 .terms-confirm { padding: 26px 0 8px; }
 .terms-buttons { flex: none; display: flex; margin-top: 24px; }
 .terms-buttons > * + * { margin-left: 16px; }
+
+/* key parity home (Android): the avatar strip of the profile step (SetupWizard.kt AvatarStrip) */
+.sw-avatars { display: flex; align-items: center; }
+.sw-av { flex: none; width: 50px; height: 50px; margin-left: 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.sw-av.on { box-shadow: 0 0 0 3px #0086fc; }
+.sw-av .av-img { width: 44px; height: 44px; }
+.sw-av-more { margin-left: 8px; font: 700 17px var(--st-font); color: var(--st-muted); }

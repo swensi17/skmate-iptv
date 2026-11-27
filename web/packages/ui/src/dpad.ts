@@ -6,6 +6,36 @@ export const KEY = { BACK_WEBOS: 461, BACK_TIZEN: 10009, ENTER: 13, BACKSPACE: 8
 const DIRS: Record<string, Direction> = { ArrowUp: "up", ArrowDown: "down", ArrowLeft: "left", ArrowRight: "right" };
 const DIR_CODES: Record<number, Direction> = { 38: "up", 40: "down", 37: "left", 39: "right" };
 
+/** The remote's Menu key (Android KEYCODE_MENU 82); `ContextMenu` / 93 on a PC keyboard. Android opens the same menu as a long OK. */
+export function isMenuKey(e: KeyboardEvent): boolean {
+  // 82 is also the letter R of a PC keyboard: that one has a one-character `key`, a remote's Menu does not.
+  if (e.key === "ContextMenu" || e.key === "Menu" || e.keyCode === 93) return true;
+  return e.keyCode === 82 && !(e.key && e.key.length === 1);
+}
+
+/** Back held this long (key repeats counted as MainActivity.kt LONG_BACK_REPEATS = 12, or 1 s) closes the app. */
+export const LONG_BACK_REPEATS = 12;
+const LONG_BACK_MS = 1000;
+/** The keys a held press is paced for (MainActivity.kt PACED_KEYS): the arrows, CH+/-, PageUp/PageDown. */
+const PACED = [37, 38, 39, 40, 33, 34, 427, 428];
+
+/**
+ * Held-key pacing (MainActivity.kt dropRepeatThatOutrunsScreen): a repeat of an arrow or CH key is let through only
+ * once the frame of the previous one has been drawn; the repeats in between are dropped. Single presses never are.
+ * [frame] is injectable for tests.
+ */
+export function makeRepeatGate(frame: (cb: () => void) => void): (e: { repeat: boolean; keyCode: number }) => boolean {
+  let open = true;
+  return (e) => {
+    if (!e.repeat || !PACED.includes(e.keyCode)) return true;
+    if (!open) return false;
+    open = false;
+    // First callback: the frame that draws the step has started. The next one means it was drawn.
+    frame(() => frame(() => { open = true; }));
+    return true;
+  };
+}
+
 export function isBack(e: KeyboardEvent): boolean {
   return e.keyCode === KEY.BACK_WEBOS || e.keyCode === KEY.BACK_TIZEN || e.key === "Escape" || e.key === "BrowserBack";
 }
@@ -22,11 +52,25 @@ function boxes(root: ParentNode): Array<Box & { el: HTMLElement }> {
  * Back goes to [onBack]. Elements never register themselves, so a screen is just markup.
  * Returns the function that removes the handler.
  */
-export function installDpad(onBack: () => boolean): () => void {
+export function installDpad(onBack: () => boolean, onLongBack?: () => void): () => void {
+  const gate = makeRepeatGate((cb) => (typeof requestAnimationFrame === "function" ? requestAnimationFrame(cb) : void setTimeout(cb, 16)));
+  let backHeld = 0, backFrom = 0;
   const handler = (e: KeyboardEvent) => {
     const active = document.activeElement as HTMLElement | null;
     const typing = active instanceof HTMLInputElement;
     if (isBack(e) && !(typing && e.key === "Backspace")) {
+      if (e.repeat) {
+        // Back held (12 repeats, about a second) closes the app outright, as on Android (MainActivity.kt:66-75);
+        // the repeats before that are not new Backs.
+        if (!backFrom) backFrom = Date.now();
+        if (++backHeld >= LONG_BACK_REPEATS || Date.now() - backFrom >= LONG_BACK_MS) {
+          backHeld = 0; backFrom = 0;
+          onLongBack?.();
+        }
+        e.preventDefault();
+        return;
+      }
+      backHeld = 0; backFrom = 0;
       if (onBack()) e.preventDefault();
       return;
     }
@@ -55,9 +99,13 @@ export function installDpad(onBack: () => boolean): () => void {
   };
   // A right click is Back for a mouse, as the Back key is for a remote.
   const onContext = (e: MouseEvent) => { e.preventDefault(); onBack(); };
+  // A repeat that outruns the screen is dropped (MainActivity.kt:85-107) in the capture phase, before any row sees it.
+  const pace = (e: KeyboardEvent) => { if (!gate(e)) { e.preventDefault(); e.stopImmediatePropagation(); } };
+  window.addEventListener("keydown", pace, true);
   document.addEventListener("keydown", handler);
   document.addEventListener("contextmenu", onContext);
   return () => {
+    window.removeEventListener("keydown", pace, true);
     document.removeEventListener("keydown", handler);
     document.removeEventListener("contextmenu", onContext);
   };

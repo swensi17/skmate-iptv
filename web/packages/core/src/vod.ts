@@ -98,6 +98,13 @@ export function nextEpisode<T extends { id: string; season: number; episode: num
   return i >= 0 ? order[i + 1] ?? null : null;
 }
 
+/** The episode before [current] in watching order, or null before the first (Media Previous on a series). */
+export function previousEpisode<T extends { id: string; season: number; episode: number }>(episodes: readonly T[], current: string): T | null {
+  const order = inWatchingOrder(episodes);
+  const i = order.findIndex((e) => e.id === current);
+  return i > 0 ? order[i - 1] ?? null : null;
+}
+
 // --- An M3U's films and series ---
 
 export interface Library {

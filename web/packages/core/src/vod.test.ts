@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { isProgressiveVideoUrl, mediaOf, parseM3U } from "./m3u/parse";
 import {
-  canResume, inWatchingOrder, isWatched, m3uLibrary, nextEpisode, numberBlankEpisodes, parseEpisodeName, parseXtreamEpisodes,
+  canResume, inWatchingOrder, isWatched, m3uLibrary, nextEpisode, previousEpisode, numberBlankEpisodes, parseEpisodeName, parseXtreamEpisodes,
   parseXtreamMovies, parseXtreamShows, seasonsOf, xtreamAccount, xtreamApiUrl, xtreamEpisodeUrl, xtreamMovieUrl,
 } from "./vod";
 
@@ -126,5 +126,15 @@ describe("Xtream films and series", () => {
     const nested = parseXtreamEpisodes({ episodes: [[{ id: "1", episode_num: 1 }], [{ id: "2", episode_num: 1 }]] }, a);
     expect(nested.map((e) => e.season)).toEqual([1, 2]);
     expect(parseXtreamEpisodes({ episodes: null }, a)).toEqual([]);
+  });
+});
+
+describe("previousEpisode", () => {
+  const eps = [{ id: "a", season: 1, episode: 1 }, { id: "b", season: 1, episode: 2 }, { id: "c", season: 2, episode: 1 }];
+  it("gives the episode before, across seasons, and null before the first or for an unknown id", () => {
+    expect(previousEpisode(eps, "b")?.id).toBe("a");
+    expect(previousEpisode(eps, "c")?.id).toBe("b");
+    expect(previousEpisode(eps, "a")).toBeNull();
+    expect(previousEpisode(eps, "zzz")).toBeNull();
   });
 });

@@ -1,0 +1,7 @@
+Profile avatars a1.svg ... a7.svg
+
+Still frames (frame 0, cropped and clipped as the Android app draws them) of the seven profile avatars of the
+Android app (app/src/main/res/raw/avatar_1.json ... avatar_7.json): the Lottie animations "young man / girl / boy"
+and "old age" avatars, chosen by the customer from IconScout.
+Licence: IconScout Simple License (free for commercial and personal use), as in docs/third-party/ui-icons.md of the
+Android project. Backdrop colour #D3E6F7 and the 1.85 zoom are the Android app's.

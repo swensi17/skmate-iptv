@@ -208,6 +208,7 @@ export function PlayerPanel(p: {
       const down = e.key === "ArrowDown" || e.keyCode === 40;
       const ok = e.key === "Enter" || e.keyCode === 13;
       const back = isBack(e);
+      if (back && e.repeat) return; // a held Back is counted by installDpad (about a second closes the app), not a new Back
       const u = under.current;
       // The poster over the whole screen: nothing behind it moves; OK or Back closes it, back on the poster.
       if (u.big) {
@@ -299,7 +300,7 @@ export function PlayerPanel(p: {
             <div class="tp-rows">
               {list.length === 0 ? <div class="tp-none">{t("recentEmpty")}</div> : (
                 <VirtualList
-                  key={`${p.kind}|${catKey}|${listActive}`} items={list} rowHeight={ROW} height={LIST_H} pageSize={9} autofocus={listActive}
+                  key={`${p.kind}|${catKey}|${listActive}`} items={list} rowHeight={ROW} height={LIST_H} paging={false} autofocus={listActive}
                   initialIndex={Math.max(0, focused ? list.findIndex((c) => c.id === focused.id) : start)}
                   idOf={(c) => `pc-${c.id}`}
                   renderRow={(c, i) => {
@@ -341,7 +342,7 @@ export function PlayerPanel(p: {
           <div class="tp-cats">
             <div class="tp-cats-title">{t("tbCategories")}</div>
             <VirtualList
-              key="cats" items={cats} rowHeight={CAT_ROW} height={CATS_H} pageSize={10} autofocus={!menuOpen}
+              key="cats" items={cats} rowHeight={CAT_ROW} height={CATS_H} autofocus={!menuOpen}
               initialIndex={Math.max(0, cats.findIndex((c) => c.key === catKey))}
               idOf={(c) => `pg:${c.key}`}
               renderRow={(c) => (

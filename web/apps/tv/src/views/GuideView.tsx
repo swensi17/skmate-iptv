@@ -3,7 +3,7 @@ import { memo } from "preact/compat";
 import { useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "preact/hooks";
 import { hasArchive, type Channel } from "@skmate/core";
 import type { GuideData, Programme } from "@skmate/epg";
-import { Button, focusFirst, focusWithoutScroll, Icon, isBack, Menu, MenuItem, useOwnBack } from "@skmate/ui";
+import { Button, focusFirst, focusWithoutScroll, Icon, isBack, isMenuKey, Menu, MenuItem, useOwnBack } from "@skmate/ui";
 import { t } from "../i18n";
 import { channelKey } from "../state/favorites";
 import { GuideContext } from "../state/GuideContext";
@@ -227,7 +227,7 @@ export function GuideView(p: Props) {
       holdTimer.current = window.setTimeout(hold, HOLD_MS);
       return;
     }
-    if (k === "ContextMenu" || code === 93) { consume(); openMenu(); return; }
+    if (isMenuKey(e)) { consume(); openMenu(); return; } // KEYCODE_MENU (EpgScreen.kt:901), also ContextMenu / 93
     if (k === "ArrowLeft" || code === 37) {
       if (!s.cellMode) return; // row stage: the side menu, through the app's own arrows
       consume();

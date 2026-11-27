@@ -17,6 +17,9 @@ describe("remoteKey", () => {
     expect(key(10252)).toBe("playPause");
     expect(key(10190)).toBe("lastChannel");
     expect(key(457)).toBe("info");
+    expect(key(82)).toBe("menu"); // Android KEYCODE_MENU
+    expect(key(93)).toBe("menu");
+    expect(key(413)).toBe("stop");
     expect(key(55)).toEqual({ digit: 7 });
     expect(key(13)).toBe("ok");
   });
@@ -24,6 +27,7 @@ describe("remoteKey", () => {
     expect(key(0, "ArrowLeft")).toBe("left");
     expect(key(0, "3")).toEqual({ digit: 3 });
     expect(key(0, "PageUp")).toBe("chUp");
+    expect(key(0, "ContextMenu")).toBe("menu");
     expect(key(0, "x")).toBeNull();
   });
 });

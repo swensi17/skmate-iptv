@@ -8,12 +8,14 @@ import logo from "../assets/skmate-logo.png";
 import { detectPlatform } from "../platform";
 import { parseBackup, restoreBackup } from "../state/backup";
 import { desktop, type CompanionPayload } from "../state/desktop";
-import { setKids, setPinHash, type ProfileBook } from "../state/scope";
+import { setAvatar, setKids, setPinHash, type ProfileBook } from "../state/scope";
+import { AVATAR_COUNT } from "../avatars";
+import { Avatar } from "./AvatarPicker";
 import { clampZoom, type Settings } from "../state/settings";
 import { stalkerSource, xtreamUrl } from "../state/playlists";
 import type { usePlaylists } from "../state/usePlaylists";
 import { LinkDialog } from "./LinkDialog";
-import { SourceForm } from "./SourceForm";
+import { AddSourceForm } from "./AddSource";
 import { Ticks } from "./Spinner";
 import { SyncDialog } from "./SyncDialog";
 import { TextEntry } from "./TextEntry";
@@ -36,6 +38,8 @@ export interface WizardResult {
   /** The new profile is a kids profile, and its PIN (4-6 digits) or null (Android ProfileStep). */
   kids: boolean;
   pin: string | null;
+  /** The picture of the new profile (Android ProfileStep avatar: 0..6). */
+  avatar?: number;
   settings: Partial<Settings>;
   /** The playlist step adds to the app's playlists itself; "none" is all that is left for the host. */
   playlist: { kind: "url"; url: string } | { kind: "file"; name: string; text: string } | { kind: "demo" } | { kind: "none" };
@@ -44,6 +48,7 @@ export interface WizardResult {
 /** The kids mark and the PIN the wizard asked for, put on the profile the host has just created. */
 export function withWizardProfile(book: ProfileBook, r: WizardResult): ProfileBook {
   let b = book;
+  if (r.avatar !== undefined) b = setAvatar(b, b.activeId, r.avatar);
   if (r.kids) b = setKids(b, b.activeId, true);
   if (r.pin) b = setPinHash(b, b.activeId, hashPin(r.pin));
   return b;
@@ -150,6 +155,19 @@ function Buttons(p: { actions: Action[]; width?: number; trailing?: ComponentChi
       </div>
       {p.trailing}
     </div>
+  );
+}
+
+/** The pictures to choose from, six from the chosen one on (SetupWizard.kt AvatarStrip), the chosen ringed. */
+function AvatarStrip({ chosen }: { chosen: number }) {
+  const shown = Array.from({ length: Math.min(6, AVATAR_COUNT) }, (_, i) => (chosen + i) % AVATAR_COUNT);
+  return (
+    <span class="sw-avatars">
+      {shown.map((id) => (
+        <span key={id} class={`sw-av${id === chosen ? " on" : ""}`}><Avatar id={id} initial="" /></span>
+      ))}
+      {AVATAR_COUNT > shown.length ? <span class="sw-av-more">+{AVATAR_COUNT - shown.length}</span> : null}
+    </span>
   );
 }
 
@@ -262,6 +280,8 @@ export function Wizard(p: Props) {
   const [name, setName] = useState(() => t("wizGuest"));
   const [nameTouched, setNameTouched] = useState(false);
   const [kids, setKidsOn] = useState(false);
+  // Android suggests one of the pictures at random; ◀ ▶ on its row go round them.
+  const [avatar, setAvatarId] = useState(() => Math.floor(Math.random() * AVATAR_COUNT));
   const [pin, setPin] = useState("");
   const [sample, setSample] = useState(true);
   const [lowZoomOk, setLowZoomOk] = useState(p.settings.uiScale < LOW_RAM_WARN);
@@ -336,6 +356,7 @@ export function Wizard(p: Props) {
       name: p.hasProfile ? null : name.trim() || t("wizGuest"),
       guest: false,
       kids: !p.hasProfile && kids,
+      ...(p.hasProfile ? {} : { avatar }),
       pin: !p.hasProfile && pin.length >= 4 ? pin : null,
       settings: { language: s.language, theme: s.theme, uiScale: s.uiScale },
       playlist: { kind: "none" },
@@ -525,6 +546,8 @@ export function Wizard(p: Props) {
     body = (
       <>
         <Field id="sw-name" label={t("wizName")} value={name} placeholder={t("wizNameHint")} onDone={(v) => { setName(v); setNameTouched(true); }} />
+        <Row id="sw-avatar" icon="person" title={t("kp_setup_avatar")} line={t("kp_setup_avatar_line")} end={<AvatarStrip chosen={avatar} />}
+          onClick={() => setAvatarId((a) => (a + 1) % AVATAR_COUNT)} onStep={(d) => setAvatarId((a) => (a + d + AVATAR_COUNT) % AVATAR_COUNT)} />
         <Row id="sw-kids" icon="favorite" title={t("wizKids")} line={t("wizKidsLine")} end={<Toggle on={kids} />} onClick={() => setKidsOn((v) => !v)} />
         <Field id="sw-pin" label={t("wizPin")} value={pin} placeholder={t("wizPinHint")} secret onDone={(v) => setPin(v.replace(/\D/g, "").slice(0, 6))} />
       </>
@@ -610,7 +633,7 @@ export function Wizard(p: Props) {
           <div class={`sw-col sw-form ${forward ? "fwd" : "bwd"}`} key={page}>
             <div class="sw-path"><span class="sw-path-parent">{t("wizAddSource")}</span><span class="sw-path-sep">›</span><span>{t("wizTypeHere")}</span></div>
             <div class="sw-form-body">
-              <SourceForm idPrefix="sw" onSubmit={(link) => addLink(link, "type")} onFile={addFile} />
+              <AddSourceForm idPrefix="sw" onSubmit={(link) => addLink(link, "type")} onFile={addFile} />
             </div>
           </div>
         ) : (

@@ -1,4 +1,4 @@
-import { applyMotion, type MotionSetting } from "@skmate/ui";
+import { applyMotion, setChNavConfig, type MotionSetting } from "@skmate/ui";
 import { applyLook, fontStack, setVar } from "./look";
 
 export type ThemeSetting = "system" | "dark" | "light";
@@ -113,6 +113,13 @@ export interface Settings {
   liveOpensIn: "list" | "guide";
   /** Remote buttons (stored). */
   chNav: boolean;
+  /** Rows a CH+ / rewind and a CH- / fast-forward page in a list (Android chNavUpSkip / chNavDownSkip, 1..1000, default 10). */
+  chNavUp: number;
+  chNavDown: number;
+  /** Settings › seek step: seconds a film winds per press and on the media keys (Android seekStepSec, default 10). */
+  seekStep: number;
+  /** Settings › "Left and right rewind live TV": with the controls hidden ◀ ▶ rewind a channel that has a guide and an archive (default off). */
+  liveLeftRightRewinds: boolean;
   liveKeys: Record<string, string>;
   /** Remember the last category / item, for live, films, series (live applied in LiveView; films and series have no TV-box screen). */
   browseLastCat: boolean[];
@@ -191,7 +198,7 @@ export const DEFAULTS: Settings = {
   fontFamily: "PLUS_JAKARTA_SANS", fontSize: 100, popupFontSize: 100, popupSize: 100, motionSpeed: "normal",
   weatherOn: true, weatherPlace: "", tempUnit: "c", navStyle: "docked", navSize: 0, navLength: 0, liveLayout: "stage", liveOpensIn: "list",
   // Android SettingsRepository: remember_cat_live / remember_last_live on, films and series off.
-  chNav: true, liveKeys: {}, browseLastCat: [true, false, false], browseLastItem: [true, false, false],
+  chNav: true, chNavUp: 10, chNavDown: 10, seekStep: 10, liveLeftRightRewinds: false, liveKeys: {}, browseLastCat: [true, false, false], browseLastItem: [true, false, false],
   extLive: false, extMovies: false, extSeries: false,
   playerClock: false, clockSize: 1, clockWeight: 1, clockBg: 1, clockColor: 0, clockAlpha: 1,
   zoomMode: "fit", afr: false, afrPause: 0, afrResolution: false,
@@ -263,6 +270,8 @@ export function applyAll(s: Settings, throttled: boolean): void {
   // The accent (Внешний вид › Акцентный цвет): the theme's own INK unless a preset or a hex is chosen.
   setVar(root, "--st-accent", accentColor(s, root.getAttribute("data-theme") !== "light"));
   applyMotion(s.motion, throttled);
+  // Remote buttons: the list paging keys (CH+/CH-, rewind/forward) follow Settings › Remote buttons in every list.
+  setChNavConfig({ enabled: s.chNav, up: s.chNavUp, down: s.chNavDown });
   // settings functions (Android): fonts, popup size, animation speed, focus highlight colour (state/look.ts).
   applyLook(s);
   setVar(root, "--st-font", fontStack(s.fontFamily));

@@ -11,6 +11,8 @@ export interface Profile {
   kids?: boolean;
   /** The profile's PIN as `salt:sha256(salt+pin)`, the Android app's form; absent when it is not locked. */
   pinHash?: string;
+  /** The picture chosen in the avatar picker (long OK on the menu's avatar): 0..6, -1 or absent = none (Android avatarId). */
+  avatar?: number;
 }
 export interface ProfileBook { profiles: Profile[]; activeId: string }
 
@@ -90,6 +92,11 @@ export function setKids(book: ProfileBook, id: string, kids: boolean): ProfileBo
     const { kids: _old, ...rest } = p;
     return kids ? { ...rest, kids: true } : rest;
   }) };
+}
+
+/** [id] with the avatar [avatar] (-1 = none). */
+export function setAvatar(book: ProfileBook, id: string, avatar: number): ProfileBook {
+  return { ...book, profiles: book.profiles.map((p) => (p.id === id ? { ...p, avatar } : p)) };
 }
 
 /** [id] under another name; an empty name changes nothing. */

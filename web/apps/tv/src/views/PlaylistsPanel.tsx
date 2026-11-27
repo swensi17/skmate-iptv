@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "preact/hooks";
-import { Drawer, focusFirst, Popup, Presence, useOwnBack } from "@skmate/ui";
+import { focusFirst, Icon, Popup, Presence, useOwnBack } from "@skmate/ui";
 import { t } from "../i18n";
 import { desktop, type CompanionPayload } from "../state/desktop";
 import { isLocal } from "../state/localFiles";
@@ -8,7 +8,7 @@ import type { Status } from "../state/usePlaylists";
 import { EditPlaylist } from "./EditPlaylist";
 import { LinkDialog } from "./LinkDialog";
 import { ChoiceList, EditorLayer, SIcon, SNote, SRow, useSheet, useSheetBack, OverSheet } from "./SettingsKit";
-import { SourceForm } from "./SourceForm";
+import { AddSourceForm, FormRow, SourceWindow } from "./AddSource";
 
 interface Props {
   store: PlaylistStore;
@@ -30,26 +30,38 @@ function sourceOf(url: string): string {
 }
 
 /**
- * Adding a playlist, as a page of the Settings sheet laid over the list (it appears in place, as pages do on Android):
- * the kinds (link, Xtream, file), the values, the button. Back closes only this page; once a playlist is added it
- * closes by itself and the list shows the new one in use.
+ * Adding a source (ManageSourcesScreen.kt): where the viewer has a phone to fill the form on (the Windows app) a first
+ * page asks "From your phone" or "Type it here" (AddSourceChooserScreen.kt); elsewhere the form opens at once. The form
+ * is a window over the screen (AddSourceScreen.kt in StageFormPage); once a playlist is added it closes by itself and
+ * the list shows the new one in use.
  */
-function AddSheet(p: { closing: boolean; busy: boolean; onAdd: (link: string) => string | null; onAddFile: (name: string, text: string) => Promise<string | null>; onClose: () => void }) {
-  const root = useRef<HTMLDivElement>(null);
-  useOwnBack(root, p.onClose);
-  useEffect(() => { focusFirst(document, "pl-kind-m3u"); }, []);
+function AddSource(p: {
+  closing: boolean; busy: boolean; chooser: boolean; onPhone: () => void; onChooser: () => void; onClose: () => void; onDone: () => void;
+  onAdd: (link: string) => string | null; onAddFile: (name: string, text: string) => Promise<string | null>;
+}) {
   return (
-    <OverSheet app>
-      <div ref={root}>
-        <Drawer variant="sheet" instant title={t("sa_settings_sources_add")} label={t("sa_settings_sources_add")} onClose={p.onClose} closing={p.closing} returnFocus>
-          <div class="st-sheet-body setting">
-            <SourceForm idPrefix="pl" busy={p.busy}
-              onSubmit={(link) => { const err = p.onAdd(link); if (!err) p.onClose(); return err; }}
-              onFile={async (name, text) => { const err = await p.onAddFile(name, text); if (!err) p.onClose(); return err; }} />
-          </div>
-        </Drawer>
-      </div>
-    </OverSheet>
+    <SourceWindow closing={p.closing} parents={p.chooser ? [t("sa_settings_playlists")] : [t("sa_setup_add_source")]} onClose={p.onClose}
+      title={p.chooser ? t("sa_setup_add_source") : t("sa_settings_add_type_here")}>
+      {p.chooser ? (
+        <ChooserRows onPhone={p.onPhone} onType={p.onChooser} />
+      ) : (
+        <AddSourceForm idPrefix="pl" busy={p.busy}
+          onSubmit={(link) => { const err = p.onAdd(link); if (!err) p.onDone(); return err; }}
+          onFile={async (name, text) => { const err = await p.onAddFile(name, text); if (!err) p.onDone(); return err; }} />
+      )}
+    </SourceWindow>
+  );
+}
+
+/** "From your phone" and "Type it here", each with its short line (AddSourceChooserScreen.kt). */
+function ChooserRows(p: { onPhone: () => void; onType: () => void }) {
+  useEffect(() => { const h = setTimeout(() => focusFirst(document, "pl-ch-phone"), 30); return () => clearTimeout(h); }, []);
+  const end = <span class="sw-chevron"><Icon name="chevron" size={20} /></span>;
+  return (
+    <div class="src-form">
+      <FormRow id="pl-ch-phone" icon="PHONE" title={t("sa_setup_from_phone")} line={t("sa_settings_line_add_from_phone")} end={end} onClick={p.onPhone} />
+      <FormRow id="pl-ch-type" icon="PENCIL" title={t("sa_settings_add_type_here")} line={t("sa_settings_line_add_type_here")} end={end} onClick={p.onType} />
+    </div>
   );
 }
 
@@ -84,7 +96,8 @@ export function PlaylistsPanel(p: Props) {
   const [editing, setEditing] = useState<string | null>(null);
   const [remote, setRemote] = useState(false);
   const [remoteError, setRemoteError] = useState<string | null>(null);
-  const [adding, setAdding] = useState(false);
+  // null: closed; "choose": the two ways (a phone or here); "type": the form.
+  const [adding, setAdding] = useState<"choose" | "type" | null>(null);
   const [actions, setActions] = useState<string | null>(null);
   const [choosing, setChoosing] = useState(false);
   const sheet = useSheet();
@@ -135,10 +148,7 @@ export function PlaylistsPanel(p: Props) {
             onOk={() => setActions(pl.id)} />
         );
       })}
-      <SRow id="pl-add-open" icon="ADD" title={t("sa_settings_sources_add")} onOk={() => setAdding(true)} />
-      {desktop() ? (
-        <SRow id="pl-remote" icon="PHONE" title={t("fromPhone")} line={t("fromPhoneWifi")} onOk={() => { setRemoteError(null); setRemote(true); }} />
-      ) : null}
+      <SRow id="pl-add-open" icon="ADD" title={t("sa_settings_sources_add")} onOk={() => setAdding(desktop() ? "choose" : "type")} />
       {choosing ? (
         <EditorLayer title={t("sa_settings_show_playlist")}>
           <ChoiceList value={p.store.activeId} options={p.store.list.map((x) => ({ value: x.id as string | null, label: x.name }))}
@@ -156,9 +166,13 @@ export function PlaylistsPanel(p: Props) {
         <EditPlaylist entry={p.store.list.find((x) => x.id === editing)!} onSave={(name, url) => p.onEdit(editing, name, url)}
           onClose={() => { const id = editing; setEditing(null); back(`pl-${id}`); }} />
       ) : null}
-      <Presence show={adding}>
+      <Presence show={adding !== null}>
         {(out) => (
-          <AddSheet closing={out} busy={p.status.kind === "loading"} onAdd={p.onAdd} onAddFile={p.onAddFile} onClose={() => setAdding(false)} />
+          <AddSource closing={out} busy={p.status.kind === "loading"} chooser={adding === "choose"}
+            onPhone={() => { setAdding(null); setRemoteError(null); setRemote(true); }} onChooser={() => setAdding("type")}
+            onClose={() => { if (adding === "type" && desktop()) { setAdding("choose"); return; } setAdding(null); setTimeout(() => back("pl-add-open"), 0); }}
+            onDone={() => setAdding(null)}
+            onAdd={p.onAdd} onAddFile={p.onAddFile} />
         )}
       </Presence>
       {remote ? (

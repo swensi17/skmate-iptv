@@ -56,7 +56,6 @@ function Picture(p: { channel: Channel; audible: boolean; hidden: boolean; setti
 /** One tile: the channel's picture, the name, the sound mark, and why it did not open. */
 function Tile(p: TileProps) {
   const down = useRef<number | null>(null);
-  const timer = useRef<ReturnType<typeof setTimeout>>();
   const retry = useRef<() => void>(() => undefined);
   const [state, setState] = useState<"loading" | "playing" | "failed">("loading");
   const live = p.channel !== null && p.refusal === null && !p.noDecoder;
@@ -64,19 +63,20 @@ function Tile(p: TileProps) {
   useEffect(() => { p.onFailed(p.index, failed); }, [failed]);
   useEffect(() => { if (!live) setState("loading"); }, [live]);
 
-  // OK held for half a second opens the tile's menu, a short OK acts on it (picks a channel, or gives it the sound).
+  // The Menu key opens the tile's menu at once. OK acts when it is let go (MultiviewScreen.kt:171-186): held 500 ms or more
+  // it opens the menu, a short OK acts on the tile (picks a channel, or gives it the sound). Info does nothing here.
   const onKeyDown = (e: KeyboardEvent) => {
-    if (e.key === "ContextMenu" || e.keyCode === 82 || e.keyCode === 457) { e.preventDefault(); p.onMenu(p.index); return; }
+    if (e.key === "ContextMenu" || e.keyCode === 82 || e.keyCode === 93) { e.preventDefault(); if (!e.repeat) p.onMenu(p.index); return; }
     if (e.key !== "Enter" && e.keyCode !== 13) return;
     e.preventDefault();
-    if (e.repeat) return;
-    down.current = Date.now();
-    timer.current = setTimeout(() => { if (down.current !== null) { down.current = null; p.onMenu(p.index); } }, LONG_PRESS_MS);
+    if (down.current === null) down.current = Date.now();
   };
   const onKeyUp = (e: KeyboardEvent) => {
     if (e.key !== "Enter" && e.keyCode !== 13) return;
-    clearTimeout(timer.current);
-    if (down.current !== null) { down.current = null; p.onOk(p.index); }
+    const at = down.current;
+    down.current = null;
+    if (at === null) return;
+    if (Date.now() - at >= LONG_PRESS_MS) p.onMenu(p.index); else p.onOk(p.index);
   };
   const message = p.refusal ?? (p.noDecoder && p.channel ? t("tbMvDecoder") : null) ?? (failed ? t("mvErrorChannel") : p.soundOnly && live ? t("mvSoundOnlyNote") : null);
   return (
@@ -115,7 +115,7 @@ function Picker(p: { channels: readonly Channel[]; favorites: ReadonlySet<string
   useEffect(() => { focusFirst(document, group === null ? "mv-pick-first" : undefined); }, [group]);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (!isBack(e)) return;
+      if (!isBack(e) || e.repeat) return; // a held Back is counted by installDpad
       e.stopPropagation(); e.preventDefault();
       if (group !== null) setGroup(null); else p.onClose();
     };
@@ -135,7 +135,7 @@ function Picker(p: { channels: readonly Channel[]; favorites: ReadonlySet<string
           </div>
         ) : (
           <VirtualList
-            key={group} items={list} rowHeight={ROW} height={760} pageSize={8} autofocus
+            key={group} items={list} rowHeight={ROW} height={760} autofocus
             idOf={(c) => `ch-${c.id}`}
             renderRow={(c, i) => <ChannelRow channel={c} index={i} favorite={isFavorite(p.favorites, c)} onOpen={p.onPick} onFav={() => undefined} />}
           />
@@ -201,7 +201,7 @@ export function MultiviewScreen(p: {
   // Back closes what is open, then leaves: the grid is thrown away and nothing keeps playing (Android's releaseAll).
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (!isBack(e) || picking !== null) return;
+      if (!isBack(e) || picking !== null || e.repeat) return; // a held Back is counted by installDpad
       e.stopPropagation(); e.preventDefault();
       if (menu !== null) { const m = menu; setMenu(null); setTimeout(() => focusFirst(document, tileId(m)), 30); } else p.onExit();
     };

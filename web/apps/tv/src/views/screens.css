@@ -223,3 +223,7 @@
 /* The channels screen: the sort is one row under the categories, saying the order in use; OK steps to the next. */
 .live .groups .gr-sort { height: 64px; margin-top: 8px; font-size: 24px; color: var(--muted); border-top: 1px solid var(--line); border-radius: 0 0 var(--radius) var(--radius); }
 .live .groups .gr-sort:focus { color: var(--focus-text); border-top-color: transparent; border-radius: var(--radius); }
+
+/* key parity home (Android): the schedule under the Search preview (Right on a channel row) */
+.sr-sched { margin: 10px 0 0 -8px; max-height: 190px; overflow-y: auto; }
+.sr-sched::-webkit-scrollbar { display: none; }

@@ -1,6 +1,6 @@
 import { Ticks } from "./views/Spinner";
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
-import { archiveUrl, canRemind, clampTiles, nextEpisode, openGrid, type Grid, type Episode, type Movie, type Show, hashPin, validPin, verifyPin, visibleTo, type Channel, type Reminder } from "@skmate/core";
+import { archiveUrl, canRemind, clampTiles, nextEpisode, previousEpisode, openGrid, type Grid, type Episode, type Movie, type Show, hashPin, validPin, verifyPin, visibleTo, type Channel, type Reminder } from "@skmate/core";
 import type { Programme } from "@skmate/epg";
 import { Icon, installDpad, Presence, watchFrames, type IconName } from "@skmate/ui";
 import { applyLanguage, loadLanguage, t, type Key } from "./i18n";
@@ -15,7 +15,8 @@ import { useUpdates } from "./state/useUpdates";
 import { useReminders } from "./state/useReminders";
 import { ProgrammeDialog, ReminderNote, ReminderPrompt } from "./views/Reminders";
 import { desktop, useFullScreen, useRecordingEnd } from "./state/desktop";
-import { addProfile, firstBook, loadBook, purgeProfile, removeProfile, renameProfile, saveBook, setKids, setPinHash, switchProfile, type ProfileBook } from "./state/scope";
+import { Avatar, AvatarPicker } from "./views/AvatarPicker";
+import { addProfile, firstBook, loadBook, purgeProfile, removeProfile, renameProfile, saveBook, setAvatar, setKids, setPinHash, switchProfile, type ProfileBook } from "./state/scope";
 import { usePlaylists } from "./state/usePlaylists";
 import { Confirm } from "./views/Confirm";
 import { PinDialog } from "./views/PinDialog";
@@ -71,7 +72,7 @@ export function App() {
   // A film or an episode full screen, and the card it was opened from.
   const [vodPlay, setVodPlay] = useState<{
     key: string; title: string; subtitle?: string; url: string; headers?: Record<string, string>; startMs: number;
-    meta: Omit<Progress, "positionMs" | "durationMs" | "at">; next?: { label: string; play: () => void } | null;
+    meta: Omit<Progress, "positionMs" | "durationMs" | "at">; next?: { label: string; play: () => void } | null; prev?: { label: string; play: () => void } | null;
   } | null>(null);
   // The multiview: several live channels on one screen; the provider's connection limit comes with it.
   const [multiview, setMultiview] = useState<{ grid: Grid; limit: number } | null>(null);
@@ -106,6 +107,9 @@ export function App() {
     return !active?.pinHash || just;
   });
   const [picking, setPicking] = useState(false);
+  // The avatar picker: long OK on the menu's avatar (Android StageRail.kt onPickAvatar). `avatarHold` times that press.
+  const [pickingAvatar, setPickingAvatar] = useState(false);
+  const avatarHold = useRef<ReturnType<typeof setTimeout> | null>(null);
   // A programme still to come, picked in the guide or the search: watch its channel or set a reminder.
   const [upcoming, setUpcoming] = useState<{ channel: Channel; programme: Programme; list: readonly Channel[] } | null>(null);
   const [note, setNote] = useState<Reminder | null>(null);
@@ -197,7 +201,7 @@ export function App() {
 
   // Back: dialog → closes, player → list, any section but the first → the first, in the first → leave the app to the TV.
   useEffect(() => installDpad(() => {
-    if (!unlocked) return true; // the lock screen stays until a PIN or another profile is chosen
+    if (!unlocked) return exitApp(); // the lock screen: Back leaves the app (Android ProfileGate has no Back handler)
     if (prompt) { rem.remove(prompt); return true; }
     if (upcoming) { setUpcoming(null); return true; }
     if (pinAsk) { setPinAsk(null); return true; }
@@ -206,6 +210,7 @@ export function App() {
     if (qr) { setQr(null); return true; }
     if (deletingProfile) { setDeletingProfile(null); return true; }
     if (picking) { setPicking(false); return true; }
+    if (pickingAvatar) { setPickingAvatar(false); setTimeout(() => document.querySelector<HTMLElement>('.tb-rail [data-focus="nav-profile"]')?.focus(), 0); return true; }
     if (multiview) return true; // the multiview takes Back itself
     if (details) { setDetails(null); return true; }
     if (sheet) { sheetBack(); return true; }
@@ -221,7 +226,7 @@ export function App() {
     if (Date.now() - backAt < EXIT_BACK_MS) return exitApp();
     setBackAt(Date.now());
     return true;
-  }), [backAt, unlocked, prompt, upcoming, pinAsk, deleting, resetting, qr, deletingProfile, picking, details, multiview, sheet, sheetPage, sheetFrom, playing, section, guideAsLive]);
+  }, () => { exitApp(); /* Back held about a second closes the app (MainActivity.kt:66-75) */ }), [backAt, unlocked, prompt, upcoming, pinAsk, deleting, resetting, qr, deletingProfile, picking, pickingAvatar, details, multiview, sheet, sheetPage, sheetFrom, playing, section, guideAsLive]);
 
   const openHere = (c: Channel, list: readonly Channel[]) => setPlaying({ list, index: Math.max(0, list.findIndex((x) => x.id === c.id)) });
   // A note at the top that goes by itself: a recording saved, an external player that did not start.
@@ -303,10 +308,12 @@ export function App() {
   const playEpisode = (show: Show, episodes: Episode[], e: Episode, startMs: number) => {
     setDetails(null);
     const n = nextEpisode(episodes, e.id);
+    const pv = previousEpisode(episodes, e.id);
     setVodPlay({
       key: progressKey(playlistId, "series", e.id), title: show.name, subtitle: `${episodeLabel(e)}${e.title ? `  ${e.title}` : ""}`, url: e.url,
       headers: e.headers, startMs, meta: { kind: "series", itemId: show.id, name: show.name, poster: show.poster, item: show, episodeId: e.id, episodeLabel: episodeLabel(e) },
       next: n ? { label: `${episodeLabel(n)}${n.title ? `  ${n.title}` : ""}`, play: () => playEpisode(show, episodes, n, 0) } : null,
+      prev: pv ? { label: `${episodeLabel(pv)}${pv.title ? `  ${pv.title}` : ""}`, play: () => playEpisode(show, episodes, pv, 0) } : null,
     });
   };
   const recents = useMemo(() => recentChannels(channels, history), [channels, history]);
@@ -511,6 +518,27 @@ export function App() {
     );
   }
 
+  // The Settings sheet (Android: the side menu's gear): over the screens and over the live picture alike.
+  const settingsLayer = (
+    <Presence show={sheet} ms={300}>
+      {(out) => (
+        <SettingsSheet
+          show={!out} page={sheetPage} onPage={(pg) => { setSheetFrom("menu"); setSheetPage(pg); }} onClose={() => setSheet(false)} onBack={sheetBack}
+          settings={settings} onChange={setSettings} store={pl.store} status={pl.status}
+          onAddPlaylist={pl.add} onAddPlaylistFile={pl.addFile} onSelectPlaylist={pl.select} onEditPlaylist={pl.update} onAskDeletePlaylist={setDeleting}
+          onAskReset={() => setResetting(true)}
+          guide={{ data: guide.data, status: guide.status, outcomes: guide.outcomes, onRefresh: () => void guide.sync(), onClear: guide.clear }}
+          channelCount={pl.channels.length} active={pl.active} headerGuides={pl.headerGuides}
+          book={book ?? firstBook("", true)} onSwitchProfile={switchTo} onAddProfile={addOne}
+          onRenameProfile={(name) => { if (book) updateBook(renameProfile(book, book.activeId, name)); }} onAskDeleteProfile={askDeleteProfile}
+          onSetPin={askNewPin} onRemovePin={removePin} onToggleKids={toggleKids} onToggleAdultLock={toggleAdultLock}
+          onQr={(name, address) => setQr({ name, address })}
+          update={update} onRedoWizard={() => { setSheet(false); setRedo(true); }} channels={channels}
+        />
+      )}
+    </Presence>
+  );
+
   if (multiview) {
     return (
       <UiContext.Provider value={ui}>
@@ -529,7 +557,7 @@ export function App() {
       <UiContext.Provider value={ui}>
         <VodPlayer
           key={vodPlay.url} title={vodPlay.title} subtitle={vodPlay.subtitle} url={vodPlay.url} headers={vodPlay.headers} startMs={vodPlay.startMs}
-          settings={settings} next={vodPlay.next}
+          settings={settings} next={vodPlay.next} prev={vodPlay.prev}
           // player functions (Android): zoom and audio/subtitle choice are remembered per film or whole series
           trackKey={`${playlistId}:${vodPlay.meta.kind}:${vodPlay.meta.itemId}`}
           onProgress={(positionMs, durationMs) => saveProgress(vodPlay.key, { ...vodPlay.meta, positionMs, durationMs, at: Date.now() })}
@@ -555,9 +583,11 @@ export function App() {
         onGo={(to) => { setSection(to); exitPlayer(); }}
         settings={liveSettings} onChangeSettings={changeFromPlayer}
         suspended={prompt !== null || upcoming !== null}
+        settingsOpen={sheet} onOpenSettings={() => openSheet(null, "menu")}
         // player functions (Android): the playlist's own "Stop retrying after"
         playlistId={playlistId}
       />
+      {settingsLayer}
       {programmeDialog}
       {prompt ? <ReminderPrompt reminder={prompt} now={Date.now()} onWatch={() => watchReminder(prompt)} onClose={() => rem.remove(prompt)} /> : null}
       {note ? <ReminderNote reminder={note} now={Date.now()} /> : null}
@@ -570,7 +600,7 @@ export function App() {
   return (
     <UiContext.Provider value={ui}>
     <GuideContext.Provider value={guideValue}>
-      <main class={`content${section === "live" ? " home-on" : ""}${railOpen ? " menu-pushed" : ""}`} onFocusIn={(e) => { const id = (e.target as HTMLElement).dataset?.focus; if (id) lastContent.current = id; }}>
+      <main class={`content${section === "live" ? " home-on" : ""}${railOpen ? " menu-pushed" : ""}${sheet ? " sheet-open" : ""}`} onFocusIn={(e) => { const id = (e.target as HTMLElement).dataset?.focus; if (id) lastContent.current = id; }}>
         {section === "live" ? (
           <LiveView
             channels={channels} favorites={favorites} status={pl.status} settings={liveSettings}
@@ -648,31 +678,28 @@ export function App() {
           ) : null}
         </div>
         {me ? (
-          <button class="tb-rail-avatar" data-focus="nav-profile" aria-label={me.guest ? t("guestName") : me.name} onClick={() => openSheet("profile", "menu")}>
-            <span>{((me.guest ? t("guestName") : me.name).trim().slice(0, 1) || "?").toUpperCase()}</span>
+          <button class={`tb-rail-avatar${me.avatar !== undefined && me.avatar >= 0 ? " pic" : ""}`} data-focus="nav-profile" aria-label={me.guest ? t("guestName") : me.name}
+            onClick={() => openSheet("profile", "menu")}
+            // OK short switches / opens the profile on the release, OK held (600 ms) opens the avatar picker (StageRail.kt onLongClick).
+            onKeyDown={(e) => {
+              if (e.key !== "Enter" && e.keyCode !== 13) return;
+              e.preventDefault();
+              if (e.repeat || avatarHold.current !== null) return;
+              avatarHold.current = setTimeout(() => { avatarHold.current = null; setPickingAvatar(true); }, 600);
+            }}
+            onKeyUp={(e) => {
+              if (e.key !== "Enter" && e.keyCode !== 13) return;
+              if (avatarHold.current !== null) { clearTimeout(avatarHold.current); avatarHold.current = null; openSheet("profile", "menu"); }
+            }}
+            onBlur={() => { if (avatarHold.current !== null) { clearTimeout(avatarHold.current); avatarHold.current = null; } }}>
+            <Avatar id={me.avatar} initial={((me.guest ? t("guestName") : me.name).trim().slice(0, 1) || "?").toUpperCase()} />
           </button>
         ) : null}
       </nav>
       {/* The clock, the date and the weather (StageStatus.kt): on every screen but Settings; the menu does not move it. */}
       {!sheet ? <HomeStatus look={settings} /> : null}
       {backAt ? <div class="toast home-exit-toast" role="status"><span>{t("homePressBackAgain")}</span></div> : null}
-      <Presence show={sheet} ms={300}>
-        {(out) => (
-          <SettingsSheet
-            show={!out} page={sheetPage} onPage={(pg) => { setSheetFrom("menu"); setSheetPage(pg); }} onClose={() => setSheet(false)} onBack={sheetBack}
-            settings={settings} onChange={setSettings} store={pl.store} status={pl.status}
-            onAddPlaylist={pl.add} onAddPlaylistFile={pl.addFile} onSelectPlaylist={pl.select} onEditPlaylist={pl.update} onAskDeletePlaylist={setDeleting}
-            onAskReset={() => setResetting(true)}
-            guide={{ data: guide.data, status: guide.status, outcomes: guide.outcomes, onRefresh: () => void guide.sync(), onClear: guide.clear }}
-            channelCount={pl.channels.length} active={pl.active} headerGuides={pl.headerGuides}
-            book={book ?? firstBook("", true)} onSwitchProfile={switchTo} onAddProfile={addOne}
-            onRenameProfile={(name) => { if (book) updateBook(renameProfile(book, book.activeId, name)); }} onAskDeleteProfile={askDeleteProfile}
-            onSetPin={askNewPin} onRemovePin={removePin} onToggleKids={toggleKids} onToggleAdultLock={toggleAdultLock}
-            onQr={(name, address) => setQr({ name, address })}
-            update={update} onRedoWizard={() => { setSheet(false); setRedo(true); }} channels={channels}
-          />
-        )}
-      </Presence>
+      {settingsLayer}
       <Presence show={picking}>
         {(out) => (
           <PlaylistPicker store={pl.store} onSelect={pl.select} onClose={() => setPicking(false)} closing={out}
@@ -683,6 +710,17 @@ export function App() {
         <UpdateDialog release={update.dialog} installing={update.state.kind === "installing"} onInstall={update.install} onLater={update.later} />
       ) : null}
       {qr ? <QrDialog name={qr.name} address={qr.address} onClose={() => setQr(null)} /> : null}
+      <Presence show={pickingAvatar && !!me}>
+        {(out) => (
+          <AvatarPicker selected={me?.avatar} initial={(((me?.guest ? t("guestName") : me?.name) ?? "").trim().slice(0, 1) || "?").toUpperCase()} closing={out}
+            onSelect={(id) => {
+              if (book && me) updateBook(setAvatar(book, me.id, id));
+              setPickingAvatar(false);
+              setTimeout(() => document.querySelector<HTMLElement>('.tb-rail [data-focus="nav-profile"]')?.focus(), 0);
+            }}
+            onClose={() => { setPickingAvatar(false); setTimeout(() => document.querySelector<HTMLElement>('.tb-rail [data-focus="nav-profile"]')?.focus(), 0); }} />
+        )}
+      </Presence>
       {doomedProfile ? (
         <Confirm
           title={t("profileDeleteTitle")} body={doomedProfile.name} confirm={t("playlistDelete")}

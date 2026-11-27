@@ -1,7 +1,7 @@
 import { useContext, useEffect, useMemo, useRef, useState } from "preact/hooks";
 import type { Channel } from "@skmate/core";
 import type { Programme } from "@skmate/epg";
-import { Icon, isBack } from "@skmate/ui";
+import { Icon, isBack, isMenuKey } from "@skmate/ui";
 import { t } from "../i18n";
 import { GuideContext } from "../state/GuideContext";
 import { useProgrammeArt, type ArtSettings, type ProgrammeArt } from "../state/tmdb";
@@ -90,6 +90,8 @@ export function GuideSide(p: {
     const stop = () => { e.preventDefault(); e.stopPropagation(); };
     if (big) { if (isBack(e) || e.key === "Enter") { stop(); if (e.type === "keydown" && !e.repeat) setBig(null); } return; }
     if (isBack(e)) { stop(); if (onDays) setOnDays(false); else p.onClose(); return; }
+    // The Menu key shows the poster, as holding OK does (LiveGuideSide.kt:448).
+    if (isMenuKey(e)) { stop(); if (art) setBig(art); return; }
     const k = e.key;
     if (onDays) {
       const i = days.indexOf(dayOf(line?.start ?? now));

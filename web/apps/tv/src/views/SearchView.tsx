@@ -198,6 +198,11 @@ export function SearchView({ channels, onOpen, vod, onOpenVod, settings }: Props
   };
   // ▲ out of the results: the first kind button that is on, not the one nearest the row.
   const onListKey = (e: KeyboardEvent) => {
+    // ▶ on a channel row reaches the schedule under the preview, as on Live TV (SearchScreen.kt:446): only when a next programme exists.
+    if ((e.key === "ArrowRight" || e.keyCode === 39) && active?.k === "ch" && (document.activeElement as HTMLElement | null)?.dataset.focus === `sr-${active.key}`) {
+      if (data.of(active.channel.id).some((x) => x.start > now)) { e.preventDefault(); e.stopPropagation(); focusFirst(document, "sr-sched-0"); }
+      return;
+    }
     if (!(e.key === "ArrowUp" || e.keyCode === 38)) return;
     const first = entries.find((x) => x.k !== "head");
     if (!first || (document.activeElement as HTMLElement | null)?.dataset.focus !== `sr-${first.key}`) return;
@@ -289,7 +294,8 @@ export function SearchView({ channels, onOpen, vod, onOpenVod, settings }: Props
               ))}
             </div>
           )}
-          {active ? <Panel entry={active} now={now} playing={playing} settings={settings} numberOf={numberOf} /> : null}
+          {active ? <Panel entry={active} now={now} playing={playing} settings={settings} numberOf={numberOf}
+            onOpen={() => goTo(active)} onBack={() => focusFirst(document, `sr-${active.key}`)} /> : null}
         </>
       )}
     </div>
@@ -358,7 +364,7 @@ function ResultRow(p: { entry: Entry; first: boolean; now: number; data: GuideDa
 }
 
 /** The right side: Live TV's preview pane for a channel (picture, what is on, how far), the poster panel for a film. */
-function Panel(p: { entry: Entry; now: number; playing: Channel | null; settings?: Settings | undefined; numberOf: Map<string, number> }) {
+function Panel(p: { entry: Entry; now: number; playing: Channel | null; settings?: Settings | undefined; numberOf: Map<string, number>; onOpen: () => void; onBack: () => void }) {
   const { data } = useContext(GuideContext);
   const e = p.entry;
   if (e.k === "ch" || e.k === "pr") {
@@ -386,6 +392,7 @@ function Panel(p: { entry: Entry; now: number; playing: Channel | null; settings
             {pr.desc ? <div class="sr-info-s">{pr.desc}</div> : null}
           </div>
         ) : null}
+        {e.k === "ch" ? <Schedule channel={c} now={p.now} onOpen={p.onOpen} onBack={p.onBack} /> : null}
       </aside>
     );
   }
@@ -406,4 +413,30 @@ function Panel(p: { entry: Entry; now: number; playing: Channel | null; settings
     );
   }
   return null;
+}
+
+/** Next and later under the preview (LiveStage.kt LiveStagePane): Left goes back to the row, Down stops on the last line; OK on one opens the channel (Search only shows, SearchScreen.kt onOpenProgramme). */
+function Schedule(p: { channel: Channel; now: number; onOpen: () => void; onBack: () => void }) {
+  const { data } = useContext(GuideContext);
+  const upcoming = useMemo(() => data.of(p.channel.id).filter((x) => x.start > p.now).sort((a, b) => a.start - b.start).slice(0, 14), [p.channel.id, data, Math.floor(p.now / 60_000)]);
+  if (upcoming.length === 0) return null;
+  const onKey = (e: KeyboardEvent) => {
+    if (e.key === "ArrowLeft" || e.keyCode === 37) { e.preventDefault(); e.stopPropagation(); p.onBack(); return; }
+    if (e.key === "ArrowRight" || e.keyCode === 39) { e.preventDefault(); e.stopPropagation(); return; }
+    const dir = e.key === "ArrowUp" || e.keyCode === 38 ? -1 : e.key === "ArrowDown" || e.keyCode === 40 ? 1 : 0;
+    if (dir === 0) return;
+    e.preventDefault(); e.stopPropagation();
+    const all = Array.from((e.currentTarget as HTMLElement).querySelectorAll<HTMLElement>("[data-focus]"));
+    const at = all.indexOf(document.activeElement as HTMLElement);
+    all[Math.max(0, Math.min(all.length - 1, at + dir))]?.focus();
+  };
+  return (
+    <div class="hp-sched sr-sched" onKeyDown={onKey as unknown as (e: Event) => void}>
+      {upcoming.map((x, i) => (
+        <button key={x.start} class={"st-focusable hp-sched-item" + (i === 0 ? " next" : "")} data-focus={"sr-sched-" + i} onClick={p.onOpen}>
+          <b>{clock(x.start)}</b>{"  "}{x.title}
+        </button>
+      ))}
+    </div>
+  );
 }

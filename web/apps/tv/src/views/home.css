@@ -12,6 +12,8 @@
 main.content.home-on { padding: 0; }
 main.content { transition: transform 300ms var(--st-ease); }
 main.content.menu-pushed { transform: translateX(84px); }
+/* The Settings sheet covers the right 37 %: what is centred on a screen with nothing else (no playlist yet) is centred in what is left of it. */
+main.content.sheet-open .screen.empty { padding-right: 37%; }
 :root[data-motion="off"] main.content { transition: none; }
 
 /* --- The side menu (StageRail.kt, TV-box strip) --- */
@@ -253,3 +255,12 @@ button.home-cat:focus, button.home-cat:focus > .st-icon, button.home-cat:focus .
 .gs-none { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; font-size: 22px; color: rgba(255, 255, 255, .7); outline: none; }
 .lrow-seen { display: flex; opacity: .55; }
 .hp-hint { margin-top: 12px; font-size: 17px; font-weight: 600; color: var(--st-accent, #0086fc); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* key parity home (Android): category long-OK menu, restore confirmation, move list */
+.home-menu .st-menu-item > svg { flex: none; width: 28px; height: 28px; margin-right: 14px; color: var(--st-muted); }
+.home-menu .st-menu-item:focus > svg { color: #121212; }
+.home-menu .st-menu-note { padding: 8px 14px 12px; font-size: 18px; font-weight: 600; color: var(--st-text); }
+.home-menu .st-menu-bullet { position: relative; padding: 0 14px 10px 36px; font-size: 17px; font-weight: 500; color: var(--st-muted); }
+.home-menu .st-menu-bullet::before { content: ""; position: absolute; left: 22px; top: 8px; width: 6px; height: 6px; border-radius: 3px; background: var(--st-muted); }
+.home-move-list { max-height: 520px; overflow-y: auto; padding-top: 18px; display: flex; flex-direction: column; gap: 6px; }
+.home-move-list .st-option-lead > svg { color: var(--st-muted); }

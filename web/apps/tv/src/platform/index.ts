@@ -16,7 +16,7 @@ interface TizenApi { tvinputdevice?: { registerKey(name: string): void } }
  */
 const TIZEN_KEYS = [
   "MediaPlayPause", "MediaPlay", "MediaPause", "MediaStop", "MediaRewind", "MediaFastForward", "MediaTrackPrevious", "MediaTrackNext",
-  "ChannelUp", "ChannelDown", "PreviousChannel", "ChannelList", "Info",
+  "ChannelUp", "ChannelDown", "PreviousChannel", "ChannelList", "Info", "Menu",
   "ColorF0Red", "ColorF1Green", "ColorF2Yellow", "ColorF3Blue",
   "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
 ];
@@ -40,21 +40,21 @@ export function registerRemoteKeys(platform: PlatformId): void {
 export type RemoteKey =
   | "up" | "down" | "left" | "right" | "ok"
   | "chUp" | "chDown" | "playPause" | "play" | "pause" | "stop" | "rewind" | "forward" | "next" | "prev"
-  | "lastChannel" | "channelList" | "info" | "red" | "green" | "yellow" | "blue"
+  | "lastChannel" | "channelList" | "info" | "menu" | "red" | "green" | "yellow" | "blue"
   | { digit: number };
 
 const CODES: Record<number, RemoteKey> = {
   38: "up", 40: "down", 37: "left", 39: "right", 13: "ok",
   427: "chUp", 428: "chDown", 33: "chUp", 34: "chDown",
   10252: "playPause", 415: "play", 19: "pause", 413: "stop", 412: "rewind", 417: "forward",
-  10232: "prev", 10233: "next", 10190: "lastChannel", 10073: "channelList", 457: "info",
+  10232: "prev", 10233: "next", 10190: "lastChannel", 10073: "channelList", 457: "info", 82: "menu", 93: "menu",
   403: "red", 404: "green", 405: "yellow", 406: "blue",
 };
 const NAMES: Record<string, RemoteKey> = {
   ArrowUp: "up", ArrowDown: "down", ArrowLeft: "left", ArrowRight: "right", Enter: "ok",
   MediaPlayPause: "playPause", MediaPlay: "play", MediaPause: "pause", MediaStop: "stop",
   MediaRewind: "rewind", MediaFastForward: "forward", MediaTrackNext: "next", MediaTrackPrevious: "prev",
-  ChannelUp: "chUp", ChannelDown: "chDown", PageUp: "chUp", PageDown: "chDown",
+  ChannelUp: "chUp", ChannelDown: "chDown", PageUp: "chUp", PageDown: "chDown", ContextMenu: "menu", Menu: "menu",
 };
 
 export function remoteKey(e: KeyboardEvent): RemoteKey | null {

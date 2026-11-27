@@ -8,8 +8,10 @@ import { t } from "../i18n";
  * (`StagePopup`, 820 wide) with the title and what to type, one field row (`StageFieldRow`: the pencil, an optional
  * [label], the text) and Cancel / Done at the bottom right. The field is focused at once, so the TV's keyboard opens
  * on it; the popup sits 40 px from the top edge (Android moves it there while the keyboard is up), so what is being
- * typed stays above the keys. OK in the field is Done, Back is Cancel. The rest of the app does not see these keys
- * while it is open, so Back never closes the settings behind it.
+ * typed stays above the keys. OK in the field is Done. Back ends the typing and keeps the text (Android: the field stops
+ * being edited, StageControls.kt:153-160); "Cancel" is the button that puts the old text back. In a search field (a
+ * [leave] handler is given) Up and Down also end the typing and move on (StageControls.kt:162-175). The rest of the app
+ * does not see these keys while it is open, so Back never closes the settings behind it.
  */
 export function TextEntry(p: {
   title: string;
@@ -18,8 +20,11 @@ export function TextEntry(p: {
   /** The field's own name above the text (Android: "Name"); without it the field shows the text alone. */
   label?: string;
   type?: "text" | "password";
-  onDone: (value: string) => void;
+  /** [how]: "ok" the Done button / OK key; "back", "up" and "down" the keys that end typing and keep the text. */
+  onDone: (value: string, how?: "ok" | "back" | "up" | "down") => void;
   onCancel: () => void;
+  /** A search field: Up / Down end the typing (Done) and the focus goes on from the field in that direction. */
+  leave?: boolean;
   /** Leaving (see `Presence`): it no longer takes keys. */
   closing?: boolean;
   /** Every change while typing (a search counts what it would find); [note] is shown under the field. */
@@ -29,7 +34,9 @@ export function TextEntry(p: {
   const [value, setValue] = useState(p.value);
   const [typing, setTyping] = useState(true);
   const input = useRef<HTMLInputElement>(null);
-  const done = () => p.onDone(value.trim());
+  const done = (how: "ok" | "back" | "up" | "down" = "ok") => p.onDone(value.trim(), how);
+  const doneRef = useRef(done);
+  doneRef.current = done;
 
   useEffect(() => {
     const el = input.current;
@@ -41,7 +48,7 @@ export function TextEntry(p: {
     const onKey = (e: KeyboardEvent) => {
       if (p.closing) return;
       const inField = document.activeElement instanceof HTMLInputElement;
-      if (isBack(e) && !(inField && e.key === "Backspace")) { e.preventDefault(); e.stopImmediatePropagation(); p.onCancel(); }
+      if (isBack(e) && !(inField && e.key === "Backspace")) { e.preventDefault(); e.stopImmediatePropagation(); doneRef.current("back"); }
     };
     const onContext = (e: MouseEvent) => { e.preventDefault(); e.stopImmediatePropagation(); p.onCancel(); };
     document.addEventListener("keydown", onKey, true);
@@ -50,7 +57,7 @@ export function TextEntry(p: {
       document.removeEventListener("keydown", onKey, true);
       document.removeEventListener("contextmenu", onContext, true);
     };
-  }, [p.onCancel, p.closing]);
+  }, [p.closing]);
 
   return (
     <OverSheet app>
@@ -71,7 +78,13 @@ export function TextEntry(p: {
               type={p.type ?? "text"} autocomplete="off" spellcheck={false} autocapitalize="off"
               onFocus={() => setTyping(true)} onBlur={() => setTyping(false)}
               onInput={(e) => { const v = (e.currentTarget as HTMLInputElement).value; setValue(v); p.onInput?.(v); }}
-              onKeyDown={(e) => { if (e.key === "Enter" || e.keyCode === 13) { e.preventDefault(); done(); } }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.keyCode === 13) { e.preventDefault(); done(); return; }
+                if (p.leave && (e.key === "ArrowUp" || e.keyCode === 38 || e.key === "ArrowDown" || e.keyCode === 40)) {
+                  e.preventDefault(); e.stopPropagation();
+                  done(e.key === "ArrowUp" || e.keyCode === 38 ? "up" : "down");
+                }
+              }}
             />
           </span>
         </label>
@@ -79,4 +92,18 @@ export function TextEntry(p: {
       </Popup>
     </OverSheet>
   );
+}
+
+/**
+ * After a search popup closed on Up or Down: the box has the focus again; the arrow is pressed on it, so the screen's own
+ * handlers send it on (Android: focusManager.moveFocus). Waits for the popup to be gone.
+ */
+export function moveFrom(id: string, dir: "up" | "down"): void {
+  setTimeout(() => {
+    const el = document.querySelector<HTMLElement>(`[data-focus="${id}"]`);
+    if (!el) return;
+    el.focus();
+    const key = dir === "up" ? "ArrowUp" : "ArrowDown";
+    el.dispatchEvent(new KeyboardEvent("keydown", { key, bubbles: true, cancelable: true }));
+  }, 40);
 }

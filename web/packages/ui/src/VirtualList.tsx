@@ -1,5 +1,6 @@
 import type { ComponentChildren } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
+import { createPager, getChNavConfig, pagingDirection } from "./chNav";
 import { centerTop, clampIndex, revealTop, visibleWindow } from "./virtual";
 
 export interface VirtualListProps<T> {
@@ -12,14 +13,15 @@ export interface VirtualListProps<T> {
   /** Row to show first (and to focus when [autofocus] is set). */
   initialIndex?: number;
   autofocus?: boolean;
-  /** How many rows PageUp / PageDown / channel +/- jump. */
+  /** Not used any more: CH+/CH- and rewind/forward page by Settings > Remote buttons (chNav.ts), as on Android. */
   pageSize?: number;
+  /** false: the paging keys do nothing here (Android's player channel panel is not wired to them). Default true. */
+  paging?: boolean;
+  /** false: a held paging key pages like a short press instead of jumping to the first / last row (the "All" list). */
+  endJump?: boolean;
   /** Rows of room kept ahead of the focused row while scrolling (Android's edgeScrollSpec keeps 1). Default 0. */
   room?: number;
 }
-
-const PAGE_UP = [33, 427]; // PageUp, webOS channel up
-const PAGE_DOWN = [34, 428];
 
 /**
  * A list of thousands of rows drawn as a handful. The rows themselves slide (never one huge layer: a TV's GPU cannot hold a 260 000 px tall texture). Focus moves between the rendered rows by the global
@@ -32,6 +34,7 @@ export function VirtualList<T>(p: VirtualListProps<T>) {
   /** The row a page jump is heading to: a second press before the first lands continues from there. */
   const heading = useRef<number | null>(null);
   const win = visibleWindow(top, p.height, p.rowHeight, p.items.length);
+  const pager = useRef(createPager());
 
   // A page jump asks for a row that may not be drawn yet: scroll first, focus once it exists.
   useEffect(() => {
@@ -52,19 +55,32 @@ export function VirtualList<T>(p: VirtualListProps<T>) {
 
   const onKeyDown = (e: KeyboardEvent) => {
     const step = e.key === "ArrowDown" ? 1 : e.key === "ArrowUp" ? -1 : 0;
-    const dir = step !== 0 ? step : PAGE_UP.includes(e.keyCode) ? -1 : PAGE_DOWN.includes(e.keyCode) ? 1 : 0;
-    if (dir === 0) return;
+    // CH+/CH- and rewind/fast-forward: swallowed here, the page happens when the key comes up (ChNavPaging.kt).
+    if (step === 0) {
+      if (p.paging !== false && pagingDirection(e) !== 0 && getChNavConfig().enabled && pager.current.down(e)) { e.preventDefault(); e.stopPropagation(); }
+      return;
+    }
     const current = (document.activeElement as HTMLElement | null)?.closest<HTMLElement>("[data-index]");
     if (!current) return;
     const from = heading.current ?? Number(current.dataset.index);
     // Up and Down walk this list row by row, however fast they come: the row to land on may not be drawn yet, and the
     // geometry of the screen would then pick something beside the list. Only past the first or last row do they leave it.
-    if (step !== 0 && (from + step < 0 || from + step > p.items.length - 1)) return;
+    if (from + step < 0 || from + step > p.items.length - 1) return;
     e.preventDefault();
     e.stopPropagation();
-    const to = clampIndex(from, step !== 0 ? step : dir * (p.pageSize ?? 10), p.items.length);
+    const to = clampIndex(from, step, p.items.length);
     heading.current = to;
     setWanted(to);
+  };
+  const onKeyUp = (e: KeyboardEvent) => {
+    if (p.paging === false || pagingDirection(e) === 0) return;
+    const current = (document.activeElement as HTMLElement | null)?.closest<HTMLElement>("[data-index]");
+    const from = heading.current ?? (current ? Number(current.dataset.index) : -1);
+    const r = pager.current.up(e, from, p.items.length - 1, p.endJump !== false);
+    if (!r.handled) return;
+    e.preventDefault();
+    e.stopPropagation();
+    if (r.to !== null && from >= 0) { heading.current = r.to; setWanted(r.to); }
   };
 
   // A wheel (or a touchpad) slides the list under the pointer; focus stays where it was until the pointer moves.
@@ -84,7 +100,7 @@ export function VirtualList<T>(p: VirtualListProps<T>) {
   }
 
   return (
-    <div class="vlist" ref={box} style={{ height: `${p.height}px` }} onFocusIn={onFocusIn} onKeyDown={onKeyDown} onWheel={onWheel}>
+    <div class="vlist" ref={box} style={{ height: `${p.height}px` }} onFocusIn={onFocusIn} onKeyDown={onKeyDown} onKeyUp={onKeyUp} onWheel={onWheel}>
       <div class="vinner">{rows}</div>
     </div>
   );

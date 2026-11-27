@@ -5,7 +5,9 @@ import { Fragment } from "preact";
 import { useContext, useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { groupsOf, type Channel } from "@skmate/core";
 import type { Programme } from "@skmate/epg";
-import { focusFirst, isBack, Menu, MenuItem, Presence, VirtualList } from "@skmate/ui";
+import { focusFirst, isBack, createPager, isMenuKey, Menu, MenuItem, pagingDirection, Presence, VirtualList } from "@skmate/ui";
+import { arrangeCategories, hideCategory, loadCategories, restoreAll, saveCategories, type CategoryState } from "../state/categories";
+import { CategoryMenu, MoveOrder, RestoreConfirm } from "./CategoryMenu";
 import { t } from "../i18n";
 import { channelKey } from "../state/favorites";
 import { scoped } from "../state/scope";
@@ -158,6 +160,11 @@ export function LiveView(p: Props) {
   const favs = useMemo(() => p.channels.filter((c) => isFavorite(p.favorites, c)), [p.channels, p.favorites]);
   const numbers = useMemo(() => new Map(p.channels.map((c, i) => [c.id, i + 1])), [p.channels]);
   const [group, setGroupState] = useState<string>(memory.group);
+  // The long-press menu of a provider category (Android CategoryContextMenu): hide, move, restore.
+  const [cats, setCatsState] = useState<CategoryState>(loadCategories);
+  const [catLayer, setCatLayer] = useState<null | { kind: "menu" | "restore" | "move"; name: string }>(null);
+  const setCats = (c: CategoryState) => { saveCategories(c); setCatsState(c); };
+  const closeCatLayer = (refocus = true) => { const n = catLayer?.name; setCatLayer(null); if (refocus && n) setTimeout(() => focusFirst(document, `g:${n}`), 0); };
   const [sort, setSortState] = useState<Sort>(loadSort);
   const [query, setQueryState] = useState(memory.query);
   const [settled, setSettled] = useState(memory.query);
@@ -165,10 +172,10 @@ export function LiveView(p: Props) {
   // A remembered provider category that this playlist no longer has: back to "All channels" (Android restores it only
   // while it still exists).
   useEffect(() => {
-    if (p.channels.length === 0 || group.charAt(0) === "~" || groups.some((g) => g.name === group)) return;
+    if (p.channels.length === 0 || group.charAt(0) === "~" || groups.some((g) => g.name === group && !cats.hidden.includes(g.name))) return;
     memory.channel = null;
     setGroup(ALL);
-  }, [groups, group]);
+  }, [groups, group, cats]);
   const setSort = (v: Sort) => { try { localStorage.setItem(SORT_KEY, v); } catch { /* this session only */ } setSortState(v); };
   const setQuery = (q: string) => { memory.query = q; memory.channel = null; setQueryState(q); };
   const [catsOpen, setCatsOpen] = useState(false);
@@ -210,9 +217,12 @@ export function LiveView(p: Props) {
     { key: RECENT, label: t("homeRecent"), count: p.recents.length },
     ...(archive.length > 0 ? [{ key: ARCHIVE, label: t("homeArchive"), count: archive.length }] : []),
     { key: ALL, label: t("homeAll"), count: p.channels.length },
-    ...groups.map((g) => ({ key: g.name, label: g.name, count: g.channels.length }))
-      .map((g, i) => ({ g, i })).sort((a, b) => interestRank(a.g.label, p.settings.interests) - interestRank(b.g.label, p.settings.interests) || a.i - b.i).map((x) => x.g),
-  ], [p.channels, favs.length, p.recents.length, archive.length, groups, p.settings.interests]);
+    ...arrangeCategories(
+      groups.map((g) => ({ key: g.name, name: g.name, label: g.name, count: g.channels.length }))
+        .map((g, i) => ({ g, i })).sort((a, b) => interestRank(a.g.label, p.settings.interests) - interestRank(b.g.label, p.settings.interests) || a.i - b.i).map((x) => x.g),
+      cats,
+    ),
+  ], [p.channels, favs.length, p.recents.length, archive.length, groups, p.settings.interests, cats]);
   const groupLabel = groupItems.find((g) => g.key === group)?.label ?? t("homeAll");
   const firstGroup = groupItems.findIndex((g) => !g.key.startsWith("~"));
   const catSearch = groupItems.length > CATEGORY_SEARCH_MIN || catQuery !== "";
@@ -281,7 +291,9 @@ export function LiveView(p: Props) {
   // app's own Back, which would leave the screen). Back in a toolbar menu closes it and returns to its tool.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (!isBack(e) || document.querySelector(".st-popup-layer[data-modal]")) return; // the text entry's own Back
+      if (!isBack(e)) return;
+      if (catLayer) { e.stopPropagation(); e.preventDefault(); if (catLayer.kind === "restore") setCatLayer({ kind: "menu", name: catLayer.name }); else closeCatLayer(); return; }
+      if (document.querySelector(".st-popup-layer[data-modal]")) return; // the text entry's own Back
       if (menu !== null) { e.stopPropagation(); e.preventDefault(); closeMenu(); return; }
       const inCats = !!(document.activeElement as HTMLElement | null)?.closest(".home-cats");
       if (!(catsOpen && inCats)) return;
@@ -291,7 +303,7 @@ export function LiveView(p: Props) {
     };
     document.addEventListener("keydown", onKey, true);
     return () => document.removeEventListener("keydown", onKey, true);
-  }, [catsOpen, catQuery, menu, shown, preview]);
+  }, [catsOpen, catQuery, menu, shown, preview, catLayer]);
 
   // The preview follows the cursor only after it has rested on a channel: listing fast must not open a stream per row.
   const onFocusChannel = (c: Channel) => {
@@ -379,7 +391,37 @@ export function LiveView(p: Props) {
     if (key(e, "ArrowDown", 40)) stop(e); // the list handles every Down it can; this one is past the last row
   };
   // The categories: ▲/▼ walk them in order and stop at the ends, ▶ closes the sheet; ◀ is left to the app (the menu).
+  const catPress = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const catPager = useRef(createPager());
+  const catEl = () => (document.activeElement as HTMLElement | null);
+  const catKeyOf = (el: HTMLElement | null) => (el?.dataset.focus?.startsWith("g:") ? el.dataset.focus.slice(2) : null);
+  /** A provider group has the menu; Favourites, All, Recent and Archive have none (LiveScreen.kt onCategoryLongSelect). */
+  const hasCatMenu = (k: string | null): k is string => k !== null && k.charAt(0) !== "~";
+  const onCatsKeyUp = (e: KeyboardEvent) => {
+    if (e.key === "Enter" || e.keyCode === 13) {
+      const k = catKeyOf(catEl());
+      if (catPress.current !== null) { clearTimeout(catPress.current); catPress.current = null; if (k !== null) pickCategory(k); }
+      return;
+    }
+    // CH+/CH-, rewind / forward move the highlight by the skip, a long press to the first / last (chNavPaging on the rail).
+    const all = Array.from((e.currentTarget as HTMLElement).querySelectorAll<HTMLElement>('[data-focus^="g:"]'));
+    const r = catPager.current.up(e, all.indexOf(catEl() as HTMLElement), all.length - 1);
+    if (!r.handled) return;
+    e.preventDefault(); e.stopPropagation();
+    if (r.to !== null) all[r.to]?.focus();
+  };
   const onCatsKey = (e: KeyboardEvent) => {
+    const k = catKeyOf(catEl());
+    if (hasCatMenu(k)) {
+      // OK held (or the Menu key) opens the category menu; a short OK picks it on the release.
+      if (isMenuKey(e)) { stop(e); if (catPress.current !== null) clearTimeout(catPress.current); catPress.current = null; setCatLayer({ kind: "menu", name: k }); return; }
+      if (e.key === "Enter" || e.keyCode === 13) {
+        stop(e);
+        if (catPress.current === null && !catLayer) catPress.current = setTimeout(() => { catPress.current = null; setCatLayer({ kind: "menu", name: k }); }, 600);
+        return;
+      }
+    }
+    if (pagingDirection(e) !== 0 && catPager.current.down(e)) { stop(e); return; }
     if (key(e, "ArrowRight", 39)) { stop(e); closeCats(); return; }
     const dir = key(e, "ArrowUp", 38) ? -1 : key(e, "ArrowDown", 40) ? 1 : 0;
     if (dir === 0) return;
@@ -440,7 +482,7 @@ export function LiveView(p: Props) {
               </div>
             ) : (
               <VirtualList
-                items={shown} rowHeight={ROW_PITCH} height={LIST_HEIGHT} pageSize={10} room={1} initialIndex={Math.max(0, back)}
+                items={shown} rowHeight={ROW_PITCH} height={LIST_HEIGHT} pageSize={10} room={1} endJump={group !== ALL} initialIndex={Math.max(0, back)}
                 idOf={(c) => `ch-${c.id}`}
                 renderRow={(c, i) => (
                   <ChannelRow variant="live" channel={c} index={i} number={numbers.get(c.id)} favorite={isFavorite(p.favorites, c)}
@@ -459,7 +501,7 @@ export function LiveView(p: Props) {
 
       {/* Built once and only slid in and out (2.6.3): no long first frame on ◀, the list and the panel move as one. */}
       {(
-          <aside class={`home-cats${catsOpen ? " open" : ""}`} aria-hidden={!catsOpen} onKeyDown={onCatsKey as unknown as (e: Event) => void}
+          <aside class={`home-cats${catsOpen ? " open" : ""}`} aria-hidden={!catsOpen} onKeyDown={onCatsKey as unknown as (e: Event) => void} onKeyUp={onCatsKeyUp as unknown as (e: Event) => void}
             onFocusIn={onCatsFocus as unknown as (e: Event) => void} onFocusOut={() => setCatFocus(null)}>
             <div class="home-cats-title">{t("homeCategories")}</div>
             <div class="home-cats-list" ref={catList}>
@@ -489,6 +531,35 @@ export function LiveView(p: Props) {
           </aside>
       )}
 
+      <Presence show={catLayer?.kind === "menu"}>
+        {(out) => (
+          <CategoryMenu name={catLayer?.name ?? ""} closing={out} onClose={() => closeCatLayer()}
+            onMove={() => setCatLayer({ kind: "move", name: catLayer?.name ?? "" })}
+            onHide={() => {
+              const n = catLayer?.name ?? "";
+              setCatLayer(null);
+              if (group === n) { memory.channel = null; setGroup(ALL); }
+              setCats(hideCategory(cats, n));
+              setTimeout(() => focusFirst(document, `g:${group === n ? ALL : group}`), 0);
+            }}
+            onRestore={() => setCatLayer({ kind: "restore", name: catLayer?.name ?? "" })} />
+        )}
+      </Presence>
+      <Presence show={catLayer?.kind === "restore"}>
+        {(out) => (
+          <RestoreConfirm name={catLayer?.name ?? ""} state={cats} closing={out}
+            onRestore={() => { setCats(restoreAll()); closeCatLayer(); }} onClose={() => setCatLayer({ kind: "menu", name: catLayer?.name ?? "" })} />
+        )}
+      </Presence>
+      <Presence show={catLayer?.kind === "move"}>
+        {(out) => {
+          const names = groupItems.filter((g) => !g.key.startsWith("~")).map((g) => g.key);
+          return (
+            <MoveOrder title={t("kp_move")} names={names} start={Math.max(0, names.indexOf(catLayer?.name ?? ""))} closing={out}
+              onCancel={() => closeCatLayer()} onSave={(order) => { setCats({ ...cats, order }); closeCatLayer(); }} />
+          );
+        }}
+      </Presence>
       <Presence show={menu === "sort"}>
         {(out) => (
           <Menu title={t("homeSortTitle")} subtitle={t("homeSortApplies")} width={560} onClose={closeMenu} closing={out} className="home-menu">

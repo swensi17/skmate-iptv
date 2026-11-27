@@ -1,7 +1,7 @@
 import { useEffect, useState } from "preact/hooks";
 import { focusFirst, Icon, Presence } from "@skmate/ui";
 import { t } from "../i18n";
-import { TextEntry } from "./TextEntry";
+import { moveFrom, TextEntry } from "./TextEntry";
 import "./screens.css";
 
 /**
@@ -83,9 +83,11 @@ export function SearchEntry(p: {
     return () => clearTimeout(id);
   }, [open, draft]);
   const begin = () => { setDraft(p.value); setOpen(true); };
-  const done = (v: string) => {
+  const done = (v: string, how: "ok" | "back" | "up" | "down" = "ok") => {
     setOpen(false);
     p.onDone(v);
+    // Back, Up and Down end the typing and leave the cursor on the box (Android: pillFocus), Up / Down then go on from it.
+    if (how !== "ok") { back(p.id); if (how !== "back") moveFrom(p.id, how); return; }
     // Once the results are drawn: the first of them, or the box again when nothing was found.
     setTimeout(() => {
       const first = v.trim() !== "" && p.results ? document.querySelector<HTMLElement>(`${p.results} [data-focus]`) : null;
@@ -105,7 +107,7 @@ export function SearchEntry(p: {
         {(out) => (
           <TextEntry title={p.entryTitle} hint={p.entryHint} value={p.value} closing={out}
             onInput={p.count ? setDraft : undefined} note={p.count ? note ?? "" : undefined}
-            onDone={done}
+            leave onDone={done}
             onCancel={() => { setOpen(false); back(p.id); }} />
         )}
       </Presence>

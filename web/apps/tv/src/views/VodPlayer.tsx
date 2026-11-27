@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
-import { NEXT_EPISODE_AT_END_MS, NEXT_EPISODE_CARD_MS, VOD_SEEK_STEP_S, type Channel } from "@skmate/core";
+import { NEXT_EPISODE_AT_END_MS, NEXT_EPISODE_CARD_MS, type Channel } from "@skmate/core";
 import { Button, focusFirst, isBack } from "@skmate/ui";
 import { t } from "../i18n";
 import { remoteKey } from "../platform";
@@ -31,6 +31,8 @@ interface Props {
   onExit: () => void;
   /** The episode after this one: its card shows 30 s before it starts, 8 s before the end (PlayerHud). */
   next?: { label: string; play: () => void } | null;
+  /** The episode before this one: the media Previous key plays it (PlaybackSession onSkipToPrevious); none = the key does nothing. */
+  prev?: { label: string; play: () => void } | null;
   /** The film, or the whole series, whose zoom and audio / subtitle choice are remembered (Android trackKey). */
   trackKey?: string;
 }
@@ -112,6 +114,8 @@ export function VodPlayer(p: Props) {
     return () => clearInterval(id);
   }, [sleepAt]);
 
+  /** Settings > seek step (default 10 s): the arrows and the media keys wind by it (PlayerHud, PlaybackSession onFastForward). */
+  const stepS = Math.max(1, p.settings.seekStep || 10);
   const seek = (by: number) => {
     const el = video.current;
     if (!el || !Number.isFinite(el.duration)) return;
@@ -126,23 +130,29 @@ export function VodPlayer(p: Props) {
       const k = remoteKey(e);
       if (dialog) { if (isBack(e)) { swallow(); setDialog(null); } return; }
       const onCard = (document.activeElement as HTMLElement | null)?.closest(".ch-next") !== null;
+      if (isBack(e) && e.repeat) return; // a held Back is counted by installDpad (about a second closes the app)
       if (isBack(e)) { swallow(); if (card) setDismissed(true); else if (shown) { clearTimeout(hide.current); setShown(false); } else leave(); return; }
       if (state === "failed" || onCard) return; // the error screen and the card have their own buttons
-      if (k === "rewind" || k === "forward") { swallow(); seek(k === "rewind" ? -VOD_SEEK_STEP_S : VOD_SEEK_STEP_S); show(); return; }
+      // With the HUD hidden any key only brings it back (Android catch box); shown, Rewind / Forward wind by the seek step.
+      if (shown && (k === "rewind" || k === "forward")) { swallow(); seek(k === "rewind" ? -stepS : stepS); wake(); return; }
+      // Media Next / Previous: the next / previous episode of the queue; Stop pauses, as the media session does (not with the HUD hidden:
+      // there any key only brings the HUD, Android's catch box takes it first).
+      if (shown && (k === "next" || k === "prev")) { swallow(); if (!e.repeat) { const to = k === "next" ? p.next : p.prev; if (to) { report(); to.play(); } } return; }
+      if (shown && k === "stop") { swallow(); if (!e.repeat && !paused) togglePause(); wake(); return; }
       if (!shown) {
         swallow();
-        if (k === "left" || k === "right") { seek(k === "left" ? -VOD_SEEK_STEP_S : VOD_SEEK_STEP_S); show("ch-seek"); return; }
+        if (k === "left" || k === "right") { seek(k === "left" ? -stepS : stepS); show("ch-seek"); return; }
         if (!e.repeat) show("ch-play");
         return;
       }
       if (k === "playPause" || k === "play" || k === "pause") { swallow(); togglePause(); wake(); return; }
       const onBar = (document.activeElement as HTMLElement | null)?.dataset.focus === "ch-seek";
-      if (onBar && (k === "left" || k === "right")) { swallow(); seek(k === "left" ? -VOD_SEEK_STEP_S : VOD_SEEK_STEP_S); wake(); return; }
+      if (onBar && (k === "left" || k === "right")) { swallow(); seek(k === "left" ? -stepS : stepS); wake(); return; }
       wake(); // the arrows between the buttons and OK on one are the page's own
     };
     document.addEventListener("keydown", onKey, true);
     return () => document.removeEventListener("keydown", onKey, true);
-  }, [state, card, shown, dialog, p.url, p.next]);
+  }, [state, card, shown, dialog, p.url, p.next, p.prev, paused, stepS]);
   useEffect(() => { if (state === "failed") { const id = setTimeout(() => focusFirst(document, "vod-retry"), 150); return () => clearTimeout(id); } return undefined; }, [state]);
   useEffect(() => () => { clearTimeout(hide.current); report(); }, []);
 
@@ -161,7 +171,7 @@ export function VodPlayer(p: Props) {
         <ClassicHud
           closing={false} chips={durMin > 0 ? [t("tbMinutes", { n: durMin })] : []} title={p.title} subtitle={p.subtitle ?? null} live={false}
           now={now} paused={paused} onBack={leave} onPlayPause={() => { togglePause(); wake(); }}
-          onRewind={() => { seek(-VOD_SEEK_STEP_S); wake(); }} onForward={() => { seek(VOD_SEEK_STEP_S); wake(); }}
+          onRewind={() => { seek(-stepS); wake(); }} onForward={() => { seek(stepS); wake(); }}
           position={pos} duration={dur}
           media={(
             <>

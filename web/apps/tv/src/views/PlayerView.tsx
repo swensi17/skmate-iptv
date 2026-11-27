@@ -1,15 +1,16 @@
 import { isFavorite } from "../state/favorites";
 import { useContext, useEffect, useMemo, useRef, useState } from "preact/hooks";
 import {
-  archiveUrl, behindLive, lagBehind, LIVE_EDGE_S, pickMirrors, startOverUrl, timeshiftPhpAlternate, VOD_SEEK_STEP_S,
+  archiveUrl, behindLive, lagBehind, LIVE_EDGE_S, pickMirrors, startOverUrl, timeshiftPhpAlternate,
   type Channel, type LiveAnchor, type SeekWindow,
 } from "@skmate/core";
 import type { Programme } from "@skmate/epg";
 import { useLogoTint } from "./logoTint";
 import { defaultZoom, itemPrefs, showAudioTile, showSubtitleTile, type ZoomMode } from "@skmate/player";
-import { Drawer, focusFirst, Icon, isBack, Presence, type IconName } from "@skmate/ui";
+import { focusFirst, Icon, isBack, Presence, type IconName } from "@skmate/ui";
 import { t } from "../i18n";
 import { remoteKey, type RemoteKey } from "../platform";
+import { liveJobRepeats, liveKeyFree, liveKeyIsCustom, liveKeyJob, type LiveJob, type LiveKeyName } from "./liveKeys";
 import { channelKey } from "../state/favorites";
 import { desktop, startRecording, stopRecording, useFullScreen, useRecording } from "../state/desktop";
 import { GuideContext } from "../state/GuideContext";
@@ -23,7 +24,6 @@ import {
   TrackDialog, TrackGlyph, useTick, useZoomStyle,
 } from "./PlayerChrome";
 import { PlayerPanel, type DockRect, type Go, type PanelTab } from "./PlayerPanel";
-import { PlayerSettingRows } from "./PlayerRows";
 import { aboutText, ProgrammePoster } from "./ProgrammeArt";
 import { StreamCorner, StreamFactsLine, useStreamFacts } from "./StreamCorner";
 import { useProgrammeArt, type ArtSettings } from "../state/tmdb";
@@ -66,6 +66,9 @@ interface Props {
   suspended?: boolean;
   /** The playlist the channels come from: its own "Stop retrying after" applies when it has one. */
   playlistId?: string;
+  /** The app's own Settings sheet is open over the picture (Android: the side menu's gear opens Settings over the live picture). */
+  settingsOpen?: boolean;
+  onOpenSettings?: () => void;
 }
 
 /** What the player can wind through now: the seekable range, else what is buffered; null before any picture. */
@@ -105,6 +108,9 @@ const RECONNECT_NOTICE_MS = 10_000;
 function archiveStepSec(repeat: number): number {
   return repeat < 8 ? 10 : repeat < 20 ? 30 : repeat < 40 ? 60 : 300;
 }
+
+/** LIVE_SCRUB_STEP_SEC: a step of the Rewind / Fast forward jobs given to a remote key (the arrows use archiveStepSec). */
+const LIVE_SCRUB_STEP_SEC = 60;
 
 /** The wall-clock moment each archive address opened by the timeline starts at (the address itself does not say). */
 const SCRUB_FROM = new Map<string, number>();
@@ -245,7 +251,7 @@ export function PlayerView(p: Props) {
   const [toolsOpen, setToolsOpenState] = useState(false);
   const setToolsOpen = (v: boolean) => { hud.current.tools = v; setToolsOpenState(v); };
   const [panel, setPanel] = useState<PanelTab | null>(null);
-  const [sheet, setSheet] = useState(false);
+  const sheet = p.settingsOpen === true;
   const [dialog, setDialog] = useState<"aspect" | "sleep" | "audio" | "subs" | null>(null);
   // Zoom (OwnTVPlayer setZoomModeByUser): each channel starts at the default zoom unless one was picked for it.
   const zoomFor = (key: string): ZoomMode => itemPrefs.get(key)?.zoom ?? defaultZoom(settings.zoomMode, settings.aspect);
@@ -314,10 +320,10 @@ export function PlayerView(p: Props) {
     if (w) { el.currentTime = Math.max(w.start, w.end - (edge.current ?? 0) - desired); setBehind(measure(el)); }
     else if (canShift) setLiveBehind(Math.round(desired));
   };
-  const scrub = (back: boolean, rep: number) => {
+  const scrub = (back: boolean, rep: number, fixedStep?: number) => {
     const now = Date.now();
     const fresh = !run || now - runAt.current > SEEK_RUN_SHOW_MS;
-    const stepS = archiveStepSec(rep);
+    const stepS = fixedStep ?? archiveStepSec(rep);
     const fromLive = back && offsetSec <= 1 && fresh;
     const applied = fromLive ? Math.max(stepS, MIN_OFFSET_SEC) : stepS;
     const base = fresh ? tick - offsetSec * 1000 : (run as { base: number }).base;
@@ -351,6 +357,8 @@ export function PlayerView(p: Props) {
     }
     togglePause();
   };
+  /** Settings > seek step (PlayerHud: player.seekStepMs); a film winds by it on the arrows and on the media keys. */
+  const seekStepS = Math.max(1, settings.seekStep || 10);
   const seekBy = (s: number) => {
     const el = video.current;
     if (!el) return;
@@ -459,7 +467,6 @@ export function PlayerView(p: Props) {
     ...(settings.multiview && !archive ? [{ id: "tb-mv", icon: "grid" as IconName, label: t("tbMultiview"), run: () => { hide(); p.onMultiview(channel); } }] : []),
     { id: "tb-sleep", icon: "clock", label: t("tbSleep"), run: () => setDialog("sleep"), active: sleepAt !== null },
     ...(full ? [{ id: "tb-full", icon: (full.on ? "fullscreen_exit" : "fullscreen") as IconName, label: t(full.on ? "fullScreenExit" : "fullScreen"), run: full.toggle }] : []),
-    { id: "tb-set", icon: "settings", label: t("playerSettings"), run: () => { hide(); setSheet(true); } },
   ];
   // 2.6.0 TvBoxRecentRow: the guide, the history, then up to 10 channels watched before this one.
   const recentRow = p.recents.filter((c) => c.id !== channel.id).slice(0, RECENT_MAX);
@@ -506,6 +513,26 @@ export function PlayerView(p: Props) {
 
   // ---- Remote keys. Capture phase: the player decides first; a panel, a dialog or the sheet takes its own. ----
   const okDownOn = useRef<string | null>(null);
+  const lastKeyDown = useRef(false);
+  const okJobHeld = useRef(false);
+  /** Runs the job the viewer gave a key; false when it cannot run here, so the key keeps its usual one (runLiveKey). */
+  const runLiveJob = (job: LiveJob, first: boolean, rep: number): boolean => {
+    const can: Partial<Record<LiveJob, () => void>> = {
+      info: () => show("tiles"),
+      list: () => openPanel("channels"),
+      history: () => openPanel("history"),
+      next: () => zap(1),
+      previous: () => zap(-1),
+      last: goPrevious,
+      pause: () => { playPause(); wake(); },
+      nothing: () => undefined,
+      ...(canScrub ? { rewind: () => scrub(true, rep, LIVE_SCRUB_STEP_SEC), forward: () => scrub(false, rep, LIVE_SCRUB_STEP_SEC) } : {}),
+    };
+    const run = can[job];
+    if (!run) return false;
+    if (first || liveJobRepeats(job)) run();
+    return true;
+  };
   useEffect(() => {
     const swallow = (e: KeyboardEvent) => { e.stopPropagation(); e.preventDefault(); };
     const onKey = (e: KeyboardEvent) => {
@@ -513,8 +540,9 @@ export function PlayerView(p: Props) {
       const shown = hud.current.shown;
       const step = hud.current.step;
       const back = isBack(e);
-      if (sheet || dialog) {
-        if (back) { swallow(e); if (dialog) setDialog(null); else setSheet(false); }
+      if (sheet) return; // the Settings sheet answers its own keys, Back included
+      if (dialog) {
+        if (back) { swallow(e); setDialog(null); }
         return;
       }
       const k: RemoteKey | null = remoteKey(e);
@@ -526,14 +554,16 @@ export function PlayerView(p: Props) {
         if (settings.directTune && !archive && state !== "failed" && offsetSec <= 1 && !e.repeat) digit(k.digit);
         return;
       }
-      if (digits !== "") {
-        if (k === "ok") { swallow(e); submit(digits); return; }
-        if (back) { swallow(e); clearTimeout(tuneTimer.current); setDigits(""); return; }
-      }
+      // A held Back is not a new Back (installDpad counts the repeats: about a second closes the app).
+      if (back && e.repeat) return;
+      // Digits waiting: OK submits them at once. Back is not handled here (Android): it leaves like any Back.
+      if (digits !== "" && k === "ok") { swallow(e); submit(digits); return; }
       // The channel keys belong to the player for its whole life.
       if (k === "chUp" || k === "next") { swallow(e); zap(1); return; }
       if (k === "chDown" || k === "prev") { swallow(e); zap(-1); return; }
-      if (k === "lastChannel") { swallow(e); goPrevious(); return; }
+      // The remote's own "last channel" key is a Remote buttons shortcut (RemoteShortcuts factory binding): off with the
+      // switch, and it runs when the key comes up (PlayerHud.kt shortcutKeyCode).
+      if (k === "lastChannel") { if (settings.chNav) { swallow(e); lastKeyDown.current = true; } return; }
       // The error screen has its own Retry; Back leaves the player.
       if (state === "failed") {
         if (back) { swallow(e); p.onExit(); return; }
@@ -543,14 +573,26 @@ export function PlayerView(p: Props) {
       }
       if (!tvLive) { classicKey(e, k, back); return; }
 
-      // The info that came up by itself: any arrow does what it does with nothing on screen (2.6.0).
-      // Watching a recording or behind live: ▲ ▼ on the info bring the timeline with its keys, not another channel
-      // (a recording left by ▲ closed the player under the viewer's hand).
-      const timeline = canScrub && (!!archive || offsetSec > 1);
-      if ((!shown || step === "info") && timeline && !back && (k === "up" || k === "down")) { swallow(e); show("seek"); return; }
+      // The info that came up by itself (2.6.0): OK opens the tiles, any arrow does what it does with nothing on screen.
+      if (shown && step === "info" && hud.current.passive && k === "ok" && !liveKeyIsCustom(settings.liveKeys, "ok")) {
+        swallow(e);
+        if (!e.repeat) show("tiles");
+        return;
+      }
       const passiveArrow = shown && step === "info" && hud.current.passive && (k === "up" || k === "down" || k === "left" || k === "right");
       if (passiveArrow) hide();
       const hidden = !shown || passiveArrow;
+      // The jobs the viewer gave OK and the arrows (Settings > Remote buttons, PlayerHud.kt:660-770).
+      if (!back && (k === "ok" || k === "up" || k === "down" || k === "left" || k === "right") && liveKeyFree(!hidden, step, k)) {
+        const name: LiveKeyName = k;
+        if (liveKeyIsCustom(settings.liveKeys, name)) {
+          swallow(e);
+          // OK runs when it is let go: a list it opens would take the release as its own OK. The arrows run at once.
+          if (name === "ok") { okJobHeld.current = true; return; }
+          // No such job here (nothing to rewind, say): the key keeps its usual job, below.
+          if (runLiveJob(liveKeyJob(settings.liveKeys, name), !e.repeat, rep)) return;
+        }
+      }
       if (back) {
         swallow(e);
         if (hidden) p.onExit();
@@ -560,10 +602,13 @@ export function PlayerView(p: Props) {
       }
       if (hidden) {
         swallow(e);
+        // ▲ ▼ change channel, a recording included (Android: canZap && isLive, the channel being live content).
         if (k === "up") { zap(1); return; }
         if (k === "down") { zap(-1); return; }
         if (k === "left" || k === "right") {
           if (canScrub && offsetSec > 1) scrub(k === "left", rep); // in the archive ◀ ▶ always move through it
+          // Settings > "Left and right rewind live TV": ◀ ▶ scrub a channel that has an archive and a guide.
+          else if (settings.liveLeftRightRewinds && canScrub && programmes.length > 0) scrub(k === "left", rep);
           else openPanel(k === "left" ? "channels" : "history");
           return;
         }
@@ -573,6 +618,8 @@ export function PlayerView(p: Props) {
         return;
       }
       if (k === "playPause" || k === "play" || k === "pause") { swallow(e); if (!e.repeat) playPause(); wake(); return; }
+      // Stop is the media session's "silence it": a pause the viewer can undo (PlaybackSession.kt onStop).
+      if (k === "stop") { swallow(e); if (!e.repeat && !paused) playPause(); wake(); return; }
       if (step === "tiles") {
         const focused = (document.activeElement as HTMLElement | null)?.dataset.focus ?? "";
         const onRow = focused.startsWith("tr-");
@@ -634,11 +681,11 @@ export function PlayerView(p: Props) {
     const classicKey = (e: KeyboardEvent, k: RemoteKey | null, back: boolean) => {
       const shown = hud.current.shown;
       if (back) { swallow(e); if (shown) hide(); else p.onExit(); return; }
-      if (k === "rewind" || k === "forward") { swallow(e); seekBy(k === "rewind" ? -VOD_SEEK_STEP_S : VOD_SEEK_STEP_S); show(); return; }
+      if (k === "rewind" || k === "forward") { swallow(e); seekBy(k === "rewind" ? -seekStepS : seekStepS); show(); return; }
       if (!shown) {
         swallow(e);
         if (k === "left" || k === "right") {
-          seekBy(k === "left" ? -VOD_SEEK_STEP_S : VOD_SEEK_STEP_S);
+          seekBy(k === "left" ? -seekStepS : seekStepS);
           show();
           setTimeout(() => focusFirst(document, "ch-seek"), 16);
           return;
@@ -650,12 +697,21 @@ export function PlayerView(p: Props) {
       }
       if (k === "playPause" || k === "play" || k === "pause") { swallow(e); playPause(); wake(); return; }
       const onBar = (document.activeElement as HTMLElement | null)?.dataset.focus === "ch-seek";
-      if (onBar && (k === "left" || k === "right")) { swallow(e); seekBy(k === "left" ? -VOD_SEEK_STEP_S : VOD_SEEK_STEP_S); wake(); return; }
+      if (onBar && (k === "left" || k === "right")) { swallow(e); seekBy(k === "left" ? -seekStepS : seekStepS); wake(); return; }
       wake(); // the rest (arrows between the buttons, OK on one) is the page's own
     };
     // OK on a tile acts on its release, and only for a press that also went down there (TvBoxLiveHud.kt:55-74).
     const onKeyUp = (e: KeyboardEvent) => {
-      if (remoteKey(e) !== "ok" || okDownOn.current === null) return;
+      const upKey = remoteKey(e);
+      if (upKey === "lastChannel" && lastKeyDown.current) { lastKeyDown.current = false; e.stopPropagation(); e.preventDefault(); goPrevious(); return; }
+      if (upKey === "ok" && okJobHeld.current) {
+        okJobHeld.current = false;
+        e.stopPropagation(); e.preventDefault();
+        const h = hud.current;
+        if (!suspended && !sheet && !dialog && h.panel === null && state !== "failed" && digits === "" && liveKeyFree(h.shown, h.step, "ok")) runLiveJob(liveKeyJob(settings.liveKeys, "ok"), true, 0);
+        return;
+      }
+      if (upKey !== "ok" || okDownOn.current === null) return;
       const id = okDownOn.current;
       okDownOn.current = null;
       const el = document.activeElement as HTMLElement | null;
@@ -868,7 +924,7 @@ export function PlayerView(p: Props) {
               closing={out} logo={<ChannelLogo channel={channel} />} chips={chips} number={number} title={channel.name} live
               now={tick} watching={archive ? archive.programme.start + position : null} epg={epgCard} paused={paused}
               onBack={() => { hide(); p.onExit(); }} onPlayPause={playPause}
-              onRewind={() => { seekBy(-VOD_SEEK_STEP_S); wake(); }} onForward={() => { seekBy(VOD_SEEK_STEP_S); wake(); }}
+              onRewind={() => { seekBy(-seekStepS); wake(); }} onForward={() => { seekBy(seekStepS); wake(); }}
               position={position} duration={archiveLength}
               media={(
                 <>
@@ -903,7 +959,7 @@ export function PlayerView(p: Props) {
             onPreview={(c, list) => { if (!startOfPanel.current) startOfPanel.current = { c: channel, list: channels }; p.onPick(c, list); }}
             onDismiss={closePanel}
             onGo={(to) => { hud.current.panel = null; setPanel(null); p.onGo(to); }}
-            onSettings={() => { startOfPanel.current = null; hud.current.panel = null; setPanel(null); setSheet(true); }}
+            onSettings={() => { startOfPanel.current = null; hud.current.panel = null; setPanel(null); p.onOpenSettings?.(); }}
             onDock={setDock}
             art={artSettings}
             // The channel's archive under the picture (2.5.3): OK on an aired programme plays it, the panel closes.
@@ -912,13 +968,6 @@ export function PlayerView(p: Props) {
         )}
       </Presence>
 
-      <Presence show={sheet}>
-        {(out) => (
-          <Drawer variant="sheet" title={t("panelSettings")} label={t("panelSettings")} closing={out} onClose={() => setSheet(false)}>
-            <div class="st-sheet-body"><SettingsFocus /><PlayerSettingRows settings={settings} onChange={p.onChangeSettings} /></div>
-          </Drawer>
-        )}
-      </Presence>
       {dialog === "aspect" ? (
         <AspectDialog value={aspect} onClose={() => setDialog(null)} onPick={(a) => { setDialog(null); pickZoom(a); }} />
       ) : null}
@@ -939,12 +988,6 @@ export function PlayerView(p: Props) {
       ) : null}
     </div>
   );
-}
-
-/** The settings sheet opens on its first row. */
-function SettingsFocus() {
-  useEffect(() => { const id = setTimeout(() => focusFirst(document, "s-engine"), 40); return () => clearTimeout(id); }, []);
-  return null;
 }
 
 /** The recently watched row under the info (2.6.0 TvBoxRecentRow): matte cards in the logo's colour, what is on. */
