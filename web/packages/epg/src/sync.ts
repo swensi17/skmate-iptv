@@ -52,6 +52,9 @@ export interface GuideSink {
 }
 
 const MATCH_CHUNK = 120;
+
+/** A name as it is, only case, spaces and ё set aside: "ТНТ4 HD" stays apart from "ТНТ4" (2.6.4). */
+export const exactName = (s: string): string => s.toLowerCase().replace(/ё/g, "е").replace(/\s+/g, " ").trim();
 const FEED_SLICE = 48 * 1024;
 
 /**
@@ -65,10 +68,12 @@ export async function syncGuides(o: SyncOptions): Promise<{ data: GuideData; out
   const until = o.now + (o.aheadMs ?? KEEP_AHEAD_MS);
   const sink = o.sink;
   const unlinked = new Map(o.channels.map((c) => [c.id, c]));
+  // Linked by a likeness of the name only: a later source that has the exact name takes them over (2.6.4).
+  const loose = new Map<string, Channel>();
   const outcomes: SourceOutcome[] = [];
 
   for (const source of o.sources) {
-    if (unlinked.size === 0 || o.isCancelled?.()) break;
+    if ((unlinked.size === 0 && loose.size === 0) || o.isCancelled?.()) break;
     const outcome: SourceOutcome = { source, ok: false, guideChannels: 0, linked: 0, programmes: 0 };
     outcomes.push(outcome);
     try {
@@ -100,14 +105,36 @@ export async function syncGuides(o: SyncOptions): Promise<{ data: GuideData; out
           for (const name of c.names) names.push({ id: c.id, name });
         }
         const index = await GuideIndex.build(names, breathe);
+        // The exact names first: a name that leads to one guide channel only.
+        const exact = new Map<string, string | null>();
+        for (const n of names) {
+          if (!n.name) continue;
+          const k = exactName(n.name);
+          const had = exact.get(k);
+          exact.set(k, had === undefined || had === n.id ? n.id : null);
+        }
+        const exactOf = (name?: string) => (name ? exact.get(exactName(name)) ?? null : null);
         const found = new Set<string>();
         const iconOf = new Map(guideChannels.filter((c) => c.icon).map((c) => [c.id, c.icon as string]));
+        // Those a likeness linked before: taken over only by this source's exact name.
+        for (const ch of Array.from(loose.values())) {
+          const id = exactOf(ch.name) ?? exactOf(ch.tvgName);
+          if (!id) continue;
+          data.links.set(ch.id, id);
+          loose.delete(ch.id);
+          found.add(id);
+          const icon = iconOf.get(id);
+          if (icon && !data.logos.has(id)) data.logos.set(id, icon);
+          outcome.linked++;
+        }
         const todo = Array.from(unlinked.values());
         for (let i = 0; i < todo.length; i += MATCH_CHUNK) {
           for (const ch of todo.slice(i, i + MATCH_CHUNK)) {
             await breathe(); // a match by name can take milliseconds: the thread is given back as soon as a slice is used
             const direct = (ch.tvgId && ids.get(ch.tvgId.toLowerCase())) || null;
-            const byName = direct ?? index.best(ch.name, AUTO_THRESHOLD)?.id ?? (ch.tvgName ? index.best(ch.tvgName, AUTO_THRESHOLD)?.id : null) ?? null;
+            const sure = direct ?? exactOf(ch.name) ?? exactOf(ch.tvgName);
+            const byName = sure ?? index.best(ch.name, AUTO_THRESHOLD)?.id ?? (ch.tvgName ? index.best(ch.tvgName, AUTO_THRESHOLD)?.id : null) ?? null;
+            if (byName && !sure) loose.set(ch.id, ch);
             if (byName) {
               data.links.set(ch.id, byName);
               unlinked.delete(ch.id);

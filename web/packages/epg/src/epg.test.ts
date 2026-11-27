@@ -192,3 +192,22 @@ describe("GuideData at the junction of programmes (android 2.6.1)", () => {
     expect(at.next?.title).toBe("third");
   });
 });
+
+describe("syncGuides: the exact name first (2.6.4)", () => {
+  const now = Date.UTC(2026, 10, 27, 10, 30);
+  const at = (ms: number) => `${new Date(ms).toISOString().replace(/[-:T]|\..*/g, "")} +0000`;
+  const guide = (id: string, name: string, title: string) =>
+    `<tv><channel id="${id}"><display-name>${name}</display-name></channel><programme start="${at(now - 600_000)}" stop="${at(now + 600_000)}" channel="${id}"><title>${title}</title></programme></tv>`;
+  it("a later guide with the exact name takes over a link made by likeness", async () => {
+    const it999 = guide("tnt4.it", "ТНТ4", "Камеди Клаб");
+    const team = guide("tnt4hd.team", "ТНТ4 HD", "Интерны");
+    const { data } = await syncGuides({
+      sources: [{ id: "a", name: "it999", url: "http://a" }, { id: "b", name: "team", url: "http://b" }],
+      channels: [ch("1", "ТНТ4 HD"), ch("2", "ТНТ4")], now,
+      open: async (url) => new Response(url === "http://a" ? it999 : team),
+    });
+    expect(data.links.get("1")).toBe("tnt4hd.team");
+    expect(data.nowNext("1", now).now?.title).toBe("Интерны");
+    expect(data.links.get("2")).toBe("tnt4.it");
+  });
+});
