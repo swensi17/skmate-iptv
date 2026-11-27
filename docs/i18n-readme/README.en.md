@@ -21,15 +21,15 @@ M3U and Xtream Codes, TV guide (EPG), catch-up, profiles — built for the remot
 <table align="center">
   <tr>
     <td align="center" valign="top" width="33%">
-      <a href="https://github.com/swensi17/skmate-iptv/releases/latest/download/SkMate-IPTV.apk"><img alt="Download the APK for Android TV" src="../brand/telegram/button-download.svg" width="170"></a><br>
+      <a href="https://github.com/swensi17/skmate-iptv/releases/latest/download/SkMate-IPTV.apk"><img alt="Download the APK for Android TV" src="../brand/telegram/button-android.svg" width="170"></a><br>
       <sub>Android TV, Google TV, Fire TV<br>APK</sub>
     </td>
     <td align="center" valign="top" width="33%">
-      <a href="https://github.com/swensi17/skmate-tv/releases/latest/download/SkMate-IPTV-tizen.wgt"><img alt="Download for Samsung" src="../brand/telegram/button-download-samsung.svg" width="170"></a><br>
+      <a href="https://github.com/swensi17/skmate-tv/releases/latest/download/SkMate-IPTV-tizen.wgt"><img alt="Download for Samsung" src="../brand/telegram/button-samsung.svg" width="170"></a><br>
       <sub>Samsung (Tizen), 2018 and newer<br>.wgt</sub>
     </td>
     <td align="center" valign="top" width="33%">
-      <a href="https://github.com/swensi17/skmate-tv/releases/latest/download/SkMate-IPTV-webos.ipk"><img alt="Download for LG" src="../brand/telegram/button-download-lg.svg" width="170"></a><br>
+      <a href="https://github.com/swensi17/skmate-tv/releases/latest/download/SkMate-IPTV-webos.ipk"><img alt="Download for LG" src="../brand/telegram/button-lg.svg" width="170"></a><br>
       <sub>LG (webOS)<br>.ipk</sub>
     </td>
   </tr>

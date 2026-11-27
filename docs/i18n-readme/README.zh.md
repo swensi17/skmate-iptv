@@ -21,15 +21,15 @@
 <table align="center">
   <tr>
     <td align="center" valign="top" width="33%">
-      <a href="https://github.com/swensi17/skmate-iptv/releases/latest/download/SkMate-IPTV.apk"><img alt="下载 Android TV 版 APK" src="../brand/telegram/button-download.svg" width="170"></a><br>
+      <a href="https://github.com/swensi17/skmate-iptv/releases/latest/download/SkMate-IPTV.apk"><img alt="下载 Android TV 版 APK" src="../brand/telegram/button-android.svg" width="170"></a><br>
       <sub>Android TV、Google TV、Fire TV<br>APK</sub>
     </td>
     <td align="center" valign="top" width="33%">
-      <a href="https://github.com/swensi17/skmate-tv/releases/latest/download/SkMate-IPTV-tizen.wgt"><img alt="下载三星版" src="../brand/telegram/button-download-samsung.svg" width="170"></a><br>
+      <a href="https://github.com/swensi17/skmate-tv/releases/latest/download/SkMate-IPTV-tizen.wgt"><img alt="下载三星版" src="../brand/telegram/button-samsung.svg" width="170"></a><br>
       <sub>三星 Samsung（Tizen），2018 年及以后<br>.wgt</sub>
     </td>
     <td align="center" valign="top" width="33%">
-      <a href="https://github.com/swensi17/skmate-tv/releases/latest/download/SkMate-IPTV-webos.ipk"><img alt="下载 LG 版" src="../brand/telegram/button-download-lg.svg" width="170"></a><br>
+      <a href="https://github.com/swensi17/skmate-tv/releases/latest/download/SkMate-IPTV-webos.ipk"><img alt="下载 LG 版" src="../brand/telegram/button-lg.svg" width="170"></a><br>
       <sub>LG（webOS）<br>.ipk</sub>
     </td>
   </tr>

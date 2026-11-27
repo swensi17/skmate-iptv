@@ -11,22 +11,22 @@
 M3U и Xtream Codes, телегид (EPG), архив, профили — управление только пультом, без рекламы и аккаунтов.</p>
 
 <p align="center">
-  <a href="https://t.me/skmates"><img alt="Канал в Telegram: @skmates" src="docs/brand/telegram/button-channel.svg" width="20%"></a><a href="https://t.me/skmatetv"><img alt="Группа в Telegram: @skmatetv" src="docs/brand/telegram/button-group.svg" width="20%"></a><a href="https://t.me/swensi17"><img alt="Связь с автором в Telegram: @swensi17" src="docs/brand/telegram/button-dm.svg" width="20%"></a><a href="https://github.com/swensi17/skmate-iptv/releases/latest/download/SkMate-IPTV.apk"><img alt="Скачать APK для Android TV" src="docs/brand/telegram/button-download.svg" width="20%"></a>
+  <a href="https://t.me/skmates"><img alt="Канал в Telegram: @skmates" src="docs/brand/telegram/button-channel.svg" width="20%"></a><a href="https://t.me/skmatetv"><img alt="Группа в Telegram: @skmatetv" src="docs/brand/telegram/button-group.svg" width="20%"></a><a href="https://t.me/swensi17"><img alt="Связь с автором в Telegram: @swensi17" src="docs/brand/telegram/button-dm.svg" width="20%"></a><a href="https://github.com/swensi17/skmate-iptv/releases/latest/download/SkMate-IPTV.apk"><img alt="Скачать APK для Android TV" src="docs/brand/telegram/button-android.svg" width="20%"></a>
 </p>
 
 <h3 align="center">Скачать</h3>
 <table align="center">
   <tr>
     <td align="center" valign="top" width="33%">
-      <a href="https://github.com/swensi17/skmate-iptv/releases/latest/download/SkMate-IPTV.apk"><img alt="Скачать APK для Android TV" src="docs/brand/telegram/button-download.svg" width="170"></a><br>
+      <a href="https://github.com/swensi17/skmate-iptv/releases/latest/download/SkMate-IPTV.apk"><img alt="Скачать APK для Android TV" src="docs/brand/telegram/button-android.svg" width="170"></a><br>
       <sub>Android TV, Google TV, Fire TV<br>APK</sub>
     </td>
     <td align="center" valign="top" width="33%">
-      <a href="https://github.com/swensi17/skmate-tv/releases/latest/download/SkMate-IPTV-tizen.wgt"><img alt="Скачать для Samsung" src="docs/brand/telegram/button-download-samsung.svg" width="170"></a><br>
+      <a href="https://github.com/swensi17/skmate-tv/releases/latest/download/SkMate-IPTV-tizen.wgt"><img alt="Скачать для Samsung" src="docs/brand/telegram/button-samsung.svg" width="170"></a><br>
       <sub>Samsung (Tizen), 2018 и новее<br>.wgt</sub>
     </td>
     <td align="center" valign="top" width="33%">
-      <a href="https://github.com/swensi17/skmate-tv/releases/latest/download/SkMate-IPTV-webos.ipk"><img alt="Скачать для LG" src="docs/brand/telegram/button-download-lg.svg" width="170"></a><br>
+      <a href="https://github.com/swensi17/skmate-tv/releases/latest/download/SkMate-IPTV-webos.ipk"><img alt="Скачать для LG" src="docs/brand/telegram/button-lg.svg" width="170"></a><br>
       <sub>LG (webOS)<br>.ipk</sub>
     </td>
   </tr>
