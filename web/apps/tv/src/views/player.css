@@ -469,3 +469,9 @@
 .tp-guide-on .tp-row-days { display: block; }
 .tp-guide-on .tp-row.opened { background: rgba(255, 255, 255, .10); box-shadow: inset 0 0 0 2px var(--st-blue); border-radius: 10px; }
 .tp-card-around { margin-top: 12px; }
+/* One layout with the channels screen (three columns off, 2.7.2): the list as wide as the screen's, the picture
+   where its preview is, the programme card under it; ▶ puts the programme in the list's place, the picture stays. */
+.tp-home .tp-list { left: 25px; width: 826px; }
+.tp-home .tp-guide { left: 25px; right: auto; width: 826px; top: 0; bottom: 0; background: var(--st-page, #1d1f23); }
+.tp-home .tp-guide .gs { left: 0; right: 0; top: 36px; bottom: 36px; width: auto; }
+.tp-home-guide .tp-list { visibility: hidden; }

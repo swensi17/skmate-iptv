@@ -437,7 +437,7 @@ export function LiveView(p: Props) {
 
   return (
     <div class="screen home">
-      <div class={`home-side${cols ? " home-3col" : ""}${catsOpen ? " pushed" : ""}${cols && guideActive ? " guide-on" : ""}`} onFocusIn={() => { if (catsRef.current) setCatsOpen(false); }}>
+      <div class={`home-side${cols ? " home-3col" : ""}${!cols && guideCh ? " home-guide" : ""}${catsOpen ? " pushed" : ""}${cols && guideActive ? " guide-on" : ""}`} onFocusIn={() => { if (catsRef.current) setCatsOpen(false); }}>
         <h1 class="home-title">{t("navLive")}</h1>
         <div class="home-list">
           <div class="home-tools" onKeyDown={onToolsKey as unknown as (e: Event) => void} onFocusIn={() => clearTimeout(timer.current)}>
@@ -477,7 +477,7 @@ export function LiveView(p: Props) {
         {/* Three columns (#760): channels, the programme of the one under the cursor, the picture. Hidden while the
             categories are open, so the sheet never covers it halfway. "Back" in it goes back to the channels. */}
         {!cols && guideCh ? (
-          <GuideSide channel={guideCh} art={artSettings} onClose={closeGuide} onLeave={leaveGuide} active={guideActive}
+          <GuideSide channel={guideCh} art={artSettings} onClose={closeGuide} onLeave={leaveGuide} active={guideActive} onLine={setLineProg}
             onWatch={(c) => { closeGuide(); clearTimeout(timer.current); p.onOpen(c, shown); }}
             onArchive={(c, prog) => { closeGuide(); p.onArchive?.(c, prog, shown); }}
             onUpcoming={(c, prog) => p.onUpcoming?.(c, prog, shown)} />
@@ -488,7 +488,7 @@ export function LiveView(p: Props) {
             onArchive={(c, prog) => { setGuideActive(false); p.onArchive?.(c, prog, shown); }}
             onUpcoming={(c, prog) => p.onUpcoming?.(c, prog, shown)} />
         ) : null}
-        <PreviewPane channel={p.paused || (!cols && guideCh) ? null : preview} away={away} settings={p.settings}
+        <PreviewPane channel={p.paused ? null : preview} away={away} settings={p.settings}
           number={preview ? numbers.get(preview.id) : undefined}
           onBack={() => focusCurrentRow()}
           onProgramme={(c, prog) => p.onUpcoming?.(c, prog, shown)} prog={guideActive ? lineProg : null} />

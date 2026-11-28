@@ -298,3 +298,6 @@ button.home-cat:focus, button.home-cat:focus > .st-icon, button.home-cat:focus .
 .home-3col .gs-day-date, .tp-mid .gs-day-date { font-size: 15px; }
 /* The catch-up tag sits in the row's top right corner: the channel's name stops short of it. */
 .lrow.has-days .lrow-name { padding-right: 70px; box-sizing: border-box; }
+/* Three columns off (2.7.2): ▶ puts the programme in the list's place, the preview stays where it is. */
+.home-guide .home-list { visibility: hidden; }
+.home-guide > .gs { left: 25.2px; width: 826.2px; top: 118px; }

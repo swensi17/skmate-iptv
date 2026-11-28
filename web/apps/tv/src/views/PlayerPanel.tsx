@@ -49,6 +49,8 @@ export interface DockRect { x: number; y: number; w: number; h: number }
 /** The picture's corner while the panel is open: right of the list (and of the categories), 36 from the top. */
 /** Three columns (2.7.1, as TiviMate): the picture's width at the right, the programme between it and the list. */
 const COLS_PICTURE_W = 560;
+/** The channels screen's preview card (home.css .hp-pane / .hp-card), in the same stage pixels. */
+const HOME_PREVIEW = { x: 882, y: 120, w: 821, h: 462 };
 const COLS_LIST_W = 440;
 const COLS_GUIDE_W = 644;
 export function dockRect(inset: number, menu: number, cols = false): DockRect {
@@ -57,8 +59,8 @@ export function dockRect(inset: number, menu: number, cols = false): DockRect {
     // The categories open beside the list take the programme column's place: the picture stays where and as big as it is.
     return { x: STAGE_W - 36 - w, y: DOCK_TOP, w, h: Math.round((w * 9) / 16) };
   }
-  const w = Math.max(0, STAGE_W - DOCK_LEFT - inset - menu - 36);
-  return { x: DOCK_LEFT + inset + menu, y: DOCK_TOP, w, h: Math.round((w * 9) / 16) };
+  // One layout with the channels screen (2.7.2): the picture exactly where and as big as the screen's preview.
+  return { x: HOME_PREVIEW.x + inset + menu, y: HOME_PREVIEW.y, w: HOME_PREVIEW.w, h: HOME_PREVIEW.h };
 }
 
 /** The category the panel was last on: reopening it lands there while the picture still plays from it. */
@@ -355,10 +357,10 @@ export function PlayerPanel(p: {
   const underBox = { left: `${dock.x}px`, top: `${underTop}px`, width: `${dock.w}px` };
   const listIndex = (c: Channel) => list.findIndex((x) => x.id === c.id);
   return (
-    <div class={`tp${p.closing ? " out" : ""}${cols ? " tp-cols" : ""}${cols && colActive ? " tp-guide-on" : ""}`} role="dialog" aria-label={title}>
+    <div class={`tp${p.closing ? " out" : ""}${cols ? " tp-cols" : " tp-home"}${!cols && guideCh ? " tp-home-guide" : ""}${cols && colActive ? " tp-guide-on" : ""}`} role="dialog" aria-label={title}>
       {guideCh ? (
         <div class="tp-guide">
-          <GuideSide channel={guideCh} art={p.art} active onClose={closeGuide} onLeave={closeGuide}
+          <GuideSide channel={guideCh} art={p.art} active onClose={closeGuide} onLeave={closeGuide} onLine={setCardProg}
             onWatch={(c) => { setGuideCh(null); p.onPick(c, list); }}
             onArchive={(c, prog) => { setGuideCh(null); p.onArchive(c, prog, list); }} />
         </div>
@@ -374,8 +376,8 @@ export function PlayerPanel(p: {
       ) : null}
       <div class={`tp-group${menuOpen ? " menu" : ""}`}>
         <div class={`tp-in${history ? " from-right" : ""}`}>
-          <div class="tp-hole" style={{ left: `${dock.x}px`, width: `${dock.w}px`, height: `${dock.h}px` }} />
-          {p.loading ? <div class="tp-spin" style={{ left: `${dock.x}px`, width: `${dock.w}px`, height: `${dock.h}px` }}><div class="spinner"><Ticks /></div></div> : null}
+          <div class="tp-hole" style={{ left: `${dock.x}px`, top: `${dock.y}px`, width: `${dock.w}px`, height: `${dock.h}px` }} />
+          {p.loading ? <div class="tp-spin" style={{ left: `${dock.x}px`, top: `${dock.y}px`, width: `${dock.w}px`, height: `${dock.h}px` }}><div class="spinner"><Ticks /></div></div> : null}
           <div class="tp-list tp-shift" style={{ transform: `translateX(${inset}px)` }}>
             <div class="tp-title">{title}</div>
             <div class="tp-rows">
@@ -420,7 +422,7 @@ export function PlayerPanel(p: {
             </div>
           ) : null}
           <div class="tp-under" style={underBox}>
-            {cols && !catsOpen && head ? <ProgCard channel={head} prog={cardProg} now={now} art={p.art} /> : head ? (
+            {(cols ? !catsOpen : true) && head ? <ProgCard channel={guideCh ?? head} prog={cardProg} now={now} art={p.art} /> : head ? (
               <PanelGuide
                 channel={head} number={ui.numbers && listIndex(head) >= 0 ? listIndex(head) + 1 : null} now={now}
                 lines={lines} first={first} art={art} at={uAt} view={view} viewH={Math.max(UNDER_HEAD, 972 - underTop)}
