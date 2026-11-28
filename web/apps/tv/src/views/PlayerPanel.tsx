@@ -31,7 +31,7 @@ const DOCK_TOP = 36;
 const CATS_W = 440;
 const MENU_W = 84;
 /** A channel row is 92 high with 4 between; the list fills the column under its title (36 + 31 + 14 above, 24 below). */
-const ROW = 96;
+const ROW = 92;
 const LIST_H = Math.floor((972 - 36 - 31 - 14 - 24) / ROW) * ROW;
 const CAT_ROW = 56;
 const CATS_H = Math.floor((972 - 30 - 50) / CAT_ROW) * CAT_ROW;
@@ -371,7 +371,7 @@ export function PlayerPanel(p: {
                     const playing = c.id === p.playing.id;
                     const counting = !playing && dwell.n > 0 && focused?.id === c.id;
                     return (
-                      <button class={`tp-row${playing ? " playing" : ""}`} data-focus={`pc-${c.id}`} onFocus={() => { setFocused(c); setUAt(null); }} onClick={() => p.onPick(c, list)}>
+                      <button class={`st-row tp-row${playing ? " playing" : ""}${i === 0 ? " st-row-first" : ""}`} data-focus={`pc-${c.id}`} onFocus={() => { setFocused(c); setUAt(null); }} onClick={() => p.onPick(c, list)}>
                         {ui.logos ? <span class="tp-row-logo"><ChannelLogo channel={c} /></span> : null}
                         <span class="tp-row-text">
                           <span class="tp-row-name">{ui.numbers ? <span class="n">{i + 1}</span> : null}<Marquee class="t" text={c.name} on={focused?.id === c.id && !colActive && guideCh === null} />{(c.catchupDays ?? 0) > 0 ? <span class="tp-row-arch"><Icon name="rewind" size={18} /></span> : null}</span>

@@ -237,18 +237,19 @@
 .tp-rows { margin-top: 14px; padding: 0; }
 .tp-rows .vlist { overflow: hidden; }
 /* A row: 92 high (4 between), padding 16, logo 72×52, focus the dark bar #3A3F45 with white text. */
-.tp-row { display: flex; align-items: center; width: 100%; height: 92px; padding: 0 28px; box-sizing: border-box; border: 0; border-radius: 4px; background: none; color: #fff; font-family: inherit; text-align: left; outline: none; cursor: pointer; }
-.tp-row:focus { background: #3a3f45; }
+.tp-row { display: flex; align-items: center; width: 100%; padding: 0 28px; color: #fff; font-family: inherit; text-align: left; outline: none; cursor: pointer; }
+/* Focus: the shared row's light plate (ui.css .st-row); the row's faint ink turns dark on it. */
+.st-row.tp-row:focus .tp-row-name .n, .st-row.tp-row:focus .tp-row-prog, .st-row.tp-row:focus .tp-row-arch, .st-row.tp-row:focus .tp-row-end.time { color: rgba(18, 18, 18, .62); }
+.st-row.tp-row:focus .tp-row-bar { background: rgba(18, 18, 18, .16); }
+.st-row.tp-row:focus .tp-row-bar i { background: #121212; }
 .tp-row-logo { flex: none; width: 72px; height: 52px; display: flex; align-items: center; justify-content: center; }
 .tp-row-logo .logo { width: 100%; height: 100%; object-fit: contain; border-radius: 0; background: none; font-size: 18px; }
 .tp-row-text { flex: 1 1 0%; min-width: 0; margin-left: 16px; }
 .tp-row-name { display: flex; font-size: 20px; font-weight: 700; line-height: 1.3; white-space: nowrap; }
 .tp-row-name .n { flex: none; margin-right: 10px; color: rgba(255, 255, 255, .55); }
-.tp-row:focus .tp-row-name .n { color: rgba(255, 255, 255, .62); }
 .tp-row-name .t { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .tp-row.playing .tp-row-name .t { color: #0086fc; }
 .tp-row-prog { margin-top: 5px; font-size: 16px; font-weight: 500; line-height: 1.3; color: rgba(255, 255, 255, .55); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.tp-row:focus .tp-row-prog { color: rgba(255, 255, 255, .62); }
 .tp-row-bar { position: relative; height: 4px; margin-top: 5px; border-radius: 2px; background: rgba(255, 255, 255, .16); overflow: hidden; }
 .tp-row-bar i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 2px; background: #fff; }
 .tp-row-end { flex: none; margin-left: 16px; display: flex; align-items: center; color: #0086fc; font-size: 15px; font-weight: 500; }
@@ -331,7 +332,6 @@
 
 /* af69acf: a channel with an archive says so beside its name (18, the row's faint ink). */
 .tp-row-arch { flex: none; display: flex; align-items: center; margin-left: 10px; color: rgba(255, 255, 255, .55); }
-.tp-row:focus .tp-row-arch { color: rgba(255, 255, 255, .62); }
 
 /* Under the picture: the name, the poster and the guide in one list that slides up as the guide is walked. */
 .tp-under-clip { position: relative; overflow: hidden; }

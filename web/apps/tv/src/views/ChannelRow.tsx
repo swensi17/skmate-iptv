@@ -105,7 +105,7 @@ export function ChannelRow(props: {
     return (
       <>
         <button
-          class="st-focusable lrow" data-focus={`ch-${channel.id}`}
+          class={`st-focusable st-row lrow${props.index === 0 ? " st-row-first" : ""}`} data-focus={`ch-${channel.id}`}
           onClick={() => props.onOpen(channel)}
           onFocus={() => { setLit(true); props.onFocus?.(channel); }}
           onBlur={() => { setLit(false); cancel(); }}

@@ -192,7 +192,7 @@ export function GuideSide(p: {
             return (
               <>
                 <button key={l.p.start} tabIndex={-1} data-focus={`gs-${i}`}
-                  class={`gs-line${live ? " gs-onair" : ""}${gone ? " gs-gone" : ""}`}
+                  class={`st-row gs-line${live ? " gs-onair" : ""}${gone ? " gs-gone" : ""}${i === 0 ? " st-row-first" : ""}`}
                   onFocus={() => { if (at !== i) { setAt(i); setOnHead(false); } }} onClick={(ev) => { if ((ev as MouseEvent).detail > 0) play(l); }}>
                   <span class="gs-at">{clock(l.p.start)}{live ? <span class="gs-live">LIVE</span> : null}</span>
                   <span class="gs-main">

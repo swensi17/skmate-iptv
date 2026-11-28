@@ -33,7 +33,7 @@ const ALL = "~all";
 const RECENT = "~recent";
 const ARCHIVE = "~archive";
 /** Row 92 + the 8 between rows (LiveScreen.kt spacedBy(8), LiveStage.kt height 92). */
-const ROW_PITCH = 100;
+const ROW_PITCH = 92;
 /** The list runs from 186 (toolbar 118 + 48 + 20) to the bottom of the stage. */
 const LIST_TOP = 186;
 const LIST_HEIGHT = 972 - LIST_TOP;

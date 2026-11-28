@@ -234,9 +234,8 @@ button.home-cat:focus, button.home-cat:focus > .st-icon, button.home-cat:focus .
 .gs-logo { width: 54px; height: 40px; display: flex; align-items: center; justify-content: center; }
 .gs-logo img { max-width: 100%; max-height: 100%; object-fit: contain; }
 .gs-name { font-size: 24px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.gs-line { width: 100%; display: flex; align-items: center; gap: 14px; padding: 10px 12px; border: 0; border-radius: 10px; background: none; color: rgba(255, 255, 255, .86); font-family: inherit; text-align: left; outline: none; }
+.gs-line { width: 100%; display: flex; align-items: center; gap: 14px; padding: 0 20px; color: rgba(255, 255, 255, .86); font-family: inherit; text-align: left; }
 .gs-line.gs-gone { color: rgba(255, 255, 255, .4); }
-.gs-line:focus { background: #fff; color: #16181d; }
 .gs-t { flex: 1; min-width: 0; font-size: 19px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .gs-arch { display: flex; opacity: .7; }
 .gs-none { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; font-size: 22px; color: rgba(255, 255, 255, .7); outline: none; }
@@ -245,7 +244,6 @@ button.home-cat:focus, button.home-cat:focus > .st-icon, button.home-cat:focus .
 
 /* 2.6.3: one day at a time, the day on top with ‹ › (as asked in the chat) */
 .gs-depth { padding: 8px 32px 4px; font-size: 16px; color: rgba(255, 255, 255, .55); }
-.gs-line { align-items: flex-start; }
 .gs-at { flex: 0 0 64px; display: flex; flex-direction: column; gap: 6px; font-size: 18px; font-variant-numeric: tabular-nums; }
 .gs-live { align-self: flex-start; padding: 2px 6px; border-radius: 6px; background: #e53935; color: #fff; font-size: 12px; font-weight: 700; }
 .gs-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }

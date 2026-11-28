@@ -429,12 +429,12 @@ label.st-field { cursor: text; }
 .vinner { position: relative; height: 100%; }
 .vrow { position: absolute; left: 0; top: 0; right: 0; transition: transform 140ms cubic-bezier(.2, 0, 0, 1); will-change: transform; }
 
-/* 2.7.1: thin lines between the rows of a list, as in a table (white 8% dark, black 8% light), 18 px in from the
-   edges, none above the first row (so none under the last). Plain pseudo-elements: drawn on the slowest TVs too. */
+/* 2.7.1: one row for every list of the app (as Android Modifier.tableRule): the channel lists, the player's panel and
+   the programme. 92 high, the table rule above it (white 8% dark, black 8% light, 20 px in from each side; none above
+   the first row, so none under the last), the light plate for focus. Plain pseudo-elements: drawn on the slowest TVs. */
 :root { --st-divider: rgba(255, 255, 255, .08); }
 :root[data-theme="light"] { --st-divider: rgba(0, 0, 0, .08); }
-.home-rows .vrow:not([data-index="0"])::before, .tp .vrow:not([data-index="0"])::before {
-  content: ""; position: absolute; left: 18px; right: 18px; top: 0; height: 1px; background: rgba(255, 255, 255, .08); background: var(--st-divider); pointer-events: none; z-index: 1; }
-.gs-line { position: relative; }
-.gs-lines .gs-line + .gs-line::before, .gs-lines .gs-about + .gs-line::before {
-  content: ""; position: absolute; left: 12px; right: 12px; top: 0; height: 1px; background: rgba(255, 255, 255, .08); background: var(--st-divider); pointer-events: none; }
+.st-row { position: relative; box-sizing: border-box; height: 92px; border: 0; border-radius: 12px; background: none; outline: none; }
+.st-row::before { content: ""; position: absolute; left: 20px; right: 20px; top: 0; height: 1px; background: rgba(255, 255, 255, .08); background: var(--st-divider); pointer-events: none; }
+.st-row.st-row-first::before, .st-row:focus::before { display: none; }
+.st-row:focus { background: #fff; color: #121212; }
