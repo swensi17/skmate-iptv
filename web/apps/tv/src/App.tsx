@@ -241,6 +241,9 @@ export function App() {
   const [flash, setFlash] = useState<{ icon: IconName; text: string } | null>(null);
   // The TV's shell moved to a new build over the air (platform/shell): told once, then forgotten (2.7.1).
   useEffect(() => {
+    // The shell (fixed in the installed package) looks for an update this long after start: 45 s was too late for a
+    // viewer who opens the app for a minute (#923, #934), the update never came. Read by the shell from 2.7.1 on.
+    try { localStorage.setItem("skmate.ota.checkAfter", "8000"); } catch { /* storage off */ }
     let v: string | null = null;
     try { v = localStorage.getItem("skmate.ota.updated"); if (v) localStorage.removeItem("skmate.ota.updated"); } catch { /* none */ }
     if (v) setTimeout(() => setFlash({ icon: "refresh", text: t("otaUpdated", { v }) }), 1500);

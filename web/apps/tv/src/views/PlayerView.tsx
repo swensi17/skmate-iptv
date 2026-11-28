@@ -163,12 +163,17 @@ export function PlayerView(p: Props) {
   const tuneSecs = (p.playlistId ? settings.tuneTimeoutPerPlaylist[p.playlistId] : undefined) ?? settings.tuneTimeout;
   const itemKey = channelKey(channel);
   // #772: a channel whose own-decoder stream has audio tracks the TV does not tell is reopened on hls.js for a track.
-  const [engineOverride, setEngineOverride] = useState<"hls" | "avplay" | null>(null);
+  const [engineOverride, setEngineOverride] = useState<"hls" | "avplay" | null>(() => {
+    try { return onTizen && !archive && localStorage.getItem(`skmate.avplay.${channelKey(channel)}`) === "1" ? "avplay" : null; } catch { return null; }
+  });
   /** "Sound" on Samsung for a raw stream: AVPlay is opened, the choice shows once it lists the tracks (#822). */
   const [avAsk, setAvAsk] = useState(false);
   const [pendingAudio, setPendingAudio] = useState<TrackOption | null>(null);
   const [renditions, setRenditions] = useState<TrackOption[]>([]);
-  useEffect(() => { setEngineOverride(null); setPendingAudio(null); setRenditions([]); setAvAsk(false); }, [channel.id, archive?.url]);
+  // A channel whose sound was picked on Samsung's player opens on it again, so the remembered track applies (#935).
+  const avKey = `skmate.avplay.${itemKey}`;
+  const avRemembered = () => { try { return onTizen && !archive && localStorage.getItem(avKey) === "1"; } catch { return false; } };
+  useEffect(() => { setEngineOverride(avRemembered() ? "avplay" : null); setPendingAudio(null); setRenditions([]); setAvAsk(false); }, [channel.id, archive?.url]);
   const { state, engine, paused, retry, togglePause, tracks, selectAudio, selectSubtitle, reason, facts: engineFacts } = usePlayback(video, target, {
     engine: engineOverride ?? settings.engine, openTimeoutMs: settings.openTimeout * 1000, autoRestart: settings.autoRestart,
     // A recording is played like a film: Settings › films and archive buffer (0 = Auto, hls.js' own); live keeps the live delay.
@@ -1000,6 +1005,7 @@ export function PlayerView(p: Props) {
             setDialog(null);
             if (dialog !== "audio") { selectSubtitle(x); return; }
             if (!x) return;
+            if (engine === "avplay") { try { localStorage.setItem(avKey, "1"); } catch { /* not remembered */ } }
             if (tracks.audio.length > 1) selectAudio(x);
             else { setPendingAudio(x); setEngineOverride("hls"); } // the TV's decoder cannot switch: hls.js can
           }} />

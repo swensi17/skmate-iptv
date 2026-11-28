@@ -19,7 +19,7 @@
   var STATE = "skmate.ota.v1";
   var DB = "skmate-ota";
   var HOLD_MS = 20000;
-  var CHECK_AFTER_MS = 45000;
+  var CHECK_AFTER_MS = 8000;
   var SOURCES = ["https://skmate.uz/update.json", "https://swensi17.github.io/skmate-tv/update.json"];
   /**
    * The author's Ed25519 key: update.json is { payload, sig } and only a payload signed by its private half (kept
