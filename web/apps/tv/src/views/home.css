@@ -288,3 +288,4 @@ button.home-cat:focus, button.home-cat:focus > .st-icon, button.home-cat:focus .
 .home-3col.guide-on .lrow > .logo-tile { width: 120px; height: 84px; margin: 0; }
 :root[data-motion="off"] .home-3col .home-list, :root[data-motion="off"] .home-3col > .gs { transition: none; }
 .gs-t { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.home-3col.guide-on .lrow.opened { background: rgba(255, 255, 255, .10); box-shadow: inset 0 0 0 2px var(--st-blue); border-radius: 10px; }

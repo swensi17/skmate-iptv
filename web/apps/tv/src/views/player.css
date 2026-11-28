@@ -470,3 +470,4 @@
 :root[data-motion="off"] .tp-cols .tp-list, :root[data-motion="off"] .tp-cols .tp-mid { transition: none; }
 .tp-row-days { display: none; }
 .tp-guide-on .tp-row-days { display: block; }
+.tp-guide-on .tp-row.opened { background: rgba(255, 255, 255, .10); box-shadow: inset 0 0 0 2px var(--st-blue); border-radius: 10px; }

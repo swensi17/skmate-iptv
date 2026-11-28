@@ -44,6 +44,8 @@ export function ChannelRow(props: {
   number?: number;
   /** "live": this channel is in the preview beside the list (the blue pause mark). */
   previewing?: boolean;
+  /** The channel whose programme the column shows (three columns, list squeezed to logos). */
+  opened?: boolean;
   /** Watched before (2.6.0): the history mark at the row's end. */
   watched?: boolean;
 }) {
@@ -105,7 +107,7 @@ export function ChannelRow(props: {
     return (
       <>
         <button
-          class={`st-focusable st-row lrow${props.index === 0 ? " st-row-first" : ""}`} data-focus={`ch-${channel.id}`}
+          class={`st-focusable st-row lrow${props.index === 0 ? " st-row-first" : ""}${props.opened ? " opened" : ""}`} data-focus={`ch-${channel.id}`}
           onClick={() => props.onOpen(channel)}
           onFocus={() => { setLit(true); props.onFocus?.(channel); }}
           onBlur={() => { setLit(false); cancel(); }}

@@ -199,6 +199,7 @@ export function LiveView(p: Props) {
   // 2.6.7: the programme is a column in the preview's place; the list stays. ◀ from it back to the list, the column
   // following the channel the list is on; ▶ into it again; ◀ on the list (or Back) closes it.
   const [guideActive, setGuideActive] = useState(false);
+  const [lineProg, setLineProg] = useState<Programme | null>(null);
   // The list stays shrunk only while the focus is in the programme column (its days included).
   useFocusInside(guideActive, ".gs", () => setGuideActive(false));
   const guideFollow = useRef<ReturnType<typeof setTimeout>>();
@@ -457,7 +458,7 @@ export function LiveView(p: Props) {
                 idOf={(c) => `ch-${c.id}`}
                 renderRow={(c, i) => (
                   <ChannelRow variant="live" channel={c} index={i} number={numbers.get(c.id)} favorite={isFavorite(p.favorites, c)}
-                    previewing={playing === c.id} watched={watchedIds.has(c.id)}
+                    previewing={playing === c.id} opened={guideActive && (guideCh ?? preview)?.id === c.id} watched={watchedIds.has(c.id)}
                     onOpen={(ch) => { clearTimeout(timer.current); p.onOpen(ch, shown); }} onFav={p.onFav} onFocus={onFocusChannel} />
                 )}
               />
@@ -467,7 +468,7 @@ export function LiveView(p: Props) {
         {/* Three columns (#760): channels, the programme of the one under the cursor, the picture. Hidden while the
             categories are open, so the sheet never covers it halfway. "Back" in it goes back to the channels. */}
         {(guideCh ?? preview) && !catsOpen ? (
-          <GuideSide channel={(guideCh ?? preview) as Channel} art={artSettings} onClose={leaveGuide} onLeave={leaveGuide} active={guideActive}
+          <GuideSide channel={(guideCh ?? preview) as Channel} art={artSettings} onClose={leaveGuide} onLeave={leaveGuide} active={guideActive} onLine={setLineProg}
             onWatch={(c) => { setGuideActive(false); clearTimeout(timer.current); p.onOpen(c, shown); }}
             onArchive={(c, prog) => { setGuideActive(false); p.onArchive?.(c, prog, shown); }}
             onUpcoming={(c, prog) => p.onUpcoming?.(c, prog, shown)} />
@@ -475,7 +476,7 @@ export function LiveView(p: Props) {
         <PreviewPane channel={p.paused ? null : preview} away={away} settings={p.settings}
           number={preview ? numbers.get(preview.id) : undefined}
           onBack={() => focusCurrentRow()}
-          onProgramme={(c, prog) => p.onUpcoming?.(c, prog, shown)} />
+          onProgramme={(c, prog) => p.onUpcoming?.(c, prog, shown)} prog={guideActive ? lineProg : null} />
       </div>
 
       {/* Built once and only slid in and out (2.6.3): no long first frame on ◀, the list and the panel move as one. */}

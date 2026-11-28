@@ -375,7 +375,7 @@ export function PlayerPanel(p: {
                     const playing = c.id === p.playing.id;
                     const counting = !playing && dwell.n > 0 && focused?.id === c.id;
                     return (
-                      <button class={`st-row tp-row${playing ? " playing" : ""}${i === 0 ? " st-row-first" : ""}`} data-focus={`pc-${c.id}`} onFocus={() => { setFocused(c); setUAt(null); }} onClick={() => p.onPick(c, list)}>
+                      <button class={`st-row tp-row${playing ? " playing" : ""}${head?.id === c.id ? " opened" : ""}${i === 0 ? " st-row-first" : ""}`} data-focus={`pc-${c.id}`} onFocus={() => { setFocused(c); setUAt(null); }} onClick={() => p.onPick(c, list)}>
                         {ui.logos ? <span class="tp-row-logo"><ChannelLogo channel={c} /></span> : null}
                         <span class="tp-row-text">
                           <span class="tp-row-name">{ui.numbers ? <span class="n">{i + 1}</span> : null}<Marquee class="t" text={c.name} on={focused?.id === c.id && !colActive && guideCh === null} />{(c.catchupDays ?? 0) > 0 ? <span class="tp-row-arch"><Icon name="rewind" size={18} /></span> : null}</span>

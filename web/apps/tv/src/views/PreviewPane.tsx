@@ -43,10 +43,20 @@ export function PreviewPane(p: {
   onBack?: () => void;
   /** OK on a programme of the schedule. */
   onProgramme?: (c: Channel, programme: Programme) => void;
+  /** The programme the remote is on in the programme column: shown in place of what is on now. */
+  prog?: Programme | null;
 }) {
   const { channel, away, settings } = p;
   const { data, now } = useContext(GuideContext);
   const nn = channel ? data.nowNext(channel.id, now) : null;
+  const pick = p.prog && channel ? p.prog : null;
+  const [pickDesc, setPickDesc] = useState<string | undefined>(undefined);
+  useEffect(() => {
+    let live = true;
+    setPickDesc(pick?.desc);
+    if (pick && channel) data.describe(channel.id, pick).then((d) => { if (live) setPickDesc(d); });
+    return () => { live = false; };
+  }, [pick?.start, channel?.id]);
   // The stream of the preview: only for the channel the cursor is still on, after the rest; any move releases it.
   const [rested, setRested] = useState<string | null>(null);
   useEffect(() => {
@@ -122,8 +132,15 @@ export function PreviewPane(p: {
         <div class="hp-ring" />
       </div>
       <div class="hp-info">
-        {channel && !nn?.now ? (textWait ? <TextSkeleton /> : <NoGuide />) : null}
-        {nn?.now ? (
+        {pick ? (
+          <>
+            <div class="hp-title">{pick.title}</div>
+            <div class="hp-details">{t("homeTimeRange", { a: clock(pick.start), b: clock(pick.stop) })}</div>
+            {pickDesc ? <div class="hp-desc">{pickDesc}</div> : null}
+          </>
+        ) : null}
+        {!pick && channel && !nn?.now ? (textWait ? <TextSkeleton /> : <NoGuide />) : null}
+        {!pick && nn?.now ? (
           <>
             <div class="hp-title">{nn.now.title}</div>
             <div class="hp-details">{t("homeTimeRange", { a: clock(nn.now.start), b: clock(nn.now.stop) })}</div>
