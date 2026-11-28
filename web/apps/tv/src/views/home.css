@@ -281,7 +281,8 @@ button.home-cat:focus, button.home-cat:focus > .st-icon, button.home-cat:focus .
 .home-3col .home-list, .home-3col > .gs { transition: width 260ms var(--st-ease), left 260ms var(--st-ease); }
 .home-3col.guide-on .home-list { width: 150px; }
 .home-3col.guide-on > .gs { left: 199px; width: 839px; }
-.home-3col.guide-on .home-tools { visibility: hidden; }
+.home-3col .home-tools { transition: opacity 200ms var(--st-ease, ease), visibility 0s; }
+.home-3col.guide-on .home-tools { opacity: 0; visibility: hidden; pointer-events: none; transition: opacity 200ms var(--st-ease, ease), visibility 0s 200ms; }
 .home-3col.guide-on .lrow-text, .home-3col.guide-on .lrow-end, .home-3col.guide-on .lrow-num { display: none; }
 /* Shrunk: the channel's logo, bigger and in the middle, and the blue archive tag. */
 :root[data-motion="off"] .home-3col .home-list, :root[data-motion="off"] .home-3col > .gs { transition: none; }
