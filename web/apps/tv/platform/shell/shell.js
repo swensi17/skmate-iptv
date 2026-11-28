@@ -21,6 +21,27 @@
   var HOLD_MS = 20000;
   var CHECK_AFTER_MS = 45000;
   var SOURCES = ["https://skmate.uz/update.json", "https://swensi17.github.io/skmate-tv/update.json"];
+  /**
+   * The author's Ed25519 key: update.json is { payload, sig } and only a payload signed by its private half (kept
+   * offline by the author, never in git) is ever downloaded or run. A site or domain taken over cannot push code.
+   */
+  var PUBLIC_KEY = "wH/bZZAXVNmtBjdxZbse/jcicgr9Djc071sEZDLOCyY=";
+
+  function b64(s) { var bin = atob(s); var out = new Uint8Array(bin.length); for (var i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i); return out; }
+  function utf8(s) {
+    if (typeof TextEncoder === "function") return new TextEncoder().encode(s);
+    var bin = unescape(encodeURIComponent(s)); var out = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+    return out;
+  }
+  /** The manifest inside a signed update.json, or null when it is not signed by the author's key. */
+  function opened(signed, nacl, key) {
+    try {
+      if (!signed || typeof signed.payload !== "string" || typeof signed.sig !== "string") return null;
+      if (!nacl.sign.detached.verify(utf8(signed.payload), b64(signed.sig), b64(key || PUBLIC_KEY))) return null;
+      return JSON.parse(signed.payload);
+    } catch (e) { return null; }
+  }
 
   // ---------- state ----------
   function readState(store) {
@@ -251,7 +272,8 @@
         return getFile(d, chosen.build.build + "/@manifest").then(function (mb) {
           if (!mb) throw new Error("no manifest");
           return new Response(mb).text().then(function (t) {
-            var m = JSON.parse(t);
+            var m = opened(JSON.parse(t), root.nacl);
+            if (!m || m.build !== chosen.build.build) throw new Error("kept manifest not signed");
             if (chosen.trial) {
               s.tries += 1; writeState(store, s);
               // Told once by the app on this start: "Updated to X.Y.Z".
@@ -291,13 +313,14 @@
       // A test or a mirror may name another address (never needed by viewers).
       var own = store.getItem("skmate.ota.source");
       var sources = own ? [own] : SOURCES;
-      getJson(sources).then(function (m) {
+      getJson(sources).then(function (signed) {
+        var m = opened(signed, root.nacl);
         var s2 = readState(store);
         if (!wanted(m, s2, Math.max(run, (s2.current && s2.current.build) || 0))) return null;
         var base = sources[0].replace(/update\.json(\?.*)?$/, "");
         var other = (sources[1] || sources[0]).replace(/update\.json(\?.*)?$/, "");
         return download(m, base).catch(function () { return download(m, other); }).then(function (files) {
-          files["@manifest"] = new Blob([JSON.stringify(m)]);
+          files["@manifest"] = new Blob([JSON.stringify(signed)]);
           return dbp.then(function (d) { return putFiles(d, m.build, files); }).then(function () {
             var s3 = readState(store);
             s3.candidate = { build: m.build, version: m.version };
@@ -309,6 +332,6 @@
     }
   }
 
-  root.__skmateShell = { SHELL: SHELL, readState: readState, pick: pick, promote: promote, fail: fail, wanted: wanted, sha256: sha256, rewrite: rewrite };
+  root.__skmateShell = { SHELL: SHELL, opened: opened, readState: readState, pick: pick, promote: promote, fail: fail, wanted: wanted, sha256: sha256, rewrite: rewrite };
   if (!root.__SKMATE_TEST__ && root.document) boot();
 })(typeof window !== "undefined" ? window : globalThis);
