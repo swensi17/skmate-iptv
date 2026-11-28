@@ -145,8 +145,8 @@ const KEY_ACTIONS: Key[] = [
 ];
 /** The usual action of each key on a channel (LiveKeyLabels.kt): OK info, ▲ ▼ next/previous, ◀ ▶ list/history. */
 const LIVE_KEYS: Array<[string, Key, Key]> = [
-  ["ok", "sa_settings_live_key_ok", "sa_settings_live_key_action_info"], ["up", "sa_settings_live_key_up", "sa_settings_live_key_action_previous"],
-  ["down", "sa_settings_live_key_down", "sa_settings_live_key_action_next"], ["left", "sa_settings_live_key_left", "sa_settings_live_key_action_list"],
+  ["ok", "sa_settings_live_key_ok", "sa_settings_live_key_action_info"], ["up", "sa_settings_live_key_up", "sa_settings_live_key_action_next"],
+  ["down", "sa_settings_live_key_down", "sa_settings_live_key_action_previous"], ["left", "sa_settings_live_key_left", "sa_settings_live_key_action_list"],
   ["right", "sa_settings_live_key_right", "sa_settings_live_key_action_history"],
 ];
 

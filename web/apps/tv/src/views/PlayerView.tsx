@@ -6,7 +6,7 @@ import {
 } from "@skmate/core";
 import type { Programme } from "@skmate/epg";
 import { useLogoTint } from "./logoTint";
-import { defaultZoom, itemPrefs, showAudioTile, showSubtitleTile, type ZoomMode } from "@skmate/player";
+import { audioRenditions, defaultZoom, itemPrefs, showAudioTile, type TrackOption, showSubtitleTile, type ZoomMode } from "@skmate/player";
 import { Drawer, focusFirst, Icon, isBack, Presence, type IconName } from "@skmate/ui";
 import { t } from "../i18n";
 import { remoteKey, type RemoteKey } from "../platform";
@@ -160,8 +160,13 @@ export function PlayerView(p: Props) {
   // Android "Stop retrying after": the playlist's own value, else the setting (0 = never); live only (LiveTuneController).
   const tuneSecs = (p.playlistId ? settings.tuneTimeoutPerPlaylist[p.playlistId] : undefined) ?? settings.tuneTimeout;
   const itemKey = channelKey(channel);
+  // #772: a channel whose own-decoder stream has audio tracks the TV does not tell is reopened on hls.js for a track.
+  const [engineOverride, setEngineOverride] = useState<"hls" | null>(null);
+  const [pendingAudio, setPendingAudio] = useState<TrackOption | null>(null);
+  const [renditions, setRenditions] = useState<TrackOption[]>([]);
+  useEffect(() => { setEngineOverride(null); setPendingAudio(null); setRenditions([]); }, [channel.id, archive?.url]);
   const { state, engine, paused, retry, togglePause, tracks, selectAudio, selectSubtitle, reason, facts: engineFacts } = usePlayback(video, target, {
-    engine: settings.engine, openTimeoutMs: settings.openTimeout * 1000, autoRestart: settings.autoRestart,
+    engine: engineOverride ?? settings.engine, openTimeoutMs: settings.openTimeout * 1000, autoRestart: settings.autoRestart,
     // A recording is played like a film: Settings › films and archive buffer (0 = Auto, hls.js' own); live keeps the live delay.
     bufferSeconds: archive ? settings.vodBuffer : settings.buffer,
     liveBehindSeconds: liveBehind,
@@ -445,6 +450,24 @@ export function PlayerView(p: Props) {
   const pip = () => { video.current?.requestPictureInPicture().catch(() => undefined); };
   const favorite = isFavorite(p.favorites, channel);
 
+  // The TV's own decoder tells no audio tracks (Chromium keeps audioTracks behind a flag): the master playlist does.
+  useEffect(() => {
+    if (state !== "playing" || engine !== "native" || tracks.audio.length > 1 || !/\.m3u8(\?|$)/i.test(target.url)) return;
+    let live = true;
+    fetch(target.url, { headers: target.headers }).then((r) => (r.ok ? r.text() : "")).then((text) => {
+      if (live) { const found = audioRenditions(text); if (found.length > 1) setRenditions(found); }
+    }).catch(() => undefined);
+    return () => { live = false; };
+  }, [state, engine, target.url]);
+  // On hls.js now: the track picked before is chosen as soon as hls.js lists them.
+  useEffect(() => {
+    if (!pendingAudio || tracks.audio.length < 2) return;
+    const want = tracks.audio.find((t) => (t.label && t.label === pendingAudio.label) || (t.lang && t.lang === pendingAudio.lang));
+    if (want) selectAudio(want);
+    setPendingAudio(null);
+  }, [pendingAudio, tracks.audio]);
+  const audioList = tracks.audio.length > 1 ? tracks.audio : renditions;
+
   // The tiles (PlayerHud.kt:883-912), each only where it can work here.
   const tiles: TileDef[] = [
     { id: "tb-guide", icon: "epg", label: t("tbGuide"), run: () => { hide(); p.onGo("guide"); } },
@@ -454,7 +477,7 @@ export function PlayerView(p: Props) {
     { id: "tb-fav", icon: favorite ? "favorite" : "star", label: t(favorite ? "tbFavorited" : "tbFavorite"), run: () => p.onFav(channel), active: favorite },
     ...(canRecord ? [{ id: "tb-rec", icon: "record" as IconName, label: t(recording ? "tbRecordStop" : "tbRecord"), run: toggleRecord, active: recording }] : []),
     // Audio with a choice to make (more than one track), subtitles with any (PlayerHud.kt:903-904).
-    ...(showAudioTile(tracks.audio) ? [{ id: "tb-audio", icon: "volume_high" as IconName, glyph: "audio" as const, label: t("pfAudio"), run: () => setDialog("audio") }] : []),
+    ...(showAudioTile(audioList) ? [{ id: "tb-audio", icon: "volume_high" as IconName, glyph: "audio" as const, label: t("pfAudio"), run: () => setDialog("audio") }] : []),
     ...(showSubtitleTile(tracks.subs) ? [{ id: "tb-subs", icon: "info" as IconName, glyph: "subtitle" as const, label: t("pfSubtitles"), run: () => setDialog("subs") }] : []),
     ...(at.now ? [{ id: "tb-about", icon: "info" as IconName, label: t("sa_settings_live_key_action_describe"), run: () => setDialog("about") }] : []),
     { id: "tb-aspect", icon: "aspect", label: t("tbAspect"), run: () => setDialog("aspect") },
@@ -514,8 +537,8 @@ export function PlayerView(p: Props) {
       case "info": show("tiles"); return;
       case "list": openPanel("channels"); return;
       case "history": openPanel("history"); return;
-      case "next": zap(-1); return;
-      case "previous": zap(1); return;
+      case "next": zap(1); return; // the next number (#764)
+      case "previous": zap(-1); return;
       case "last": goPrevious(); return;
       case "rewind": if (canScrub) scrub(true, rep); return;
       case "forward": if (canScrub) scrub(false, rep); return;
@@ -957,8 +980,14 @@ export function PlayerView(p: Props) {
         <AspectDialog value={aspect} onClose={() => setDialog(null)} onPick={(a) => { setDialog(null); pickZoom(a); }} />
       ) : null}
       {dialog === "audio" || dialog === "subs" ? (
-        <TrackDialog kind={dialog === "audio" ? "audio" : "subtitle"} tracks={dialog === "audio" ? tracks.audio : tracks.subs} onClose={() => setDialog(null)}
-          onPick={(x) => { setDialog(null); if (dialog === "audio") { if (x) selectAudio(x); } else selectSubtitle(x); }} />
+        <TrackDialog kind={dialog === "audio" ? "audio" : "subtitle"} tracks={dialog === "audio" ? audioList : tracks.subs} onClose={() => setDialog(null)}
+          onPick={(x) => {
+            setDialog(null);
+            if (dialog !== "audio") { selectSubtitle(x); return; }
+            if (!x) return;
+            if (tracks.audio.length > 1) selectAudio(x);
+            else { setPendingAudio(x); setEngineOverride("hls"); } // the TV's decoder cannot switch: hls.js can
+          }} />
       ) : null}
       {dialog === "about" ? <AboutProgramme channel={channel} at={watching} onClose={() => setDialog(null)} /> : null}
       {dialog === "sleep" ? (

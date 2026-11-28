@@ -36,6 +36,8 @@ const CATS_H = Math.floor((972 - 30 - 50) / CAT_ROW) * CAT_ROW;
 /** DwellTiming: a channel rests 1.5 s before 3-2-1, a category 7 s. */
 const CHANNEL_QUIET_MS = 1500;
 const CATEGORY_FOLLOW_MS = 300;
+/** OK held this long on a channel opens its programme instead of tuning it. */
+const OK_HOLD_MS = 600;
 
 export interface DockRect { x: number; y: number; w: number; h: number }
 
@@ -135,6 +137,7 @@ export function PlayerPanel(p: {
   // ▶ on a channel: its programme with the archive's days as a column, the same as on the channels screen (#735).
   const [guideCh, setGuideCh] = useState<Channel | null>(null);
   const guideOpen = useRef(false);
+  const okHold = useRef<{ held: boolean; timer: ReturnType<typeof setTimeout> } | null>(null);
   guideOpen.current = guideCh !== null;
   const closeGuide = () => { const c = guideCh; setGuideCh(null); setTimeout(() => focusFirst(document, `pc-${(c ?? focused)?.id}`), 0); };
   const start = Math.max(0, list.findIndex((c) => c.id === p.playing.id));
@@ -264,6 +267,15 @@ export function PlayerPanel(p: {
         if (ok && !e.repeat) pickLine(i);
         return;
       }
+      // OK on a channel: a press tunes it on release, a hold opens its programme with the archive (#761, #768).
+      const onRow = (document.activeElement as HTMLElement | null)?.dataset.focus?.startsWith("pc-");
+      if (ok && onRow && !menuOpen && !catsOpen && focused) {
+        e.stopPropagation(); e.preventDefault();
+        if (e.repeat || okHold.current) return;
+        const c = focused;
+        okHold.current = { held: false, timer: setTimeout(() => { if (okHold.current) okHold.current.held = true; setGuideCh(c); }, OK_HOLD_MS) };
+        return;
+      }
       if (!left && !right && !back) return;
       e.stopPropagation();
       e.preventDefault();
@@ -284,8 +296,17 @@ export function PlayerPanel(p: {
       // ▶ in the list: the channel's programme with the archive's days, as on the channels screen (#735).
       if (right && !e.repeat && focused) setGuideCh(focused);
     };
+    const onKeyUp = (e: KeyboardEvent) => {
+      const h = okHold.current;
+      if (!h || !(e.key === "Enter" || e.keyCode === 13)) return;
+      okHold.current = null;
+      clearTimeout(h.timer);
+      e.stopPropagation(); e.preventDefault();
+      if (!h.held && focused) p.onPick(focused, list);
+    };
     document.addEventListener("keydown", onKey, true);
-    return () => document.removeEventListener("keydown", onKey, true);
+    document.addEventListener("keyup", onKeyUp, true);
+    return () => { document.removeEventListener("keydown", onKey, true); document.removeEventListener("keyup", onKeyUp, true); };
   }, [menuOpen, catsOpen, history, catKey, list, focused, p.playing.id, head]);
 
   const rail = (go: Go | "home" | "settings") => {

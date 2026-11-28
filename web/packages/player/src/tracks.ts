@@ -230,3 +230,25 @@ export function hlsTracks(hls: () => HlsTrackApi | null, video: HTMLVideoElement
     },
   };
 }
+
+/**
+ * The audio renditions an HLS master playlist offers (#EXT-X-MEDIA TYPE=AUDIO), for a TV whose own decoder plays the
+ * stream but does not tell its tracks (Chromium keeps `audioTracks` behind a flag: Tizen, webOS). With more than one,
+ * the player offers them and opens the stream on hls.js, which can switch (#772).
+ */
+export function audioRenditions(master: string): TrackOption[] {
+  const out: TrackOption[] = [];
+  const seen = new Set<string>();
+  for (const line of master.split(/\r?\n/)) {
+    if (!line.startsWith("#EXT-X-MEDIA:") || !/TYPE=AUDIO/.test(line)) continue;
+    const attr = (k: string) => (line.match(new RegExp(`${k}="([^"]*)"`)) ?? [])[1] ?? "";
+    const label = attr("NAME");
+    const lang = attr("LANGUAGE");
+    const key = `${label}|${lang}`;
+    if (seen.has(key)) continue; // the same track in several groups (one per quality)
+    seen.add(key);
+    out.push({ id: out.length, label, lang, selected: /DEFAULT=YES/.test(line) });
+  }
+  if (out.length > 0 && !out.some((t) => t.selected)) (out[0] as TrackOption).selected = true;
+  return out;
+}
