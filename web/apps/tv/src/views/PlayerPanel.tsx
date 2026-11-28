@@ -303,6 +303,15 @@ export function PlayerPanel(p: {
         okHold.current = { held: false, timer: setTimeout(() => { if (okHold.current) okHold.current.held = true; if (cols) setColActive(true); else setGuideCh(c); }, OK_HOLD_MS) };
         return;
       }
+      // ▲ ▼ in the side menu stay in it, the ends are walls: never down into the categories beside (#889).
+      if (menuOpen && (up || down)) {
+        e.stopPropagation(); e.preventDefault();
+        const items = Array.from(document.querySelectorAll<HTMLElement>(".tp-rail [data-focus]"));
+        const at = items.indexOf(document.activeElement as HTMLElement);
+        const next = items[Math.max(0, Math.min(items.length - 1, (at < 0 ? 0 : at) + (down ? 1 : -1)))];
+        next?.focus();
+        return;
+      }
       if (!left && !right && !back) return;
       e.stopPropagation();
       e.preventDefault();

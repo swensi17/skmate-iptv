@@ -26,8 +26,8 @@ export const BLOCK_MS = 6 * HOUR;
 /** Descriptions by the 3-hour slot they start in, a quarter of the channels per record. */
 export const SLOT_MS = 3 * HOUR;
 export const DESC_GROUPS = 4;
-/** A description is kept this long: the guide shows a few lines, and a week of full texts would not fit a TV. */
-export const DESC_MAX = 300;
+/** A description is kept whole up to this length (#883: shown in full now); only a runaway text is cut. */
+export const DESC_MAX = 1500;
 /** A programme that is over stays stored this long (Android RECENT_PAST_MS)... */
 export const STORED_PAST_MS = 6 * HOUR;
 /** ...and in memory this long: the grid shows two hours back. */
