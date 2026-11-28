@@ -239,6 +239,12 @@ export function App() {
   const openHere = (c: Channel, list: readonly Channel[]) => setPlaying({ list, index: Math.max(0, list.findIndex((x) => x.id === c.id)) });
   // A note at the top that goes by itself: a recording saved, an external player that did not start.
   const [flash, setFlash] = useState<{ icon: IconName; text: string } | null>(null);
+  // The TV's shell moved to a new build over the air (platform/shell): told once, then forgotten (2.7.1).
+  useEffect(() => {
+    let v: string | null = null;
+    try { v = localStorage.getItem("skmate.ota.updated"); if (v) localStorage.removeItem("skmate.ota.updated"); } catch { /* none */ }
+    if (v) setTimeout(() => setFlash({ icon: "refresh", text: t("otaUpdated", { v }) }), 1500);
+  }, []);
   useEffect(() => { if (!flash) return; const id = setTimeout(() => setFlash(null), 5000); return () => clearTimeout(id); }, [flash]);
   // A playlist that has just loaded after being added from the settings: say so, and take the viewer to the channels.
   const wasLoading = useRef(false);

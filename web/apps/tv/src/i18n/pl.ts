@@ -630,6 +630,7 @@ export const pl: Record<keyof typeof en, string> = {
   // player (Android)
   tbNoGuide: "No TV guide for this channel",
   homeArchiveDays: "▶ Program i archiwum według dni",
+  otaUpdated: "Zaktualizowano do {v}",
   tbNoGuideShort: "No TV guide",
   tbRange: "{a} – {b}",
   tbMinutes: "{n} min",

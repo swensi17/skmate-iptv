@@ -628,6 +628,7 @@ export const ru = {
   // player (Android)
   tbNoGuide: "Нет телепрограммы для этого канала",
   homeArchiveDays: "▶ Программа и архив по дням",
+  otaUpdated: "Обновлено до {v}",
   tbNoGuideShort: "Телепрограмма отсутствует",
   tbRange: "{a} – {b}",
   tbMinutes: "{n} мин",

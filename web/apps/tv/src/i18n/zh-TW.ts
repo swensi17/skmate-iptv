@@ -630,6 +630,7 @@ export const zhTW: Record<keyof typeof en, string> = {
   // player (Android)
   tbNoGuide: "No TV guide for this channel",
   homeArchiveDays: "▶ 按日查看節目表和回看",
+  otaUpdated: "已更新至 {v}",
   tbNoGuideShort: "No TV guide",
   tbRange: "{a} – {b}",
   tbMinutes: "{n} 分鐘",
