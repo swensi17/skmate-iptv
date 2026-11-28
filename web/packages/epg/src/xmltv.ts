@@ -146,9 +146,20 @@ export class XmltvScanner {
     const stop = parseXmltvTime(attr(open, "stop") ?? "");
     if (!channel || start === null || stop === null) return;
     if (this.handlers.keep && !this.handlers.keep(channel, start, stop)) return;
-    const title = inner(el, "title");
+    const title = noPictographs(inner(el, "title") ?? "");
     if (!title) return;
-    const desc = inner(el, "desc") ?? undefined;
+    const rawDesc = inner(el, "desc");
+    const desc = rawDesc ? noPictographs(rawDesc) || undefined : undefined;
     this.handlers.onProgramme(channel, { start, stop, title, desc });
   }
+}
+
+/**
+ * A guide's emoji and pictographs taken out (sports channels put a skier or a ball before titles): a TV's own font has
+ * none of them and draws a crossed box instead (#924). Plain ranges, no \p{} classes: Chromium 53 has no such regex.
+ */
+const PICTOGRAPHS = /(?:[\uD83C-\uD83E][\uDC00-\uDFFF]|[\u2600-\u27BF]|[\u2B00-\u2BFF]|[\u2300-\u23FF]|[\uFE0E\uFE0F\u200D\u20E3])/g;
+export function noPictographs(text: string): string {
+  const cleaned = text.replace(PICTOGRAPHS, "");
+  return cleaned.length === text.length ? text : cleaned.replace(/\s{2,}/g, " ").trim();
 }

@@ -268,3 +268,14 @@ describe("syncGuides: the past only where there is an archive (2.7.0)", () => {
     expect(data.of("2").map((p) => p.title)).toEqual(["Сейчас Б"]);
   });
 });
+
+describe("pictographs out of the guide (#924)", () => {
+  it("drops a skier and a ball before the title, keeps the words", async () => {
+    const { noPictographs } = await import("./xmltv");
+    expect(noPictographs("⛷ Кубок мира 🏂 Сноуборд")).toBe("Кубок мира Сноуборд");
+    expect(noPictographs("⚽️ Футбол")).toBe("Футбол");
+    expect(noPictographs("Новости")).toBe("Новости");
+    for (let i = 0; i < 3; i++) expect(noPictographs("🏒 Хоккей")).toBe("Хоккей"); // no state between calls
+    expect(noPictographs("Что? Где? Когда? (с.3) — №1")).toBe("Что? Где? Когда? (с.3) — №1");
+  });
+});
