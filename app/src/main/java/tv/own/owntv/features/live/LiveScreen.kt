@@ -1933,11 +1933,11 @@ private const val SHEET_SLIDE_MS = 280
 private const val SHEET_HIDE_MS = 240
 
 /** The three-column TV-box list: the programme column and the picture column, in design pixels. */
-private const val GUIDE_COLUMN = 620
+private const val GUIDE_COLUMN = 619
 
 /** The channel list squeezed to its logos while the programme has the remote. */
 private const val LIST_LOGOS = 150
-private const val STAGE_COLUMN = 640
+private const val STAGE_COLUMN = 540
 
 private fun isOkKey(key: androidx.compose.ui.input.key.Key) =
     key == androidx.compose.ui.input.key.Key.DirectionCenter ||

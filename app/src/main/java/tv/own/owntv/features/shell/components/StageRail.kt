@@ -562,7 +562,7 @@ object TvBoxPanels {
 }
 
 /** How far the docked picture steps right (and narrows) while the panel's guide is open. */
-val TvBoxGuideDockShift = 600.mpx
+val TvBoxGuideDockShift = 644.mpx
 
 /** The light side panels: the soft grey the screen's backdrop shows beside them. */
 val TvBoxPanelLight = androidx.compose.ui.graphics.Color(0xFFEFF2F5)

@@ -194,7 +194,8 @@ class M3uParser {
                                     tvgChno = p.tvgChno,
                                     type = p.type,
                                     tvgType = p.tvgType,
-                                    catchup = p.catchup,
+                                    // Only `catchup-days` on a Flussonic address: its archive is found by the address alone.
+                                    catchup = p.catchup ?: p.catchupDays?.takeIf { it > 0 && tv.own.owntv.core.epg.CatchupUrl.looksFlussonic(url) }?.let { "days" },
                                     catchupSource = p.catchupSource,
                                     catchupDays = p.catchupDays,
                                     headers = mergeHeaders(headerAttrHeaders, p.headers, pendingHeaders),

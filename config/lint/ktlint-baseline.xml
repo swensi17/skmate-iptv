@@ -652,9 +652,9 @@
         <error line="5" column="1" source="standard:import-ordering" />
         <error line="134" column="9" source="standard:property-naming" />
         <error line="135" column="9" source="standard:property-naming" />
-        <error line="905" column="1" source="standard:spacing-between-declarations-with-comments" />
-        <error line="916" column="19" source="standard:property-naming" />
-        <error line="926" column="1" source="standard:no-consecutive-blank-lines" />
+        <error line="912" column="1" source="standard:spacing-between-declarations-with-comments" />
+        <error line="923" column="19" source="standard:property-naming" />
+        <error line="933" column="1" source="standard:no-consecutive-blank-lines" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/shell/components/TvBoxPlayerInfo.kt">
         <error line="3" column="1" source="standard:import-ordering" />
@@ -972,15 +972,15 @@
     </file>
     <file name="app/src/main/java/tv/own/owntv/ui/stage/StageComponents.kt">
         <error line="3" column="1" source="standard:import-ordering" />
-        <error line="194" column="1" source="standard:spacing-between-declarations-with-annotations" />
-        <error line="196" column="32" source="standard:annotation" />
-        <error line="255" column="1" source="standard:kdoc" />
-        <error line="256" column="1" source="standard:spacing-between-declarations-with-comments" />
-        <error line="864" column="19" source="standard:wrapping" />
-        <error line="867" column="27" source="standard:wrapping" />
-        <error line="944" column="18" source="standard:wrapping" />
-        <error line="945" column="94" source="standard:wrapping" />
-        <error line="1350" column="1" source="standard:no-consecutive-blank-lines" />
+        <error line="197" column="1" source="standard:spacing-between-declarations-with-annotations" />
+        <error line="199" column="32" source="standard:annotation" />
+        <error line="258" column="1" source="standard:kdoc" />
+        <error line="259" column="1" source="standard:spacing-between-declarations-with-comments" />
+        <error line="868" column="19" source="standard:wrapping" />
+        <error line="871" column="27" source="standard:wrapping" />
+        <error line="948" column="18" source="standard:wrapping" />
+        <error line="949" column="94" source="standard:wrapping" />
+        <error line="1354" column="1" source="standard:no-consecutive-blank-lines" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/ui/stage/StageControls.kt">
         <error line="3" column="1" source="standard:import-ordering" />

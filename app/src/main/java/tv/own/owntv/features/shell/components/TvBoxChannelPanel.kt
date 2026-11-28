@@ -287,6 +287,13 @@ fun TvBoxChannelPanel(
                         else if (e.type == KeyEventType.KeyDown && e.key == Key.DirectionLeft) {
                             if (onOpenCategories != null) onOpenCategories() else onDismiss()
                             true
+                        } else if (e.type == KeyEventType.KeyDown && (
+                                (e.key == Key.DirectionDown && focusedIndex >= channels.lastIndex) ||
+                                    (e.key == Key.DirectionUp && focusedIndex <= 0)
+                                )
+                        ) {
+                            // The list's ends are walls: never out of it into the programme or the picture.
+                            true
                         } else if (e.type == KeyEventType.KeyDown && e.key == Key.DirectionRight) {
                             // A list still loading has no channel to show the guide of: the key waits.
                             focused?.let { sideFor = it; inSide = true; sideRefocus++ }

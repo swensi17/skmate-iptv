@@ -100,7 +100,10 @@ private fun Modifier.stageFocusDecor(style: StageFocus, radius: Dp, a: StageAcce
     val px = 1.mpx.toPx()
     // One focus on the TV: the same grey bar, corners barely softened, whatever the row or button is made of.
     if (tv.own.owntv.features.shell.TvBoxNav && (style == StageFocus.FX || style == StageFocus.FILLED || style == StageFocus.PRIMARY)) {
-        drawRoundRect(if (palette.isLight) LightFocusFill else SheetFocusFill, cornerRadius = CornerRadius(4.mpx.toPx()))
+        val plain = if (palette.isLight) LightFocusFill else SheetFocusFill
+        // A focus colour chosen in the settings tints the bar itself, kept light so its dark text still reads.
+        val fill = if (a.focus != a.accent && !a.focus.isGrey()) androidx.compose.ui.graphics.lerp(plain, a.focus, FOCUS_TINT) else plain
+        drawRoundRect(fill, cornerRadius = CornerRadius(4.mpx.toPx()))
         // A chosen colour shows on the focus too: its ring around the grey bar (the default ink keeps the plain bar).
         if (!a.accent.isGrey()) drawInnerRing(a.accent, 3 * px, 4.mpx.toPx())
         return@drawBehind
@@ -264,6 +267,7 @@ internal val WhiteFocusShadow = Color(0x33000000)
 
 /** The focused row of the settings sheet. */
 private val SheetFocusFill = Color(0xFFE0E2E4)
+private const val FOCUS_TINT = 0.4f
 
 /** Focus on a light page: a grey a step darker than the page, no ring. */
 private val LightFocusFill = Color(0xFFE7E8EA)

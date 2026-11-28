@@ -256,13 +256,18 @@ internal fun LiveGuideSide(
     }
     // The days the guide covers: focus on one brings the guide to it; OK or ◀ go into that day.
     if (days.size > 1 && (!stay || hasFocus)) {
-        val lit = focusedLine?.let { dayOf(it.startMs) }
+        // The day under the cursor is the chosen one: focus and the lit day never part.
+        var dayUnderCursor by remember { mutableStateOf<Long?>(null) }
+        val lit = dayUnderCursor ?: focusedLine?.let { dayOf(it.startMs) }
         val goInto: (Long) -> Unit = { day ->
             val at = loaded.orEmpty().indexOfFirst { it is SideItem.Line && dayOf(it.line.startMs) == day }
             if (at >= 0) { wantLine = at; focusLineAsk++ }
         }
         val daysList = rememberLazyListState()
-        Column(Modifier.width(DAYS_W.mpx).fillMaxHeight().padding(top = DAYS_TOP.mpx, end = 12.mpx)) {
+        Column(
+            Modifier.width(DAYS_W.mpx).fillMaxHeight().padding(top = DAYS_TOP.mpx, end = 12.mpx)
+                .onFocusChanged { if (!it.hasFocus) dayUnderCursor = null },
+        ) {
         // What the column is: a heading over it, and a soft shade where the days slide under it.
         Text(
             stringResource(R.string.content_guide_days), style = stageText(DAY_TEXT, 700), color = c.faint,
@@ -281,6 +286,7 @@ internal fun LiveGuideSide(
                     day, now, lit = day == lit,
                     first = di == 0, last = di == days.lastIndex,
                     onFocused = {
+                        dayUnderCursor = day
                         val at = loaded.orEmpty().indexOfFirst { it is SideItem.Day && it.startMs == day }
                         if (at >= 0) scope.launch {
                             runCatching { if (smooth) list.animateScrollToItem(at) else list.scrollToItem(at) }
@@ -377,7 +383,14 @@ private fun dayCell(
     modifier: Modifier,
 ) {
     val c = tv.own.owntv.features.shell.components.tvBoxPanelColors()
-    val weekday = tv.own.owntv.ui.format.rememberBestDateFormatter("EEE")
+    val weekday = tv.own.owntv.ui.format.rememberBestDateFormatter("EEEE")
+    val today = dayOf(now)
+    val named = when (day) {
+        today -> androidx.compose.ui.res.stringResource(R.string.content_epg_today)
+        dayOf(today - HALF_DAY_MS) -> androidx.compose.ui.res.stringResource(R.string.content_epg_yesterday)
+        dayOf(today + DAY_MS + HALF_DAY_MS) -> androidx.compose.ui.res.stringResource(R.string.content_epg_tomorrow)
+        else -> null
+    }
     val date = tv.own.owntv.ui.format.rememberBestDateFormatter("dMMM")
     val interaction = remember { MutableInteractionSource() }
     val focused = interaction.collectIsFocusedAsState().value
@@ -413,8 +426,8 @@ private fun dayCell(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        Text(weekday(day), style = stageText(DAY_CELL_TEXT, 600), color = ink, maxLines = 1, overflow = TextOverflow.Ellipsis)
-        Text(date(day), style = stageText(DAY_CELL_TEXT, 700), color = ink, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Text(named ?: shortDay(weekday(day)), style = stageText(DAY_NAME_TEXT, 600), color = ink, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Text(date(day), style = stageText(DAY_DATE_TEXT, 700), color = ink, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
 }
 
@@ -573,9 +586,19 @@ private const val POSTER_SETTLE_MS = 400L
 private const val DAYS_W = 150
 private const val DAYS_TOP = 130
 private const val DAY_CELL_H = 70
-private const val DAY_CELL_TEXT = 18
 private const val DAYS_FADE = 36
 private const val EMPTY_ICON = 84
 private const val EMPTY_LIFT = 80
 private const val FOCUS_TRIES = 12
 private const val FOCUS_RETRY_MS = 50L
+
+/** A weekday that would not fit the column: its first letters and a dot ("Понед."). Capitalised. */
+private fun shortDay(name: String): String {
+    val n = name.replaceFirstChar { it.titlecase() }
+    return if (n.length > DAY_NAME_MAX) n.take(DAY_NAME_CUT) + "." else n
+}
+
+private const val DAY_NAME_MAX = 8
+private const val DAY_NAME_CUT = 5
+private const val DAY_NAME_TEXT = 19
+private const val DAY_DATE_TEXT = 15

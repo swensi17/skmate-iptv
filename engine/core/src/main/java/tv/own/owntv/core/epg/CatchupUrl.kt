@@ -252,13 +252,22 @@ object CatchupUrl {
         return when {
             template != null && type == "append" -> joinQuery(liveUrl, fromTemplate(template, start, end, tz = tz))
             template != null -> fromTemplate(template, start, end, tz = tz)
-            type == "shift" || type == "timeshift" || type == "default" ->
+            // "append" with nothing to append: the shift query, as the players that accept it read it.
+            type == "shift" || type == "timeshift" || type == "default" || type == "append" ->
                 joinQuery(liveUrl, fromTemplate(SHIFT_TEMPLATE, start, end))
-            type != null && type.startsWith("flussonic") -> flussonic(liveUrl, start, end)
+            type != null && (type.startsWith("flussonic") || type == "fs") -> flussonic(liveUrl, start, end)
+            // Only archive days given, on a Flussonic address: its own archive address is the only one it answers.
+            type == "days" && looksFlussonic(liveUrl) -> flussonic(liveUrl, start, end)
             type == "xc" || type == "xtream" -> xtreamStyle(liveUrl, start, end, tz)
             else -> null
         }
     }
+
+    /** A Flussonic stream address: index/video/mono.m3u8 or mpegts at the end of its path. */
+    fun looksFlussonic(url: String): Boolean =
+        url.substringBefore('?').substringAfterLast('/').lowercase() in FLUSSONIC_ENDS
+
+    private val FLUSSONIC_ENDS = setOf("index.m3u8", "video.m3u8", "mono.m3u8", "mpegts")
 
     /** The `shift` convention's fixed query. */
     private const val SHIFT_TEMPLATE = "?utc={utc}&lutc={lutc}"
