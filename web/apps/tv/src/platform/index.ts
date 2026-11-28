@@ -69,6 +69,7 @@ export function remoteKey(e: KeyboardEvent): RemoteKey | null {
   return CODES[code] ?? null;
 }
 
+interface TizenApp { application?: { getCurrentApplication(): { exit(): void } } }
 interface WebOsApi { platformBack?(): void }
 interface PalmSystemApi { platformBack?(): void }
 
@@ -85,9 +86,17 @@ export function exitApp(platform: PlatformId = detectPlatform()): boolean {
     const app = capacitorApp();
     if (app) { try { app.exitApp(); return true; } catch { /* fall through */ } }
   }
-  const w = window as unknown as { tizen?: { application?: { getCurrentApplication(): { exit(): void } } }; webOS?: WebOsApi; PalmSystem?: PalmSystemApi };
+  const w = window as unknown as { tizen?: TizenApp; webOS?: WebOsApi; PalmSystem?: PalmSystemApi; parent?: Window; top?: Window };
+  // The page may sit in a frame of another app (Media Station X opens a site in one): the Tizen API is then on the frame above.
+  const tizenOf = (): TizenApp | undefined => {
+    for (const win of [w, w.parent, w.top]) {
+      try { const t = (win as unknown as { tizen?: TizenApp } | undefined)?.tizen; if (t?.application) return t; } catch { /* a frame of another origin */ }
+    }
+    return undefined;
+  };
   try {
-    if (platform === "tizen") { w.tizen?.application?.getCurrentApplication().exit(); return true; }
+    const t = tizenOf();
+    if (t) { t.application?.getCurrentApplication().exit(); return true; }
     if (platform === "webos") {
       if (w.webOS?.platformBack) { w.webOS.platformBack(); return true; }
       if (w.PalmSystem?.platformBack) { w.PalmSystem.platformBack(); return true; }
@@ -95,7 +104,9 @@ export function exitApp(platform: PlatformId = detectPlatform()): boolean {
       return true;
     }
   } catch { /* fall through: try closing the window */ }
-  if (platform === "browser") return false;
+  // No TV API here (a site opened inside Media Station X, or a plain browser): go back to whatever opened the page, so the
+  // Back key does not end up dead. A page with nothing behind it closes itself where the host allows it.
+  try { if (window.history.length > 1) { window.history.back(); return true; } } catch { /* no history */ }
   try { window.close(); } catch { /* nothing else to try */ }
-  return true;
+  return platform !== "browser";
 }
