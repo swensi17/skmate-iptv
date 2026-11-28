@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import { guidesInHeader, parseM3UChunked, type Channel } from "@skmate/core";
 import { t, type Key } from "../i18n";
-import { cacheDrop, cacheGet, cachePut, fetchPlaylist, PlaylistError } from "./fetchPlaylist";
+import { cacheAt, cacheDrop, cacheGet, cachePut, fetchPlaylist, PlaylistError } from "./fetchPlaylist";
 import { playlistOpener } from "./guideTransport";
 import { fileDrop, fileGet, filePut, isLocal, localUrl, readPlaylistFile } from "./localFiles";
 import { AUTHOR_CHECK_MS, AUTHOR_URL, AUTHOR_VERSION_URL, needsReload, versionOf, type AuthorVersion } from "./authorPlaylist";
@@ -17,7 +17,17 @@ const ERRORS: Record<PlaylistError["kind"], Key> = {
 
 
 /** The playlists, the one in use and its channels: everything the screens need, nothing about how they look. */
-export function usePlaylists() {
+/**
+ * [every]: Settings › playlist update (0 never by itself, -1 at each start, else hours). The playlist in use is read
+ * again from its link at start (unless never and a copy is kept), whenever [every] hours have passed while open, and
+ * at once by [refresh] ("Update now").
+ */
+export function usePlaylists(every = -1) {
+  const [tick, setTick] = useState(0);
+  const forced = useRef(false);
+  const refresh = useCallback(() => { forced.current = true; setTick((n) => n + 1); }, []);
+  /** Bumped when the playlist was read again by "Update now": the guide is downloaded again after it (#668). */
+  const [renewed, setRenewed] = useState(0);
   const [store, setStore] = useState<PlaylistStore>(() => {
     const stored = loadStore();
     const fromAddress = typeof location === "undefined" ? null : playlistFromSearch(location.search);
@@ -81,13 +91,23 @@ export function usePlaylists() {
       });
       return () => { live = false; };
     }
-    setStatus(cached ? { kind: "idle" } : { kind: "loading" });
+    // Never by itself: the kept copy stays until "Update now" (a first start still reads the link).
+    const force = forced.current;
+    forced.current = false;
+    if (cached && !force && (every === 0 || (every > 0 && Date.now() - cacheAt(active.id) < every * 3_600_000))) {
+      setStatus({ kind: "idle" });
+      return () => { live = false; };
+    }
+    setStatus(cached && !force ? { kind: "idle" } : { kind: "loading" });
     // A Stalker portal is read by the Windows app, which hands back an ordinary M3U on this computer.
     const stalker = isStalker(active.url);
     const address = stalker ? (desktop()?.stalkerPlaylist(active.url) ?? Promise.resolve(null)) : Promise.resolve(active.url);
     address.then((u) => (u ? fetchPlaylist(u, playlistOpener()) : Promise.reject(new PlaylistError("network")))).then(
       (text) => {
         if (!live) return;
+        // "Update now" brings the guide too. A list that only differs a little at a start (tokens in Xtream links) does
+        // not: the guide links again by itself when its channels really changed (useGuide, at most every few hours).
+        if (force) setRenewed((n) => n + 1);
         cachePut(active.id, text);
         // An Xtream login brings its own guide for the same account, even when the list does not name it.
         const own = xtreamGuide(active.url);
@@ -97,14 +117,26 @@ export function usePlaylists() {
         void show(text, isLive, false).then(() => { if (live) setStatus({ kind: "idle" }); });
       },
       (e: unknown) => {
-        if (!live || cached) return; // a stale list beats an error screen
+        if (!live) return;
+        if (cached) { setStatus({ kind: "idle" }); return; } // a stale list beats an error screen
         // A portal says 401 when it refuses the MAC (desktop/stalker.cjs), anything else when it cannot be reached.
         if (stalker) { setStatus({ kind: "error", message: t(e instanceof PlaylistError && e.message === "http: 401" ? "stkMacRefused" : "stkPortalFailed") }); return; }
         setStatus({ kind: "error", message: t(ERRORS[e instanceof PlaylistError ? e.kind : "network"]) });
       },
     );
     return () => { live = false; };
-  }, [active?.id, active?.url]);
+  }, [active?.id, active?.url, tick]);
+
+  // Every [every] hours while the app is open: read again (asked every 10 minutes, nothing while the screen is off).
+  useEffect(() => {
+    if (!active || every <= 0) return;
+    const id = active.id;
+    const timer = setInterval(() => {
+      if (typeof document !== "undefined" && document.hidden) return;
+      if (Date.now() - cacheAt(id) >= every * 3_600_000) setTick((n) => n + 1);
+    }, 10 * 60_000);
+    return () => clearInterval(timer);
+  }, [active?.id, every]);
 
   // The author's playlist stays current while the app is open, as on Android: its fingerprint is asked every few
   // seconds (a few bytes). The author's own change brings the whole list at once; what the background checks change
@@ -191,5 +223,5 @@ export function usePlaylists() {
     });
   }, []);
 
-  return { store, active, channels, loaded, status, headerGuides, add, addFile, select, update, remove };
+  return { store, active, channels, loaded, status, headerGuides, add, addFile, select, update, remove, refresh, renewed };
 }

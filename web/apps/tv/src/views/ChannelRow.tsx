@@ -43,6 +43,8 @@ export function ChannelRow(props: {
   number?: number;
   /** "live": this channel is in the preview beside the list (the blue pause mark). */
   previewing?: boolean;
+  /** The channel whose programme the column shows (three columns, list squeezed to logos). */
+  opened?: boolean;
   /** Watched before (2.6.0): the history mark at the row's end. */
   watched?: boolean;
 }) {
@@ -107,7 +109,7 @@ export function ChannelRow(props: {
     return (
       <>
         <button
-          class="st-focusable lrow" data-focus={`ch-${channel.id}`}
+          class={`st-focusable st-row lrow${props.index === 0 ? " st-row-first" : ""}${props.opened ? " opened" : ""}`} data-focus={`ch-${channel.id}`}
           {...(compact ? holdProps(() => { cancel(); setLayer("menu"); }) : {})}
           onClick={() => { if (holdSpent()) return; props.onOpen(channel); }}
           onFocus={() => { setLit(true); props.onFocus?.(channel); }}
@@ -131,6 +133,8 @@ export function ChannelRow(props: {
             </span>
           ) : null}
           {channel.catchupDays ? <span class="st-archive corner">{daysText(channel.catchupDays)}</span> : null}
+          <span class="mini-num">{props.number ?? props.index + 1}</span>
+          {on ? <span class="mini-bar"><i style={{ width: `${(progress * 100).toFixed(1)}%` }} /></span> : null}
         </button>
         {layers}
       </>
@@ -185,7 +189,7 @@ const MARQUEE_DELAY_MS = 900;
  * scrolls to its end after 900 ms, the text repeated a third of the box apart, and again after each 900 ms pause.
  * Only a transform moves (the Web Animations API, Chromium 36+). [tail] is drawn in the same line at 60% (the time left).
  */
-function Marquee(p: { class: string; text: string; tail?: string; on: boolean }) {
+export function Marquee(p: { class: string; text: string; tail?: string; on: boolean }) {
   const box = useRef<HTMLSpanElement>(null);
   const [run, setRun] = useState<number | null>(null); // the gap between the copies, once the line is known not to fit
   useEffect(() => {

@@ -155,8 +155,8 @@ export function CountdownRing(p: { n: number; totalMs: number; startedAt: number
   return (
     <span class="tp-ring" aria-hidden="true">
       <svg viewBox="0 0 32 32">
-        <circle cx="16" cy="16" r={r} fill="none" stroke="rgba(0,134,252,.2)" stroke-width="2.5" />
-        <circle cx="16" cy="16" r={r} fill="none" stroke="#0086fc" stroke-width="2.5" stroke-linecap="round" stroke-dasharray={`${c * f} ${c}`} />
+        <circle cx="16" cy="16" r={r} fill="none" style={{ stroke: "rgba(var(--st-blue-rgb), .2)" }} stroke-width="2.5" />
+        <circle cx="16" cy="16" r={r} fill="none" style={{ stroke: "var(--st-blue)" }} stroke-width="2.5" stroke-linecap="round" stroke-dasharray={`${c * f} ${c}`} />
       </svg>
       <b>{p.n}</b>
     </span>
@@ -228,7 +228,7 @@ export function CornerClock(p: { size: number; weight: number; bg: number; color
   }, []);
   const bg = p.bg >= 0 && p.bg <= 3 ? p.bg : 1;
   const opaque = 1 - ([0, 25, 50, 75][p.alpha] ?? 25) / 100;
-  const fill = bg === 0 ? null : bg === 2 ? `rgba(255, 255, 255, ${opaque})` : bg === 3 ? `rgba(0, 134, 252, ${opaque})` : `rgba(0, 0, 0, ${opaque})`;
+  const fill = bg === 0 ? null : bg === 2 ? `rgba(255, 255, 255, ${opaque})` : bg === 3 ? `rgba(var(--st-blue-rgb), ${opaque})` : `rgba(0, 0, 0, ${opaque})`;
   const ink = bg === 2 ? "#15181c" : (["#ffffff", "#ffd54f", "#8cc8ff"][p.color] ?? "#ffffff");
   const style = {
     fontSize: `${[20, 26, 36][p.size] ?? 26}px`, fontWeight: p.weight === 0 ? 500 : 700, color: ink,
@@ -347,7 +347,7 @@ export type Aspect = ZoomMode;
 /** The six zoom modes' names (OwnTVPlayer.kt ZoomMode labels). */
 const ZOOM_LABELS: Record<ZoomMode, Key> = {
   fit: "sa_player_zoom_fit_screen", crop: "sa_player_zoom_fill_crop", stretch: "sa_player_zoom_stretch",
-  original: "sa_player_zoom_original", "16_9": "sa_player_zoom_force_16_9", "4_3": "sa_player_zoom_force_4_3",
+  original: "sa_player_zoom_original", "16_9": "sa_player_zoom_force_16_9", "4_3": "sa_player_zoom_force_4_3", "2_39": "sa_player_zoom_force_2_39",
 };
 
 /** Zoom (PlayerHudDialogs.kt ZoomDialog): the six modes in Android's order, the current one ticked and focused. */

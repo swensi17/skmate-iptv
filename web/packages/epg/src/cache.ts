@@ -69,6 +69,10 @@ export interface GuideMeta {
   blocks: number[];
   /** The last programme's end. */
   until: number;
+  /** How far back aired programmes were kept (the archive's depth, 2.6.3); missing: the 6 hours before it. */
+  past?: number;
+  /** Which channels the links were made for (a fingerprint of their ids): another set links again (2.6.9). */
+  chans?: string;
   /** Whether descriptions were written (dropped when the disk was full). */
   desc: boolean;
 }
@@ -113,6 +117,11 @@ export class GuideWriter implements GuideSink {
   private until = 0;
   /** Programmes written so far (tests, logs). */
   written = 0;
+
+  /** How far back the download kept aired programmes; written into the meta. */
+  past = STORED_PAST_MS;
+  /** See [GuideMeta.chans]. */
+  chans = "";
 
   constructor(private readonly kv: GuideKv, private readonly pid: string, readonly gen: number = Date.now()) {}
 
@@ -179,6 +188,7 @@ export class GuideWriter implements GuideSink {
     return {
       v: 3, gen: this.gen, at, days, links: Array.from(links), logos: usedLogos,
       ids: Array.from(this.ids), blocks: Array.from(this.blockSet).sort((a, b) => a - b), until: this.until, desc: this.withDesc,
+      past: this.past, chans: this.chans,
     };
   }
 
@@ -304,9 +314,34 @@ export class GuideCache {
     });
   }
 
+  /**
+   * Programmes of the whole stored guide whose title holds [query] (lower case, ё as е), read straight from storage
+   * and never kept: a search finds a series later in the week or in the archive without a week in memory (#752).
+   */
+  async findTitles(query: string, limit = 300): Promise<Array<{ epg: string; programme: Programme }>> {
+    const q = query.toLowerCase().replace(/ё/g, "е").trim();
+    const out: Array<{ epg: string; programme: Programme }> = [];
+    if (q.length < 2) return out;
+    const shift = this.shiftMin * 60_000;
+    await this.kv.scan(`b|${safe(this.pid)}|${this.meta.gen}|`, (_k, v) => {
+      if (!isRec(v) || out.length >= limit) return;
+      for (let i = 0; i < v.ids.length && out.length < limit; i++) {
+        const flat = v.rows[i] ?? [];
+        for (let j = 0; j + 2 < flat.length; j += 3) {
+          const title = String(flat[j + 2]);
+          if (title.toLowerCase().replace(/ё/g, "е").indexOf(q) < 0) continue;
+          out.push({ epg: v.ids[i] as string, programme: { start: (flat[j] as number) + shift, stop: (flat[j + 1] as number) + shift, title } });
+          if (out.length >= limit) break;
+        }
+      }
+    });
+    return out;
+  }
+
   private async readBlock(block: number, now: number): Promise<Map<string, Programme[]>> {
     const shift = this.shiftMin * 60_000;
-    const after = now - MEMORY_PAST_MS;
+    // A block asked for is read whole as far back as the guide keeps: the archive's days come with it (2.6.3).
+    const after = now - Math.max(MEMORY_PAST_MS, this.meta.past ?? 0);
     const out = new Map<string, Programme[]>();
     await this.kv.scan(`b|${safe(this.pid)}|${this.meta.gen}|${block}|`, (_k, v) => {
       if (!isRec(v)) return;
@@ -422,7 +457,7 @@ export class GuideCache {
    * asks for hours that are not in memory (the owner then calls [ensure] and takes a new snapshot).
    */
   snapshot(now: number, onNeed?: (from: number, to: number) => void): GuideData {
-    const backing: GuideBacking = { need: (from, to) => onNeed?.(from, to), describe: (epg, start) => this.describe(epg, start) };
+    const backing: GuideBacking = { need: (from, to) => onNeed?.(from, to), describe: (epg, start) => this.describe(epg, start), find: (q, limit) => this.findTitles(q, limit) };
     const merged = new Map<string, Programme[]>();
     const owned = new Set<string>();
     const order = Array.from(this.pieces.keys()).sort((a, b) => a - b);

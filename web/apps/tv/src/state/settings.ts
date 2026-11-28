@@ -27,7 +27,10 @@ export interface Settings {
   /** The guide that comes by itself (playlist, provider, shared), as on Android. */
   epgAuto: boolean;
   /** Hours between downloads of the guide. */
-  epgEvery: 6 | 12 | 24;
+  /** When the guide is downloaded again (2.6.9, Android EpgAutoRefresh): 0 never by itself, -1 at each start, else hours. */
+  epgEvery: number;
+  /** When the playlist is read again from its link (Android PlaylistAutoRefresh): 0 never, -1 at each start, else hours. */
+  plEvery: number;
   /** Guides the user added. */
   epgSources: Array<{ id: string; name: string; url: string }>;
   /** A proxy for guides the TV cannot reach directly; empty = none. */
@@ -128,17 +131,19 @@ export interface Settings {
   extLive: boolean;
   extMovies: boolean;
   extSeries: boolean;
+  /** The recently watched row under the live info (2.6.8); off: the controls at once. */
+  playerRecents: boolean;
+  /** The player's channel panel in three columns, the programme beside the list (2.7.1); off: by ▶ only. */
+  playerColumns: boolean;
   /** Clock over the video and its look (stored). */
   playerClock: boolean;
-  /** 2.6.8: the «Недавно просмотренные» row under the info in the player (off: the tools open straight away). */
-  playerRecents: boolean;
   clockSize: number;
   clockWeight: number;
   clockBg: number;
   clockColor: number;
   clockAlpha: number;
   /** Default zoom: fit, crop and stretch drive aspect; the other three are stored. */
-  zoomMode: "fit" | "crop" | "stretch" | "original" | "16_9" | "4_3";
+  zoomMode: "fit" | "crop" | "stretch" | "original" | "16_9" | "4_3" | "2_39";
   /** Frame rate (stored: no web API). */
   afr: boolean;
   afrPause: number;
@@ -189,7 +194,7 @@ const KEY = "skmate.settings.v1";
 export const DEFAULTS: Settings = {
   theme: "system", motion: "auto", language: "auto", engine: "auto", aspect: "fit", buffer: 30,
   openTimeout: 12, osdSeconds: 5, showEngine: true, autoRestart: true, preview: true,
-  epgAuto: true, epgEvery: 12, epgSources: [], proxy: "",
+  epgAuto: true, epgEvery: 12, plEvery: -1, epgSources: [], proxy: "",
   rowSize: 84, uiScale: 100, showLogos: true, showNumbers: true, showProgram: true, interests: [], autoUpdate: false,
   reminderMode: "ask", reminderLead: 5, externalPlayer: "off", multiview: false, multiviewTiles: 2, multiviewWarned: false,
   quickPinned: ["quick_live_preview", "quick_preview_sound", "quick_channel_numbers", "quick_hdr", "quick_autoplay", "quick_check_update"],
@@ -202,7 +207,7 @@ export const DEFAULTS: Settings = {
   // Android SettingsRepository: remember_cat_live / remember_last_live on, films and series off.
   chNav: true, chNavUp: 10, chNavDown: 10, seekStep: 10, liveLeftRightRewinds: false, liveKeys: {}, browseLastCat: [true, false, false], browseLastItem: [true, false, false],
   extLive: false, extMovies: false, extSeries: false,
-  playerClock: false, playerRecents: true, clockSize: 1, clockWeight: 1, clockBg: 1, clockColor: 0, clockAlpha: 1,
+  playerRecents: true, playerColumns: true, playerClock: false, clockSize: 1, clockWeight: 1, clockBg: 1, clockColor: 0, clockAlpha: 1,
   zoomMode: "fit", afr: false, afrPause: 0, afrResolution: false,
   liveLatency: "balanced", liveCustomSec: 8, latencyPerPlaylist: {}, tuneTimeout: 30, tuneTimeoutPerPlaylist: {}, vodBuffer: 0,
   miniSize: 25, miniPos: "br", startup: "home", startupChannel: "", startupChannelName: "",
@@ -256,8 +261,21 @@ export function resolveTheme(theme: ThemeSetting, systemDark: boolean): "dark" |
   return theme === "system" ? (systemDark ? "dark" : "light") : theme;
 }
 
+/**
+ * Whether the system asks for the dark look. A TV that does not know the question (webOS 4–6 = Chromium 53–79 before
+ * 76, older Tizen) answers neither: then the dark look, the TV's own, never the light one by accident (it painted the
+ * category names nearly black on a real LG).
+ */
+export function systemDark(mm?: (q: string) => { matches: boolean; media: string }): boolean {
+  if (!mm) return true;
+  const dark = mm("(prefers-color-scheme: dark)");
+  const light = mm("(prefers-color-scheme: light)");
+  if (dark.media === "not all" || (!dark.matches && !light.matches)) return true;
+  return dark.matches;
+}
+
 export function applyTheme(theme: ThemeSetting, root: HTMLElement = document.documentElement): void {
-  const dark = typeof matchMedia === "function" ? matchMedia("(prefers-color-scheme: dark)").matches : true;
+  const dark = systemDark(typeof matchMedia === "function" ? matchMedia : undefined);
   const next = resolveTheme(theme, dark);
   if (root.getAttribute("data-theme") !== next) root.setAttribute("data-theme", next);
 }
@@ -270,7 +288,13 @@ export function applyAll(s: Settings, throttled: boolean): void {
   setVar(root, "--ui-zoom", String(clampZoom(s.uiScale) / 100));
   applyTheme(s.theme);
   // The accent (Внешний вид › Акцентный цвет): the theme's own INK unless a preset or a hex is chosen.
-  setVar(root, "--st-accent", accentColor(s, root.getAttribute("data-theme") !== "light"));
+  const accent = accentColor(s, root.getAttribute("data-theme") !== "light");
+  setVar(root, "--st-accent", accent);
+  // Marks follow the accent (2.7.1, as Android): a coloured one replaces the brand blue; ink, black or white keep it.
+  const hue = markHue(accent);
+  setVar(root, "--st-blue", hue);
+  setVar(root, "--st-blue-rgb", hue ? rgbOf(hue) : null);
+  if (hue) root.setAttribute("data-hue", ""); else root.removeAttribute("data-hue");
   applyMotion(s.motion, throttled);
   // Remote buttons: the list paging keys (CH+/CH-, rewind/forward) follow Settings › Remote buttons in every list.
   setChNavConfig({ enabled: s.chNav, up: s.chNavUp, down: s.chNavDown });
@@ -291,4 +315,17 @@ export function liveSettingsFor(s: Settings, playlistId: string | null | undefin
   const latency = own as Settings["liveLatency"];
   const buffer = bufferFor(latency, s.liveCustomSec);
   return buffer === s.buffer && latency === s.liveLatency ? s : { ...s, liveLatency: latency, buffer };
+}
+
+/** The marks' colour for an accent: itself when it has colour, null (the brand blue) for grey, black or white. */
+export function markHue(accent: string | null): string | null {
+  if (!accent || !/^#[0-9a-fA-F]{6}$/.test(accent)) return null;
+  const [r, g, b] = rgbOf(accent).split(", ").map(Number) as [number, number, number];
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  return max - min < 40 ? null : accent;
+}
+
+function rgbOf(hex: string): string {
+  const n = parseInt(hex.slice(1), 16);
+  return `${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}`;
 }

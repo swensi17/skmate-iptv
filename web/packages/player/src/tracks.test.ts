@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  audioToSelect, CAPTION_ID_BASE, elementTracks, hlsTracks, languageIdentity, languageMatches, showAudioTile, showSubtitleTile,
+  audioRenditions, audioToSelect, CAPTION_ID_BASE, elementTracks, hlsTracks, languageIdentity, languageMatches, showAudioTile, showSubtitleTile,
   subtitleAction, SUBTITLES_OFF, type HlsTrackApi, type TrackOption,
 } from "./tracks";
 
@@ -132,5 +132,20 @@ describe("hlsTracks", () => {
     const src = hlsTracks(() => null, fakeVideo([], []));
     expect(src.audio()).toEqual([]);
     expect(src.subtitles()).toEqual([]);
+  });
+});
+
+describe("audio renditions of an HLS master (#772)", () => {
+  it("lists each audio track once, across the quality groups", () => {
+    const m = [
+      "#EXTM3U",
+      '#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="a1",NAME="Русский",LANGUAGE="ru",DEFAULT=YES,URI="ru1.m3u8"',
+      '#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="a1",NAME="English",LANGUAGE="en",URI="en1.m3u8"',
+      '#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="a2",NAME="Русский",LANGUAGE="ru",DEFAULT=YES,URI="ru2.m3u8"',
+      '#EXT-X-MEDIA:TYPE=SUBTITLES,GROUP-ID="s",NAME="Русские",URI="s.m3u8"',
+      '#EXT-X-STREAM-INF:BANDWIDTH=1,AUDIO="a1"', "v1.m3u8",
+    ].join("\n");
+    expect(audioRenditions(m).map((t) => [t.label, t.lang, t.selected])).toEqual([["Русский", "ru", true], ["English", "en", false]]);
+    expect(audioRenditions("#EXTM3U\n#EXT-X-STREAM-INF:BANDWIDTH=1\nv.m3u8")).toEqual([]);
   });
 });

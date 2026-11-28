@@ -6,6 +6,7 @@ import { t } from "../i18n";
 import type { PlaylistEntry } from "../state/playlists";
 import { normalizeUrl } from "../state/playlists";
 import type { Settings } from "../state/settings";
+import { EPG_EVERY, RefreshRows } from "./refreshRows";
 import type { GuideStatus } from "../state/useGuide";
 import { clock } from "../time";
 import { Confirm } from "./Confirm";
@@ -135,6 +136,8 @@ export function EpgPanel(p: Props) {
 
   return (
     <div class="epg-panel">
+      <RefreshRows id="epg-refresh" value={s.epgEvery} choices={EPG_EVERY} busy={syncing}
+        onPick={(v) => p.onChange({ ...s, epgEvery: v })} onNow={p.onRefresh} />
       {autoGuides.length + s.epgSources.length === 0 ? <SNote title={t("sa_settings_epg_sources_empty")} /> : null}
       {autoGuides.map((g) => row(`auto:${g.url}`, g.name, g.url, false))}
       {s.epgSources.map((x) => row(x.id, x.name, x.url, true))}

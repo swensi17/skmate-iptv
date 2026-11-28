@@ -34,7 +34,9 @@ describe("parseM3UChunked", () => {
     expect(sizes[0]).toBeGreaterThanOrEqual(100);
     expect(sizes[0]).toBeLessThan(1000);
     expect(sizes[1]).toBeGreaterThanOrEqual(1000);
-    expect(got?.map((c) => c.id)).toEqual(Array.from({ length: 5000 }, (_, i) => String(i)));
+    // Ids are stable (tvg-id and name, 2.6.9), not places: the chunked read gives the same ids as the one-go read, all different.
+    expect(got?.map((c) => c.id)).toEqual(parseM3U(text).map((c) => c.id));
+    expect(new Set(got?.map((c) => c.id)).size).toBe(5000);
   });
 
   it("a partial list is a copy: later reading does not change it", async () => {

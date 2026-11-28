@@ -88,6 +88,7 @@ interface Props {
   onAddPlaylist: (input: string) => string | null;
   onAddPlaylistFile: (name: string, text: string) => Promise<string | null>;
   onSelectPlaylist: (id: string) => void;
+  onRefreshPlaylist: () => void;
   onEditPlaylist: (id: string, name: string, url: string) => string | null;
   onAskDeletePlaylist: (id: string) => void;
   onAskReset: () => void;
@@ -291,7 +292,8 @@ export function SettingsSheet(p: Props) {
 
   const playlists = () => (
     <PlaylistsPanel store={p.store} status={p.status} channelCount={p.channelCount} onAdd={p.onAddPlaylist} onAddFile={p.onAddPlaylistFile}
-      onSelect={p.onSelectPlaylist} onEdit={p.onEditPlaylist} onAskDelete={p.onAskDeletePlaylist} />
+      onSelect={p.onSelectPlaylist} onEdit={p.onEditPlaylist} onAskDelete={p.onAskDeletePlaylist}
+      every={s.plEvery} onEvery={(v) => p.onChange({ ...s, plEvery: v })} onRefresh={p.onRefreshPlaylist} />
   );
 
   const pageBody = (pg: Page) => {

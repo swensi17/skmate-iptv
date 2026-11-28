@@ -89,8 +89,14 @@ export function cacheGet(id: string): string | null {
   try { return localStorage.getItem(scoped(CACHE + id)); } catch { return null; }
 }
 
+/** When the playlist was last read from its link (ms), 0 when never. */
+export function cacheAt(id: string): number {
+  try { return Number(localStorage.getItem(scoped(CACHE + id + ".at")) ?? 0) || 0; } catch { return 0; }
+}
+
 export function cachePut(id: string, text: string): void {
   try {
+    localStorage.setItem(scoped(CACHE + id + ".at"), String(Date.now()));
     if (text.length <= MAX_CACHE_CHARS) localStorage.setItem(scoped(CACHE + id), text);
   } catch { /* storage full: next time the playlist is fetched again */ }
 }

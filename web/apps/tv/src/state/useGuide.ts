@@ -1,3 +1,5 @@
+import { cacheGet } from "./fetchPlaylist";
+import { parseM3U } from "@skmate/core";
 import { useCallback, useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { resolveArchiveZone, setArchiveZone, type Channel } from "@skmate/core";
 import {
@@ -60,6 +62,9 @@ export function useGuide(channels: Channel[], active: PlaylistEntry | null, head
   const [outcomes, setOutcomes] = useState<SourceOutcome[]>([]);
   const [now, setNow] = useState(() => Date.now());
   const [restored, setRestored] = useState(false);
+  // Looked at again every 10 minutes while open, so "every N hours" also comes while the app stays on.
+  const [hourTick, setHourTick] = useState(0);
+  useEffect(() => { const id = setInterval(() => { if (!document.hidden) setHourTick((n) => n + 1); }, 10 * 60_000); return () => clearInterval(id); }, []);
   const running = useRef(false);
   const cache = useRef<GuideCache | null>(null);
   const meta = useRef<GuideMeta | null>(null);
@@ -151,8 +156,11 @@ export function useGuide(channels: Channel[], active: PlaylistEntry | null, head
         const kv = await guideKv();
         kvRef.current = kv;
         if (gone) return;
-        const m = kv.persistent ? await readGuideMeta(kv, legacyKey(pid)) : null;
+        const read = kv.persistent ? await readGuideMeta(kv, legacyKey(pid)) : null;
         if (gone) return;
+        // A guide linked before 2.7.0 keeps its channels by their place in the list ("0", "1", …): turned into the
+        // lasting ids through the copy of the very list it was linked for, so it shows at once, not after a download.
+        const m = read ? relinkLegacy(read, () => { const text = cacheGet(pid); return text ? parseM3U(text) : null; }) : null;
         if (m) {
           await adopt(kv, pid, m);
           // The guide is in IndexedDB now: the old localStorage copy only costs a parse at every start.
@@ -203,6 +211,7 @@ export function useGuide(channels: Channel[], active: PlaylistEntry | null, head
   const sync = useCallback(async () => {
     if (running.current || !active || channels.length === 0 || sources.length === 0) return;
     running.current = true;
+    syncedThisRun = true;
     const pid = active.id;
     // Nothing stored yet (a new playlist): the guide fills in on screen as it downloads (2.5.2).
     const first = meta.current === null && cache.current === null && linkedNow.current === 0;
@@ -216,9 +225,12 @@ export function useGuide(channels: Channel[], active: PlaylistEntry | null, head
       const days = kv.persistent ? settings.guideDays : Math.min(settings.guideDays, MEMORY_DAYS);
       const at = Date.now();
       writer = new GuideWriter(kv, legacyKey(pid), at);
+      writer.past = kv.persistent ? archiveDepthMs(channels) : STORED_PAST_MS;
+      writer.chans = channelsPrint(channels);
       const result = await syncGuides({
         sources, channels, now: at, open: guideOpener(settings.proxy),
-        aheadMs: days * DAY_MS, pastMs: STORED_PAST_MS, sink: writer,
+        aheadMs: days * DAY_MS, pastMs: writer.past, sink: writer,
+        pastFor: (c) => Math.min(7, c.catchupDays ?? 0) * DAY_MS + 3_600_000, shortPastMs: STORED_PAST_MS,
         // Nothing to show yet (a first start): the first source's channels appear while the others still download.
         onSource: async (sofar) => {
           const w = writer;
@@ -286,10 +298,19 @@ export function useGuide(channels: Channel[], active: PlaylistEntry | null, head
     const m = meta.current;
     const persistent = kvRef.current?.persistent ?? false;
     const stale = data.linked === 0 || (persistent && m === null)
-      || Date.now() - data.updatedAt > settings.epgEvery * 3_600_000
-      || (m !== null && m.days < settings.guideDays && persistent);
+      // Settings › guide update (2.6.9): never by itself (0), once at each start (-1), or every N hours.
+      || (settings.epgEvery > 0 && Date.now() - data.updatedAt > settings.epgEvery * 3_600_000)
+      || (settings.epgEvery === -1 && !syncedThisRun)
+      || (m !== null && m.days < settings.guideDays && persistent)
+      // A guide kept from before 2.6.3 (or for a playlist with a shallower archive) lacks the archive's days.
+      || (m !== null && persistent && (m.past ?? STORED_PAST_MS) < archiveDepthMs(channels))
+      // Channels added, removed or renamed since the guide was linked: linked again for this playlist (2.6.9). A guide
+      // linked before channels had lasting ids (by place in the list) is linked again too.
+      // Channels added or removed since: linked again, but never more often than RELINK_GAP (an Xtream list may differ a
+      // little at every start) and never for a guide that did not keep which channels it was linked for.
+      || (m !== null && persistent && m.chans !== undefined && m.chans !== channelsPrint(channels) && Date.now() - data.updatedAt > RELINK_GAP);
     if (stale) void sync();
-  }, [restored, active?.id, channels.length, sources.length, settings.guideDays]);
+  }, [restored, active?.id, channels, sources.length, settings.guideDays, settings.epgEvery, hourTick]);
 
   const clear = useCallback(() => {
     if (active) {
@@ -305,4 +326,36 @@ export function useGuide(channels: Channel[], active: PlaylistEntry | null, head
   }, [active?.id]);
 
   return { data, status, outcomes, now, sync, clear };
+}
+
+/**
+ * How far back the stored guide reaches: the deepest archive of the playlist's channels (at most a week), so its
+ * programme shows the aired days the archive can play (2.6.3); 6 hours for a playlist without an archive.
+ */
+export function archiveDepthMs(channels: readonly { catchupDays?: number }[]): number {
+  let days = 0;
+  for (const c of channels) if ((c.catchupDays ?? 0) > days) days = c.catchupDays as number;
+  return days > 0 ? Math.min(7, days) * 86_400_000 + 3_600_000 : STORED_PAST_MS;
+}
+
+/** A short fingerprint of which channels a playlist has (their lasting ids), whatever their order. */
+export function channelsPrint(channels: readonly { id: string }[]): string {
+  const ids = channels.map((c) => c.id).sort();
+  let h = 0x811c9dc5;
+  for (const id of ids) for (let i = 0; i < id.length; i++) { h ^= id.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }
+  return `${ids.length}:${h.toString(36)}`;
+}
+
+/** A changed channel set links the guide again at most this often (it downloads every source). */
+const RELINK_GAP = 3 * 3_600_000;
+
+/** Whether the guide was downloaded since the app started (Settings › guide update › at start). */
+let syncedThisRun = false;
+
+/** See the restore: links by place in the list moved to the lasting ids of the same entries. */
+export function relinkLegacy(m: GuideMeta, entries: () => ReadonlyArray<{ id: string }> | null): GuideMeta {
+  if (!m.links.some(([id]) => /^\d+$/.test(id))) return m;
+  const list = entries();
+  if (!list) return m;
+  return { ...m, links: m.links.map(([id, epg]): [string, string] => [/^\d+$/.test(id) ? list[Number(id)]?.id ?? id : id, epg]) };
 }

@@ -65,7 +65,7 @@
 .gd-cell { position: absolute; top: 0; height: 56px; border-radius: 4px; overflow: hidden; background: rgba(var(--st-ink-rgb), 0.035); cursor: pointer; }
 .gd-cell.now { background: rgba(var(--st-ink-rgb), 0.06); }
 .gd-cell.past { background: rgba(var(--st-ink-rgb), 0.0175); }
-.gd-cell.cur { background: rgba(0, 134, 252, 0.16); }
+.gd-cell.cur { background: rgba(var(--st-blue-rgb), 0.16); }
 .gd-cell.empty { background: rgba(var(--st-ink-rgb), 0.03); }
 .gd-in { position: absolute; left: 0; top: 8px; right: 14px; padding-left: 14px; }
 .gd-t { font-size: 18px; font-weight: 700; line-height: 23px; color: var(--st-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

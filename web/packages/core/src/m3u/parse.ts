@@ -94,11 +94,13 @@ export interface M3UState {
   group: string;
   headers: Record<string, string>;
   headerCorrection: number | undefined;
+  /** Ids handed out so far, for telling copies of the same channel apart (stableId). */
+  seen: Map<string, number>;
 }
 
 export function m3uStart(text: string): M3UState {
   const t = text.charCodeAt(0) === 0xfeff ? text.slice(1) : text;
-  return { text: t, pos: 0, channels: [], info: null, group: "", headers: {}, headerCorrection: undefined };
+  return { text: t, pos: 0, channels: [], info: null, group: "", headers: {}, headerCorrection: undefined, seen: new Map() };
 }
 
 function m3uLine(st: M3UState, raw: string): void {
@@ -121,7 +123,7 @@ function m3uLine(st: M3UState, raw: string): void {
   } else if (st.info !== null) {
     const a = attrs(st.info);
     const name = titleOf(st.info) || a["tvg-name"] || line;
-    const channel: Channel = { id: String(st.channels.length), name, url: line, group: st.group };
+    const channel: Channel = { id: stableId(a["tvg-id"] ?? "", name, st.seen), name, url: line, group: st.group };
     if (a["tvg-logo"]) channel.logo = a["tvg-logo"];
     if (a["tvg-id"]) channel.tvgId = a["tvg-id"];
     if (a["tvg-name"]) channel.tvgName = a["tvg-name"];
@@ -193,4 +195,20 @@ export function guidesInHeader(text: string): string[] {
     .reduce<string[]>((all, v) => all.concat(v.split(",")), [])
     .map((u) => u.trim())
     .filter((u) => /^https?:\/\//i.test(u));
+}
+
+/**
+ * A channel's id that stays when the playlist is read again with channels added, removed or moved (2.6.9): its
+ * tvg-id and name, not its place in the list, so what is kept by id (the guide's links, the last place) still
+ * points at the same channel. Not the address: an Xtream address renews its token. Copies with the same tvg-id and
+ * name are told apart by their order among themselves.
+ */
+function stableId(tvgId: string, name: string, seen: Map<string, number>): string {
+  const key = `${tvgId}|${name}`;
+  let h = 0x811c9dc5;
+  for (let i = 0; i < key.length; i++) { h ^= key.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }
+  const base = `c${h.toString(36)}`;
+  const n = seen.get(base) ?? 0;
+  seen.set(base, n + 1);
+  return n === 0 ? base : `${base}-${n}`;
 }

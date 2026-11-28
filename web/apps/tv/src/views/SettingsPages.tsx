@@ -141,7 +141,7 @@ function ColorEnd({ label, css }: { label: string; css: string }) {
 const KEY_ACTIONS: Key[] = [
   "sa_settings_live_key_action_info", "sa_settings_live_key_action_list", "sa_settings_live_key_action_history", "sa_settings_live_key_action_next",
   "sa_settings_live_key_action_previous", "sa_settings_live_key_action_last", "sa_settings_live_key_action_rewind", "sa_settings_live_key_action_forward",
-  "sa_settings_live_key_action_pause", "sa_settings_live_key_action_nothing",
+  "sa_settings_live_key_action_pause", "sa_settings_live_key_action_describe", "sa_settings_live_key_action_nothing",
 ];
 /** The usual action of each key on a channel (LiveKeyLabels.kt): OK info, ▲ ▼ next/previous, ◀ ▶ list/history. */
 const LIVE_KEYS: Array<[string, Key, Key]> = [

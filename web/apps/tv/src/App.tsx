@@ -39,7 +39,10 @@ import { VodDetails, episodeLabel } from "./views/VodDetails";
 import { VodPlayer } from "./views/VodPlayer";
 import { VodView } from "./views/VodView";
 import { vodSourceOf } from "./state/library";
-import { continueWatching, loadProgress, progressKey, saveProgress, type Progress } from "./state/progress";
+import { continueWatching, loadProgress, migrateStoredProgress, progressKey, saveProgress, type Progress } from "./state/progress";
+import { cacheGet } from "./state/fetchPlaylist";
+import { isStalker, loadStore } from "./state/playlists";
+import { parseM3U, xtreamAccount } from "@skmate/core";
 
 type Section = "live" | "movies" | "series" | "guide" | "sport" | "search";
 /**
@@ -160,12 +163,22 @@ export function App() {
     if (sheetFrom === "picker") { setSheet(false); setSheetFrom("menu"); setPicking(true); return; }
     setSheetPage(null);
   };
-  const pl = usePlaylists();
+  // Once, before the playlist is read from its link again: what was kept by a channel's old id (its place in the
+  // list) is moved to its lasting id through the copy kept on this device (2.6.9).
+  useState(() => {
+    const st = loadStore();
+    migrateStoredProgress(st.list.map((x) => ({ id: x.id, m3u: !xtreamAccount(x.url) && !isStalker(x.url) })),
+      (pid) => { const text = cacheGet(pid); return text ? parseM3U(text) : null; });
+    return 0;
+  });
+  const pl = usePlaylists(settings.plEvery);
   const rem = useReminders();
   // The reminder whose moment has come first; asked about only in the "ask" mode, and never over the lock screen.
   const firstDue = rem.due[0] ?? null;
   const prompt = unlocked && settings.reminderMode === "ask" ? firstDue : null;
   const guide = useGuide(pl.loaded ? pl.channels : NO_CHANNELS, pl.active, pl.headerGuides, settings);
+  // The playlist was read again and changed (or "Update now"): the guide follows it (#668).
+  useEffect(() => { if (pl.renewed > 0) void guide.sync(); }, [pl.renewed]);
   const guideValue = useMemo(() => ({ data: guide.data, now: guide.now }), [guide.data, guide.now]);
   applyLanguage(settings.language); // before anything is drawn: the whole screen speaks one language
   // Another language chosen: its table is fetched, then the screen is drawn again in it.
@@ -254,6 +267,12 @@ export function App() {
   const openHere = (c: Channel, list: readonly Channel[]) => setPlaying({ list, index: Math.max(0, list.findIndex((x) => x.id === c.id)) });
   // A note at the top that goes by itself: a recording saved, an external player that did not start.
   const [flash, setFlash] = useState<{ icon: IconName; text: string } | null>(null);
+  // The TV's shell moved to a new build over the air (platform/shell): told once, then forgotten (2.7.1).
+  useEffect(() => {
+    let v: string | null = null;
+    try { v = localStorage.getItem("skmate.ota.updated"); if (v) localStorage.removeItem("skmate.ota.updated"); } catch { /* none */ }
+    if (v) setTimeout(() => setFlash({ icon: "refresh", text: t("otaUpdated", { v }) }), 1500);
+  }, []);
   useEffect(() => { if (!flash) return; const id = setTimeout(() => setFlash(null), 5000); return () => clearTimeout(id); }, [flash]);
   // A playlist that has just loaded after being added from the settings: say so, and take the viewer to the channels.
   const wasLoading = useRef(false);
@@ -547,7 +566,7 @@ export function App() {
         <SettingsSheet
           show={!out} page={sheetPage} onPage={(pg) => { setSheetFrom("menu"); setSheetPage(pg); }} onClose={() => setSheet(false)} onBack={sheetBack}
           settings={settings} onChange={setSettings} store={pl.store} status={pl.status}
-          onAddPlaylist={pl.add} onAddPlaylistFile={pl.addFile} onSelectPlaylist={pl.select} onEditPlaylist={pl.update} onAskDeletePlaylist={setDeleting}
+          onAddPlaylist={pl.add} onAddPlaylistFile={pl.addFile} onSelectPlaylist={pl.select} onRefreshPlaylist={pl.refresh} onEditPlaylist={pl.update} onAskDeletePlaylist={setDeleting}
           onAskReset={() => setResetting(true)}
           guide={{ data: guide.data, status: guide.status, outcomes: guide.outcomes, onRefresh: () => void guide.sync(), onClear: guide.clear }}
           channelCount={pl.channels.length} active={pl.active} headerGuides={pl.headerGuides}
@@ -608,6 +627,7 @@ export function App() {
         settingsOpen={sheet} onOpenSettings={() => openSheet(null, "menu")}
         // player functions (Android): the playlist's own "Stop retrying after"
         playlistId={playlistId}
+        playlistName={pl.store.list.length > 1 ? pl.active?.name : undefined}
       />
       {settingsLayer}
       {programmeDialog}

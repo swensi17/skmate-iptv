@@ -90,7 +90,7 @@ const timeoutLabel = (n: number) => (n === 0 ? t("sa_common_never") : secs(n));
 
 const ZOOMS: Array<{ v: Settings["zoomMode"]; k: Key }> = [
   { v: "fit", k: "sa_player_zoom_fit_screen" }, { v: "crop", k: "sa_player_zoom_fill_crop" }, { v: "stretch", k: "sa_player_zoom_stretch" },
-  { v: "original", k: "sa_player_zoom_original" }, { v: "16_9", k: "sa_player_zoom_force_16_9" }, { v: "4_3", k: "sa_player_zoom_force_4_3" },
+  { v: "original", k: "sa_player_zoom_original" }, { v: "16_9", k: "sa_player_zoom_force_16_9" }, { v: "4_3", k: "sa_player_zoom_force_4_3" }, { v: "2_39", k: "sa_player_zoom_force_2_39" },
 ];
 const THEMES: Array<{ v: Settings["theme"]; k: Key }> = [
   { v: "system", k: "sa_settings_theme_system" }, { v: "dark", k: "sa_settings_theme_dark" }, { v: "light", k: "sa_settings_theme_light" },
@@ -225,6 +225,13 @@ export function buildRows(c: RowsCtx, close: () => void): Record<string, RowDef>
     ),
   });
   add({ key: "tab_GLASS_EFFECT", icon: "SPARKLE", title: t("sa_settings_glass_bg_title"), line: `Stage · ${pct(s.glassOpacity)}` });
+  // Text size right in the list (2.7.1): ◀ ▶ on the row, no page to open.
+  add({
+    key: "font_size", icon: "TEXT_SIZE", title: t("sa_settings_font_size"), line: t("sa_settings_line_fonts"),
+    end: <Stepper value={pct(s.fontSize)} onStep={(d) => set({ fontSize: Math.max(60, Math.min(140, s.fontSize + d * 5)) })} />,
+    step: (d) => set({ fontSize: Math.max(60, Math.min(140, s.fontSize + d * 5)) }),
+    editor: () => <BigStepper value={pct(s.fontSize)} onDone={close} onStep={(d) => set({ fontSize: Math.max(60, Math.min(140, s.fontSize + d * 5)) })} />,
+  });
   add({ key: "fonts", icon: "TEXT_SIZE", title: t("sa_settings_title_fonts"), line: `${fontName(s.fontFamily)} · ${pct(s.fontSize)}` });
   add({
     key: "popup_size", icon: "ZOOM", title: t("sa_settings_popup_size"), line: t("sa_settings_line_popup_size"), end: <Stepper value={pct(s.popupSize)} onStep={(d) => set({ popupSize: Math.max(50, Math.min(120, s.popupSize + d * 5)) })} />,
@@ -294,6 +301,8 @@ export function buildRows(c: RowsCtx, close: () => void): Record<string, RowDef>
       { label: t("sa_common_nav_series"), on: s.extSeries, toggle: () => set({ extSeries: !s.extSeries }) },
     ]} />,
   });
+  add({ key: "vp_columns", icon: "LIST_GRID", title: t("sa_settings_player_panel_columns"), line: t("sa_settings_player_panel_columns_description"), end: sw(s.playerColumns), ok: () => set({ playerColumns: !s.playerColumns }) });
+  add({ key: "vp_recents", icon: "HISTORY", title: t("sa_settings_player_recents"), line: t("sa_settings_player_recents_description"), end: sw(s.playerRecents), ok: () => set({ playerRecents: !s.playerRecents }) });
   add({ key: "vp_clock", icon: "CLOCK", title: t("sa_settings_player_clock"), line: t("sa_settings_player_clock_description"), end: sw(s.playerClock), ok: () => set({ playerClock: !s.playerClock }) });
   const look = (key: string, icon: string, title: Key, opts: Key[] | string[], field: "clockSize" | "clockWeight" | "clockBg" | "clockColor" | "clockAlpha", hidden = false) => {
     const labels = (opts as string[]).map((o) => (o.startsWith("sa_") ? t(o as Key) : o));
@@ -567,8 +576,8 @@ export const GROUP_ITEMS: Record<string, Item[]> = {
   layout: [{ h: "sa_settings_part_navigation", first: true }, "navigation", "live_layout", "live_opens_in", "tab_CH_NAV",
     { h: "sa_settings_part_lists" }, "tab_PANEL_WIDTH", "tab_GUIDE_WIDTH", "browsing_lists", "tab_CONTENT_MENUS"],
   content: ["tab_CUSTOMIZE", "tab_METADATA"],
-  player: [{ h: "sa_settings_vp_cat_player", first: true }, "vp_external", { h: "sa_settings_vp_cat_controls" }, "vp_clock",
-    "clock_size", "clock_weight", "clock_bg", "clock_color", "clock_alpha", "vp_recents"],
+  player: [{ h: "sa_settings_vp_cat_player", first: true }, "vp_external", { h: "sa_settings_vp_cat_controls" }, "vp_columns", "vp_recents", "vp_clock",
+    "clock_size", "clock_weight", "clock_bg", "clock_color", "clock_alpha"],
   picture: [{ h: "sa_settings_vp_cat_picture", first: true }, "vp_hw", "vp_zoom", "vp_reset_zoom", { h: "sa_settings_vp_cat_frame_rate" }, "vp_afr", "vp_afr_pause", "vp_afr_resolution"],
   live: [{ h: "sa_settings_vp_cat_live_tuning", first: true }, "vp_live_latency", "vp_latency_sources", "vp_tune_timeout", "vp_tune_timeout_sources",
     { h: "sa_settings_vp_cat_streaming" }, "vp_vod_buffer", { h: "sa_settings_live_tv" }, "vp_channel_numbers", "vp_live_preview", "vp_preview_audio", "vp_programme_posters", "vp_info_hide"],

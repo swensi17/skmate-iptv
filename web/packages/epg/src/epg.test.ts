@@ -192,3 +192,79 @@ describe("GuideData at the junction of programmes (android 2.6.1)", () => {
     expect(at.next?.title).toBe("third");
   });
 });
+
+describe("syncGuides: the exact name first (2.6.4)", () => {
+  const now = Date.UTC(2026, 10, 27, 10, 30);
+  const at = (ms: number) => `${new Date(ms).toISOString().replace(/[-:T]|\..*/g, "")} +0000`;
+  const guide = (id: string, name: string, title: string) =>
+    `<tv><channel id="${id}"><display-name>${name}</display-name></channel><programme start="${at(now - 600_000)}" stop="${at(now + 600_000)}" channel="${id}"><title>${title}</title></programme></tv>`;
+  it("a later guide with the exact name takes over a link made by likeness", async () => {
+    const it999 = guide("tnt4.it", "ТНТ4", "Камеди Клаб");
+    const team = guide("tnt4hd.team", "ТНТ4 HD", "Интерны");
+    const { data } = await syncGuides({
+      sources: [{ id: "a", name: "it999", url: "http://a" }, { id: "b", name: "team", url: "http://b" }],
+      channels: [ch("1", "ТНТ4 HD"), ch("2", "ТНТ4")], now,
+      open: async (url) => new Response(url === "http://a" ? it999 : team),
+    });
+    expect(data.links.get("1")).toBe("tnt4hd.team");
+    expect(data.nowNext("1", now).now?.title).toBe("Интерны");
+    expect(data.links.get("2")).toBe("tnt4.it");
+  });
+});
+
+describe("syncGuides: one guide per channel (2.6.6)", () => {
+  const now = Date.UTC(2026, 10, 27, 12, 0);
+  const at = (ms: number) => `${new Date(ms).toISOString().replace(/[-:T]|\..*/g, "")} +0000`;
+  const prog = (id: string, a: number, b: number, t: string) => `<programme start="${at(a)}" stop="${at(b)}" channel="${id}"><title>${t}</title></programme>`;
+  const guide = (id: string, name: string, rows: string) => `<tv><channel id="${id}"><display-name>${name}</display-name></channel>${rows}</tv>`;
+  const run = (bodies: string[], channels: Channel[]) => syncGuides({
+    sources: bodies.map((_, i) => ({ id: String(i), name: `g${i}`, url: `http://g/${i}` })), channels, now,
+    open: async (url) => new Response(bodies[Number(url.slice(-1))] as string),
+  });
+
+  it("a tvg-id in a guide below beats a name match in the guide above", async () => {
+    const { data } = await run([
+      guide("other", "Матч ТВ", prog("other", now - 600_000, now + 600_000, "Не то")),
+      guide("m1", "Matchbox", prog("m1", now - 600_000, now + 600_000, "То")),
+    ], [ch("1", "Матч ТВ", { tvgId: "m1" })]);
+    expect(data.links.get("1")).toBe("m1");
+    expect(data.nowNext("1", now).now?.title).toBe("То");
+  });
+
+  it("the guide above with nothing now or ahead gives the channel to the one below, whole", async () => {
+    const { data } = await run([
+      guide("a", "Канал", prog("a", now - 7_200_000, now - 3_600_000, "Старое")),
+      guide("b", "Канал", prog("b", now - 600_000, now + 600_000, "Сейчас")),
+    ], [ch("1", "Канал")]);
+    expect(data.links.get("1")).toBe("b");
+    expect(data.of("1").map((p) => p.title)).toEqual(["Сейчас"]);
+  });
+
+  it("the guide above with something ahead keeps the channel; the one below never fills its gaps", async () => {
+    const { data } = await run([
+      guide("a", "Канал", prog("a", now + 3_600_000, now + 7_200_000, "Вечером")),
+      guide("b", "Канал", prog("b", now - 600_000, now + 600_000, "Сейчас")),
+    ], [ch("1", "Канал")]);
+    expect(data.links.get("1")).toBe("a");
+    expect(data.of("1").map((p) => p.title)).toEqual(["Вечером"]);
+  });
+});
+
+describe("syncGuides: the past only where there is an archive (2.7.0)", () => {
+  const now = Date.UTC(2026, 10, 28, 12, 0);
+  const at = (ms: number) => `${new Date(ms).toISOString().replace(/[-:T]|\..*/g, "")} +0000`;
+  const prog = (id: string, a: number, b: number, t: string) => `<programme start="${at(a)}" stop="${at(b)}" channel="${id}"><title>${t}</title></programme>`;
+  const day = 86_400_000;
+  const xml = `<tv><channel id="a"><display-name>Архивный</display-name></channel><channel id="b"><display-name>Простой</display-name></channel>${
+    prog("a", now - 2 * day, now - 2 * day + 3_600_000, "Позавчера") + prog("a", now - 600_000, now + 600_000, "Сейчас А")
+    + prog("b", now - 2 * day, now - 2 * day + 3_600_000, "Позавчера Б") + prog("b", now - 600_000, now + 600_000, "Сейчас Б")}</tv>`;
+  it("keeps aired days for a channel with an archive, a few hours for the rest", async () => {
+    const { data } = await syncGuides({
+      sources: [{ id: "1", name: "g", url: "http://g" }], now, open: async () => new Response(xml),
+      channels: [ch("1", "Архивный", { catchupDays: 3 }), ch("2", "Простой")],
+      pastMs: 7 * day, aheadMs: day, pastFor: (c) => (c.catchupDays ?? 0) * day, shortPastMs: 6 * 3_600_000,
+    });
+    expect(data.of("1").map((p) => p.title)).toEqual(["Позавчера", "Сейчас А"]);
+    expect(data.of("2").map((p) => p.title)).toEqual(["Сейчас Б"]);
+  });
+});

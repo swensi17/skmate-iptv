@@ -11,7 +11,13 @@ import { capitalize } from "../text";
 import { ChannelLogo } from "./ChannelLogo";
 import { CountdownRing, useDwell, useTick } from "./PlayerChrome";
 import { useProgrammeArt, type ArtSettings, type ProgrammeArt } from "../state/tmdb";
-import { PosterViewer } from "./ProgrammeArt";
+import { PosterViewer, ProgrammePoster } from "./ProgrammeArt";
+import { GuideSide } from "./GuideSide";
+import { NoGuide } from "./PreviewPane";
+import { daysText } from "./Left";
+import { useFocusInside } from "./focusInside";
+import { Marquee } from "./ChannelRow";
+import { clock } from "../time";
 import { PanelGuide, scheduleLines, UNDER_HEAD } from "./Schedule";
 import { Ticks } from "./Spinner";
 import "./player.css";
@@ -28,19 +34,29 @@ const DOCK_TOP = 36;
 const CATS_W = 440;
 const MENU_W = 84;
 /** A channel row is 92 high with 4 between; the list fills the column under its title (36 + 31 + 14 above, 24 below). */
-const ROW = 96;
+const ROW = 92;
 const LIST_H = Math.floor((972 - 36 - 31 - 14 - 24) / ROW) * ROW;
 const CAT_ROW = 56;
 const CATS_H = Math.floor((972 - 30 - 50) / CAT_ROW) * CAT_ROW;
 /** DwellTiming: a channel rests 1.5 s before 3-2-1. */
 const CHANNEL_QUIET_MS = 1500;
-/** 2.7.0: a category the cursor rests on this long makes the channels beside it follow, without OK (LiveStage.kt FOLLOW_REST_MS). */
-const FOLLOW_REST_MS = 300;
+const CATEGORY_FOLLOW_MS = 300;
+/** OK held this long on a channel opens its programme instead of tuning it. */
+const OK_HOLD_MS = 600;
 
 export interface DockRect { x: number; y: number; w: number; h: number }
 
 /** The picture's corner while the panel is open: right of the list (and of the categories), 36 from the top. */
-export function dockRect(inset: number, menu: number): DockRect {
+/** Three columns (2.7.1, as TiviMate): the picture's width at the right, the programme between it and the list. */
+const COLS_PICTURE_W = 620;
+const COLS_LIST_W = 370;
+const COLS_GUIDE_W = 660;
+export function dockRect(inset: number, menu: number, cols = false): DockRect {
+  if (cols) {
+    const w = COLS_PICTURE_W;
+    // The categories open beside the list take the programme column's place: the picture stays where and as big as it is.
+    return { x: STAGE_W - 36 - w, y: DOCK_TOP, w, h: Math.round((w * 9) / 16) };
+  }
   const w = Math.max(0, STAGE_W - DOCK_LEFT - inset - menu - 36);
   return { x: DOCK_LEFT + inset + menu, y: DOCK_TOP, w, h: Math.round((w * 9) / 16) };
 }
@@ -93,6 +109,8 @@ export function PlayerPanel(p: {
   art: ArtSettings;
   /** OK on an aired programme under the picture: it plays from the archive and the panel closes (2.5.3). */
   onArchive: (c: Channel, p: Programme, list: readonly Channel[]) => void;
+  /** Settings › player › "Programme beside the channel list" (2.7.1): three columns. */
+  columns?: boolean;
 }) {
   const ui = useContext(UiContext);
   const { data } = useContext(GuideContext);
@@ -126,12 +144,25 @@ export function PlayerPanel(p: {
   const [menuOpen, setMenuOpen] = useState(false);
   const inset = catsOpen ? CATS_W : 0;
   const menu = menuOpen ? MENU_W : 0;
-  const dock = dockRect(inset, 0); // the group is pushed by the menu as a whole (tp-group), the picture with it
-  useEffect(() => { p.onDock(dockRect(inset, menu)); }, [inset, menu]);
+  const cols = !!p.columns && !history;
+  const dock = dockRect(inset, 0, cols && !catsOpen); // the group is pushed by the menu as a whole (tp-group), the picture with it
+  useEffect(() => { p.onDock(dockRect(inset, menu, cols && !catsOpen)); }, [inset, menu, cols, catsOpen]);
   useEffect(() => () => p.onDock(null), []);
 
   // Focus is kept by channel: on opening, and back from the categories, the playing one.
   const [focused, setFocused] = useState<Channel | null>(p.playing);
+  // ▶ on a channel: its programme with the archive's days as a column, the same as on the channels screen (#735).
+  const [guideCh, setGuideCh] = useState<Channel | null>(null);
+  const guideOpen = useRef(false);
+  const okHold = useRef<{ held: boolean; timer: ReturnType<typeof setTimeout> } | null>(null);
+  // Three columns: the programme follows the list; ▶ or a held OK put the remote into it, ◀ or Back out again.
+  const [colActive, setColActive] = useState(false);
+  const [cardProg, setCardProg] = useState<Programme | null>(null);
+  guideOpen.current = guideCh !== null || colActive;
+  // As on the channels screen: the list shrinks to its logos only while the focus is in the programme (with its days).
+  useFocusInside(colActive, ".tp-mid", () => setColActive(false));
+  const leaveCol = () => { setColActive(false); setTimeout(() => focusFirst(document, `pc-${focused?.id}`), 0); };
+  const closeGuide = () => { const c = guideCh; setGuideCh(null); setTimeout(() => focusFirst(document, `pc-${(c ?? focused)?.id}`), 0); };
   const start = Math.max(0, list.findIndex((c) => c.id === p.playing.id));
   const listActive = !catsOpen && !menuOpen;
   const dwell = useDwell(focused?.id ?? null, !history && p.preview && listActive && !!focused && focused.id !== p.playing.id,
@@ -183,24 +214,32 @@ export function PlayerPanel(p: {
     else if (l.start <= Date.now() && Date.now() < l.stop) p.onPick(head, list);
   };
 
-  // Categories: the playing list's category focused first; the list beside follows the one under the cursor after a short
-  // rest, the sheet staying open (2.7.0 onFollow); OK closes the sheet on it.
+  // Categories: the playing list's category focused first. 2.6.9 (#667): resting ~300 ms on another shows its channels
+  // beside at once, the categories staying open and the picture playing on; OK or ▶ go into the list.
   const [catFocus, setCatFocus] = useState<string | null>(null);
-  const showCat = (key: string): boolean => {
+  const showCat = (key: string) => {
     const item = cats.find((c) => c.key === key);
-    if (!item) return false;
+    if (!item) return;
     memory.key = key;
     setCatKey(key);
     setList(item.channels);
     setFocused(item.channels.find((c) => c.id === p.playing.id) ?? item.channels[0] ?? null);
-    return true;
   };
-  const pickCat = (key: string) => { if (showCat(key)) setCatsOpen(false); };
   useEffect(() => {
     if (!catsOpen || menuOpen || catFocus === null || catFocus === catKey) return;
-    const id = setTimeout(() => showCat(catFocus), FOLLOW_REST_MS);
+    const id = setTimeout(() => showCat(catFocus), CATEGORY_FOLLOW_MS);
     return () => clearTimeout(id);
-  }, [catsOpen, menuOpen, catFocus, catKey]);
+  }, [catFocus, catsOpen, menuOpen, catKey]);
+  const pickCat = (key: string) => {
+    const item = cats.find((c) => c.key === key);
+    if (!item) return;
+    memory.key = key;
+    setCatKey(key);
+    setList(item.channels);
+    setFocused(item.channels.find((c) => c.id === p.playing.id) ?? item.channels[0] ?? null);
+    setCatsOpen(false);
+  };
+  const catDwell = { n: 0, startedAt: 0 };
 
   const focusRail = () => setTimeout(() => focusFirst(document, "pr-home"), 30);
   const focusCats = () => setTimeout(() => focusFirst(document, `pg:${catKey}`), 30);
@@ -216,6 +255,7 @@ export function PlayerPanel(p: {
       const ok = e.key === "Enter" || e.keyCode === 13;
       const back = isBack(e);
       if (back && e.repeat) return; // a held Back is counted by installDpad (about a second closes the app), not a new Back
+      if (guideOpen.current) return; // the programme column takes its own keys
       const u = under.current;
       // The poster over the whole screen: nothing behind it moves; OK or Back closes it, back on the poster.
       if (u.big) {
@@ -251,6 +291,15 @@ export function PlayerPanel(p: {
         if (ok && !e.repeat) pickLine(i);
         return;
       }
+      // OK on a channel: a press tunes it on release, a hold opens its programme with the archive (#761, #768).
+      const onRow = (document.activeElement as HTMLElement | null)?.dataset.focus?.startsWith("pc-");
+      if (ok && onRow && !menuOpen && !catsOpen && focused) {
+        e.stopPropagation(); e.preventDefault();
+        if (e.repeat || okHold.current) return;
+        const c = focused;
+        okHold.current = { held: false, timer: setTimeout(() => { if (okHold.current) okHold.current.held = true; if (cols) setColActive(true); else setGuideCh(c); }, OK_HOLD_MS) };
+        return;
+      }
       if (!left && !right && !back) return;
       e.stopPropagation();
       e.preventDefault();
@@ -268,15 +317,21 @@ export function PlayerPanel(p: {
       }
       if (back) { p.onDismiss(); return; }
       if (left) { if (history) p.onDismiss(); else { setCatFocus(catKey); setCatsOpen(true); } return; }
-      // ▶ in the list: onto the poster, else onto what is on under the picture (2.5.3).
-      if (right && !e.repeat) {
-        if (u.art) setUAt("poster");
-        else if (u.lines && u.lines.length > 0) setUAt(Math.max(u.first, u.onAirIndex));
-      }
+      // ▶ in the list: the channel's programme with the archive's days, as on the channels screen (#735).
+      if (right && !e.repeat && focused) { if (cols) setColActive(true); else setGuideCh(focused); }
+    };
+    const onKeyUp = (e: KeyboardEvent) => {
+      const h = okHold.current;
+      if (!h || !(e.key === "Enter" || e.keyCode === 13)) return;
+      okHold.current = null;
+      clearTimeout(h.timer);
+      e.stopPropagation(); e.preventDefault();
+      if (!h.held && focused) p.onPick(focused, list);
     };
     document.addEventListener("keydown", onKey, true);
-    return () => document.removeEventListener("keydown", onKey, true);
-  }, [menuOpen, catsOpen, history, catKey, list, focused, p.playing.id, head]);
+    document.addEventListener("keyup", onKeyUp, true);
+    return () => { document.removeEventListener("keydown", onKey, true); document.removeEventListener("keyup", onKeyUp, true); };
+  }, [menuOpen, catsOpen, history, catKey, list, focused, p.playing.id, head, cols]);
 
   const rail = (go: Go | "home" | "settings") => {
     if (go === "home") { setMenuOpen(false); p.onDismiss(); return; } // Home is the picture itself
@@ -288,7 +343,14 @@ export function PlayerPanel(p: {
   const underBox = { left: `${dock.x}px`, top: `${underTop}px`, width: `${dock.w}px` };
   const listIndex = (c: Channel) => list.findIndex((x) => x.id === c.id);
   return (
-    <div class={`tp${p.closing ? " out" : ""}`} role="dialog" aria-label={title}>
+    <div class={`tp${p.closing ? " out" : ""}${cols ? " tp-cols" : ""}${cols && colActive ? " tp-guide-on" : ""}`} role="dialog" aria-label={title}>
+      {guideCh ? (
+        <div class="tp-guide">
+          <GuideSide channel={guideCh} art={p.art} active onClose={closeGuide} onLeave={closeGuide}
+            onWatch={(c) => { setGuideCh(null); p.onPick(c, list); }}
+            onArchive={(c, prog) => { setGuideCh(null); p.onArchive(c, prog, list); }} />
+        </div>
+      ) : null}
       {menuOpen ? (
         <nav class="tp-rail" aria-label={t("playerMenu")}>
           {RAIL.map(([id, icon, label, go]) => (
@@ -315,10 +377,10 @@ export function PlayerPanel(p: {
                     const playing = c.id === p.playing.id;
                     const counting = !playing && dwell.n > 0 && focused?.id === c.id;
                     return (
-                      <button class={`tp-row${playing ? " playing" : ""}`} data-focus={`pc-${c.id}`} onFocus={() => { setFocused(c); setUAt(null); }} onClick={() => p.onPick(c, list)}>
+                      <button class={`st-row tp-row${playing ? " playing" : ""}${head?.id === c.id ? " opened" : ""}${i === 0 ? " st-row-first" : ""}`} data-focus={`pc-${c.id}`} onFocus={() => { setFocused(c); setUAt(null); }} onClick={() => p.onPick(c, list)}>
                         {ui.logos ? <span class="tp-row-logo"><ChannelLogo channel={c} /></span> : null}
                         <span class="tp-row-text">
-                          <span class="tp-row-name">{ui.numbers ? <span class="n">{i + 1}</span> : null}<span class="t">{c.name}</span>{(c.catchupDays ?? 0) > 0 ? <span class="tp-row-arch"><Icon name="rewind" size={18} /></span> : null}</span>
+                          <span class="tp-row-name">{ui.numbers ? <span class="n">{i + 1}</span> : null}<Marquee class="t" text={c.name} on={focused?.id === c.id && !colActive && guideCh === null} />{(c.catchupDays ?? 0) > 0 ? <span class="tp-row-arch"><Icon name="rewind" size={18} /></span> : null}</span>
                           {on.now ? (
                             <>
                               <span class="tp-row-prog">{on.now.title}</span>
@@ -328,15 +390,25 @@ export function PlayerPanel(p: {
                         </span>
                         {counting ? <span class="tp-row-end"><CountdownRing n={dwell.n} totalMs={3000} startedAt={dwell.startedAt} /></span>
                           : playing ? <span class="tp-row-end" aria-label={t("tbLive")}><Icon name="pause" size={30} /></span> : null}
-                      </button>
+                      {(c.catchupDays ?? 0) > 0 ? <span class="st-archive corner tp-row-days">{daysText(c.catchupDays as number)}</span> : null}
+                      <span class="mini-num">{i + 1}</span>
+                      {on.now ? <span class="mini-bar"><i style={{ width: `${Math.round(on.progress * 100)}%` }} /></span> : null}
+                        </button>
                     );
                   }}
                 />
               )}
             </div>
           </div>
+          {cols && head && !catsOpen && !menuOpen ? (
+            <div class="tp-mid">
+              <GuideSide channel={head} art={p.art} compact active={colActive} onClose={leaveCol} onLeave={leaveCol} onLine={setCardProg}
+                onWatch={(c) => { setColActive(false); p.onPick(c, list); }}
+                onArchive={(c, prog) => { setColActive(false); p.onArchive(c, prog, list); }} />
+            </div>
+          ) : null}
           <div class="tp-under" style={underBox}>
-            {head ? (
+            {cols && !catsOpen && head ? <ProgCard channel={head} prog={cardProg} now={now} art={p.art} /> : head ? (
               <PanelGuide
                 channel={head} number={ui.numbers && listIndex(head) >= 0 ? listIndex(head) + 1 : null} now={now}
                 lines={lines} first={first} art={art} at={uAt} view={view} viewH={Math.max(UNDER_HEAD, 972 - underTop)}
@@ -370,3 +442,36 @@ export function PlayerPanel(p: {
   );
 }
 
+/**
+ * Under the picture in three columns: the programme the remote is on in the column, else what is on the channel now:
+ * its title (two lines), its time, how far it has got and what is left while it is on, its description.
+ */
+function ProgCard({ channel, prog, now, art: artSettings }: { channel: Channel; prog: Programme | null; now: number; art: ArtSettings }) {
+  const { data } = useContext(GuideContext);
+  const p = prog ?? data.nowNext(channel.id, now).now;
+  const poster = useProgrammeArt(p?.title ?? null, artSettings);
+  const [desc, setDesc] = useState<string | undefined>(p?.desc);
+  useEffect(() => {
+    let live = true;
+    setDesc(p?.desc);
+    if (p) data.describe(channel.id, p).then((d) => { if (live) setDesc(d); });
+    return () => { live = false; };
+  }, [p?.start, channel.id]);
+  if (!p) return <NoGuide />;
+  const on = p.start <= now && now < p.stop;
+  const done = on ? Math.max(0, Math.min(1, (now - p.start) / Math.max(1, p.stop - p.start))) : 0;
+  return (
+    <div class="tp-card">
+      <div class="tp-card-title">{p.title}</div>
+      <div class="tp-card-time">
+        <span>{clock(p.start)} – {clock(p.stop)}</span>
+        {on ? <span class="tp-card-bar"><i style={{ width: `${(done * 100).toFixed(1)}%` }} /></span> : null}
+        {on ? <span>{t("tbMinutes", { n: Math.max(0, Math.round((p.stop - now) / 60_000)) })}</span> : null}
+      </div>
+      <div class="tp-card-body">
+        {poster ? <div class="tp-card-poster"><ProgrammePoster url={poster.posterUrl} width={130} /></div> : null}
+        {desc ? <div class="tp-card-desc">{desc}</div> : null}
+      </div>
+    </div>
+  );
+}

@@ -15,6 +15,8 @@ export interface GuideBacking {
   need(from: number, to: number): void;
   /** The description of the programme of guide channel [epgId] starting at [start] (display time). */
   describe(epgId: string, start: number): Promise<string | undefined>;
+  /** Programmes of the whole stored guide whose title holds the words (see GuideCache.findTitles). */
+  find?(query: string, limit?: number): Promise<Array<{ epg: string; programme: Programme }>>;
 }
 
 export interface GuideExtent {
@@ -65,6 +67,19 @@ export class GuideData {
     const backing = this.extent.backing;
     if (epg === undefined || !backing) return Promise.resolve(undefined);
     return backing.describe(epg, p.start).catch(() => undefined);
+  }
+
+  /** Programmes of the stored guide (not only those in memory) whose title holds [query], by playlist channel. */
+  async findStored(query: string, limit = 300): Promise<Array<{ channelId: string; programme: Programme }>> {
+    const find = this.extent.backing?.find;
+    if (!find) return [];
+    const byEpg = new Map<string, string>();
+    this.links.forEach((epg, ch) => { if (!byEpg.has(epg)) byEpg.set(epg, ch); });
+    let found: Array<{ epg: string; programme: Programme }> = [];
+    try { found = await find(query, limit); } catch { /* storage unreadable: nothing more found */ }
+    const out: Array<{ channelId: string; programme: Programme }> = [];
+    for (const f of found) { const ch = byEpg.get(f.epg); if (ch) out.push({ channelId: ch, programme: f.programme }); }
+    return out;
   }
 
   /** The same guide moved to a shift of [minutes] (the in-memory guide; one kept in IndexedDB re-reads instead). */

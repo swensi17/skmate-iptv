@@ -48,11 +48,11 @@
 /* The timeline: 24 high, track 4 (8 on the step), blue fill, the watched moment as a dot (7 / 12 radius, halo +5). */
 .tb-time { position: relative; height: 24px; margin-top: 18px; }
 .tb-track { position: absolute; left: 0; right: 0; top: 10px; height: 4px; border-radius: 2px; background: rgba(255, 255, 255, .25); }
-.tb-track i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 2px; background: #0086fc; }
+.tb-track i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 2px; background: var(--st-blue); }
 .tb-dot { position: absolute; top: 12px; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%; background: #fff; }
-.tb-dot.behind { background: #0086fc; }
+.tb-dot.behind { background: var(--st-blue); }
 .tb-time.seeking .tb-track { top: 8px; height: 8px; border-radius: 4px; background: rgba(255, 255, 255, .35); }
-.tb-time.seeking .tb-dot { width: 24px; height: 24px; margin: -12px 0 0 -12px; background: #fff; box-shadow: 0 0 0 5px rgba(0, 134, 252, .45); }
+.tb-time.seeking .tb-dot { width: 24px; height: 24px; margin: -12px 0 0 -12px; background: #fff; box-shadow: 0 0 0 5px rgba(var(--st-blue-rgb), .45); }
 /* "−1:20 · 13:42:10" over the dot while ◀ ▶ move: a white pill 10 above the line, taking no room. */
 .tb-counter { position: absolute; bottom: 34px; padding: 6px 14px; border-radius: 10px; background: #fff; color: #000; font-size: 22px; font-weight: 700; line-height: 1.3; white-space: nowrap; }
 
@@ -61,7 +61,7 @@
 .tb-tile { flex: 1 1 0%; min-width: 0; display: flex; flex-direction: column; align-items: center; padding: 0; border: 0; background: none; outline: none; font-family: inherit; cursor: pointer; color: rgba(255, 255, 255, .86); }
 .tb-disc { width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
 .tb-tile-label { max-width: 100%; margin-top: 10px; padding: 0 4px; box-sizing: border-box; font-size: 18px; font-weight: 500; line-height: 1.3; color: rgba(255, 255, 255, .78); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.tb-tile.active { color: #0086fc; }
+.tb-tile.active { color: var(--st-blue); }
 .tb-tile:focus .tb-disc { background: #fff; color: #16181d; }
 .tb-tile:focus .tb-tile-label { font-weight: 700; color: #fff; }
 
@@ -237,26 +237,27 @@
 .tp-rows { margin-top: 14px; padding: 0; }
 .tp-rows .vlist { overflow: hidden; }
 /* A row: 92 high (4 between), padding 16, logo 72×52, focus the dark bar #3A3F45 with white text. */
-.tp-row { display: flex; align-items: center; width: 100%; height: 92px; padding: 0 28px; box-sizing: border-box; border: 0; border-radius: 4px; background: none; color: #fff; font-family: inherit; text-align: left; outline: none; cursor: pointer; }
-.tp-row:focus { background: #3a3f45; }
+.tp-row { display: flex; align-items: center; width: 100%; padding: 0 28px; color: #fff; font-family: inherit; text-align: left; outline: none; cursor: pointer; }
+/* Focus: the shared row's light plate (ui.css .st-row); the row's faint ink turns dark on it. */
+.st-row.tp-row:focus .tp-row-name .n, .st-row.tp-row:focus .tp-row-prog, .st-row.tp-row:focus .tp-row-arch, .st-row.tp-row:focus .tp-row-end.time { color: rgba(18, 18, 18, .62); }
+.st-row.tp-row:focus .tp-row-bar { background: rgba(18, 18, 18, .16); }
+.st-row.tp-row:focus .tp-row-bar i { background: #121212; }
 .tp-row-logo { flex: none; width: 72px; height: 52px; display: flex; align-items: center; justify-content: center; }
 .tp-row-logo .logo { width: 100%; height: 100%; object-fit: contain; border-radius: 0; background: none; font-size: 18px; }
 .tp-row-text { flex: 1 1 0%; min-width: 0; margin-left: 16px; }
 .tp-row-name { display: flex; font-size: 20px; font-weight: 700; line-height: 1.3; white-space: nowrap; }
 .tp-row-name .n { flex: none; margin-right: 10px; color: rgba(255, 255, 255, .55); }
-.tp-row:focus .tp-row-name .n { color: rgba(255, 255, 255, .62); }
 .tp-row-name .t { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
-.tp-row.playing .tp-row-name .t { color: #0086fc; }
+.tp-row.playing .tp-row-name .t { color: var(--st-blue); }
 .tp-row-prog { margin-top: 5px; font-size: 16px; font-weight: 500; line-height: 1.3; color: rgba(255, 255, 255, .55); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.tp-row:focus .tp-row-prog { color: rgba(255, 255, 255, .62); }
 .tp-row-bar { position: relative; height: 4px; margin-top: 5px; border-radius: 2px; background: rgba(255, 255, 255, .16); overflow: hidden; }
 .tp-row-bar i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 2px; background: #fff; }
-.tp-row-end { flex: none; margin-left: 16px; display: flex; align-items: center; color: #0086fc; font-size: 15px; font-weight: 500; }
+.tp-row-end { flex: none; margin-left: 16px; display: flex; align-items: center; color: var(--st-blue); font-size: 15px; font-weight: 500; }
 .tp-row-end.time { color: rgba(255, 255, 255, .55); }
 /* The 3-2-1 ring: 32, a 2.5 px blue arc over a .2 track, the digit 15/800. */
 .tp-ring { position: relative; width: 32px; height: 32px; }
 .tp-ring svg { position: absolute; left: 0; top: 0; width: 32px; height: 32px; transform: rotate(-90deg); }
-.tp-ring b { position: absolute; left: 0; top: 0; width: 32px; line-height: 32px; text-align: center; font-size: 15px; font-weight: 800; color: #0086fc; }
+.tp-ring b { position: absolute; left: 0; top: 0; width: 32px; line-height: 32px; text-align: center; font-size: 15px; font-weight: 800; color: var(--st-blue); }
 
 /* Under the picture: the focused channel (logo 68×48, number and name 24/700) and its day, rows 50 high. */
 .tp-under { position: absolute; left: 680px; }
@@ -331,7 +332,6 @@
 
 /* af69acf: a channel with an archive says so beside its name (18, the row's faint ink). */
 .tp-row-arch { flex: none; display: flex; align-items: center; margin-left: 10px; color: rgba(255, 255, 255, .55); }
-.tp-row:focus .tp-row-arch { color: rgba(255, 255, 255, .62); }
 
 /* Under the picture: the name, the poster and the guide in one list that slides up as the guide is walked. */
 .tp-under-clip { position: relative; overflow: hidden; }
@@ -351,7 +351,7 @@
   background: none; color: #fff; font-family: inherit; font-size: 21px; text-align: left; white-space: nowrap; outline: none; cursor: pointer; }
 .tp-l > * + * { margin-left: 20px; }
 .tp-l.past { color: rgba(255, 255, 255, .55); }
-.tp-l.on { color: #0086fc; }
+.tp-l.on { color: var(--st-blue); }
 .tp-l.foc, .tp-l:focus { background: #3a3f45; color: #fff; }
 .tp-l svg { flex: none; }
 .tp-l-time { flex: none; font-weight: 600; font-feature-settings: "tnum"; }
@@ -418,3 +418,54 @@
 .tp-key.active { color: #ff4d4d; }
 .tp-dot { width: 10px; height: 10px; border-radius: 50%; background: #ff3b30; }
 .tp-time { margin-left: auto; font-size: 18px; color: rgba(255, 255, 255, .78); }
+.tb-time.seeking:focus { outline: none; }
+.tb-time.seeking:focus .tb-dot { box-shadow: 0 0 0 7px rgba(255, 255, 255, .55); }
+
+/* #683 #695: the whole description of what is on */
+.pv-about { position: absolute; inset: 0; z-index: 40; display: flex; align-items: center; justify-content: flex-end; padding: 0 64px; background: linear-gradient(90deg, transparent 30%, rgba(0, 0, 0, .55)); }
+.pv-about-card { position: relative; width: 640px; max-height: 80%; overflow: hidden; padding: 30px 34px; border-radius: 18px; background: rgba(32, 35, 40, .96); color: #fff; box-shadow: 0 12px 40px rgba(0, 0, 0, .5); }
+.pv-about-ch { display: flex; align-items: center; gap: 12px; font-size: 18px; color: rgba(255, 255, 255, .7); }
+.pv-about-logo { width: 48px; height: 32px; display: flex; align-items: center; justify-content: center; }
+.pv-about-logo img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.pv-about-title { margin-top: 14px; font-size: 30px; font-weight: 800; line-height: 1.2; }
+.pv-about-time { margin-top: 8px; font-size: 18px; color: rgba(255, 255, 255, .7); }
+.pv-about-desc { margin-top: 16px; font-size: 19px; line-height: 1.5; color: rgba(255, 255, 255, .85); display: -webkit-box; -webkit-line-clamp: 12; -webkit-box-orient: vertical; overflow: hidden; }
+.pv-about-next { margin-top: 18px; padding-top: 14px; border-top: 1px solid rgba(255, 255, 255, .12); font-size: 18px; color: rgba(255, 255, 255, .7); }
+.pv-about-close { position: absolute; top: 18px; right: 18px; width: 44px; height: 44px; border: 0; border-radius: 50%; background: rgba(255, 255, 255, .1); color: #fff; display: flex; align-items: center; justify-content: center; outline: none; }
+.pv-about-close:focus { background: #fff; color: #16181d; }
+
+/* #735: the programme column in the player's channel panel, over the picture's side */
+.tp-guide { position: absolute; top: 0; right: 0; bottom: 0; left: 700px; z-index: 6; background: var(--st-page, #1d1f23); }
+.tp-guide .gs { left: 24px; right: 24px; top: 40px; bottom: 40px; width: auto; }
+.tb-pl { padding: 1px 8px; border-radius: 6px; background: rgba(255, 255, 255, .12); font-size: 15px; color: rgba(255, 255, 255, .8); white-space: nowrap; max-width: 260px; overflow: hidden; text-overflow: ellipsis; }
+
+/* 2.7.1: the player's channel panel in three columns (as TiviMate): channels | programme | picture with a card */
+.tp-cols .tp-list { width: 370px; }
+.tp-cols .tp-row { position: relative; }
+
+.tp-mid { position: absolute; left: 394px; top: 36px; bottom: 36px; width: 660px; }
+.tp-mid .gs { left: 0; right: 0; top: 0; bottom: 0; width: auto; background: none; animation: none; }
+.tp-card { padding: 18px 22px; border-radius: 16px; background: rgba(255, 255, 255, .06); color: #fff; }
+.tp-card-title { font-size: 24px; font-weight: 700; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.tp-card-time { display: flex; align-items: center; margin-top: 10px; font-size: 17px; color: rgba(255, 255, 255, .7); }
+.tp-card-time > * + * { margin-left: 12px; }
+.tp-card-bar { flex: 1; height: 4px; border-radius: 2px; background: rgba(255, 255, 255, .18); }
+.tp-card-bar i { display: block; height: 100%; border-radius: 2px; background: #fff; }
+.tp-card-desc { margin-top: 12px; font-size: 17px; line-height: 1.45; color: rgba(255, 255, 255, .78); display: -webkit-box; -webkit-line-clamp: 8; -webkit-box-orient: vertical; overflow: hidden; }
+.tp-cols .tp-under { padding: 0; box-sizing: border-box; }
+.tp-cols .tp-card { width: 100%; box-sizing: border-box; }
+.tp-card-body { display: flex; align-items: flex-start; margin-top: 12px; }
+.tp-card-poster { flex: none; width: 130px; margin-right: 16px; }
+.tp-card-body .tp-card-desc { margin-top: 0; flex: 1; min-width: 0; }
+
+/* 2.7.1: the remote in the programme: the list shrinks to big logos (with the archive mark), the programme takes the
+   room up to the picture, whose size never changes. */
+.tp-cols .tp-list, .tp-cols .tp-mid { transition: width 260ms cubic-bezier(.4, 0, .2, 1), left 260ms cubic-bezier(.4, 0, .2, 1); }
+.tp-guide-on .tp-list { width: 160px; }
+.tp-guide-on .tp-mid { left: 184px; width: 870px; }
+.tp-guide-on .tp-title { visibility: hidden; }
+.tp-guide-on .tp-row-text, .tp-guide-on .tp-row-end { display: none; }
+:root[data-motion="off"] .tp-cols .tp-list, :root[data-motion="off"] .tp-cols .tp-mid { transition: none; }
+.tp-row-days { display: none; }
+.tp-guide-on .tp-row-days { display: block; }
+.tp-guide-on .tp-row.opened { background: rgba(255, 255, 255, .10); box-shadow: inset 0 0 0 2px var(--st-blue); border-radius: 10px; }
