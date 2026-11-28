@@ -438,12 +438,13 @@ label.st-field { cursor: text; }
 .st-row::before { content: ""; position: absolute; left: 20px; right: 20px; top: 0; height: 1px; background: rgba(255, 255, 255, .08); background: var(--st-divider); pointer-events: none; }
 .st-row.st-row-first::before, .st-row:focus::before { display: none; }
 .st-row:focus { background: #fff; color: #121212; }
-/* The list squeezed to logos (three columns): the number in the corner, what is on now as a thin bar at the bottom. */
+/* The list squeezed to logos (three columns): a column cell, the number on top, the logo, what is on now as a bar under it. */
 .mini-num, .mini-bar { display: none; }
-.home-3col.guide-on .lrow .mini-num, .tp-guide-on .tp-row .mini-num { display: block; position: absolute; left: 10px; top: 6px; font-size: 13px; font-weight: 700; line-height: 1; color: var(--st-dim, rgba(255, 255, 255, .55)); font-variant-numeric: tabular-nums; }
-.home-3col.guide-on .lrow .mini-bar, .tp-guide-on .tp-row .mini-bar { display: block; position: absolute; left: 14px; right: 14px; bottom: 8px; height: 3px; border-radius: 2px; background: rgba(255, 255, 255, .16); overflow: hidden; }
-.mini-bar i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 2px; background: currentColor; }
-.home-3col.guide-on .lrow .mini-bar i, .tp-guide-on .tp-row .mini-bar i { background: #fff; }
+.home-3col.guide-on button.lrow, .tp-guide-on .tp-row { flex-direction: column; align-items: stretch; justify-content: center; gap: 0; padding: 6px 12px; box-sizing: border-box; }
+.home-3col.guide-on .lrow > .logo-tile, .tp-guide-on .tp-row-logo { order: 1; align-self: center; width: 96px; height: 46px; margin: 0; flex: none; }
+.home-3col.guide-on .lrow .mini-num, .tp-guide-on .tp-row .mini-num { display: block; order: 0; flex: none; margin-bottom: 3px; font-size: 13px; font-weight: 700; line-height: 1.1; white-space: nowrap; color: var(--st-dim, rgba(255, 255, 255, .55)); font-variant-numeric: tabular-nums; }
+.home-3col.guide-on .lrow .mini-bar, .tp-guide-on .tp-row .mini-bar { display: block; order: 2; flex: none; position: relative; width: 100%; height: 3px; margin-top: 5px; border-radius: 2px; background: rgba(255, 255, 255, .16); overflow: hidden; }
+.mini-bar i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 2px; background: #fff; }
 .home-3col.guide-on .lrow:focus .mini-bar, .tp-guide-on .tp-row:focus .mini-bar { background: rgba(18, 18, 18, .16); }
 .home-3col.guide-on .lrow:focus .mini-bar i, .tp-guide-on .tp-row:focus .mini-bar i { background: #121212; }
 .home-3col.guide-on .lrow:focus .mini-num, .tp-guide-on .tp-row:focus .mini-num { color: rgba(18, 18, 18, .62); }

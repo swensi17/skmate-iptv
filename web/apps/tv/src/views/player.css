@@ -464,9 +464,7 @@
 .tp-guide-on .tp-list { width: 160px; }
 .tp-guide-on .tp-mid { left: 184px; width: 870px; }
 .tp-guide-on .tp-title { visibility: hidden; }
-.tp-guide-on .tp-row { justify-content: center; padding: 0; }
 .tp-guide-on .tp-row-text, .tp-guide-on .tp-row-end { display: none; }
-.tp-guide-on .tp-row-logo { width: 104px; height: 62px; }
 :root[data-motion="off"] .tp-cols .tp-list, :root[data-motion="off"] .tp-cols .tp-mid { transition: none; }
 .tp-row-days { display: none; }
 .tp-guide-on .tp-row-days { display: block; }
