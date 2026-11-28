@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">SkMate IPTV</string>
+    <string name="title_activity_main">SkMate IPTV</string>
+    <string name="package_name">uz.skmate.iptv</string>
+    <string name="custom_url_scheme">uz.skmate.iptv</string>
+</resources>

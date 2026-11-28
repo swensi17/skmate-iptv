@@ -1,0 +1,15 @@
+{
+  "appId": "uz.skmate.iptv",
+  "appName": "SkMate IPTV",
+  "webDir": "../tv/dist",
+  "server": {
+    "androidScheme": "http",
+    "cleartext": true
+  },
+  "android": {
+    "allowMixedContent": true
+  },
+  "plugins": {
+    "CapacitorHttp": { "enabled": true }
+  }
+}
