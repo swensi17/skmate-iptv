@@ -292,6 +292,8 @@ export function PlayerPanel(p: {
       }
       // OK on a channel: a press tunes it on release, a hold opens its programme with the archive (#761, #768).
       const onRow = (document.activeElement as HTMLElement | null)?.dataset.focus?.startsWith("pc-");
+      // ▲ on the first channel stays there too: the programme beside is reached by ▶ only.
+      if (up && onRow && !menuOpen && !catsOpen && list.length > 0 && (document.activeElement as HTMLElement).dataset.focus === `pc-${list[0]!.id}`) { e.stopPropagation(); e.preventDefault(); return; }
       // ▼ on the last channel stays there: the programme beside is reached by ▶ only.
       if (down && onRow && !menuOpen && !catsOpen && list.length > 0 && (document.activeElement as HTMLElement).dataset.focus === `pc-${list[list.length - 1]!.id}`) { e.stopPropagation(); e.preventDefault(); return; }
       if (ok && onRow && !menuOpen && !catsOpen && focused) {

@@ -397,6 +397,11 @@ export function LiveView(p: Props) {
       return;
     }
     if (key(e, "ArrowDown", 40)) stop(e); // the list handles every Down it can; this one is past the last row
+    // ▲ on the first channel: up to the search and buttons above the list, never across to the programme beside.
+    if (key(e, "ArrowUp", 38) && (e.target as HTMLElement).closest?.("[data-index]")?.getAttribute("data-index") === "0") {
+      stop(e);
+      document.querySelector<HTMLElement>(".home-tools [data-focus], .home-tools button, .home-tools input")?.focus();
+    }
   };
   // The categories: ▲/▼ walk them in order and stop at the ends, ▶ closes the sheet; ◀ is left to the app (the menu).
   const onCatsKey = (e: KeyboardEvent) => {

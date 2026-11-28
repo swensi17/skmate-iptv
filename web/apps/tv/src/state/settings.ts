@@ -294,6 +294,8 @@ export function applyAll(s: Settings, throttled: boolean): void {
   setVar(root, "--st-font", fontStack(s.fontFamily));
   // The focus colour reaches only the ring styles on TV-box (the poster ring of the profile); "" = the accent.
   setVar(root, "--st-focus-ring", /^#[0-9a-fA-F]{6}$/.test(s.focusColor) ? s.focusColor : null);
+  // The focus plates take the chosen colour too (#webos: "the highlight stays white whatever colour is picked").
+  setVar(root, "--st-focus-plate", /^#[0-9a-fA-F]{6}$/.test(s.focusColor) ? s.focusColor : null);
 }
 
 /**

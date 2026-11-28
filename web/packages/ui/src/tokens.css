@@ -76,7 +76,7 @@
   --st-blue-rgb: 0, 134, 252;
 
   /* Focus: the TV-box plate. Inside it the light palette applies (dark text), see `.st-focusable:focus` in ui.css. */
-  --st-focus-fill: #e0e2e4;  /* SheetFocusFill: rows, buttons, fields on the dark page */
+  --st-focus-fill: var(--st-focus-plate, #e0e2e4);  /* SheetFocusFill: rows, buttons, fields on the dark page */
   --st-focus-text: #121212;
   --st-focus-muted: #474645;
   --st-focus-dim: #7e7e7d;
@@ -165,7 +165,7 @@
   --st-still-back: rgba(18, 18, 18, 0.06);
   --st-accent: #121212;
   --st-on-accent: #fbfaf9;
-  --st-focus-fill: #e7e8ea;   /* LightFocusFill: a grey a step darker than the page */
+  --st-focus-fill: var(--st-focus-plate, #e7e8ea);   /* LightFocusFill: a grey a step darker than the page */
   --st-sheet-fill: #ffffff;
   --st-side-panel-fill: #ffffff;
   --st-card-fill: #ffffff;

@@ -354,7 +354,7 @@ label.st-field { cursor: text; }
 .st-pbutton.compact > .st-pbutton-in > svg { margin-right: 10.8px; }
 .st-pbutton-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .st-pbutton.primary > .st-pbutton-in { background: rgba(255, 255, 255, 0.86); color: #16181b; }
-.st-pbutton:focus > .st-pbutton-in { background: #ffffff; color: #16181b; transform: scale(1.06); }
+.st-pbutton:focus > .st-pbutton-in { background: var(--st-focus-plate, #fff); color: #16181b; transform: scale(1.06); }
 :root[data-theme="light"] .st-pbutton-in { background: rgba(18, 18, 18, 0.12); color: #121212; }
 :root[data-theme="light"] .st-pbutton.primary > .st-pbutton-in { background: rgba(22, 24, 27, 0.86); color: #ffffff; }
 :root[data-theme="light"] .st-pbutton:focus > .st-pbutton-in { background: #16181b; color: #ffffff; }
@@ -437,7 +437,7 @@ label.st-field { cursor: text; }
 .st-row { position: relative; box-sizing: border-box; height: 92px; border: 0; border-radius: 12px; background: none; outline: none; }
 .st-row::before { content: ""; position: absolute; left: 20px; right: 20px; top: 0; height: 1px; background: rgba(255, 255, 255, .08); background: var(--st-divider); pointer-events: none; }
 .st-row.st-row-first::before, .st-row:focus::before { display: none; }
-.st-row:focus { background: #fff; color: #121212; }
+.st-row:focus { background: var(--st-focus-plate, #fff); color: #121212; }
 /* The list squeezed to logos (three columns): a column cell, the number on top, the logo, what is on now as a bar under it. */
 .mini-num, .mini-bar { display: none; }
 .home-3col.guide-on button.lrow, .tp-guide-on .tp-row { flex-direction: column; align-items: stretch; justify-content: center; gap: 0; padding: 6px 12px; box-sizing: border-box; }
