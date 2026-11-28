@@ -454,9 +454,9 @@
 .tp-card-desc { margin-top: 12px; font-size: 17px; line-height: 1.45; color: rgba(255, 255, 255, .78); }
 .tp-cols .tp-under { padding: 0; box-sizing: border-box; }
 .tp-cols .tp-card { width: 100%; box-sizing: border-box; }
-.tp-card-body { display: flex; align-items: flex-start; margin-top: 12px; }
-.tp-card-poster { flex: none; width: 130px; margin-right: 16px; }
-.tp-card-body .tp-card-desc { margin-top: 0; flex: 1; min-width: 0; }
+.tp-card-body { margin-top: 12px; overflow: hidden; }
+.tp-card-poster { float: left; width: 130px; margin: 0 16px 6px 0; }
+.tp-card-body .tp-card-desc { margin-top: 0; text-align: justify; overflow-wrap: break-word; word-wrap: break-word; }
 
 /* 2.7.1: the remote in the programme: the list shrinks to big logos (with the archive mark), the programme takes the
    room up to the picture, whose size never changes. */

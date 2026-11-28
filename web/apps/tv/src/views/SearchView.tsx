@@ -136,19 +136,33 @@ export function SearchView({ channels, onOpen, vod, onOpenVod, settings }: Props
   const movieIndex = useMemo(() => (library ? new SearchIndex(library.movies, (m) => m.name) : null), [library]);
   const showIndex = useMemo(() => (library ? new SearchIndex(library.shows, (s) => s.name) : null), [library]);
 
-  const results = useMemo(() => {
-    if (!searching) return { live: [] as Channel[], tv: [] as ProgrammeHit[], movies: [] as Movie[], series: [] as Show[] };
-    return {
-      live: channelIndex.search(q).map((r) => r.item),
-      tv: (() => {
-        const near = programmes.search(q, now);
-        const seen = new Set(near.map((h) => `${h.channel.id}|${h.programme.start}`));
-        return near.concat(stored.q === q ? stored.hits.filter((h) => !seen.has(`${h.channel.id}|${h.programme.start}`)) : []);
-      })(),
-      movies: movieIndex ? movieIndex.search(q, 200).map((r) => r.item) : [],
-      series: showIndex ? showIndex.search(q, 200).map((r) => r.item) : [],
-    };
+  // The answer is worked out in short slices after the spinner has been drawn (a TV needs seconds for one pass over thousands
+  // of names): the screen shows the spinner while it runs, then the whole result at once.
+  const NONE = { live: [] as Channel[], tv: [] as ProgrammeHit[], movies: [] as Movie[], series: [] as Show[] };
+  const [answer, setAnswer] = useState<{ q: string; res: typeof NONE } | null>(null);
+  useEffect(() => {
+    if (!searching) { setAnswer(null); return; }
+    let live = true;
+    const pause = () => new Promise<void>((r) => { setTimeout(r, 2); });
+    const stop = () => !live;
+    void (async () => {
+      await pause();
+      const live_ = await channelIndex.searchSliced(q, pause, { cancelled: stop });
+      if (!live_) return;
+      const movies = movieIndex ? await movieIndex.searchSliced(q, pause, { cancelled: stop, limit: 200 }) : [];
+      if (!movies) return;
+      const series = showIndex ? await showIndex.searchSliced(q, pause, { cancelled: stop, limit: 200 }) : [];
+      if (!series) return;
+      await pause();
+      const near = programmes.search(q, now);
+      const seen = new Set(near.map((h) => `${h.channel.id}|${h.programme.start}`));
+      const tv = near.concat(stored.q === q ? stored.hits.filter((h) => !seen.has(`${h.channel.id}|${h.programme.start}`)) : []);
+      if (live) setAnswer({ q, res: { live: live_.map((r) => r.item), tv, movies: movies.map((r) => r.item), series: series.map((r) => r.item) } });
+    })();
+    return () => { live = false; };
   }, [q, searching, channelIndex, programmes, movieIndex, showIndex, stored]);
+  const busy = searching && (answer === null || answer.q !== q);
+  const results = answer && answer.q === q ? answer.res : answer ? answer.res : NONE;
   const on = (k: Kind) => kinds.size === 0 || kinds.has(k);
   const shown = {
     live: on("live") ? results.live : [], tv: on("tv") ? results.tv : [],
@@ -295,7 +309,9 @@ export function SearchView({ channels, onOpen, vod, onOpenVod, settings }: Props
               );
             })}
           </div>
-          {total === 0 ? (
+          {busy || (total === 0 && vodBusy) ? (
+            <div class="sr-busy"><div>{t("gssSearching")}</div><span class="sr-sweep"><i /></span></div>
+          ) : total === 0 ? (
             vodBusy ? (
               <div class="sr-busy"><div>{t("gssSearching")}</div><span class="sr-sweep"><i /></span></div>
             ) : (

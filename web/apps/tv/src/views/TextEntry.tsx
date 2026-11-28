@@ -27,6 +27,8 @@ export function TextEntry(p: {
   /** [how]: "ok" the Done button / OK key; "back", "up" and "down" the keys that end typing and keep the text. */
   onDone: (value: string, how?: "ok" | "back" | "up" | "down") => void;
   onCancel: () => void;
+  /** Without the Cancel / Done buttons: the TV keyboard's own Done (or Back) ends the typing. For a search box. */
+  plain?: boolean;
   /** A search field: Up / Down end the typing (Done) and the focus goes on from the field in that direction. */
   leave?: boolean;
   /** Leaving (see `Presence`): it no longer takes keys. */
@@ -74,7 +76,7 @@ export function TextEntry(p: {
   return (
     <OverSheet app>
       <Popup top={keyboard} width={820} title={p.title} body={p.hint || undefined} onClose={p.onCancel} closing={p.closing}
-        buttons={(
+        buttons={p.plain ? undefined : (
           <>
             <Button small className="entry-cancel" id="entry-cancel" text={t("confirmCancel")} onClick={p.onCancel} />
             <Button small className="entry-done" id="entry-done" text={t("done")} onClick={done} />

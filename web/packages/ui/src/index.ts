@@ -7,6 +7,7 @@ export * from "./dpad";
 export * from "./motion";
 export * from "./virtual";
 export * from "./chNav";
+export { logoGate, createLogoGate, QUIET_MS as LOGO_QUIET_MS } from "./logoGate";
 export { VirtualList, type VirtualListProps } from "./VirtualList";
 export { Drawer, PanelHeader, SidePanelHeader } from "./Drawer";
 export { GroupLine, SettingItem, SectionTitle, Toggle, Stepper, Segmented, Badge, ArchiveTag, ToolbarButton, Button, PopupButton, MenuItem, Option, PanelOption, Progress, Popup, Menu } from "./Controls";

@@ -108,7 +108,7 @@ export function SearchEntry(p: {
       ) : null}
       <Presence show={open}>
         {(out) => (
-          <TextEntry title={p.entryTitle} hint={p.entryHint} value={p.value} closing={out}
+          <TextEntry plain title={p.entryTitle} hint={p.entryHint} value={p.value} closing={out}
             onInput={p.count ? setDraft : undefined} note={p.count ? note ?? "" : undefined}
             leave onDone={done}
             onCancel={() => { setOpen(false); back(p.id); }} />

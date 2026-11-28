@@ -1,5 +1,6 @@
 import type { ComponentChildren } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
+import { logoGate } from "./logoGate";
 import { createPager, getChNavConfig, pagingDirection } from "./chNav";
 import { flingStep } from "./touch";
 import { centerTop, clampIndex, revealTop, visibleWindow } from "./virtual";
@@ -52,6 +53,7 @@ export function VirtualList<T>(p: VirtualListProps<T>) {
   const onFocusIn = (e: FocusEvent) => {
     const row = (e.target as HTMLElement).closest<HTMLElement>("[data-index]");
     if (!row) return;
+    logoGate.busy();
     const index = Number(row.dataset.index);
     setTop((t) => revealTop(t, index, p.rowHeight, p.height, p.items.length, p.room));
   };
@@ -73,6 +75,7 @@ export function VirtualList<T>(p: VirtualListProps<T>) {
     e.stopPropagation();
     const to = clampIndex(from, step, p.items.length);
     heading.current = to;
+    logoGate.busy();
     setWanted(to);
   };
   const onKeyUp = (e: KeyboardEvent) => {
@@ -89,6 +92,7 @@ export function VirtualList<T>(p: VirtualListProps<T>) {
   // A wheel (or a touchpad) slides the list under the pointer; focus stays where it was until the pointer moves.
   const onWheel = (e: WheelEvent) => {
     e.preventDefault();
+    logoGate.busy();
     setTop((t) => Math.max(0, Math.min(t + e.deltaY, Math.max(0, p.items.length * p.rowHeight - p.height))));
   };
 
@@ -112,6 +116,7 @@ export function VirtualList<T>(p: VirtualListProps<T>) {
       d.moved = true;
       box.current?.classList.add("drag");
     }
+    logoGate.busy();
     const dt = Math.max(1, now - d.t);
     const dy = d.y - y; // positive: the finger goes up, the list moves up
     d.v = d.v * 0.6 + (dy / dt) * 0.4; // px/ms, smoothed
@@ -130,6 +135,7 @@ export function VirtualList<T>(p: VirtualListProps<T>) {
       const now = Date.now(), step = flingStep(d.v, now - last);
       last = now; d.v = step.v;
       const next = Math.max(0, Math.min(topRef.current + step.dist, maxTop()));
+      logoGate.busy();
       const stuck = next === topRef.current;
       topRef.current = next; setTop(next);
       d.frame = Math.abs(d.v) > 0.02 && !stuck ? requestAnimationFrame(glide) : 0;

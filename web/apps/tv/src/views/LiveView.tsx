@@ -1,4 +1,5 @@
 import { isFavorite } from "../state/favorites";
+import { LoadingState } from "./Spinner";
 import { GuideSide } from "./GuideSide";
 import { useFocusInside } from "./focusInside";
 import type { ArtSettings } from "../state/tmdb";
@@ -265,6 +266,8 @@ export function LiveView(p: Props) {
     index.searchSliced(q, () => new Promise<void>((r) => { setTimeout(r, 2); }), () => !live).then((list) => { if (live && list) setAnswer({ q, list }); });
     return () => { live = false; };
   }, [index, settled]);
+  // The answer of the last Done / pause is still being worked out: the list gives way to a spinner, then the result appears at once.
+  const searching = settled.trim() !== "" && (answer === null || answer.q !== settled.trim());
   const found = settled.trim() === "" ? base : (answer ? answer.list : base);
   const shown = useMemo(() => {
     if (sort === "provider" || sort === "number" || settled.trim() !== "") return found;
@@ -590,7 +593,7 @@ export function LiveView(p: Props) {
             </button>
           </div>
           <div class="home-rows" key={listKey} ref={rowsBox} onKeyDown={onListKey as unknown as (e: Event) => void}>
-            {p.channels.length === 0 ? <ListSkeleton /> : empty ? (
+            {p.channels.length === 0 ? <ListSkeleton /> : searching ? <LoadingState title={t("gssSearching")} /> : empty ? (
               <div class="home-empty">
                 <StageIcon name="tv" size={72} />
                 <div class="home-empty-text">{emptyText}</div>

@@ -1,4 +1,5 @@
-import { useContext, useState } from "preact/hooks";
+import { useContext, useEffect, useState } from "preact/hooks";
+import { logoGate } from "@skmate/ui";
 import type { Channel } from "@skmate/core";
 import { GuideContext } from "../state/GuideContext";
 import { hueOf, monogram } from "../text";
@@ -17,18 +18,27 @@ export function ChannelLogo({ channel, tile }: { channel: Channel; tile?: boolea
   const [broken, setBroken] = useState<string | null>(null);
   const [loaded, setLoaded] = useState<string | null>(null);
   const src = channel.logo ?? data.logoOf(channel.id);
+  // A logo starts loading only once the list has stood still (see logoGate); until then the badge / grey holds its place.
+  const [armed, setArmed] = useState<string | null>(null);
+  useEffect(() => {
+    if (!src) return;
+    const cancel = logoGate.request(src, () => setArmed(src));
+    return () => { cancel(); logoGate.done(src, false); };
+  }, [src]);
+  const ready = !!src && (armed === src || logoGate.isSeen(src));
+  const finish = (ok: boolean) => logoGate.done(src as string, ok);
   if (tile) {
     const show = !!src && broken !== src;
     return (
-      <span class={`logo-tile${show ? (loaded === src ? "" : " loading") : " none"}`} aria-hidden="true">
+      <span class={`logo-tile${show ? (loaded === src ? "" : " wait") : " none"}`} aria-hidden="true">
         {show
-          ? <img src={src} alt="" decoding="async" onLoad={() => setLoaded(src)} onError={() => setBroken(src)} />
+          ? (ready ? <img src={src} alt="" decoding="async" onLoad={() => { finish(true); setLoaded(src); }} onError={() => { finish(false); setBroken(src); }} /> : null)
           : <StageIcon name="tv" size={24} />}
       </span>
     );
   }
-  if (src && broken !== src) {
-    return <img class="logo" src={src} alt="" loading="lazy" decoding="async" onError={() => setBroken(src)} />;
+  if (src && ready && broken !== src) {
+    return <img class="logo" src={src} alt="" decoding="async" onLoad={() => finish(true)} onError={() => { finish(false); setBroken(src); }} />;
   }
   return <span class="logo badge" style={{ "--h": String(hueOf(channel.name)) }} aria-hidden="true">{monogram(channel.name)}</span>;
 }

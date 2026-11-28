@@ -53,7 +53,7 @@ export function SearchField(p: {
       </button>
       <Presence show={open}>
         {(out) => (
-          <TextEntry
+          <TextEntry plain
             title={p.title} hint={p.hint} value={before.current} closing={out}
             onInput={(v) => { typed.current = v; setDraft(v); }}
             note={p.note ? p.note(settled) : undefined}
