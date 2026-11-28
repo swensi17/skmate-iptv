@@ -519,5 +519,7 @@ html { -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; }
 :root[data-hue] .st-menu-item:focus, :root[data-hue] .rail-item:focus, :root[data-hue] .row:focus, :root[data-hue] .btn:focus,
 :root[data-hue] .gd-cell:focus, :root[data-hue] .gs-row:focus { outline: 3px solid var(--st-blue); outline-offset: -3px; }
 
-/* A TV draws the video on a plane under the page: while a video plays the page must not paint over it (see videoPlane.ts). */
+/* A TV draws the video on a plane under the page: while a video plays the page is see-through, but only over the picture
+   (videoPlane.ts cuts --video-hole); the page colour sits on a layer behind, so translucent panels never show the plane. */
 html.video-on, html.video-on body, html.video-on #root, html.video-on #app, html.video-on .player, html.video-on .pv-video { background: transparent !important; }
+html.video-on::before { content: ""; position: fixed; left: 0; top: 0; right: 0; bottom: 0; z-index: -1; pointer-events: none; background: var(--page); clip-path: var(--video-hole, none); }
