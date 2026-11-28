@@ -455,7 +455,7 @@ function ProgCard({ channel, prog, now, art: artSettings }: { channel: Channel; 
     if (p) data.describe(channel.id, p).then((d) => { if (live) setDesc(d); });
     return () => { live = false; };
   }, [p?.start, channel.id]);
-  if (!p) return <div class="tp-card"><div class="tp-card-title">{t("tbNoGuideShort")}</div></div>;
+  if (!p) return <div class="tp-card"><div class="tp-card-none">{t("tbNoGuide")}</div></div>;
   const on = p.start <= now && now < p.stop;
   const done = on ? Math.max(0, Math.min(1, (now - p.start) / Math.max(1, p.stop - p.start))) : 0;
   return (
