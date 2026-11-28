@@ -13,6 +13,8 @@ import { CountdownRing, useDwell, useTick } from "./PlayerChrome";
 import { useProgrammeArt, type ArtSettings, type ProgrammeArt } from "../state/tmdb";
 import { PosterViewer, ProgrammePoster } from "./ProgrammeArt";
 import { GuideSide } from "./GuideSide";
+import { daysText } from "./Left";
+import { useFocusInside } from "./focusInside";
 import { Marquee } from "./ChannelRow";
 import { clock } from "../time";
 import { PanelGuide, scheduleLines, UNDER_HEAD } from "./Schedule";
@@ -156,6 +158,8 @@ export function PlayerPanel(p: {
   const [colActive, setColActive] = useState(false);
   const [cardProg, setCardProg] = useState<Programme | null>(null);
   guideOpen.current = guideCh !== null || colActive;
+  // As on the channels screen: the list shrinks to its logos only while the focus is in the programme (with its days).
+  useFocusInside(colActive, ".tp-mid", () => setColActive(false));
   const leaveCol = () => { setColActive(false); setTimeout(() => focusFirst(document, `pc-${focused?.id}`), 0); };
   const closeGuide = () => { const c = guideCh; setGuideCh(null); setTimeout(() => focusFirst(document, `pc-${(c ?? focused)?.id}`), 0); };
   const start = Math.max(0, list.findIndex((c) => c.id === p.playing.id));
@@ -337,7 +341,7 @@ export function PlayerPanel(p: {
   const underBox = { left: `${dock.x}px`, top: `${underTop}px`, width: `${dock.w}px` };
   const listIndex = (c: Channel) => list.findIndex((x) => x.id === c.id);
   return (
-    <div class={`tp${p.closing ? " out" : ""}${cols ? " tp-cols" : ""}`} role="dialog" aria-label={title}>
+    <div class={`tp${p.closing ? " out" : ""}${cols ? " tp-cols" : ""}${cols && colActive ? " tp-guide-on" : ""}`} role="dialog" aria-label={title}>
       {guideCh ? (
         <div class="tp-guide">
           <GuideSide channel={guideCh} art={p.art} active onClose={closeGuide} onLeave={closeGuide}
@@ -384,7 +388,8 @@ export function PlayerPanel(p: {
                         </span>
                         {counting ? <span class="tp-row-end"><CountdownRing n={dwell.n} totalMs={3000} startedAt={dwell.startedAt} /></span>
                           : playing ? <span class="tp-row-end" aria-label={t("tbLive")}><Icon name="pause" size={30} /></span> : null}
-                      </button>
+                      {(c.catchupDays ?? 0) > 0 ? <span class="st-archive corner tp-row-days">{daysText(c.catchupDays as number)}</span> : null}
+                        </button>
                     );
                   }}
                 />
