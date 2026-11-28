@@ -279,6 +279,8 @@ fun LiveScreen(
     // Multiview: whether the menu offers it at all, how many tiles the grid has, and the confirmation
     // after a channel is kept (null = nothing to say).
     val liveSettings = koinInject<tv.own.owntv.core.settings.SettingsRepository>()
+    // The setting the player's panel already had: off brings back the programme on ▶, here as there.
+    val programmeBeside by liveSettings.playerPanelColumns.collectAsStateWithLifecycle(initialValue = true)
     val multiviewEnabled by liveSettings.multiviewEnabled.collectAsStateWithLifecycle(false)
     val multiviewTiles by liveSettings.multiviewTiles.collectAsStateWithLifecycle(
         tv.own.owntv.core.live.DEFAULT_MULTIVIEW_TILES,
@@ -733,7 +735,8 @@ fun LiveScreen(
         }
         // TV-box look, the shared list: three columns — channels, the focused channel's programme and archive, and the
         // picture with what is on. The programme is always there, so the archive is found without knowing a key.
-        val threeColumns = tv.own.owntv.features.shell.TvBoxNav && !separate && previewShown && lockedKey == null && !categoriesOpen
+        val threeColumns = tv.own.owntv.features.shell.TvBoxNav && programmeBeside && !separate &&
+            previewShown && lockedKey == null && !categoriesOpen
         val guideW = if (threeColumns) fx(GUIDE_COLUMN) else 0.dp
         SideEffect { threeColumnsNow = threeColumns }
         LaunchedEffect(threeColumns, previewChannel?.id) {

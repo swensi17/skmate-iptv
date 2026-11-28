@@ -146,14 +146,14 @@
     <file name="app/src/main/java/tv/own/owntv/features/live/LiveScreen.kt">
         <error line="3" column="1" source="standard:import-ordering" />
         <error line="150" column="5" source="standard:spacing-between-declarations-with-comments" />
-        <error line="351" column="5" source="standard:spacing-between-declarations-with-comments" />
-        <error line="455" column="5" source="standard:spacing-between-declarations-with-comments" />
-        <error line="551" column="5" source="standard:spacing-between-declarations-with-comments" />
-        <error line="1923" column="19" source="standard:property-naming" />
+        <error line="353" column="5" source="standard:spacing-between-declarations-with-comments" />
+        <error line="457" column="5" source="standard:spacing-between-declarations-with-comments" />
+        <error line="553" column="5" source="standard:spacing-between-declarations-with-comments" />
         <error line="1926" column="19" source="standard:property-naming" />
-        <error line="1927" column="19" source="standard:property-naming" />
+        <error line="1929" column="19" source="standard:property-naming" />
         <error line="1930" column="19" source="standard:property-naming" />
-        <error line="1953" column="1" source="standard:no-consecutive-blank-lines" />
+        <error line="1933" column="19" source="standard:property-naming" />
+        <error line="1956" column="1" source="standard:no-consecutive-blank-lines" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/live/LiveStage.kt">
         <error line="3" column="1" source="standard:import-ordering" />
@@ -652,9 +652,10 @@
         <error line="5" column="1" source="standard:import-ordering" />
         <error line="134" column="9" source="standard:property-naming" />
         <error line="135" column="9" source="standard:property-naming" />
-        <error line="915" column="1" source="standard:spacing-between-declarations-with-comments" />
-        <error line="926" column="19" source="standard:property-naming" />
-        <error line="936" column="1" source="standard:no-consecutive-blank-lines" />
+        <error line="575" column="1" source="standard:no-consecutive-blank-lines" />
+        <error line="920" column="1" source="standard:spacing-between-declarations-with-comments" />
+        <error line="931" column="19" source="standard:property-naming" />
+        <error line="941" column="1" source="standard:no-consecutive-blank-lines" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/shell/components/TvBoxPlayerInfo.kt">
         <error line="3" column="1" source="standard:import-ordering" />

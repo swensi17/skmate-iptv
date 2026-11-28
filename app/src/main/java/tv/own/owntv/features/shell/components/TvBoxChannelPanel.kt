@@ -503,7 +503,12 @@ private fun panelProgrammeArt(
 ) {
     var focused by remember { mutableStateOf(false) }
     val ring = RoundedCornerShape(ART_RING_RADIUS.mpx)
-    Row(Modifier.padding(top = 18.mpx), horizontalArrangement = Arrangement.spacedBy(16.mpx)) {
+    val about = listOfNotNull(art.year?.toString(), art.overview).joinToString(stringResource(R.string.content_epg_bits_separator))
+    aroundPoster(
+        posterW = ART_POSTER_WIDTH + ART_RING * 2,
+        title = art.title, about = about, ink = ink, soft = soft,
+        modifier = Modifier.padding(top = 18.mpx),
+    ) {
         Box(
             Modifier
                 .focusRequester(posterFocus)
@@ -513,56 +518,69 @@ private fun panelProgrammeArt(
                 .then(if (focused) Modifier.border(ART_RING.mpx, Color.White, ring) else Modifier)
                 .padding(ART_RING.mpx),
         ) { tv.own.owntv.ui.components.programmePoster(art.posterUrl, ART_POSTER_WIDTH.mpx) }
-        Column(
-            Modifier.height((ART_POSTER_WIDTH * ART_POSTER_RATIO + ART_RING * 2).mpx),
-            verticalArrangement = Arrangement.spacedBy(6.mpx),
-        ) {
-            Text(
-                art.title, style = stageText(ART_TITLE_TEXT, BOLD), color = ink,
-                maxLines = 1, overflow = TextOverflow.Ellipsis,
-            )
-            val separator = stringResource(R.string.content_epg_bits_separator)
-            val about = listOfNotNull(art.year?.toString(), art.overview).joinToString(separator)
-            if (about.isNotBlank()) fittedAbout(about, soft, Modifier.weight(1f))
-        }
     }
 }
 
 /**
- * What a programme is about, as large as fills the room beside the poster: a short text grows (up to
- * [ART_TEXT_MAX]) so it reaches the poster's foot, a long one stays at [ART_TEXT] and ends in an ellipsis. A very
- * short one is left at the usual size, where growing it would only look odd.
+ * A poster with its title and what it is about, the text flowing round it as in a magazine: beside the poster
+ * down to its foot, then on under it the full width, always to its end — never cut with "…". One layout for
+ * every poster card, so they never look apart.
  */
 @Composable
-private fun fittedAbout(text: String, color: Color, modifier: Modifier) {
+internal fun aroundPoster(
+    posterW: Int,
+    title: String?,
+    about: String,
+    ink: Color,
+    soft: Color,
+    modifier: Modifier = Modifier,
+    poster: @Composable () -> Unit,
+) {
+    // Even edges on both sides, long words split with a hyphen at the line's end.
+    val aboutStyle = stageText(ART_TEXT, MEDIUM).copy(
+        textAlign = androidx.compose.ui.text.style.TextAlign.Justify,
+        hyphens = androidx.compose.ui.text.style.Hyphens.Auto,
+        lineBreak = androidx.compose.ui.text.style.LineBreak.Paragraph,
+    )
+    val titleStyle = stageText(ART_TITLE_TEXT, BOLD)
     val measurer = androidx.compose.ui.text.rememberTextMeasurer()
-    val styles = (ART_TEXT..ART_TEXT_MAX).associateWith { stageText(it, MEDIUM) }
+    val density = androidx.compose.ui.platform.LocalDensity.current
     androidx.compose.foundation.layout.BoxWithConstraints(modifier.fillMaxWidth()) {
-        val width = constraints.maxWidth
-        val height = constraints.maxHeight
-        val size = remember(text, width, height) {
-            if (text.length < SHORT_ABOUT) return@remember ART_TEXT
-            (ART_TEXT_MAX downTo ART_TEXT).firstOrNull { sp ->
-                val laid = measurer.measure(
-                    text, styles.getValue(sp),
-                    constraints = androidx.compose.ui.unit.Constraints(maxWidth = width),
-                )
-                laid.size.height <= height
-            } ?: ART_TEXT
+        val besideW = with(density) { (maxWidth - posterW.mpx - ART_GAP.mpx).roundToPx().coerceAtLeast(1) }
+        val posterH = with(density) { (posterW * ART_POSTER_RATIO).mpx.roundToPx() }
+        val gap = with(density) { ART_TITLE_GAP.mpx.roundToPx() }
+        val split = remember(about, title, besideW, posterH) {
+            if (about.isBlank()) return@remember 0
+            val wide = androidx.compose.ui.unit.Constraints(maxWidth = besideW)
+            val titleH = title?.let { measurer.measure(it, titleStyle, maxLines = 2, constraints = wide).size.height + gap } ?: 0
+            val laid = measurer.measure(about, aboutStyle, constraints = wide)
+            val fits = (0 until laid.lineCount).lastOrNull { laid.getLineBottom(it) <= posterH - titleH } ?: -1
+            if (fits < 0) 0 else laid.getLineEnd(fits, visibleEnd = true)
         }
-        Text(text, style = styles.getValue(size), color = color, overflow = TextOverflow.Ellipsis)
+        val beside = about.substring(0, split).trimEnd()
+        val below = about.substring(split).trimStart()
+        Column(verticalArrangement = Arrangement.spacedBy(ART_TITLE_GAP.mpx)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(ART_GAP.mpx)) {
+                poster()
+                Column(verticalArrangement = Arrangement.spacedBy(ART_TITLE_GAP.mpx)) {
+                    title?.let { Text(it, style = titleStyle, color = ink, maxLines = 2, overflow = TextOverflow.Ellipsis) }
+                    if (beside.isNotEmpty()) Text(beside, style = aboutStyle, color = soft)
+                }
+            }
+            if (below.isNotEmpty()) Text(below, style = aboutStyle, color = soft)
+        }
     }
 }
 
-private const val ART_TEXT_MAX = 24
-private const val SHORT_ABOUT = 60
 
 private const val ART_POSTER_WIDTH = 96
 private const val ART_POSTER_RATIO = 1.5f
 private const val ART_RING = 3
 private const val ART_RING_RADIUS = 13
 private const val ART_TITLE_TEXT = 22
-private const val ART_TEXT = 18
+private const val ART_TEXT = 20
+private const val ART_GAP = 16
+private const val ART_TITLE_GAP = 6
 private const val BOLD = 700
 private const val MEDIUM = 500
 
@@ -618,22 +636,12 @@ private fun guideCompanion(
         }
         val about = listOfNotNull(art?.year?.toString(), art?.overview ?: onAir?.description)
             .joinToString(stringResource(R.string.content_epg_bits_separator))
-        Row(horizontalArrangement = Arrangement.spacedBy(20.mpx)) {
-            art?.let { tv.own.owntv.ui.components.programmePoster(it.posterUrl, COMPANION_POSTER.mpx) }
-            // Beside a poster the story runs down to its foot: a short one set larger, a long one cut off there.
-            Column(
-                if (art != null) Modifier.height((COMPANION_POSTER * ART_POSTER_RATIO).mpx) else Modifier,
-                verticalArrangement = Arrangement.spacedBy(8.mpx),
-            ) {
-                art?.let { Text(it.title, style = stageText(ART_TITLE_TEXT, BOLD), color = c.text, maxLines = 2, overflow = TextOverflow.Ellipsis) }
-                if (about.isNotBlank()) {
-                    if (art != null) {
-                        fittedAbout(about, c.soft, Modifier.weight(1f))
-                    } else {
-                        Text(about, style = stageText(COMPANION_TEXT, MEDIUM), color = c.soft, maxLines = COMPANION_LINES, overflow = TextOverflow.Ellipsis)
-                    }
-                }
+        if (art != null) {
+            aroundPoster(posterW = COMPANION_POSTER, title = art.title, about = about, ink = c.text, soft = c.soft) {
+                tv.own.owntv.ui.components.programmePoster(art.posterUrl, COMPANION_POSTER.mpx)
             }
+        } else if (about.isNotBlank()) {
+            Text(about, style = stageText(COMPANION_TEXT, MEDIUM), color = c.soft)
         }
     }
 }
@@ -671,15 +679,13 @@ private fun programmeCard(p: XtEpgEntry?, now: Long, formatTime: (Long) -> Strin
                 Text(durationLeft(p.stopMs - now), style = stageText(LEFT_TEXT, SEMI), color = c.soft, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(20.mpx)) {
-            art?.let { tv.own.owntv.ui.components.programmePoster(it.posterUrl, CARD_POSTER.mpx) }
-            about?.let {
-                // The whole text, to its end: the card grows rather than cutting it with "…".
-                Text(
-                    it, style = stageText(COMPANION_TEXT, MEDIUM), color = c.soft,
-                    maxLines = Int.MAX_VALUE, overflow = TextOverflow.Ellipsis,
-                )
+        // The poster and the text round it, as every poster card: never cut with "…".
+        if (art != null) {
+            aroundPoster(posterW = CARD_POSTER, title = null, about = about.orEmpty(), ink = c.text, soft = c.soft) {
+                tv.own.owntv.ui.components.programmePoster(art.posterUrl, CARD_POSTER.mpx)
             }
+        } else {
+            about?.let { Text(it, style = stageText(ART_TEXT, MEDIUM), color = c.soft) }
         }
     }
 }
@@ -690,7 +696,6 @@ private const val CARD_TITLE = 26
 private const val CARD_POSTER = 130
 private const val COMPANION_POSTER = 170
 private const val COMPANION_TEXT = 19
-private const val COMPANION_LINES = 9
 private const val COMPANION_BAR = 140
 
 /** The focused channel's logo, number and name, over its poster and guide. */

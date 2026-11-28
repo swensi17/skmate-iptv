@@ -517,14 +517,15 @@ private fun sideLine(
             }
         }
         if (about != null || (focused && posterUrl != null)) {
-            Row(Modifier.padding(bottom = 14.mpx), horizontalArrangement = Arrangement.spacedBy(16.mpx)) {
-                posterUrl?.let { tv.own.owntv.ui.components.programmePoster(it, POSTER_W.mpx) }
-                if (about != null) {
-                    Text(
-                        about, style = stageText(ABOUT_TEXT, 500), color = c.focusInk.copy(alpha = 0.78f),
-                        maxLines = if (posterUrl != null) ABOUT_LINES_POSTER else ABOUT_LINES, overflow = TextOverflow.Ellipsis,
-                    )
-                }
+            // The same poster layout as every card: the text round the poster, to its end, never "…".
+            val soft = c.focusInk.copy(alpha = 0.78f)
+            if (posterUrl != null) {
+                tv.own.owntv.features.shell.components.aroundPoster(
+                    posterW = POSTER_W, title = null, about = about.orEmpty(), ink = c.focusInk, soft = soft,
+                    modifier = Modifier.padding(bottom = 14.mpx),
+                ) { tv.own.owntv.ui.components.programmePoster(posterUrl, POSTER_W.mpx) }
+            } else if (about != null) {
+                Text(about, style = stageText(ABOUT_TEXT, 500), color = soft, modifier = Modifier.padding(bottom = 14.mpx))
             }
         }
     }
@@ -579,8 +580,6 @@ private const val LINE_TEXT = 22
 private const val TIME_W = 96
 private const val LIVE_TEXT = 14
 private const val ABOUT_TEXT = 18
-private const val ABOUT_LINES = 4
-private const val ABOUT_LINES_POSTER = 5
 private const val POSTER_W = 84
 private const val POSTER_SETTLE_MS = 400L
 private const val DAYS_W = 150

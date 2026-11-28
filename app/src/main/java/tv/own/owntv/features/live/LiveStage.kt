@@ -534,9 +534,9 @@ internal fun LiveStagePane(
                 }
                 now.description?.takeIf { it.isNotBlank() }?.let {
                     Text(
-                        it, style = stageText(19, 400).copy(lineHeight = (19 * 1.55f).mpxSp), color = stageTone(Color(0xFFCCD6D2), StageColors.Body),
+                        it, style = stageText(19, 400).copy(lineHeight = (19 * 1.55f).mpxSp, textAlign = TextAlign.Justify, hyphens = androidx.compose.ui.text.style.Hyphens.Auto, lineBreak = androidx.compose.ui.text.style.LineBreak.Paragraph), color = stageTone(Color(0xFFCCD6D2), StageColors.Body),
                         // Beside the programme the column has the room: the whole text, never cut with "…".
-                        maxLines = if (besideGuide) Int.MAX_VALUE else 4, overflow = TextOverflow.Ellipsis,
+                        maxLines = Int.MAX_VALUE, overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.padding(top = 18.mpx),
                     )
                 }
