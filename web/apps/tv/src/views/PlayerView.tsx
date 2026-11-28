@@ -262,6 +262,9 @@ export function PlayerView(p: Props) {
   const [toolsOpen, setToolsOpenState] = useState(false);
   const setToolsOpen = (v: boolean) => { hud.current.tools = v; setToolsOpenState(v); };
   const [panel, setPanel] = useState<PanelTab | null>(null);
+  /** The panel was opened by the "archive" key: it opens on the channel's programme. */
+  const [panelArchive, setPanelArchive] = useState(false);
+  useEffect(() => { if (panel === null) setPanelArchive(false); }, [panel]);
   const [sheet, setSheet] = useState(false);
   const [dialog, setDialog] = useState<"aspect" | "sleep" | "audio" | "subs" | "about" | null>(null);
   // Zoom (OwnTVPlayer setZoomModeByUser): each channel starts at the default zoom unless one was picked for it.
@@ -565,6 +568,7 @@ export function PlayerView(p: Props) {
       case "forward": if (canScrub) scrub(false, rep); return;
       case "pause": playPause(); show("info"); return;
       case "describe": setDialog("about"); return;
+      case "archive": setPanelArchive(true); openPanel("channels"); return; // the channel's programme with its archive (#951)
       default: return; // nothing
     }
   };
@@ -974,7 +978,7 @@ export function PlayerView(p: Props) {
       <Presence show={panel !== null}>
         {(out) => (
           <PlayerPanel
-            kind={panel ?? "channels"} closing={out} columns={settings.threeColumns}
+            kind={panel ?? "channels"} archive={panelArchive} closing={out} columns={settings.threeColumns}
             channels={channels} catalog={catalog} playing={channel} recents={p.recents} favorites={p.favorites}
             preview={settings.preview} loading={state === "loading"}
             onPick={(c, list) => { startOfPanel.current = null; hud.current.panel = null; setPanel(null); if (c.id !== channel.id) p.onPick(c, list); }}

@@ -1150,6 +1150,7 @@ export const ru = {
   sa_settings_live_key_action_list: "Список каналов",
   sa_settings_live_key_action_next: "Следующий канал",
   sa_settings_live_key_action_describe: "Описание передачи",
+  sa_settings_live_key_action_archive: "Архив передачи",
   sa_settings_live_key_action_nothing: "Ничего",
   sa_settings_live_key_action_pause: "Пауза",
   sa_settings_live_key_action_previous: "Предыдущий канал",

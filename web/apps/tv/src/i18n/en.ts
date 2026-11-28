@@ -1152,6 +1152,7 @@ export const en: Record<keyof typeof ru, string> = {
   sa_settings_live_key_action_list: "Channel list",
   sa_settings_live_key_action_next: "Next channel",
   sa_settings_live_key_action_describe: "Programme description",
+  sa_settings_live_key_action_archive: "Programme archive",
   sa_settings_live_key_action_nothing: "Nothing",
   sa_settings_live_key_action_pause: "Pause",
   sa_settings_live_key_action_previous: "Previous channel",

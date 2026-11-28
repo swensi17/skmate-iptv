@@ -87,6 +87,8 @@ const RAIL: Array<[string, IconName, Key, Go | "home" | "settings"]> = [
  */
 export function PlayerPanel(p: {
   kind: PanelTab;
+  /** Opened by the "archive" key (#951): the playing channel's programme with its archive days, at once. */
+  archive?: boolean;
   closing: boolean;
   /** The list the player steps through now, the playing channel in it. */
   channels: readonly Channel[];
@@ -154,11 +156,11 @@ export function PlayerPanel(p: {
   // Focus is kept by channel: on opening, and back from the categories, the playing one.
   const [focused, setFocused] = useState<Channel | null>(p.playing);
   // ▶ on a channel: its programme with the archive's days as a column, the same as on the channels screen (#735).
-  const [guideCh, setGuideCh] = useState<Channel | null>(null);
+  const [guideCh, setGuideCh] = useState<Channel | null>(() => (p.archive && !p.columns ? p.playing : null));
   const guideOpen = useRef(false);
   const okHold = useRef<{ held: boolean; timer: ReturnType<typeof setTimeout> } | null>(null);
   // Three columns: the programme follows the list; ▶ or a held OK put the remote into it, ◀ or Back out again.
-  const [colActive, setColActive] = useState(false);
+  const [colActive, setColActive] = useState(() => !!p.archive && !!p.columns);
   const [cardProg, setCardProg] = useState<Programme | null>(null);
   guideOpen.current = guideCh !== null || colActive;
   // As on the channels screen: the list shrinks to its logos only while the focus is in the programme (with its days).
