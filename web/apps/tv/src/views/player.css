@@ -440,10 +440,10 @@
 .tb-pl { padding: 1px 8px; border-radius: 6px; background: rgba(255, 255, 255, .12); font-size: 15px; color: rgba(255, 255, 255, .8); white-space: nowrap; max-width: 260px; overflow: hidden; text-overflow: ellipsis; }
 
 /* 2.7.1: the player's channel panel in three columns (as TiviMate): channels | programme | picture with a card */
-.tp-cols .tp-list { width: 370px; }
+.tp-cols .tp-list { width: 440px; }
 .tp-cols .tp-row { position: relative; }
 
-.tp-mid { position: absolute; left: 394px; top: 36px; bottom: 36px; width: 660px; }
+.tp-mid { position: absolute; left: 464px; top: 36px; bottom: 36px; width: 644px; }
 .tp-mid .gs { left: 0; right: 0; top: 0; bottom: 0; width: auto; background: none; animation: none; }
 .tp-card { padding: 18px 22px; border-radius: 16px; background: rgba(255, 255, 255, .06); color: #fff; }
 .tp-card-title { font-size: 24px; font-weight: 700; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
@@ -462,7 +462,7 @@
    room up to the picture, whose size never changes. */
 .tp-cols .tp-list, .tp-cols .tp-mid { transition: width 260ms cubic-bezier(.4, 0, .2, 1), left 260ms cubic-bezier(.4, 0, .2, 1); }
 .tp-guide-on .tp-list { width: 160px; }
-.tp-guide-on .tp-mid { left: 184px; width: 870px; }
+.tp-guide-on .tp-mid { left: 184px; width: 924px; }
 .tp-guide-on .tp-title { visibility: hidden; }
 .tp-guide-on .tp-row-text, .tp-guide-on .tp-row-end { display: none; }
 :root[data-motion="off"] .tp-cols .tp-list, :root[data-motion="off"] .tp-cols .tp-mid { transition: none; }

@@ -48,9 +48,9 @@ export interface DockRect { x: number; y: number; w: number; h: number }
 
 /** The picture's corner while the panel is open: right of the list (and of the categories), 36 from the top. */
 /** Three columns (2.7.1, as TiviMate): the picture's width at the right, the programme between it and the list. */
-const COLS_PICTURE_W = 620;
-const COLS_LIST_W = 370;
-const COLS_GUIDE_W = 660;
+const COLS_PICTURE_W = 560;
+const COLS_LIST_W = 440;
+const COLS_GUIDE_W = 644;
 export function dockRect(inset: number, menu: number, cols = false): DockRect {
   if (cols) {
     const w = COLS_PICTURE_W;
@@ -292,6 +292,8 @@ export function PlayerPanel(p: {
       }
       // OK on a channel: a press tunes it on release, a hold opens its programme with the archive (#761, #768).
       const onRow = (document.activeElement as HTMLElement | null)?.dataset.focus?.startsWith("pc-");
+      // ▼ on the last channel stays there: the programme beside is reached by ▶ only.
+      if (down && onRow && !menuOpen && !catsOpen && list.length > 0 && (document.activeElement as HTMLElement).dataset.focus === `pc-${list[list.length - 1]!.id}`) { e.stopPropagation(); e.preventDefault(); return; }
       if (ok && onRow && !menuOpen && !catsOpen && focused) {
         e.stopPropagation(); e.preventDefault();
         if (e.repeat || okHold.current) return;
