@@ -48,8 +48,8 @@ export interface DockRect { x: number; y: number; w: number; h: number }
 /** The picture's corner while the panel is open: right of the list (and of the categories), 36 from the top. */
 /** Three columns (2.7.1, as TiviMate): the picture's width at the right, the programme between it and the list. */
 const COLS_PICTURE_W = 620;
-const COLS_LIST_W = 470;
-const COLS_GUIDE_W = 560;
+const COLS_LIST_W = 370;
+const COLS_GUIDE_W = 660;
 export function dockRect(inset: number, menu: number, cols = false): DockRect {
   if (cols) {
     const w = COLS_PICTURE_W;
@@ -144,8 +144,8 @@ export function PlayerPanel(p: {
   const inset = catsOpen ? CATS_W : 0;
   const menu = menuOpen ? MENU_W : 0;
   const cols = !!p.columns && !history;
-  const dock = dockRect(inset, 0, cols); // the group is pushed by the menu as a whole (tp-group), the picture with it
-  useEffect(() => { p.onDock(dockRect(inset, menu, cols)); }, [inset, menu, cols]);
+  const dock = dockRect(inset, 0, cols && !catsOpen); // the group is pushed by the menu as a whole (tp-group), the picture with it
+  useEffect(() => { p.onDock(dockRect(inset, menu, cols && !catsOpen)); }, [inset, menu, cols, catsOpen]);
   useEffect(() => () => p.onDock(null), []);
 
   // Focus is kept by channel: on opening, and back from the categories, the playing one.
@@ -404,7 +404,7 @@ export function PlayerPanel(p: {
             </div>
           ) : null}
           <div class="tp-under" style={underBox}>
-            {cols && head ? <ProgCard channel={head} prog={cardProg} now={now} art={p.art} /> : head ? (
+            {cols && !catsOpen && head ? <ProgCard channel={head} prog={cardProg} now={now} art={p.art} /> : head ? (
               <PanelGuide
                 channel={head} number={ui.numbers && listIndex(head) >= 0 ? listIndex(head) + 1 : null} now={now}
                 lines={lines} first={first} art={art} at={uAt} view={view} viewH={Math.max(UNDER_HEAD, 972 - underTop)}
