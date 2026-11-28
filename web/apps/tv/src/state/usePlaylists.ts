@@ -41,7 +41,8 @@ export function usePlaylists(every = -1) {
   const [status, setStatus] = useState<Status>({ kind: "idle" });
   const [headerGuides, setHeaderGuides] = useState<string[]>([]);
   /** False while a stored copy is still being read in slices (the first channels show at once); the guide waits for the whole list. */
-  const [loaded, setLoaded] = useState(true);
+  // At the start a stored copy is going to be read: the list is not "empty" meanwhile (no "add a playlist" screen flashing before the channels).
+  const [loaded, setLoaded] = useState(() => { const a = store.list.find((x) => x.id === store.activeId); return !(a && cacheGet(a.id)); });
   /** The text the channels on screen were read from: the same text again is not read again. */
   const shownText = useRef<string | null>(null);
 

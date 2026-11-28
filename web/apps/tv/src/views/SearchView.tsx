@@ -1,9 +1,10 @@
 import { hasArchive } from "@skmate/core";
 import { LoadingState } from "./Spinner";
 import { useContext, useEffect, useMemo, useRef, useState } from "preact/hooks";
+import { memo } from "preact/compat";
 import { SearchIndex, type Channel, type Movie, type Show } from "@skmate/core";
 import type { GuideData, Programme } from "@skmate/epg";
-import { focusFirst, Icon, isBack, Progress } from "@skmate/ui";
+import { focusFirst, Icon, isBack, logoGate, Progress } from "@skmate/ui";
 import { t, type Key } from "../i18n";
 import { GuideContext } from "../state/GuideContext";
 import type { VodSource } from "../state/library";
@@ -199,6 +200,12 @@ export function SearchView({ channels, onOpen, vod, onOpenVod, settings }: Props
 
   const filterEntry = () => `sr-k-${KINDS.find((k) => kinds.has(k)) ?? "live"}`;
   const remember = () => { const next = pushQuery(recent, q); setRecent(next); saveQueries(next); };
+  // The rows are drawn again only when their own entry changed: a step of the cursor must not redraw the whole page (the callbacks below keep one identity).
+  const goRef = useRef<(e: Entry) => void>(() => undefined);
+  const allRef = useRef<() => void>(() => undefined);
+  const openers = useRef(new WeakMap<Entry, () => void>());
+  const openerOf = (e: Entry) => { let fn = openers.current.get(e); if (!fn) { fn = () => goRef.current(e); openers.current.set(e, fn); } return fn; };
+  const onAll = useRef(() => allRef.current()).current;
   const goTo = (e: Entry) => {
     saved.lastKey = e.key;
     remember();
@@ -241,6 +248,7 @@ export function SearchView({ channels, onOpen, vod, onOpenVod, settings }: Props
   };
   // ▲ out of the results: the first kind button that is on, not the one nearest the row.
   const onListKey = (e: KeyboardEvent) => {
+    logoGate.busy(); // the list is moving: no picture starts loading until it has stood still
     // ▶ on a channel row reaches the schedule under the preview, as on Live TV (SearchScreen.kt:446): only when a next programme exists.
     if ((e.key === "ArrowRight" || e.keyCode === 39) && active?.k === "ch" && (document.activeElement as HTMLElement | null)?.dataset.focus === `sr-${active.key}`) {
       if (data.of(active.channel.id).some((x) => x.start > now)) { e.preventDefault(); e.stopPropagation(); focusFirst(document, "sr-sched-0"); }
@@ -263,6 +271,8 @@ export function SearchView({ channels, onOpen, vod, onOpenVod, settings }: Props
     return () => clearTimeout(id);
   }, [wantPreview?.id]);
 
+  goRef.current = goTo;
+  allRef.current = () => { setKinds(new Set<Kind>(["live"])); const c = shown.live[0]; if (c) setTimeout(() => focusFirst(document, `sr-c${c.id}`), 0); };
   const shownEntries = entries.slice(0, limit);
   const recentLogo = (term: string) => { const c = channelIndex.search(term, 1)[0]?.item; return c ? c.logo ?? data.logoOf(c.id) : undefined; };
 
@@ -333,8 +343,7 @@ export function SearchView({ channels, onOpen, vod, onOpenVod, settings }: Props
             >
               {shownEntries.map((e, i) => (
                 <ResultRow key={e.key} entry={e} first={i === 0} now={now} data={data} numberOf={numberOf}
-                  onOpen={() => goTo(e)}
-                  onAll={() => { setKinds(new Set<Kind>(["live"])); const c = shown.live[0]; if (c) setTimeout(() => focusFirst(document, `sr-c${c.id}`), 0); }} />
+                  onOpen={openerOf(e)} onAll={onAll} />
               ))}
             </div>
           )}
@@ -365,11 +374,21 @@ function Caption() {
 
 function Plate({ src, icon }: { src?: string | undefined; icon: "live_tv" | "movies" | "series" }) {
   const [broken, setBroken] = useState(false);
-  return src && !broken ? <img src={src} alt="" decoding="async" onError={() => setBroken(true)} /> : <Icon name={icon} size={icon === "live_tv" ? 42 : 22} />;
+  // A picture starts loading only once the list has stood still (see logoGate); until then the plate's glyph holds the place.
+  const [armed, setArmed] = useState<string | null>(null);
+  useEffect(() => {
+    if (!src) return;
+    const cancel = logoGate.request(src, () => setArmed(src));
+    return () => { cancel(); logoGate.done(src, false); };
+  }, [src]);
+  const ready = !!src && (armed === src || logoGate.isSeen(src));
+  return src && ready && !broken
+    ? <img src={src} alt="" decoding="async" onLoad={() => logoGate.done(src, true)} onError={() => { logoGate.done(src, false); setBroken(true); }} />
+    : <Icon name={icon} size={icon === "live_tv" ? 42 : 22} />;
 }
 
 /** A result row (`SearchRow`): 84 high, the plate or poster, the title 21/700 and a 16 px line under it. */
-function ResultRow(p: { entry: Entry; first: boolean; now: number; data: GuideData; numberOf: Map<string, number>; onOpen: () => void; onAll: () => void }) {
+const ResultRow = memo(function ResultRow(p: { entry: Entry; first: boolean; now: number; data: GuideData; numberOf: Map<string, number>; onOpen: () => void; onAll: () => void }) {
   const e = p.entry;
   if (e.k === "head") return <div class={`sr-group${p.first ? " first" : ""}`}>{e.text}</div>;
   if (e.k === "all") {
@@ -405,7 +424,7 @@ function ResultRow(p: { entry: Entry; first: boolean; now: number; data: GuideDa
       <span class="sr-row-b"><span class="sr-row-t">{title}</span><span class="sr-row-l">{line}</span></span>
     </button>
   );
-}
+});
 
 /** The right side: Live TV's preview pane for a channel (picture, what is on, how far), the poster panel for a film. */
 function Panel(p: { entry: Entry; now: number; playing: Channel | null; settings?: Settings | undefined; numberOf: Map<string, number>; onOpen: () => void; onBack: () => void }) {

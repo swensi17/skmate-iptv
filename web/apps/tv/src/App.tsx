@@ -645,7 +645,7 @@ export function App() {
       <main class={`content${section === "live" ? " home-on" : ""}${railOpen ? " menu-pushed" : ""}${sheet ? " sheet-open" : ""}`} onFocusIn={(e) => { const id = (e.target as HTMLElement).dataset?.focus; if (id) lastContent.current = id; }}>
         {section === "live" ? (
           <LiveView
-            channels={channels} favorites={favorites} status={pl.status} settings={liveSettings}
+            channels={channels} favorites={favorites} status={pl.loaded ? pl.status : { kind: "loading" }} settings={liveSettings}
             onOpen={open} onFav={toggleFavorite}
             onAddPlaylist={() => openSheet("playlists", "screen")}
             greeting={greeting} playlistName={pl.active?.name ?? null} onPickPlaylist={() => setPicking(true)}
