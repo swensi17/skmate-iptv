@@ -171,6 +171,7 @@ export async function syncGuides(o: SyncOptions): Promise<{ data: GuideData; out
         }
         // Those whose guide above has nothing now or ahead: this source takes them whole, by any match.
         for (const ch of dry()) {
+          await breathe(); // best() is a fuzzy comparison of a few hundred names: thousands of channels in one go froze the TV for seconds
           const sure = ((ch.tvgId && ids.get(ch.tvgId.toLowerCase())) || null) ?? exactOf(ch.name) ?? exactOf(ch.tvgName);
           const id = sure ?? index.best(ch.name, AUTO_THRESHOLD)?.id ?? null;
           if (!id || id === data.links.get(ch.id)) continue;

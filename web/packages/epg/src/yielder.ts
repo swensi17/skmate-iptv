@@ -36,8 +36,12 @@ const post: (f: () => void) => void = (() => {
 const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 /** Gives the thread back now (a key press, a frame), and waits while the remote is in use. */
+let turns = 0;
 export async function yieldNow(): Promise<void> {
-  await new Promise<void>((resolve) => post(resolve));
+  // Every third turn is a real timer, not a message: on the TV's Chromium 63 a chain of messages starved the timers and the
+  // painting for tens of seconds while a big guide was matched (measured: a 22 s freeze of a 3760-channel list).
+  if (++turns % 3 === 0) await sleep(3);
+  else await new Promise<void>((resolve) => post(resolve));
   while (clock() - lastInput < QUIET_MS) await sleep(QUIET_MS - (clock() - lastInput) + 1);
   sliceStart = clock();
 }

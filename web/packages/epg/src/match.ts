@@ -131,9 +131,21 @@ export class GuideIndex {
   }
 
   /** The best guide channel for [channelName], or null when nothing reaches [minScore]. */
+  /** Answers already found, by normalised name: a playlist has thousands of channels called "Первый Канал HD (orig)", "Первый Канал HD" and so on that normalise alike. */
+  private readonly memo = new Map<string, Match | null>();
+
   best(channelName: string, minScore: number = AUTO_THRESHOLD): Match | null {
     const target = normalizeForEpg(channelName);
     if (target === "") return null;
+    const key = `${minScore}|${target}`;
+    const known = this.memo.get(key);
+    if (known !== undefined) return known;
+    const found = this.search(target, minScore);
+    this.memo.set(key, found);
+    return found;
+  }
+
+  private search(target: string, minScore: number): Match | null {
     const exact = this.exact.get(target);
     if (exact !== undefined) return { id: (this.items[exact] as Prepared).id, score: 1 };
     const votes = new Map<number, number>();
@@ -146,7 +158,7 @@ export class GuideIndex {
       }
     }
     // The candidates sharing the most words come first; far fewer than the guide, but never zero for a real match.
-    const ranked = Array.from(votes).sort((x, y) => y[1] - x[1]).slice(0, 250);
+    const ranked = Array.from(votes).sort((x, y) => y[1] - x[1]).slice(0, 120);
     let best: Match | null = null;
     for (const [i] of ranked) {
       const it = this.items[i] as Prepared;
