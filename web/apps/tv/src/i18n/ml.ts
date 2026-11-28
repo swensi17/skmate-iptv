@@ -1221,6 +1221,8 @@ export const ml: Record<keyof typeof en, string> = {
   sa_settings_part_text: "Text & zoom",
   sa_settings_part_theme: "Theme & colours",
   sa_settings_pinned_from: "{1} എന്നതിൽ നിന്ന് പിൻ ചെയ്തത്",
+  sa_settings_player_panel_columns: "ചാനൽ പട്ടികയ്ക്കരികിൽ പരിപാടി",
+  sa_settings_player_panel_columns_description: "പ്ലെയറിൽ: ചാനലുകൾ, തിരഞ്ഞെടുത്ത ചാനലിന്റെ പരിപാടി, ചിത്രം മൂന്ന് നിരകളിൽ",
   sa_settings_player_recents: "പ്ലെയറിൽ അടുത്തിടെ കണ്ടവ",
   sa_settings_player_recents_description: "തത്സമയ ടിവിക്ക് താഴെ ഗൈഡും ചരിത്രവും സഹിതം സമീപകാല ചാനലുകൾ",
   sa_settings_player_clock: "Clock over the video",

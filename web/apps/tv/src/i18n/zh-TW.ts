@@ -1221,6 +1221,8 @@ export const zhTW: Record<keyof typeof en, string> = {
   sa_settings_part_text: "Text & zoom",
   sa_settings_part_theme: "Theme & colours",
   sa_settings_pinned_from: "從「{1}」釘選",
+  sa_settings_player_panel_columns: "在頻道列表旁顯示節目表",
+  sa_settings_player_panel_columns_description: "播放器中以三欄顯示頻道、所選頻道的節目表和畫面",
   sa_settings_player_recents: "播放器中的最近觀看",
   sa_settings_player_recents_description: "直播畫面下方顯示節目表、紀錄和最近頻道",
   sa_settings_player_clock: "Clock over the video",

@@ -1221,6 +1221,8 @@ export const nb: Record<keyof typeof en, string> = {
   sa_settings_part_text: "Text & zoom",
   sa_settings_part_theme: "Theme & colours",
   sa_settings_pinned_from: "Festet fra {1}",
+  sa_settings_player_panel_columns: "Program ved siden av kanallisten",
+  sa_settings_player_panel_columns_description: "I spilleren: kanaler, valgt kanals program og bilde i tre kolonner",
   sa_settings_player_recents: "Nylig sett i spilleren",
   sa_settings_player_recents_description: "Rad med siste kanaler, programoversikt og historikk under direkte-tv",
   sa_settings_player_clock: "Clock over the video",

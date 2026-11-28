@@ -50,6 +50,11 @@ export function GuideSide(p: {
   onLeave: () => void;
   /** The column has the focus; when it follows the list it must not take it. */
   active: boolean;
+  /** In the player's channel panel (2.7.1): no description opens in the line (the card beside shows it), and the
+   *  days show only while the column has the focus. */
+  compact?: boolean;
+  /** The programme the column's focus is on (null when it has none), for the card beside. */
+  onLine?: (prog: Programme | null) => void;
   onWatch: (c: Channel) => void;
   onArchive: (c: Channel, prog: Programme) => void;
   onUpcoming?: (c: Channel, prog: Programme) => void;
@@ -102,6 +107,7 @@ export function GuideSide(p: {
     return () => { live = false; };
   }, [line?.p.start, ch.id]);
   const head = onHead || lines.length === 0;
+  useEffect(() => { p.onLine?.(p.active && line ? line.p : null); }, [line?.p.start, p.active, ch.id]);
   useEffect(() => {
     if (big) return;
     const line = box.current?.querySelector<HTMLElement>(`[data-focus="gs-${at}"]`);
@@ -195,7 +201,7 @@ export function GuideSide(p: {
                   </span>
                   {l.archive ? <span class="gs-arch"><Icon name="rewind" size={18} /></span> : null}
                 </button>
-                {i === at && !onHead && (desc || art) ? (
+                {i === at && !onHead && !p.compact && (desc || art) ? (
                   <div class="gs-about" key={`d${l.p.start}`}>{[art?.year, desc ?? art?.overview].filter(Boolean).join(" · ")}</div>
                 ) : null}
               </>
@@ -203,7 +209,7 @@ export function GuideSide(p: {
           })}
         </div>
       )}
-      <div class="gs-days">
+      {p.compact && !p.active ? null : <div class="gs-days">
         {days.map((d) => {
           const tt = dayTitle(d, today);
           return (
@@ -214,7 +220,7 @@ export function GuideSide(p: {
             </button>
           );
         })}
-      </div>
+      </div>}
       </div>
       {big ? <PosterViewer art={big} /> : null}
     </div>

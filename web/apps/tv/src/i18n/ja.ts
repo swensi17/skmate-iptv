@@ -1221,6 +1221,8 @@ export const ja: Record<keyof typeof en, string> = {
   sa_settings_part_text: "Text & zoom",
   sa_settings_part_theme: "Theme & colours",
   sa_settings_pinned_from: "{1} から固定",
+  sa_settings_player_panel_columns: "チャンネル一覧の横に番組表",
+  sa_settings_player_panel_columns_description: "プレーヤーでチャンネル、選んだチャンネルの番組表、映像を3列で表示",
   sa_settings_player_recents: "プレーヤーの最近見たチャンネル",
   sa_settings_player_recents_description: "ライブ映像の下に番組表・履歴と最近のチャンネルを表示",
   sa_settings_player_clock: "Clock over the video",

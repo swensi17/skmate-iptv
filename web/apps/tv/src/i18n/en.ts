@@ -1221,6 +1221,8 @@ export const en: Record<keyof typeof ru, string> = {
   sa_settings_part_text: "Text & zoom",
   sa_settings_part_theme: "Theme & colours",
   sa_settings_pinned_from: "Pinned from {1}",
+  sa_settings_player_panel_columns: "Programme beside the channel list",
+  sa_settings_player_panel_columns_description: "In the player: channels, the selected channel's programme and the picture in three columns",
   sa_settings_player_recents: "Recently watched in the player",
   sa_settings_player_recents_description: "The row of recent channels with TV guide and history under live TV",
   sa_settings_player_clock: "Clock over the video",

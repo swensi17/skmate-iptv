@@ -13,6 +13,7 @@ import { CountdownRing, useDwell, useTick } from "./PlayerChrome";
 import { useProgrammeArt, type ArtSettings, type ProgrammeArt } from "../state/tmdb";
 import { PosterViewer } from "./ProgrammeArt";
 import { GuideSide } from "./GuideSide";
+import { clock } from "../time";
 import { PanelGuide, scheduleLines, UNDER_HEAD } from "./Schedule";
 import { Ticks } from "./Spinner";
 import "./player.css";
@@ -42,7 +43,15 @@ const OK_HOLD_MS = 600;
 export interface DockRect { x: number; y: number; w: number; h: number }
 
 /** The picture's corner while the panel is open: right of the list (and of the categories), 36 from the top. */
-export function dockRect(inset: number, menu: number): DockRect {
+/** Three columns (2.7.1, as TiviMate): the picture's width at the right, the programme between it and the list. */
+const COLS_PICTURE_W = 620;
+const COLS_LIST_W = 470;
+const COLS_GUIDE_W = 560;
+export function dockRect(inset: number, menu: number, cols = false): DockRect {
+  if (cols) {
+    const w = COLS_PICTURE_W;
+    return { x: STAGE_W - 36 - w + inset + menu, y: DOCK_TOP, w, h: Math.round((w * 9) / 16) };
+  }
   const w = Math.max(0, STAGE_W - DOCK_LEFT - inset - menu - 36);
   return { x: DOCK_LEFT + inset + menu, y: DOCK_TOP, w, h: Math.round((w * 9) / 16) };
 }
@@ -95,6 +104,8 @@ export function PlayerPanel(p: {
   art: ArtSettings;
   /** OK on an aired programme under the picture: it plays from the archive and the panel closes (2.5.3). */
   onArchive: (c: Channel, p: Programme, list: readonly Channel[]) => void;
+  /** Settings › player › "Programme beside the channel list" (2.7.1): three columns. */
+  columns?: boolean;
 }) {
   const ui = useContext(UiContext);
   const { data } = useContext(GuideContext);
@@ -128,8 +139,9 @@ export function PlayerPanel(p: {
   const [menuOpen, setMenuOpen] = useState(false);
   const inset = catsOpen ? CATS_W : 0;
   const menu = menuOpen ? MENU_W : 0;
-  const dock = dockRect(inset, 0); // the group is pushed by the menu as a whole (tp-group), the picture with it
-  useEffect(() => { p.onDock(dockRect(inset, menu)); }, [inset, menu]);
+  const cols = !!p.columns && !history;
+  const dock = dockRect(inset, 0, cols); // the group is pushed by the menu as a whole (tp-group), the picture with it
+  useEffect(() => { p.onDock(dockRect(inset, menu, cols)); }, [inset, menu, cols]);
   useEffect(() => () => p.onDock(null), []);
 
   // Focus is kept by channel: on opening, and back from the categories, the playing one.
@@ -138,7 +150,11 @@ export function PlayerPanel(p: {
   const [guideCh, setGuideCh] = useState<Channel | null>(null);
   const guideOpen = useRef(false);
   const okHold = useRef<{ held: boolean; timer: ReturnType<typeof setTimeout> } | null>(null);
-  guideOpen.current = guideCh !== null;
+  // Three columns: the programme follows the list; ▶ or a held OK put the remote into it, ◀ or Back out again.
+  const [colActive, setColActive] = useState(false);
+  const [cardProg, setCardProg] = useState<Programme | null>(null);
+  guideOpen.current = guideCh !== null || colActive;
+  const leaveCol = () => { setColActive(false); setTimeout(() => focusFirst(document, `pc-${focused?.id}`), 0); };
   const closeGuide = () => { const c = guideCh; setGuideCh(null); setTimeout(() => focusFirst(document, `pc-${(c ?? focused)?.id}`), 0); };
   const start = Math.max(0, list.findIndex((c) => c.id === p.playing.id));
   const listActive = !catsOpen && !menuOpen;
@@ -273,7 +289,7 @@ export function PlayerPanel(p: {
         e.stopPropagation(); e.preventDefault();
         if (e.repeat || okHold.current) return;
         const c = focused;
-        okHold.current = { held: false, timer: setTimeout(() => { if (okHold.current) okHold.current.held = true; setGuideCh(c); }, OK_HOLD_MS) };
+        okHold.current = { held: false, timer: setTimeout(() => { if (okHold.current) okHold.current.held = true; if (cols) setColActive(true); else setGuideCh(c); }, OK_HOLD_MS) };
         return;
       }
       if (!left && !right && !back) return;
@@ -294,7 +310,7 @@ export function PlayerPanel(p: {
       if (back) { p.onDismiss(); return; }
       if (left) { if (history) p.onDismiss(); else { setCatFocus(catKey); setCatsOpen(true); } return; }
       // ▶ in the list: the channel's programme with the archive's days, as on the channels screen (#735).
-      if (right && !e.repeat && focused) setGuideCh(focused);
+      if (right && !e.repeat && focused) { if (cols) setColActive(true); else setGuideCh(focused); }
     };
     const onKeyUp = (e: KeyboardEvent) => {
       const h = okHold.current;
@@ -307,7 +323,7 @@ export function PlayerPanel(p: {
     document.addEventListener("keydown", onKey, true);
     document.addEventListener("keyup", onKeyUp, true);
     return () => { document.removeEventListener("keydown", onKey, true); document.removeEventListener("keyup", onKeyUp, true); };
-  }, [menuOpen, catsOpen, history, catKey, list, focused, p.playing.id, head]);
+  }, [menuOpen, catsOpen, history, catKey, list, focused, p.playing.id, head, cols]);
 
   const rail = (go: Go | "home" | "settings") => {
     if (go === "home") { setMenuOpen(false); p.onDismiss(); return; } // Home is the picture itself
@@ -319,7 +335,7 @@ export function PlayerPanel(p: {
   const underBox = { left: `${dock.x}px`, top: `${underTop}px`, width: `${dock.w}px` };
   const listIndex = (c: Channel) => list.findIndex((x) => x.id === c.id);
   return (
-    <div class={`tp${p.closing ? " out" : ""}`} role="dialog" aria-label={title}>
+    <div class={`tp${p.closing ? " out" : ""}${cols ? " tp-cols" : ""}`} role="dialog" aria-label={title}>
       {guideCh ? (
         <div class="tp-guide">
           <GuideSide channel={guideCh} art={p.art} active onClose={closeGuide} onLeave={closeGuide}
@@ -373,8 +389,15 @@ export function PlayerPanel(p: {
               )}
             </div>
           </div>
+          {cols && head && !catsOpen && !menuOpen ? (
+            <div class="tp-mid">
+              <GuideSide channel={head} art={p.art} compact active={colActive} onClose={leaveCol} onLeave={leaveCol} onLine={setCardProg}
+                onWatch={(c) => { setColActive(false); p.onPick(c, list); }}
+                onArchive={(c, prog) => { setColActive(false); p.onArchive(c, prog, list); }} />
+            </div>
+          ) : null}
           <div class="tp-under" style={underBox}>
-            {head ? (
+            {cols && head ? <ProgCard channel={head} prog={cardProg} now={now} art={p.art} /> : head ? (
               <PanelGuide
                 channel={head} number={ui.numbers && listIndex(head) >= 0 ? listIndex(head) + 1 : null} now={now}
                 lines={lines} first={first} art={art} at={uAt} view={view} viewH={Math.max(UNDER_HEAD, 972 - underTop)}
@@ -408,3 +431,32 @@ export function PlayerPanel(p: {
   );
 }
 
+/**
+ * Under the picture in three columns: the programme the remote is on in the column, else what is on the channel now:
+ * its title (two lines), its time, how far it has got and what is left while it is on, its description.
+ */
+function ProgCard({ channel, prog, now }: { channel: Channel; prog: Programme | null; now: number; art: ArtSettings }) {
+  const { data } = useContext(GuideContext);
+  const p = prog ?? data.nowNext(channel.id, now).now;
+  const [desc, setDesc] = useState<string | undefined>(p?.desc);
+  useEffect(() => {
+    let live = true;
+    setDesc(p?.desc);
+    if (p) data.describe(channel.id, p).then((d) => { if (live) setDesc(d); });
+    return () => { live = false; };
+  }, [p?.start, channel.id]);
+  if (!p) return <div class="tp-card"><div class="tp-card-title">{t("tbNoGuideShort")}</div></div>;
+  const on = p.start <= now && now < p.stop;
+  const done = on ? Math.max(0, Math.min(1, (now - p.start) / Math.max(1, p.stop - p.start))) : 0;
+  return (
+    <div class="tp-card">
+      <div class="tp-card-title">{p.title}</div>
+      <div class="tp-card-time">
+        <span>{clock(p.start)} – {clock(p.stop)}</span>
+        {on ? <span class="tp-card-bar"><i style={{ width: `${(done * 100).toFixed(1)}%` }} /></span> : null}
+        {on ? <span>{t("tbMinutes", { n: Math.max(0, Math.round((p.stop - now) / 60_000)) })}</span> : null}
+      </div>
+      {desc ? <div class="tp-card-desc">{desc}</div> : null}
+    </div>
+  );
+}

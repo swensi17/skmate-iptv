@@ -1221,6 +1221,8 @@ export const nl: Record<keyof typeof en, string> = {
   sa_settings_part_text: "Text & zoom",
   sa_settings_part_theme: "Theme & colours",
   sa_settings_pinned_from: "Vastgezet uit {1}",
+  sa_settings_player_panel_columns: "Programma naast de zenderlijst",
+  sa_settings_player_panel_columns_description: "In de speler: zenders, programma van de gekozen zender en beeld in drie kolommen",
   sa_settings_player_recents: "Onlangs bekeken in de speler",
   sa_settings_player_recents_description: "Rij recente zenders met gids en geschiedenis onder live tv",
   sa_settings_player_clock: "Clock over the video",

@@ -1221,6 +1221,8 @@ export const bn: Record<keyof typeof en, string> = {
   sa_settings_part_text: "Text & zoom",
   sa_settings_part_theme: "Theme & colours",
   sa_settings_pinned_from: "{1} থেকে পিন করা",
+  sa_settings_player_panel_columns: "চ্যানেল তালিকার পাশে অনুষ্ঠানসূচি",
+  sa_settings_player_panel_columns_description: "প্লেয়ারে: চ্যানেল, নির্বাচিত চ্যানেলের অনুষ্ঠানসূচি ও ছবি তিন কলামে",
   sa_settings_player_recents: "প্লেয়ারে সম্প্রতি দেখা",
   sa_settings_player_recents_description: "লাইভ টিভির নিচে গাইড ও ইতিহাসসহ সাম্প্রতিক চ্যানেলের সারি",
   sa_settings_player_clock: "Clock over the video",

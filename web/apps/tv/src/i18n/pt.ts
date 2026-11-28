@@ -1221,6 +1221,8 @@ export const pt: Record<keyof typeof en, string> = {
   sa_settings_part_text: "Text & zoom",
   sa_settings_part_theme: "Theme & colours",
   sa_settings_pinned_from: "Fixado de {1}",
+  sa_settings_player_panel_columns: "Programação ao lado da lista de canais",
+  sa_settings_player_panel_columns_description: "No player: canais, programação do canal escolhido e imagem em três colunas",
   sa_settings_player_recents: "Vistos recentemente no player",
   sa_settings_player_recents_description: "Linha de canais recentes com guia e histórico sob o ao vivo",
   sa_settings_player_clock: "Clock over the video",

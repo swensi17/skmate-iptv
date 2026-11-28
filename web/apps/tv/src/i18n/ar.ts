@@ -1221,6 +1221,8 @@ export const ar: Record<keyof typeof en, string> = {
   sa_settings_part_text: "Text & zoom",
   sa_settings_part_theme: "Theme & colours",
   sa_settings_pinned_from: "مثبَّت من {1}",
+  sa_settings_player_panel_columns: "البرنامج بجانب قائمة القنوات",
+  sa_settings_player_panel_columns_description: "في المشغل: القنوات وبرنامج القناة المحددة والصورة في ثلاثة أعمدة",
   sa_settings_player_recents: "المشاهدة مؤخرًا في المشغل",
   sa_settings_player_recents_description: "صف القنوات الأخيرة مع دليل البرامج والسجل أسفل البث المباشر",
   sa_settings_player_clock: "Clock over the video",

@@ -126,6 +126,8 @@ export interface Settings {
   extSeries: boolean;
   /** The recently watched row under the live info (2.6.8); off: the controls at once. */
   playerRecents: boolean;
+  /** The player's channel panel in three columns, the programme beside the list (2.7.1); off: by ▶ only. */
+  playerColumns: boolean;
   /** Clock over the video and its look (stored). */
   playerClock: boolean;
   clockSize: number;
@@ -198,7 +200,7 @@ export const DEFAULTS: Settings = {
   // Android SettingsRepository: remember_cat_live / remember_last_live on, films and series off.
   chNav: true, liveKeys: {}, browseLastCat: [true, false, false], browseLastItem: [true, false, false],
   extLive: false, extMovies: false, extSeries: false,
-  playerRecents: true, playerClock: false, clockSize: 1, clockWeight: 1, clockBg: 1, clockColor: 0, clockAlpha: 1,
+  playerRecents: true, playerColumns: true, playerClock: false, clockSize: 1, clockWeight: 1, clockBg: 1, clockColor: 0, clockAlpha: 1,
   zoomMode: "fit", afr: false, afrPause: 0, afrResolution: false,
   liveLatency: "balanced", liveCustomSec: 8, latencyPerPlaylist: {}, tuneTimeout: 30, tuneTimeoutPerPlaylist: {}, vodBuffer: 0,
   miniSize: 25, miniPos: "br", startup: "home", startupChannel: "", startupChannelName: "",

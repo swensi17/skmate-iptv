@@ -1221,6 +1221,8 @@ export const hu: Record<keyof typeof en, string> = {
   sa_settings_part_text: "Text & zoom",
   sa_settings_part_theme: "Theme & colours",
   sa_settings_pinned_from: "Rögzítve innen: {1}",
+  sa_settings_player_panel_columns: "Műsor a csatornalista mellett",
+  sa_settings_player_panel_columns_description: "A lejátszóban: csatornák, a kiválasztott csatorna műsora és a kép három oszlopban",
   sa_settings_player_recents: "Nemrég nézett a lejátszóban",
   sa_settings_player_recents_description: "A legutóbbi csatornák sora műsorújsággal és előzményekkel az élő adás alatt",
   sa_settings_player_clock: "Clock over the video",

@@ -1221,6 +1221,8 @@ export const sv: Record<keyof typeof en, string> = {
   sa_settings_part_text: "Text & zoom",
   sa_settings_part_theme: "Theme & colours",
   sa_settings_pinned_from: "Fäst från {1}",
+  sa_settings_player_panel_columns: "Tablå bredvid kanallistan",
+  sa_settings_player_panel_columns_description: "I spelaren: kanaler, vald kanals tablå och bild i tre kolumner",
   sa_settings_player_recents: "Nyligen sedda i spelaren",
   sa_settings_player_recents_description: "Rad med senaste kanaler, tablå och historik under livesändningen",
   sa_settings_player_clock: "Clock over the video",

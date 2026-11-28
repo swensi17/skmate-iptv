@@ -1219,6 +1219,8 @@ export const ru = {
   sa_settings_part_text: "Текст и масштаб",
   sa_settings_part_theme: "Тема и цвета",
   sa_settings_pinned_from: "Закреплено из раздела «{1}»",
+  sa_settings_player_panel_columns: "Программа рядом со списком каналов",
+  sa_settings_player_panel_columns_description: "В плеере список каналов, программа выбранного канала и картинка в три колонки",
   sa_settings_player_recents: "Недавно просмотренные в плеере",
   sa_settings_player_recents_description: "Ряд последних каналов с телегидом и историей под эфиром",
   sa_settings_player_clock: "Часы поверх видео",
