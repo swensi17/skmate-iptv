@@ -261,6 +261,7 @@ button.home-cat:focus, button.home-cat:focus > .st-icon, button.home-cat:focus .
 .gs-day.today { color: var(--st-blue); }
 .gs-day.on { background: rgba(255, 255, 255, .1); color: #fff; }
 .gs-day:focus { background: #fff; color: #16181d; }
+.gs-days:focus-within .gs-day.on:not(:focus) { background: none; }
 .gs-day-name { font-size: 17px; font-weight: 700; }
 .gs-day-date { font-size: 14px; opacity: .75; }
 

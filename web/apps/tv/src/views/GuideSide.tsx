@@ -215,6 +215,8 @@ export function GuideSide(p: {
           const tt = dayTitle(d, today);
           return (
             <button key={d} tabIndex={-1} data-focus={`gs-day-${d}`} class={`gs-day${d === day ? " on" : ""}${d === today ? " today" : ""}`}
+              // Focus on a day (by any way) makes it the day shown: the plate and the focus never part.
+              onFocus={() => { if (d !== day) setDay(d); if (!onHead) setOnHead(true); }}
               onClick={(ev) => { if ((ev as MouseEvent).detail > 0) setDay(d); }}>
               <span class="gs-day-name">{tt.name}</span>
               <span class="gs-day-date">{tt.date}</span>
