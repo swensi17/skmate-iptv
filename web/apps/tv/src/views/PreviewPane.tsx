@@ -181,8 +181,8 @@ function TextSkeleton() {
   );
 }
 
-/** A channel with no programme guide: a short note, then three quiet bars where the programme would be. */
-function NoGuide() {
+/** A channel with no programme guide: a short note, then three quiet bars where the programme would be (home and the player panel). */
+export function NoGuide() {
   return (
     <div class="hp-skel none">
       <div class="hp-noguide">{t("homeNoGuide")}</div>
