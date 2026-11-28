@@ -433,3 +433,8 @@
 .pv-about-next { margin-top: 18px; padding-top: 14px; border-top: 1px solid rgba(255, 255, 255, .12); font-size: 18px; color: rgba(255, 255, 255, .7); }
 .pv-about-close { position: absolute; top: 18px; right: 18px; width: 44px; height: 44px; border: 0; border-radius: 50%; background: rgba(255, 255, 255, .1); color: #fff; display: flex; align-items: center; justify-content: center; outline: none; }
 .pv-about-close:focus { background: #fff; color: #16181d; }
+
+/* #735: the programme column in the player's channel panel, over the picture's side */
+.tp-guide { position: absolute; top: 0; right: 0; bottom: 0; left: 700px; z-index: 6; background: var(--st-page, #1d1f23); }
+.tp-guide .gs { left: 24px; right: 24px; top: 40px; bottom: 40px; width: auto; }
+.tb-pl { padding: 1px 8px; border-radius: 6px; background: rgba(255, 255, 255, .12); font-size: 15px; color: rgba(255, 255, 255, .8); white-space: nowrap; max-width: 260px; overflow: hidden; text-overflow: ellipsis; }

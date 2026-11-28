@@ -1,3 +1,4 @@
+import { hasArchive } from "@skmate/core";
 import { useContext, useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { SearchIndex, type Channel, type Movie, type Show } from "@skmate/core";
 import type { GuideData, Programme } from "@skmate/epg";
@@ -109,6 +110,29 @@ export function SearchView({ channels, onOpen, vod, onOpenVod, settings }: Props
   const channelIndex = useMemo(() => new SearchIndex(channels, (c) => c.name), [channels]);
   const numberOf = useMemo(() => { const m = new Map<string, number>(); channels.forEach((c, i) => m.set(c.id, i + 1)); return m; }, [channels]);
   const programmes = useMemo(() => new ProgrammeSearch(data, channels, now), [data, channels, Math.floor(now / 60_000)]);
+  // The whole stored guide too, not only the hours in memory: a series later in the week or in the archive (#752).
+  const [stored, setStored] = useState<{ q: string; hits: ProgrammeHit[] }>({ q: "", hits: [] });
+  useEffect(() => {
+    if (!searching || q.trim().length < 2) return;
+    let live = true;
+    const id = setTimeout(() => {
+      void data.findStored(q, 300).then((found) => {
+        if (!live) return;
+        const byId = new Map(channels.map((c) => [c.id, c]));
+        const at = Date.now();
+        const hits: ProgrammeHit[] = [];
+        for (const f of found) {
+          const channel = byId.get(f.channelId);
+          if (!channel) continue;
+          if (f.programme.stop <= at && !hasArchive(channel, f.programme.start, f.programme.stop, at)) continue;
+          hits.push({ channel, programme: f.programme, rank: 0, live: f.programme.start <= at && at < f.programme.stop });
+        }
+        hits.sort((a, b) => Number(b.live) - Number(a.live) || (a.programme.stop > at ? a.programme.start - b.programme.start : b.programme.start - a.programme.start));
+        setStored({ q, hits });
+      });
+    }, 350);
+    return () => { live = false; clearTimeout(id); };
+  }, [q, searching, data, channels]);
   const movieIndex = useMemo(() => (library ? new SearchIndex(library.movies, (m) => m.name) : null), [library]);
   const showIndex = useMemo(() => (library ? new SearchIndex(library.shows, (s) => s.name) : null), [library]);
 
@@ -116,11 +140,15 @@ export function SearchView({ channels, onOpen, vod, onOpenVod, settings }: Props
     if (!searching) return { live: [] as Channel[], tv: [] as ProgrammeHit[], movies: [] as Movie[], series: [] as Show[] };
     return {
       live: channelIndex.search(q).map((r) => r.item),
-      tv: programmes.search(q, now),
+      tv: (() => {
+        const near = programmes.search(q, now);
+        const seen = new Set(near.map((h) => `${h.channel.id}|${h.programme.start}`));
+        return near.concat(stored.q === q ? stored.hits.filter((h) => !seen.has(`${h.channel.id}|${h.programme.start}`)) : []);
+      })(),
       movies: movieIndex ? movieIndex.search(q, 200).map((r) => r.item) : [],
       series: showIndex ? showIndex.search(q, 200).map((r) => r.item) : [],
     };
-  }, [q, searching, channelIndex, programmes, movieIndex, showIndex]);
+  }, [q, searching, channelIndex, programmes, movieIndex, showIndex, stored]);
   const on = (k: Kind) => kinds.size === 0 || kinds.has(k);
   const shown = {
     live: on("live") ? results.live : [], tv: on("tv") ? results.tv : [],

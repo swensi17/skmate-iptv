@@ -66,6 +66,8 @@ interface Props {
   suspended?: boolean;
   /** The playlist the channels come from: its own "Stop retrying after" applies when it has one. */
   playlistId?: string;
+  /** With more than one playlist: the name of the one this channel comes from, in the info (#700). */
+  playlistName?: string;
 }
 
 /** What the player can wind through now: the seekable range, else what is buffered; null before any picture. */
@@ -759,6 +761,7 @@ export function PlayerView(p: Props) {
             {cur ? <span class="tb-mini"><i style={{ width: `${Math.round(progress * 100)}%` }} /></span> : null}
             {cur ? <span>{t("tbMinutes", { n: Math.max(0, Math.floor((cur.stop - watching) / 60_000)) })}</span> : null}
             <span class="tb-ch">{number ? <span class="tb-num">{number}</span> : null}{channel.name}</span>
+            {p.playlistName ? <span class="tb-pl">{p.playlistName}</span> : null}
             {/* The stream's tags on the right say the resolution: no chip for it beside the channel (2.5.9). */}
             {chips.filter((c) => !streamFacts || c !== resolutionChip(video.current?.videoHeight ?? 0)).slice(0, 4).map((c) => <span class="tb-chip" key={c}>{c}</span>)}
             {/* With nothing to follow there is no next line: the tags sit level with the channel (2.5.9). */}

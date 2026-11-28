@@ -12,6 +12,7 @@ import { ChannelLogo } from "./ChannelLogo";
 import { CountdownRing, useDwell, useTick } from "./PlayerChrome";
 import { useProgrammeArt, type ArtSettings, type ProgrammeArt } from "../state/tmdb";
 import { PosterViewer } from "./ProgrammeArt";
+import { GuideSide } from "./GuideSide";
 import { PanelGuide, scheduleLines, UNDER_HEAD } from "./Schedule";
 import { Ticks } from "./Spinner";
 import "./player.css";
@@ -131,6 +132,11 @@ export function PlayerPanel(p: {
 
   // Focus is kept by channel: on opening, and back from the categories, the playing one.
   const [focused, setFocused] = useState<Channel | null>(p.playing);
+  // ▶ on a channel: its programme with the archive's days as a column, the same as on the channels screen (#735).
+  const [guideCh, setGuideCh] = useState<Channel | null>(null);
+  const guideOpen = useRef(false);
+  guideOpen.current = guideCh !== null;
+  const closeGuide = () => { const c = guideCh; setGuideCh(null); setTimeout(() => focusFirst(document, `pc-${(c ?? focused)?.id}`), 0); };
   const start = Math.max(0, list.findIndex((c) => c.id === p.playing.id));
   const listActive = !catsOpen && !menuOpen;
   const dwell = useDwell(focused?.id ?? null, !history && p.preview && listActive && !!focused && focused.id !== p.playing.id,
@@ -222,6 +228,7 @@ export function PlayerPanel(p: {
       const down = e.key === "ArrowDown" || e.keyCode === 40;
       const ok = e.key === "Enter" || e.keyCode === 13;
       const back = isBack(e);
+      if (guideOpen.current) return; // the programme column takes its own keys
       const u = under.current;
       // The poster over the whole screen: nothing behind it moves; OK or Back closes it, back on the poster.
       if (u.big) {
@@ -274,11 +281,8 @@ export function PlayerPanel(p: {
       }
       if (back) { p.onDismiss(); return; }
       if (left) { if (history) p.onDismiss(); else { setCatFocus(catKey); setCatsOpen(true); } return; }
-      // ▶ in the list: onto the poster, else onto what is on under the picture (2.5.3).
-      if (right && !e.repeat) {
-        if (u.art) setUAt("poster");
-        else if (u.lines && u.lines.length > 0) setUAt(Math.max(u.first, u.onAirIndex));
-      }
+      // ▶ in the list: the channel's programme with the archive's days, as on the channels screen (#735).
+      if (right && !e.repeat && focused) setGuideCh(focused);
     };
     document.addEventListener("keydown", onKey, true);
     return () => document.removeEventListener("keydown", onKey, true);
@@ -295,6 +299,13 @@ export function PlayerPanel(p: {
   const listIndex = (c: Channel) => list.findIndex((x) => x.id === c.id);
   return (
     <div class={`tp${p.closing ? " out" : ""}`} role="dialog" aria-label={title}>
+      {guideCh ? (
+        <div class="tp-guide">
+          <GuideSide channel={guideCh} art={p.art} active onClose={closeGuide} onLeave={closeGuide}
+            onWatch={(c) => { setGuideCh(null); p.onPick(c, list); }}
+            onArchive={(c, prog) => { setGuideCh(null); p.onArchive(c, prog, list); }} />
+        </div>
+      ) : null}
       {menuOpen ? (
         <nav class="tp-rail" aria-label={t("playerMenu")}>
           {RAIL.map(([id, icon, label, go]) => (

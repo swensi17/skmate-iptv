@@ -8,7 +8,8 @@ import { focusWithoutScroll } from "./legacy";
  */
 export function installPointer(): () => void {
   const onMove = (e: MouseEvent) => {
-    if (e.movementX === 0 && e.movementY === 0) return;
+    // A phone used as a touchpad (Android TV remote apps, #752) jitters by a pixel or two: that is not a move.
+    if (Math.abs(e.movementX) + Math.abs(e.movementY) < 3) return;
     const target = (e.target as HTMLElement | null)?.closest<HTMLElement>("[data-focus]");
     if (!target || target === document.activeElement) return;
     // A text field takes focus only by a click: focus would open the on-screen keyboard on a TV, and a field

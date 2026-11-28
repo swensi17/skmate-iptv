@@ -576,6 +576,7 @@ export function App() {
         suspended={prompt !== null || upcoming !== null}
         // player functions (Android): the playlist's own "Stop retrying after"
         playlistId={playlistId}
+        playlistName={pl.store.list.length > 1 ? pl.active?.name : undefined}
       />
       {programmeDialog}
       {prompt ? <ReminderPrompt reminder={prompt} now={Date.now()} onWatch={() => watchReminder(prompt)} onClose={() => rem.remove(prompt)} /> : null}

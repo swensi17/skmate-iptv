@@ -314,6 +314,30 @@ export class GuideCache {
     });
   }
 
+  /**
+   * Programmes of the whole stored guide whose title holds [query] (lower case, ё as е), read straight from storage
+   * and never kept: a search finds a series later in the week or in the archive without a week in memory (#752).
+   */
+  async findTitles(query: string, limit = 300): Promise<Array<{ epg: string; programme: Programme }>> {
+    const q = query.toLowerCase().replace(/ё/g, "е").trim();
+    const out: Array<{ epg: string; programme: Programme }> = [];
+    if (q.length < 2) return out;
+    const shift = this.shiftMin * 60_000;
+    await this.kv.scan(`b|${safe(this.pid)}|${this.meta.gen}|`, (_k, v) => {
+      if (!isRec(v) || out.length >= limit) return;
+      for (let i = 0; i < v.ids.length && out.length < limit; i++) {
+        const flat = v.rows[i] ?? [];
+        for (let j = 0; j + 2 < flat.length; j += 3) {
+          const title = String(flat[j + 2]);
+          if (title.toLowerCase().replace(/ё/g, "е").indexOf(q) < 0) continue;
+          out.push({ epg: v.ids[i] as string, programme: { start: (flat[j] as number) + shift, stop: (flat[j + 1] as number) + shift, title } });
+          if (out.length >= limit) break;
+        }
+      }
+    });
+    return out;
+  }
+
   private async readBlock(block: number, now: number): Promise<Map<string, Programme[]>> {
     const shift = this.shiftMin * 60_000;
     // A block asked for is read whole as far back as the guide keeps: the archive's days come with it (2.6.3).
@@ -433,7 +457,7 @@ export class GuideCache {
    * asks for hours that are not in memory (the owner then calls [ensure] and takes a new snapshot).
    */
   snapshot(now: number, onNeed?: (from: number, to: number) => void): GuideData {
-    const backing: GuideBacking = { need: (from, to) => onNeed?.(from, to), describe: (epg, start) => this.describe(epg, start) };
+    const backing: GuideBacking = { need: (from, to) => onNeed?.(from, to), describe: (epg, start) => this.describe(epg, start), find: (q, limit) => this.findTitles(q, limit) };
     const merged = new Map<string, Programme[]>();
     const owned = new Set<string>();
     const order = Array.from(this.pieces.keys()).sort((a, b) => a - b);
