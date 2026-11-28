@@ -313,6 +313,16 @@ class LivePreviewEngine(
             // native object leaked per skipped channel, which a box with little memory pays for within minutes.
             val media = Media(vlc, Uri.parse(url)).apply {
                 setHWDecoderEnabled(!software, false)
+                // Interlaced sport (1080i50): on the hardware decoder the box's own video processor deinterlaces it to
+                // 50 pictures a second on its direct path. A libVLC filter there took every frame off that path
+                // (a duller picture) and its yadif made 25 of the 50 fields (football that stutters). In software
+                // the filter is the only one, and its 2x mode keeps all 50; a weak box keeps the cheaper 1x.
+                if (software) {
+                    addOption(":deinterlace=-1")
+                    addOption(if (lowSpec) ":deinterlace-mode=yadif" else ":deinterlace-mode=yadif2x")
+                } else {
+                    addOption(":deinterlace=0")
+                }
                 addOption(":network-caching=$caching")
                 addOption(":http-user-agent=$agent")
                 referer?.let { addOption(":http-referrer=$it") }
