@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "preact/hooks";
-import { focusFirst, Icon, Popup, Presence, useOwnBack } from "@skmate/ui";
+import { focusFirst, Icon, Popup, Presence, Toggle, useOwnBack } from "@skmate/ui";
 import { t } from "../i18n";
 import { desktop, type CompanionPayload } from "../state/desktop";
 import { isLocal } from "../state/localFiles";
+import { AUTHOR_NAME, AUTHOR_URL } from "../state/authorPlaylist";
 import { stalkerSource, xtreamUrl, type PlaylistStore } from "../state/playlists";
 import type { Status } from "../state/usePlaylists";
 import { EditPlaylist } from "./EditPlaylist";
@@ -24,7 +25,6 @@ interface Props {
 
 /** The line under a playlist's name: where it comes from, never the whole link (it may carry a login or a token). */
 function sourceOf(url: string): string {
-  if (url === "demo://playlist") return t("plDemoSub");
   if (isLocal(url)) return t("plFileSub");
   try { return new URL(url).host; } catch { return ""; }
 }
@@ -134,6 +134,19 @@ export function PlaylistsPanel(p: Props) {
   };
   const active = p.store.list.find((x) => x.id === p.store.activeId) ?? null;
   const acting = p.store.list.find((x) => x.id === actions) ?? null;
+  // The author playlist: a switch row (ManageSourcesScreen.kt), off until the viewer turns it on; it is then an ordinary
+  // playlist called "SkMate". Off asks before removing it.
+  const author = p.store.list.find((x) => x.url === AUTHOR_URL) ?? null;
+  const namePending = useRef(false);
+  useEffect(() => {
+    if (author && namePending.current) { namePending.current = false; if (author.name !== AUTHOR_NAME) p.onEdit(author.id, AUTHOR_NAME, AUTHOR_URL); }
+  }, [author?.id]);
+  const toggleAuthor = () => {
+    if (author) { p.onAskDelete(author.id); return; }
+    namePending.current = true;
+    const err = p.onAdd(AUTHOR_URL);
+    if (err) { namePending.current = false; setRemoteError(err); }
+  };
 
   return (
     <div class="pl-panel">
@@ -148,6 +161,8 @@ export function PlaylistsPanel(p: Props) {
             onOk={() => setActions(pl.id)} />
         );
       })}
+      <SRow id="pl-author" icon="PLAYLIST" title={t("sa_settings_author_playlist")} line={t("sa_settings_author_playlist_desc")}
+        end={<Toggle on={author !== null} />} onOk={toggleAuthor} />
       <SRow id="pl-add-open" icon="ADD" title={t("sa_settings_sources_add")} onOk={() => setAdding(desktop() ? "choose" : "type")} />
       {choosing ? (
         <EditorLayer title={t("sa_settings_show_playlist")}>

@@ -84,56 +84,92 @@ function correctionMinutes(hours: string | undefined): number | undefined {
   return Number.isFinite(h) ? Math.round(h * 60) : undefined;
 }
 
-/** Parses an M3U / M3U8 playlist; lines it does not understand are skipped, never fatal. */
-export function parseM3U(text: string): Channel[] {
-  const channels: Channel[] = [];
-  let info: string | null = null;
-  let group = "";
-  let headers: Record<string, string> = {};
-  let headerCorrection: number | undefined;
-  for (const raw of text.replace(/^﻿/, "").split(/\r?\n/)) {
-    const line = raw.trim();
-    if (line === "") continue;
-    if (line.startsWith("#EXTM3U")) {
-      headerCorrection = correctionMinutes(attrs(line)["catchup-correction"]);
-    } else if (line.startsWith("#EXTINF:")) {
-      info = line.slice(8);
-      group = attrs(info)["group-title"] ?? "";
-      headers = {};
-    } else if (line.startsWith("#EXTGRP:")) {
-      if (group === "") group = line.slice(8).trim();
-    } else if (line.startsWith("#EXTVLCOPT:")) {
-      const eq = line.indexOf("=");
-      const key = HEADER_OPTS[line.slice(11, eq).toLowerCase()];
-      if (key && eq > 0) headers[key] = line.slice(eq + 1).trim();
-    } else if (line.startsWith("#")) {
-      continue;
-    } else if (info !== null) {
-      const a = attrs(info);
-      const name = titleOf(info) || a["tvg-name"] || line;
-      const channel: Channel = { id: String(channels.length), name, url: line, group };
-      if (a["tvg-logo"]) channel.logo = a["tvg-logo"];
-      if (a["tvg-id"]) channel.tvgId = a["tvg-id"];
-      if (a["tvg-name"]) channel.tvgName = a["tvg-name"];
-      // The Android app's rules (M3uParser): the newer attributes win over the legacy SIPTV `timeshift="N"`.
-      const type = a["catchup"] ?? a["catchup-type"];
-      const shiftDays = type === undefined ? Number(a["timeshift"] ?? 0) : 0;
-      const days = Number(a["catchup-days"] ?? (shiftDays > 0 ? shiftDays : a["tvg-rec"] ?? 0));
-      if (Number.isFinite(days) && days > 0) channel.catchupDays = days;
-      const kind = type ?? (shiftDays > 0 ? "shift" : undefined);
-      if (kind) channel.catchupType = kind;
-      if (a["catchup-source"]) channel.catchupSource = a["catchup-source"];
-      const correction = correctionMinutes(a["catchup-correction"]) ?? headerCorrection;
-      if (correction) channel.catchupCorrectionMin = correction;
-      if (Object.keys(headers).length > 0) channel.headers = headers;
-      const media = mediaOf(a["type"], a["tvg-type"], line);
-      if (media) channel.media = media;
-      channels.push(channel);
-      info = null;
-      headers = {};
+/** The parser's running state: lets one playlist be read in time slices (see parseM3UChunked) or in one go. */
+export interface M3UState {
+  text: string;
+  /** Where the next line starts. */
+  pos: number;
+  channels: Channel[];
+  info: string | null;
+  group: string;
+  headers: Record<string, string>;
+  headerCorrection: number | undefined;
+}
+
+export function m3uStart(text: string): M3UState {
+  const t = text.charCodeAt(0) === 0xfeff ? text.slice(1) : text;
+  return { text: t, pos: 0, channels: [], info: null, group: "", headers: {}, headerCorrection: undefined };
+}
+
+function m3uLine(st: M3UState, raw: string): void {
+  const line = raw.trim();
+  if (line === "") return;
+  if (line.startsWith("#EXTM3U")) {
+    st.headerCorrection = correctionMinutes(attrs(line)["catchup-correction"]);
+  } else if (line.startsWith("#EXTINF:")) {
+    st.info = line.slice(8);
+    st.group = attrs(st.info)["group-title"] ?? "";
+    st.headers = {};
+  } else if (line.startsWith("#EXTGRP:")) {
+    if (st.group === "") st.group = line.slice(8).trim();
+  } else if (line.startsWith("#EXTVLCOPT:")) {
+    const eq = line.indexOf("=");
+    const key = HEADER_OPTS[line.slice(11, eq).toLowerCase()];
+    if (key && eq > 0) st.headers[key] = line.slice(eq + 1).trim();
+  } else if (line.startsWith("#")) {
+    return;
+  } else if (st.info !== null) {
+    const a = attrs(st.info);
+    const name = titleOf(st.info) || a["tvg-name"] || line;
+    const channel: Channel = { id: String(st.channels.length), name, url: line, group: st.group };
+    if (a["tvg-logo"]) channel.logo = a["tvg-logo"];
+    if (a["tvg-id"]) channel.tvgId = a["tvg-id"];
+    if (a["tvg-name"]) channel.tvgName = a["tvg-name"];
+    // The Android app's rules (M3uParser): the newer attributes win over the legacy SIPTV `timeshift="N"`.
+    const type = a["catchup"] ?? a["catchup-type"];
+    const shiftDays = type === undefined ? Number(a["timeshift"] ?? 0) : 0;
+    const days = Number(a["catchup-days"] ?? (shiftDays > 0 ? shiftDays : a["tvg-rec"] ?? 0));
+    if (Number.isFinite(days) && days > 0) channel.catchupDays = days;
+    const kind = type ?? (shiftDays > 0 ? "shift" : undefined);
+    if (kind) channel.catchupType = kind;
+    if (a["catchup-source"]) channel.catchupSource = a["catchup-source"];
+    const correction = correctionMinutes(a["catchup-correction"]) ?? st.headerCorrection;
+    if (correction) channel.catchupCorrectionMin = correction;
+    if (Object.keys(st.headers).length > 0) channel.headers = st.headers;
+    const media = mediaOf(a["type"], a["tvg-type"], line);
+    if (media) channel.media = media;
+    st.channels.push(channel);
+    st.info = null;
+    st.headers = {};
+  }
+}
+
+/**
+ * Reads lines until [stop] says enough (checked every few lines) or the text ends; true when it ended.
+ * The text is walked by position, never split into an array of lines, so a big playlist costs no second copy in memory.
+ */
+export function m3uStep(st: M3UState, stop?: () => boolean): boolean {
+  const text = st.text;
+  const n = text.length;
+  let sinceCheck = 0;
+  while (st.pos < n) {
+    let nl = text.indexOf("\n", st.pos);
+    if (nl < 0) nl = n;
+    m3uLine(st, text.slice(st.pos, nl));
+    st.pos = nl + 1;
+    if (stop && ++sinceCheck >= 64) {
+      sinceCheck = 0;
+      if (stop()) return st.pos >= n;
     }
   }
-  return channels;
+  return true;
+}
+
+/** Parses an M3U / M3U8 playlist; lines it does not understand are skipped, never fatal. */
+export function parseM3U(text: string): Channel[] {
+  const st = m3uStart(text);
+  m3uStep(st);
+  return st.channels;
 }
 
 /** Channels grouped by `group-title`, groups in playlist order. */

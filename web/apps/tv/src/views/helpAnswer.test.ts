@@ -23,7 +23,8 @@ describe("help answers", () => {
   it("lights the keys of an answer without a path, and points", () => {
     const a = parseAnswer(ru.sa_help_a2, roots);
     expect(a.path).toEqual([]);
-    expect(a.keys).toEqual(["◀", "▲", "▼", "OK"]);
+    // 2.7.0 answer: ▲ ▼, OK, then "◀ ▶ выбирают кнопку перемотки".
+    expect(a.keys).toEqual(["◀", "▶", "▲", "▼", "OK"]);
     // Points and the conclusion end up as one closing paragraph (2.5.7).
     expect(a.lines.filter((l) => l.kind === "done").length).toBe(1);
     expect(a.lines.some((l) => l.kind === "point" || l.kind === "heading")).toBe(false);

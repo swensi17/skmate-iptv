@@ -32,9 +32,10 @@ const ROW = 96;
 const LIST_H = Math.floor((972 - 36 - 31 - 14 - 24) / ROW) * ROW;
 const CAT_ROW = 56;
 const CATS_H = Math.floor((972 - 30 - 50) / CAT_ROW) * CAT_ROW;
-/** DwellTiming: a channel rests 1.5 s before 3-2-1, a category 7 s. */
+/** DwellTiming: a channel rests 1.5 s before 3-2-1. */
 const CHANNEL_QUIET_MS = 1500;
-const CATEGORY_QUIET_MS = 7000;
+/** 2.7.0: a category the cursor rests on this long makes the channels beside it follow, without OK (LiveStage.kt FOLLOW_REST_MS). */
+const FOLLOW_REST_MS = 300;
 
 export interface DockRect { x: number; y: number; w: number; h: number }
 
@@ -182,18 +183,24 @@ export function PlayerPanel(p: {
     else if (l.start <= Date.now() && Date.now() < l.stop) p.onPick(head, list);
   };
 
-  // Categories: the playing list's category focused first; resting 7 s on another opens it after 3-2-1.
+  // Categories: the playing list's category focused first; the list beside follows the one under the cursor after a short
+  // rest, the sheet staying open (2.7.0 onFollow); OK closes the sheet on it.
   const [catFocus, setCatFocus] = useState<string | null>(null);
-  const pickCat = (key: string) => {
+  const showCat = (key: string): boolean => {
     const item = cats.find((c) => c.key === key);
-    if (!item) return;
+    if (!item) return false;
     memory.key = key;
     setCatKey(key);
     setList(item.channels);
     setFocused(item.channels.find((c) => c.id === p.playing.id) ?? item.channels[0] ?? null);
-    setCatsOpen(false);
+    return true;
   };
-  const catDwell = useDwell(catFocus, catsOpen && !menuOpen && catFocus !== null && catFocus !== catKey, CATEGORY_QUIET_MS, () => { if (catFocus) pickCat(catFocus); });
+  const pickCat = (key: string) => { if (showCat(key)) setCatsOpen(false); };
+  useEffect(() => {
+    if (!catsOpen || menuOpen || catFocus === null || catFocus === catKey) return;
+    const id = setTimeout(() => showCat(catFocus), FOLLOW_REST_MS);
+    return () => clearTimeout(id);
+  }, [catsOpen, menuOpen, catFocus, catKey]);
 
   const focusRail = () => setTimeout(() => focusFirst(document, "pr-home"), 30);
   const focusCats = () => setTimeout(() => focusFirst(document, `pg:${catKey}`), 30);
@@ -350,7 +357,7 @@ export function PlayerPanel(p: {
                   onFocus={() => setCatFocus(c.key)} onClick={() => pickCat(c.key)}>
                   <Icon name="live_tv" size={28} />
                   <span class="st-sheet-item-text">{c.label}</span>
-                  {catDwell.n > 0 && catFocus === c.key ? <CountdownRing n={catDwell.n} totalMs={3000} startedAt={catDwell.startedAt} /> : <span class="st-count">{c.count}</span>}
+                  <span class="st-count">{c.count}</span>
                 </button>
               )}
             />

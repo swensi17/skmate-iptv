@@ -18,7 +18,7 @@ import { PlaylistsPanel } from "./PlaylistsPanel";
 import { ProfilesPanel } from "./ProfilesPanel";
 import { SheetCtx, SHeading, SIcon, SNote, SRow, EditorLayer, tf, type SheetApi, OverSheet } from "./SettingsKit";
 import {
-  BrowsingPage, ChNavPage, DnsPage, FontsPage, GlassPage, GuideWidthPage, LanguagePage, MenusPage, NotHerePage, PanelWidthPage,
+  BrowsingPage, ChNavPage, DnsPage, FontsPage, GlassPage, GuideWidthPage, LanguagePage, MenusPage, MetadataPage, NotHerePage, PanelWidthPage,
   ProxyPage, SyncPage, TelegramPage, WeatherPage,
 } from "./SettingsPages";
 import { HelpPage } from "./HelpPages";
@@ -63,7 +63,7 @@ const SUBS: Record<string, Key> = {
   tab_SOURCES: "sa_settings_playlists", tab_EPG: "sa_settings_epg_sources", tab_GLASS_EFFECT: "sa_settings_glass_bg_title",
   fonts: "sa_settings_title_fonts", tab_WEATHER: "sa_settings_title_date_time_weather", tab_CH_NAV: "sa_settings_ch_paging",
   tab_PANEL_WIDTH: "sa_settings_panel_width", tab_GUIDE_WIDTH: "sa_settings_guide_width", browsing_lists: "sa_settings_browsing_lists",
-  tab_CONTENT_MENUS: "sa_settings_content_menus_title", tab_CUSTOMIZE: "sa_settings_customize_title", tab_SPORTS: "sa_sports_title",
+  tab_CONTENT_MENUS: "sa_settings_content_menus_title", tab_CUSTOMIZE: "sa_settings_customize_title", tab_SPORTS: "sa_sports_title", tab_METADATA: "sa_settings_metadata",
   tab_LANGUAGE: "sa_settings_language", tab_TG_REMOTE: "sa_settings_tg_remote", tab_NETWORK: "sa_common_proxy", tab_DNS: "sa_settings_dns",
   // screens 2.5.4: the recording rows (a TV browser cannot record): their page says it is only in the Android TV app.
   rec_reserve: "sa_settings_recording_reserve", rec_watching: "sa_settings_record_watching",
@@ -210,13 +210,13 @@ export function SettingsSheet(p: Props) {
       if (body.current) body.current.scrollTop = 0;
       if (!page) { focusFirst(root.current ?? document, `sheet-${left.current ?? "quick"}`); return; }
       if (page === "profile") { focusFirst(root.current ?? document, `pf-${p.book.activeId}`); return; }
-      const first = body.current?.querySelector<HTMLElement>("[data-focus]");
+      const first = body.current?.querySelector<HTMLElement>("[data-focus]:not([aria-disabled])") ?? body.current?.querySelector<HTMLElement>("[data-focus]");
       first?.focus();
     }, 0);
   }, [page, p.show]);
   useEffect(() => {
     if (!sub) return;
-    setTimeout(() => { if (body.current) body.current.scrollTop = 0; body.current?.querySelector<HTMLElement>("[data-focus]")?.focus(); }, 0);
+    setTimeout(() => { if (body.current) body.current.scrollTop = 0; (body.current?.querySelector<HTMLElement>("[data-focus]:not([aria-disabled])") ?? body.current?.querySelector<HTMLElement>("[data-focus]"))?.focus(); }, 0);
   }, [sub]);
 
   /** Keep one row of room ahead of the focused row (LiveStage.kt edgeScrollSpec). */
@@ -281,6 +281,7 @@ export function SettingsSheet(p: Props) {
       case "browsing_lists": return <BrowsingPage {...P} />;
       case "tab_CONTENT_MENUS": return <MenusPage />;
       case "tab_LANGUAGE": return <LanguagePage {...P} />;
+      case "tab_METADATA": return <MetadataPage {...P} />;
       case "tab_TG_REMOTE": return <TelegramPage />;
       case "tab_NETWORK": return <ProxyPage {...P} />;
       case "tab_DNS": return <DnsPage {...P} />;

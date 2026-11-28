@@ -469,7 +469,8 @@ export function PlayerView(p: Props) {
     ...(full ? [{ id: "tb-full", icon: (full.on ? "fullscreen_exit" : "fullscreen") as IconName, label: t(full.on ? "fullScreenExit" : "fullScreen"), run: full.toggle }] : []),
   ];
   // 2.6.0 TvBoxRecentRow: the guide, the history, then up to 10 channels watched before this one.
-  const recentRow = p.recents.filter((c) => c.id !== channel.id).slice(0, RECENT_MAX);
+  // Settings > Player: the viewer may switch the row off (2.6.8); the tools then open straight away.
+  const recentRow = settings.playerRecents === false ? [] : p.recents.filter((c) => c.id !== channel.id).slice(0, RECENT_MAX);
   const rowCards: RowCard[] = recentRow.length === 0 ? [] : [
     { id: "tr-guide", icon: "epg", label: t("tbGuide"), run: () => { hide(); p.onGo("guide"); } },
     { id: "tr-history", icon: "history", label: t("tbHistory"), run: () => openPanel("history") },

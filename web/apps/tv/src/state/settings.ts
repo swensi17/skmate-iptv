@@ -130,6 +130,8 @@ export interface Settings {
   extSeries: boolean;
   /** Clock over the video and its look (stored). */
   playerClock: boolean;
+  /** 2.6.8: the «Недавно просмотренные» row under the info in the player (off: the tools open straight away). */
+  playerRecents: boolean;
   clockSize: number;
   clockWeight: number;
   clockBg: number;
@@ -200,7 +202,7 @@ export const DEFAULTS: Settings = {
   // Android SettingsRepository: remember_cat_live / remember_last_live on, films and series off.
   chNav: true, chNavUp: 10, chNavDown: 10, seekStep: 10, liveLeftRightRewinds: false, liveKeys: {}, browseLastCat: [true, false, false], browseLastItem: [true, false, false],
   extLive: false, extMovies: false, extSeries: false,
-  playerClock: false, clockSize: 1, clockWeight: 1, clockBg: 1, clockColor: 0, clockAlpha: 1,
+  playerClock: false, playerRecents: true, clockSize: 1, clockWeight: 1, clockBg: 1, clockColor: 0, clockAlpha: 1,
   zoomMode: "fit", afr: false, afrPause: 0, afrResolution: false,
   liveLatency: "balanced", liveCustomSec: 8, latencyPerPlaylist: {}, tuneTimeout: 30, tuneTimeoutPerPlaylist: {}, vodBuffer: 0,
   miniSize: 25, miniPos: "br", startup: "home", startupChannel: "", startupChannelName: "",

@@ -145,34 +145,72 @@ const KEY_ACTIONS: Key[] = [
 ];
 /** The usual action of each key on a channel (LiveKeyLabels.kt): OK info, ▲ ▼ next/previous, ◀ ▶ list/history. */
 const LIVE_KEYS: Array<[string, Key, Key]> = [
-  ["ok", "sa_settings_live_key_ok", "sa_settings_live_key_action_info"], ["up", "sa_settings_live_key_up", "sa_settings_live_key_action_previous"],
-  ["down", "sa_settings_live_key_down", "sa_settings_live_key_action_next"], ["left", "sa_settings_live_key_left", "sa_settings_live_key_action_list"],
+  ["ok", "sa_settings_live_key_ok", "sa_settings_live_key_action_info"], ["up", "sa_settings_live_key_up", "sa_settings_live_key_action_next"],
+  ["down", "sa_settings_live_key_down", "sa_settings_live_key_action_previous"], ["left", "sa_settings_live_key_left", "sa_settings_live_key_action_list"],
   ["right", "sa_settings_live_key_right", "sa_settings_live_key_action_history"],
 ];
+/**
+ * The factory assignments of the free remote buttons (RemoteShortcuts.kt RemoteShortcutBindings.defaults), in the order Android
+ * lists them (by key code, short before long). The lists page on exactly these; the page cannot change them here.
+ */
+const BINDINGS: Array<[string, Key, Key, Key]> = [
+  ["REWIND", "sa_settings_remote_button_rewind", "sa_settings_remote_shortcuts_short_press", "sa_settings_remote_action_page_first"],
+  ["REWIND", "sa_settings_remote_button_rewind", "sa_settings_remote_shortcuts_long_press", "sa_settings_remote_action_jump_first"],
+  ["FORWARD", "sa_settings_remote_button_fast_forward", "sa_settings_remote_shortcuts_short_press", "sa_settings_remote_action_page_last"],
+  ["FORWARD", "sa_settings_remote_button_fast_forward", "sa_settings_remote_shortcuts_long_press", "sa_settings_remote_action_jump_last"],
+  ["REMOTE_CHANNEL_UP", "sa_settings_remote_button_channel_up", "sa_settings_remote_shortcuts_short_press", "sa_settings_remote_action_page_first"],
+  ["REMOTE_CHANNEL_UP", "sa_settings_remote_button_channel_up", "sa_settings_remote_shortcuts_long_press", "sa_settings_remote_action_jump_first"],
+  ["REMOTE_CHANNEL_DOWN", "sa_settings_remote_button_channel_down", "sa_settings_remote_shortcuts_short_press", "sa_settings_remote_action_page_last"],
+  ["REMOTE_CHANNEL_DOWN", "sa_settings_remote_button_channel_down", "sa_settings_remote_shortcuts_long_press", "sa_settings_remote_action_jump_last"],
+];
+/** ChNavLimits: a skip count is 1..1000, with a warning above 50. */
+const SKIP_MAX = 1000;
+const SKIP_WARN = 50;
 
-/** Кнопки пульта (ChNavSettingsScreen.kt). Stored: the web player keeps its own keys. */
+/**
+ * Кнопки пульта (ChNavSettingsScreen.kt), in Android's order: what OK and the arrows do on a channel, the switch for the
+ * free buttons, their assignments, the two skip counts. The assignments are the factory ones, read only: a TV browser
+ * cannot be told to take a new remote button, so "Добавить команду" and "Восстановить" are not shown.
+ */
 export function ChNavPage({ s, set }: P) {
   const sheet = useSheet();
   const [editing, setEditing] = useState<string | null>(null);
+  const [skip, setSkip] = useState<"up" | "down" | null>(null);
   const row = LIVE_KEYS.find((k) => k[0] === editing);
   const back = () => { const id = editing; setEditing(null); setTimeout(() => sheet.focus(`k-${id}`), 0); };
-  useSheetBack(!!editing, back);
+  const backSkip = () => { const id = skip; setSkip(null); setTimeout(() => sheet.focus(`skip-${id}`), 0); };
+  useSheetBack(!!editing || !!skip, () => (skip ? backSkip() : back()));
   const editor = row ? (
       <EditorLayer title={tf("sa_settings_live_keys_choose", t(row[1]))}>
         <ChoiceList idPrefix="key" value={s.liveKeys[row[0]] ?? row[2]} options={KEY_ACTIONS.map((k) => ({ value: k as string, label: t(k) }))}
           onPick={(v) => { const next = { ...s.liveKeys }; if (v === row[2]) delete next[row[0]]; else next[row[0]] = v; set({ liveKeys: next }); back(); }} onClose={back} />
       </EditorLayer>
   ) : null;
+  const field = skip === "up" ? "chNavUp" : "chNavDown";
+  const skipEditor = skip ? (
+    <EditorLayer title={t(skip === "up" ? "sa_settings_ch_nav_up" : "sa_settings_ch_nav_down")}>
+      <BigStepper value={String(s[field])} onDone={backSkip}
+        onStep={(d) => set({ [field]: clamp(s[field] + d * 5, 1, SKIP_MAX) } as Partial<Settings>)}
+        preview={<>{t(skip === "up" ? "sa_settings_ch_nav_up_description" : "sa_settings_ch_nav_down_description")}{s[field] > SKIP_WARN ? <><br />{t("sa_settings_large_skips_warning")}</> : null}</>} />
+    </EditorLayer>
+  ) : null;
   const custom = Object.keys(s.liveKeys).length > 0;
+  const keyIcon = (k: string) => (k === "ok" ? "CHECK" : k === "up" ? "CHEVRON_UP" : k === "down" ? "CHEVRON_DOWN" : k === "left" ? "CHEVRON_LEFT" : "CHEVRON");
   return (
-    <>{editor}<Lines items={[
+    <>{editor}{skipEditor}<Lines items={[
       { h: "sa_settings_live_keys", first: true },
       ...LIVE_KEYS.map(([k, title, usual]): Line => ({
-        id: `k-${k}`, icon: "CH_NAV", title: t(title),
+        id: `k-${k}`, icon: keyIcon(k), title: t(title),
         line: s.liveKeys[k] ? t(s.liveKeys[k] as Key) : tf("sa_settings_live_key_default", t(usual)), onOk: () => setEditing(k),
       })),
-      ...(custom ? [{ id: "k-reset", icon: "REFRESH", title: t("sa_settings_live_keys_reset"), onOk: () => set({ liveKeys: {} }) } as Line] : []),
+      ...(custom ? [{ id: "k-reset", icon: "REFRESH", title: t("sa_settings_live_keys_reset"), line: t("sa_settings_live_keys_reset_description"), onOk: () => set({ liveKeys: {} }) } as Line] : []),
       { id: "k-on", icon: "CH_NAV", title: t("sa_settings_remote_shortcuts_enabled"), line: t("sa_settings_line_remote_shortcuts_on"), end: <Toggle on={s.chNav} />, onOk: () => set({ chNav: !s.chNav }) },
+      { h: "sa_settings_remote_shortcuts_assignments" },
+      ...BINDINGS.map(([icon, button, press, action], i): Line => ({ id: `b-${i}`, icon, title: `${t(button)} · ${t(press)}`, line: t(action) })),
+      { note: t("sa_web_remote_buttons") },
+      { h: "sa_settings_skip_counts" },
+      { id: "skip-up", icon: "PAGE_TOWARD_FIRST", title: t("sa_settings_ch_nav_up"), line: String(s.chNavUp), onOk: () => setSkip("up") },
+      { id: "skip-down", icon: "PAGE_TOWARD_LAST", title: t("sa_settings_ch_nav_down"), line: String(s.chNavDown), onOk: () => setSkip("down") },
     ]} /></>
   );
 }
@@ -337,3 +375,68 @@ export function TelegramPage() {
 }
 
 export { BigStepper };
+
+/** The languages TMDB takes (MetadataSettingsScreen.kt TMDB_LANGUAGE_CODES); "" follows the app's own language. */
+const TMDB_LANGS: Array<[string, Key]> = [
+  ["", "sa_settings_language_default"], ["ar", "sa_settings_language_arabic"], ["bg", "sa_settings_language_bulgarian"], ["zh", "sa_settings_language_chinese"],
+  ["hr", "sa_settings_language_croatian"], ["cs", "sa_settings_language_czech"], ["da", "sa_settings_language_danish"], ["nl", "sa_settings_language_dutch"],
+  ["en", "sa_settings_language_english"], ["et", "sa_settings_language_estonian"], ["fi", "sa_settings_language_finnish"], ["fr", "sa_settings_language_french"],
+  ["de", "sa_settings_language_german"], ["el", "sa_settings_language_greek"], ["he", "sa_settings_language_hebrew"], ["hi", "sa_settings_language_hindi"],
+  ["hu", "sa_settings_language_hungarian"], ["id", "sa_settings_language_indonesian"], ["it", "sa_settings_language_italian"], ["ja", "sa_settings_language_japanese"],
+  ["ko", "sa_settings_language_korean"], ["lv", "sa_settings_language_latvian"], ["lt", "sa_settings_language_lithuanian"], ["ms", "sa_settings_language_malay"],
+  ["no", "sa_settings_language_norwegian"], ["fa", "sa_settings_language_persian"], ["pl", "sa_settings_language_polish"], ["pt-BR", "sa_settings_language_portuguese_brazil"],
+  ["pt-PT", "sa_settings_language_portuguese_portugal"], ["ro", "sa_settings_language_romanian"], ["ru", "sa_settings_language_russian"], ["sr", "sa_settings_language_serbian"],
+  ["sk", "sa_settings_language_slovak"], ["sl", "sa_settings_language_slovenian"], ["es", "sa_settings_language_spanish"], ["es-MX", "sa_settings_language_spanish_latam"],
+  ["sv", "sa_settings_language_swedish"], ["th", "sa_settings_language_thai"], ["tr", "sa_settings_language_turkish"], ["uk", "sa_settings_language_ukrainian"],
+  ["vi", "sa_settings_language_vietnamese"],
+];
+
+/**
+ * Метаданные (TMDB) (MetadataSettingsScreen.kt): where the film and series details come from, the language of the texts, and
+ * the viewer's own TMDB key. Android's third source (TMDB only), its own server and the "look up a title" test are not here:
+ * the web app asks TMDB for posters and descriptions only, with SkMate's key or the viewer's.
+ */
+export function MetadataPage({ s, set }: P) {
+  const sheet = useSheet();
+  const [open, setOpen] = useState<"source" | "language" | null>(null);
+  const [typing, setTyping] = useState(false);
+  const close = () => { const k = open; setOpen(null); if (k) setTimeout(() => sheet.focus(`md-${k}`), 0); };
+  useSheetBack(!!open, close);
+  const langName = (code: string) => t(TMDB_LANGS.find((l) => l[0] === code)?.[1] ?? "sa_settings_language_default");
+  const editor = open === "source" ? (
+    <EditorLayer title={t("sa_settings_metadata_source")}>
+      <ChoiceList idPrefix="md" value={s.metadataOn} onClose={close} onPick={(v) => { set({ metadataOn: v }); close(); }}
+        options={[
+          { value: false, label: t("sa_settings_metadata_provider_only"), desc: t("sa_settings_metadata_provider_description") },
+          { value: true, label: t("sa_settings_metadata_provider_plus_tmdb"), desc: t("sa_settings_metadata_provider_tmdb_description") },
+        ]} />
+    </EditorLayer>
+  ) : open === "language" ? (
+    <EditorLayer title={t("sa_settings_metadata_language")}>
+      <ChoiceList idPrefix="md" value={s.tmdbLanguage} onClose={close} onPick={(v) => { set({ tmdbLanguage: v }); close(); }}
+        options={TMDB_LANGS.map(([v, k]) => ({ value: v, label: t(k) }))} />
+    </EditorLayer>
+  ) : null;
+  const doneTyping = () => { setTyping(false); setTimeout(() => sheet.focus("md-key"), 0); };
+  return (
+    <>
+      {editor}
+      <Lines items={[
+        { h: "sa_settings_metadata_library_details", first: true },
+        { id: "md-source", icon: "MOVIES", title: t("sa_settings_metadata_source"), line: t(s.metadataOn ? "sa_settings_metadata_provider_plus_tmdb" : "sa_settings_metadata_provider_only"), onOk: () => setOpen("source") },
+        ...(s.metadataOn ? [
+          { id: "md-language", icon: "LANGUAGE", title: t("sa_settings_metadata_language"), line: langName(s.tmdbLanguage), onOk: () => setOpen("language") } as Line,
+          { h: "sa_settings_metadata_connection" } as Line,
+          { id: "md-key", icon: "GEAR", title: t("sa_settings_metadata_remote_advanced"), line: t(s.tmdbKey ? "sa_settings_tier_key" : "sa_settings_shared"), onOk: () => setTyping(true) } as Line,
+        ] : []),
+        { note: t("sa_settings_tmdb_attribution") },
+      ]} />
+      <Presence show={typing}>
+        {(out) => (
+          <TextEntry title={t("sa_settings_metadata_remote_advanced")} hint={t("sa_settings_metadata_remote_advanced_description")} label={t("sa_settings_metadata_key_label")}
+            value={s.tmdbKey} closing={out} onCancel={doneTyping} onDone={(v) => { set({ tmdbKey: v.trim() }); doneTyping(); }} />
+        )}
+      </Presence>
+    </>
+  );
+}

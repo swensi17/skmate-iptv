@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "preact/hooks";
 import { Button, Icon, isBack, Popup } from "@skmate/ui";
 import { OverSheet } from "./SettingsKit";
 import { t } from "../i18n";
+import "./textEntry.css";
 
 /**
  * Typing one value with a remote, the way the Android app asks for text (components/TextInputDialog.kt): a popup
@@ -72,8 +73,8 @@ export function TextEntry(p: {
       <Popup top={keyboard} width={820} title={p.title} body={p.hint || undefined} onClose={p.onCancel} closing={p.closing}
         buttons={(
           <>
-            <Button small id="entry-cancel" text={t("confirmCancel")} onClick={p.onCancel} />
-            <Button small id="entry-done" text={t("done")} onClick={done} />
+            <Button small className="entry-cancel" id="entry-cancel" text={t("confirmCancel")} onClick={p.onCancel} />
+            <Button small className="entry-done" id="entry-done" text={t("done")} onClick={done} />
           </>
         )}>
         {/* The row is drawn focused while its field holds the focus (Android: highlighted while editing). */}

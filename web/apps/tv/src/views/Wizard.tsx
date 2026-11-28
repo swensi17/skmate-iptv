@@ -42,7 +42,7 @@ export interface WizardResult {
   avatar?: number;
   settings: Partial<Settings>;
   /** The playlist step adds to the app's playlists itself; "none" is all that is left for the host. */
-  playlist: { kind: "url"; url: string } | { kind: "file"; name: string; text: string } | { kind: "demo" } | { kind: "none" };
+  playlist: { kind: "url"; url: string } | { kind: "file"; name: string; text: string } | { kind: "none" };
 }
 
 /** The kids mark and the PIN the wizard asked for, put on the profile the host has just created. */
@@ -119,12 +119,25 @@ interface Action { id: string; label: string; onClick: () => void; kind: "back" 
  * to the focused one (200 ms) and fades in and out with the row's focus; entering the row it is put straight under it.
  */
 function Buttons(p: { actions: Action[]; width?: number; trailing?: ComponentChildren }) {
-  const each = p.width ?? (p.actions.length === 1 ? 520 : 260);
+  const base = p.width ?? (p.actions.length === 1 ? 520 : 260);
+  // The buttons share one width, but it grows to the longest label (any language), so no text is clipped.
+  const [need, setNeed] = useState(0);
+  const sig = p.actions.map((a) => a.label + a.kind).join("|");
+  const each = Math.max(base, need);
   const [at, setAt] = useState(0);
   const [inRow, setInRow] = useState(false);
   const [slide, setSlide] = useState(false);
   const inside = useRef(false);
   const row = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    let w = 0;
+    const btns = row.current ? row.current.querySelectorAll<HTMLElement>(".sw-btn") : [];
+    btns.forEach((b) => {
+      const l = b.querySelector<HTMLElement>(".sw-btn-label");
+      if (l) w = Math.max(w, l.scrollWidth + b.querySelectorAll("svg").length * 38 + 64);
+    });
+    setNeed(Math.ceil(w));
+  }, [sig]);
   const onFocus = (i: number) => {
     setSlide(inside.current); // moving inside the row slides; coming in from above snaps
     inside.current = true;

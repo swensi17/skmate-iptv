@@ -61,6 +61,8 @@ const EXIT_BACK_MS = 2000;
 const UNLOCKED_KEY = "skmate.unlocked";
 /** The PIN that opens adult categories on a profile without one of its own (Android AdultLock.DEFAULT_PIN). */
 const ADULT_DEFAULT_PIN = "0000";
+/** Stands in for the channel list while it is still being read: the guide starts only on the whole list. */
+const NO_CHANNELS: Channel[] = [];
 
 export function App() {
   // settings functions (Android): «Прямой эфир открывается в виде» Телегид = Live TV is drawn as the guide
@@ -160,7 +162,7 @@ export function App() {
   // The reminder whose moment has come first; asked about only in the "ask" mode, and never over the lock screen.
   const firstDue = rem.due[0] ?? null;
   const prompt = unlocked && settings.reminderMode === "ask" ? firstDue : null;
-  const guide = useGuide(pl.channels, pl.active, pl.headerGuides, settings);
+  const guide = useGuide(pl.loaded ? pl.channels : NO_CHANNELS, pl.active, pl.headerGuides, settings);
   const guideValue = useMemo(() => ({ data: guide.data, now: guide.now }), [guide.data, guide.now]);
   applyLanguage(settings.language); // before anything is drawn: the whole screen speaks one language
   // Another language chosen: its table is fetched, then the screen is drawn again in it.
@@ -413,7 +415,6 @@ export function App() {
     }
     if (r.playlist.kind === "url") pl.add(r.playlist.url);
     else if (r.playlist.kind === "file") void pl.addFile(r.playlist.name, r.playlist.text);
-    else if (r.playlist.kind === "demo") pl.addDemo();
     setRedo(false);
   };
   const startBook = (name: string, guest: boolean) => { const b = firstBook(name, guest); saveBook(b); setBook(b); };
@@ -623,7 +624,7 @@ export function App() {
           <LiveView
             channels={channels} favorites={favorites} status={pl.status} settings={liveSettings}
             onOpen={open} onFav={toggleFavorite}
-            onAddPlaylist={() => openSheet("playlists", "screen")} onDemo={pl.addDemo}
+            onAddPlaylist={() => openSheet("playlists", "screen")}
             greeting={greeting} playlistName={pl.active?.name ?? null} onPickPlaylist={() => setPicking(true)}
             recents={recents} paused={book === null || redo} /* the wizard covers the screen: no preview stream may hold the TV's only decoder behind it */
             onGuideView={() => showLiveAs("guide")} onUpcoming={openUpcoming} onArchive={openArchive} entry={liveEntry}

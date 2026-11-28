@@ -44,10 +44,8 @@ const DWELL_MS = 1000;
 const TYPING_PAUSE_MS = 180;
 /** The categories need a search field only past this many entries (LiveStage.kt CategorySearchMin). */
 const CATEGORY_SEARCH_MIN = 20;
-/** Focus resting on another category this long starts the 3-2-1 countdown that opens it (DwellCountdown.kt). */
-const CATEGORY_QUIET_MS = 7000;
-const CATEGORY_STEP_MS = 1000;
-const CATEGORY_STEPS = 3;
+/** 2.7.0: the cursor resting on a category this long makes the list beside it follow, without OK (LiveStage.kt FOLLOW_REST_MS). */
+const FOLLOW_REST_MS = 300;
 
 /** LiveSort.kt LiveSortModes, in Android's order. */
 type Sort = "provider" | "az" | "za" | "number" | "recent";
@@ -103,11 +101,21 @@ let lastKey: string | null = null;
 /** The key restored at start, until the playlist is there to find it in. */
 let pendingKey: string | null = null;
 let primed = false;
+let unsaved = false;
+function writeLast(): void {
+  unsaved = false;
+  try { localStorage.setItem(scoped(LAST_KEY), JSON.stringify({ group: memory.group, channel: lastKey })); } catch { /* not remembered */ }
+}
 function saveLast(): void {
+  unsaved = true;
   clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => {
-    try { localStorage.setItem(scoped(LAST_KEY), JSON.stringify({ group: memory.group, channel: lastKey })); } catch { /* not remembered */ }
-  }, SAVE_MS);
+  saveTimer = setTimeout(writeLast, SAVE_MS);
+}
+/** 2.6.9: leaving the app writes where the cursor is at once; waiting for the delay, a quick exit came back to the old place. */
+function flushLast(): void {
+  if (!unsaved) return;
+  clearTimeout(saveTimer);
+  writeLast();
 }
 
 /** Before the channels screen first opens: where it starts. Off = "All channels", at the top (Android LiveKey.All). */
@@ -134,7 +142,6 @@ interface Props {
   onOpen: (c: Channel, list: readonly Channel[]) => void;
   onFav: (c: Channel) => void;
   onAddPlaylist: () => void;
-  onDemo: () => void;
   greeting: string;
   playlistName: string | null;
   onPickPlaylist: () => void;
@@ -186,13 +193,27 @@ export function LiveView(p: Props) {
   const focusedRef = useRef<Channel | null>(null);
   const [away, setAway] = useState(false);
   // ▶ on a channel puts its guide in the list's place; ◀ or Back bring the list back (2.6.0 LiveGuideSide).
+  // 2.6.7 / 2.7.0: the guide is a column beside the list; `inGuide` says which of the two has the remote, and the column
+  // follows the channel under the cursor while the list has it.
   const [guideCh, setGuideCh] = useState<Channel | null>(null);
+  const [inGuide, setInGuide] = useState(false);
+  const [guideRefocus, setGuideRefocus] = useState(0);
   const artSettings = useMemo<ArtSettings>(() => ({
     metadataOn: p.settings.metadataOn, tmdbKey: p.settings.tmdbKey, tmdbLanguage: p.settings.tmdbLanguage, programmePosters: p.settings.programmePosters,
   }), [p.settings.metadataOn, p.settings.tmdbKey, p.settings.tmdbLanguage, p.settings.programmePosters]);
   // The channels watched before carry the history mark; worked out once per history, not on every step (2.6.1).
   const watchedIds = useMemo(() => new Set(p.recents.slice(0, 200).map((c) => c.id)), [p.recents]);
-  const closeGuide = () => { setGuideCh(null); setTimeout(() => focusCurrentRow(), 30); };
+  const closeGuide = () => { setGuideCh(null); setInGuide(false); setTimeout(() => focusCurrentRow(), 30); };
+  // ◀ in the column: back to the list, the column staying and following (LiveGuideSide onLeft).
+  const guideToList = () => { setInGuide(false); focusCurrentRow(); };
+  // 2.6.9: where the cursor is goes to storage as the app is left, not 800 ms later.
+  useEffect(() => {
+    const onHide = () => flushLast();
+    const onVis = () => { if (document.visibilityState === "hidden") flushLast(); };
+    window.addEventListener("pagehide", onHide);
+    document.addEventListener("visibilitychange", onVis);
+    return () => { window.removeEventListener("pagehide", onHide); document.removeEventListener("visibilitychange", onVis); flushLast(); };
+  }, []);
   const [dwelled, setDwelled] = useState<Channel | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout>>();
 
@@ -244,6 +265,8 @@ export function LiveView(p: Props) {
   // A playlist that arrives after the screen opened: the preview starts on the remembered (or the first) channel.
   useEffect(() => { if (!preview && shown.length > 0) setPreview((back >= 0 ? shown[back] : shown[0]) ?? null); }, [shown.length > 0]);
   useEffect(() => {
+    // The list following the category under the cursor (2.7.0) must not take the cursor from the sheet.
+    if (catsRef.current) return;
     const id = back >= 0 ? memory.channel : shown[0]?.id;
     focusFirst(document, id ? `ch-${id}` : "live-search");
   }, [group, p.channels.length === 0]);
@@ -311,6 +334,8 @@ export function LiveView(p: Props) {
       if (catLayer) { e.stopPropagation(); e.preventDefault(); if (catLayer.kind === "restore") setCatLayer({ kind: "menu", name: catLayer.name }); else closeCatLayer(); return; }
       if (document.querySelector(".st-popup-layer[data-modal]")) return; // the text entry's own Back
       if (menu !== null) { e.stopPropagation(); e.preventDefault(); closeMenu(); return; }
+      // The column beside the list closes on Back wherever the remote is (LiveGuideSide BackHandler); in it, it answers itself.
+      if (guideCh && !inGuide && !catsOpen && !document.querySelector("[data-modal]")) { e.stopPropagation(); e.preventDefault(); closeGuide(); return; }
       const inCats = !!(document.activeElement as HTMLElement | null)?.closest(".home-cats");
       if (!(catsOpen && inCats)) return;
       e.stopPropagation(); e.preventDefault();
@@ -319,7 +344,7 @@ export function LiveView(p: Props) {
     };
     document.addEventListener("keydown", onKey, true);
     return () => document.removeEventListener("keydown", onKey, true);
-  }, [catsOpen, catQuery, menu, shown, preview, catLayer]);
+  }, [catsOpen, catQuery, menu, shown, preview, catLayer, guideCh, inGuide]);
 
   // The preview follows the cursor only after it has rested on a channel: listing fast must not open a stream per row.
   const onFocusChannel = (c: Channel) => {
@@ -327,28 +352,20 @@ export function LiveView(p: Props) {
     lastKey = rowKey(c);
     saveLast();
     focusedRef.current = c;
+    if (guideCh) { setInGuide(false); if (guideCh.id !== c.id) setGuideCh(c); }
     setAway(!!preview && c.id !== preview.id);
     clearTimeout(timer.current);
     timer.current = setTimeout(() => setDwelled(c), DWELL_MS);
   };
 
-  // A category the cursor rests on opens by itself after 7 s and a 3-2-1 countdown (the TV-box look).
+  // 2.7.0: the list follows the category under the cursor after a short rest, the sheet staying open, no OK needed
+  // (LiveStage.kt onFollow; the old 7 s countdown is gone). The rest keeps rows passed on the way from loading channels.
   const [catFocus, setCatFocus] = useState<string | null>(null);
-  const [countdown, setCountdown] = useState(0);
   useEffect(() => {
-    setCountdown(0);
-    if (!catsOpen || catFocus === null || catFocus === group || menu !== null) return;
-    let step = CATEGORY_STEPS;
-    let tick: ReturnType<typeof setTimeout>;
-    const next = () => {
-      if (step === 0) { pickCategory(catFocus); return; }
-      setCountdown(step);
-      step -= 1;
-      tick = setTimeout(next, CATEGORY_STEP_MS);
-    };
-    tick = setTimeout(next, CATEGORY_QUIET_MS);
-    return () => clearTimeout(tick);
-  }, [catFocus, catsOpen, group, menu]);
+    if (!catsOpen || catFocus === null || catFocus === group || menu !== null || catLayer !== null) return;
+    const id = setTimeout(() => { memory.channel = null; setGroup(catFocus); }, FOLLOW_REST_MS);
+    return () => clearTimeout(id);
+  }, [catFocus, catsOpen, group, menu, catLayer]);
   const pickCategory = (key: string) => {
     if (key !== group) { memory.channel = preview?.id ?? null; setGroup(key); }
     setCatsOpen(false);
@@ -378,7 +395,6 @@ export function LiveView(p: Props) {
         <div class="empty-hint">{p.status.kind === "error" ? p.status.message : t("emptyHint")}</div>
         <div class="empty-actions">
           <button class="btn" data-focus="empty-add" onClick={p.onAddPlaylist}>{t("emptyAdd")}</button>
-          <button class="btn" data-focus="empty-demo" onClick={p.onDemo}>{t("emptyDemo")}</button>
         </div>
       </div>
     );
@@ -401,7 +417,7 @@ export function LiveView(p: Props) {
     if (key(e, "ArrowLeft", 37)) { stop(e); openCats(); return; }
     if (key(e, "ArrowRight", 39)) {
       stop(e);
-      if (focusedRef.current && !catsOpen) setGuideCh(focusedRef.current);
+      if (focusedRef.current && !catsOpen) { setGuideCh(focusedRef.current); setInGuide(true); setGuideRefocus((n) => n + 1); }
       return;
     }
     if (key(e, "ArrowDown", 40)) stop(e); // the list handles every Down it can; this one is past the last row
@@ -484,13 +500,7 @@ export function LiveView(p: Props) {
               <StageIcon name="more" size={20} />
             </button>
           </div>
-          {guideCh ? (
-            <GuideSide channel={guideCh} art={artSettings} onClose={closeGuide}
-              onWatch={(c) => { setGuideCh(null); clearTimeout(timer.current); p.onOpen(c, shown); }}
-              onArchive={(c, prog) => { setGuideCh(null); p.onArchive?.(c, prog, shown); }}
-              onUpcoming={(c, prog) => p.onUpcoming?.(c, prog, shown)} />
-          ) : null}
-          <div class="home-rows" key={listKey} style={guideCh ? { visibility: "hidden" } : undefined} onKeyDown={onListKey as unknown as (e: Event) => void}>
+          <div class="home-rows" key={listKey} onKeyDown={onListKey as unknown as (e: Event) => void}>
             {p.channels.length === 0 ? <ListSkeleton /> : empty ? (
               <div class="home-empty">
                 <StageIcon name="tv" size={72} />
@@ -503,12 +513,18 @@ export function LiveView(p: Props) {
                 renderRow={(c, i) => (
                   <ChannelRow variant="live" channel={c} index={i} number={numbers.get(c.id)} favorite={isFavorite(p.favorites, c)}
                     previewing={playing === c.id} watched={watchedIds.has(c.id)}
-                    onOpen={(ch) => { clearTimeout(timer.current); p.onOpen(ch, shown); }} onFav={p.onFav} onFocus={onFocusChannel} />
+                    onOpen={(ch) => { clearTimeout(timer.current); setGuideCh(null); p.onOpen(ch, shown); }} onFav={p.onFav} onFocus={onFocusChannel} />
                 )}
               />
             )}
           </div>
         </div>
+        {guideCh ? (
+          <GuideSide channel={guideCh} art={artSettings} onClose={closeGuide} onLeft={guideToList} takeFocus={inGuide} refocus={guideRefocus}
+            onWatch={(c) => { setGuideCh(null); setInGuide(false); clearTimeout(timer.current); p.onOpen(c, shown); }}
+            onArchive={(c, prog) => { setGuideCh(null); setInGuide(false); p.onArchive?.(c, prog, shown); }}
+            onUpcoming={(c, prog) => p.onUpcoming?.(c, prog, shown)} />
+        ) : null}
         <PreviewPane channel={p.paused ? null : preview} away={away} settings={p.settings}
           number={preview ? numbers.get(preview.id) : undefined}
           onBack={() => focusCurrentRow()}
@@ -530,7 +546,6 @@ export function LiveView(p: Props) {
               ) : null}
               {catShown.map((g) => {
                 const i = groupItems.indexOf(g);
-                const counting = countdown > 0 && catFocus === g.key;
                 return (
                   <Fragment key={g.key}>
                     {i === firstGroup && catQuery.trim() === "" ? <div class="home-cats-head" key="__groups__">{t("homeGroups").toUpperCase()}</div> : null}
@@ -538,7 +553,7 @@ export function LiveView(p: Props) {
                       aria-pressed={g.key === group} onClick={() => pickCategory(g.key)}>
                       <GroupIcon id={g.key} size={28} />
                       <span class="home-cat-name">{g.label}</span>
-                      {counting ? <Countdown n={countdown} /> : <span class="home-cat-count">{g.count.toLocaleString(document.documentElement.lang || undefined)}</span>}
+                      <span class="home-cat-count">{g.count.toLocaleString(document.documentElement.lang || undefined)}</span>
                     </button>
                   </Fragment>
                 );
@@ -638,19 +653,6 @@ function LiveDot() {
     <svg class="st-icon" viewBox="0 0 24 24" width={28} height={28} fill="currentColor" aria-hidden="true">
       <circle cx="12" cy="12" r="4" /><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Zm0 2a7 7 0 1 1 0 14 7 7 0 0 1 0-14Z" />
     </svg>
-  );
-}
-
-/** The countdown before a category opens by itself (ui/components/CountdownRing.kt): a blue ring filling, the number in it. */
-function Countdown({ n }: { n: number }) {
-  return (
-    <span class="home-countdown" aria-hidden="true">
-      <svg viewBox="0 0 30 30" width={30} height={30}>
-        <circle cx="15" cy="15" r="13.75" fill="none" stroke="rgba(0,134,252,.2)" stroke-width="2.5" />
-        <circle class="home-countdown-arc" cx="15" cy="15" r="13.75" fill="none" stroke="#0086fc" stroke-width="2.5" stroke-linecap="round" transform="rotate(-90 15 15)" />
-      </svg>
-      <b>{n}</b>
-    </span>
   );
 }
 

@@ -1,10 +1,9 @@
-import { useCallback, useEffect, useState } from "preact/hooks";
-import { guidesInHeader, parseM3U, type Channel } from "@skmate/core";
+import { useCallback, useEffect, useRef, useState } from "preact/hooks";
+import { guidesInHeader, parseM3UChunked, type Channel } from "@skmate/core";
 import { t, type Key } from "../i18n";
 import { cacheDrop, cacheGet, cachePut, fetchPlaylist, PlaylistError } from "./fetchPlaylist";
 import { playlistOpener } from "./guideTransport";
 import { fileDrop, fileGet, filePut, isLocal, localUrl, readPlaylistFile } from "./localFiles";
-import { demoText } from "./playlist";
 import { AUTHOR_CHECK_MS, AUTHOR_URL, AUTHOR_VERSION_URL, needsReload, versionOf, type AuthorVersion } from "./authorPlaylist";
 import { desktop } from "./desktop";
 import { addPlaylist, updatePlaylist, isStalker, xtreamGuide, loadStore, nextActive, normalizeUrl, playlistFromSearch, removePlaylist, saveStore, type PlaylistStore } from "./playlists";
@@ -16,7 +15,6 @@ const ERRORS: Record<PlaylistError["kind"], Key> = {
   network: "playlistErrNetwork", http: "playlistErrHttp", invalid: "playlistErrInvalid", timeout: "playlistErrTimeout",
 };
 
-const DEMO_URL = "demo://playlist";
 
 /** The playlists, the one in use and its channels: everything the screens need, nothing about how they look. */
 export function usePlaylists() {
@@ -32,31 +30,54 @@ export function usePlaylists() {
   const [channels, setChannels] = useState<Channel[]>([]);
   const [status, setStatus] = useState<Status>({ kind: "idle" });
   const [headerGuides, setHeaderGuides] = useState<string[]>([]);
+  /** False while a stored copy is still being read in slices (the first channels show at once); the guide waits for the whole list. */
+  const [loaded, setLoaded] = useState(true);
+  /** The text the channels on screen were read from: the same text again is not read again. */
+  const shownText = useRef<string | null>(null);
 
   const active = store.list.find((p) => p.id === store.activeId) ?? null;
 
   useEffect(() => { saveStore(store); }, [store]);
 
+  /**
+   * Reads [text] in short slices (the keys and the picture stay smooth) and puts the whole list on screen at the end.
+   * With [progressive] the first channels appear while the rest is read (a stored copy shown at start); otherwise the
+   * list on screen stays until the new one is ready. Resolves false when [live] turned false (another playlist chosen).
+   */
+  const show = async (text: string, live: () => boolean, progressive: boolean): Promise<boolean> => {
+    if (shownText.current === text) { setLoaded(true); return live(); }
+    if (progressive) setLoaded(false);
+    const all = await parseM3UChunked(text, {
+      cancelled: () => !live(),
+      ...(progressive ? { onPartial: (part: Channel[]) => { if (live()) setChannels(part); } } : {}),
+    });
+    if (!all || !live()) return false;
+    shownText.current = text;
+    setChannels(all);
+    setLoaded(true);
+    return true;
+  };
+
   // Load the active playlist: the cached copy shows at once, the network copy replaces it.
   useEffect(() => {
-    if (!active) { setChannels([]); setStatus({ kind: "idle" }); return; }
+    if (!active) { setChannels([]); setLoaded(true); shownText.current = null; setStatus({ kind: "idle" }); return; }
     let live = true;
+    const isLive = () => live;
+    shownText.current = null;
     const cached = cacheGet(active.id);
     if (cached) {
-      setChannels(parseM3U(cached));
       const own = xtreamGuide(active.url);
       const named = guidesInHeader(cached);
       setHeaderGuides(own && !named.includes(own) ? [...named, own] : named);
+      void show(cached, isLive, true);
     }
-    if (active.url === DEMO_URL) { setChannels(parseM3U(demoText())); setStatus({ kind: "idle" }); return; }
     // A playlist from a file is read from this device: there is nothing to fetch.
     if (isLocal(active.url)) {
       fileGet(active.url).then((text) => {
         if (!live) return;
         if (text === null) { setStatus({ kind: "error", message: t("srcFileBad") }); return; }
-        setChannels(parseM3U(text));
         setHeaderGuides(guidesInHeader(text));
-        setStatus({ kind: "idle" });
+        void show(text, isLive, true).then(() => { if (live) setStatus({ kind: "idle" }); });
       });
       return () => { live = false; };
     }
@@ -68,12 +89,12 @@ export function usePlaylists() {
       (text) => {
         if (!live) return;
         cachePut(active.id, text);
-        setChannels(parseM3U(text));
         // An Xtream login brings its own guide for the same account, even when the list does not name it.
         const own = xtreamGuide(active.url);
         const named = guidesInHeader(text);
         setHeaderGuides(own && !named.includes(own) ? [...named, own] : named);
-        setStatus({ kind: "idle" });
+        // The status turns idle only when every channel is in: the screens that wait for the list wait for all of it.
+        void show(text, isLive, false).then(() => { if (live) setStatus({ kind: "idle" }); });
       },
       (e: unknown) => {
         if (!live || cached) return; // a stale list beats an error screen
@@ -107,8 +128,8 @@ export function usePlaylists() {
         loadedAt = Date.now();
         if (text !== cacheGet(id)) {
           cachePut(id, text);
-          setChannels(parseM3U(text));
           setHeaderGuides(guidesInHeader(text));
+          await show(text, () => true, false);
         }
         seen = v;
       } catch { /* offline for a moment: asked again on the next round */ } finally {
@@ -149,7 +170,7 @@ export function usePlaylists() {
   const update = useCallback((id: string, name: string, input: string): string | null => {
     const old = store.list.find((p) => p.id === id);
     if (!old) return null;
-    const url = isLocal(old.url) || old.url === DEMO_URL ? old.url : isStalker(input) ? input : normalizeUrl(input);
+    const url = isLocal(old.url) ? old.url : isStalker(input) ? input : normalizeUrl(input);
     if (!url) return t("playlistBadUrl");
     const list = updatePlaylist(store.list, id, name, url);
     if (!list) return t("playlistBadUrl");
@@ -157,13 +178,6 @@ export function usePlaylists() {
     setStore((s) => ({ ...s, list: updatePlaylist(s.list, id, name, url) ?? s.list }));
     return null;
   }, [store.list]);
-
-  const addDemo = useCallback(() => {
-    setStore((s) => {
-      const list = addPlaylist(s.list, DEMO_URL, t("demoPlaylist"));
-      return { list, activeId: list.find((p) => p.url === DEMO_URL)?.id ?? s.activeId };
-    });
-  }, []);
 
   const select = useCallback((id: string) => setStore((s) => ({ ...s, activeId: id })), []);
 
@@ -177,5 +191,5 @@ export function usePlaylists() {
     });
   }, []);
 
-  return { store, active, channels, status, headerGuides, add, addFile, addDemo, select, update, remove };
+  return { store, active, channels, loaded, status, headerGuides, add, addFile, select, update, remove };
 }

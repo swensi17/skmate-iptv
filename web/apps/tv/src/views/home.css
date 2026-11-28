@@ -216,12 +216,6 @@ button.home-cat > .st-icon { flex: none; margin-right: 14px; color: var(--st-mut
 .home-cat-count { flex: none; margin-left: 14px; font-size: 16px; font-weight: 600; color: var(--st-dim); }
 button.home-cat.sel:not(:focus), button.home-cat.sel:not(:focus) > .st-icon { color: var(--st-accent); }
 button.home-cat:focus, button.home-cat:focus > .st-icon, button.home-cat:focus .home-cat-count { color: #121212; }
-/* The 3-2-1 before a category opens by itself (CountdownRing.kt): 30, a blue arc filling clockwise over 3 s. */
-.home-countdown { position: relative; flex: none; width: 30px; height: 30px; margin-left: 14px; }
-.home-countdown > svg { display: block; }
-.home-countdown-arc { stroke-dasharray: 86.4; stroke-dashoffset: 86.4; animation: home-countdown 3000ms linear forwards; }
-@keyframes home-countdown { to { stroke-dashoffset: 0; } }
-.home-countdown > b { position: absolute; left: 0; top: 0; width: 30px; line-height: 30px; text-align: center; font-size: 15px; font-weight: 800; color: #0086fc; }
 
 /* The toolbar menus (GuideMenuHost): the shared StageMenu card, centred. */
 .home-menu .st-menu-item > .st-icon { flex: none; width: 28px; height: 28px; margin-right: 14px; color: var(--st-muted); }
@@ -264,3 +258,18 @@ button.home-cat:focus, button.home-cat:focus > .st-icon, button.home-cat:focus .
 .home-menu .st-menu-bullet::before { content: ""; position: absolute; left: 22px; top: 8px; width: 6px; height: 6px; border-radius: 3px; background: var(--st-muted); }
 .home-move-list { max-height: 520px; overflow-y: auto; padding-top: 18px; display: flex; flex-direction: column; gap: 6px; }
 .home-move-list .st-option-lead > svg { color: var(--st-muted); }
+
+/* 2.6.7 / 2.7.0: the guide is a third column over the preview (x 882, top 112, to the edge), the list staying beside it. */
+.home-side > .gs { left: 882px; right: 0; top: 112px; bottom: 0; border-radius: 14px 0 0 0; }
+.gs-lines { position: relative; }
+.gs-onair:not(:focus), .gs-onair:not(:focus) .gs-at { color: #0086fc; }
+.gs-onair .gs-t { font-weight: 700; }
+.gs-dayhead { color: #0086fc; font-size: 20px; text-transform: none; }
+/* The days on the right: a heading over the column, weekday over date, 70 high (LiveGuideSide.kt dayCell). */
+.gs-days { flex: 0 0 150px; display: flex; flex-direction: column; padding: 18px 12px 0 0; overflow: hidden; }
+.gs-days-head { flex: none; padding-bottom: 10px; text-align: center; font-size: 20px; font-weight: 700; color: rgba(255, 255, 255, .5); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gs-days-list { flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
+.gs-days-list > * + * { margin-top: 6px; }
+button.gs-day { flex: none; height: 70px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0; text-align: center; font-size: 18px; font-weight: 600; }
+button.gs-day > span { display: block; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+button.gs-day > span + span { font-weight: 700; }

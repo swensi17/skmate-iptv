@@ -279,6 +279,8 @@ export function buildRows(c: RowsCtx, close: () => void): Record<string, RowDef>
 
   // ---- Категории
   add({ key: "tab_CUSTOMIZE", icon: "SORT", title: t("sa_settings_customize"), line: t("sa_settings_line_customize") });
+  // 2.5.4: «Метаданные (TMDB)» sits after the categories row (SettingsScreen.kt tab_METADATA).
+  add({ key: "tab_METADATA", icon: "IMAGE", title: t("sa_settings_metadata"), line: t("sa_settings_line_metadata") });
 
   // ---- Настройки плеера
   const extParts = [s.extLive && t("sa_common_nav_live_tv"), s.extMovies && t("sa_common_nav_movies"), s.extSeries && t("sa_common_nav_series")].filter(Boolean) as string[];
@@ -298,6 +300,7 @@ export function buildRows(c: RowsCtx, close: () => void): Record<string, RowDef>
     const at = (d: number) => set({ [field]: (s[field] + d + labels.length) % labels.length } as Partial<Settings>);
     add({ key, icon, title: t(title), line: labels[s[field]] ?? labels[0], ok: () => at(1), step: at, hidden: !s.playerClock || hidden, pin: false });
   };
+  add({ key: "vp_recents", icon: "HISTORY", title: t("setPlayerRecents"), line: t("setPlayerRecentsDesc"), end: sw(s.playerRecents), ok: () => set({ playerRecents: !s.playerRecents }) });
   look("clock_size", "ZOOM", "sa_settings_clock_size", ["sa_settings_clock_size_s", "sa_settings_clock_size_m", "sa_settings_clock_size_l"], "clockSize");
   look("clock_weight", "THEME", "sa_settings_clock_weight", ["sa_settings_clock_weight_regular", "sa_settings_clock_weight_bold"], "clockWeight");
   look("clock_bg", "PALETTE", "sa_settings_clock_bg", ["sa_settings_clock_bg_none", "sa_settings_clock_bg_dark", "sa_settings_clock_bg_light", "sa_settings_clock_bg_blue"], "clockBg");
@@ -306,6 +309,9 @@ export function buildRows(c: RowsCtx, close: () => void): Record<string, RowDef>
 
   // ---- Качество картинки
   const pickZoom = (v: Settings["zoomMode"]) => set({ zoomMode: v, aspect: v === "crop" ? "cover" : v === "stretch" ? "fill" : "fit" });
+  // 2.7.0: the TV's decoder switch is the first row here again (VideoPlayerSettingsScreen.kt vp_hw). A web page cannot pick the
+  // decoder of the TV's player, so the row is shown as it is on Android and says where it works.
+  add({ key: "vp_hw", icon: "VIDEO", title: t("sa_settings_hardware_decoding"), line: t("sa_web_not_here_title"), disabled: true, pin: false });
   add({ key: "vp_zoom", icon: "ASPECT", title: t("sa_settings_default_zoom"), line: t(ZOOMS.find((z) => z.v === s.zoomMode)?.k ?? "sa_player_zoom_fit_screen"),
     editor: choice(ZOOMS.map((z) => ({ value: z.v, label: t(z.k), recommended: z.v === "fit" })), s.zoomMode, pickZoom) });
   add({
@@ -560,10 +566,10 @@ export const GROUP_ITEMS: Record<string, Item[]> = {
     { h: "sa_settings_part_extras" }, "animations", "motion_speed", "motion_auto", "tab_WEATHER"],
   layout: [{ h: "sa_settings_part_navigation", first: true }, "navigation", "live_layout", "live_opens_in", "tab_CH_NAV",
     { h: "sa_settings_part_lists" }, "tab_PANEL_WIDTH", "tab_GUIDE_WIDTH", "browsing_lists", "tab_CONTENT_MENUS"],
-  content: ["tab_CUSTOMIZE"],
+  content: ["tab_CUSTOMIZE", "tab_METADATA"],
   player: [{ h: "sa_settings_vp_cat_player", first: true }, "vp_external", { h: "sa_settings_vp_cat_controls" }, "vp_clock",
-    "clock_size", "clock_weight", "clock_bg", "clock_color", "clock_alpha"],
-  picture: [{ h: "sa_settings_vp_cat_picture", first: true }, "vp_zoom", "vp_reset_zoom", { h: "sa_settings_vp_cat_frame_rate" }, "vp_afr", "vp_afr_pause", "vp_afr_resolution"],
+    "clock_size", "clock_weight", "clock_bg", "clock_color", "clock_alpha", "vp_recents"],
+  picture: [{ h: "sa_settings_vp_cat_picture", first: true }, "vp_hw", "vp_zoom", "vp_reset_zoom", { h: "sa_settings_vp_cat_frame_rate" }, "vp_afr", "vp_afr_pause", "vp_afr_resolution"],
   live: [{ h: "sa_settings_vp_cat_live_tuning", first: true }, "vp_live_latency", "vp_latency_sources", "vp_tune_timeout", "vp_tune_timeout_sources",
     { h: "sa_settings_vp_cat_streaming" }, "vp_vod_buffer", { h: "sa_settings_live_tv" }, "vp_channel_numbers", "vp_live_preview", "vp_preview_audio", "vp_programme_posters", "vp_info_hide"],
   // The Resume part has no rows left, so its heading is gone and this one is drawn as a second heading (26 above).

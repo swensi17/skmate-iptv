@@ -1,0 +1,10 @@
+/* The two buttons of the typing popup must never look alike (Android: Done is tinted, Cancel plain). "Done" is the
+   main one: a light plate with dark text at rest, "Cancel" stays the grey slab; the focused one lifts and is plain
+   light, so where the focus is can be told at a glance. Only colour and transform change. */
+.entry-buttons-gap { margin-left: 4px; }
+.st-button.entry-done { background: #cfd1d4; color: #121212; min-width: 168px; }
+.st-button.entry-cancel { min-width: 168px; }
+.st-button.entry-done:focus, .st-button.entry-cancel:focus { transform: scale(1.08); box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.9); }
+/* For weak eyes: "Cancel" always has a clear outline, "Done" none but a bright plate, so no two look alike. */
+.st-button.entry-cancel { box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.55); }
+.st-button.entry-cancel:focus { box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.9), inset 0 0 0 2px rgba(255, 255, 255, 0.55); }

@@ -12,7 +12,7 @@ import { EntryRow } from "./EntryRow";
  * edit button.
  */
 export function EditPlaylist(p: { entry: PlaylistEntry; onSave: (name: string, url: string) => string | null; onClose: () => void }) {
-  const fixed = isLocal(p.entry.url) || p.entry.url === "demo://playlist";
+  const fixed = isLocal(p.entry.url);
   const [name, setName] = useState(p.entry.name);
   const [url, setUrl] = useState(fixed ? "" : p.entry.url);
   const [error, setError] = useState<string | null>(null);
