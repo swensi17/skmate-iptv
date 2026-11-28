@@ -27,6 +27,13 @@ export function fitStage(root: HTMLElement = document.documentElement, win: Wind
     return el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement;
   };
   const apply = () => {
+    // The compact layout (tablets, phones) has no stage: #app fills the window by CSS.
+    if (root.getAttribute("data-layout") === "compact") {
+      root.style.removeProperty("--stage-scale");
+      root.style.removeProperty("--stage-left");
+      root.style.removeProperty("--stage-top");
+      return;
+    }
     const w = win.innerWidth;
     const h = win.innerHeight;
     // A TV's on-screen keyboard makes the window shorter while a field is being typed in. Refitting then would shrink

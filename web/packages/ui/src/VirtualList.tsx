@@ -1,6 +1,7 @@
 import type { ComponentChildren } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { createPager, getChNavConfig, pagingDirection } from "./chNav";
+import { flingStep } from "./touch";
 import { centerTop, clampIndex, revealTop, visibleWindow } from "./virtual";
 
 export interface VirtualListProps<T> {
@@ -33,6 +34,8 @@ export function VirtualList<T>(p: VirtualListProps<T>) {
   const box = useRef<HTMLDivElement>(null);
   /** The row a page jump is heading to: a second press before the first lands continues from there. */
   const heading = useRef<number | null>(null);
+  const topRef = useRef(top);
+  topRef.current = top;
   const win = visibleWindow(top, p.height, p.rowHeight, p.items.length);
   const pager = useRef(createPager());
 
@@ -89,6 +92,56 @@ export function VirtualList<T>(p: VirtualListProps<T>) {
     setTop((t) => Math.max(0, Math.min(t + e.deltaY, Math.max(0, p.items.length * p.rowHeight - p.height))));
   };
 
+
+  // A finger drags the list and lets it glide on (touch-action: pan-x in ui.css leaves vertical moves to us). Only `top`
+  // changes, so the rows just slide; the click that ends a drag is swallowed so a scroll does not open a channel.
+  const drag = useRef({ on: false, moved: false, y: 0, startY: 0, t: 0, v: 0, frame: 0, quiet: 0 });
+  const maxTop = () => Math.max(0, p.items.length * p.rowHeight - p.height);
+  const stopFling = () => { if (drag.current.frame) { cancelAnimationFrame(drag.current.frame); drag.current.frame = 0; box.current?.classList.remove("drag"); } };
+  const onTouchStart = (e: TouchEvent) => {
+    stopFling();
+    const d = drag.current, y = e.touches[0]?.clientY ?? 0;
+    d.on = e.touches.length === 1; d.moved = false; d.y = y; d.startY = y; d.t = Date.now(); d.v = 0;
+  };
+  const onTouchMove = (e: TouchEvent) => {
+    const d = drag.current;
+    if (!d.on) return;
+    const y = e.touches[0]?.clientY ?? d.y, now = Date.now();
+    if (!d.moved) {
+      if (Math.abs(y - d.startY) < 8) return;
+      d.moved = true;
+      box.current?.classList.add("drag");
+    }
+    const dt = Math.max(1, now - d.t);
+    const dy = d.y - y; // positive: the finger goes up, the list moves up
+    d.v = d.v * 0.6 + (dy / dt) * 0.4; // px/ms, smoothed
+    d.y = y; d.t = now;
+    const next = Math.max(0, Math.min(topRef.current + dy, maxTop()));
+    topRef.current = next; setTop(next);
+  };
+  const onTouchEnd = () => {
+    const d = drag.current;
+    if (!d.on) return;
+    d.on = false;
+    if (!d.moved) return;
+    d.quiet = Date.now() + 350;
+    let last = Date.now();
+    const glide = () => {
+      const now = Date.now(), step = flingStep(d.v, now - last);
+      last = now; d.v = step.v;
+      const next = Math.max(0, Math.min(topRef.current + step.dist, maxTop()));
+      const stuck = next === topRef.current;
+      topRef.current = next; setTop(next);
+      d.frame = Math.abs(d.v) > 0.02 && !stuck ? requestAnimationFrame(glide) : 0;
+      if (!d.frame) box.current?.classList.remove("drag");
+    };
+    d.frame = requestAnimationFrame(glide);
+  };
+  const onClickCapture = (e: MouseEvent) => {
+    if (Date.now() < drag.current.quiet) { e.preventDefault(); e.stopPropagation(); }
+  };
+  useEffect(() => stopFling, []);
+
   const rows: ComponentChildren[] = [];
   for (let i = win.first; i <= win.last; i++) {
     const item = p.items[i] as T;
@@ -100,7 +153,8 @@ export function VirtualList<T>(p: VirtualListProps<T>) {
   }
 
   return (
-    <div class="vlist" ref={box} style={{ height: `${p.height}px` }} onFocusIn={onFocusIn} onKeyDown={onKeyDown} onKeyUp={onKeyUp} onWheel={onWheel}>
+    <div class="vlist" ref={box} style={{ height: `${p.height}px` }} onFocusIn={onFocusIn} onKeyDown={onKeyDown} onKeyUp={onKeyUp} onWheel={onWheel}
+      onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd} onTouchCancel={onTouchEnd} onClickCapture={onClickCapture}>
       <div class="vinner">{rows}</div>
     </div>
   );

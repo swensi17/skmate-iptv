@@ -3,6 +3,18 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=1920, initial-scale=1" />
+    <!-- Compact layout (tablet, phone): the viewport follows the device before the first paint. The full rule is packages/ui/src/layout.ts; here only what is known at once: ?layout=, a TV user agent, the Android shell, a touch screen. -->
+    <script>
+      (function () {
+        try {
+          var w = window, m = /[?&]layout=(tv|compact)(&|$)/.exec(w.location.search), c;
+          if (m) c = m[1] === "compact";
+          else if (/web0s|webos|tizen/i.test(navigator.userAgent)) c = false;
+          else c = !!w.Capacitor || !!(w.matchMedia && w.matchMedia("(pointer: coarse)").matches);
+          if (c) document.querySelector(meta[name=viewport]).setAttribute("content", "width=device-width, initial-scale=1, viewport-fit=cover");
+        } catch (e) {}
+      })();
+    </script>
     <title>SkMate IPTV</title>
   </head>
   <body>

@@ -98,7 +98,8 @@ export function installDpad(onBack: () => boolean, onLongBack?: () => void): () 
     }
   };
   // A right click is Back for a mouse, as the Back key is for a remote.
-  const onContext = (e: MouseEvent) => { e.preventDefault(); onBack(); };
+  // A long press on a touch screen sends the same event: that is not a Back, and must not open the browser menu either.
+  const onContext = (e: MouseEvent) => { e.preventDefault(); if (document.documentElement.getAttribute("data-input") !== "touch") onBack(); };
   // A repeat that outruns the screen is dropped (MainActivity.kt:85-107) in the capture phase, before any row sees it.
   const pace = (e: KeyboardEvent) => { if (!gate(e)) { e.preventDefault(); e.stopImmediatePropagation(); } };
   window.addEventListener("keydown", pace, true);

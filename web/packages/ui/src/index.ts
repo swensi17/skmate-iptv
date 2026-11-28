@@ -1,5 +1,7 @@
 export * from "./spatial";
 export * from "./stage";
+export * from "./layout";
+export * from "./touch";
 export * from "./pointer";
 export * from "./dpad";
 export * from "./motion";

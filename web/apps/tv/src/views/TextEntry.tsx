@@ -59,7 +59,7 @@ export function TextEntry(p: {
       const inField = document.activeElement instanceof HTMLInputElement;
       if (isBack(e) && !(inField && e.key === "Backspace")) { e.preventDefault(); e.stopImmediatePropagation(); doneRef.current("back"); }
     };
-    const onContext = (e: MouseEvent) => { e.preventDefault(); e.stopImmediatePropagation(); p.onCancel(); };
+    const onContext = (e: MouseEvent) => { e.preventDefault(); e.stopImmediatePropagation(); if (document.documentElement.getAttribute("data-input") !== "touch") p.onCancel(); }; // a long press is not a right click
     document.addEventListener("keydown", onKey, true);
     document.addEventListener("contextmenu", onContext, true);
     return () => {

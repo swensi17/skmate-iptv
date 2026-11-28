@@ -436,3 +436,62 @@ label.st-field { cursor: text; }
 :root[data-theme="light"] .st-pbutton-in { box-shadow: inset 0 0 0 2px rgba(18, 18, 18, 0.35); }
 :root[data-theme="light"] .st-pbutton.primary > .st-pbutton-in { background: #121212; color: #ffffff; box-shadow: none; }
 :root[data-theme="light"] .st-pbutton:focus > .st-pbutton-in { background: #121212; color: #ffffff; box-shadow: 0 0 0 3px #ffffff, 0 0 0 6px #121212; transform: scale(1.06); }
+
+/* ===== Compact layout and touch (see docs/responsive.md) ===== */
+/* The window itself: no stage, no scale, no scroll; it follows the software keyboard (the window shrinks, as Android does with adjustResize). */
+:root[data-layout="compact"] #app {
+  position: fixed; left: 0; top: 0; right: 0; bottom: 0; width: auto; height: auto;
+  transform: none; overflow: hidden;
+}
+/* The popups, sheets and menus use the whole window with a margin, whatever width they were drawn for on the TV. */
+:root[data-layout="compact"] .st-popup-layer { padding: calc(var(--u) * 2 + var(--safe-top)) calc(var(--u) * 2 + var(--safe-right)) calc(var(--u) * 2 + var(--safe-bottom)) calc(var(--u) * 2 + var(--safe-left)); }
+:root[data-layout="compact"] .st-popup { width: 100%; max-width: 560px; max-height: 100%; padding: 20px 4px; border-radius: var(--r-card); font-size: var(--fs-body); }
+:root[data-layout="compact"] .st-popup-head { padding: 0 16px; margin-bottom: 12px; }
+:root[data-layout="compact"] .st-popup-title { font-size: var(--fs-head); }
+:root[data-layout="compact"] .st-popup-eyebrow { font-size: 12px; }
+:root[data-layout="compact"] .st-popup-body { font-size: var(--fs-body); }
+:root[data-layout="compact"] .st-popup-buttons { padding: 16px 16px 0; flex-wrap: wrap; }
+:root[data-layout="compact"] .st-sheet { width: 100%; min-width: 0; max-width: 480px; border-radius: var(--r-card) 0 0 var(--r-card); padding-top: var(--safe-top); padding-bottom: var(--safe-bottom); }
+:root[data-layout="compact"][data-size="phone"] .st-sheet, :root[data-layout="compact"] .st-sheet.wide { max-width: 100%; border-radius: 0; }
+:root[data-layout="compact"] .st-menu { max-height: 100%; }
+/* Anything a finger taps is at least --touch-min high. */
+:root[data-layout="compact"] .st-button, :root[data-layout="compact"] .st-button.sm, :root[data-layout="compact"] .st-tool, :root[data-layout="compact"] .st-search { min-height: var(--touch-min); height: auto; }
+:root[data-layout="compact"] .st-button.round, :root[data-layout="compact"] .st-button.sm.round { min-width: var(--touch-min); }
+:root[data-layout="compact"] .st-button { font-size: var(--fs-body); padding: 0 20px; }
+:root[data-layout="compact"] .st-pbutton-in { padding: 14px 22px; min-height: var(--touch-min); font-size: var(--fs-body); }
+
+/* --- Touch --- */
+/* No 300 ms wait, no zoom by double tap, no grey flash, no text selection, no browser menu on a long press. */
+html { -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; }
+:root[data-input="touch"] body { -webkit-user-select: none; user-select: none; }
+:root[data-input="touch"] input, :root[data-input="touch"] textarea { -webkit-user-select: text; user-select: text; }
+[data-focus], button, a, .st-focusable { touch-action: manipulation; }
+/* No pull-to-refresh, no glow at the end of a scroll; inner scrollers keep their scroll to themselves. */
+:root[data-layout="compact"], :root[data-layout="compact"] body { overscroll-behavior: none; }
+.st-sheet-body, .st-panel-body, .st-menu-list, .st-popup, .drawer-scroll, .vod-cats, .vd-episodes, .mv-groups { overscroll-behavior: contain; touch-action: pan-y; }
+/* A finger scrolls a list by dragging: natively in overflow boxes, by a drag with momentum in the virtual list (VirtualList.tsx). */
+.vlist { touch-action: pan-x; }
+.vlist.drag .vrow { transition: none; }
+
+/* The last tap must not leave a focus plate or a lift behind (the remote and the keyboard keep :focus as it is).
+   A tap still feels pressed: :active dims it. The plate's inverted palette is handed back to the page's, so text stays readable. */
+:root[data-input="touch"] { --focus-fill: transparent; --focus-text: var(--st-text); }
+:root[data-input="touch"] .st-focusable:focus:not(.st-lit) {
+  background-color: transparent;
+  --st-text: inherit; --st-muted: inherit; --st-dim: inherit; --st-item: inherit; --st-menu-item: inherit; --st-tag-text: inherit;
+  --st-body: inherit; --st-fx-line: inherit; --st-ink-rgb: inherit; --st-control: inherit; --st-segment-on: inherit; --st-knob-off: inherit;
+  --st-danger: inherit; --st-accent: inherit; --st-on-accent: inherit;
+  color: var(--st-text);
+}
+:root[data-input="touch"] .st-lift:focus, :root[data-input="touch"] .st-button:focus, :root[data-input="touch"] .st-lift.poster:focus,
+:root[data-input="touch"] .st-pbutton:focus > .st-pbutton-in, :root[data-input="touch"] .strip-card:focus .strip-logo { transform: none; }
+/* The few controls that have a slab at rest keep it. */
+:root[data-input="touch"] .st-button:focus:not(.st-lit) { background-color: var(--st-control); }
+:root[data-input="touch"] .st-tool.boxed:focus:not(.st-lit) { background-color: var(--st-control-solid); }
+:root[data-input="touch"] .st-setting.marked:focus:not(.st-lit) { background-color: var(--st-marked); }
+:root[data-input="touch"] .st-pbutton:focus > .st-pbutton-in { background: rgba(241, 242, 243, 0.12); color: #f1f2f3; }
+:root[data-input="touch"] .st-pbutton.primary:focus > .st-pbutton-in { background: rgba(255, 255, 255, 0.86); color: #16181b; }
+:root[data-input="touch"][data-theme="light"] .st-button:focus:not(.st-lit) { background: var(--st-control); color: var(--st-text); box-shadow: inset 0 0 0 2px rgba(18, 18, 18, 0.35); }
+:root[data-input="touch"][data-theme="light"] .st-pbutton:focus > .st-pbutton-in { background: rgba(18, 18, 18, 0.12); color: #121212; box-shadow: inset 0 0 0 2px rgba(18, 18, 18, 0.35); }
+:root[data-input="touch"][data-theme="light"] .st-pbutton.primary:focus > .st-pbutton-in { background: #121212; color: #ffffff; box-shadow: none; }
+:root[data-input="touch"] .st-focusable:active, :root[data-input="touch"] [data-focus]:active { opacity: 0.7; }

@@ -1,3 +1,5 @@
+import { capacitorApp } from "./android";
+
 export type PlatformId = "webos" | "tizen" | "browser";
 
 /** Which TV the page runs on; decides the key registration and the packaging, nothing else. */
@@ -75,9 +77,14 @@ interface PalmSystemApi { platformBack?(): void }
  * Tizen closes the application; webOS (appinfo `disableBackHistoryAPI: true`, so the app owns Back) calls
  * `webOS.platformBack()` — webOSTV.js, or the system's own `PalmSystem` when that library is not loaded — which on
  * webOS 6+ shows the system's exit question and on older webOS returns to the launcher; `window.close()` as the last
- * resort. In a desktop browser there is nothing to leave to: false, and the page stays.
+ * resort. In the Android shell Capacitor's App.exitApp closes the app. In a desktop browser there is nothing to leave to: false, and the page stays.
  */
 export function exitApp(platform: PlatformId = detectPlatform()): boolean {
+  // The Android shell (Capacitor): its App plugin closes the app. `platform` is "browser" there (no TV user agent).
+  if (platform === "browser") {
+    const app = capacitorApp();
+    if (app) { try { app.exitApp(); return true; } catch { /* fall through */ } }
+  }
   const w = window as unknown as { tizen?: { application?: { getCurrentApplication(): { exit(): void } } }; webOS?: WebOsApi; PalmSystem?: PalmSystemApi };
   try {
     if (platform === "tizen") { w.tizen?.application?.getCurrentApplication().exit(); return true; }
