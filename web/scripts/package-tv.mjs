@@ -89,7 +89,8 @@ writeFileSync(join(out, `SkMate-IPTV-web-v${version}.zip`), zip(app_));
 const config = readFileSync(join(platform, "tizen/config.xml"), "utf8").replace(/(<widget[^>]*\sversion=")[^"]*/, `$1${version}`);
 writeFileSync(join(out, `SkMate-IPTV-tizen-v${version}.wgt`), zip({
   ...app_,
-  "index.html": new TextEncoder().encode(shellHtml),
+  // Samsung's webapis (AVPlay: the sound of a raw stream, #822), only in the Tizen package.
+  "index.html": new TextEncoder().encode(shellHtml.replace('<script src="nacl.min.js">', '<script src="$WEBAPIS/webapis/webapis.js"></script>\n    <script src="nacl.min.js">')),
   "shell.js": shellJs,
   "nacl.min.js": naclJs,
   "config.xml": new TextEncoder().encode(config),

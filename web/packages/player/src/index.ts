@@ -8,14 +8,16 @@ export * from "./diagnose";
 export { NativeEngine } from "./engines/native";
 export { HlsJsEngine, type HlsOptions } from "./engines/hls";
 export { MpegTsEngine } from "./engines/mpegts";
+export { AvPlayEngine, avTrackOption } from "./engines/avplay";
 
 import { HlsJsEngine } from "./engines/hls";
 import { MpegTsEngine } from "./engines/mpegts";
 import { NativeEngine } from "./engines/native";
+import { AvPlayEngine } from "./engines/avplay";
 import type { PlayerEngine } from "./engine";
 
 /** Which decoder opens a channel: the TV's own, hls.js, mpegts.js, or in turn (auto). */
-export type EnginePreference = "auto" | "native" | "hls" | "mpegts";
+export type EnginePreference = "auto" | "native" | "hls" | "mpegts" | "avplay";
 
 export interface EngineOptions {
   preference?: EnginePreference;
@@ -45,6 +47,8 @@ export function defaultEngines(options: EngineOptions = {}): PlayerEngine[] {
     case "native": return [native];
     case "hls": return [hls];
     case "mpegts": return [mpegts];
+    // Samsung's player, asked for to choose the sound of a raw stream; the TV's decoder if it cannot open it.
+    case "avplay": return [new AvPlayEngine(), native];
     default: return options.hlsFirst ? [hls, native, mpegts] : [native, hls, mpegts];
   }
 }

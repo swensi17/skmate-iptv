@@ -9,7 +9,9 @@ import { useLogoTint } from "./logoTint";
 import { fetchRenditions, defaultZoom, itemPrefs, showAudioTile, type TrackOption, showSubtitleTile, type ZoomMode } from "@skmate/player";
 import { Drawer, focusFirst, Icon, isBack, Presence, type IconName } from "@skmate/ui";
 import { t } from "../i18n";
-import { remoteKey, type RemoteKey } from "../platform";
+import { detectPlatform, remoteKey, type RemoteKey } from "../platform";
+
+const onTizen = typeof navigator !== "undefined" && detectPlatform() === "tizen";
 import { channelKey } from "../state/favorites";
 import { desktop, startRecording, stopRecording, useFullScreen, useRecording } from "../state/desktop";
 import { GuideContext } from "../state/GuideContext";
@@ -161,10 +163,12 @@ export function PlayerView(p: Props) {
   const tuneSecs = (p.playlistId ? settings.tuneTimeoutPerPlaylist[p.playlistId] : undefined) ?? settings.tuneTimeout;
   const itemKey = channelKey(channel);
   // #772: a channel whose own-decoder stream has audio tracks the TV does not tell is reopened on hls.js for a track.
-  const [engineOverride, setEngineOverride] = useState<"hls" | null>(null);
+  const [engineOverride, setEngineOverride] = useState<"hls" | "avplay" | null>(null);
+  /** "Sound" on Samsung for a raw stream: AVPlay is opened, the choice shows once it lists the tracks (#822). */
+  const [avAsk, setAvAsk] = useState(false);
   const [pendingAudio, setPendingAudio] = useState<TrackOption | null>(null);
   const [renditions, setRenditions] = useState<TrackOption[]>([]);
-  useEffect(() => { setEngineOverride(null); setPendingAudio(null); setRenditions([]); }, [channel.id, archive?.url]);
+  useEffect(() => { setEngineOverride(null); setPendingAudio(null); setRenditions([]); setAvAsk(false); }, [channel.id, archive?.url]);
   const { state, engine, paused, retry, togglePause, tracks, selectAudio, selectSubtitle, reason, facts: engineFacts } = usePlayback(video, target, {
     engine: engineOverride ?? settings.engine, openTimeoutMs: settings.openTimeout * 1000, autoRestart: settings.autoRestart,
     // A recording is played like a film: Settings › films and archive buffer (0 = Auto, hls.js' own); live keeps the live delay.
@@ -466,6 +470,15 @@ export function PlayerView(p: Props) {
     setPendingAudio(null);
   }, [pendingAudio, tracks.audio]);
   const audioList = tracks.audio.length > 1 ? tracks.audio : renditions;
+  // Samsung, a stream the page's decoder plays without telling its sound (no HLS playlist to read): AVPlay can.
+  const avSound = onTizen && engine === "native" && state === "playing" && audioList.length < 2 && !/\.m3u8(\?|$)/i.test(target.url);
+  const askSound = () => { setAvAsk(true); setEngineOverride("avplay"); };
+  useEffect(() => {
+    if (!avAsk || engine !== "avplay" || state !== "playing") return;
+    if (tracks.audio.length > 1) { setAvAsk(false); setDialog("audio"); return; }
+    const id = setTimeout(() => { setAvAsk(false); setDialog("audio"); }, 2500); // one track only: the dialog says so
+    return () => clearTimeout(id);
+  }, [avAsk, engine, state, tracks.audio.length]);
 
   // The tiles (PlayerHud.kt:883-912), each only where it can work here.
   const tiles: TileDef[] = [
@@ -476,7 +489,8 @@ export function PlayerView(p: Props) {
     { id: "tb-fav", icon: favorite ? "favorite" : "star", label: t(favorite ? "tbFavorited" : "tbFavorite"), run: () => p.onFav(channel), active: favorite },
     ...(canRecord ? [{ id: "tb-rec", icon: "record" as IconName, label: t(recording ? "tbRecordStop" : "tbRecord"), run: toggleRecord, active: recording }] : []),
     // Audio with a choice to make (more than one track), subtitles with any (PlayerHud.kt:903-904).
-    ...(showAudioTile(audioList) ? [{ id: "tb-audio", icon: "volume_high" as IconName, glyph: "audio" as const, label: t("pfAudio"), run: () => setDialog("audio") }] : []),
+    ...(showAudioTile(audioList) ? [{ id: "tb-audio", icon: "volume_high" as IconName, glyph: "audio" as const, label: t("pfAudio"), run: () => setDialog("audio") }]
+      : avSound ? [{ id: "tb-audio", icon: "volume_high" as IconName, glyph: "audio" as const, label: t("pfAudio"), run: askSound }] : []),
     ...(showSubtitleTile(tracks.subs) ? [{ id: "tb-subs", icon: "info" as IconName, glyph: "subtitle" as const, label: t("pfSubtitles"), run: () => setDialog("subs") }] : []),
     ...(at.now ? [{ id: "tb-about", icon: "info" as IconName, label: t("sa_settings_live_key_action_describe"), run: () => setDialog("about") }] : []),
     { id: "tb-aspect", icon: "aspect", label: t("tbAspect"), run: () => setDialog("aspect") },
