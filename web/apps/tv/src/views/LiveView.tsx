@@ -198,6 +198,14 @@ export function LiveView(p: Props) {
   // 2.6.7: the programme is a column in the preview's place; the list stays. ◀ from it back to the list, the column
   // following the channel the list is on; ▶ into it again; ◀ on the list (or Back) closes it.
   const [guideActive, setGuideActive] = useState(false);
+  // The list stays shrunk only while the focus is in the programme column (its days included): wherever else it goes,
+  // the list is wide again at once.
+  useEffect(() => {
+    if (!guideActive) return;
+    const onIn = (e: FocusEvent) => { if (!(e.target as HTMLElement | null)?.closest?.(".gs")) setGuideActive(false); };
+    document.addEventListener("focusin", onIn, true);
+    return () => document.removeEventListener("focusin", onIn, true);
+  }, [guideActive]);
   const guideFollow = useRef<ReturnType<typeof setTimeout>>();
   const leaveGuide = () => {
     setGuideActive(false);
