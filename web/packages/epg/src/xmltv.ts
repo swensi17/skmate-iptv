@@ -158,7 +158,9 @@ export class XmltvScanner {
  * A guide's emoji and pictographs taken out (sports channels put a skier or a ball before titles): a TV's own font has
  * none of them and draws a crossed box instead (#924). Plain ranges, no \p{} classes: Chromium 53 has no such regex.
  */
-const PICTOGRAPHS = /(?:[\uD83C-\uD83E][\uDC00-\uDFFF]|[\u2600-\u27BF]|[\u2B00-\u2BFF]|[\u2300-\u23FF]|[\uFE0E\uFE0F\u200D\u20E3])/g;
+// Emoji (surrogate pairs), arrows (►, ⇒, #948 "Televizo shows little arrows"), geometric shapes, symbols and dingbats,
+// private-use glyphs, joiners and variation selectors.
+const PICTOGRAPHS = /(?:[\uD83C-\uD83E][\uDC00-\uDFFF]|[\u2190-\u21FF]|[\u2300-\u23FF]|[\u25A0-\u27BF]|[\u2900-\u297F]|[\u2B00-\u2BFF]|[\uE000-\uF8FF]|[\uFE0E\uFE0F\u200B-\u200D\u20E3])/g;
 export function noPictographs(text: string): string {
   const cleaned = text.replace(PICTOGRAPHS, "");
   return cleaned.length === text.length ? text : cleaned.replace(/\s{2,}/g, " ").trim();

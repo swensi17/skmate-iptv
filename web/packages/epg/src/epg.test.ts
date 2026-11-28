@@ -275,6 +275,9 @@ describe("pictographs out of the guide (#924)", () => {
     expect(noPictographs("⛷ Кубок мира 🏂 Сноуборд")).toBe("Кубок мира Сноуборд");
     expect(noPictographs("⚽️ Футбол")).toBe("Футбол");
     expect(noPictographs("Новости")).toBe("Новости");
+    expect(noPictographs("► Alpine Skiing Кубок мира")).toBe("Alpine Skiing Кубок мира"); // #948: an arrow
+    expect(noPictographs("▶ Снукер")).toBe("Снукер");
+    expect(noPictographs("\uE01B Снукер")).toBe("Снукер");
     for (let i = 0; i < 3; i++) expect(noPictographs("🏒 Хоккей")).toBe("Хоккей"); // no state between calls
     expect(noPictographs("Что? Где? Когда? (с.3) — №1")).toBe("Что? Где? Когда? (с.3) — №1");
   });
