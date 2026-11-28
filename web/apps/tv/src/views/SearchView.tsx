@@ -140,7 +140,6 @@ export function SearchView({ channels, onOpen, vod, onOpenVod, settings }: Props
 
   // The answer is worked out in short slices after the spinner has been drawn (a TV needs seconds for one pass over thousands
   // of names): the screen shows the spinner while it runs, then the whole result at once.
-  const NONE = { live: [] as Channel[], tv: [] as ProgrammeHit[], movies: [] as Movie[], series: [] as Show[] };
   const [answer, setAnswer] = useState<{ q: string; res: typeof NONE } | null>(null);
   useEffect(() => {
     if (!searching) { setAnswer(null); return; }
@@ -388,6 +387,9 @@ function Plate({ src, icon }: { src?: string | undefined; icon: "live_tv" | "mov
 }
 
 /** A result row (`SearchRow`): 84 high, the plate or poster, the title 21/700 and a 16 px line under it. */
+/** No results yet: one object, so the lists below keep their identity between draws. */
+const NONE = { live: [] as Channel[], tv: [] as ProgrammeHit[], movies: [] as Movie[], series: [] as Show[] };
+
 const ResultRow = memo(function ResultRow(p: { entry: Entry; first: boolean; now: number; data: GuideData; numberOf: Map<string, number>; onOpen: () => void; onAll: () => void }) {
   const e = p.entry;
   if (e.k === "head") return <div class={`sr-group${p.first ? " first" : ""}`}>{e.text}</div>;

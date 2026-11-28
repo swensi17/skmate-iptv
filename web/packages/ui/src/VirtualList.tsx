@@ -152,7 +152,7 @@ export function VirtualList<T>(p: VirtualListProps<T>) {
   for (let i = win.first; i <= win.last; i++) {
     const item = p.items[i] as T;
     rows.push(
-      <div class="vrow" key={p.idOf(item, i)} data-index={i} style={{ height: `${p.rowHeight}px`, transform: `translateY(${i * p.rowHeight - top}px)` }}>
+      <div class="vrow" key={p.idOf(item, i)} data-index={i} style={{ height: `${p.rowHeight}px`, transform: `translateY(${i * p.rowHeight}px)` }}>
         {p.renderRow(item, i)}
       </div>,
     );
@@ -161,7 +161,7 @@ export function VirtualList<T>(p: VirtualListProps<T>) {
   return (
     <div class="vlist" ref={box} style={{ height: `${p.height}px` }} onFocusIn={onFocusIn} onKeyDown={onKeyDown} onKeyUp={onKeyUp} onWheel={onWheel}
       onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd} onTouchCancel={onTouchEnd} onClickCapture={onClickCapture}>
-      <div class="vinner">{rows}</div>
+      <div class="vinner" style={{ transform: `translateY(${-top}px)` }}>{rows}</div>
     </div>
   );
 }

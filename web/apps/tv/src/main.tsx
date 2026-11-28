@@ -7,6 +7,7 @@ import { fitStage, installLayout, installLegacySupport, installPointer } from "@
 import { detectPlatform, registerRemoteKeys } from "./platform";
 import { installAndroidBack } from "./platform/android";
 import { installVideoPlane } from "./platform/videoPlane";
+import { installDiag } from "./platform/diag";
 import { loadLanguage } from "./i18n";
 import { load } from "./state/settings";
 
@@ -18,6 +19,7 @@ fitStage();
 installAndroidBack();
 installPointer();
 installVideoPlane();
+installDiag();
 // The chosen language is fetched before the first frame, so the screen never flashes in another one.
 const start = () => render(<App />, document.getElementById("app") as HTMLElement);
 void loadLanguage(load().language).then(start, start);

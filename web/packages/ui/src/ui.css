@@ -426,8 +426,8 @@ label.st-field { cursor: text; }
 
 /* Virtual list: only the drawn rows exist, each slides to its place under a fixed window. */
 .vlist { position: relative; overflow: hidden; }
-.vinner { position: relative; height: 100%; }
-.vrow { position: absolute; left: 0; top: 0; right: 0; transition: transform 140ms cubic-bezier(.2, 0, 0, 1); will-change: transform; }
+.vinner { position: relative; height: 100%; transition: transform 140ms cubic-bezier(.2, 0, 0, 1); will-change: transform; }
+.vrow { position: absolute; left: 0; top: 0; right: 0; }
 
 /* Light theme, weak eyes: a focused button turns dark with a double ring (white gap, dark line), so where the focus is
    can be told even without colour. Buttons at rest keep a thin dark outline. Only colour, outline and transform change. */
@@ -471,7 +471,7 @@ html { -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; }
 .st-sheet-body, .st-panel-body, .st-menu-list, .st-popup, .drawer-scroll, .vod-cats, .vd-episodes, .mv-groups { overscroll-behavior: contain; touch-action: pan-y; }
 /* A finger scrolls a list by dragging: natively in overflow boxes, by a drag with momentum in the virtual list (VirtualList.tsx). */
 .vlist { touch-action: pan-x; }
-.vlist.drag .vrow { transition: none; }
+.vlist.drag .vinner { transition: none; }
 
 /* The last tap must not leave a focus plate or a lift behind (the remote and the keyboard keep :focus as it is).
    A tap still feels pressed: :active dims it. The plate's inverted palette is handed back to the page's, so text stays readable. */
