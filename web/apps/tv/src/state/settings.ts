@@ -26,6 +26,8 @@ export interface Settings {
   preview: boolean;
   /** The guide that comes by itself (playlist, provider, shared), as on Android. */
   epgAuto: boolean;
+  /** The shared guides that fill channels without a programme (it999): on unless switched off in the EPG catalog. */
+  epgShared: boolean;
   /** Hours between downloads of the guide. */
   /** When the guide is downloaded again (2.6.9, Android EpgAutoRefresh): 0 never by itself, -1 at each start, else hours. */
   epgEvery: number;
@@ -187,7 +189,7 @@ const KEY = "skmate.settings.v1";
 export const DEFAULTS: Settings = {
   theme: "system", motion: "auto", language: "auto", engine: "auto", aspect: "fit", buffer: 30,
   openTimeout: 12, osdSeconds: 5, showEngine: true, autoRestart: true, preview: true,
-  epgAuto: true, epgEvery: 12, plEvery: -1, epgSources: [], proxy: "",
+  epgAuto: true, epgShared: true, epgEvery: 12, plEvery: -1, epgSources: [], proxy: "",
   rowSize: 84, uiScale: 100, showLogos: true, showNumbers: true, showProgram: true, interests: [], autoUpdate: false,
   reminderMode: "ask", reminderLead: 5, externalPlayer: "off", multiview: false, multiviewTiles: 2, multiviewWarned: false,
   quickPinned: ["quick_live_preview", "quick_preview_sound", "quick_channel_numbers", "quick_hdr", "quick_autoplay", "quick_check_update"],

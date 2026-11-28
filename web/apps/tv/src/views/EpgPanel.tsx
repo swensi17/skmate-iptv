@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "preact/hooks";
 import { focusFirst, Popup, Presence, Toggle, useOwnBack } from "@skmate/ui";
 import type { GuideData, SourceOutcome } from "@skmate/epg";
-import { guidesForPlaylist } from "@skmate/epg";
+import { guidesForPlaylist, SHARED_GUIDES } from "@skmate/epg";
 import { t } from "../i18n";
 import type { PlaylistEntry } from "../state/playlists";
 import { normalizeUrl } from "../state/playlists";
@@ -55,7 +55,7 @@ export const EPG_CATALOG: Array<{ name: string; url: string }> = [
 
 /** How many guides feed the channels now: those the playlist names (when automatic) and the viewer's own. */
 export function epgSourceCount(s: Settings, active: PlaylistEntry | null, headerGuides: string[]): number {
-  const auto = s.epgAuto && active ? guidesForPlaylist(active.name, active.url, headerGuides) : [];
+  const auto = s.epgAuto && active ? guidesForPlaylist(active.name, active.url, headerGuides, s.epgShared) : [];
   return auto.length + s.epgSources.length;
 }
 
@@ -94,7 +94,7 @@ export function EpgPanel(p: Props) {
   const [acting, setActing] = useState<{ id: string; name: string; url: string; own: boolean } | null>(null);
   const [typing, setTyping] = useState<{ id: string | null; url: string } | null>(null);
   const [asking, setAsking] = useState<string | null>(null);
-  const autoGuides = s.epgAuto && p.active ? guidesForPlaylist(p.active.name, p.active.url, p.headerGuides) : [];
+  const autoGuides = s.epgAuto && p.active ? guidesForPlaylist(p.active.name, p.active.url, p.headerGuides, s.epgShared) : [];
   const syncing = p.status.kind === "syncing";
   const doomed = s.epgSources.find((x) => x.id === asking);
 
@@ -120,7 +120,15 @@ export function EpgPanel(p: Props) {
     p.onChange({ ...s, epgSources: rest });
     setTimeout(() => sheet.focus(rest[0] ? `epg-${rest[0].id}` : "epg-add"), 0);
   };
+  const isShared = (url: string) => SHARED_GUIDES.some((g) => g.url === url);
+  /** A catalog guide is on when added by hand, or when it is a shared guide still left on (one switch, one truth). */
+  const catalogOn = (url: string) => s.epgSources.some((x) => x.url === url) || (isShared(url) && s.epgShared && autoGuides.some((g) => g.url === url));
   const toggleCatalog = (url: string, name: string) => {
+    if (isShared(url)) {
+      const on = catalogOn(url);
+      p.onChange({ ...s, epgShared: !on, epgSources: s.epgSources.filter((x) => x.url !== url) });
+      return;
+    }
     const on = s.epgSources.some((x) => x.url === url);
     p.onChange({ ...s, epgSources: on ? s.epgSources.filter((x) => x.url !== url) : [...s.epgSources, { id: `own:${url}`, name, url }] });
   };
@@ -144,7 +152,7 @@ export function EpgPanel(p: Props) {
       <SHeading text={t("sa_settings_epg_catalog")} />
       <SNote title="" body={t("sa_settings_epg_catalog_description")} />
       {EPG_CATALOG.map((g) => (
-        <SRow key={g.url} id={`epgc-${g.url}`} icon="EPG" title={g.name} end={<Toggle on={s.epgSources.some((x) => x.url === g.url)} />}
+        <SRow key={g.url} id={`epgc-${g.url}`} icon="EPG" title={g.name} end={<Toggle on={catalogOn(g.url)} />}
           onOk={() => toggleCatalog(g.url, g.name)} />
       ))}
       <SRow id="epg-add" icon="ADD" title={t("sa_content_epg_add")} line={error ?? undefined} className={error ? "pl-bad" : undefined} onOk={() => setTyping({ id: null, url: "" })} />

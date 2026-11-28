@@ -81,10 +81,10 @@ export function useGuide(channels: Channel[], active: PlaylistEntry | null, head
 
   const sources = useMemo<EpgSource[]>(() => {
     const own = settings.epgAuto && active
-      ? guidesForPlaylist(active.name, active.url, headerGuides).map((g) => ({ id: `auto:${g.url}`, name: g.name, url: g.url }))
+      ? guidesForPlaylist(active.name, active.url, headerGuides, settings.epgShared).map((g) => ({ id: `auto:${g.url}`, name: g.name, url: g.url }))
       : [];
     return [...own, ...settings.epgSources];
-  }, [settings.epgAuto, settings.epgSources, active?.id, active?.url, headerGuides.join(",")]);
+  }, [settings.epgAuto, settings.epgShared, settings.epgSources, active?.id, active?.url, headerGuides.join(",")]);
 
   // --- Reading the stored guide: what is on and the day after, plus what the grid asked for ---
   const publish = (c: GuideCache) => {
