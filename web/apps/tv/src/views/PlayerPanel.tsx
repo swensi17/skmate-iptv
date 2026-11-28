@@ -50,7 +50,8 @@ const COLS_GUIDE_W = 560;
 export function dockRect(inset: number, menu: number, cols = false): DockRect {
   if (cols) {
     const w = COLS_PICTURE_W;
-    return { x: STAGE_W - 36 - w + inset + menu, y: DOCK_TOP, w, h: Math.round((w * 9) / 16) };
+    // The categories open beside the list take the programme column's place: the picture stays where and as big as it is.
+    return { x: STAGE_W - 36 - w, y: DOCK_TOP, w, h: Math.round((w * 9) / 16) };
   }
   const w = Math.max(0, STAGE_W - DOCK_LEFT - inset - menu - 36);
   return { x: DOCK_LEFT + inset + menu, y: DOCK_TOP, w, h: Math.round((w * 9) / 16) };

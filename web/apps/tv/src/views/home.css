@@ -265,11 +265,11 @@ button.home-cat:focus, button.home-cat:focus > .st-icon, button.home-cat:focus .
 .gs-day-name { font-size: 17px; font-weight: 700; }
 .gs-day-date { font-size: 14px; opacity: .75; }
 
-/* #760: three columns as on Android (1920: programme 560, picture 620, the list the rest). The content ends at 1702. */
-.home-3col .home-list { width: 452px; }
-.home-3col > .gs { left: 498px; width: 560px; top: 120px; bottom: 0; border-radius: 18px; animation: none; }
-.home-3col .hp-pane { left: 1082px; width: 620px; }
-.home-3col .hp-card { height: 349px; border-radius: 22px; }
+/* #760: three columns as on Android (1920: programme 620, picture 640, the list the rest). The content ends at 1702. */
+.home-3col .home-list { width: 369px; }
+.home-3col > .gs { left: 418px; width: 620px; top: 120px; bottom: 0; border-radius: 18px; animation: none; }
+.home-3col .hp-pane { left: 1062px; width: 640px; }
+.home-3col .hp-card { height: 360px; border-radius: 22px; }
 .home-3col .hp-logo { width: 200px; height: 200px; margin: -100px 0 0 -100px; }
 .home-3col .hp-title { font-size: 32px; }
 .home-3col .hp-desc { -webkit-line-clamp: 6; }
