@@ -1222,6 +1222,8 @@ export const ru = {
   sa_settings_part_theme: "Тема и цвета",
   sa_settings_pinned_from: "Закреплено из раздела «{1}»",
   ratingsLabel: "Оценки",
+  setLogoSize: "Размер логотипов",
+  setLogoSizeHint: "Логотипы каналов в списке и в плеере",
   setChannelTiles: "Каналы плиткой",
   setChannelTilesHint: "Экран каналов: каналы плитками по четыре в ряд вместо списка",
   sa_settings_player_panel_columns: "Программа посередине, три колонки",

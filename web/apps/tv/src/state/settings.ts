@@ -102,6 +102,8 @@ export interface Settings {
   /** Fonts: family, text size 60–140 and popup text size 50–120 (applied by look.ts). */
   fontFamily: string;
   fontSize: number;
+  /** Channel logos in the list rows, percent 70–130 of 100x66 (#976: "make them fit me"). */
+  logoSize: number;
   popupFontSize: number;
   /** Popup size, percent 50–120 (the whole popup card scales, look.ts). */
   popupSize: number;
@@ -199,7 +201,7 @@ export const DEFAULTS: Settings = {
   epgOffsetMin: 0, guideDays: 7, catchupTz: "auto", catchupOffsetMin: 0, catchupPerPlaylist: {},
   accent: "ink", accentHex: "", focusColor: "", focusWidth: 1,
   bgMode: 0, bgLook: 0, bgDim: 40, bgBlur: 40, bgGlow: true, glassOn: true, glassOpacity: 50,
-  fontFamily: "PLUS_JAKARTA_SANS", fontSize: 100, popupFontSize: 100, popupSize: 100, motionSpeed: "normal",
+  fontFamily: "PLUS_JAKARTA_SANS", fontSize: 100, logoSize: 100, popupFontSize: 100, popupSize: 100, motionSpeed: "normal",
   weatherOn: true, weatherPlace: "", tempUnit: "c", navStyle: "docked", navSize: 0, navLength: 0, liveLayout: "stage", liveOpensIn: "list",
   // Android SettingsRepository: remember_cat_live / remember_last_live on, films and series off.
   chNav: true, liveKeys: {}, browseLastCat: [true, false, false], browseLastItem: [true, false, false],
@@ -296,6 +298,10 @@ export function applyAll(s: Settings, throttled: boolean): void {
   // settings functions (Android): fonts, popup size, animation speed, focus highlight colour (state/look.ts).
   applyLook(s);
   setVar(root, "--st-font", fontStack(s.fontFamily));
+  // Settings › logo size: the list rows' channel logos (channels screen and player panel), one value for both.
+  const k = Math.max(70, Math.min(130, s.logoSize || 100)) / 100;
+  setVar(root, "--st-row-logo-w", `${Math.round(100 * k)}px`);
+  setVar(root, "--st-row-logo-h", `${Math.round(66 * k)}px`);
   // The focus colour reaches only the ring styles on TV-box (the poster ring of the profile); "" = the accent.
   setVar(root, "--st-focus-ring", /^#[0-9a-fA-F]{6}$/.test(s.focusColor) ? s.focusColor : null);
   // The focus plates take the chosen colour too (#webos: "the highlight stays white whatever colour is picked").

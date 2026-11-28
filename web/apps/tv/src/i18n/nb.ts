@@ -1224,6 +1224,8 @@ export const nb: Record<keyof typeof en, string> = {
   sa_settings_part_theme: "Theme & colours",
   sa_settings_pinned_from: "Festet fra {1}",
   ratingsLabel: "Ratings",
+  setLogoSize: "Logo size",
+  setLogoSizeHint: "Channel logos in the list and the player",
   setChannelTiles: "Channels as tiles",
   setChannelTilesHint: "Channels screen: channel tiles, four in a row, instead of the list",
   sa_settings_player_panel_columns: "Program ved siden av kanallisten",

@@ -225,6 +225,13 @@ export function buildRows(c: RowsCtx, close: () => void): Record<string, RowDef>
     ),
   });
   add({ key: "tab_GLASS_EFFECT", icon: "SPARKLE", title: t("sa_settings_glass_bg_title"), line: `Stage · ${pct(s.glassOpacity)}` });
+  // Logo size right in the list too: ◀ ▶ on the row, the channel list behind shows it at once.
+  add({
+    key: "logo_size", icon: "ZOOM", title: t("setLogoSize"), line: t("setLogoSizeHint"),
+    end: <Stepper value={pct(s.logoSize || 100)} onStep={(d) => set({ logoSize: Math.max(70, Math.min(130, (s.logoSize || 100) + d * 10)) })} />,
+    step: (d) => set({ logoSize: Math.max(70, Math.min(130, (s.logoSize || 100) + d * 10)) }),
+    editor: () => <BigStepper value={pct(s.logoSize || 100)} onDone={close} onStep={(d) => set({ logoSize: Math.max(70, Math.min(130, (s.logoSize || 100) + d * 10)) })} />,
+  });
   // Text size right in the list (2.7.1): ◀ ▶ on the row, no page to open.
   add({
     key: "font_size", icon: "TEXT_SIZE", title: t("sa_settings_font_size"), line: t("sa_settings_line_fonts"),
@@ -566,7 +573,7 @@ export const GROUP_ITEMS: Record<string, Item[]> = {
   sources: [{ h: "sa_settings_sources_title", first: true }, "tab_SOURCES", "tab_EPG",
     { h: "sa_settings_part_guide_catchup" }, "epg_offset", "reminders", "reminder_lead", "guide_days", "catchup", "catchup_sources"],
   appearance: [{ h: "sa_settings_part_theme", first: true }, "theme", "accent", "focus_highlight", "tab_GLASS_EFFECT",
-    { h: "sa_settings_part_text" }, "fonts", "popup_size", "ui_zoom",
+    { h: "sa_settings_part_text" }, "fonts", "font_size", "logo_size", "popup_size", "ui_zoom",
     { h: "sa_settings_part_extras" }, "animations", "motion_speed", "motion_auto", "tab_WEATHER"],
   layout: [{ h: "sa_settings_part_navigation", first: true }, "navigation", "live_layout", "live_opens_in", "tab_CH_NAV",
     { h: "sa_settings_part_lists" }, "tab_PANEL_WIDTH", "tab_GUIDE_WIDTH", "browsing_lists", "tab_CONTENT_MENUS"],

@@ -1224,6 +1224,8 @@ export const ko: Record<keyof typeof en, string> = {
   sa_settings_part_theme: "Theme & colours",
   sa_settings_pinned_from: "{1}에서 고정함",
   ratingsLabel: "Ratings",
+  setLogoSize: "Logo size",
+  setLogoSizeHint: "Channel logos in the list and the player",
   setChannelTiles: "Channels as tiles",
   setChannelTilesHint: "Channels screen: channel tiles, four in a row, instead of the list",
   sa_settings_player_panel_columns: "채널 목록 옆에 편성표",
