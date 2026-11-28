@@ -199,7 +199,6 @@ export function LiveView(p: Props) {
   // following the channel the list is on; ▶ into it again; ◀ on the list (or Back) closes it.
   const [guideActive, setGuideActive] = useState(false);
   const guideFollow = useRef<ReturnType<typeof setTimeout>>();
-  const closeGuide = () => { setGuideCh(null); setGuideActive(false); setTimeout(() => focusCurrentRow(), 30); };
   const leaveGuide = () => {
     setGuideActive(false);
     const id = guideCh?.id;
@@ -322,7 +321,8 @@ export function LiveView(p: Props) {
     lastKey = rowKey(c);
     saveLast();
     focusedRef.current = c;
-    if (guideCh) { clearTimeout(guideFollow.current); guideFollow.current = setTimeout(() => setGuideCh(c), 150); }
+    // The middle column always shows the programme of the channel the cursor rests on (#760).
+    clearTimeout(guideFollow.current); guideFollow.current = setTimeout(() => setGuideCh(c), 150);
     setAway(!!preview && c.id !== preview.id);
     clearTimeout(timer.current);
     timer.current = setTimeout(() => setDwelled(c), DWELL_MS);
@@ -386,8 +386,7 @@ export function LiveView(p: Props) {
   // A row: ◀ the categories, ▶ the schedule under the preview, ▼ past the last row nowhere (▲ past the first: the toolbar).
   const onListKey = (e: KeyboardEvent) => {
     if (!(e.target as HTMLElement).closest?.("[data-index]")) return;
-    if (key(e, "ArrowLeft", 37)) { stop(e); if (guideCh) closeGuide(); else openCats(); return; }
-    if (isBack(e) && guideCh) { stop(e); closeGuide(); return; }
+    if (key(e, "ArrowLeft", 37)) { stop(e); openCats(); return; }
     if (key(e, "ArrowRight", 39)) {
       stop(e);
       if (focusedRef.current && !catsOpen) { clearTimeout(guideFollow.current); setGuideCh(focusedRef.current); setGuideActive(true); }
@@ -425,7 +424,7 @@ export function LiveView(p: Props) {
 
   return (
     <div class="screen home">
-      <div class={`home-side${catsOpen ? " pushed" : ""}`} onFocusIn={() => { if (catsRef.current) setCatsOpen(false); }}>
+      <div class={`home-side home-3col${catsOpen ? " pushed" : ""}`} onFocusIn={() => { if (catsRef.current) setCatsOpen(false); }}>
         <h1 class="home-title">{t("navLive")}</h1>
         <div class="home-list">
           <div class="home-tools" onKeyDown={onToolsKey as unknown as (e: Event) => void} onFocusIn={() => clearTimeout(timer.current)}>
@@ -462,13 +461,15 @@ export function LiveView(p: Props) {
             )}
           </div>
         </div>
-        {guideCh ? (
-          <GuideSide channel={guideCh} art={artSettings} onClose={closeGuide} onLeave={leaveGuide} active={guideActive}
-            onWatch={(c) => { closeGuide(); clearTimeout(timer.current); p.onOpen(c, shown); }}
-            onArchive={(c, prog) => { closeGuide(); p.onArchive?.(c, prog, shown); }}
+        {/* Three columns (#760): channels, the programme of the one under the cursor, the picture. Hidden while the
+            categories are open, so the sheet never covers it halfway. "Back" in it goes back to the channels. */}
+        {(guideCh ?? preview) && !catsOpen ? (
+          <GuideSide channel={(guideCh ?? preview) as Channel} art={artSettings} onClose={leaveGuide} onLeave={leaveGuide} active={guideActive}
+            onWatch={(c) => { setGuideActive(false); clearTimeout(timer.current); p.onOpen(c, shown); }}
+            onArchive={(c, prog) => { setGuideActive(false); p.onArchive?.(c, prog, shown); }}
             onUpcoming={(c, prog) => p.onUpcoming?.(c, prog, shown)} />
         ) : null}
-        <PreviewPane channel={p.paused || guideCh ? null : preview} away={away} settings={p.settings}
+        <PreviewPane channel={p.paused ? null : preview} away={away} settings={p.settings}
           number={preview ? numbers.get(preview.id) : undefined}
           onBack={() => focusCurrentRow()}
           onProgramme={(c, prog) => p.onUpcoming?.(c, prog, shown)} />
