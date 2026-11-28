@@ -428,3 +428,13 @@ label.st-field { cursor: text; }
 .vlist { position: relative; overflow: hidden; }
 .vinner { position: relative; height: 100%; }
 .vrow { position: absolute; left: 0; top: 0; right: 0; transition: transform 140ms cubic-bezier(.2, 0, 0, 1); will-change: transform; }
+
+/* 2.7.1: thin lines between the rows of a list, as in a table (white 8% dark, black 8% light), 18 px in from the
+   edges, none above the first row (so none under the last). Plain pseudo-elements: drawn on the slowest TVs too. */
+:root { --st-divider: rgba(255, 255, 255, .08); }
+:root[data-theme="light"] { --st-divider: rgba(0, 0, 0, .08); }
+.home-rows .vrow:not([data-index="0"])::before, .tp .vrow:not([data-index="0"])::before {
+  content: ""; position: absolute; left: 18px; right: 18px; top: 0; height: 1px; background: rgba(255, 255, 255, .08); background: var(--st-divider); pointer-events: none; z-index: 1; }
+.gs-line { position: relative; }
+.gs-lines .gs-line + .gs-line::before, .gs-lines .gs-about + .gs-line::before {
+  content: ""; position: absolute; left: 12px; right: 12px; top: 0; height: 1px; background: rgba(255, 255, 255, .08); background: var(--st-divider); pointer-events: none; }

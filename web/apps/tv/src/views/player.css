@@ -442,7 +442,7 @@
 /* 2.7.1: the player's channel panel in three columns (as TiviMate): channels | programme | picture with a card */
 .tp-cols .tp-list { width: 470px; }
 .tp-cols .tp-row { position: relative; }
-.tp-cols .tp-row::after { content: ""; position: absolute; left: 20px; right: 20px; bottom: 0; height: 1px; background: rgba(255, 255, 255, .07); }
+
 .tp-mid { position: absolute; left: 494px; top: 36px; bottom: 36px; width: 560px; }
 .tp-mid .gs { left: 0; right: 0; top: 0; bottom: 0; width: auto; background: none; animation: none; }
 .tp-card { padding: 18px 22px; border-radius: 16px; background: rgba(255, 255, 255, .06); color: #fff; }
