@@ -581,8 +581,8 @@ function Countdown({ n }: { n: number }) {
   return (
     <span class="home-countdown" aria-hidden="true">
       <svg viewBox="0 0 30 30" width={30} height={30}>
-        <circle cx="15" cy="15" r="13.75" fill="none" stroke="rgba(0,134,252,.2)" stroke-width="2.5" />
-        <circle class="home-countdown-arc" cx="15" cy="15" r="13.75" fill="none" stroke="#0086fc" stroke-width="2.5" stroke-linecap="round" transform="rotate(-90 15 15)" />
+        <circle cx="15" cy="15" r="13.75" fill="none" style={{ stroke: "rgba(var(--st-blue-rgb), .2)" }} stroke-width="2.5" />
+        <circle class="home-countdown-arc" cx="15" cy="15" r="13.75" fill="none" style={{ stroke: "var(--st-blue)" }} stroke-width="2.5" stroke-linecap="round" transform="rotate(-90 15 15)" />
       </svg>
       <b>{n}</b>
     </span>

@@ -219,7 +219,7 @@ button.home-cat:focus, button.home-cat:focus > .st-icon, button.home-cat:focus .
 .home-countdown > svg { display: block; }
 .home-countdown-arc { stroke-dasharray: 86.4; stroke-dashoffset: 86.4; animation: home-countdown 3000ms linear forwards; }
 @keyframes home-countdown { to { stroke-dashoffset: 0; } }
-.home-countdown > b { position: absolute; left: 0; top: 0; width: 30px; line-height: 30px; text-align: center; font-size: 15px; font-weight: 800; color: #0086fc; }
+.home-countdown > b { position: absolute; left: 0; top: 0; width: 30px; line-height: 30px; text-align: center; font-size: 15px; font-weight: 800; color: var(--st-blue); }
 
 /* The toolbar menus (GuideMenuHost): the shared StageMenu card, centred. */
 .home-menu .st-menu-item > .st-icon { flex: none; width: 28px; height: 28px; margin-right: 14px; color: var(--st-muted); }
@@ -240,7 +240,7 @@ button.home-cat:focus, button.home-cat:focus > .st-icon, button.home-cat:focus .
 .gs-arch { display: flex; opacity: .7; }
 .gs-none { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; font-size: 22px; color: rgba(255, 255, 255, .7); outline: none; }
 .lrow-seen { display: flex; opacity: .55; }
-.hp-hint { margin-top: 12px; font-size: 17px; font-weight: 600; color: var(--st-accent, #0086fc); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hp-hint { margin-top: 12px; font-size: 17px; font-weight: 600; color: var(--st-blue); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* 2.6.3: one day at a time, the day on top with ‹ › (as asked in the chat) */
 .gs-depth { padding: 8px 32px 4px; font-size: 16px; color: rgba(255, 255, 255, .55); }
@@ -257,7 +257,7 @@ button.home-cat:focus, button.home-cat:focus > .st-icon, button.home-cat:focus .
 .gs-lines { flex: 1; min-width: 0; overflow: hidden; padding: 4px 8px 40px 16px; }
 .gs-days { flex: 0 0 150px; overflow: hidden; padding: 4px 12px 0 4px; display: flex; flex-direction: column; gap: 4px; border-left: 1px solid rgba(255, 255, 255, .08); }
 .gs-day { display: flex; flex-direction: column; align-items: flex-start; padding: 8px 12px; border: 0; border-radius: 10px; background: none; color: rgba(255, 255, 255, .6); font-family: inherit; outline: none; text-align: left; }
-.gs-day.today { color: #0086fc; }
+.gs-day.today { color: var(--st-blue); }
 .gs-day.on { background: rgba(255, 255, 255, .1); color: #fff; }
 .gs-day:focus { background: #fff; color: #16181d; }
 .gs-day-name { font-size: 17px; font-weight: 700; }

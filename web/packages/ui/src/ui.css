@@ -448,3 +448,7 @@ label.st-field { cursor: text; }
 .home-3col.guide-on .lrow:focus .mini-bar, .tp-guide-on .tp-row:focus .mini-bar { background: rgba(18, 18, 18, .16); }
 .home-3col.guide-on .lrow:focus .mini-bar i, .tp-guide-on .tp-row:focus .mini-bar i { background: #121212; }
 .home-3col.guide-on .lrow:focus .mini-num, .tp-guide-on .tp-row:focus .mini-num { color: rgba(18, 18, 18, .62); }
+/* A coloured accent: the grey or white focus plate gets a 3px ring in it, so the choice shows everywhere. */
+:root[data-hue] .st-row:focus, :root[data-hue] .st-tool:focus, :root[data-hue] .st-setting:focus, :root[data-hue] .st-sheet-item:focus,
+:root[data-hue] .st-menu-item:focus, :root[data-hue] .rail-item:focus, :root[data-hue] .row:focus, :root[data-hue] .btn:focus,
+:root[data-hue] .gd-cell:focus, :root[data-hue] .gs-row:focus { outline: 3px solid var(--st-blue); outline-offset: -3px; }

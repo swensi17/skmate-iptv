@@ -281,7 +281,13 @@ export function applyAll(s: Settings, throttled: boolean): void {
   setVar(root, "--ui-zoom", String(clampZoom(s.uiScale) / 100));
   applyTheme(s.theme);
   // The accent (Внешний вид › Акцентный цвет): the theme's own INK unless a preset or a hex is chosen.
-  setVar(root, "--st-accent", accentColor(s, root.getAttribute("data-theme") !== "light"));
+  const accent = accentColor(s, root.getAttribute("data-theme") !== "light");
+  setVar(root, "--st-accent", accent);
+  // Marks follow the accent (2.7.1, as Android): a coloured one replaces the brand blue; ink, black or white keep it.
+  const hue = markHue(accent);
+  setVar(root, "--st-blue", hue);
+  setVar(root, "--st-blue-rgb", hue ? rgbOf(hue) : null);
+  if (hue) root.setAttribute("data-hue", ""); else root.removeAttribute("data-hue");
   applyMotion(s.motion, throttled);
   // settings functions (Android): fonts, popup size, animation speed, focus highlight colour (state/look.ts).
   applyLook(s);
@@ -300,4 +306,17 @@ export function liveSettingsFor(s: Settings, playlistId: string | null | undefin
   const latency = own as Settings["liveLatency"];
   const buffer = bufferFor(latency, s.liveCustomSec);
   return buffer === s.buffer && latency === s.liveLatency ? s : { ...s, liveLatency: latency, buffer };
+}
+
+/** The marks' colour for an accent: itself when it has colour, null (the brand blue) for grey, black or white. */
+export function markHue(accent: string | null): string | null {
+  if (!accent || !/^#[0-9a-fA-F]{6}$/.test(accent)) return null;
+  const [r, g, b] = rgbOf(accent).split(", ").map(Number) as [number, number, number];
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  return max - min < 40 ? null : accent;
+}
+
+function rgbOf(hex: string): string {
+  const n = parseInt(hex.slice(1), 16);
+  return `${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}`;
 }

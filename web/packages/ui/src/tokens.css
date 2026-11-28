@@ -71,7 +71,9 @@
   --st-on-accent: #121212;
   /* SkMate's brand blue: the accent inside Settings (switches, values), the archive tag, step markers, the value on a
      focused menu row, check marks on a light page. Only where Android draws it. */
+  /* The one colour of marks (catch-up tags, live, progress, the playing channel, rings): the chosen accent, else brand blue. */
   --st-blue: #0086fc;
+  --st-blue-rgb: 0, 134, 252;
 
   /* Focus: the TV-box plate. Inside it the light palette applies (dark text), see `.st-focusable:focus` in ui.css. */
   --st-focus-fill: #e0e2e4;  /* SheetFocusFill: rows, buttons, fields on the dark page */

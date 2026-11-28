@@ -155,8 +155,8 @@ export function CountdownRing(p: { n: number; totalMs: number; startedAt: number
   return (
     <span class="tp-ring" aria-hidden="true">
       <svg viewBox="0 0 32 32">
-        <circle cx="16" cy="16" r={r} fill="none" stroke="rgba(0,134,252,.2)" stroke-width="2.5" />
-        <circle cx="16" cy="16" r={r} fill="none" stroke="#0086fc" stroke-width="2.5" stroke-linecap="round" stroke-dasharray={`${c * f} ${c}`} />
+        <circle cx="16" cy="16" r={r} fill="none" style={{ stroke: "rgba(var(--st-blue-rgb), .2)" }} stroke-width="2.5" />
+        <circle cx="16" cy="16" r={r} fill="none" style={{ stroke: "var(--st-blue)" }} stroke-width="2.5" stroke-linecap="round" stroke-dasharray={`${c * f} ${c}`} />
       </svg>
       <b>{p.n}</b>
     </span>
@@ -228,7 +228,7 @@ export function CornerClock(p: { size: number; weight: number; bg: number; color
   }, []);
   const bg = p.bg >= 0 && p.bg <= 3 ? p.bg : 1;
   const opaque = 1 - ([0, 25, 50, 75][p.alpha] ?? 25) / 100;
-  const fill = bg === 0 ? null : bg === 2 ? `rgba(255, 255, 255, ${opaque})` : bg === 3 ? `rgba(0, 134, 252, ${opaque})` : `rgba(0, 0, 0, ${opaque})`;
+  const fill = bg === 0 ? null : bg === 2 ? `rgba(255, 255, 255, ${opaque})` : bg === 3 ? `rgba(var(--st-blue-rgb), ${opaque})` : `rgba(0, 0, 0, ${opaque})`;
   const ink = bg === 2 ? "#15181c" : (["#ffffff", "#ffd54f", "#8cc8ff"][p.color] ?? "#ffffff");
   const style = {
     fontSize: `${[20, 26, 36][p.size] ?? 26}px`, fontWeight: p.weight === 0 ? 500 : 700, color: ink,
