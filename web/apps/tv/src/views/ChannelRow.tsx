@@ -130,6 +130,8 @@ export function ChannelRow(props: {
             </span>
           ) : null}
           {channel.catchupDays ? <span class="st-archive corner">{daysText(channel.catchupDays)}</span> : null}
+          <span class="mini-num">{props.number ?? props.index + 1}</span>
+          {on ? <span class="mini-bar"><i style={{ width: `${(progress * 100).toFixed(1)}%` }} /></span> : null}
         </button>
         {layers}
       </>

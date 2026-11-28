@@ -389,6 +389,8 @@ export function PlayerPanel(p: {
                         {counting ? <span class="tp-row-end"><CountdownRing n={dwell.n} totalMs={3000} startedAt={dwell.startedAt} /></span>
                           : playing ? <span class="tp-row-end" aria-label={t("tbLive")}><Icon name="pause" size={30} /></span> : null}
                       {(c.catchupDays ?? 0) > 0 ? <span class="st-archive corner tp-row-days">{daysText(c.catchupDays as number)}</span> : null}
+                      <span class="mini-num">{i + 1}</span>
+                      {on.now ? <span class="mini-bar"><i style={{ width: `${Math.round(on.progress * 100)}%` }} /></span> : null}
                         </button>
                     );
                   }}
