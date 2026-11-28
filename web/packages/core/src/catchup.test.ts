@@ -164,7 +164,8 @@ describe("archiveUrl", () => {
   it("uses the panel's timeshift endpoint when an Xtream channel only gives its days", () => {
     expect(archiveUrl(xc, start, end, now, "UTC"))
       .toBe("http://x:8080/streaming/timeshift.php?username=u&password=p&stream=1234&start=2021-01-01:00-00&duration=60");
-    expect(archiveUrl({ url: "http://x/ch/index.m3u8", catchupDays: 3 }, start, end, now)).toBeNull();
+    expect(archiveUrl({ url: "http://x/ch/index.m3u8", catchupDays: 3 }, start, end, now)).toMatch(/^http:\/\/x\/ch\/timeshift_abs-\d+\.m3u8$/); // Flussonic (#840)
+    expect(archiveUrl({ url: "http://x/ch/stream", catchupDays: 3 }, start, end, now)).toBeNull();
   });
 
   it("applies catchup-correction to the Xtream form too", () => {
@@ -208,5 +209,17 @@ describe("the archive time zone (Settings › archive, Android resolveCatchupTim
   it("formats legacy tokens in the zone, unix tokens never move", () => {
     setArchiveZone(120);
     expect(forM3u("http://h/a.m3u8", "append", "?b=${(b)yyyyMMddHHmmss}&u={utc}", start, end)).toBe("http://h/a.m3u8?b=20210101020000&u=1609459200");
+  });
+});
+
+describe("archive of more playlists (#840)", () => {
+  const s = Date.UTC(2026, 10, 28, 10, 0), e = s + 3_600_000, now = s + 5 * 3_600_000;
+  it("fs is Flussonic, append alone is the utc query", () => {
+    expect(forM3u("http://h/ch/index.m3u8?token=1", "fs", undefined, s, e)).toBe(`http://h/ch/timeshift_abs-${s / 1000}.m3u8?token=1`);
+    expect(forM3u("http://h/ch/live.m3u8", "append", undefined, s, e, undefined, 0, now)).toContain("utc=");
+  });
+  it("days alone on a Flussonic address", () => {
+    expect(archiveUrl({ url: "http://h/ch/video.m3u8", catchupDays: 7 }, s, e, now)).toBe(`http://h/ch/timeshift_abs-${s / 1000}.m3u8`);
+    expect(archiveUrl({ url: "http://h/ch/mpegts", catchupDays: 7 }, s, e, now)).toBe(`http://h/ch/archive-${s / 1000}-3600.ts`);
   });
 });

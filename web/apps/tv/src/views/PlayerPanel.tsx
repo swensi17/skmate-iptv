@@ -386,7 +386,7 @@ export function PlayerPanel(p: {
                           <span class="tp-row-name">{ui.numbers ? <span class="n">{i + 1}</span> : null}<Marquee class="t" text={c.name} on={focused?.id === c.id && !colActive && guideCh === null} />{(c.catchupDays ?? 0) > 0 ? <span class="tp-row-arch"><Icon name="rewind" size={18} /></span> : null}</span>
                           {on.now ? (
                             <>
-                              <span class="tp-row-prog">{on.now.title}</span>
+                              <Marquee class="tp-row-prog" text={on.now.title} on={focused?.id === c.id && !colActive && guideCh === null} />
                               <span class="tp-row-bar"><i style={{ width: `${Math.round(on.progress * 100)}%` }} /></span>
                             </>
                           ) : <span class="tp-row-prog">{t("tbNoGuideShort")}</span>}

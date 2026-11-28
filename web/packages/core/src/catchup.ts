@@ -256,9 +256,16 @@ export function forM3u(
   if (template !== undefined && kind === "append") return joinQuery(liveUrl, fromTemplate(template, start, end, nowMs, tz));
   if (template !== undefined) return fromTemplate(template, start, end, nowMs, tz);
   if (kind === "shift" || kind === "timeshift" || kind === "default") return joinQuery(liveUrl, fromTemplate(SHIFT_TEMPLATE, start, end, nowMs));
-  if (kind !== undefined && kind.startsWith("flussonic")) return flussonic(liveUrl, start, end);
+  // "append" with no template: the common ?utc=&lutc= query, as "shift" (Kodi's convention).
+  if (kind === "shift" || kind === "timeshift" || kind === "default" || kind === "append") return joinQuery(liveUrl, fromTemplate(SHIFT_TEMPLATE, start, end, nowMs));
+  if (kind !== undefined && (kind.startsWith("flussonic") || kind === "fs")) return flussonic(liveUrl, start, end);
   if (kind === "xc" || kind === "xtream") return xtreamStyle(liveUrl, start, end, tz);
   return null;
+}
+
+/** A Flussonic stream address (`…/index.m3u8`, `…/video.m3u8`, `…/mpegts`, `…/mono.m3u8`): its archive is in the path. */
+export function looksFlussonic(url: string): boolean {
+  return /\/(index|video|mono|tracks-[^/]*)(-[^/]*)?\.(m3u8|ts)(\?|$)|\/mpegts(\?|$)/i.test(url);
 }
 
 const TIMESHIFT_PATH = /^(.+?)\/timeshift\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/([^/.]+)\.(?:ts|m3u8)$/i;
@@ -308,7 +315,10 @@ export function archiveUrl(channel: ArchiveChannel, startMs: number, stopMs: num
   const built = forM3u(channel.url, channel.catchupType, channel.catchupSource, startMs, stopMs, tz, correction, nowMs);
   if (built !== null) return built;
   if (channel.catchupType === undefined && channel.catchupSource === undefined) {
-    return xtreamStyle(channel.url, startMs + correction * 60_000, stopMs + correction * 60_000, tz);
+    // Only the days are given: an Xtream panel's address, else a Flussonic one (its archive is in the path).
+    const x = xtreamStyle(channel.url, startMs + correction * 60_000, stopMs + correction * 60_000, tz);
+    if (x !== null) return x;
+    if (looksFlussonic(channel.url)) return flussonic(channel.url, startMs + correction * 60_000, stopMs + correction * 60_000);
   }
   return null;
 }
