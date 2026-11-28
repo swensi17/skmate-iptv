@@ -162,8 +162,9 @@ export class XmltvScanner {
  * none of them and draws a crossed box instead (#924). Plain ranges, no \p{} classes: Chromium 53 has no such regex.
  */
 // Emoji (surrogate pairs), arrows (►, ⇒, #948 "Televizo shows little arrows"), geometric shapes, symbols and dingbats,
-// private-use glyphs, joiners and variation selectors.
-const PICTOGRAPHS = /(?:[\uD83C-\uD83E][\uDC00-\uDFFF]|[\u2190-\u21FF]|[\u2300-\u23FF]|[\u25A0-\u27BF]|[\u2900-\u297F]|[\u2B00-\u2BFF]|[\uE000-\uF8FF]|[\uFE0E\uFE0F\u200B-\u200D\u20E3])/g;
+// private-use glyphs, joiners and variation selectors; control characters and U+FFFD, what a guide in a wrong
+// encoding leaves (drawn as a crossed box too).
+const PICTOGRAPHS = /(?:[\uD83C-\uD83E][\uDC00-\uDFFF]|[\u2190-\u21FF]|[\u2300-\u23FF]|[\u25A0-\u27BF]|[\u2900-\u297F]|[\u2B00-\u2BFF]|[\uE000-\uF8FF]|[\uFE0E\uFE0F\u200B-\u200D\u20E3]|[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F\uFFFD])/g;
 export function noPictographs(text: string): string {
   const cleaned = text.replace(PICTOGRAPHS, "");
   return cleaned.length === text.length ? text : cleaned.replace(/\s{2,}/g, " ").trim();
