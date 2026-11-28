@@ -6,7 +6,7 @@ const STAGE = { w: 1728, h: 972 }; // 16:9
 
 describe("zoomLook (VideoZoom.kt)", () => {
   it("has Android's six modes in its order", () => {
-    expect(ZOOM_MODES).toEqual(["fit", "crop", "stretch", "original", "16_9", "4_3"]);
+    expect(ZOOM_MODES).toEqual(["fit", "crop", "stretch", "original", "16_9", "4_3", "2_39"]);
   });
   it("fit letterboxes, stretch fills, both without a scale", () => {
     expect(zoomLook("fit", { w: 720, h: 576 }, STAGE)).toEqual({ objectFit: "contain", scaleX: 1, scaleY: 1 });
@@ -97,5 +97,11 @@ describe("ItemPrefsStore (PlaybackPrefsStore)", () => {
     expect(broken.get("x")).toBeNull();
     expect(() => broken.rememberZoom("x", "fit")).not.toThrow();
     expect(new ItemPrefsStore(() => null).get("x")).toBeNull();
+  });
+  it("cinema 2.39:1 fills the height with the film inside a 16:9 stream", () => {
+    const l = zoomLook("2_39", { w: 1920, h: 1080 }, { w: 1920, h: 1080 });
+    expect(l.objectFit).toBe("contain");
+    expect(l.scaleX).toBeCloseTo(1080 / (1920 / 2.39), 4);
+    expect(l.scaleY).toBe(l.scaleX);
   });
 });

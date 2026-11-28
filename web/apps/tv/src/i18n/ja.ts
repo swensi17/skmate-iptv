@@ -977,6 +977,7 @@ export const ja: Record<keyof typeof en, string> = {
   sa_player_zoom_fit_screen: "画面に合わせる",
   sa_player_zoom_force_16_9: "16:9に固定",
   sa_player_zoom_force_4_3: "4:3に固定",
+  sa_player_zoom_cinema: "2.39:1",
   sa_player_zoom_original: "オリジナル（1:1）",
   sa_player_zoom_stretch: "引き伸ばす",
   sa_profiles_change_pin: "PINを変更（空欄＝変更しない）",

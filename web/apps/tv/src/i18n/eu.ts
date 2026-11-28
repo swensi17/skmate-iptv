@@ -977,6 +977,7 @@ export const eu: Record<keyof typeof en, string> = {
   sa_player_zoom_fit_screen: "Doitu pantailara",
   sa_player_zoom_force_16_9: "Behartu 16:9",
   sa_player_zoom_force_4_3: "Behartu 4:3",
+  sa_player_zoom_cinema: "2.39:1",
   sa_player_zoom_original: "Jatorrizkoa (1:1)",
   sa_player_zoom_stretch: "Luzatu",
   sa_profiles_change_pin: "Aldatu PINa (hutsik = mantendu)",

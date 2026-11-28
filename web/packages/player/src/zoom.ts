@@ -9,12 +9,13 @@
  *   original one stream pixel per screen pixel, centred (larger pictures are cut, smaller ones float)
  *   16_9     the picture stretched into the largest 16:9 box that fits
  *   4_3      the same with 4:3
+ *   2_39     a 2.39:1 film letterboxed inside the stream: enlarged until its picture fills the height, the sides cut
  */
 
-export type ZoomMode = "fit" | "crop" | "stretch" | "original" | "16_9" | "4_3";
+export type ZoomMode = "fit" | "crop" | "stretch" | "original" | "16_9" | "4_3" | "2_39";
 
 /** Android's order (OwnTVPlayer.kt:121-124), the order of the dialog's rows. */
-export const ZOOM_MODES: readonly ZoomMode[] = ["fit", "crop", "stretch", "original", "16_9", "4_3"];
+export const ZOOM_MODES: readonly ZoomMode[] = ["fit", "crop", "stretch", "original", "16_9", "4_3", "2_39"];
 
 export const ZOOM_CROP_FACTOR = 1.2;
 
@@ -41,6 +42,10 @@ export function zoomLook(mode: ZoomMode, video: Size | null, box: Size, devicePe
     case "crop": return { objectFit: "contain", scaleX: ZOOM_CROP_FACTOR, scaleY: ZOOM_CROP_FACTOR };
     case "original": {
       const k = video.w / Math.max(0.01, devicePerCss) / fitW;
+      return { objectFit: "contain", scaleX: k, scaleY: k };
+    }
+    case "2_39": {
+      const k = Math.max(1, box.h / (fitW / 2.39));
       return { objectFit: "contain", scaleX: k, scaleY: k };
     }
     case "16_9":

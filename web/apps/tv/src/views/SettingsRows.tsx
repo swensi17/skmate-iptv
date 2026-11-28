@@ -90,7 +90,7 @@ const timeoutLabel = (n: number) => (n === 0 ? t("sa_common_never") : secs(n));
 
 const ZOOMS: Array<{ v: Settings["zoomMode"]; k: Key }> = [
   { v: "fit", k: "sa_player_zoom_fit_screen" }, { v: "crop", k: "sa_player_zoom_fill_crop" }, { v: "stretch", k: "sa_player_zoom_stretch" },
-  { v: "original", k: "sa_player_zoom_original" }, { v: "16_9", k: "sa_player_zoom_force_16_9" }, { v: "4_3", k: "sa_player_zoom_force_4_3" },
+  { v: "original", k: "sa_player_zoom_original" }, { v: "16_9", k: "sa_player_zoom_force_16_9" }, { v: "4_3", k: "sa_player_zoom_force_4_3" }, { v: "2_39", k: "sa_player_zoom_cinema" },
 ];
 const THEMES: Array<{ v: Settings["theme"]; k: Key }> = [
   { v: "system", k: "sa_settings_theme_system" }, { v: "dark", k: "sa_settings_theme_dark" }, { v: "light", k: "sa_settings_theme_light" },
@@ -225,6 +225,13 @@ export function buildRows(c: RowsCtx, close: () => void): Record<string, RowDef>
     ),
   });
   add({ key: "tab_GLASS_EFFECT", icon: "SPARKLE", title: t("sa_settings_glass_bg_title"), line: `Stage · ${pct(s.glassOpacity)}` });
+  // Text size right in the list (2.7.1): ◀ ▶ on the row, no page to open.
+  add({
+    key: "font_size", icon: "TEXT_SIZE", title: t("sa_settings_font_size"), line: t("sa_settings_line_fonts"),
+    end: <Stepper value={pct(s.fontSize)} onStep={(d) => set({ fontSize: Math.max(60, Math.min(140, s.fontSize + d * 5)) })} />,
+    step: (d) => set({ fontSize: Math.max(60, Math.min(140, s.fontSize + d * 5)) }),
+    editor: () => <BigStepper value={pct(s.fontSize)} onDone={close} onStep={(d) => set({ fontSize: Math.max(60, Math.min(140, s.fontSize + d * 5)) })} />,
+  });
   add({ key: "fonts", icon: "TEXT_SIZE", title: t("sa_settings_title_fonts"), line: `${fontName(s.fontFamily)} · ${pct(s.fontSize)}` });
   add({
     key: "popup_size", icon: "ZOOM", title: t("sa_settings_popup_size"), line: t("sa_settings_line_popup_size"), end: <Stepper value={pct(s.popupSize)} onStep={(d) => set({ popupSize: Math.max(50, Math.min(120, s.popupSize + d * 5)) })} />,

@@ -977,6 +977,7 @@ export const tr: Record<keyof typeof en, string> = {
   sa_player_zoom_fit_screen: "Ekrana sığdır",
   sa_player_zoom_force_16_9: "16:9'a zorla",
   sa_player_zoom_force_4_3: "4:3'e zorla",
+  sa_player_zoom_cinema: "2.39:1",
   sa_player_zoom_original: "Orijinal (1:1)",
   sa_player_zoom_stretch: "Uzat",
   sa_profiles_change_pin: "PIN'i değiştir (boş bırakırsanız korunur)",

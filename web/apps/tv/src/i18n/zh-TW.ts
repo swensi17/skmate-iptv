@@ -977,6 +977,7 @@ export const zhTW: Record<keyof typeof en, string> = {
   sa_player_zoom_fit_screen: "符合螢幕",
   sa_player_zoom_force_16_9: "強制設為 16:9",
   sa_player_zoom_force_4_3: "強制設為 4:3",
+  sa_player_zoom_cinema: "2.39:1",
   sa_player_zoom_original: "原始大小（1:1）",
   sa_player_zoom_stretch: "拉伸",
   sa_profiles_change_pin: "變更 PIN（留白表示保留原 PIN）",

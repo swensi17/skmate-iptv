@@ -977,6 +977,7 @@ export const ar: Record<keyof typeof en, string> = {
   sa_player_zoom_fit_screen: "ملاءمة للشاشة",
   sa_player_zoom_force_16_9: "فرض 16:9",
   sa_player_zoom_force_4_3: "فرض 4:3",
+  sa_player_zoom_cinema: "2.39:1",
   sa_player_zoom_original: "الحجم الأصلي (1:1)",
   sa_player_zoom_stretch: "تمديد",
   sa_profiles_change_pin: "تغيير PIN (اتركه فارغًا للاحتفاظ بالحالي)",

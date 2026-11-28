@@ -977,6 +977,7 @@ export const zhCN: Record<keyof typeof en, string> = {
   sa_player_zoom_fit_screen: "适应屏幕",
   sa_player_zoom_force_16_9: "强制 16:9",
   sa_player_zoom_force_4_3: "强制 4:3",
+  sa_player_zoom_cinema: "2.39:1",
   sa_player_zoom_original: "原始尺寸（1:1）",
   sa_player_zoom_stretch: "拉伸",
   sa_profiles_change_pin: "更改 PIN（留空则保留原 PIN）",

@@ -9,6 +9,9 @@
  */
 
 /** Android MotionPrefs.Speed factors. */
+/** The text scale at 100 %. */
+export const TEXT_BASE = 1.08;
+
 export const MOTION_FACTOR = { fast: 0.6, normal: 1, slow: 1.5 } as const;
 
 const FS = "var(--fs, 1)";
@@ -135,7 +138,8 @@ export function applyLook(l: Look, root: HTMLElement = document.documentElement)
   scan();
   watch();
   const pctOf = (n: number, a: number, b: number) => String(Math.max(a, Math.min(b, n)) / 100);
-  setVar(root, "--fs", pctOf(l.fontSize, 60, 140));
+  // 100 % is a little larger than the design sizes (2.7.1): easier to read from the sofa.
+  setVar(root, "--fs", String(Math.round(Number(pctOf(l.fontSize, 60, 140)) * TEXT_BASE * 1000) / 1000));
   setVar(root, "--fs-popup", pctOf(l.popupFontSize, 50, 120));
   setVar(root, "--popup-zoom", pctOf(l.popupSize, 50, 120));
   const k = MOTION_FACTOR[l.motionSpeed] ?? 1;

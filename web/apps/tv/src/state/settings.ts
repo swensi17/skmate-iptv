@@ -136,7 +136,7 @@ export interface Settings {
   clockColor: number;
   clockAlpha: number;
   /** Default zoom: fit, crop and stretch drive aspect; the other three are stored. */
-  zoomMode: "fit" | "crop" | "stretch" | "original" | "16_9" | "4_3";
+  zoomMode: "fit" | "crop" | "stretch" | "original" | "16_9" | "4_3" | "2_39";
   /** Frame rate (stored: no web API). */
   afr: boolean;
   afrPause: number;

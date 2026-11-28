@@ -347,7 +347,7 @@ export type Aspect = ZoomMode;
 /** The six zoom modes' names (OwnTVPlayer.kt ZoomMode labels). */
 const ZOOM_LABELS: Record<ZoomMode, Key> = {
   fit: "sa_player_zoom_fit_screen", crop: "sa_player_zoom_fill_crop", stretch: "sa_player_zoom_stretch",
-  original: "sa_player_zoom_original", "16_9": "sa_player_zoom_force_16_9", "4_3": "sa_player_zoom_force_4_3",
+  original: "sa_player_zoom_original", "16_9": "sa_player_zoom_force_16_9", "4_3": "sa_player_zoom_force_4_3", "2_39": "sa_player_zoom_cinema",
 };
 
 /** Zoom (PlayerHudDialogs.kt ZoomDialog): the six modes in Android's order, the current one ticked and focused. */

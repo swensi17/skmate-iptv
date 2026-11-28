@@ -977,6 +977,7 @@ export const pt: Record<keyof typeof en, string> = {
   sa_player_zoom_fit_screen: "Ajustar à tela",
   sa_player_zoom_force_16_9: "Forçar 16:9",
   sa_player_zoom_force_4_3: "Forçar 4:3",
+  sa_player_zoom_cinema: "2.39:1",
   sa_player_zoom_original: "Original (1:1)",
   sa_player_zoom_stretch: "Esticar",
   sa_profiles_change_pin: "Alterar PIN (em branco = manter)",
