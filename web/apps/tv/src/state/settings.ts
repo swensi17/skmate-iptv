@@ -252,8 +252,21 @@ export function resolveTheme(theme: ThemeSetting, systemDark: boolean): "dark" |
   return theme === "system" ? (systemDark ? "dark" : "light") : theme;
 }
 
+/**
+ * Whether the system asks for the dark look. A TV that does not know the question (webOS 4–6 = Chromium 53–79 before
+ * 76, older Tizen) answers neither: then the dark look, the TV's own, never the light one by accident (it painted the
+ * category names nearly black on a real LG).
+ */
+export function systemDark(mm?: (q: string) => { matches: boolean; media: string }): boolean {
+  if (!mm) return true;
+  const dark = mm("(prefers-color-scheme: dark)");
+  const light = mm("(prefers-color-scheme: light)");
+  if (dark.media === "not all" || (!dark.matches && !light.matches)) return true;
+  return dark.matches;
+}
+
 export function applyTheme(theme: ThemeSetting, root: HTMLElement = document.documentElement): void {
-  const dark = typeof matchMedia === "function" ? matchMedia("(prefers-color-scheme: dark)").matches : true;
+  const dark = systemDark(typeof matchMedia === "function" ? matchMedia : undefined);
   const next = resolveTheme(theme, dark);
   if (root.getAttribute("data-theme") !== next) root.setAttribute("data-theme", next);
 }

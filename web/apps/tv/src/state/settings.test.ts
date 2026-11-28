@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { resolveTheme } from "./settings";
+import { resolveTheme, systemDark } from "./settings";
 
 describe("resolveTheme", () => {
   it("follows the system by default", () => {
@@ -35,5 +35,20 @@ describe("settings (Android)", async () => {
   });
   it("Quick starts with Android's six rows", () => {
     expect(DEFAULTS.quickPinned).toEqual(["quick_live_preview", "quick_preview_sound", "quick_channel_numbers", "quick_hdr", "quick_autoplay", "quick_check_update"]);
+  });
+});
+
+describe("the system's look on old TVs", () => {
+  const mm = (dark: boolean | null, light: boolean | null) => (q: string) => {
+    const known = q.includes("dark") ? dark : light;
+    return known === null ? { matches: false, media: "not all" } : { matches: known, media: q };
+  };
+  it("is dark when the TV does not know prefers-color-scheme (webOS 4–6)", () => {
+    expect(systemDark(mm(null, null))).toBe(true);
+    expect(systemDark(undefined)).toBe(true);
+  });
+  it("follows the system where it answers", () => {
+    expect(systemDark(mm(true, false))).toBe(true);
+    expect(systemDark(mm(false, true))).toBe(false);
   });
 });
