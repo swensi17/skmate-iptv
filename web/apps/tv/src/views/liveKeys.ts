@@ -4,7 +4,7 @@
  * (`ok`, `up`, `down`, `left`, `right`); a key left alone does what it always did.
  */
 export type LiveKeyName = "ok" | "up" | "down" | "left" | "right";
-export type LiveJob = "info" | "list" | "history" | "next" | "previous" | "last" | "rewind" | "forward" | "pause" | "nothing";
+export type LiveJob = "info" | "list" | "history" | "next" | "previous" | "last" | "rewind" | "forward" | "pause" | "describe" | "nothing";
 
 /** LiveKeyMap.defaultFor: OK info, ▲ next channel, ▼ previous channel, ◀ the list, ▶ the history. */
 export const LIVE_KEY_DEFAULT: Record<LiveKeyName, LiveJob> = { ok: "info", up: "next", down: "previous", left: "list", right: "history" };
@@ -19,6 +19,7 @@ const BY_LABEL: Record<string, LiveJob> = {
   sa_settings_live_key_action_rewind: "rewind",
   sa_settings_live_key_action_forward: "forward",
   sa_settings_live_key_action_pause: "pause",
+  sa_settings_live_key_action_describe: "describe",
   sa_settings_live_key_action_nothing: "nothing",
 };
 

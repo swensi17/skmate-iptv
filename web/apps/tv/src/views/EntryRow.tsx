@@ -49,7 +49,8 @@ export function EntryRow(p: {
 }
 
 /** A TV is slow: the live count waits for a short pause in typing instead of searching on every key. */
-const COUNT_PAUSE_MS = 250;
+/** The count under the field is worked out only after this long without a key: a search over thousands of names takes a TV seconds, and while the word is still being typed it is wasted (Done searches at once). */
+const COUNT_PAUSE_MS = 10_000;
 
 /**
  * The search of a screen, the same everywhere (channels, sport, films, the Search screen): a box at the left of the

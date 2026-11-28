@@ -7,6 +7,16 @@
  * While nothing plays (opening, a switch, an error) the page keeps its own opaque background, so no lilac or black flashes.
  * Short stalls ("waiting") do not end it, they would make the picture flicker.
  */
+/** True when the element can really be seen: no ancestor is hidden, transparent or off the screen (a screen left behind keeps its <video> playing for a moment). */
+function shown(v: HTMLVideoElement, r: DOMRect): boolean {
+  if (r.right <= 0 || r.bottom <= 0 || r.left >= window.innerWidth || r.top >= window.innerHeight) return false;
+  for (let el: HTMLElement | null = v, depth = 0; el && depth < 12; el = el.parentElement, depth++) {
+    const cs = window.getComputedStyle(el);
+    if (cs.display === "none" || cs.visibility === "hidden" || Number(cs.opacity) < 0.05) return false;
+  }
+  return true;
+}
+
 export function installVideoPlane(root: HTMLElement = document.documentElement): void {
   let last = "";
   const sync = () => {
@@ -16,7 +26,7 @@ export function installVideoPlane(root: HTMLElement = document.documentElement):
       const v = vs[i];
       if (!v || v.paused || v.ended || v.readyState < 3 || !v.videoWidth) continue;
       const r = v.getBoundingClientRect();
-      if (r.width < 2 || r.height < 2) continue;
+      if (r.width < 2 || r.height < 2 || !shown(v, r)) continue;
       const x1 = Math.round(r.left), y1 = Math.round(r.top), x2 = Math.round(r.right), y2 = Math.round(r.bottom);
       holes.push(`${x1}px ${y1}px, ${x1}px ${y2}px, ${x2}px ${y2}px, ${x2}px ${y1}px, ${x1}px ${y1}px`);
     }

@@ -1,3 +1,5 @@
+import { looksFlussonic } from "../catchup";
+
 export interface Channel {
   /** Stable within one playlist: the position of the entry, so reloads keep favourites in place. */
   id: string;
@@ -47,6 +49,20 @@ export function mediaOf(type: string | undefined, tvgType: string | undefined, u
   if (t === "vod" || t === "movie" || tt === "vod" || tt === "movie") return "movie";
   if (t === undefined && tt === undefined && isProgressiveVideoUrl(url)) return "movie";
   return undefined;
+}
+
+/**
+ * One guide however it is written: http or https, packed (.gz) or not, a trailing slash or not (Android's GuideKey).
+ * The first spelling is the one kept.
+ */
+export function guideKey(url: string): string {
+  return url.trim().replace(/^[a-z][a-z0-9+.-]*:\/\//i, "").replace(/\/$/, "").toLowerCase().replace(/\.gz$/, "");
+}
+
+/** [items] without the repeats of one guide (see [guideKey]); the first spelling stays. */
+export function distinctGuides<T>(items: readonly T[], urlOf: (item: T) => string): T[] {
+  const seen = new Set<string>();
+  return items.filter((i) => { const k = guideKey(urlOf(i)); if (seen.has(k)) return false; seen.add(k); return true; });
 }
 
 const ATTR = /([\w-]+)="([^"]*)"/g;
@@ -132,7 +148,8 @@ function m3uLine(st: M3UState, raw: string): void {
     const shiftDays = type === undefined ? Number(a["timeshift"] ?? 0) : 0;
     const days = Number(a["catchup-days"] ?? (shiftDays > 0 ? shiftDays : a["tvg-rec"] ?? 0));
     if (Number.isFinite(days) && days > 0) channel.catchupDays = days;
-    const kind = type ?? (shiftDays > 0 ? "shift" : undefined);
+    // Only `catchup-days` on a Flussonic address: its archive is found by the address alone.
+    const kind = type ?? (shiftDays > 0 ? "shift" : channel.catchupDays && looksFlussonic(line) ? "days" : undefined);
     if (kind) channel.catchupType = kind;
     if (a["catchup-source"]) channel.catchupSource = a["catchup-source"];
     const correction = correctionMinutes(a["catchup-correction"]) ?? st.headerCorrection;
@@ -194,7 +211,8 @@ export function guidesInHeader(text: string): string[] {
     .filter((v): v is string => !!v)
     .reduce<string[]>((all, v) => all.concat(v.split(",")), [])
     .map((u) => u.trim())
-    .filter((u) => /^https?:\/\//i.test(u));
+    .filter((u) => /^https?:\/\//i.test(u))
+    .filter((u, i, all) => all.findIndex((v) => guideKey(v) === guideKey(u)) === i);
 }
 
 /**

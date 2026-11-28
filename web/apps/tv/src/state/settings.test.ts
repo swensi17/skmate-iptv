@@ -33,6 +33,9 @@ describe("settings (Android)", async () => {
     expect(accentColor({ accent: "teal", accentHex: "" }, false)).toBe("#006B5E");
     expect(accentColor({ accent: "teal", accentHex: "#4e952a" }, true)).toBe("#4E952A");
   });
+  it("three columns are off by default (2.7.2): the programme opens with ▶", () => {
+    expect(DEFAULTS.playerColumns).toBe(false);
+  });
   it("Quick starts with Android's six rows", () => {
     expect(DEFAULTS.quickPinned).toEqual(["quick_live_preview", "quick_preview_sound", "quick_channel_numbers", "quick_hdr", "quick_autoplay", "quick_check_update"]);
   });

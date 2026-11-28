@@ -221,6 +221,14 @@ function flussonic(liveUrl: string, startMs: number, endMs: number): string | nu
   return null;
 }
 
+const FLUSSONIC_ENDS = new Set(["index.m3u8", "video.m3u8", "mono.m3u8", "mpegts"]);
+
+/** A Flussonic stream address: index/video/mono.m3u8 or mpegts at the end of its path. */
+export function looksFlussonic(url: string): boolean {
+  const last = (url.split("?")[0] as string).split("/").pop() ?? "";
+  return FLUSSONIC_ENDS.has(last.toLowerCase());
+}
+
 const XC_LIVE_URL = /^(https?:\/\/[^/]+)\/(?:live\/)?([^/]+)\/([^/]+)\/(\d+)(?:\.[A-Za-z0-9]+)?$/i;
 
 /** Xtream's start stamp: `2021-01-01:00-00` in the panel's zone. */
@@ -255,8 +263,11 @@ export function forM3u(
   const end = endMs + shift;
   if (template !== undefined && kind === "append") return joinQuery(liveUrl, fromTemplate(template, start, end, nowMs, tz));
   if (template !== undefined) return fromTemplate(template, start, end, nowMs, tz);
-  if (kind === "shift" || kind === "timeshift" || kind === "default") return joinQuery(liveUrl, fromTemplate(SHIFT_TEMPLATE, start, end, nowMs));
-  if (kind !== undefined && kind.startsWith("flussonic")) return flussonic(liveUrl, start, end);
+  // "append" with nothing to append: the shift query, as the players that accept it read it.
+  if (kind === "shift" || kind === "timeshift" || kind === "default" || kind === "append") return joinQuery(liveUrl, fromTemplate(SHIFT_TEMPLATE, start, end, nowMs));
+  if (kind !== undefined && (kind.startsWith("flussonic") || kind === "fs")) return flussonic(liveUrl, start, end);
+  // Only archive days given, on a Flussonic address: its own archive address is the only one it answers.
+  if (kind === "days" && looksFlussonic(liveUrl)) return flussonic(liveUrl, start, end);
   if (kind === "xc" || kind === "xtream") return xtreamStyle(liveUrl, start, end, tz);
   return null;
 }

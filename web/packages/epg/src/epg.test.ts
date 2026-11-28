@@ -268,3 +268,11 @@ describe("syncGuides: the past only where there is an archive (2.7.0)", () => {
     expect(data.of("2").map((p) => p.title)).toEqual(["Сейчас Б"]);
   });
 });
+
+describe("guide spellings", () => {
+  it("does not repeat a guide written with .gz or another scheme", () => {
+    const g = guidesForPlaylist("Мой", "http://x.y/p.m3u", ["http://own/g.xml", "https://own/g.xml.gz"]);
+    expect(g.filter((x) => x.url.includes("own/g.xml")).length).toBe(1);
+    expect(g[0]?.url).toBe("http://own/g.xml");
+  });
+});

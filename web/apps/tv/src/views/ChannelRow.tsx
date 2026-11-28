@@ -109,7 +109,7 @@ export function ChannelRow(props: {
     return (
       <>
         <button
-          class={`st-focusable st-row lrow${props.index === 0 ? " st-row-first" : ""}${props.opened ? " opened" : ""}`} data-focus={`ch-${channel.id}`}
+          class={`st-focusable st-row lrow${props.index === 0 ? " st-row-first" : ""}${props.opened ? " opened" : ""}${channel.catchupDays ? " has-arch" : ""}`} data-focus={`ch-${channel.id}`}
           {...(compact ? holdProps(() => { cancel(); setLayer("menu"); }) : {})}
           onClick={() => { if (holdSpent()) return; props.onOpen(channel); }}
           onFocus={() => { setLit(true); props.onFocus?.(channel); }}

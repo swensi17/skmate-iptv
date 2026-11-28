@@ -293,6 +293,12 @@ export function PlayerPanel(p: {
       }
       // OK on a channel: a press tunes it on release, a hold opens its programme with the archive (#761, #768).
       const onRow = (document.activeElement as HTMLElement | null)?.dataset.focus?.startsWith("pc-");
+      // 2.7.2: the list's ends are walls: ▲ on the first channel and ▼ on the last stay where they are, never out of the
+      // list into the programme or the picture.
+      if (onRow && !menuOpen && !catsOpen && focused && (up || down)) {
+        const at = list.findIndex((c) => c.id === focused.id);
+        if ((up && at <= 0) || (down && at >= list.length - 1)) { e.stopPropagation(); e.preventDefault(); return; }
+      }
       if (ok && onRow && !menuOpen && !catsOpen && focused) {
         e.stopPropagation(); e.preventDefault();
         if (e.repeat || okHold.current) return;

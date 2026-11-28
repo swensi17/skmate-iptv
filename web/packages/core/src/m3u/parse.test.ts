@@ -81,3 +81,15 @@ describe("channel ids (2.6.9)", () => {
     expect(twins[0]?.id).not.toBe(twins[1]?.id);
   });
 });
+
+describe("Android 2.7.2 parser and guide rules", () => {
+  it("only catchup-days on a flussonic address gets the days kind", () => {
+    const l = (u: string) => `#EXTM3U\n#EXTINF:-1 catchup-days="3",A\n${u}`;
+    expect(parseM3U(l("http://x/ch/index.m3u8"))[0]?.catchupType).toBe("days");
+    expect(parseM3U(l("http://x/ch/live.php"))[0]?.catchupType).toBeUndefined();
+    expect(parseM3U(`#EXTM3U\n#EXTINF:-1 catchup="fs" catchup-days="3",A\nhttp://x/ch/index.m3u8`)[0]?.catchupType).toBe("fs");
+  });
+  it("one guide named twice (http/https, .gz) is listed once", () => {
+    expect(guidesInHeader('#EXTM3U url-tvg="http://a/g.xml.gz,https://a/g.xml" x-tvg-url="https://b/e.xml"')).toEqual(["http://a/g.xml.gz", "https://b/e.xml"]);
+  });
+});

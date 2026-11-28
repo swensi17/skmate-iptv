@@ -21,10 +21,11 @@ function dayTitle(day: number, today: number): { name: string; date: string } {
   const diff = Math.round((day - today) / DAY);
   const date = new Date(day);
   const dd = `${String(date.getDate()).padStart(2, "0")}.${String(date.getMonth() + 1).padStart(2, "0")}`;
+  // 2.7.2: "Today", "Yesterday", "Tomorrow" in the app's own words (Tizen 5 / Chromium 63 has no RelativeTimeFormat).
+  if (diff === 0) return { name: t("gsToday"), date: dd };
+  if (diff === -1) return { name: t("gsYesterday"), date: dd };
+  if (diff === 1) return { name: t("gsTomorrow"), date: dd };
   try {
-    // Older TVs (webOS 4, Tizen 4) have no RelativeTimeFormat: the weekday stands in for "today".
-    const rel = (Intl as unknown as { RelativeTimeFormat?: new (l?: string, o?: object) => { format(n: number, u: string): string } }).RelativeTimeFormat;
-    if (rel && Math.abs(diff) <= 1) return { name: capitalize(new rel(lang(), { numeric: "auto" }).format(diff, "day")), date: dd };
     return { name: capitalize(new Intl.DateTimeFormat(lang(), { weekday: "long" }).format(date)), date: dd };
   } catch {
     return { name: dd, date: "" };

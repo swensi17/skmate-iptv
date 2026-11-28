@@ -10,6 +10,10 @@ describe("live keys (Settings > Remote buttons)", () => {
     expect(liveKeyJob(undefined, "right")).toBe("history");
     expect(liveKeyIsCustom({}, "ok")).toBe(false);
   });
+  it("the Description action (2.7.2) is a job of its own", () => {
+    expect(liveKeyJob({ ok: "sa_settings_live_key_action_describe" }, "ok")).toBe("describe");
+    expect(liveJobRepeats("describe")).toBe(false);
+  });
   it("reads the stored action and ignores what it does not know", () => {
     const map = { ok: "sa_settings_live_key_action_pause", up: "sa_settings_live_key_action_next", left: "nonsense" };
     expect(liveKeyJob(map, "ok")).toBe("pause");

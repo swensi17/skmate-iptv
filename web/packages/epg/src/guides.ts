@@ -1,3 +1,4 @@
+import { distinctGuides } from "@skmate/core";
 import data from "./guides.json";
 
 export interface DefaultGuide { name: string; url: string; logos?: boolean }
@@ -28,6 +29,5 @@ export function guidesForPlaylist(playlistName: string, playlistUrl: string | nu
   const first: DefaultGuide[] = ownGuides.length > 0
     ? ownGuides.map((url) => ({ name: playlistName, url }))
     : (providerFor(playlistUrl)?.guides ?? []).map((url) => ({ name: providerFor(playlistUrl)?.name ?? playlistName, url }));
-  const seen = new Set<string>();
-  return [...first, ...shared].filter((g) => (seen.has(g.url) ? false : (seen.add(g.url), true)));
+  return distinctGuides([...first, ...shared], (g) => g.url);
 }

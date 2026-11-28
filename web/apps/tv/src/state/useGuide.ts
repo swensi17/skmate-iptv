@@ -1,5 +1,5 @@
 import { cacheGet } from "./fetchPlaylist";
-import { parseM3U } from "@skmate/core";
+import { distinctGuides, parseM3U } from "@skmate/core";
 import { useCallback, useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { resolveArchiveZone, setArchiveZone, type Channel } from "@skmate/core";
 import {
@@ -83,7 +83,7 @@ export function useGuide(channels: Channel[], active: PlaylistEntry | null, head
     const own = settings.epgAuto && active
       ? guidesForPlaylist(active.name, active.url, headerGuides).map((g) => ({ id: `auto:${g.url}`, name: g.name, url: g.url }))
       : [];
-    return [...own, ...settings.epgSources];
+    return distinctGuides([...own, ...settings.epgSources], (g) => g.url);
   }, [settings.epgAuto, settings.epgSources, active?.id, active?.url, headerGuides.join(",")]);
 
   // --- Reading the stored guide: what is on and the day after, plus what the grid asked for ---

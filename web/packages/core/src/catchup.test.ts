@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { archiveUrl, forM3u, fromTemplate, resolveArchiveZone, setArchiveZone, timeshiftPhpAlternate } from "./catchup";
+import { archiveUrl, looksFlussonic, forM3u, fromTemplate, resolveArchiveZone, setArchiveZone, timeshiftPhpAlternate } from "./catchup";
 import { startOverUrl } from "./timeshift";
 
 // The same cases as the Android app's CatchupUrlTest, so both build the same archive address.
@@ -208,5 +208,22 @@ describe("the archive time zone (Settings › archive, Android resolveCatchupTim
   it("formats legacy tokens in the zone, unix tokens never move", () => {
     setArchiveZone(120);
     expect(forM3u("http://h/a.m3u8", "append", "?b=${(b)yyyyMMddHHmmss}&u={utc}", start, end)).toBe("http://h/a.m3u8?b=20210101020000&u=1609459200");
+  });
+});
+
+describe("Android 2.7.2 archive rules", () => {
+  const s = 1609459200_000;
+  const e = s + 3_600_000;
+  it("append without a template is the shift query", () => {
+    expect(forM3u("http://x/live.ts", "append", undefined, s, e, "UTC", 0, e)).toBe("http://x/live.ts?utc=1609459200&lutc=1609462800");
+  });
+  it("catchup=fs is flussonic", () => {
+    expect(forM3u("http://x/ch1/index.m3u8", "fs", undefined, s, e)).toBe("http://x/ch1/timeshift_abs-1609459200.m3u8");
+  });
+  it("days alone: flussonic only on a flussonic address", () => {
+    expect(looksFlussonic("http://x/ch1/mpegts?t=1")).toBe(true);
+    expect(looksFlussonic("http://x/ch1/live.php")).toBe(false);
+    expect(forM3u("http://x/ch1/mono.m3u8", "days", undefined, s, e)).toBe("http://x/ch1/timeshift_abs-1609459200.m3u8");
+    expect(forM3u("http://x/ch1/live.php", "days", undefined, s, e)).toBeNull();
   });
 });

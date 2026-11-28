@@ -182,6 +182,11 @@ export function LiveView(p: Props) {
     return () => window.removeEventListener("resize", f);
   }, [compact]);
   const sidePane = !compact || (orient === "landscape" && wideWin);
+  // Settings › Player › "Programme in the middle, three columns" (2.7.2): on, the programme stands beside the list all
+  // the time; off (the default), as before: the programme opens with ▶ over the picture and goes with ◀ or Back.
+  // Compact (tablet, phone) opens it on a tap and keeps its own layout either way.
+  const cols = !compact && p.settings.playerColumns;
+  const shape = cols || compact;
   const rowsBox = useRef<HTMLDivElement>(null);
   const chipsBox = useRef<HTMLDivElement>(null);
   const [rowsH, setRowsH] = useState(LIST_HEIGHT);
@@ -229,6 +234,12 @@ export function LiveView(p: Props) {
   // The list stays shrunk only while the focus is in the programme column (its days included).
   useFocusInside(guideActive, ".gs", () => setGuideActive(false));
   const guideFollow = useRef<ReturnType<typeof setTimeout>>();
+  // Off: the column is closed (Back, ◀ on the list, its close button, a channel opened from it).
+  const closeGuide = () => {
+    setGuideActive(false);
+    setGuideCh(null);
+    setTimeout(() => focusCurrentRow(), 30);
+  };
   const leaveGuide = () => {
     setGuideActive(false);
     const id = guideCh?.id;
@@ -244,7 +255,17 @@ export function LiveView(p: Props) {
   const base = group === FAV ? favs : group === RECENT ? p.recents : group === ARCHIVE ? archive : group === ALL ? p.channels : groups.find((g) => g.name === group)?.channels ?? [];
   const guide = useContext(GuideContext);
   const index = useMemo(() => new ChannelSearch(base, guide.data, guide.now), [base, guide.data, Math.floor(guide.now / 60_000)]);
-  const found = useMemo(() => (settled.trim() === "" ? base : index.search(settled)), [base, index, settled]);
+  // The search runs in short slices (the remote and the picture stay alive: one pass over thousands of names is seconds on a TV);
+  // the list on screen stays until the answer is ready.
+  const [answer, setAnswer] = useState<{ q: string; list: Channel[] } | null>(null);
+  useEffect(() => {
+    const q = settled.trim();
+    if (q === "") { setAnswer(null); return; }
+    let live = true;
+    index.searchSliced(q, () => new Promise<void>((r) => { setTimeout(r, 2); }), () => !live).then((list) => { if (live && list) setAnswer({ q, list }); });
+    return () => { live = false; };
+  }, [index, settled]);
+  const found = settled.trim() === "" ? base : (answer ? answer.list : base);
   const shown = useMemo(() => {
     if (sort === "provider" || sort === "number" || settled.trim() !== "") return found;
     if (sort === "recent") {
@@ -357,7 +378,8 @@ export function LiveView(p: Props) {
       if (document.querySelector(".st-popup-layer[data-modal]")) return; // the text entry's own Back
       if (menu !== null) { e.stopPropagation(); e.preventDefault(); closeMenu(); return; }
       // The column beside the list closes on Back wherever the remote is (LiveGuideSide BackHandler); in it, it answers itself.
-      if (compact && guideCh && !catsOpen && !document.querySelector("[data-modal]")) { e.stopPropagation(); e.preventDefault(); setGuideActive(false); setGuideCh(null); setTimeout(() => focusCurrentRow(), 30); return; }
+      // Off: the same, but in the column itself Back is answered there (its poster first).
+      if (!cols && guideCh && !catsOpen && (compact || !guideActive) && !document.querySelector("[data-modal]")) { e.stopPropagation(); e.preventDefault(); closeGuide(); return; }
       const inCats = !!(document.activeElement as HTMLElement | null)?.closest(".home-cats");
       if (!(catsOpen && inCats)) return;
       e.stopPropagation(); e.preventDefault();
@@ -366,7 +388,7 @@ export function LiveView(p: Props) {
     };
     document.addEventListener("keydown", onKey, true);
     return () => document.removeEventListener("keydown", onKey, true);
-  }, [catsOpen, catQuery, menu, shown, preview, catLayer, guideCh, compact]);
+  }, [catsOpen, catQuery, menu, shown, preview, catLayer, guideCh, compact, cols, guideActive]);
 
   // The preview follows the cursor only after it has rested on a channel: listing fast must not open a stream per row.
   const onFocusChannel = (c: Channel) => {
@@ -376,7 +398,9 @@ export function LiveView(p: Props) {
     focusedRef.current = c;
     // The middle column always shows the programme of the channel the cursor rests on (#760).
     // Compact: the column opens only on a tap (see onSchedule), it does not follow the finger's focus.
-    if (!compact) { clearTimeout(guideFollow.current); guideFollow.current = setTimeout(() => setGuideCh(c), 150); }
+    if (cols) { clearTimeout(guideFollow.current); guideFollow.current = setTimeout(() => setGuideCh(c), 150); }
+    // Off: a programme already open follows the list (Android LiveScreen: guideChannel = channel).
+    else if (!compact && guideCh && guideCh.id !== c.id) setGuideCh(c);
     setAway(!!preview && c.id !== preview.id);
     clearTimeout(timer.current);
     timer.current = setTimeout(() => setDwelled(c), DWELL_MS);
@@ -440,7 +464,13 @@ export function LiveView(p: Props) {
   // A row: ◀ the categories, ▶ the schedule under the preview, ▼ past the last row nowhere (▲ past the first: the toolbar).
   const onListKey = (e: KeyboardEvent) => {
     if (!(e.target as HTMLElement).closest?.("[data-index]")) return;
-    if (key(e, "ArrowLeft", 37)) { stop(e); openCats(); return; }
+    if (key(e, "ArrowLeft", 37)) {
+      stop(e);
+      // Off: the programme beside is taken away first, back onto this channel (the categories on the next ◀).
+      if (!cols && !compact && guideCh) { setGuideCh(null); return; }
+      openCats();
+      return;
+    }
     if (key(e, "ArrowRight", 39)) {
       stop(e);
       if (focusedRef.current && !catsOpen) { clearTimeout(guideFollow.current); setGuideCh(focusedRef.current); setGuideActive(true); }
@@ -532,7 +562,7 @@ export function LiveView(p: Props) {
 
   return (
     <div class="screen home">
-      <div class={`home-side home-3col${catsOpen ? " pushed" : ""}${guideActive ? " guide-on" : ""}`} onFocusIn={() => { if (catsRef.current) setCatsOpen(false); }}>
+      <div class={`home-side${shape ? " home-3col" : ""}${catsOpen ? " pushed" : ""}${shape && guideActive ? " guide-on" : ""}`} onFocusIn={() => { if (catsRef.current) setCatsOpen(false); }}>
         <h1 class="home-title">{t("navLive")}</h1>
         <div class="home-list">
           {compact ? (
@@ -572,7 +602,7 @@ export function LiveView(p: Props) {
                 renderRow={(c, i) => (
                   <ChannelRow variant="live" channel={c} index={i} number={numbers.get(c.id)} favorite={isFavorite(p.favorites, c)}
                     previewing={sidePane && playing === c.id} opened={guideActive && (guideCh ?? preview)?.id === c.id} watched={watchedIds.has(c.id)}
-                    onOpen={(ch) => { clearTimeout(timer.current); if (compact) setGuideCh(null); p.onOpen(ch, shown); }} onFav={p.onFav} onFocus={onFocusChannel}
+                    onOpen={(ch) => { clearTimeout(timer.current); if (!cols) setGuideCh(null); p.onOpen(ch, shown); }} onFav={p.onFav} onFocus={onFocusChannel}
                     onSchedule={compact ? (ch) => { clearTimeout(timer.current); setGuideCh(ch); setGuideActive(true); } : undefined} />
                 )}
               />
@@ -582,17 +612,17 @@ export function LiveView(p: Props) {
         {/* Three columns (#760): channels, the programme of the one under the cursor, the picture. Hidden while the
             categories are open, so the sheet never covers it halfway. "Back" in it goes back to the channels.
             Compact: the column opens only on a tap (a finger has no ▶ key) and is closed with its own button. */}
-        {(compact ? guideCh : (guideCh ?? preview)) && !catsOpen ? (
-          <GuideSide channel={(guideCh ?? preview) as Channel} art={artSettings} onClose={leaveGuide} onLeave={leaveGuide} active={guideActive} onLine={setLineProg}
-            onWatch={(c) => { setGuideActive(false); if (compact) setGuideCh(null); clearTimeout(timer.current); p.onOpen(c, shown); }}
-            onArchive={(c, prog) => { setGuideActive(false); if (compact) setGuideCh(null); p.onArchive?.(c, prog, shown); }}
+        {(cols ? (guideCh ?? preview) : guideCh) && !catsOpen ? (
+          <GuideSide channel={(guideCh ?? preview) as Channel} art={artSettings} onClose={cols ? leaveGuide : closeGuide} onLeave={leaveGuide} active={guideActive} onLine={setLineProg}
+            onWatch={(c) => { setGuideActive(false); if (!cols) setGuideCh(null); clearTimeout(timer.current); p.onOpen(c, shown); }}
+            onArchive={(c, prog) => { setGuideActive(false); if (!cols) setGuideCh(null); p.onArchive?.(c, prog, shown); }}
             onUpcoming={(c, prog) => p.onUpcoming?.(c, prog, shown)} />
         ) : null}
         {sidePane ? (
           <PreviewPane channel={p.paused ? null : preview} away={away} settings={p.settings}
             number={preview ? numbers.get(preview.id) : undefined}
             onBack={() => focusCurrentRow()}
-            onProgramme={(c, prog) => p.onUpcoming?.(c, prog, shown)} prog={guideActive ? lineProg : null}
+            onProgramme={(c, prog) => p.onUpcoming?.(c, prog, shown)} prog={cols && guideActive ? lineProg : null}
             onGuide={compact && preview ? () => { setGuideCh(preview); setGuideActive(true); } : undefined} />
         ) : null}
       </div>

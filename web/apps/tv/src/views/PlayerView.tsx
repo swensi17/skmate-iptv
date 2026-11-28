@@ -569,6 +569,8 @@ export function PlayerView(p: Props) {
       previous: () => zap(-1),
       last: goPrevious,
       pause: () => { playPause(); wake(); },
+      // 2.7.2 "Description": the programme on air, its whole text.
+      describe: () => setDialog("about"),
       nothing: () => undefined,
       ...(canScrub ? { rewind: () => scrub(true, rep, LIVE_SCRUB_STEP_SEC), forward: () => scrub(false, rep, LIVE_SCRUB_STEP_SEC) } : {}),
     };

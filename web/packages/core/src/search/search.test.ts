@@ -105,3 +105,20 @@ describe("SearchIndex", () => {
     expect(index.search("   ")).toEqual([]);
   });
 });
+
+describe("SearchIndex.searchSliced", () => {
+  const names = Array.from({ length: 3000 }, (_, i) => (i % 7 === 0 ? `Бокс ТВ ${i}` : `Канал ${i}`));
+  it("gives the same answer as search, and lets the screen breathe on the way", async () => {
+    const idx = new SearchIndex(names, (n) => n);
+    let pauses = 0;
+    const got = await idx.searchSliced("бокс", async () => { pauses++; }, { sliceMs: 0 });
+    expect(got?.map((r) => r.item)).toEqual(idx.search("бокс").map((r) => r.item));
+    expect(pauses).toBeGreaterThan(10);
+  });
+  it("stops with null when another query was asked meanwhile", async () => {
+    const idx = new SearchIndex(names, (n) => n);
+    let stop = false;
+    const got = await idx.searchSliced("бокс", async () => { stop = true; }, { sliceMs: 0, cancelled: () => stop });
+    expect(got).toBeNull();
+  });
+});

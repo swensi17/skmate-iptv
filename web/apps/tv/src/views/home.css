@@ -106,6 +106,8 @@ button.lrow { position: relative; display: flex; align-items: center; width: 100
 .lrow-text { flex: 1 1 0%; min-width: 0; display: flex; flex-direction: column; }
 .lrow-name, .lrow-prog { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .lrow-name { font-size: 23px; font-weight: 700; color: var(--st-text); }
+/* 2.7.2: the archive tag sits in the row's top corner; the name stops short of it (LiveStage.kt ARCHIVE_TAG_ROOM 70). */
+.lrow.has-arch .lrow-name { margin-right: 70px; }
 .lrow-prog { margin-top: 2px; font-size: 18px; font-weight: 400; color: var(--st-muted); }
 .lrow:focus .lrow-prog { color: var(--st-fx-line); }
 .mq-tail { opacity: 0.6; }
@@ -175,8 +177,8 @@ button.lrow { position: relative; display: flex; align-items: center; width: 100
 .hp-progress { display: flex; align-items: center; }
 .hp-progress > .st-progress { flex: 1 1 0%; }
 .hp-left { flex: none; margin-left: 16px; font-size: 17px; color: var(--st-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
-.hp-desc { padding-top: 18px; font-size: 19px; line-height: 1.55; color: #ccd6d2;
-  display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+/* 2.7.2: what is on air is told whole, never cut with "…". */
+.hp-desc { padding-top: 18px; font-size: 19px; line-height: 1.55; color: #ccd6d2; }
 :root[data-theme="light"] .hp-desc { color: var(--st-body); }
 /* Next and later: one line each, 20 px; next with the accent time and full-colour title, the rest muted. Max 240 high. */
 .hp-sched { margin: 18px 12px 40px -12px; }
@@ -270,7 +272,9 @@ button.home-cat:focus, button.home-cat:focus > .st-icon, button.home-cat:focus .
 .gs-day { display: flex; flex-direction: column; align-items: flex-start; padding: 8px 12px; border: 0; border-radius: 10px; background: none; color: rgba(255, 255, 255, .6); font-family: inherit; outline: none; text-align: left; }
 .gs-day.today { color: var(--st-blue); }
 .gs-day.on { background: rgba(255, 255, 255, .1); color: #fff; }
-.gs-day:focus { background: #fff; color: #16181d; }
+.gs-day:focus, .gs-day.on:focus, .gs-day.today:focus { background: #fff; color: #16181d; }
+/* 2.7.2: one plate on the chosen day; a day that is both chosen and today keeps the blue text on it, not a second plate. */
+.gs-day.on.today:not(:focus) { color: var(--st-blue); }
 .gs-day-name { font-size: 17px; font-weight: 700; }
 .gs-day-date { font-size: 14px; opacity: .75; }
 
@@ -281,7 +285,6 @@ button.home-cat:focus, button.home-cat:focus > .st-icon, button.home-cat:focus .
 .home-3col .hp-card { height: 360px; border-radius: 22px; }
 .home-3col .hp-logo { width: 200px; height: 200px; margin: -100px 0 0 -100px; }
 .home-3col .hp-title { font-size: 32px; }
-.home-3col .hp-desc { -webkit-line-clamp: 6; }
 .home-3col .hp-sched, .home-3col .hp-hint { display: none; }
 .home-3col .gs-days { flex-basis: 120px; }
 .home-3col .gs-t { font-size: 18px; }

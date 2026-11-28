@@ -22,6 +22,33 @@ export class SearchIndex<T> {
     this.parts = this.names.map((n) => words(n));
   }
 
+  /**
+   * The same result as [search], worked out in short slices: [pause] is awaited after each [sliceMs] of work, so the screen
+   * and the remote stay alive while thousands of names are read (a TV takes seconds for one pass). Resolves null when
+   * [cancelled] turns true (another query was asked meanwhile).
+   */
+  async searchSliced(query: string, pause: () => Promise<void>, opts: { sliceMs?: number; cancelled?: () => boolean; limit?: number } = {}): Promise<Ranked<T>[] | null> {
+    const variants = QueryVariants.of(query);
+    if (variants.all.length === 0) return [];
+    const clock = (): number => (typeof performance !== "undefined" ? performance.now() : Date.now());
+    const budget = opts.sliceMs ?? 8;
+    const hits: Array<{ at: number; rank: number }> = [];
+    let at = 0;
+    while (at < this.names.length) {
+      if (opts.cancelled?.()) return null;
+      const t0 = clock();
+      do {
+        const rank = score(this.names[at] as string, variants.all, this.parts[at] as string[]);
+        if (rank !== null) hits.push({ at, rank });
+        at++;
+      } while (at < this.names.length && clock() - t0 < budget); // at least one name per turn, so a zero budget still ends
+      if (at < this.names.length) await pause();
+    }
+    if (opts.cancelled?.()) return null;
+    hits.sort((a, b) => a.rank - b.rank || a.at - b.at);
+    return hits.slice(0, opts.limit ?? Number.MAX_SAFE_INTEGER).map(({ at: i, rank }) => ({ item: this.items[i] as T, rank }));
+  }
+
   /** Items whose name answers the query, best matches first, ties keep their original order. */
   search(query: string, limit = Number.MAX_SAFE_INTEGER): Ranked<T>[] {
     const variants = QueryVariants.of(query);
