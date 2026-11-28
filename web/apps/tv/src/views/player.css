@@ -460,7 +460,6 @@
 
 /* 2.7.1: the remote in the programme: the list shrinks to big logos (with the archive mark), the programme takes the
    room up to the picture, whose size never changes. */
-.tp-cols .tp-list, .tp-cols .tp-mid { transition: width 260ms cubic-bezier(.4, 0, .2, 1), left 260ms cubic-bezier(.4, 0, .2, 1); }
 .tp-guide-on .tp-list { width: 160px; }
 .tp-guide-on .tp-mid { left: 184px; width: 924px; }
 .tp-guide-on .tp-title { visibility: hidden; }

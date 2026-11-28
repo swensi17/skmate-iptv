@@ -73,6 +73,8 @@ export interface GuideMeta {
   past?: number;
   /** Which channels the links were made for (a fingerprint of their ids): another set links again (2.6.9). */
   chans?: string;
+  /** A first guide still downloading when it was kept (#perf): shown at the next start, and downloaded again. */
+  partial?: boolean;
   /** Whether descriptions were written (dropped when the disk was full). */
   desc: boolean;
 }
@@ -205,10 +207,22 @@ export class GuideWriter implements GuideSink {
     return meta;
   }
 
+  /**
+   * Keeps what is written so far as the playlist's guide while there is no complete one: an app closed during its
+   * first download shows these channels at the next start instead of downloading everything again before any shows.
+   */
+  async keepDraft(links: Map<string, string>, logos: Map<string, string>, at: number, days: number): Promise<void> {
+    const current = await readGuideMeta(this.kv, this.pid);
+    if (current && !current.partial) return; // a complete guide stays until this one is committed
+    await this.kv.write([[metaKey(this.pid), { ...this.metaOf(links, logos, at, days), partial: true }]]);
+  }
+
   /** A download that failed or found nothing: what it wrote goes, the old guide stays. */
-  abort(): Promise<void> {
+  async abort(): Promise<void> {
     const pid = safe(this.pid);
-    return this.kv.write([], [prefixRange(`b|${pid}|${this.gen}|`), prefixRange(`x|${pid}|${this.gen}|`)]);
+    const current = await readGuideMeta(this.kv, this.pid).catch(() => null);
+    const drop = current?.partial && current.gen === this.gen ? [prefixRange(metaKey(this.pid))] : [];
+    return this.kv.write([], [prefixRange(`b|${pid}|${this.gen}|`), prefixRange(`x|${pid}|${this.gen}|`), ...drop]);
   }
 }
 

@@ -236,6 +236,7 @@ export function useGuide(channels: Channel[], active: PlaylistEntry | null, head
           const w = writer;
           if (!w || meta.current !== null || activeId.current !== pid) return;
           await w.flush();
+          await w.keepDraft(sofar.links, sofar.logos, at, days);
           await adopt(kv, pid, w.draft(sofar.links, sofar.logos, at, days));
           meta.current = null; // a draft: the stored guide is still missing until the commit
         },
@@ -253,6 +254,7 @@ export function useGuide(channels: Channel[], active: PlaylistEntry | null, head
             busy = true;
             try {
               await w.flush();
+              await w.keepDraft(sofar.links, sofar.logos, at, days);
               await adopt(kv, pid, w.draft(sofar.links, sofar.logos, at, days), true);
               meta.current = null; // a draft: the stored guide is still missing until the commit
             } catch { /* the next look, or the commit, shows it */ } finally { busy = false; }
@@ -297,7 +299,7 @@ export function useGuide(channels: Channel[], active: PlaylistEntry | null, head
     if (!restored || !active || channels.length === 0 || sources.length === 0) return;
     const m = meta.current;
     const persistent = kvRef.current?.persistent ?? false;
-    const stale = data.linked === 0 || (persistent && m === null)
+    const stale = data.linked === 0 || (persistent && m === null) || (m !== null && m.partial === true)
       // Settings › guide update (2.6.9): never by itself (0), once at each start (-1), or every N hours.
       || (settings.epgEvery > 0 && Date.now() - data.updatedAt > settings.epgEvery * 3_600_000)
       || (settings.epgEvery === -1 && !syncedThisRun)

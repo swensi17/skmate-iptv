@@ -198,3 +198,35 @@ describe("the in-memory guide (no IndexedDB)", () => {
     expect(GuideData.restore(moved.serialize(now)).of("1")[0]?.start).toBe(now);
   });
 });
+
+describe("a first guide kept while it downloads", () => {
+  it("shows at the next start, is replaced by the complete one, and goes with a failed download", async () => {
+    const kv = new MemoryKv();
+    const w = new GuideWriter(kv, "p9", 4000);
+    w.add("g0", { start: now, stop: now + H, title: "Частично" });
+    await w.flush();
+    await w.keepDraft(new Map([["0", "g0"]]), new Map(), now, 7);
+    const kept = (await readGuideMeta(kv, "p9"))!;
+    expect(kept.partial).toBe(true);
+    const cache = new GuideCache(kv, "p9", kept);
+    await cache.ensure([[now, now + H]], now);
+    expect(cache.snapshot(now).nowNext("0", now).now?.title).toBe("Частично");
+    const done = await w.commit(new Map([["0", "g0"]]), new Map(), now, 7);
+    expect(done.partial).toBeUndefined();
+    expect((await readGuideMeta(kv, "p9"))?.partial).toBeUndefined();
+    // a complete guide is never overwritten by a draft
+    const next = new GuideWriter(kv, "p9", 5000);
+    next.add("g0", { start: now, stop: now + H, title: "Другое" });
+    await next.flush();
+    await next.keepDraft(new Map([["0", "g0"]]), new Map(), now, 7);
+    expect((await readGuideMeta(kv, "p9"))?.gen).toBe(4000);
+    // a draft whose download failed goes with it
+    const kv2 = new MemoryKv();
+    const f = new GuideWriter(kv2, "p8", 6000);
+    f.add("g0", { start: now, stop: now + H, title: "x" });
+    await f.flush();
+    await f.keepDraft(new Map([["0", "g0"]]), new Map(), now, 7);
+    await f.abort();
+    expect(await readGuideMeta(kv2, "p8")).toBeNull();
+  });
+});

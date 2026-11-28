@@ -281,7 +281,6 @@ button.home-cat:focus, button.home-cat:focus > .st-icon, button.home-cat:focus .
 .home-3col .home-tool { padding-left: 12px; padding-right: 12px; }
 
 /* 2.7.1: the remote in the programme: the list shrinks to its logos, the programme takes the room; ◀ gives it back. */
-.home-3col .home-list, .home-3col > .gs { transition: width 260ms var(--st-ease), left 260ms var(--st-ease); }
 .home-3col.guide-on .home-list { width: 150px; }
 .home-3col.guide-on > .gs { left: 199px; width: 939px; }
 .home-3col .home-tools { transition: opacity 200ms var(--st-ease, ease), visibility 0s; }

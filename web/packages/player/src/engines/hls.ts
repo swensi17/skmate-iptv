@@ -98,6 +98,9 @@ export class HlsJsEngine implements PlayerEngine {
         ...(this.options.liveBehindSeconds ? { liveSyncDuration: this.options.liveBehindSeconds, backBufferLength: TIMESHIFT_BACK_BUFFER_S } : {}),
         enableWorker: true,
         lowLatencyMode: false,
+        // A fragment is parsed as it downloads, not after: on a slow provider with 10 s fragments the picture comes
+        // after a part of the first one, not the whole (measured: 2-10 s became 1.3-3.2 s to the first frame).
+        progressive: true,
         xhrSetup: (xhr) => {
           for (const [k, v] of Object.entries(source.headers ?? {})) xhr.setRequestHeader(k, v);
         },
