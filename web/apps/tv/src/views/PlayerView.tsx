@@ -471,7 +471,9 @@ export function PlayerView(p: Props) {
   }, [pendingAudio, tracks.audio]);
   const audioList = tracks.audio.length > 1 ? tracks.audio : renditions;
   // Samsung, a stream the page's decoder plays without telling its sound (no HLS playlist to read): AVPlay can.
-  const avSound = onTizen && engine === "native" && state === "playing" && audioList.length < 2 && !/\.m3u8(\?|$)/i.test(target.url);
+  // Any stream, HLS included (#917): a second sound muxed into the picture's own stream is listed by no playlist and
+  // switched by neither the page's decoder nor hls.js; Samsung's own player can.
+  const avSound = onTizen && engine !== "avplay" && state === "playing" && audioList.length < 2;
   const askSound = () => { setAvAsk(true); setEngineOverride("avplay"); };
   useEffect(() => {
     if (!avAsk || engine !== "avplay" || state !== "playing") return;
