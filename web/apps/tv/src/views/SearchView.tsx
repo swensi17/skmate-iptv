@@ -1,4 +1,5 @@
 import { hasArchive } from "@skmate/core";
+import { LoadingState } from "./Spinner";
 import { useContext, useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { SearchIndex, type Channel, type Movie, type Show } from "@skmate/core";
 import type { GuideData, Programme } from "@skmate/epg";
@@ -309,10 +310,10 @@ export function SearchView({ channels, onOpen, vod, onOpenVod, settings }: Props
             })}
           </div>
           {busy || (total === 0 && vodBusy) ? (
-            <div class="sr-busy"><div>{t("gssSearching")}</div><span class="sr-sweep"><i /></span></div>
+            <LoadingState title={t("gssSearching")} class="sr-loading" />
           ) : total === 0 ? (
             vodBusy ? (
-              <div class="sr-busy"><div>{t("gssSearching")}</div><span class="sr-sweep"><i /></span></div>
+              <LoadingState title={t("gssSearching")} class="sr-loading" />
             ) : (
               <div class="sr-none">
                 <div class="sr-none-t">{t("gssNothingFound", { q })}</div>

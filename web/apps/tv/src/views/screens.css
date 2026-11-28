@@ -227,3 +227,6 @@
 /* key parity home (Android): the schedule under the Search preview (Right on a channel row) */
 .sr-sched { margin: 10px 0 0 -8px; max-height: 190px; overflow-y: auto; }
 .sr-sched::-webkit-scrollbar { display: none; }
+
+/* The search results are on their way: the round spinner and one line, in the free space under the tabs (was a sweeping line). */
+.sr-loading.empty-idle { position: absolute; left: 57.6px; top: 250px; width: 761.4px; height: auto; }

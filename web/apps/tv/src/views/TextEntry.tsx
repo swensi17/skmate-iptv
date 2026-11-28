@@ -79,7 +79,7 @@ export function TextEntry(p: {
   if (p.plain && p.closing) return null;
   return (
     <OverSheet app>
-      <Popup top={keyboard} width={820} title={p.title} body={p.hint || undefined} onClose={p.onCancel} closing={p.closing}
+      <Popup top={keyboard || !!p.plain} width={820} title={p.title} body={p.hint || undefined} onClose={p.onCancel} closing={p.closing}
         buttons={p.plain ? undefined : (
           <>
             <Button small className="entry-cancel" id="entry-cancel" text={t("confirmCancel")} onClick={p.onCancel} />
