@@ -975,7 +975,7 @@ export const ru = {
   sa_player_zoom_fit_screen: "Вписать в экран",
   sa_player_zoom_force_16_9: "Принудительно 16:9",
   sa_player_zoom_force_4_3: "Принудительно 4:3",
-  sa_player_zoom_cinema: "Кино 2.39:1",
+  sa_player_zoom_force_2_39: "Принудительно 2.39:1",
   sa_player_zoom_original: "Исходный размер (1:1)",
   sa_player_zoom_stretch: "Растянуть",
   sa_profiles_change_pin: "Изменить PIN (пусто = сохранить текущий)",

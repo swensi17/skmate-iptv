@@ -9,7 +9,7 @@
  *   original one stream pixel per screen pixel, centred (larger pictures are cut, smaller ones float)
  *   16_9     the picture stretched into the largest 16:9 box that fits
  *   4_3      the same with 4:3
- *   2_39     a 2.39:1 film letterboxed inside the stream: enlarged until its picture fills the height, the sides cut
+ *   2_39     the same with 2.39:1 (a scope film), across the screen's width
  */
 
 export type ZoomMode = "fit" | "crop" | "stretch" | "original" | "16_9" | "4_3" | "2_39";
@@ -44,13 +44,10 @@ export function zoomLook(mode: ZoomMode, video: Size | null, box: Size, devicePe
       const k = video.w / Math.max(0.01, devicePerCss) / fitW;
       return { objectFit: "contain", scaleX: k, scaleY: k };
     }
-    case "2_39": {
-      const k = Math.max(1, box.h / (fitW / 2.39));
-      return { objectFit: "contain", scaleX: k, scaleY: k };
-    }
     case "16_9":
-    case "4_3": {
-      const target = mode === "16_9" ? 16 / 9 : 4 / 3;
+    case "4_3":
+    case "2_39": {
+      const target = mode === "16_9" ? 16 / 9 : mode === "4_3" ? 4 / 3 : 2.39;
       const w = target >= boxAspect ? box.w : box.h * target;
       const h = target >= boxAspect ? box.w / target : box.h;
       return { objectFit: "fill", scaleX: w / box.w, scaleY: h / box.h };

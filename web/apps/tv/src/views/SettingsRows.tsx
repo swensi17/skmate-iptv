@@ -90,7 +90,7 @@ const timeoutLabel = (n: number) => (n === 0 ? t("sa_common_never") : secs(n));
 
 const ZOOMS: Array<{ v: Settings["zoomMode"]; k: Key }> = [
   { v: "fit", k: "sa_player_zoom_fit_screen" }, { v: "crop", k: "sa_player_zoom_fill_crop" }, { v: "stretch", k: "sa_player_zoom_stretch" },
-  { v: "original", k: "sa_player_zoom_original" }, { v: "16_9", k: "sa_player_zoom_force_16_9" }, { v: "4_3", k: "sa_player_zoom_force_4_3" }, { v: "2_39", k: "sa_player_zoom_cinema" },
+  { v: "original", k: "sa_player_zoom_original" }, { v: "16_9", k: "sa_player_zoom_force_16_9" }, { v: "4_3", k: "sa_player_zoom_force_4_3" }, { v: "2_39", k: "sa_player_zoom_force_2_39" },
 ];
 const THEMES: Array<{ v: Settings["theme"]; k: Key }> = [
   { v: "system", k: "sa_settings_theme_system" }, { v: "dark", k: "sa_settings_theme_dark" }, { v: "light", k: "sa_settings_theme_light" },

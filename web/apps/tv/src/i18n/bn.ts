@@ -977,7 +977,7 @@ export const bn: Record<keyof typeof en, string> = {
   sa_player_zoom_fit_screen: "পর্দার সঙ্গে মানানসই",
   sa_player_zoom_force_16_9: "16:9 বাধ্যতামূলক করুন",
   sa_player_zoom_force_4_3: "4:3 বাধ্যতামূলক করুন",
-  sa_player_zoom_cinema: "2.39:1",
+  sa_player_zoom_force_2_39: "2.39:1 বাধ্যতামূলক করুন",
   sa_player_zoom_original: "আসল (1:1)",
   sa_player_zoom_stretch: "প্রসারিত করুন",
   sa_profiles_change_pin: "PIN পরিবর্তন করুন (খালি রাখলে আগেরটি থাকবে)",

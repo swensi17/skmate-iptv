@@ -977,7 +977,7 @@ export const ko: Record<keyof typeof en, string> = {
   sa_player_zoom_fit_screen: "화면에 맞춤",
   sa_player_zoom_force_16_9: "16:9 강제 적용",
   sa_player_zoom_force_4_3: "4:3 강제 적용",
-  sa_player_zoom_cinema: "2.39:1",
+  sa_player_zoom_force_2_39: "2.39:1 강제 적용",
   sa_player_zoom_original: "원본 (1:1)",
   sa_player_zoom_stretch: "늘이기",
   sa_profiles_change_pin: "PIN 변경(비워 두면 유지)",

@@ -977,7 +977,7 @@ export const da: Record<keyof typeof en, string> = {
   sa_player_zoom_fit_screen: "Tilpas til skærmen",
   sa_player_zoom_force_16_9: "Tving 16:9",
   sa_player_zoom_force_4_3: "Tving 4:3",
-  sa_player_zoom_cinema: "2.39:1",
+  sa_player_zoom_force_2_39: "Tving 2.39:1",
   sa_player_zoom_original: "Original (1:1)",
   sa_player_zoom_stretch: "Stræk",
   sa_profiles_change_pin: "Skift PIN (tomt felt = behold)",

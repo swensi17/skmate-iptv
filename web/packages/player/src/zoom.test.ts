@@ -98,10 +98,10 @@ describe("ItemPrefsStore (PlaybackPrefsStore)", () => {
     expect(() => broken.rememberZoom("x", "fit")).not.toThrow();
     expect(new ItemPrefsStore(() => null).get("x")).toBeNull();
   });
-  it("cinema 2.39:1 fills the height with the film inside a 16:9 stream", () => {
+  it("forces 2.39:1 across the width", () => {
     const l = zoomLook("2_39", { w: 1920, h: 1080 }, { w: 1920, h: 1080 });
-    expect(l.objectFit).toBe("contain");
-    expect(l.scaleX).toBeCloseTo(1080 / (1920 / 2.39), 4);
-    expect(l.scaleY).toBe(l.scaleX);
+    expect(l.objectFit).toBe("fill");
+    expect(l.scaleX).toBe(1);
+    expect(l.scaleY).toBeCloseTo((1920 / 2.39) / 1080, 4);
   });
 });

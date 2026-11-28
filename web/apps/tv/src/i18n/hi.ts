@@ -977,7 +977,7 @@ export const hi: Record<keyof typeof en, string> = {
   sa_player_zoom_fit_screen: "स्क्रीन में फ़िट करें",
   sa_player_zoom_force_16_9: "16:9 पर फ़ोर्स करें",
   sa_player_zoom_force_4_3: "4:3 पर फ़ोर्स करें",
-  sa_player_zoom_cinema: "2.39:1",
+  sa_player_zoom_force_2_39: "2.39:1 पर फ़ोर्स करें",
   sa_player_zoom_original: "मूल (1:1)",
   sa_player_zoom_stretch: "स्ट्रेच करें",
   sa_profiles_change_pin: "PIN बदलें (खाली छोड़ें = मौजूदा PIN रखें)",
