@@ -243,10 +243,21 @@ export function accentColor(s: Pick<Settings, "accent" | "accentHex">, dark: boo
   return ACCENTS[s.accent][dark ? "dark" : "light"];
 }
 
+const COLUMNS_RESET_KEY = "skmate.columns272";
+
 export function load(): Settings {
   try {
     const raw = localStorage.getItem(KEY);
-    return raw ? { ...DEFAULTS, ...(JSON.parse(raw) as Partial<Settings>) } : DEFAULTS;
+    if (!raw) return DEFAULTS;
+    const stored = JSON.parse(raw) as Partial<Settings>;
+    // Android 2.7.2 turned the three columns off by default. The whole settings object was saved with the old default (on),
+    // so a stored "on" cannot be told from a choice: once, it is put back to the new default; the choice made after this holds.
+    if (localStorage.getItem(COLUMNS_RESET_KEY) === null) {
+      try { localStorage.setItem(COLUMNS_RESET_KEY, "1"); } catch { /* no storage */ }
+      stored.playerColumns = DEFAULTS.playerColumns;
+      save({ ...DEFAULTS, ...stored });
+    }
+    return { ...DEFAULTS, ...stored };
   } catch {
     return DEFAULTS; // storage can be unavailable or hold something else: start from the defaults
   }
