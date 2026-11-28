@@ -43,6 +43,8 @@ export function PreviewPane(p: {
   onBack?: () => void;
   /** OK on a programme of the schedule. */
   onProgramme?: (c: Channel, programme: Programme) => void;
+  /** Compact only: a button that opens the channel's whole guide and archive (a finger has no ▶ key). */
+  onGuide?: () => void;
 }) {
   const { channel, away, settings } = p;
   const { data, now } = useContext(GuideContext);
@@ -122,6 +124,11 @@ export function PreviewPane(p: {
         <div class="hp-ring" />
       </div>
       <div class="hp-info">
+        {p.onGuide && channel ? (
+          <button class="st-focusable st-tool boxed hp-guide" data-focus="hp-guide" onClick={p.onGuide}>
+            <StageIcon name="epg" size={20} /><span>{t("navGuide")}</span>
+          </button>
+        ) : null}
         {channel && !nn?.now ? (textWait ? <TextSkeleton /> : <NoGuide />) : null}
         {nn?.now ? (
           <>

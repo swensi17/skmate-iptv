@@ -2,10 +2,10 @@ import { isFavorite } from "../state/favorites";
 import { GuideSide } from "./GuideSide";
 import type { ArtSettings } from "../state/tmdb";
 import { Fragment } from "preact";
-import { useContext, useEffect, useMemo, useRef, useState } from "preact/hooks";
+import { useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "preact/hooks";
 import { groupsOf, type Channel } from "@skmate/core";
 import type { Programme } from "@skmate/epg";
-import { focusFirst, isBack, createPager, isMenuKey, Menu, MenuItem, pagingDirection, Presence, VirtualList } from "@skmate/ui";
+import { focusFirst, Icon, isBack, createPager, isMenuKey, Menu, MenuItem, pagingDirection, Presence, useLayout, VirtualList } from "@skmate/ui";
 import { arrangeCategories, hideCategory, loadCategories, restoreAll, saveCategories, type CategoryState } from "../state/categories";
 import { CategoryMenu, MoveOrder, RestoreConfirm } from "./CategoryMenu";
 import { t } from "../i18n";
@@ -21,6 +21,7 @@ import { ChannelRow } from "./ChannelRow";
 import { PreviewPane } from "./PreviewPane";
 import { SearchEntry } from "./EntryRow";
 import { SIcon } from "./SettingsKit";
+import { holdProps, holdSpent } from "./longPress";
 import "./home.css";
 
 /*
@@ -36,6 +37,10 @@ const RECENT = "~recent";
 const ARCHIVE = "~archive";
 /** Row 92 + the 8 between rows (LiveScreen.kt spacedBy(8), LiveStage.kt height 92). */
 const ROW_PITCH = 100;
+/** Compact: one row's pitch (a finger needs 48 and more; the logo and two lines fit in 64). */
+const ROW_C = 64;
+/** Compact: the preview and the programme go beside the list from this width (a 7" tablet in landscape is 960). */
+const WIDE_MIN = 900;
 /** The list runs from 186 (toolbar 118 + 48 + 20) to the bottom of the stage. */
 const LIST_TOP = 186;
 const LIST_HEIGHT = 972 - LIST_TOP;
@@ -163,6 +168,20 @@ interface Props {
 }
 
 export function LiveView(p: Props) {
+  // Compact (tablet, phone): a list that measures itself, category chips, the preview only when there is room beside the list.
+  const { compact, orient } = useLayout();
+  const [wideWin, setWideWin] = useState(() => window.innerWidth >= WIDE_MIN);
+  useEffect(() => {
+    if (!compact) return;
+    const f = () => setWideWin(window.innerWidth >= WIDE_MIN);
+    f();
+    window.addEventListener("resize", f);
+    return () => window.removeEventListener("resize", f);
+  }, [compact]);
+  const sidePane = !compact || (orient === "landscape" && wideWin);
+  const rowsBox = useRef<HTMLDivElement>(null);
+  const chipsBox = useRef<HTMLDivElement>(null);
+  const [rowsH, setRowsH] = useState(LIST_HEIGHT);
   const groups = useMemo(() => groupsOf(p.channels), [p.channels]);
   const favs = useMemo(() => p.channels.filter((c) => isFavorite(p.favorites, c)), [p.channels, p.favorites]);
   const numbers = useMemo(() => new Map(p.channels.map((c, i) => [c.id, i + 1])), [p.channels]);
@@ -406,7 +425,8 @@ export function LiveView(p: Props) {
   // leaves the toolbar for the stage beside it (LiveScreen.kt focus rules).
   const onToolsKey = (e: KeyboardEvent) => {
     const id = (document.activeElement as HTMLElement | null)?.dataset.focus;
-    if (key(e, "ArrowUp", 38)) { stop(e); return; }
+    // Compact: ▲ from the toolbar reaches the category chips (the TV has none: ▲ goes nowhere).
+    if (key(e, "ArrowUp", 38)) { stop(e); if (compact) focusFirst(document, `chip:${group}`); return; }
     if (key(e, "ArrowDown", 40)) { stop(e); if (!focusCurrentRow()) focusFirst(document); return; }
     if (key(e, "ArrowLeft", 37) && id === "live-search") { stop(e); openCats(); return; }
     if (key(e, "ArrowRight", 39) && id === "live-more") { stop(e); }
@@ -420,7 +440,11 @@ export function LiveView(p: Props) {
       if (focusedRef.current && !catsOpen) { setGuideCh(focusedRef.current); setInGuide(true); setGuideRefocus((n) => n + 1); }
       return;
     }
-    if (key(e, "ArrowDown", 40)) stop(e); // the list handles every Down it can; this one is past the last row
+    if (key(e, "ArrowDown", 40)) {
+      stop(e); // the list handles every Down it can; this one is past the last row
+      // Compact portrait: the menu is the bar under the list, so ▼ past the last row goes to it.
+      if (compact && orient === "portrait") (document.querySelector<HTMLElement>(".tb-rail .active") ?? document.querySelector<HTMLElement>(".tb-rail [data-focus]"))?.focus();
+    }
   };
   // The categories: ▲/▼ walk them in order and stop at the ends, ▶ closes the sheet; ◀ is left to the app (the menu).
   const catPress = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -476,6 +500,26 @@ export function LiveView(p: Props) {
     else if (bottom > box.scrollTop + box.clientHeight) box.scrollTop = bottom - box.clientHeight;
   };
   const listKey = `${group}|${settled}|${sort}`;
+  // Compact: the list is as tall as the room it has (the window changes with rotation and the soft keyboard).
+  useLayoutEffect(() => {
+    if (!compact) return;
+    let late: ReturnType<typeof setTimeout> | undefined;
+    const measure = () => { const h = rowsBox.current?.clientHeight ?? 0; if (h > 0) setRowsH(h); };
+    // Once at once, once more after the layout attributes (orientation) have followed a rotation.
+    const onSize = () => { measure(); clearTimeout(late); late = setTimeout(measure, 150); };
+    onSize();
+    window.addEventListener("resize", onSize);
+    window.addEventListener("orientationchange", onSize);
+    return () => { window.removeEventListener("resize", onSize); window.removeEventListener("orientationchange", onSize); clearTimeout(late); };
+  }, [compact, orient, sidePane, listKey, p.channels.length === 0]);
+  // Compact: the chosen category's chip stays in view.
+  useEffect(() => {
+    if (!compact) return;
+    const box = chipsBox.current;
+    const el = box?.querySelector<HTMLElement>(`[data-focus="chip:${group}"]`);
+    if (box && el) box.scrollLeft = Math.max(0, el.offsetLeft - (box.clientWidth - el.offsetWidth) / 2);
+  }, [compact, group, groupItems.length]);
+  const chooseChip = (key: string) => { if (key !== group) { memory.channel = null; setGroup(key); } };
   const playing = p.settings.preview && !p.paused ? preview?.id ?? null : null;
   const empty = shown.length === 0;
   const emptyText = settled.trim() !== "" ? t("homeNoChannelsFound", { q: settled.trim() }) : p.channels.length === 0 ? t("homeNoPlaylist") : t("homeNoChannelsHere");
@@ -485,35 +529,45 @@ export function LiveView(p: Props) {
       <div class={`home-side${catsOpen ? " pushed" : ""}`} onFocusIn={() => { if (catsRef.current) setCatsOpen(false); }}>
         <h1 class="home-title">{t("navLive")}</h1>
         <div class="home-list">
+          {compact ? (
+            <div class="home-chips" ref={chipsBox} role="tablist" aria-label={t("homeCategories")}>
+              <button class="st-focusable home-chip all" data-focus="chip-all" aria-label={t("homeCategories")} onClick={openCats}><Icon name="list" size={24} /></button>
+              {groupItems.map((g) => (
+                <button key={g.key} class={`st-focusable home-chip${g.key === group ? " sel" : ""}`} data-focus={`chip:${g.key}`} role="tab" aria-selected={g.key === group}
+                  onClick={() => chooseChip(g.key)}><span>{g.label}</span></button>
+              ))}
+            </div>
+          ) : null}
           <div class="home-tools" onKeyDown={onToolsKey as unknown as (e: Event) => void} onFocusIn={() => clearTimeout(timer.current)}>
             <SearchEntry id="live-search" value={query} placeholder={t("homeSearchIn", { name: groupLabel })}
               entryTitle={t("homeSearchIn", { name: groupLabel })} entryHint={t("searchChannelsHint")}
               count={(q) => index.search(q).length} results=".home-rows .vlist"
               onDone={(v) => { setQuery(v); setSettled(v); }} />
-            <button class="st-focusable st-tool boxed home-tool" data-focus="live-sort" onClick={() => openMenu("sort", "live-sort")}>
+            <button class="st-focusable st-tool boxed home-tool" data-focus="live-sort" aria-label={t("homeSortTitle")} onClick={() => openMenu("sort", "live-sort")}>
               <StageIcon name="sort" size={20} /><span class="st-tool-value">{sort === "provider" ? t("homeProvider") : t(SORT_TEXT[sort].name)}</span>
             </button>
-            <button class="st-focusable st-tool boxed home-tool" data-focus="live-guide" onClick={() => p.onGuideView?.()}>
+            <button class="st-focusable st-tool boxed home-tool" data-focus="live-guide" aria-label={t("homeGuideView")} onClick={() => p.onGuideView?.()}>
               <StageIcon name="grid" size={20} /><span>{t("homeGuideView")}</span>
             </button>
             <button class="st-focusable st-tool boxed home-tool" data-focus="live-more" aria-label={t("homeMoreTitle")} onClick={() => openMenu("more", "live-more")}>
               <StageIcon name="more" size={20} />
             </button>
           </div>
-          <div class="home-rows" key={listKey} onKeyDown={onListKey as unknown as (e: Event) => void}>
+          <div class="home-rows" key={listKey} ref={rowsBox} onKeyDown={onListKey as unknown as (e: Event) => void}>
             {p.channels.length === 0 ? <ListSkeleton /> : empty ? (
               <div class="home-empty">
                 <StageIcon name="tv" size={72} />
                 <div class="home-empty-text">{emptyText}</div>
               </div>
             ) : (
-              <VirtualList
-                items={shown} rowHeight={ROW_PITCH} height={LIST_HEIGHT} pageSize={10} room={1} endJump={group !== ALL} initialIndex={Math.max(0, back)}
+              <VirtualList key={compact ? rowsH : 0}
+                items={shown} rowHeight={compact ? ROW_C : ROW_PITCH} height={compact ? rowsH : LIST_HEIGHT} pageSize={10} room={1} endJump={group !== ALL} initialIndex={Math.max(0, back)}
                 idOf={(c) => `ch-${c.id}`}
                 renderRow={(c, i) => (
                   <ChannelRow variant="live" channel={c} index={i} number={numbers.get(c.id)} favorite={isFavorite(p.favorites, c)}
-                    previewing={playing === c.id} watched={watchedIds.has(c.id)}
-                    onOpen={(ch) => { clearTimeout(timer.current); setGuideCh(null); p.onOpen(ch, shown); }} onFav={p.onFav} onFocus={onFocusChannel} />
+                    previewing={sidePane && playing === c.id} watched={watchedIds.has(c.id)}
+                    onOpen={(ch) => { clearTimeout(timer.current); setGuideCh(null); p.onOpen(ch, shown); }} onFav={p.onFav} onFocus={onFocusChannel}
+                    onSchedule={compact ? (ch) => { clearTimeout(timer.current); setGuideCh(ch); setInGuide(true); setGuideRefocus((n) => n + 1); } : undefined} />
                 )}
               />
             )}
@@ -525,17 +579,25 @@ export function LiveView(p: Props) {
             onArchive={(c, prog) => { setGuideCh(null); setInGuide(false); p.onArchive?.(c, prog, shown); }}
             onUpcoming={(c, prog) => p.onUpcoming?.(c, prog, shown)} />
         ) : null}
-        <PreviewPane channel={p.paused ? null : preview} away={away} settings={p.settings}
-          number={preview ? numbers.get(preview.id) : undefined}
-          onBack={() => focusCurrentRow()}
-          onProgramme={(c, prog) => p.onUpcoming?.(c, prog, shown)} />
+        {sidePane ? (
+          <PreviewPane channel={p.paused ? null : preview} away={away} settings={p.settings}
+            number={preview ? numbers.get(preview.id) : undefined}
+            onBack={() => focusCurrentRow()}
+            onProgramme={(c, prog) => p.onUpcoming?.(c, prog, shown)}
+            onGuide={compact && preview ? () => { setGuideCh(preview); setInGuide(true); setGuideRefocus((n) => n + 1); } : undefined} />
+        ) : null}
       </div>
 
+      {/* Compact: a tap outside the sheet closes it. */}
+      {compact ? <div class={`home-cats-scrim${catsOpen ? " open" : ""}`} onClick={closeCats} aria-hidden="true" /> : null}
       {/* Built once and only slid in and out (2.6.3): no long first frame on ◀, the list and the panel move as one. */}
       {(
           <aside class={`home-cats${catsOpen ? " open" : ""}`} aria-hidden={!catsOpen} onKeyDown={onCatsKey as unknown as (e: Event) => void} onKeyUp={onCatsKeyUp as unknown as (e: Event) => void}
             onFocusIn={onCatsFocus as unknown as (e: Event) => void} onFocusOut={() => setCatFocus(null)}>
-            <div class="home-cats-title">{t("homeCategories")}</div>
+            <div class="home-cats-title">
+              {t("homeCategories")}
+              {compact ? <button class="st-focusable home-cats-close" data-focus="cats-close" aria-label={t("sa_settings_close")} onClick={closeCats}><Icon name="close" size={24} /></button> : null}
+            </div>
             <div class="home-cats-list" ref={catList}>
               {catSearch ? (
                 <div class="home-cats-search">
@@ -550,7 +612,9 @@ export function LiveView(p: Props) {
                   <Fragment key={g.key}>
                     {i === firstGroup && catQuery.trim() === "" ? <div class="home-cats-head" key="__groups__">{t("homeGroups").toUpperCase()}</div> : null}
                     <button class={`st-focusable home-cat${g.key === group ? " sel" : ""}`} data-focus={`g:${g.key}`}
-                      aria-pressed={g.key === group} onClick={() => pickCategory(g.key)}>
+                      {...(compact && hasCatMenu(g.key) ? holdProps(() => setCatLayer({ kind: "menu", name: g.key })) : {})}
+                      onContextMenu={compact && hasCatMenu(g.key) ? ((e: Event) => { e.preventDefault(); setCatLayer({ kind: "menu", name: g.key }); }) : undefined}
+                      aria-pressed={g.key === group} onClick={() => { if (holdSpent()) return; pickCategory(g.key); }}>
                       <GroupIcon id={g.key} size={28} />
                       <span class="home-cat-name">{g.label}</span>
                       <span class="home-cat-count">{g.count.toLocaleString(document.documentElement.lang || undefined)}</span>

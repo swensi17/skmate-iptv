@@ -2,7 +2,7 @@ import { Ticks } from "./views/Spinner";
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { archiveUrl, canRemind, clampTiles, nextEpisode, previousEpisode, openGrid, type Grid, type Episode, type Movie, type Show, hashPin, validPin, verifyPin, visibleTo, type Channel, type Reminder } from "@skmate/core";
 import type { Programme } from "@skmate/epg";
-import { Icon, installDpad, Presence, watchFrames, type IconName } from "@skmate/ui";
+import { Icon, installDpad, Presence, useLayout, watchFrames, type IconName } from "@skmate/ui";
 import { applyLanguage, loadLanguage, t, type Key } from "./i18n";
 import skLogo from "./assets/skmate-sk.png";
 import { channelKey, favKey, loadFavorites, migrateFavorites, saveFavorites, toggle } from "./state/favorites";
@@ -143,6 +143,9 @@ export function App() {
     return () => document.removeEventListener("focusin", away);
   }, [sheet]);
   const full = useFullScreen();
+  // Compact (tablet, phone): the menu is a bar that is always there, at the bottom in portrait and at the side in landscape.
+  const { compact, orient } = useLayout();
+  const bottomBar = compact && orient === "portrait";
   // Updates wait for the picture to end: nothing interrupts a channel.
   const update = useUpdates({ auto: settings.autoUpdate, onStart: settings.updateOnStart, every: settings.updateEvery, window: settings.updateWindow }, playing !== null);
   const [sheetPage, setSheetPage] = useState<Page | null>(null);
@@ -653,12 +656,12 @@ export function App() {
       {/* After the page in the document, so a plain "first control" is never in the menu. The side menu (StageRail.kt, TV-box): out of sight until ◀ brings the focus to it; then an 84-wide strip at the
           left edge, the screen pushed right by its width. "sk" on top, the places in the middle, the profile at the bottom. */}
       <nav
-        class={`tb-rail${railOpen ? " open" : ""}`} data-collapsed={railOpen ? undefined : ""}
+        class={`tb-rail${railOpen ? " open" : ""}`} data-collapsed={railOpen || compact ? undefined : ""}
         onFocusIn={(e) => {
           setRailOpen(true);
-          // Every entry from the screen lands on the place open now, not on whatever icon lines up.
+          // Every entry from the screen lands on the place open now, not on whatever icon lines up (a finger's tap stays on what it hit).
           const from = (e as FocusEvent).relatedTarget as Node | null;
-          if (!from || !(e.currentTarget as HTMLElement).contains(from)) {
+          if ((!from || !(e.currentTarget as HTMLElement).contains(from)) && !(compact && document.documentElement.dataset.input === "touch")) {
             const target = (e.currentTarget as HTMLElement).querySelector<HTMLElement>(`[data-focus="${railTarget()}"]`);
             if (target && target !== e.target) target.focus();
           }
@@ -666,11 +669,14 @@ export function App() {
         onKeyDown={(e) => {
           const k = e.key;
           const code = e.keyCode;
-          // ▶ always leaves for the screen, back to where the viewer was; ◀ goes nowhere.
-          if (k === "ArrowRight" || code === 39) { e.preventDefault(); e.stopPropagation(); closeMenuToContent(); return; }
-          if (k === "ArrowLeft" || code === 37) { e.preventDefault(); e.stopPropagation(); return; }
+          const up = k === "ArrowUp" || code === 38, down = k === "ArrowDown" || code === 40;
+          const left = k === "ArrowLeft" || code === 37, right = k === "ArrowRight" || code === 39;
+          // ▶ always leaves for the screen, back to where the viewer was; ◀ goes nowhere. (The bottom bar of a tablet in
+          // portrait lies along the foot of the screen: ▲ leaves, ◀ ▶ walk the items.)
+          if (bottomBar ? up : right) { e.preventDefault(); e.stopPropagation(); closeMenuToContent(); return; }
+          if (bottomBar ? down : left) { e.preventDefault(); e.stopPropagation(); return; }
           // ▲/▼ walk the items in order and stop at the ends (never into the screen beside the menu).
-          const dir = k === "ArrowUp" || code === 38 ? -1 : k === "ArrowDown" || code === 40 ? 1 : 0;
+          const dir = bottomBar ? (left ? -1 : right ? 1 : 0) : up ? -1 : down ? 1 : 0;
           if (dir === 0) return;
           e.preventDefault(); e.stopPropagation();
           const all = Array.from((e.currentTarget as HTMLElement).querySelectorAll<HTMLElement>("[data-focus]"));
@@ -679,24 +685,26 @@ export function App() {
         }}
         onFocusOut={(e) => { if (!(e.currentTarget as HTMLElement).contains(e.relatedTarget as Node | null)) setRailOpen(false); }}
       >
-        <img class="tb-rail-logo" src={skLogo} alt="" onClick={() => goTo("live")} />
+        {compact ? null : <img class="tb-rail-logo" src={skLogo} alt="" onClick={() => goTo("live")} />}
         <div class="tb-rail-mid">
           {NAV.map(([id, icon, label]) => (
             <button class={`st-focusable tb-rail-item${railSection === id && !sheet ? " active" : ""}`} key={id} data-focus={`nav-${id}`} aria-label={t(label)} aria-current={railSection === id && !sheet} onClick={() => goTo(id)}>
               <StageIcon name={icon} size={32} />
+              {compact ? <span class="tb-rail-label">{t(id === "guide" ? "navGuide" : label)}</span> : null}
             </button>
           ))}
           <button class={`st-focusable tb-rail-item${sheet ? " active" : ""}`} data-focus="nav-settings" aria-label={t("homeNavMore")} aria-current={sheet}
             onClick={() => { if (section === "live") liveEntry.current?.closeBeside(); openSheet(null, "menu"); }}>
             <StageIcon name="gear" size={32} />
+            {compact ? <span class="tb-rail-label">{t("homeNavMore")}</span> : null}
           </button>
-          {full ? (
+          {full && !compact ? (
             <button class="st-focusable tb-rail-item" data-focus="nav-full" aria-label={t(full.on ? "fullScreenExit" : "fullScreen")} onClick={full.toggle}>
               <Icon name={full.on ? "fullscreen_exit" : "fullscreen"} size={32} />
             </button>
           ) : null}
         </div>
-        {me ? (
+        {me && !compact ? (
           <button class={`tb-rail-avatar${me.avatar !== undefined && me.avatar >= 0 ? " pic" : ""}`} data-focus="nav-profile" aria-label={me.guest ? t("guestName") : me.name}
             onClick={() => openSheet("profile", "menu")}
             // OK short switches / opens the profile on the release, OK held (600 ms) opens the avatar picker (StageRail.kt onLongClick).

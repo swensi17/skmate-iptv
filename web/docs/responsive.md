@@ -119,3 +119,13 @@ Simulate touch: dispatch `touchstart` on `document` (sets `data-input="touch"`),
 Also open the same screen at `?layout=tv` 1920x1080 and compare: it must be identical to before. Unit tests: `npx vitest run --exclude "**/stress/**"`, `npm run typecheck`.
 
 Not verifiable without the device: real finger momentum feel on the 1.3 GB tablet, the hardware Back through Capacitor, `env()` insets on a cutout phone, the soft keyboard resize in the APK.
+
+## The shell (App.tsx, home.css) in compact: what screens can rely on
+
+- `main.content` has **no padding** in compact: a screen pads itself with `--pad-x` / `--pad-r`. It ends above the bottom tab bar (portrait) or starts right of the side bar (landscape);
+  inside it `--safe-bottom` (portrait) and `--safe-left` / `--pad-x` (landscape) are already consumed by the bars. Tokens: `--tab-h` 64 px, `--rail-w` 76 px, `--hd` (heading row height incl. the top inset).
+- The menu (`nav.tb-rail`) is always visible: Home / Sport / Guide / Search / More (gear = Settings). The logo, the avatar and the full-screen button are left out (the profile is in Settings).
+- The clock (`.home-status`) shows only on the channels screen (`main.content.home-on ~ .home-status`); other screens do not have to leave room for it.
+- A held finger (550 ms) on a row or category = the remote's held OK: `holdProps(onHold)` / `holdSpent()` in `views/longPress.ts` (spread on a button, ignore the click that follows when `holdSpent()`).
+- The channels screen: category chips + a categories sheet, a list that measures itself (rows 64 px), the preview and programme beside the list only in landscape from 900 px wide; a channel's guide and archive
+  open from the preview's "Телегид" button or the row's menu, as a column beside the list (wide) or a page under the heading row (narrow).

@@ -1,7 +1,7 @@
 import { useContext, useEffect, useMemo, useRef, useState } from "preact/hooks";
 import type { Channel } from "@skmate/core";
 import type { Programme } from "@skmate/epg";
-import { Icon, isBack, isMenuKey } from "@skmate/ui";
+import { Icon, isCompact, isBack, isMenuKey } from "@skmate/ui";
 import { t } from "../i18n";
 import { GuideContext } from "../state/GuideContext";
 import { useProgrammeArt, type ArtSettings, type ProgrammeArt } from "../state/tmdb";
@@ -178,6 +178,8 @@ export function GuideSide(p: {
       <div class="gs-head">
         <span class="gs-logo"><ChannelLogo channel={channel} /></span>
         <span class="gs-name">{channel.name}</span>
+        {/* Compact: a finger has no Back key; the column is closed with this. */}
+        {isCompact() ? <button class="st-focusable gs-close" data-focus="gs-close" aria-label={t("sa_settings_close")} onClick={() => p.onClose()}><Icon name="close" size={24} /></button> : null}
       </div>
       {lines.length === 0 ? (
         // No guide: a picture and one line in the middle, focus on the name so ◀ and Back still answer (2.6.0).

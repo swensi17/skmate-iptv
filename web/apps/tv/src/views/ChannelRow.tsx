@@ -1,6 +1,6 @@
 import { useContext, useEffect, useRef, useState } from "preact/hooks";
 import type { Channel } from "@skmate/core";
-import { focusFirst, Icon, isMenuKey, Presence } from "@skmate/ui";
+import { focusFirst, Icon, isCompact, isMenuKey, Presence } from "@skmate/ui";
 import { t } from "../i18n";
 import { GuideContext } from "../state/GuideContext";
 import { UiContext } from "../state/UiContext";
@@ -8,6 +8,7 @@ import { ChannelLogo } from "./ChannelLogo";
 import { ChannelMenu, ChannelSchedule } from "./ChannelMenu";
 import { daysText, leftLabel, timeLeftText } from "./Left";
 import { StageIcon } from "./GroupIcon";
+import { holdProps, holdSpent } from "./longPress";
 import "./channel.css";
 
 const isEnter = (e: KeyboardEvent) => e.key === "Enter" || e.keyCode === 13;
@@ -101,11 +102,14 @@ export function ChannelRow(props: {
 
   if (props.variant === "live") {
     const left = on ? timeLeftText(on.stop, now) : "";
+    // Compact: a finger cannot focus a row to light its progress bar, so every row shows it; a held finger opens the menu.
+    const compact = isCompact();
     return (
       <>
         <button
           class="st-focusable lrow" data-focus={`ch-${channel.id}`}
-          onClick={() => props.onOpen(channel)}
+          {...(compact ? holdProps(() => { cancel(); setLayer("menu"); }) : {})}
+          onClick={() => { if (holdSpent()) return; props.onOpen(channel); }}
           onFocus={() => { setLit(true); props.onFocus?.(channel); }}
           onBlur={() => { setLit(false); cancel(); }}
           onKeyDown={onKeyDown as unknown as (e: Event) => void}
@@ -117,7 +121,7 @@ export function ChannelRow(props: {
           <span class="lrow-text">
             <Marquee class="lrow-name" text={channel.name} on={lit} />
             {on ? <Marquee class="lrow-prog" text={on.title} tail={left ? ` · ${left}` : ""} on={lit} /> : null}
-            {on ? <span class="lrow-bar">{lit ? <i style={{ width: `${(progress * 100).toFixed(1)}%` }} /> : null}</span> : null}
+            {on ? <span class="lrow-bar">{lit || compact ? <i style={{ width: `${(progress * 100).toFixed(1)}%` }} /> : null}</span> : null}
           </span>
           {props.previewing || props.favorite || props.watched ? (
             <span class="lrow-end">
@@ -137,7 +141,8 @@ export function ChannelRow(props: {
     <>
       <button
         class="row ch" data-focus={`ch-${channel.id}`}
-        onClick={() => props.onOpen(channel)}
+        {...(isCompact() ? holdProps(() => { cancel(); setLayer("menu"); }) : {})}
+        onClick={() => { if (holdSpent()) return; props.onOpen(channel); }}
         onFocus={() => props.onFocus?.(channel)}
         onBlur={cancel}
         onKeyDown={onKeyDown as unknown as (e: Event) => void}

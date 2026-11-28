@@ -63,3 +63,14 @@ button.row.ch .redge .tag > svg { flex: none; margin-right: 6px; }
 .ch-sched .ch-sched-watch { flex: none; margin-bottom: 8px; padding: 0 30px; border-radius: var(--st-r-focus); }
 .ch-sched .tm-sched { padding-left: 14px; padding-right: 14px; }
 .ch-sched .sc-head { display: none; } /* the panel's title already names the channel */
+
+/* ---------- Compact layout (tablet, phone): the channel's menu and its programme sheet ---------- */
+:root[data-layout="compact"] .ch-menu { padding: calc(var(--u) * 2 + var(--safe-top)) calc(var(--u) * 2 + var(--safe-right)) calc(var(--u) * 2 + var(--safe-bottom)) calc(var(--u) * 2 + var(--safe-left)); }
+:root[data-layout="compact"] .ch-menu-panel { width: 100%; max-width: 480px; max-height: 100%; padding: 16px 12px 12px; }
+:root[data-layout="compact"] .ch-menu-name { font-size: var(--fs-title); }
+:root[data-layout="compact"] .ch-menu-head .logo { width: 56px; height: 40px; }
+:root[data-layout="compact"] .ch-menu .st-menu-item { height: auto; min-height: var(--row-c); padding-top: 8px; padding-bottom: 8px; font-size: var(--fs-body); }
+:root[data-layout="compact"] .ch-menu .st-menu-group { font-size: 12px; }
+:root[data-layout="compact"][data-input="touch"] .ch-menu .st-menu-item:focus { background: none; }
+:root[data-layout="compact"] .ch-sched .st-side-panel { padding: calc(var(--u) * 2 + var(--safe-top)) 0 calc(var(--u) * 2 + var(--safe-bottom)); }
+:root[data-layout="compact"] .ch-sched .ch-sched-watch { min-height: var(--touch-min); padding: 0 var(--pad-x); }
