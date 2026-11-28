@@ -192,11 +192,24 @@ export function App() {
       const sheetLayer = before.closest(".st-sheet-layer");
       const onSheet = !!sheetLayer && !!before.closest(".st-sheet-body") && document.querySelectorAll("[data-modal]").length === 1;
       if (!onSheet && (!before.closest(".content") || document.querySelector("[data-modal]"))) return;
+      sheetRow = onSheet ? before as HTMLElement : null;
       document.querySelector<HTMLElement>(".tb-rail [data-focus]")?.focus(); // the menu puts it on the open place
     };
+    // ▶ from the menu while the settings sheet is still open goes back into the sheet, on the row it was left from,
+    // never to the screen under it (#937: "◀ then ▶ in the settings and the remote goes wild").
+    let sheetRow: HTMLElement | null = null;
+    const back = (e: KeyboardEvent) => {
+      if (!(e.key === "ArrowRight" || e.keyCode === 39) || !document.activeElement?.closest(".tb-rail")) return;
+      const sheet = document.querySelector<HTMLElement>(".st-sheet-layer[data-modal] .st-sheet-body");
+      if (!sheet) { sheetRow = null; return; }
+      e.preventDefault(); e.stopPropagation();
+      const target = sheetRow && sheet.contains(sheetRow) ? sheetRow : sheet.querySelector<HTMLElement>("[data-focus]");
+      target?.focus();
+    };
     window.addEventListener("keydown", early, true);
+    window.addEventListener("keydown", back, true);
     window.addEventListener("keydown", late);
-    return () => { window.removeEventListener("keydown", early, true); window.removeEventListener("keydown", late); };
+    return () => { window.removeEventListener("keydown", early, true); window.removeEventListener("keydown", back, true); window.removeEventListener("keydown", late); };
   }, []);
   // The stage never scrolls. A sheet that is still rising sits below the screen, and focusing a control in it makes the
   // browser scroll the stage to show it, which would leave the whole screen shifted once the sheet is up.

@@ -204,12 +204,15 @@ export function LiveView(p: Props) {
   const [guideActive, setGuideActive] = useState(false);
   /** Settings › player › "programme beside the channel list" (2.7.2): off, the old screen, the programme by ▶ only. */
   const cols = p.settings.threeColumns === true;
+  const colsRef = useRef(cols);
+  colsRef.current = cols;
   /** Settings › channels as tiles (#936): four in a row; with three columns the list stays a list. */
   const tiles = !cols && p.settings.channelTiles === true;
   const closeGuide = () => { setGuideCh(null); setGuideActive(false); setTimeout(() => focusCurrentRow(), 30); };
   const [lineProg, setLineProg] = useState<Programme | null>(null);
   // The list stays shrunk only while the focus is in the programme column (its days included).
-  useFocusInside(guideActive, ".gs", () => setGuideActive(false));
+  // Focus gone from the programme: with three columns it stays beside; without, the list it covers comes back.
+  useFocusInside(guideActive, ".gs", () => { setGuideActive(false); if (!colsRef.current) setGuideCh(null); });
   const guideFollow = useRef<ReturnType<typeof setTimeout>>();
   const leaveGuide = () => {
     setGuideActive(false);
@@ -503,7 +506,7 @@ export function LiveView(p: Props) {
         {/* Three columns (#760): channels, the programme of the one under the cursor, the picture. Hidden while the
             categories are open, so the sheet never covers it halfway. "Back" in it goes back to the channels. */}
         {!cols && guideCh ? (
-          <GuideSide channel={guideCh} art={artSettings} onClose={closeGuide} onLeave={leaveGuide} active={guideActive} onLine={setLineProg}
+          <GuideSide channel={guideCh} art={artSettings} onClose={closeGuide} onLeave={closeGuide} active={guideActive} onLine={setLineProg}
             onWatch={(c) => { closeGuide(); clearTimeout(timer.current); p.onOpen(c, shown); }}
             onArchive={(c, prog) => { closeGuide(); p.onArchive?.(c, prog, shown); }}
             onUpcoming={(c, prog) => p.onUpcoming?.(c, prog, shown)} />
