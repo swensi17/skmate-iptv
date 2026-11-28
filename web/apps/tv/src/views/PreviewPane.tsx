@@ -9,6 +9,7 @@ import { usePlayback } from "../state/usePlayback";
 import { GuideContext } from "../state/GuideContext";
 import { clock } from "../time";
 import { timeLeftText } from "./Left";
+import { Ratings, splitRatings } from "./ProgrammeArt";
 import { ChannelLogo } from "./ChannelLogo";
 import { StageIcon } from "./GroupIcon";
 import { detectPlatform } from "../platform";
@@ -136,7 +137,7 @@ export function PreviewPane(p: {
           <>
             <div class="hp-title">{pick.title}</div>
             <div class="hp-details">{t("homeTimeRange", { a: clock(pick.start), b: clock(pick.stop) })}</div>
-            {pickDesc ? <div class="hp-desc">{pickDesc}</div> : null}
+            {pickDesc ? <RatedText class="hp-desc" text={pickDesc} /> : null}
           </>
         ) : null}
         {!pick && channel && !nn?.now ? (textWait ? <TextSkeleton /> : <NoGuide />) : null}
@@ -150,7 +151,7 @@ export function PreviewPane(p: {
             </div>
             {/* The archive by day lives behind ▶: a channel that has one says so, or nobody finds it (2.6.2). */}
             {(channel?.catchupDays ?? 0) > 0 ? <div class="hp-hint">{t("homeArchiveDays")}</div> : null}
-            {nn.now.desc ? <div class="hp-desc">{nn.now.desc}</div> : null}
+            {nn.now.desc ? <RatedText class="hp-desc" text={nn.now.desc} /> : null}
           </>
         ) : null}
         {channel && upcoming.length > 0 ? (
@@ -224,4 +225,10 @@ export function PreviewVideo({ channel, settings, stage }: { channel: Channel; s
       {state === "failed" ? <div class="preview-empty"><Icon name="warning" size={56} /></div> : null}
     </>
   );
+}
+
+/** A description with its ratings taken out of the text and shown under it, coloured (Кинопоиск 5,7). */
+function RatedText({ text, class: cls }: { text: string; class: string }) {
+  const { rest, ratings } = splitRatings(text);
+  return <div class={cls}>{rest}<Ratings list={ratings} /></div>;
 }

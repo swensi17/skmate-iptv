@@ -1220,6 +1220,7 @@ export const ru = {
   sa_settings_part_text: "Текст и масштаб",
   sa_settings_part_theme: "Тема и цвета",
   sa_settings_pinned_from: "Закреплено из раздела «{1}»",
+  ratingsLabel: "Оценки",
   setChannelTiles: "Каналы плиткой",
   setChannelTilesHint: "Экран каналов: каналы плитками по четыре в ряд вместо списка",
   sa_settings_player_panel_columns: "Программа посередине, три колонки",

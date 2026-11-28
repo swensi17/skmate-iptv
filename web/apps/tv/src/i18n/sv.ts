@@ -1222,6 +1222,7 @@ export const sv: Record<keyof typeof en, string> = {
   sa_settings_part_text: "Text & zoom",
   sa_settings_part_theme: "Theme & colours",
   sa_settings_pinned_from: "Fäst från {1}",
+  ratingsLabel: "Ratings",
   setChannelTiles: "Channels as tiles",
   setChannelTilesHint: "Channels screen: channel tiles, four in a row, instead of the list",
   sa_settings_player_panel_columns: "Tablå bredvid kanallistan",

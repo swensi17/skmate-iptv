@@ -1222,6 +1222,7 @@ export const bn: Record<keyof typeof en, string> = {
   sa_settings_part_text: "Text & zoom",
   sa_settings_part_theme: "Theme & colours",
   sa_settings_pinned_from: "{1} থেকে পিন করা",
+  ratingsLabel: "Ratings",
   setChannelTiles: "Channels as tiles",
   setChannelTilesHint: "Channels screen: channel tiles, four in a row, instead of the list",
   sa_settings_player_panel_columns: "চ্যানেল তালিকার পাশে অনুষ্ঠানসূচি",

@@ -455,5 +455,13 @@ label.st-field { cursor: text; }
 /* AroundPoster: the description flows round the poster, then under it (all places with a poster). */
 .around { font-size: 20px; line-height: 1.45; color: rgba(255, 255, 255, .78); text-align: justify; -webkit-hyphens: auto; -ms-hyphens: auto; hyphens: auto; overflow-wrap: break-word; word-wrap: break-word; }
 .around::after { content: ""; display: block; clear: both; }
-.around-poster { float: left; margin: 4px 16px 6px 0; }
+.around-poster { float: left; margin: 4px 16px 0 0; }
 :root[data-theme="light"] .around { color: var(--st-body); }
+/* Ratings under a description (Кинопоиск 5,7): a bold label, each value coloured by how good it is. */
+.ratings { clear: both; margin-top: 10px; text-align: left; }
+.ratings > b { font-weight: 700; margin-right: 8px; }
+.ratings .rating + .rating { margin-left: 14px; }
+.ratings .rv { font-weight: 800; }
+.rv.good { color: #3ecf6e; }
+.rv.mid { color: #f2c94c; }
+.rv.bad { color: #ff5c5c; }
