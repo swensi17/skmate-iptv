@@ -11,7 +11,7 @@ import { capitalize } from "../text";
 import { ChannelLogo } from "./ChannelLogo";
 import { CountdownRing, useDwell, useTick } from "./PlayerChrome";
 import { useProgrammeArt, type ArtSettings, type ProgrammeArt } from "../state/tmdb";
-import { PosterViewer } from "./ProgrammeArt";
+import { PosterViewer, ProgrammePoster } from "./ProgrammeArt";
 import { GuideSide } from "./GuideSide";
 import { clock } from "../time";
 import { PanelGuide, scheduleLines, UNDER_HEAD } from "./Schedule";
@@ -435,9 +435,10 @@ export function PlayerPanel(p: {
  * Under the picture in three columns: the programme the remote is on in the column, else what is on the channel now:
  * its title (two lines), its time, how far it has got and what is left while it is on, its description.
  */
-function ProgCard({ channel, prog, now }: { channel: Channel; prog: Programme | null; now: number; art: ArtSettings }) {
+function ProgCard({ channel, prog, now, art: artSettings }: { channel: Channel; prog: Programme | null; now: number; art: ArtSettings }) {
   const { data } = useContext(GuideContext);
   const p = prog ?? data.nowNext(channel.id, now).now;
+  const poster = useProgrammeArt(p?.title ?? null, artSettings);
   const [desc, setDesc] = useState<string | undefined>(p?.desc);
   useEffect(() => {
     let live = true;
@@ -456,7 +457,10 @@ function ProgCard({ channel, prog, now }: { channel: Channel; prog: Programme | 
         {on ? <span class="tp-card-bar"><i style={{ width: `${(done * 100).toFixed(1)}%` }} /></span> : null}
         {on ? <span>{t("tbMinutes", { n: Math.max(0, Math.round((p.stop - now) / 60_000)) })}</span> : null}
       </div>
-      {desc ? <div class="tp-card-desc">{desc}</div> : null}
+      <div class="tp-card-body">
+        {poster ? <div class="tp-card-poster"><ProgrammePoster url={poster.posterUrl} width={130} /></div> : null}
+        {desc ? <div class="tp-card-desc">{desc}</div> : null}
+      </div>
     </div>
   );
 }
