@@ -49,7 +49,7 @@ export function LinkDialog(p: { mode: "add" | "sync"; title: string; hints: stri
   // Over the whole window, not inside the settings sheet it was opened from (the sheet is a frame of its own). Only
   // the Windows app shows this, and there the page is sized by Electron's zoom, not by scaling #app.
   return createPortal(
-    <div class="scrim" data-modal ref={root} onClick={p.onClose}>
+    <div class="scrim link-scrim" data-modal ref={root} onClick={p.onClose}>
       <div class="dialog qr link" role="dialog" aria-label={p.title} onClick={(e) => e.stopPropagation()}>
         <SheetHead title={p.title} />
         {failed ? (

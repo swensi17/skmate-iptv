@@ -1,7 +1,7 @@
 import { Fragment } from "preact";
 import type { ComponentChildren } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
-import { focusFirst, Popup, Presence, Segmented, useOwnBack } from "@skmate/ui";
+import { focusFirst, isCompact, Popup, Presence, Segmented, useOwnBack } from "@skmate/ui";
 import { t, type Key } from "../i18n";
 import { detectPlatform } from "../platform";
 import { desktop } from "../state/desktop";
@@ -25,12 +25,12 @@ const LEFT = (e: KeyboardEvent) => e.key === "ArrowLeft" || e.keyCode === 37;
 const RIGHT = (e: KeyboardEvent) => e.key === "ArrowRight" || e.keyCode === 39;
 
 /** What each field asks for: its name, the example shown while it is empty, the text of its entry panel, whether it is a secret. */
-const FIELDS: Record<FieldId, { title: Key; example: Key | null; secret?: boolean }> = {
-  url: { title: "sa_setup_playlist_url_local_file", example: "sa_setup_playlist_example" },
-  server: { title: "sa_setup_server_url", example: "sa_setup_server_example" },
+const FIELDS: Record<FieldId, { title: Key; example: Key | null; secret?: boolean; mode?: "url" }> = {
+  url: { title: "sa_setup_playlist_url_local_file", example: "sa_setup_playlist_example", mode: "url" },
+  server: { title: "sa_setup_server_url", example: "sa_setup_server_example", mode: "url" },
   user: { title: "sa_setup_username", example: null },
   pass: { title: "sa_setup_password", example: null, secret: true },
-  portal: { title: "sa_setup_portal_url", example: "sa_setup_portal_example" },
+  portal: { title: "sa_setup_portal_url", example: "sa_setup_portal_example", mode: "url" },
   mac: { title: "sa_setup_mac_address", example: "sa_setup_mac_example" },
 };
 const FIELDS_OF: Record<Kind, FieldId[]> = { m3u: ["url"], xtream: ["server", "user", "pass"], stalker: ["portal", "mac"] };
@@ -192,8 +192,8 @@ export function AddSourceForm(p: {
       </div>
       <Presence show={editing !== null}>
         {(out) => editing ? (
-          <TextEntry title={t(FIELDS[editing].title)} hint={t("sa_settings_form_field_help")} label={t(FIELDS[editing].title)} value={v[editing]} closing={out}
-            type={FIELDS[editing].secret ? "password" : "text"} onDone={(x) => typed(editing, x)} onCancel={cancel} />
+          <TextEntry title={t(FIELDS[editing].title)} hint={isCompact() ? "" : t("sa_settings_form_field_help")} label={t(FIELDS[editing].title)} value={v[editing]} closing={out}
+            type={FIELDS[editing].secret ? "password" : "text"} inputMode={FIELDS[editing].mode} onDone={(x) => typed(editing, x)} onCancel={cancel} />
         ) : null}
       </Presence>
     </div>

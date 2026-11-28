@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "preact/hooks";
 import { focusFirst, Icon, Popup, PopupButton } from "@skmate/ui";
 import { t } from "../i18n";
+import { keepVisible } from "./keepVisible";
 
 /** Android PinDialog: digits only, up to 6, OK from 4 (ProfileComponents.kt:60-100). */
 export const PIN_MIN = 4;
@@ -52,8 +53,8 @@ export function PinDialog(props: {
           <span class="st-setting-title">{t("sa_profiles_pin")}</span>
           <input
             ref={input} class="st-field-input" data-focus="pin-field" value={pin} placeholder="····" type="password"
-            inputMode="numeric" autocomplete="off" spellcheck={false} maxLength={PIN_MAX}
-            onFocus={() => setTyping(true)} onBlur={() => setTyping(false)}
+            inputMode="numeric" pattern="[0-9]*" enterKeyHint="done" autocomplete="off" spellcheck={false} maxLength={PIN_MAX}
+            onFocus={(e) => { setTyping(true); keepVisible(e); }} onBlur={() => setTyping(false)}
             onInput={(e) => {
               const el = e.currentTarget as HTMLInputElement;
               const next = pinInput(el.value);

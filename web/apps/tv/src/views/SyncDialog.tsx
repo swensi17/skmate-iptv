@@ -5,6 +5,7 @@ import { buildBackup, parseBackup, restoreBackup, type Backup } from "../state/b
 import { desktop } from "../state/desktop";
 import { Confirm } from "./Confirm";
 import { LinkDialog } from "./LinkDialog";
+import { keepVisible } from "./keepVisible";
 
 const ERRORS = { unreachable: "syncUnreachable", unauthorized: "syncUnauthorized", bad: "syncBad" } as const;
 
@@ -44,7 +45,8 @@ export function SyncDialog({ onClose }: { onClose: () => void }) {
   };
   const input = (id: string, value: string, set: (v: string) => void, placeholder: string, numeric = false) => (
     <input class="field" data-focus={id} value={value} placeholder={placeholder} inputMode={numeric ? "numeric" : "url"}
-      autocomplete="off" spellcheck={false} maxLength={numeric ? 6 : undefined}
+      autocomplete="off" autocapitalize="off" autocorrect="off" enterKeyHint="done" spellcheck={false} maxLength={numeric ? 6 : undefined}
+      onFocus={keepVisible}
       onInput={(e) => { set((e.currentTarget as HTMLInputElement).value); setNote(null); }} />
   );
   const target = address.trim() || "…";

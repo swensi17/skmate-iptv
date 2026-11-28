@@ -1,7 +1,7 @@
 import type { ComponentChildren } from "preact";
 import { useEffect, useLayoutEffect, useRef, useState } from "preact/hooks";
 import { hashPin } from "@skmate/core";
-import { Button, Drawer, focusFirst, Icon, isBack, Option, Popup, Presence, Segmented, Stepper, Toggle, type IconName } from "@skmate/ui";
+import { Button, Drawer, focusFirst, Icon, isBack, Option, Popup, Presence, Segmented, Stepper, Toggle, isCompact, useLayout, type IconName } from "@skmate/ui";
 import { applyLanguage, t, type Key } from "../i18n";
 import { LANGUAGES, resolveLanguage } from "../i18n/languages";
 import logo from "../assets/skmate-logo.png";
@@ -119,6 +119,7 @@ interface Action { id: string; label: string; onClick: () => void; kind: "back" 
  * to the focused one (200 ms) and fades in and out with the row's focus; entering the row it is put straight under it.
  */
 function Buttons(p: { actions: Action[]; width?: number; trailing?: ComponentChildren }) {
+  const { compact } = useLayout(); // a tablet or phone: the buttons share the width by CSS, no sliding bar
   const base = p.width ?? (p.actions.length === 1 ? 520 : 260);
   // The buttons share one width, but it grows to the longest label (any language), so no text is clipped.
   const [need, setNeed] = useState(0);
@@ -152,11 +153,11 @@ function Buttons(p: { actions: Action[]; width?: number; trailing?: ComponentChi
   return (
     <div class="sw-buttons">
       <div class="sw-btn-row" ref={row}>
-        <span class={`sw-btn-bar${slide ? " slide" : ""}`} style={{ width: `${each}px`, opacity: inRow ? 1 : 0, transform: `translateX(${at * (each + 14)}px)` }} />
+        {compact ? null : <span class={`sw-btn-bar${slide ? " slide" : ""}`} style={{ width: `${each}px`, opacity: inRow ? 1 : 0, transform: `translateX(${at * (each + 14)}px)` }} />}
         {p.actions.map((a, i) => {
           const enabled = a.enabled !== false;
           return (
-            <button key={a.id} class={`sw-btn${a.kind === "primary" ? " primary" : ""}${enabled ? "" : " off"}`} style={{ width: `${each}px` }}
+            <button key={a.id} class={`sw-btn${a.kind === "primary" ? " primary" : ""}${enabled ? "" : " off"}`} style={compact ? undefined : { width: `${each}px` }}
               data-focus={enabled ? a.id : undefined} tabIndex={enabled ? 0 : -1} aria-disabled={!enabled || undefined}
               onFocus={() => onFocus(i)} onBlur={onBlur} onClick={() => { if (enabled) a.onClick(); }}>
               {a.kind === "back" ? <Icon name="back" size={26} /> : null}
@@ -172,12 +173,12 @@ function Buttons(p: { actions: Action[]; width?: number; trailing?: ComponentChi
 }
 
 /** The pictures to choose from, six from the chosen one on (SetupWizard.kt AvatarStrip), the chosen ringed. */
-function AvatarStrip({ chosen }: { chosen: number }) {
+function AvatarStrip({ chosen, onPick }: { chosen: number; onPick?: (id: number) => void }) {
   const shown = Array.from({ length: Math.min(6, AVATAR_COUNT) }, (_, i) => (chosen + i) % AVATAR_COUNT);
   return (
     <span class="sw-avatars">
       {shown.map((id) => (
-        <span key={id} class={`sw-av${id === chosen ? " on" : ""}`}><Avatar id={id} initial="" /></span>
+        <span key={id} class={`sw-av${id === chosen ? " on" : ""}`} onClick={onPick ? (e) => { e.stopPropagation(); onPick(id); } : undefined}><Avatar id={id} initial="" /></span>
       ))}
       {AVATAR_COUNT > shown.length ? <span class="sw-av-more">+{AVATAR_COUNT - shown.length}</span> : null}
     </span>
@@ -234,7 +235,7 @@ function Field(p: { id: string; label: string; value: string; placeholder: strin
       </button>
       <Presence show={open}>
         {(out) => (
-          <TextEntry title={p.label} hint={t("wizFieldHelp")} label={p.label} value={p.value} closing={out} type={p.secret ? "password" : "text"}
+          <TextEntry title={p.label} hint={isCompact() ? "" : t("wizFieldHelp")} /* the remote's hint is no use to a finger */ label={p.label} value={p.value} closing={out} type={p.secret ? "password" : "text"} inputMode={p.secret ? "numeric" : undefined}
             onDone={(v) => { setOpen(false); back(); p.onDone(v); }}
             onCancel={() => { setOpen(false); back(); }} />
         )}
@@ -281,6 +282,7 @@ function StepNumbers({ current }: { current: number }) {
  */
 export function Wizard(p: Props) {
   const pl = p.playlists;
+  const { compact } = useLayout();
   // Restoring a backup reads a file (a browser, the Windows app); a sync talks to another SkMate (the Windows app). A
   // TV's own browser can do neither, so there the setup choice would offer one card only and is left out.
   const canPickFile = detectPlatform() === "browser";
@@ -329,7 +331,7 @@ export function Wizard(p: Props) {
   // The first control of each step takes the focus once it is on screen (Android rememberFirstFocus, 60 ms).
   const FIRST: Record<Page, string | undefined> = {
     welcome: "sw-next", display: "sw-zoom", choice: "sw-card-profile", profile: "sw-name", playlist: undefined, remote: undefined,
-    type: undefined, importing: "sw-next", failed: "sw-next", ready: "sw-next", restoreFailed: "sw-next",
+    type: "sw-type", importing: "sw-next", failed: "sw-next", ready: "sw-next", restoreFailed: "sw-next",
   };
   useEffect(() => {
     const id = setTimeout(() => {
@@ -559,7 +561,7 @@ export function Wizard(p: Props) {
     body = (
       <>
         <Field id="sw-name" label={t("wizName")} value={name} placeholder={t("wizNameHint")} onDone={(v) => { setName(v); setNameTouched(true); }} />
-        <Row id="sw-avatar" icon="person" title={t("kp_setup_avatar")} line={t("kp_setup_avatar_line")} end={<AvatarStrip chosen={avatar} />}
+        <Row id="sw-avatar" icon="person" title={t("kp_setup_avatar")} line={t("kp_setup_avatar_line")} end={<AvatarStrip chosen={avatar} onPick={setAvatarId} />}
           onClick={() => setAvatarId((a) => (a + 1) % AVATAR_COUNT)} onStep={(d) => setAvatarId((a) => (a + d + AVATAR_COUNT) % AVATAR_COUNT)} />
         <Row id="sw-kids" icon="favorite" title={t("wizKids")} line={t("wizKidsLine")} end={<Toggle on={kids} />} onClick={() => setKidsOn((v) => !v)} />
         <Field id="sw-pin" label={t("wizPin")} value={pin} placeholder={t("wizPinHint")} secret onDone={(v) => setPin(v.replace(/\D/g, "").slice(0, 6))} />
@@ -644,7 +646,10 @@ export function Wizard(p: Props) {
         {page === "type" ? (
           // Type it here (Android AddSourceScreen in a StageFormPage): the path line, then the source form.
           <div class={`sw-col sw-form ${forward ? "fwd" : "bwd"}`} key={page}>
-            <div class="sw-path"><span class="sw-path-parent">{t("wizAddSource")}</span><span class="sw-path-sep">›</span><span>{t("wizTypeHere")}</span></div>
+            <div class="sw-path">
+              {/* A finger has no Back key: the arrow beside the path (a tablet's own Back button does the same). */}
+              {compact ? <button class="sw-path-back" data-focus="sw-back" aria-label={t("wizBack")} onClick={() => go("playlist")}><Icon name="back" size={26} /></button> : null}
+              <span class="sw-path-parent">{t("wizAddSource")}</span><span class="sw-path-sep">›</span><span>{t("wizTypeHere")}</span></div>
             <div class="sw-form-body">
               <AddSourceForm idPrefix="sw" onSubmit={(link) => addLink(link, "type")} onFile={addFile} />
             </div>

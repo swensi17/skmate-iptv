@@ -27,17 +27,17 @@ export function EditPlaylist(p: { entry: PlaylistEntry; onSave: (name: string, u
   };
 
   return createPortal(
-    <div class="scrim" data-modal ref={root}>
-      <div class="dialog wide" role="dialog" aria-label={t("playlistEdit")}>
+    <div class="scrim pe-scrim" data-modal ref={root}>
+      <div class="dialog wide pe-dialog" role="dialog" aria-label={t("playlistEdit")}>
         <div class="dialog-title">{t("playlistEdit")}</div>
-        <div class="dialog-rows">
+        <div class="dialog-rows pe-rows">
           <EntryRow id="pe-name" title={t("playlistName")} value={name} onDone={(v) => { setName(v); setError(null); }} />
           {fixed ? null : (
-            <EntryRow id="pe-url" title={t("entUrlTitle")} value={url} entryHint={t("entUrlHint")} onDone={(v) => { setUrl(v); setError(null); }} />
+            <EntryRow id="pe-url" title={t("entUrlTitle")} value={url} inputMode="url" entryHint={t("entUrlHint")} onDone={(v) => { setUrl(v); setError(null); }} />
           )}
           {error ? <div class="status error">{error}</div> : null}
         </div>
-        <div class="dialog-actions">
+        <div class="dialog-actions pe-actions">
           <button class="btn" data-focus="pe-cancel" onClick={p.onClose}>{t("confirmCancel")}</button>
           <button class="btn" data-focus="pe-save" onClick={save}>{t("playlistSave")}</button>
         </div>

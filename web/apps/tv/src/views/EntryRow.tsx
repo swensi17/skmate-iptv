@@ -19,6 +19,8 @@ export function EntryRow(p: {
   entryTitle?: string;
   entryHint?: string;
   secret?: boolean;
+  /** The soft keyboard on a tablet or phone: "url" for a link. */
+  inputMode?: "text" | "url" | "numeric";
   /** The panel starts empty (an "add" row), not with [value]. */
   fresh?: boolean;
   onDone: (value: string) => void;
@@ -37,7 +39,7 @@ export function EntryRow(p: {
       <Presence show={open}>
         {(out) => (
           <TextEntry title={p.entryTitle ?? p.title} hint={p.entryHint ?? ""} value={p.fresh ? "" : p.value} closing={out}
-            type={p.secret ? "password" : "text"}
+            type={p.secret ? "password" : "text"} inputMode={p.inputMode}
             onDone={(v) => { setOpen(false); back(); p.onDone(v); }}
             onCancel={() => { setOpen(false); back(); }} />
         )}

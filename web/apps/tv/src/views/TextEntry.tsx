@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "preact/hooks";
 import { Button, Icon, isBack, Popup } from "@skmate/ui";
 import { OverSheet } from "./SettingsKit";
+import { keepVisible } from "./keepVisible";
 import { t } from "../i18n";
 import "./textEntry.css";
 
@@ -21,6 +22,8 @@ export function TextEntry(p: {
   /** The field's own name above the text (Android: "Name"); without it the field shows the text alone. */
   label?: string;
   type?: "text" | "password";
+  /** The soft keyboard to show on a tablet or phone ("url", "numeric"); a TV ignores it. */
+  inputMode?: "text" | "url" | "numeric" | "email";
   /** [how]: "ok" the Done button / OK key; "back", "up" and "down" the keys that end typing and keep the text. */
   onDone: (value: string, how?: "ok" | "back" | "up" | "down") => void;
   onCancel: () => void;
@@ -84,8 +87,8 @@ export function TextEntry(p: {
             {p.label ? <span class="st-setting-title">{p.label}</span> : null}
             <input
               ref={input} class={`st-field-input${p.label ? "" : " solo"}`} data-focus="entry-field" value={value} placeholder={t("entTypeHere")}
-              type={p.type ?? "text"} autocomplete="off" spellcheck={false} autocapitalize="off"
-              onFocus={() => setTyping(true)} onBlur={() => setTyping(false)}
+              type={p.type ?? "text"} inputMode={p.inputMode} enterKeyHint="done" autocomplete={p.type === "password" ? "new-password" : "off"} autocorrect="off" spellcheck={false} autocapitalize="off"
+              onFocus={(e) => { setTyping(true); keepVisible(e); }} onBlur={() => setTyping(false)}
               onInput={(e) => { const v = (e.currentTarget as HTMLInputElement).value; setValue(v); p.onInput?.(v); }}
               onKeyDown={(e) => {
                 if (e.key === "Enter" || e.keyCode === 13) { e.preventDefault(); done(); return; }

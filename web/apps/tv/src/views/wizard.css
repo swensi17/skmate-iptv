@@ -185,3 +185,214 @@ html.sw-open .loading { display: none; }
 .sw-av.on { box-shadow: 0 0 0 3px #0086fc; }
 .sw-av .av-img { width: 44px; height: 44px; }
 .sw-av-more { margin-left: 8px; font: 700 17px var(--st-font); color: var(--st-muted); }
+
+/* =====================================================================================================================
+   Compact layout (tablet and phone, a finger; docs/responsive.md): the wizard, the terms, the source form and the
+   dialogs of this file's screens. Everything is under :root[data-layout="compact"], so the TV is untouched.
+   One column that scrolls, the buttons stuck to the bottom of the window (above the soft keyboard), rows as plain
+   slabs, nothing floating. Motion by transform and opacity only.
+   ===================================================================================================================== */
+
+:root[data-layout="compact"] .setup-wizard { --sw-head: calc(56px + var(--safe-top)); }
+
+/* The frame: the logo left, the numbered steps right, in a bar 56 high; the step column fills the rest. */
+:root[data-layout="compact"] .sw-logo { left: var(--pad-x); top: calc(var(--safe-top) + 14px); height: 28px; }
+:root[data-layout="compact"] .sw-steps { right: var(--pad-r); top: calc(var(--safe-top) + 14px); height: 28px; }
+:root[data-layout="compact"] .sw-step-num { width: 28px; height: 28px; font-size: 14px; }
+:root[data-layout="compact"] .sw-step + .sw-step { margin-left: 6px; }
+:root[data-layout="compact"] .sw-step-line { width: 10px; margin-right: 6px; }
+:root[data-layout="compact"] .sw-step-name { margin-left: 8px; font-size: 15px; }
+/* A phone has no room for the name beside the current number: the five numbers alone. */
+:root[data-layout="compact"][data-size="phone"] .sw-step-name { display: none; }
+:root[data-layout="compact"][data-size="phone"] .sw-step-num { width: 24px; height: 24px; font-size: 13px; }
+:root[data-layout="compact"][data-size="phone"] .sw-step + .sw-step { margin-left: 4px; }
+:root[data-layout="compact"][data-size="phone"] .sw-step-line { width: 6px; margin-right: 4px; }
+:root[data-layout="compact"][data-size="phone"] .sw-logo { height: 24px; top: calc(var(--safe-top) + 16px); }
+:root[data-layout="compact"][data-size="phone"] .sw-steps { top: calc(var(--safe-top) + 16px); height: 24px; }
+
+:root[data-layout="compact"] .sw-stage { top: var(--sw-head); align-items: stretch; justify-content: center; }
+@keyframes sw-in-fwd-c { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: none; } }
+@keyframes sw-in-bwd-c { from { opacity: 0; transform: translateX(-40px); } to { opacity: 1; transform: none; } }
+/* The column scrolls by finger; its buttons stay at the bottom edge (sticky) however tall the content is. */
+:root[data-layout="compact"] .sw-col {
+  width: 100%; max-width: 680px; height: 100%; max-height: none; box-sizing: border-box; margin: 0 auto;
+  padding: 0 var(--pad-r) 0 var(--pad-x); overflow-x: hidden; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain; touch-action: pan-y; animation-name: sw-in-fwd-c; animation-duration: 260ms;
+}
+:root[data-layout="compact"] .sw-col.bwd { animation-name: sw-in-bwd-c; }
+:root[data-layout="compact"] .sw-col > :first-child { margin-top: auto; }
+:root[data-layout="compact"] .sw-col.sw-form { width: 100%; max-width: 680px; }
+
+:root[data-layout="compact"] .sw-title { font-size: 34px; letter-spacing: -0.02em; line-height: 1.15; max-width: 100%; overflow-wrap: break-word; word-wrap: break-word; }
+:root[data-layout="compact"] .sw-title.big { font-size: 40px; }
+:root[data-layout="compact"] .sw-sub { margin-top: 10px; font-size: 16px; line-height: 23px; }
+:root[data-layout="compact"] .sw-body { margin-top: 20px; }
+:root[data-layout="compact"] .sw-body > * + * { margin-top: 8px; }
+:root[data-layout="compact"][data-size="phone"] .sw-title { font-size: 28px; }
+:root[data-layout="compact"][data-size="phone"] .sw-title.big { font-size: 32px; }
+:root[data-layout="compact"] .sw-tv { width: 150px; height: 135px; margin-bottom: 4px; }
+:root[data-layout="compact"] .sw-tv .wt { width: 100%; height: 100%; }
+/* A short window (a phone on its side, a keyboard open): the picture goes, the words stay. */
+@media (max-height: 460px) { :root[data-layout="compact"] .sw-tv { display: none; } }
+
+/* ---------- Buttons: one row stuck to the bottom, sharing the width ---------- */
+:root[data-layout="compact"] .sw-buttons {
+  position: sticky; bottom: 0; z-index: 2; margin: auto calc(var(--pad-r) * -1) 0 calc(var(--pad-x) * -1); padding: 12px var(--pad-r) calc(12px + var(--safe-bottom)) var(--pad-x);
+  background: var(--st-page); box-shadow: 0 -1px 0 rgba(var(--st-ink-rgb), 0.08); flex-shrink: 0; align-self: stretch;
+}
+:root[data-layout="compact"] .sw-btn-row { flex: 1 1 0%; min-width: 0; }
+:root[data-layout="compact"] .sw-btn-bar { display: none; }
+:root[data-layout="compact"] .sw-btn {
+  flex: 1 1 0%; width: auto; min-width: 0; height: auto; min-height: 52px; padding: 8px 12px; border-radius: 4px; text-align: center;
+}
+:root[data-layout="compact"] .sw-btn.primary { flex-grow: 1.5; }
+:root[data-layout="compact"] .sw-btn + .sw-btn { margin-left: 8px; }
+:root[data-layout="compact"] .sw-btn-label { font-size: 16px; line-height: 1.2; white-space: normal; overflow: visible; text-overflow: clip; }
+:root[data-layout="compact"] .sw-btn > svg + .sw-btn-label, :root[data-layout="compact"] .sw-btn-label + svg { margin-left: 8px; }
+/* The main button is SkMate blue and stays so when tapped; the others are slabs. A key's focus is a ring. */
+:root[data-layout="compact"] .sw-btn, :root[data-layout="compact"] .sw-btn:focus { background: rgba(var(--st-ink-rgb), 0.10); color: var(--st-text); }
+:root[data-layout="compact"] .sw-btn.primary, :root[data-layout="compact"] .sw-btn.primary:focus { background: var(--st-blue); color: #ffffff; }
+:root[data-layout="compact"] .sw-btn.primary.off, :root[data-layout="compact"] .sw-btn.primary.off:focus { background: rgba(var(--st-ink-rgb), 0.06); color: var(--st-text); }
+:root[data-layout="compact"][data-input="key"] .sw-btn:focus { box-shadow: 0 0 0 3px #ffffff, 0 0 0 6px var(--st-blue); }
+:root[data-layout="compact"] .sw-globe { width: 52px; height: 52px; margin-left: 8px; align-self: center; border-radius: 4px; }
+:root[data-layout="compact"] .sw-globe > svg { width: 28px; height: 28px; }
+:root[data-layout="compact"][data-input="key"] .sw-globe:focus { box-shadow: 0 0 0 3px var(--st-blue); }
+
+/* ---------- Rows: slabs of at least 64 high, the end control wraps under the text when it does not fit ---------- */
+:root[data-layout="compact"] .sw-row { height: auto; min-height: 64px; padding: 8px 12px; flex-wrap: wrap; }
+:root[data-layout="compact"] .sw-row:not(:focus), :root[data-layout="compact"][data-input="touch"] .sw-row:focus { background: rgba(var(--st-ink-rgb), 0.05); }
+:root[data-layout="compact"] .sw-row-icon, :root[data-layout="compact"] .sw-field-icon { width: 28px; height: 28px; margin-right: 12px; }
+:root[data-layout="compact"] .sw-row-icon > svg, :root[data-layout="compact"] .sw-field-icon > svg { width: 28px; height: 28px; }
+:root[data-layout="compact"] .sw-row-body { flex: 1 1 150px; padding: 4px 0; }
+:root[data-layout="compact"] .sw-row-title { font-size: 17px; white-space: normal; overflow: visible; }
+:root[data-layout="compact"] .sw-row-line { font-size: 15px; line-height: 1.3; white-space: normal; overflow: visible; }
+:root[data-layout="compact"] .sw-row-end { margin-left: auto; padding-left: 12px; max-width: 100%; }
+:root[data-layout="compact"] .sw-field { min-height: 64px; flex-wrap: nowrap; }
+:root[data-layout="compact"] .sw-field-value, :root[data-layout="compact"] .sw-field-ph { font-size: 16px; }
+:root[data-layout="compact"] .sw-field-edit { display: none; }
+:root[data-layout="compact"] .sw-row .st-step { width: 48px; height: 48px; font-size: 24px; }
+:root[data-layout="compact"] .sw-row .st-step-value { min-width: 56px; font-size: 16px; }
+:root[data-layout="compact"] .sw-row .st-seg-opt { height: 48px; padding: 0 14px; font-size: 16px; }
+:root[data-layout="compact"] .sw-row .st-seg { max-width: 100%; }
+:root[data-layout="compact"] .sw-avatars { flex-wrap: wrap; justify-content: flex-end; }
+:root[data-layout="compact"] .sw-av { width: 48px; height: 48px; margin-left: 4px; }
+:root[data-layout="compact"] .sw-av .av-img { width: 40px; height: 40px; }
+:root[data-layout="compact"][data-size="phone"] .sw-avatars .sw-av:nth-child(n+5), :root[data-layout="compact"][data-size="phone"] .sw-av-more { display: none; }
+:root[data-layout="compact"] .sw-av-more { font-size: 16px; }
+
+/* ---------- Cards: stacked as wide rows ---------- */
+:root[data-layout="compact"] .sw-cards { flex-direction: column; }
+:root[data-layout="compact"] .sw-cards > .sw-card + .sw-card { margin-left: 0; margin-top: 8px; }
+:root[data-layout="compact"] .sw-card { flex: none; min-height: 72px; padding: 14px 16px; border-radius: 4px; flex-direction: row; align-items: center; flex-wrap: wrap; }
+:root[data-layout="compact"] .sw-card-icon { flex: none; width: 32px; height: 32px; margin-right: 14px; }
+:root[data-layout="compact"] .sw-card-icon > svg { width: 32px; height: 32px; }
+:root[data-layout="compact"] .sw-card-title { flex: 1 1 0%; min-width: 0; margin: 0; font-size: 18px; white-space: normal; overflow: visible; }
+:root[data-layout="compact"] .sw-card-line { flex: 0 0 100%; margin: 4px 0 0 46px; max-width: calc(100% - 46px); font-size: 15px; line-height: 20px; }
+:root[data-layout="compact"] .sw-card:not(:focus), :root[data-layout="compact"][data-input="touch"] .sw-card:focus { background: rgba(var(--st-ink-rgb), 0.07); }
+
+/* ---------- Importing and the form page ---------- */
+:root[data-layout="compact"] .sw-progress-text { font-size: 18px; }
+:root[data-layout="compact"] .sw-path { font-size: 20px; flex-wrap: wrap; white-space: normal; }
+:root[data-layout="compact"] .sw-path-parent, :root[data-layout="compact"] .sw-path-sep { margin-right: 8px; }
+:root[data-layout="compact"] .sw-form-body { margin-top: 16px; flex: 1 1 auto; display: flex; flex-direction: column; }
+:root[data-layout="compact"] .sw-form-body > .src-form { flex: 1 1 auto; display: flex; flex-direction: column; }
+
+/* ---------- Add a source (the form, in the wizard and in Settings' window) ---------- */
+:root[data-layout="compact"] .src-form > * + * { margin-top: 8px; }
+:root[data-layout="compact"] .src-form > .src-field-error { margin-top: 0; padding: 0 12px 6px 52px; font-size: 15px; }
+:root[data-layout="compact"] .src-foot {
+  position: sticky; bottom: 0; z-index: 2; margin-top: auto; padding: 12px 0 calc(12px + var(--safe-bottom)); background: var(--st-page); align-self: stretch;
+}
+:root[data-layout="compact"] .sw-form-body .src-foot { margin: auto calc(var(--pad-r) * -1) 0 calc(var(--pad-x) * -1); padding: 12px var(--pad-r) calc(12px + var(--safe-bottom)) var(--pad-x); box-shadow: 0 -1px 0 rgba(var(--st-ink-rgb), 0.08); }
+:root[data-layout="compact"] .src-error { font-size: 15px; margin-bottom: 10px; }
+:root[data-layout="compact"] .src-go { width: 100%; max-width: 440px; height: auto; min-height: 52px; padding: 8px 16px; font-size: 16px; }
+:root[data-layout="compact"] .src-go > span { white-space: normal; overflow: visible; text-align: center; }
+:root[data-layout="compact"] .src-go, :root[data-layout="compact"] .src-go:focus { background: var(--st-blue); color: #ffffff; }
+:root[data-layout="compact"] .src-go.off, :root[data-layout="compact"] .src-go.off:focus { background: rgba(var(--st-ink-rgb), 0.08); color: var(--st-dim); }
+/* Settings' window: a card at most 560 wide, the whole window on a phone. */
+:root[data-layout="compact"] .st-popup.src-window { width: 100%; max-width: 560px; max-height: 100%; padding: 16px 12px 0; border-radius: var(--r-card); }
+:root[data-layout="compact"] .src-window .src-foot { background: var(--st-sheet-fill); }
+:root[data-layout="compact"] .src-path { font-size: 20px; flex-wrap: wrap; white-space: normal; }
+:root[data-layout="compact"] .src-path-parent, :root[data-layout="compact"] .src-path-sep { margin-right: 8px; }
+:root[data-layout="compact"] .src-body { margin-top: 16px; }
+
+/* ---------- Terms of use ---------- */
+:root[data-layout="compact"] .terms-col { max-width: 720px; padding: calc(var(--safe-top) + 16px) var(--pad-r) 0 var(--pad-x); box-sizing: border-box; }
+:root[data-layout="compact"] .terms-title { font-size: 24px; text-align: center; }
+:root[data-layout="compact"] .terms-text { margin-top: 12px; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y; }
+:root[data-layout="compact"] .terms-head { padding: 18px 0 6px; font-size: 19px; }
+:root[data-layout="compact"] .terms-body { font-size: 16px; line-height: 1.45; }
+:root[data-layout="compact"] .terms-confirm { padding: 18px 0 12px; }
+:root[data-layout="compact"] .terms-buttons { align-self: stretch; margin: 0 calc(var(--pad-r) * -1) 0 calc(var(--pad-x) * -1); padding: 12px var(--pad-r) calc(12px + var(--safe-bottom)) var(--pad-x); box-shadow: 0 -1px 0 rgba(255, 255, 255, 0.08); background: #232629; }
+:root[data-layout="compact"] .terms-buttons > * { flex: 1 1 0%; min-width: 0; }
+:root[data-layout="compact"] .terms-buttons > * + * { margin-left: 8px; }
+:root[data-layout="compact"] .terms-buttons .st-button { padding: 8px 12px; text-align: center; }
+
+/* ---------- Dialogs of the old pattern (.scrim > .dialog): edit playlist, link / sync; popups' contents ---------- */
+:root[data-layout="compact"] .pe-scrim, :root[data-layout="compact"] .link-scrim {
+  padding: calc(var(--u) * 2 + var(--safe-top)) calc(var(--u) * 2 + var(--safe-right)) calc(var(--u) * 2 + var(--safe-bottom)) calc(var(--u) * 2 + var(--safe-left)); box-sizing: border-box;
+}
+:root[data-layout="compact"] .pe-dialog, :root[data-layout="compact"] .dialog.qr.link {
+  width: 100%; max-width: 560px; max-height: 100%; box-sizing: border-box; padding: 16px; border-radius: var(--r-card); overflow-x: hidden; overflow-y: auto;
+  overscroll-behavior: contain; touch-action: pan-y; font-size: var(--fs-body);
+}
+:root[data-layout="compact"] .pe-dialog .dialog-title { font-size: var(--fs-title); margin-bottom: 8px; display: block; }
+:root[data-layout="compact"] .pe-rows { margin: 4px 0 8px; }
+:root[data-layout="compact"] .pe-dialog .srow { min-height: 64px; padding: 8px 12px; }
+:root[data-layout="compact"] .pe-dialog .srow-title { font-size: 17px; }
+:root[data-layout="compact"] .pe-dialog .srow-hint, :root[data-layout="compact"] .pe-dialog .src-value { font-size: 16px; overflow-wrap: anywhere; white-space: normal; }
+:root[data-layout="compact"] .pe-dialog .status { font-size: 15px; }
+:root[data-layout="compact"] .dialog-actions { flex-wrap: wrap; }
+:root[data-layout="compact"] .pe-actions { position: sticky; bottom: -16px; z-index: 2; margin: 8px -16px -16px; padding: 12px 16px; background: var(--panel); }
+:root[data-layout="compact"] .pe-actions .btn, :root[data-layout="compact"] .link-scrim .dialog-actions .btn { flex: 1 1 0%; min-width: 0; min-height: var(--touch-min); height: auto; padding: 8px 12px; font-size: 16px; justify-content: center; text-align: center; }
+/* Link and sync: the code above the text, the fields one per line, the two actions stacked. */
+:root[data-layout="compact"] .link-body { flex-direction: column; align-items: center; min-height: 0; margin-bottom: 12px; }
+:root[data-layout="compact"] .link-body .qr-code svg { width: 220px; height: 220px; max-width: 100%; }
+:root[data-layout="compact"] .link-text { align-items: center; text-align: center; }
+:root[data-layout="compact"] .link-url { font-size: 18px; }
+:root[data-layout="compact"] .link-pin { font-size: 28px; }
+:root[data-layout="compact"] .link-hint { font-size: 15px; }
+:root[data-layout="compact"] .link-form .field { height: 52px; font-size: 16px; padding: 0 14px; }
+:root[data-layout="compact"] .link-form .row-actions { flex-direction: column; }
+:root[data-layout="compact"] .link-form .row-actions .btn { min-height: var(--touch-min); font-size: 16px; padding: 12px 14px; }
+:root[data-layout="compact"] .link-form .row-actions small { font-size: 14px; }
+:root[data-layout="compact"] .link-form .setting-title { font-size: 18px; margin-bottom: 4px; }
+:root[data-layout="compact"] .link-scrim .status { font-size: 15px; }
+/* QR, update, PIN and avatar popups (.st-popup): only what is inside. */
+:root[data-layout="compact"] .set-qr { padding: 0 8px; }
+:root[data-layout="compact"] .set-qr-addr { font-size: 17px; text-align: center; overflow-wrap: anywhere; }
+:root[data-layout="compact"] .set-update { padding: 0 16px; }
+:root[data-layout="compact"] .set-update-version { font-size: 16px; }
+:root[data-layout="compact"] .set-update-notes { font-size: 16px; max-height: 40vh; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y; }
+:root[data-layout="compact"] .set-update-busy, :root[data-layout="compact"] .set-update-text { padding: 0 16px; font-size: 16px; }
+:root[data-layout="compact"] .av-grid, :root[data-layout="compact"] .av-row { gap: 10px; padding-left: 16px; padding-right: 16px; }
+:root[data-layout="compact"] .av-row { padding: 0; }
+:root[data-layout="compact"] .av-tile { width: 64px; height: 64px; border-radius: 16px; }
+:root[data-layout="compact"] .av-tile .av-img, :root[data-layout="compact"] .av-none { width: 48px; height: 48px; font-size: 22px; }
+:root[data-layout="compact"] .st-popup .entry-row, :root[data-layout="compact"] .st-popup .st-field { min-height: 64px; padding: 0 14px; }
+:root[data-layout="compact"] .st-popup .st-field .st-setting-title { font-size: 16px; }
+:root[data-layout="compact"] .st-popup .st-field .st-field-input { font-size: 17px; min-height: 28px; }
+:root[data-layout="compact"] .st-popup .st-field .st-setting-icon { width: 28px; height: 28px; }
+:root[data-layout="compact"] .entry-note { padding: 0 14px 0 56px; font-size: 15px; }
+
+/* The form page's Back: an arrow button at the left of the path line. */
+:root[data-layout="compact"] .sw-path { position: relative; min-height: 48px; align-items: center; justify-content: center; padding: 8px 52px 0; }
+:root[data-layout="compact"] .sw-path-back {
+  position: absolute; left: 0; top: 8px; width: 48px; height: 48px; padding: 0; border: 0; border-radius: 4px; outline: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; background: rgba(var(--st-ink-rgb), 0.10); color: var(--st-text);
+}
+:root[data-layout="compact"] .sw-path-back:focus { background: rgba(var(--st-ink-rgb), 0.10); color: var(--st-text); }
+:root[data-layout="compact"][data-input="key"] .sw-path-back:focus { box-shadow: 0 0 0 3px var(--st-blue); }
+
+/* A narrow window: the segments share the row's width, the buttons drop their arrows so every label fits. */
+:root[data-layout="compact"] .sw-row .st-seg { display: flex; width: 100%; }
+:root[data-layout="compact"] .sw-row .st-seg-opt { flex: 1 1 auto; justify-content: center; padding: 0 8px; }
+:root[data-layout="compact"] .sw-row .st-seg:only-child, :root[data-layout="compact"] .sw-row-end > .st-seg { min-width: 0; }
+:root[data-layout="compact"] .sw-btn-label { min-width: min-content; }
+:root[data-layout="compact"][data-size="phone"] .sw-btn { padding: 8px 6px; }
+:root[data-layout="compact"][data-size="phone"] .sw-btn > svg { display: none; }
+:root[data-layout="compact"][data-size="phone"] .sw-btn-row .sw-btn.primary { flex-grow: 1.3; }
+:root[data-layout="compact"] .link-scrim .drawer-title, :root[data-layout="compact"] .dialog.qr .drawer-title { font-size: var(--fs-title); }
+:root[data-layout="compact"] .dialog.qr .drawer-head { margin-bottom: 8px; }
+/* Opened over the body, not inside #app: pinned to the window, whatever the page was scrolled to. */
+:root[data-layout="compact"] .link-scrim { position: fixed; left: 0; top: 0; right: 0; bottom: 0; }
