@@ -61,6 +61,8 @@ export function TextEntry(p: {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (p.closing) return;
+      // The TV keyboard's own Done / Cancel keys (Tizen: 65376 / 65385) end the typing like OK / Back.
+      if (e.keyCode === 65376 || e.keyCode === 65385) { e.preventDefault(); e.stopImmediatePropagation(); doneRef.current(e.keyCode === 65376 ? "ok" : "back"); return; }
       const inField = document.activeElement instanceof HTMLInputElement;
       if (isBack(e) && !(inField && e.key === "Backspace")) { e.preventDefault(); e.stopImmediatePropagation(); doneRef.current("back"); }
     };
@@ -73,6 +75,8 @@ export function TextEntry(p: {
     };
   }, [p.closing]);
 
+  // A search box leaves at once when it is done (no fade): what is searched shows its own spinner behind it.
+  if (p.plain && p.closing) return null;
   return (
     <OverSheet app>
       <Popup top={keyboard} width={820} title={p.title} body={p.hint || undefined} onClose={p.onCancel} closing={p.closing}

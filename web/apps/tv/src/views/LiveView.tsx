@@ -580,7 +580,7 @@ export function LiveView(p: Props) {
           <div class="home-tools" onKeyDown={onToolsKey as unknown as (e: Event) => void} onFocusIn={() => clearTimeout(timer.current)}>
             <SearchEntry id="live-search" value={query} placeholder={t("homeSearchIn", { name: groupLabel })}
               entryTitle={t("homeSearchIn", { name: groupLabel })} entryHint={t("searchChannelsHint")}
-              count={(q) => index.search(q).length} results=".home-rows .vlist"
+              results=".home-rows .vlist"
               onDone={(v) => { setQuery(v); setSettled(v); }} />
             <button class="st-focusable st-tool boxed home-tool" data-focus="live-sort" aria-label={t("homeSortTitle")} onClick={() => openMenu("sort", "live-sort")}>
               <StageIcon name="sort" size={20} /><span class="st-tool-value">{sort === "provider" ? t("homeProvider") : t(SORT_TEXT[sort].name)}</span>

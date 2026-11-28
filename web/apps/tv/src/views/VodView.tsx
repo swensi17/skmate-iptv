@@ -103,7 +103,7 @@ export function VodView(p: {
           <div class="toolbar">
             <SearchEntry id="vod-search" value={query} entryTitle={`${t("filterSearch")}: ${t(p.kind === "movie" ? "navMovies" : "navSeries")}`}
               entryHint={t("searchTitlesHint")} results=".screen.vod .vod-main .vlist"
-              count={(q) => (items ?? []).filter((i) => i.name.toLowerCase().includes(q.toLowerCase())).length} onDone={(v) => { setQuery(v); setSettled(v); }} />
+              onDone={(v) => { setQuery(v); setSettled(v); }} />
             {SORTS.map(([s, label]) => (
               <button class="filter" key={s} data-focus={`vod-sort-${s}`} aria-pressed={sort === s} onClick={() => setSort(s)}>{t(label)}</button>
             ))}

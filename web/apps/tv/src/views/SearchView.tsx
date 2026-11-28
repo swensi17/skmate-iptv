@@ -272,8 +272,7 @@ export function SearchView({ channels, onOpen, vod, onOpenVod, settings }: Props
       ) : <Caption />}
       <div class="sr-field">
         <SearchField id="sr-field" value={query} placeholder={t("gssFieldHint")} title={t("gssSearchTitle")} hint={t("gssFieldHint")}
-          onChange={setQuery} onDone={(v) => { setSettled(v); }} onKeyDown={onFieldKey}
-          note={(v) => (v.trim().length >= MIN_CHARS ? t("searchFound", { n: channelIndex.search(v.trim()).length + programmes.search(v.trim(), now).length }) : "")} />
+          onChange={setQuery} onDone={(v) => { setSettled(v); }} onKeyDown={onFieldKey} />
       </div>
 
       {!searching ? (
