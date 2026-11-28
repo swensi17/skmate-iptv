@@ -297,3 +297,5 @@ button.home-cat:focus, button.home-cat:focus > .st-icon, button.home-cat:focus .
 .home-3col .gs-days, .tp-mid .gs-days { padding-right: 6px; }
 .home-3col .gs-day-name, .tp-mid .gs-day-name { font-size: 19px; }
 .home-3col .gs-day-date, .tp-mid .gs-day-date { font-size: 15px; }
+/* The catch-up tag sits in the row's top right corner: the channel's name stops short of it. */
+.lrow.has-days .lrow-name { padding-right: 70px; box-sizing: border-box; }

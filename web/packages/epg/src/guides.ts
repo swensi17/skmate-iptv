@@ -28,6 +28,8 @@ export function guidesForPlaylist(playlistName: string, playlistUrl: string | nu
   const first: DefaultGuide[] = ownGuides.length > 0
     ? ownGuides.map((url) => ({ name: playlistName, url }))
     : (providerFor(playlistUrl)?.guides ?? []).map((url) => ({ name: providerFor(playlistUrl)?.name ?? playlistName, url }));
+  // The same feed named twice ("epg.xml.gz" in url-tvg and "epg.xml" in x-tvg-url, say) is one guide: the first stays.
+  const key = (u: string) => u.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\.gz(\?.*)?$/, "$1");
   const seen = new Set<string>();
-  return [...first, ...shared].filter((g) => (seen.has(g.url) ? false : (seen.add(g.url), true)));
+  return [...first, ...shared].filter((g) => (seen.has(key(g.url)) ? false : (seen.add(key(g.url)), true)));
 }
