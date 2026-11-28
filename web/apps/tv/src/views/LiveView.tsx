@@ -200,7 +200,7 @@ export function LiveView(p: Props) {
   // following the channel the list is on; ▶ into it again; ◀ on the list (or Back) closes it.
   const [guideActive, setGuideActive] = useState(false);
   /** Settings › player › "programme beside the channel list" (2.7.2): off, the old screen, the programme by ▶ only. */
-  const cols = p.settings.playerColumns !== false;
+  const cols = p.settings.threeColumns === true;
   const closeGuide = () => { setGuideCh(null); setGuideActive(false); setTimeout(() => focusCurrentRow(), 30); };
   const [lineProg, setLineProg] = useState<Programme | null>(null);
   // The list stays shrunk only while the focus is in the programme column (its days included).

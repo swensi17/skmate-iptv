@@ -9,7 +9,7 @@ import { capitalize } from "../text";
 import { clock } from "../time";
 import { ChannelLogo } from "./ChannelLogo";
 import { daysText, timeLeftText } from "./Left";
-import { PosterViewer } from "./ProgrammeArt";
+import { AroundPoster, PosterViewer } from "./ProgrammeArt";
 import { Marquee } from "./ChannelRow";
 
 const DAY = 86_400_000;
@@ -205,7 +205,7 @@ export function GuideSide(p: {
                   {l.archive ? <span class="gs-arch"><Icon name="rewind" size={18} /></span> : null}
                 </button>
                 {i === at && !onHead && !p.compact && (desc || art) ? (
-                  <div class="gs-about" key={`d${l.p.start}`}>{[art?.year, desc ?? art?.overview].filter(Boolean).join(" · ")}</div>
+                  <AroundPoster key={`d${l.p.start}`} class="gs-about" text={[art?.year, desc ?? art?.overview].filter(Boolean).join(" · ")} posterUrl={art?.posterUrl} width={110} />
                 ) : null}
               </>
             );

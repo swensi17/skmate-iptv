@@ -299,7 +299,7 @@ export function buildRows(c: RowsCtx, close: () => void): Record<string, RowDef>
       { label: t("sa_common_nav_series"), on: s.extSeries, toggle: () => set({ extSeries: !s.extSeries }) },
     ]} />,
   });
-  add({ key: "vp_columns", icon: "LIST_GRID", title: t("sa_settings_player_panel_columns"), line: t("sa_settings_player_panel_columns_description"), end: sw(s.playerColumns), ok: () => set({ playerColumns: !s.playerColumns }) });
+  add({ key: "vp_columns", icon: "LIST_GRID", title: t("sa_settings_player_panel_columns"), line: t("sa_settings_player_panel_columns_description"), end: sw(s.threeColumns), ok: () => set({ threeColumns: !s.threeColumns }) });
   add({ key: "vp_recents", icon: "HISTORY", title: t("sa_settings_player_recents"), line: t("sa_settings_player_recents_description"), end: sw(s.playerRecents), ok: () => set({ playerRecents: !s.playerRecents }) });
   add({ key: "vp_clock", icon: "CLOCK", title: t("sa_settings_player_clock"), line: t("sa_settings_player_clock_description"), end: sw(s.playerClock), ok: () => set({ playerClock: !s.playerClock }) });
   const look = (key: string, icon: string, title: Key, opts: Key[] | string[], field: "clockSize" | "clockWeight" | "clockBg" | "clockColor" | "clockAlpha", hidden = false) => {

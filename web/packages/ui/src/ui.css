@@ -452,3 +452,8 @@ label.st-field { cursor: text; }
 :root[data-hue] .st-row:focus, :root[data-hue] .st-tool:focus, :root[data-hue] .st-setting:focus, :root[data-hue] .st-sheet-item:focus,
 :root[data-hue] .st-menu-item:focus, :root[data-hue] .rail-item:focus, :root[data-hue] .row:focus, :root[data-hue] .btn:focus,
 :root[data-hue] .gd-cell:focus, :root[data-hue] .gs-row:focus { outline: 3px solid var(--st-blue); outline-offset: -3px; }
+/* AroundPoster: the description flows round the poster, then under it (all places with a poster). */
+.around { font-size: 20px; line-height: 1.45; color: rgba(255, 255, 255, .78); text-align: justify; -webkit-hyphens: auto; -ms-hyphens: auto; hyphens: auto; overflow-wrap: break-word; word-wrap: break-word; }
+.around::after { content: ""; display: block; clear: both; }
+.around-poster { float: left; margin: 4px 16px 6px 0; }
+:root[data-theme="light"] .around { color: var(--st-body); }

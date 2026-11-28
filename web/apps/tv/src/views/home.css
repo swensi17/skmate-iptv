@@ -252,7 +252,7 @@ button.home-cat:focus, button.home-cat:focus > .st-icon, button.home-cat:focus .
 .gs-bar { display: block; height: 3px; border-radius: 2px; background: rgba(255, 255, 255, .2); }
 .gs-bar i { display: block; height: 100%; border-radius: 2px; background: currentColor; }
 /* No padding at the bottom: a clamped line would show through it (#878); the gap below is a margin. */
-.gs-about { padding: 2px 20px 0 20px; margin-bottom: 12px; font-size: 16px; line-height: 1.4; color: rgba(255, 255, 255, .7); }
+.gs-about { padding: 4px 20px 0 20px; margin-bottom: 12px; }
 
 /* 2.6.7: the programme as a column in the preview's place, the days right of the programmes */
 .gs-body { flex: 1; min-height: 0; display: flex; }

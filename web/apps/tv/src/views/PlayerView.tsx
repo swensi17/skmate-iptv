@@ -966,7 +966,7 @@ export function PlayerView(p: Props) {
       <Presence show={panel !== null}>
         {(out) => (
           <PlayerPanel
-            kind={panel ?? "channels"} closing={out} columns={settings.playerColumns}
+            kind={panel ?? "channels"} closing={out} columns={settings.threeColumns}
             channels={channels} catalog={catalog} playing={channel} recents={p.recents} favorites={p.favorites}
             preview={settings.preview} loading={state === "loading"}
             onPick={(c, list) => { startOfPanel.current = null; hud.current.panel = null; setPanel(null); if (c.id !== channel.id) p.onPick(c, list); }}

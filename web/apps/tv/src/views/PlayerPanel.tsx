@@ -11,7 +11,7 @@ import { capitalize } from "../text";
 import { ChannelLogo } from "./ChannelLogo";
 import { CountdownRing, useDwell, useTick } from "./PlayerChrome";
 import { useProgrammeArt, type ArtSettings, type ProgrammeArt } from "../state/tmdb";
-import { PosterViewer, ProgrammePoster } from "./ProgrammeArt";
+import { AroundPoster, PosterViewer } from "./ProgrammeArt";
 import { GuideSide } from "./GuideSide";
 import { NoGuide } from "./PreviewPane";
 import { daysText } from "./Left";
@@ -480,10 +480,7 @@ function ProgCard({ channel, prog, now, art: artSettings }: { channel: Channel; 
         {on ? <span class="tp-card-bar"><i style={{ width: `${(done * 100).toFixed(1)}%` }} /></span> : null}
         {on ? <span>{t("tbMinutes", { n: Math.max(0, Math.round((p.stop - now) / 60_000)) })}</span> : null}
       </div>
-      <div class="tp-card-body">
-        {poster ? <div class="tp-card-poster"><ProgrammePoster url={poster.posterUrl} width={130} /></div> : null}
-        {desc ? <div class="tp-card-desc">{desc}</div> : null}
-      </div>
+      {desc || poster ? <AroundPoster class="tp-card-around" text={desc ?? ""} posterUrl={poster?.posterUrl} width={130} /> : null}
     </div>
   );
 }

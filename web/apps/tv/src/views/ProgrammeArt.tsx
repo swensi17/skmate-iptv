@@ -47,3 +47,18 @@ export function PosterViewer({ art, closing }: { art: ProgrammeArt; closing?: bo
     </div>
   );
 }
+
+/**
+ * A description around a poster, as in a magazine (Android aroundPoster): the text runs right of the poster down to
+ * its bottom, then under it the full width, to the end. No line limit, justified, long words hyphenated. A float,
+ * not a measure: old TV browsers (Chromium 53) lay it out the same way.
+ */
+export function AroundPoster({ text, posterUrl, width = 130, class: cls }: { text: string; posterUrl?: string | null; width?: number; class?: string }) {
+  const lang = (typeof document !== "undefined" && document.documentElement.lang) || "ru";
+  return (
+    <div class={`around${cls ? ` ${cls}` : ""}`} lang={lang}>
+      {posterUrl ? <div class="around-poster" style={{ width: `${width}px` }}><ProgrammePoster url={posterUrl} width={width} /></div> : null}
+      {text}
+    </div>
+  );
+}
