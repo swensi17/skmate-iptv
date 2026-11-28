@@ -100,7 +100,7 @@ button.lrow { position: relative; display: flex; align-items: center; width: 100
 .lrow-num { width: 50px; margin-right: 18px; font-size: 20px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--st-dim);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .lrow:focus .lrow-num { color: var(--st-fx-line); }
-.lrow > .logo-tile { width: 76px; height: 54px; margin-right: 18px; }
+.lrow > .logo-tile { width: var(--st-row-logo-w, 100px); height: var(--st-row-logo-h, 66px); margin-right: 18px; }
 .lrow-text { flex: 1 1 0%; min-width: 0; display: flex; flex-direction: column; }
 .lrow-name, .lrow-prog { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .lrow-name { font-size: 23px; font-weight: 700; color: var(--st-text); }

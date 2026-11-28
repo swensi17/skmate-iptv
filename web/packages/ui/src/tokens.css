@@ -73,6 +73,9 @@
      focused menu row, check marks on a light page. Only where Android draws it. */
   /* The one colour of marks (catch-up tags, live, progress, the playing channel, rings): the chosen accent, else brand blue. */
   --st-blue: #0086fc;
+  /* A channel logo in a list row, one size for the channels screen and the player panel (#976, Android 100x66). */
+  --st-row-logo-w: 100px;
+  --st-row-logo-h: 66px;
   --st-blue-rgb: 0, 134, 252;
 
   /* Focus: the TV-box plate. Inside it the light palette applies (dark text), see `.st-focusable:focus` in ui.css. */
