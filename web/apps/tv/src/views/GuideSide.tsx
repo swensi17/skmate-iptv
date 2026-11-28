@@ -10,6 +10,7 @@ import { clock } from "../time";
 import { ChannelLogo } from "./ChannelLogo";
 import { daysText, timeLeftText } from "./Left";
 import { PosterViewer } from "./ProgrammeArt";
+import { Marquee } from "./ChannelRow";
 
 const DAY = 86_400_000;
 /** Local midnight of the day [ms] falls in. */
@@ -195,7 +196,7 @@ export function GuideSide(p: {
                   onFocus={() => { if (at !== i) { setAt(i); setOnHead(false); } }} onClick={(ev) => { if ((ev as MouseEvent).detail > 0) play(l); }}>
                   <span class="gs-at">{clock(l.p.start)}{live ? <span class="gs-live">LIVE</span> : null}</span>
                   <span class="gs-main">
-                    <span class="gs-t">{l.p.title}</span>
+                    <Marquee class="gs-t" text={l.p.title} on={p.active && !onHead && i === at} />
                     {live ? <span class="gs-left">{timeLeftText(l.p.stop, now)}</span> : null}
                     {live ? <span class="gs-bar"><i style={{ width: `${(done * 100).toFixed(1)}%` }} /></span> : null}
                   </span>

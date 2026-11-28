@@ -181,7 +181,7 @@ const MARQUEE_DELAY_MS = 900;
  * scrolls to its end after 900 ms, the text repeated a third of the box apart, and again after each 900 ms pause.
  * Only a transform moves (the Web Animations API, Chromium 36+). [tail] is drawn in the same line at 60% (the time left).
  */
-function Marquee(p: { class: string; text: string; tail?: string; on: boolean }) {
+export function Marquee(p: { class: string; text: string; tail?: string; on: boolean }) {
   const box = useRef<HTMLSpanElement>(null);
   const [run, setRun] = useState<number | null>(null); // the gap between the copies, once the line is known not to fit
   useEffect(() => {

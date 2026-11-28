@@ -424,7 +424,7 @@ export function LiveView(p: Props) {
 
   return (
     <div class="screen home">
-      <div class={`home-side home-3col${catsOpen ? " pushed" : ""}`} onFocusIn={() => { if (catsRef.current) setCatsOpen(false); }}>
+      <div class={`home-side home-3col${catsOpen ? " pushed" : ""}${guideActive ? " guide-on" : ""}`} onFocusIn={() => { if (catsRef.current) setCatsOpen(false); }}>
         <h1 class="home-title">{t("navLive")}</h1>
         <div class="home-list">
           <div class="home-tools" onKeyDown={onToolsKey as unknown as (e: Event) => void} onFocusIn={() => clearTimeout(timer.current)}>

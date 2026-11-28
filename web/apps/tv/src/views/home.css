@@ -278,3 +278,12 @@ button.home-cat:focus, button.home-cat:focus > .st-icon, button.home-cat:focus .
 .home-3col .gs-t { font-size: 18px; }
 .home-3col .home-tool > span:not(.st-icon):not(svg) { display: none; }
 .home-3col .home-tool { padding-left: 12px; padding-right: 12px; }
+
+/* 2.7.1: the remote in the programme: the list shrinks to its logos, the programme takes the room; ◀ gives it back. */
+.home-3col .home-list, .home-3col > .gs { transition: width 260ms var(--st-ease), left 260ms var(--st-ease); }
+.home-3col.guide-on .home-list { width: 150px; }
+.home-3col.guide-on > .gs { left: 199px; width: 839px; }
+.home-3col.guide-on .home-tools { visibility: hidden; }
+.home-3col.guide-on .lrow-text, .home-3col.guide-on .lrow-end, .home-3col.guide-on .lrow-num, .home-3col.guide-on .st-archive { display: none; }
+:root[data-motion="off"] .home-3col .home-list, :root[data-motion="off"] .home-3col > .gs { transition: none; }
+.gs-t { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

@@ -13,6 +13,7 @@ import { CountdownRing, useDwell, useTick } from "./PlayerChrome";
 import { useProgrammeArt, type ArtSettings, type ProgrammeArt } from "../state/tmdb";
 import { PosterViewer, ProgrammePoster } from "./ProgrammeArt";
 import { GuideSide } from "./GuideSide";
+import { Marquee } from "./ChannelRow";
 import { clock } from "../time";
 import { PanelGuide, scheduleLines, UNDER_HEAD } from "./Schedule";
 import { Ticks } from "./Spinner";
@@ -373,7 +374,7 @@ export function PlayerPanel(p: {
                       <button class={`tp-row${playing ? " playing" : ""}`} data-focus={`pc-${c.id}`} onFocus={() => { setFocused(c); setUAt(null); }} onClick={() => p.onPick(c, list)}>
                         {ui.logos ? <span class="tp-row-logo"><ChannelLogo channel={c} /></span> : null}
                         <span class="tp-row-text">
-                          <span class="tp-row-name">{ui.numbers ? <span class="n">{i + 1}</span> : null}<span class="t">{c.name}</span>{(c.catchupDays ?? 0) > 0 ? <span class="tp-row-arch"><Icon name="rewind" size={18} /></span> : null}</span>
+                          <span class="tp-row-name">{ui.numbers ? <span class="n">{i + 1}</span> : null}<Marquee class="t" text={c.name} on={focused?.id === c.id && !colActive && guideCh === null} />{(c.catchupDays ?? 0) > 0 ? <span class="tp-row-arch"><Icon name="rewind" size={18} /></span> : null}</span>
                           {on.now ? (
                             <>
                               <span class="tp-row-prog">{on.now.title}</span>
