@@ -3192,7 +3192,7 @@
     <string name="settings_player_clock_description">Time in the corner of the screen</string>
     <string name="settings_player_recents">Recently watched in the player</string>
     <string name="settings_player_recents_description">The row of recent channels with TV guide and history under live TV</string>
-    <string name="settings_player_panel_columns">Programme beside the channel list</string>
+    <string name="settings_player_panel_columns">Programme in the middle, three columns</string>
     <string name="settings_player_panel_columns_description">On the channels screen and in the player\'s channel panel: channels, the programme of the channel under the cursor and the picture with a description. Off: as before, the programme opens on ▶</string>
     <string name="settings_vp_cat_controls">Controls</string>
     <string name="settings_vp_cat_resume">Resume watching</string>

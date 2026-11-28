@@ -324,7 +324,7 @@ class SettingsViewModel(
     }
 
     val playerPanelColumns: StateFlow<Boolean> = settings.playerPanelColumns
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), true)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
 
     fun setPlayerPanelColumns(enabled: Boolean) { viewModelScope.launch { settings.setPlayerPanelColumns(enabled) } }
 

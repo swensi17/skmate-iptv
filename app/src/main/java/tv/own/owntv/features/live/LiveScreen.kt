@@ -280,7 +280,7 @@ fun LiveScreen(
     // after a channel is kept (null = nothing to say).
     val liveSettings = koinInject<tv.own.owntv.core.settings.SettingsRepository>()
     // The setting the player's panel already had: off brings back the programme on ▶, here as there.
-    val programmeBeside by liveSettings.playerPanelColumns.collectAsStateWithLifecycle(initialValue = true)
+    val programmeBeside by liveSettings.playerPanelColumns.collectAsStateWithLifecycle(initialValue = false)
     val multiviewEnabled by liveSettings.multiviewEnabled.collectAsStateWithLifecycle(false)
     val multiviewTiles by liveSettings.multiviewTiles.collectAsStateWithLifecycle(
         tv.own.owntv.core.live.DEFAULT_MULTIVIEW_TILES,

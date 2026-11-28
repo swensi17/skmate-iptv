@@ -2682,7 +2682,7 @@ class SettingsRepository(private val context: Context, private val localeStore: 
     }
 
     /** The player's channel panel in three columns (the guide always beside the list), or as it was. */
-    val playerPanelColumns: Flow<Boolean> = prefsFlow { it[Keys.PLAYER_PANEL_COLUMNS] ?: true }
+    val playerPanelColumns: Flow<Boolean> = prefsFlow { it[Keys.PLAYER_PANEL_COLUMNS] ?: false }
 
     suspend fun setPlayerPanelColumns(enabled: Boolean) {
         context.dataStore.edit { it[Keys.PLAYER_PANEL_COLUMNS] = enabled }

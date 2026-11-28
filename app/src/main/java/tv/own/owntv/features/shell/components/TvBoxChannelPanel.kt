@@ -203,7 +203,7 @@ fun TvBoxChannelPanel(
     var picked by remember { mutableStateOf<XtEpgEntry?>(null) }
     // Settings › Player: the three columns, or the panel as it was (the guide only on ▶).
     val threeColumns by org.koin.compose.koinInject<tv.own.owntv.core.settings.SettingsRepository>()
-        .playerPanelColumns.collectAsStateWithLifecycle(true)
+        .playerPanelColumns.collectAsStateWithLifecycle(false)
     // Back from the categories beside the guide: focus into the guide again, after the list has taken it.
     var sideRefocus by remember { mutableIntStateOf(0) }
     LaunchedEffect(active) {
