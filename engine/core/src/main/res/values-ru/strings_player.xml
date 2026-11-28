@@ -8,6 +8,7 @@
     <string name="player_zoom_original">Исходный размер (1:1)</string>
     <string name="player_zoom_force_16_9">Принудительно 16:9</string>
     <string name="player_zoom_force_4_3">Принудительно 4:3</string>
+    <string name="player_zoom_force_239">Принудительно 2.39:1</string>
     <string name="player_mini_top_left">Сверху слева</string>
     <string name="player_mini_top_center">Сверху по центру</string>
     <string name="player_mini_top_right">Сверху справа</string>

@@ -16,6 +16,7 @@
     <string name="player_zoom_force_16_9">Force 16:9</string>
     <!-- Translators: Zoom mode option. Forces a 4:3 aspect ratio. -->
     <string name="player_zoom_force_4_3">Force 4:3</string>
+    <string name="player_zoom_force_239">Force 2.39:1</string>
     <!-- Translators: Mini-player docking position label in the mini-player position settings. -->
     <string name="player_mini_top_left">Top left</string>
     <!-- Translators: Mini-player docking position label. -->

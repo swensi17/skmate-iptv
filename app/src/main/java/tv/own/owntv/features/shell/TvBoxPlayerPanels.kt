@@ -157,7 +157,7 @@ private const val PANEL_ENTER_MS = 260
 internal fun TvBoxGuideOverlay(liveVm: LiveViewModel, focusChannelId: Long?, onClose: () -> Unit) {
     androidx.compose.runtime.CompositionLocalProvider(
         tv.own.owntv.ui.theme.LocalStagePalette provides tv.own.owntv.ui.theme.StagePalette.Dark,
-        tv.own.owntv.ui.theme.LocalStageAccentOverride provides tv.own.owntv.ui.theme.StageAccent(tv.own.owntv.ui.brand.SkMateBlue, Color.White, Color.White),
+        tv.own.owntv.ui.theme.LocalStageAccentOverride provides tv.own.owntv.ui.theme.StageAccent(tv.own.owntv.ui.theme.liveAccent, Color.White, Color.White),
     ) {
         // The guide's own handlers, composed after, go first.
         BackHandler { onClose() }

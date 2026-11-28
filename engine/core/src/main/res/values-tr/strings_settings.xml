@@ -1754,6 +1754,7 @@
     <string name="settings_live_key_action_rewind">Geri sar</string>
     <string name="settings_live_key_action_forward">İleri sar</string>
     <string name="settings_live_key_action_pause">Duraklat</string>
+    <string name="settings_live_key_action_description">Program açıklaması</string>
     <string name="settings_live_key_action_nothing">Hiçbiri</string>
     <string name="settings_live_key_default"><xliff:g id="action">%1$s</xliff:g> · varsayılan</string>
     <string name="settings_search_keywords_live_keys">kumanda tuşlar ok oklar kanal listesi liste aç ok ile yukarı aşağı sol sağ zap geri sar</string>

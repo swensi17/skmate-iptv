@@ -1464,6 +1464,12 @@ private fun errorTitleOf(art: tv.own.owntv.ui.stage.ErrorArt): Int = when (art) 
  * the key keeps its usual job. Held keys repeat: zapping and rewinding go on, the rest happens once.
  */
 private fun runLiveKey(action: LiveKeyAction, firstPress: Boolean, jobs: Map<LiveKeyAction, () -> Unit>): Boolean {
+    // The description is the info line, opened with the whole text: it needs no job of the player's own.
+    if (action == LiveKeyAction.DESCRIPTION) {
+        val info = jobs[LiveKeyAction.INFO] ?: return false
+        if (firstPress) { TvBoxAbout.open = !TvBoxAbout.open; info() }
+        return true
+    }
     val job = jobs[action] ?: return false
     if (firstPress || action in LIVE_KEY_REPEATS) job()
     return true
@@ -1494,6 +1500,11 @@ val LocalTvBoxTransport = androidx.compose.runtime.compositionLocalOf<TvBoxTrans
 
 /** The channel is paused: the transport under the timeline shows play instead of pause. */
 val LocalTvBoxPaused = androidx.compose.runtime.compositionLocalOf { false }
+
+/** The info line opened by the "Description" key: the programme's whole description instead of two lines. */
+object TvBoxAbout {
+    var open by androidx.compose.runtime.mutableStateOf(false)
+}
 
 /** The archive seek run in progress: seconds moved so far (+ toward live), or null when none is. */
 val LocalTvBoxSeekRun = androidx.compose.runtime.compositionLocalOf<Int?> { null }

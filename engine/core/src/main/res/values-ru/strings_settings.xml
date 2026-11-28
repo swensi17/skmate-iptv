@@ -1794,6 +1794,8 @@
     <string name="settings_player_clock_description">Время в углу экрана</string>
     <string name="settings_player_recents">Недавно просмотренные в плеере</string>
     <string name="settings_player_recents_description">Ряд последних каналов с телегидом и историей под эфиром</string>
+    <string name="settings_player_panel_columns">Программа рядом со списком каналов</string>
+    <string name="settings_player_panel_columns_description">Панель каналов в плеере в три колонки: каналы, программа канала под курсором, эфир с описанием. Выключено — как раньше, программа по ▶</string>
     <string name="settings_vp_cat_controls">Управление</string>
     <string name="settings_vp_cat_resume">Продолжение просмотра</string>
     <string name="settings_sources_refresh_daily">Каждый день</string>
@@ -1834,6 +1836,7 @@
     <string name="settings_live_key_action_rewind">Перемотка назад</string>
     <string name="settings_live_key_action_forward">Перемотка вперёд</string>
     <string name="settings_live_key_action_pause">Пауза</string>
+    <string name="settings_live_key_action_description">Описание передачи</string>
     <string name="settings_live_key_action_nothing">Ничего</string>
     <string name="settings_live_key_default"><xliff:g id="action">%1$s</xliff:g> · обычно</string>
     <string name="settings_search_keywords_live_keys">пульт кнопки ок стрелки список каналов открывать список по ок вверх вниз влево вправо переключение перемотка</string>

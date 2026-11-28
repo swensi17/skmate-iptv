@@ -6,6 +6,7 @@ import tv.own.owntv.ui.components.marqueeOverflow
 import tv.own.owntv.ui.theme.stageTone
 import tv.own.owntv.ui.theme.stageShadow
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.border
 import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Arrangement
@@ -162,6 +163,10 @@ internal fun LiveStageRow(
     playing: Boolean = false,
     /** Watched before on this profile: the history mark in the row's bottom-right corner, under the archive tag. */
     watched: Boolean = false,
+    /** The list squeezed beside the programme: only the channel's logo, large, and its archive tag. */
+    logosOnly: Boolean = false,
+    /** In the squeezed list: this is the channel whose programme stands beside, so it stays marked. */
+    lit: Boolean = false,
 ) {
     val tvBox = tv.own.owntv.features.shell.TvBoxNav
     val lite = tv.own.owntv.ui.theme.DevicePerf.lite
@@ -173,13 +178,19 @@ internal fun LiveStageRow(
             height = if (tvBox) 92.mpx else 84.mpx,
             modifier = Modifier.fillMaxWidth().onFocusChanged { if (it.hasFocus) onFocus() }
                 // TV-box look: a hairline under each channel.
-                // A weak TV leaves the hairlines out: one less thing to draw for every row on every frame.
-                .then(if (tv.own.owntv.features.shell.TvBoxNav && !lite) Modifier.drawBehind {
-                    val h = 1.mpx.toPx()
-                    drawRect(RowLine, topLeft = androidx.compose.ui.geometry.Offset(20.mpx.toPx(), drawContext.size.height - h), size = androidx.compose.ui.geometry.Size(drawContext.size.width - 40.mpx.toPx(), h))
-                } else Modifier),
+                .tableRule(tv.own.owntv.features.shell.TvBoxNav),
         ) { focused ->
-            if (showNumber) {
+            if (logosOnly) {
+                Box(
+                    Modifier.weight(1f).fillMaxHeight()
+                        .background(if (lit && !focused) litFill() else Color.Transparent, RoundedCornerShape(10.mpx))
+                        .then(if (lit && !focused) Modifier.border(2.mpx, tv.own.owntv.ui.theme.liveAccent, RoundedCornerShape(10.mpx)) else Modifier),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    LogoCell(channel.number, now?.let { progressOf(it) }) { LivePlate(channel.displayLogoUrl, LOGO_ONLY_W.mpx, LOGO_ONLY_H.mpx) }
+                }
+            }
+            if (showNumber && !logosOnly) {
                 Text(
                     channel.number?.toString().orEmpty(),
                     // TV-box look: from the left, so the numbers start on the search field's line.
@@ -189,8 +200,8 @@ internal fun LiveStageRow(
                     modifier = Modifier.width(50.mpx),
                 )
             }
-            LivePlate(channel.displayLogoUrl, 76.mpx, 54.mpx)
-            Column(Modifier.weight(1f)) {
+            if (!logosOnly) LivePlate(channel.displayLogoUrl, 76.mpx, 54.mpx)
+            if (!logosOnly) Column(Modifier.weight(1f)) {
                 rowName(name.name, if (tvBox) 23 else 22, focused)
                 val title = now?.title ?: nowTitle
                 if (title != null) {
@@ -207,7 +218,8 @@ internal fun LiveStageRow(
                 }
                 if (now != null) RowProgress(now, focused, tvBox, lite)
             }
-            if (trailing != null) trailing()
+            if (logosOnly) Unit
+            else if (trailing != null) trailing()
             else Row(horizontalArrangement = Arrangement.spacedBy(8.mpx), verticalAlignment = Alignment.CenterVertically) {
                 if (playing && tvBox) tv.own.owntv.ui.components.PlayingMark(Modifier.padding(start = 6.mpx))
                 name.tags.forEach { StageTag(it) }
@@ -221,7 +233,7 @@ internal fun LiveStageRow(
             }
         }
         archiveTag?.let { ArchiveCornerTag(it, Modifier.align(Alignment.TopEnd)) }
-        if (watched && tvBox && trailing == null) {
+        if (watched && tvBox && trailing == null && !logosOnly) {
             OwnTVIcon(
                 OwnTVIcon.HISTORY, StageColors.Dim,
                 Modifier.align(Alignment.BottomEnd).padding(end = WATCHED_MARK_INSET.mpx, bottom = WATCHED_MARK_INSET.mpx)
@@ -241,7 +253,7 @@ private fun ArchiveCornerTag(text: String, modifier: Modifier = Modifier) {
     Box(
         modifier
             .background(
-                tv.own.owntv.ui.brand.SkMateBlue,
+                tv.own.owntv.ui.theme.liveAccent,
                 RoundedCornerShape(topEnd = ARCHIVE_TAG_EDGE_RADIUS.mpx, bottomStart = ARCHIVE_TAG_RADIUS.mpx),
             )
             .padding(horizontal = 12.mpx, vertical = 4.mpx),
@@ -257,6 +269,8 @@ private fun ArchiveCornerTag(text: String, modifier: Modifier = Modifier) {
 }
 
 private const val WATCHED_MARK = 20
+private const val LOGO_ONLY_W = 96
+private const val LOGO_ONLY_H = 46
 private const val WATCHED_MARK_INSET = 12
 private const val ARCHIVE_TAG_RADIUS = 10
 private const val ARCHIVE_TAG_EDGE_RADIUS = 4
@@ -336,6 +350,8 @@ internal fun LiveStagePane(
     onOpenProgramme: (XtEpgEntry) -> Unit,
     onBackToList: () -> Unit,
     modifier: Modifier = Modifier,
+    /** The programme column stands beside: no second schedule and no hint here. */
+    besideGuide: Boolean = false,
 ) {
     val previewState by previewEngine.state.collectAsStateWithLifecycle()
     val streamChips by previewEngine.streamChips.collectAsStateWithLifecycle()
@@ -504,7 +520,7 @@ internal fun LiveStagePane(
                     Text(timeLeftText(minutesLeft(now)), style = stageText(17, 400).copy(fontFeatureSettings = Tabular), color = StageColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
                 // The archive by day lives behind ▶; a channel that has one says so, or nobody finds it.
-                if (tvBox && channel?.catchup == true) {
+                if (tvBox && channel?.catchup == true && !besideGuide) {
                     Text(
                         stringResource(R.string.content_hint_archive_days),
                         style = stageText(17, 600), color = stageAccent.accent,
@@ -523,7 +539,7 @@ internal fun LiveStagePane(
             val later = nowNext?.upcoming?.firstOrNull()
             // TV-box look: the rest of the evening too, one under the other; the pane scrolls to reach them.
             val more = if (tvBox) nowNext?.upcoming.orEmpty().drop(1).take(TV_BOX_MORE_ROWS) else emptyList()
-            if (next != null) {
+            if (next != null && !besideGuide) {
                 // Next and later one under the other, as a schedule reads.
                 Column(
                     Modifier
@@ -1014,7 +1030,7 @@ private fun TextSkeleton() {
 /** A channel with no programme guide: a short note at the top, then three quiet bars where the
  *  programme, time and synopsis would be — the layout keeps its shape instead of going blank. */
 @Composable
-private fun NoGuideCard() {
+internal fun NoGuideCard() {
     val bar = StageColors.Text.copy(alpha = 0.06f)
     Column(verticalArrangement = Arrangement.spacedBy(14.mpx)) {
         GuideStatusText(stringResource(R.string.content_no_guide), stageText(22, 700), StageColors.Muted)
@@ -1026,6 +1042,27 @@ private fun NoGuideCard() {
 
 /** The hairline between channel rows. */
 private val RowLine = Color(0x14000000)
+
+/** The hairline between rows, as in a table: light on the dark theme, dark on the light one. */
+@Composable
+internal fun litFill(): Color = Color.White.copy(alpha = 0.10f)
+
+@Composable
+internal fun rowRule(): Color = stageTone(Color.White.copy(alpha = 0.08f), RowLine)
+
+/** One table line for every list (channels, the player panel, the programme), so they never look apart. */
+@Composable
+internal fun Modifier.tableRule(show: Boolean = true): Modifier {
+    if (!show) return this
+    val line = rowRule()
+    return drawBehind {
+        val h = 1.mpx.toPx()
+        val inset = ROW_RULE_INSET.mpx.toPx()
+        drawRect(line, topLeft = androidx.compose.ui.geometry.Offset(inset, size.height - h), size = androidx.compose.ui.geometry.Size(size.width - inset * 2, h))
+    }
+}
+
+private const val ROW_RULE_INSET = 20
 
 /** Channel rows standing in while the list loads. */
 @Composable
@@ -1088,6 +1125,20 @@ private fun RowProgress(now: XtEpgEntry, focused: Boolean, tvBox: Boolean, lite:
 
 /** The flat progress bar's height ([StageProgress]), kept as room on rows that do not draw it. */
 private const val ROW_PROGRESS_HEIGHT = 4
+
+/** The squeezed list's cell: the number on its own line, the logo, and the programme's progress the full width under it. */
+@Composable
+internal fun LogoCell(number: Int?, progress: Float?, logo: @Composable () -> Unit) {
+    Column(Modifier.fillMaxSize().padding(horizontal = 12.mpx, vertical = 6.mpx)) {
+        Text(
+            number?.toString().orEmpty(), style = stageText(13, 700).copy(fontFeatureSettings = Tabular), color = StageColors.Dim,
+            maxLines = 1, softWrap = false, overflow = TextOverflow.Ellipsis,
+        )
+        Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) { logo() }
+        if (progress != null) StageProgress(progress, Modifier.fillMaxWidth(), flat = true)
+        else Spacer(Modifier.height(ROW_PROGRESS_HEIGHT.mpx))
+    }
+}
 
 /** A channel's name in its row: one line, scrolling to its end while the row has focus. */
 @Composable

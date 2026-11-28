@@ -117,7 +117,7 @@
         <error line="54" column="5" source="standard:spacing-between-declarations-with-comments" />
         <error line="57" column="5" source="standard:spacing-between-declarations-with-comments" />
         <error line="59" column="15" source="standard:property-naming" />
-        <error line="214" column="6" source="standard:wrapping" />
+        <error line="215" column="6" source="standard:wrapping" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/epg/GuideStage.kt">
         <error line="3" column="1" source="standard:import-ordering" />
@@ -145,23 +145,21 @@
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/live/LiveScreen.kt">
         <error line="3" column="1" source="standard:import-ordering" />
-        <error line="149" column="5" source="standard:spacing-between-declarations-with-comments" />
-        <error line="350" column="5" source="standard:spacing-between-declarations-with-comments" />
-        <error line="454" column="5" source="standard:spacing-between-declarations-with-comments" />
-        <error line="550" column="5" source="standard:spacing-between-declarations-with-comments" />
-        <error line="1882" column="19" source="standard:property-naming" />
-        <error line="1885" column="19" source="standard:property-naming" />
-        <error line="1886" column="19" source="standard:property-naming" />
-        <error line="1889" column="19" source="standard:property-naming" />
-        <error line="1905" column="1" source="standard:no-consecutive-blank-lines" />
+        <error line="150" column="5" source="standard:spacing-between-declarations-with-comments" />
+        <error line="351" column="5" source="standard:spacing-between-declarations-with-comments" />
+        <error line="455" column="5" source="standard:spacing-between-declarations-with-comments" />
+        <error line="551" column="5" source="standard:spacing-between-declarations-with-comments" />
+        <error line="1923" column="19" source="standard:property-naming" />
+        <error line="1926" column="19" source="standard:property-naming" />
+        <error line="1927" column="19" source="standard:property-naming" />
+        <error line="1930" column="19" source="standard:property-naming" />
+        <error line="1953" column="1" source="standard:no-consecutive-blank-lines" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/live/LiveStage.kt">
         <error line="3" column="1" source="standard:import-ordering" />
-        <error line="177" column="23" source="standard:wrapping" />
-        <error line="180" column="31" source="standard:wrapping" />
-        <error line="1065" column="19" source="standard:property-naming" />
-        <error line="1068" column="19" source="standard:property-naming" />
-        <error line="1071" column="19" source="standard:property-naming" />
+        <error line="1102" column="19" source="standard:property-naming" />
+        <error line="1105" column="19" source="standard:property-naming" />
+        <error line="1108" column="19" source="standard:property-naming" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/live/LiveViewModel.kt">
         <error line="5" column="1" source="standard:import-ordering" />
@@ -477,64 +475,64 @@
     <file name="app/src/main/java/tv/own/owntv/features/settings/SettingsViewModel.kt">
         <error line="5" column="1" source="standard:import-ordering" />
         <error line="105" column="5" source="standard:spacing-between-declarations-with-comments" />
-        <error line="554" column="1" source="standard:no-consecutive-blank-lines" />
-        <error line="874" column="5" source="standard:spacing-between-declarations-with-comments" />
-        <error line="886" column="5" source="standard:spacing-between-declarations-with-comments" />
-        <error line="994" column="1" source="standard:no-consecutive-blank-lines" />
-        <error line="1040" column="5" source="standard:spacing-between-declarations-with-comments" />
+        <error line="559" column="1" source="standard:no-consecutive-blank-lines" />
+        <error line="879" column="5" source="standard:spacing-between-declarations-with-comments" />
+        <error line="891" column="5" source="standard:spacing-between-declarations-with-comments" />
+        <error line="999" column="1" source="standard:no-consecutive-blank-lines" />
+        <error line="1045" column="5" source="standard:spacing-between-declarations-with-comments" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/settings/VideoPlayerSettingsScreen.kt">
         <error line="3" column="1" source="standard:import-ordering" />
         <error line="86" column="5" source="standard:spacing-between-declarations-with-comments" />
         <error line="142" column="1" source="standard:kdoc" />
         <error line="148" column="1" source="standard:spacing-between-declarations-with-comments" />
-        <error line="696" column="5" source="standard:spacing-between-declarations-with-comments" />
-        <error line="701" column="5" source="standard:spacing-between-declarations-with-comments" />
-        <error line="833" column="44" source="standard:wrapping" />
-        <error line="836" column="21" source="standard:wrapping" />
-        <error line="846" column="40" source="standard:wrapping" />
-        <error line="847" column="110" source="standard:wrapping" />
-        <error line="847" column="122" source="standard:wrapping" />
-        <error line="871" column="44" source="standard:wrapping" />
-        <error line="874" column="21" source="standard:wrapping" />
-        <error line="884" column="40" source="standard:wrapping" />
-        <error line="885" column="114" source="standard:wrapping" />
-        <error line="885" column="128" source="standard:wrapping" />
-        <error line="968" column="40" source="standard:wrapping" />
-        <error line="969" column="112" source="standard:wrapping" />
-        <error line="969" column="125" source="standard:wrapping" />
-        <error line="1155" column="44" source="standard:wrapping" />
-        <error line="1158" column="21" source="standard:wrapping" />
-        <error line="1171" column="41" source="standard:wrapping" />
-        <error line="1175" column="17" source="standard:wrapping" />
-        <error line="1185" column="44" source="standard:wrapping" />
-        <error line="1188" column="21" source="standard:wrapping" />
-        <error line="1201" column="41" source="standard:wrapping" />
-        <error line="1205" column="17" source="standard:wrapping" />
-        <error line="1215" column="44" source="standard:wrapping" />
-        <error line="1218" column="21" source="standard:wrapping" />
-        <error line="1316" column="40" source="standard:wrapping" />
-        <error line="1317" column="116" source="standard:wrapping" />
-        <error line="1317" column="131" source="standard:wrapping" />
-        <error line="1395" column="40" source="standard:wrapping" />
-        <error line="1396" column="124" source="standard:wrapping" />
-        <error line="1396" column="143" source="standard:wrapping" />
-        <error line="2383" column="1" source="standard:kdoc" />
-        <error line="2393" column="1" source="standard:spacing-between-declarations-with-comments" />
-        <error line="2395" column="1" source="standard:spacing-between-declarations-with-comments" />
-        <error line="2430" column="25" source="standard:wrapping" />
-        <error line="2431" column="144" source="standard:wrapping" />
-        <error line="2432" column="25" source="standard:wrapping" />
-        <error line="2433" column="144" source="standard:wrapping" />
-        <error line="2435" column="25" source="standard:wrapping" />
-        <error line="2436" column="157" source="standard:wrapping" />
-        <error line="2437" column="25" source="standard:wrapping" />
-        <error line="2438" column="69" source="standard:wrapping" />
-        <error line="2440" column="25" source="standard:wrapping" />
-        <error line="2441" column="111" source="standard:wrapping" />
-        <error line="2442" column="25" source="standard:wrapping" />
-        <error line="2443" column="150" source="standard:wrapping" />
-        <error line="2602" column="1" source="standard:no-consecutive-blank-lines" />
+        <error line="704" column="5" source="standard:spacing-between-declarations-with-comments" />
+        <error line="709" column="5" source="standard:spacing-between-declarations-with-comments" />
+        <error line="841" column="44" source="standard:wrapping" />
+        <error line="844" column="21" source="standard:wrapping" />
+        <error line="854" column="40" source="standard:wrapping" />
+        <error line="855" column="110" source="standard:wrapping" />
+        <error line="855" column="122" source="standard:wrapping" />
+        <error line="879" column="44" source="standard:wrapping" />
+        <error line="882" column="21" source="standard:wrapping" />
+        <error line="892" column="40" source="standard:wrapping" />
+        <error line="893" column="114" source="standard:wrapping" />
+        <error line="893" column="128" source="standard:wrapping" />
+        <error line="976" column="40" source="standard:wrapping" />
+        <error line="977" column="112" source="standard:wrapping" />
+        <error line="977" column="125" source="standard:wrapping" />
+        <error line="1163" column="44" source="standard:wrapping" />
+        <error line="1166" column="21" source="standard:wrapping" />
+        <error line="1179" column="41" source="standard:wrapping" />
+        <error line="1183" column="17" source="standard:wrapping" />
+        <error line="1193" column="44" source="standard:wrapping" />
+        <error line="1196" column="21" source="standard:wrapping" />
+        <error line="1209" column="41" source="standard:wrapping" />
+        <error line="1213" column="17" source="standard:wrapping" />
+        <error line="1223" column="44" source="standard:wrapping" />
+        <error line="1226" column="21" source="standard:wrapping" />
+        <error line="1332" column="40" source="standard:wrapping" />
+        <error line="1333" column="116" source="standard:wrapping" />
+        <error line="1333" column="131" source="standard:wrapping" />
+        <error line="1411" column="40" source="standard:wrapping" />
+        <error line="1412" column="124" source="standard:wrapping" />
+        <error line="1412" column="143" source="standard:wrapping" />
+        <error line="2399" column="1" source="standard:kdoc" />
+        <error line="2409" column="1" source="standard:spacing-between-declarations-with-comments" />
+        <error line="2411" column="1" source="standard:spacing-between-declarations-with-comments" />
+        <error line="2446" column="25" source="standard:wrapping" />
+        <error line="2447" column="144" source="standard:wrapping" />
+        <error line="2448" column="25" source="standard:wrapping" />
+        <error line="2449" column="144" source="standard:wrapping" />
+        <error line="2451" column="25" source="standard:wrapping" />
+        <error line="2452" column="157" source="standard:wrapping" />
+        <error line="2453" column="25" source="standard:wrapping" />
+        <error line="2454" column="69" source="standard:wrapping" />
+        <error line="2456" column="25" source="standard:wrapping" />
+        <error line="2457" column="111" source="standard:wrapping" />
+        <error line="2458" column="25" source="standard:wrapping" />
+        <error line="2459" column="150" source="standard:wrapping" />
+        <error line="2618" column="1" source="standard:no-consecutive-blank-lines" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/settings/WeatherSettingsScreen.kt">
         <error line="222" column="37" source="standard:annotation" />
@@ -571,10 +569,10 @@
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/setup/WizardFrame.kt">
         <error line="3" column="1" source="standard:import-ordering" />
-        <error line="298" column="19" source="standard:property-naming" />
-        <error line="300" column="1" source="standard:no-consecutive-blank-lines" />
-        <error line="301" column="19" source="standard:property-naming" />
-        <error line="361" column="1" source="standard:no-consecutive-blank-lines" />
+        <error line="297" column="19" source="standard:property-naming" />
+        <error line="299" column="1" source="standard:no-consecutive-blank-lines" />
+        <error line="300" column="19" source="standard:property-naming" />
+        <error line="360" column="1" source="standard:no-consecutive-blank-lines" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt">
         <error line="3" column="1" source="standard:import-ordering" />
@@ -651,10 +649,12 @@
         <error line="407" column="1" source="standard:no-consecutive-blank-lines" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/shell/components/TvBoxChannelPanel.kt">
-        <error line="129" column="9" source="standard:property-naming" />
-        <error line="130" column="9" source="standard:property-naming" />
-        <error line="796" column="1" source="standard:spacing-between-declarations-with-comments" />
-        <error line="807" column="19" source="standard:property-naming" />
+        <error line="5" column="1" source="standard:import-ordering" />
+        <error line="134" column="9" source="standard:property-naming" />
+        <error line="135" column="9" source="standard:property-naming" />
+        <error line="905" column="1" source="standard:spacing-between-declarations-with-comments" />
+        <error line="916" column="19" source="standard:property-naming" />
+        <error line="926" column="1" source="standard:no-consecutive-blank-lines" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/shell/components/TvBoxPlayerInfo.kt">
         <error line="3" column="1" source="standard:import-ordering" />
@@ -972,15 +972,15 @@
     </file>
     <file name="app/src/main/java/tv/own/owntv/ui/stage/StageComponents.kt">
         <error line="3" column="1" source="standard:import-ordering" />
-        <error line="191" column="1" source="standard:spacing-between-declarations-with-annotations" />
-        <error line="193" column="32" source="standard:annotation" />
-        <error line="252" column="1" source="standard:kdoc" />
-        <error line="253" column="1" source="standard:spacing-between-declarations-with-comments" />
-        <error line="861" column="19" source="standard:wrapping" />
-        <error line="864" column="27" source="standard:wrapping" />
-        <error line="941" column="18" source="standard:wrapping" />
-        <error line="942" column="94" source="standard:wrapping" />
-        <error line="1347" column="1" source="standard:no-consecutive-blank-lines" />
+        <error line="194" column="1" source="standard:spacing-between-declarations-with-annotations" />
+        <error line="196" column="32" source="standard:annotation" />
+        <error line="255" column="1" source="standard:kdoc" />
+        <error line="256" column="1" source="standard:spacing-between-declarations-with-comments" />
+        <error line="864" column="19" source="standard:wrapping" />
+        <error line="867" column="27" source="standard:wrapping" />
+        <error line="944" column="18" source="standard:wrapping" />
+        <error line="945" column="94" source="standard:wrapping" />
+        <error line="1350" column="1" source="standard:no-consecutive-blank-lines" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/ui/stage/StageControls.kt">
         <error line="3" column="1" source="standard:import-ordering" />
@@ -1015,49 +1015,49 @@
         <error line="3" column="1" source="standard:import-ordering" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/ui/theme/StageTokens.kt">
-        <error line="116" column="9" source="standard:spacing-between-declarations-with-comments" />
-        <error line="154" column="20" source="standard:annotation" />
-        <error line="154" column="52" source="standard:annotation" />
-        <error line="155" column="21" source="standard:annotation" />
-        <error line="155" column="53" source="standard:annotation" />
-        <error line="156" column="19" source="standard:annotation" />
-        <error line="156" column="51" source="standard:annotation" />
-        <error line="157" column="24" source="standard:annotation" />
-        <error line="157" column="56" source="standard:annotation" />
-        <error line="158" column="28" source="standard:annotation" />
-        <error line="158" column="60" source="standard:annotation" />
-        <error line="159" column="23" source="standard:annotation" />
-        <error line="159" column="55" source="standard:annotation" />
-        <error line="160" column="27" source="standard:annotation" />
-        <error line="160" column="59" source="standard:annotation" />
-        <error line="161" column="24" source="standard:annotation" />
-        <error line="161" column="56" source="standard:annotation" />
-        <error line="162" column="5" source="standard:spacing-between-declarations-with-comments" />
-        <error line="164" column="5" source="standard:spacing-between-declarations-with-comments" />
-        <error line="165" column="18" source="standard:annotation" />
-        <error line="165" column="50" source="standard:annotation" />
-        <error line="166" column="5" source="standard:spacing-between-declarations-with-comments" />
-        <error line="167" column="20" source="standard:annotation" />
-        <error line="167" column="52" source="standard:annotation" />
-        <error line="168" column="5" source="standard:spacing-between-declarations-with-comments" />
-        <error line="169" column="22" source="standard:annotation" />
-        <error line="169" column="54" source="standard:annotation" />
-        <error line="170" column="20" source="standard:annotation" />
-        <error line="170" column="52" source="standard:annotation" />
-        <error line="171" column="23" source="standard:annotation" />
-        <error line="171" column="55" source="standard:annotation" />
-        <error line="172" column="22" source="standard:annotation" />
-        <error line="172" column="54" source="standard:annotation" />
+        <error line="117" column="9" source="standard:spacing-between-declarations-with-comments" />
+        <error line="155" column="20" source="standard:annotation" />
+        <error line="155" column="52" source="standard:annotation" />
+        <error line="156" column="21" source="standard:annotation" />
+        <error line="156" column="53" source="standard:annotation" />
+        <error line="157" column="19" source="standard:annotation" />
+        <error line="157" column="51" source="standard:annotation" />
+        <error line="158" column="24" source="standard:annotation" />
+        <error line="158" column="56" source="standard:annotation" />
+        <error line="159" column="28" source="standard:annotation" />
+        <error line="159" column="60" source="standard:annotation" />
+        <error line="160" column="23" source="standard:annotation" />
+        <error line="160" column="55" source="standard:annotation" />
+        <error line="161" column="27" source="standard:annotation" />
+        <error line="161" column="59" source="standard:annotation" />
+        <error line="162" column="24" source="standard:annotation" />
+        <error line="162" column="56" source="standard:annotation" />
+        <error line="163" column="5" source="standard:spacing-between-declarations-with-comments" />
+        <error line="165" column="5" source="standard:spacing-between-declarations-with-comments" />
+        <error line="166" column="18" source="standard:annotation" />
+        <error line="166" column="50" source="standard:annotation" />
+        <error line="167" column="5" source="standard:spacing-between-declarations-with-comments" />
+        <error line="168" column="20" source="standard:annotation" />
+        <error line="168" column="52" source="standard:annotation" />
+        <error line="169" column="5" source="standard:spacing-between-declarations-with-comments" />
+        <error line="170" column="22" source="standard:annotation" />
+        <error line="170" column="54" source="standard:annotation" />
+        <error line="171" column="20" source="standard:annotation" />
+        <error line="171" column="52" source="standard:annotation" />
+        <error line="172" column="23" source="standard:annotation" />
+        <error line="172" column="55" source="standard:annotation" />
         <error line="173" column="22" source="standard:annotation" />
         <error line="173" column="54" source="standard:annotation" />
-        <error line="174" column="5" source="standard:spacing-between-declarations-with-comments" />
-        <error line="175" column="19" source="standard:annotation" />
-        <error line="175" column="51" source="standard:annotation" />
-        <error line="176" column="21" source="standard:annotation" />
-        <error line="176" column="53" source="standard:annotation" />
-        <error line="177" column="20" source="standard:annotation" />
-        <error line="177" column="52" source="standard:annotation" />
-        <error line="235" column="24" source="standard:annotation-spacing" />
+        <error line="174" column="22" source="standard:annotation" />
+        <error line="174" column="54" source="standard:annotation" />
+        <error line="175" column="5" source="standard:spacing-between-declarations-with-comments" />
+        <error line="176" column="19" source="standard:annotation" />
+        <error line="176" column="51" source="standard:annotation" />
+        <error line="177" column="21" source="standard:annotation" />
+        <error line="177" column="53" source="standard:annotation" />
+        <error line="178" column="20" source="standard:annotation" />
+        <error line="178" column="52" source="standard:annotation" />
+        <error line="236" column="24" source="standard:annotation-spacing" />
     </file>
     <file name="app/src/test/java/tv/own/owntv/features/profiles/ProfileGateSessionViewModelTest.kt">
         <error line="112" column="1" source="standard:final-newline" />

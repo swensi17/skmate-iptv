@@ -295,7 +295,7 @@ fun StagePopupOption(
                 }
             }
             if (value != null) {
-                val valueColor = if (focused) tv.own.owntv.ui.brand.SkMateBlue else a.accent
+                val valueColor = if (focused) tv.own.owntv.ui.theme.liveAccent else a.accent
                 Text(
                     "$value ›", style = stageText(18, 700), color = valueColor,
                     maxLines = 1, overflow = TextOverflow.Ellipsis,
@@ -318,7 +318,7 @@ fun StagePopupRadio(on: Boolean, focused: Boolean) {
         // Blue (SkMate's link blue) on a light page; white only over a dark focused row.
         val light = tv.own.owntv.ui.theme.LocalStagePalette.current.isLight
         val tint = when {
-            light -> tv.own.owntv.ui.brand.SkMateBlue
+            light -> tv.own.owntv.ui.theme.liveAccent
             focused -> Color.White
             else -> a.accent
         }

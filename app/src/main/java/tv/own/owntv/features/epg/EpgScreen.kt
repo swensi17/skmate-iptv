@@ -607,7 +607,7 @@ fun EpgScreen(
                     val numberWidth = maxOf(38f, (state.channels.maxOfOrNull { it.number?.toString()?.length ?: 0 } ?: 0) * 11f).mpx
                     if (tv.own.owntv.features.shell.TvBoxNav) {
                         Text(
-                            formatViewDay(viewDay), style = stageText(19, 700), color = tv.own.owntv.ui.brand.SkMateBlue, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                            formatViewDay(viewDay), style = stageText(19, 700), color = tv.own.owntv.ui.theme.liveAccent, maxLines = 1, overflow = TextOverflow.Ellipsis,
                             modifier = Modifier.padding(start = fx(48) + 16.mpx).width(labelW - 24.mpx),
                         )
                     }
@@ -688,7 +688,7 @@ fun EpgScreen(
                                 }
                                 .width(3.mpx)
                                 .fillMaxHeight()
-                                .guideNowLine(if (tv.own.owntv.features.shell.TvBoxNav) tv.own.owntv.ui.brand.SkMateBlue else stageAccent.accent),
+                                .guideNowLine(if (tv.own.owntv.features.shell.TvBoxNav) tv.own.owntv.ui.theme.liveAccent else stageAccent.accent),
                         )
                     }
                 }

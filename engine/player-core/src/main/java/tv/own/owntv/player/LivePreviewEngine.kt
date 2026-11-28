@@ -324,7 +324,15 @@ class LivePreviewEngine(
                 }
                 // Software decoding on a box that asked for it, or has little to give: the in-loop deblocking
                 // skipped, which is most of its cost on a TV chip and barely shows on a TV picture.
-                if (software && (lowSpec || hardwareOff)) addOption(":avcodec-skiploopfilter=$SKIP_LOOP_FILTER_NON_KEY")
+                if (software && (lowSpec || hardwareOff)) {
+                    addOption(":avcodec-skiploopfilter=$SKIP_LOOP_FILTER_NON_KEY")
+                    // FFmpeg's fast shortcuts, late frames dropped rather than shown late, and every core put to work.
+                    addOption(":avcodec-fast")
+                    addOption(":avcodec-hurry-up")
+                    addOption(":avcodec-threads=0")
+                    addOption(":drop-late-frames")
+                    addOption(":skip-frames")
+                }
             }
             try {
                 p.media = media

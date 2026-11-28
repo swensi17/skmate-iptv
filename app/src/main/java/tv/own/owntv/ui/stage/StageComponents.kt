@@ -2,6 +2,7 @@ package tv.own.owntv.ui.stage
 
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.ui.graphics.luminance
+import tv.own.owntv.ui.theme.isGrey
 import androidx.compose.ui.input.pointer.pointerInput
 import tv.own.owntv.ui.components.focusMarquee
 import tv.own.owntv.ui.theme.stageTone
@@ -100,6 +101,8 @@ private fun Modifier.stageFocusDecor(style: StageFocus, radius: Dp, a: StageAcce
     // One focus on the TV: the same grey bar, corners barely softened, whatever the row or button is made of.
     if (tv.own.owntv.features.shell.TvBoxNav && (style == StageFocus.FX || style == StageFocus.FILLED || style == StageFocus.PRIMARY)) {
         drawRoundRect(if (palette.isLight) LightFocusFill else SheetFocusFill, cornerRadius = CornerRadius(4.mpx.toPx()))
+        // A chosen colour shows on the focus too: its ring around the grey bar (the default ink keeps the plain bar).
+        if (!a.accent.isGrey()) drawInnerRing(a.accent, 3 * px, 4.mpx.toPx())
         return@drawBehind
     }
     if (palette.isLight) {
@@ -230,7 +233,7 @@ fun StageSurface(
             val light = tv.own.owntv.ui.theme.StagePalette.Light
             // A pale accent (white in the dark theme) vanishes on the light bar; the brand blue reads on it.
             val onBar = if (accent.accent.luminance() > PALE_ACCENT_LUMINANCE) {
-                tv.own.owntv.ui.brand.SkMateBlue
+                tv.own.owntv.ui.theme.liveAccent
             } else {
                 accent.accent
             }
@@ -1400,4 +1403,4 @@ private const val MENU_ROW_TV_BOX = 76
 private const val MENU_TEXT_TV_BOX = 23
 
 @Composable
-private fun menuValueColor(focused: Boolean): Color = if (focused) tv.own.owntv.ui.brand.SkMateBlue else StageColors.Dim
+private fun menuValueColor(focused: Boolean): Color = if (focused) tv.own.owntv.ui.theme.liveAccent else StageColors.Dim

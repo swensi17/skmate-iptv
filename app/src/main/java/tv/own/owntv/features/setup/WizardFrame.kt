@@ -22,7 +22,6 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.AnimatedVisibility
-import tv.own.owntv.ui.brand.SkMateBlue
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.border
 import androidx.compose.ui.text.style.TextAlign
@@ -274,8 +273,8 @@ private fun StepNumbers(current: WizardStep, modifier: Modifier) {
     ) {
         WizardStep.entries.forEachIndexed { i, s ->
             val reached = s.ordinal <= current.ordinal
-            val fill by animateColorAsState(if (reached) SkMateBlue else Color.Transparent, tween(tv.own.owntv.ui.theme.MotionPrefs.dur(StepAnimMs)), label = "stepFill")
-            val ring by animateColorAsState(if (reached) SkMateBlue else StepIdle, tween(tv.own.owntv.ui.theme.MotionPrefs.dur(StepAnimMs)), label = "stepRing")
+            val fill by animateColorAsState(if (reached) tv.own.owntv.ui.theme.liveAccent else Color.Transparent, tween(tv.own.owntv.ui.theme.MotionPrefs.dur(StepAnimMs)), label = "stepFill")
+            val ring by animateColorAsState(if (reached) tv.own.owntv.ui.theme.liveAccent else StepIdle, tween(tv.own.owntv.ui.theme.MotionPrefs.dur(StepAnimMs)), label = "stepRing")
             val digit by animateColorAsState(if (reached) Color.White else StageColors.Muted, tween(tv.own.owntv.ui.theme.MotionPrefs.dur(StepAnimMs)), label = "stepDigit")
             if (i > 0) Box(Modifier.size(width = 22.mpx, height = 2.mpx).background(ring))
             Box(

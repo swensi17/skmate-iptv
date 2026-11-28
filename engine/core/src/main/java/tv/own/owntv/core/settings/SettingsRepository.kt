@@ -433,6 +433,7 @@ class SettingsRepository(private val context: Context, private val localeStore: 
         val AUTO_FRAME_RATE_PROMPTED = booleanPreferencesKey("auto_frame_rate_prompted")
         val PLAYER_CLOCK = booleanPreferencesKey("player_clock")
         val PLAYER_RECENTS = booleanPreferencesKey("player_recents")
+        val PLAYER_PANEL_COLUMNS = booleanPreferencesKey("player_panel_columns")
         val GUIDE_AUTOLINK_KEY = stringPreferencesKey("guide_autolink_key")
         val PLAYER_CLOCK_SIZE = intPreferencesKey("player_clock_size")
         val PLAYER_CLOCK_WEIGHT = intPreferencesKey("player_clock_weight")
@@ -2680,6 +2681,13 @@ class SettingsRepository(private val context: Context, private val localeStore: 
         context.dataStore.edit { it[Keys.PLAYER_CLOCK] = enabled }
     }
 
+    /** The player's channel panel in three columns (the guide always beside the list), or as it was. */
+    val playerPanelColumns: Flow<Boolean> = prefsFlow { it[Keys.PLAYER_PANEL_COLUMNS] ?: true }
+
+    suspend fun setPlayerPanelColumns(enabled: Boolean) {
+        context.dataStore.edit { it[Keys.PLAYER_PANEL_COLUMNS] = enabled }
+    }
+
     /** The row of recently watched channels (with the guide and history cards) under the live player. */
     val playerRecents: Flow<Boolean> = prefsFlow { it[Keys.PLAYER_RECENTS] ?: true }
 
@@ -3316,7 +3324,7 @@ class SettingsRepository(private val context: Context, private val localeStore: 
             Keys.INFO_HIDE_SECS)
         val bools = listOf(
             Keys.GUIDE_SHOW_EMPTY, Keys.GUIDE_PREVIEW, Keys.ADULT_LOCK,
-            Keys.LIVE_PREVIEW, Keys.LIVE_PREVIEW_AUDIO, Keys.PROGRAMME_POSTERS, Keys.HERO_PREVIEW, Keys.PREFER_SDR, Keys.AUTO_FRAME_RATE, Keys.AFR_MATCH_RESOLUTION, Keys.AUTO_FRAME_RATE_PROMPTED, Keys.PLAYER_CLOCK, Keys.PLAYER_RECENTS, Keys.ANDROID_TV_HOME, Keys.HW_DECODING, Keys.SOFTWARE_DECODE_ABOVE_1080P,
+            Keys.LIVE_PREVIEW, Keys.LIVE_PREVIEW_AUDIO, Keys.PROGRAMME_POSTERS, Keys.HERO_PREVIEW, Keys.PREFER_SDR, Keys.AUTO_FRAME_RATE, Keys.AFR_MATCH_RESOLUTION, Keys.AUTO_FRAME_RATE_PROMPTED, Keys.PLAYER_CLOCK, Keys.PLAYER_RECENTS, Keys.PLAYER_PANEL_COLUMNS, Keys.ANDROID_TV_HOME, Keys.HW_DECODING, Keys.SOFTWARE_DECODE_ABOVE_1080P,
             Keys.VOD_PREFER_EXO, Keys.MEASURED_STREAM_STATS, Keys.DETAILED_DIAGNOSTICS, Keys.DIRECT_TUNE, Keys.LIVE_LEFT_RIGHT_REWINDS, Keys.EXTERNAL_PLAYER,
             Keys.EXTERNAL_PLAYER_LIVE, Keys.EXTERNAL_PLAYER_MOVIES, Keys.EXTERNAL_PLAYER_SERIES, Keys.UPDATE_CHECK_ON_START, Keys.SURROUND_SOUND, Keys.AUTO_PLAY_NEXT, Keys.PROXY_ENABLED,
             Keys.WEATHER_ENABLED, Keys.WEATHER_FAHRENHEIT, Keys.RESUME_LAST_CHANNEL, Keys.METADATA_ENABLED, Keys.CH_NAV_ENABLED,

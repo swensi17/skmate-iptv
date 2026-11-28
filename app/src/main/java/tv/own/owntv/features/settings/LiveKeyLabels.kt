@@ -50,6 +50,7 @@ internal fun liveKeyActionLabel(action: LiveKeyAction): String = stringResource(
         LiveKeyAction.REWIND -> R.string.settings_live_key_action_rewind
         LiveKeyAction.FORWARD -> R.string.settings_live_key_action_forward
         LiveKeyAction.PLAY_PAUSE -> R.string.settings_live_key_action_pause
+        LiveKeyAction.DESCRIPTION -> R.string.settings_live_key_action_description
         LiveKeyAction.NOTHING -> R.string.settings_live_key_action_nothing
     },
 )
@@ -64,5 +65,6 @@ internal fun liveKeyActionIcon(action: LiveKeyAction): OwnTVIcon = when (action)
     LiveKeyAction.REWIND -> OwnTVIcon.SEEK_BACK
     LiveKeyAction.FORWARD -> OwnTVIcon.SEEK_FORWARD
     LiveKeyAction.PLAY_PAUSE -> OwnTVIcon.PAUSE
+    LiveKeyAction.DESCRIPTION -> OwnTVIcon.INFO
     LiveKeyAction.NOTHING -> OwnTVIcon.CLOSE
 }

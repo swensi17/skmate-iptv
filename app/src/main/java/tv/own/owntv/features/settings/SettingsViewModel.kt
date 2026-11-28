@@ -323,6 +323,11 @@ class SettingsViewModel(
         viewModelScope.launch { settings.setAutoFrameRate(enabled) }
     }
 
+    val playerPanelColumns: StateFlow<Boolean> = settings.playerPanelColumns
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), true)
+
+    fun setPlayerPanelColumns(enabled: Boolean) { viewModelScope.launch { settings.setPlayerPanelColumns(enabled) } }
+
     val playerRecents: StateFlow<Boolean> = settings.playerRecents
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), true)
 

@@ -211,7 +211,7 @@ private fun RemoteCompact(state: CompanionServerState, modifier: Modifier = Modi
             Text(
                 listening?.pin.orEmpty(),
                 style = stageText(REMOTE_PIN_TEXT, 800, 0.3.em),
-                color = tv.own.owntv.ui.brand.SkMateBlue,
+                color = tv.own.owntv.ui.theme.liveAccent,
                 maxLines = 1, overflow = Ellipsis, modifier = Modifier.padding(top = 12.mpx),
             )
         }

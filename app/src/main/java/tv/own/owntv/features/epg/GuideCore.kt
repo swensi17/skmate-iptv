@@ -102,6 +102,7 @@ internal fun ProgrammeStripCanvas(
     // A row with nothing in the window says so, rather than looking broken.
     val emptyText = stringResource(R.string.content_epg_no_programme)
     // Clipped at the timeline's left edge only, so a focused cell's glow still spills up and down.
+    val liveC = tv.own.owntv.ui.theme.liveAccent
     Canvas(Modifier.fillMaxSize()) {
         val scrollPx = scrollPx()
         clipRect(left = 0f, top = -size.height, right = size.width + 40 * px, bottom = size.height * 2) {
@@ -131,7 +132,7 @@ internal fun ProgrammeStripCanvas(
             val gx1 = (((gapEnd - windowStart) / 60_000f) * pxPerMin - scrollPx - 3 * px).coerceAtMost(viewW)
             if (gx1 > gx0) {
                 val box = androidx.compose.ui.geometry.Rect(gx0, 0f, gx1, h)
-                if (tvBox) drawRoundRect(tv.own.owntv.ui.brand.SkMateBlue.copy(alpha = 0.16f), Offset(gx0, 0f), Size(gx1 - gx0, h), r)
+                if (tvBox) drawRoundRect(liveC.copy(alpha = 0.16f), Offset(gx0, 0f), Size(gx1 - gx0, h), r)
                 else {
                     drawBoxShadow(a.accent.copy(alpha = 0.4f), 34 * px, r.x, dy = 12 * px, bounds = box)
                     drawRoundRect(a.accent, Offset(gx0, 0f), Size(gx1 - gx0, h), r)
@@ -157,7 +158,7 @@ internal fun ProgrammeStripCanvas(
             val box = androidx.compose.ui.geometry.Rect(x, 0f, x + w, h)
             if (tvBox) {
                 val fill = when {
-                    focused -> tv.own.owntv.ui.brand.SkMateBlue.copy(alpha = 0.16f)
+                    focused -> liveC.copy(alpha = 0.16f)
                     isNow -> ink.copy(alpha = 0.06f)
                     else -> ink.copy(alpha = 0.035f * fade)
                 }

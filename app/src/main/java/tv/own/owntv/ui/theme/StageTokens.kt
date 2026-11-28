@@ -5,6 +5,7 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
@@ -256,3 +257,17 @@ fun stageText(size: Number, weight: Int, letterSpacing: TextUnit = TextUnit.Unsp
     fontWeight = FontWeight(weight),
     letterSpacing = letterSpacing,
 )
+
+/**
+ * The app's live colour (on-air tags, progress, the playing channel, focus rings): the user's chosen accent,
+ * or the brand blue while the accent is the default near-black ink, which would vanish on the dark page.
+ */
+val liveAccent: Color
+    @Composable
+    @ReadOnlyComposable
+    get() = OwnTVTheme.colors.primary.let { if (it.isGrey()) tv.own.owntv.ui.brand.SkMateBlue else it }
+
+/** The default ink accent is black or white by theme: a grey, no colour of its own. */
+fun Color.isGrey(): Boolean = maxOf(red, green, blue) - minOf(red, green, blue) < GREY_CHROMA
+
+private const val GREY_CHROMA = 0.12f

@@ -580,7 +580,7 @@ private fun AvatarStrip(ids: List<Int>, chosen: Int) {
     Row(horizontalArrangement = Arrangement.spacedBy(8.mpx), verticalAlignment = Alignment.CenterVertically) {
         shown.forEach { id ->
             Box(
-                Modifier.size(50.mpx).then(if (id == chosen) Modifier.border(3.mpx, tv.own.owntv.ui.brand.SkMateBlue, CircleShape) else Modifier),
+                Modifier.size(50.mpx).then(if (id == chosen) Modifier.border(3.mpx, tv.own.owntv.ui.theme.liveAccent, CircleShape) else Modifier),
                 contentAlignment = Alignment.Center,
             ) { OwnTVAvatar(avatarId = id, modifier = Modifier.size(44.mpx)) }
         }
@@ -770,7 +770,7 @@ private fun ImportProgressStep(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(10.mpx),
                 ) {
-                    tv.own.owntv.ui.components.OwnTVSpinner(sizeDp = 36, color = tv.own.owntv.ui.brand.SkMateBlue)
+                    tv.own.owntv.ui.components.OwnTVSpinner(sizeDp = 36, color = tv.own.owntv.ui.theme.liveAccent)
                     Text(
                         display?.primaryText() ?: stringResource(R.string.setup_preparing_catalog),
                         style = stageText(24, 700), color = StageColors.Text, textAlign = androidx.compose.ui.text.style.TextAlign.Center,

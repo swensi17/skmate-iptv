@@ -187,6 +187,8 @@ private val PLAYER_CLOCK_TITLE = R.string.settings_player_clock
 private val PLAYER_CLOCK_DESC = R.string.settings_player_clock_description
 private val RECENTS_TITLE = R.string.settings_player_recents
 private val RECENTS_DESC = R.string.settings_player_recents_description
+private val COLUMNS_TITLE = R.string.settings_player_panel_columns
+private val COLUMNS_DESC = R.string.settings_player_panel_columns_description
 
 internal val VIDEO_QUICK_ROWS: List<VideoQuickRef> = listOf(
     VideoQuickRef("vp_live_engine", SECTION_PLAYER, OwnTVIcon.PLAY, R.string.settings_live_tv_player, R.string.settings_live_player_description),
@@ -205,6 +207,7 @@ internal val VIDEO_QUICK_ROWS: List<VideoQuickRef> = listOf(
     VideoQuickRef("vp_reset_zoom", SECTION_PICTURE, OwnTVIcon.ASPECT, R.string.settings_reset_saved_zoom, R.string.settings_reset_saved_zoom_description),
     VideoQuickRef("vp_clock", SECTION_CONTROLS, OwnTVIcon.CLOCK, PLAYER_CLOCK_TITLE, PLAYER_CLOCK_DESC),
     VideoQuickRef("vp_recents", SECTION_CONTROLS, OwnTVIcon.HISTORY, RECENTS_TITLE, RECENTS_DESC),
+    VideoQuickRef("vp_panel_columns", SECTION_CONTROLS, OwnTVIcon.LIST, COLUMNS_TITLE, COLUMNS_DESC),
     VideoQuickRef("vp_afr", SECTION_FRAME_RATE, OwnTVIcon.VIDEO, R.string.settings_auto_frame_rate, R.string.settings_auto_frame_rate_description),
     VideoQuickRef("vp_afr_pause", SECTION_FRAME_RATE, OwnTVIcon.PAUSE, R.string.settings_afr_pause, R.string.settings_afr_pause_description),
     VideoQuickRef("vp_afr_resolution", SECTION_FRAME_RATE, OwnTVIcon.ASPECT, R.string.settings_afr_resolution, R.string.settings_afr_resolution_description),
@@ -321,6 +324,10 @@ internal fun videoQuickBinding(key: String, vm: SettingsViewModel): VideoQuickBi
         "vp_clock" -> {
             val on by vm.playerClock.collectAsStateWithLifecycle()
             toggle(onOff(on), on) { vm.setPlayerClock(!on) }
+        }
+        "vp_panel_columns" -> {
+            val on by vm.playerPanelColumns.collectAsStateWithLifecycle()
+            toggle(onOff(on), on) { vm.setPlayerPanelColumns(!on) }
         }
         "vp_recents" -> {
             val on by vm.playerRecents.collectAsStateWithLifecycle()
@@ -662,6 +669,7 @@ internal fun VideoPlayerGroupRows(
     val autoFrameRate by vm.autoFrameRate.collectAsStateWithLifecycle()
     val playerClock by vm.playerClock.collectAsStateWithLifecycle()
     val playerRecents by vm.playerRecents.collectAsStateWithLifecycle()
+    val playerPanelColumns by vm.playerPanelColumns.collectAsStateWithLifecycle()
     val multiviewEnabled by vm.multiviewEnabled.collectAsStateWithLifecycle()
     val multiviewTiles by vm.multiviewTiles.collectAsStateWithLifecycle()
     val multiviewWarningAccepted by vm.multiviewWarningAccepted.collectAsStateWithLifecycle()
@@ -1231,6 +1239,14 @@ internal fun VideoPlayerGroupRows(
             onClick = { vm.setPlayerClock(!playerClock) },
         )
         if (playerClock) ClockStyleRows(vm)
+        KeyedSettingRow(
+            quickKey = "vp_panel_columns",
+            icon = OwnTVIcon.LIST,
+            title = stringResource(R.string.settings_player_panel_columns),
+            desc = stringResource(R.string.settings_player_panel_columns_description),
+            value = SettingValue.Switch(playerPanelColumns),
+            onClick = { vm.setPlayerPanelColumns(!playerPanelColumns) },
+        )
         KeyedSettingRow(
             quickKey = "vp_recents",
             icon = OwnTVIcon.HISTORY,

@@ -19,6 +19,9 @@ enum class LiveKeyAction {
     REWIND,
     FORWARD,
     PLAY_PAUSE,
+
+    /** The programme on air, its whole description. */
+    DESCRIPTION,
     NOTHING,
 }
 

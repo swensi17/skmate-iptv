@@ -227,7 +227,7 @@ internal fun GuideRuler(
 ) {
     val formatTime = rememberSystemTimeFormatter()
     val a = stageAccent
-    val chipFill = if (tv.own.owntv.features.shell.TvBoxNav) tv.own.owntv.ui.brand.SkMateBlue else a.accent
+    val chipFill = if (tv.own.owntv.features.shell.TvBoxNav) tv.own.owntv.ui.theme.liveAccent else a.accent
     val chipText = if (tv.own.owntv.features.shell.TvBoxNav) Color.White else a.onAccent
     val slotMs = GuideGridDefaults.SlotMin * 60_000L
     val first = windowStart + (slotMs - windowStart % slotMs) % slotMs
@@ -272,7 +272,7 @@ internal fun GuideRuler(
  */
 @Composable
 internal fun GuideChannelLabel(channel: ChannelEntity, name: String, dot: Color?, selected: Boolean, numberWidth: Dp, modifier: Modifier = Modifier) {
-    val a = if (tv.own.owntv.features.shell.TvBoxNav) stageAccent.copy(accent = tv.own.owntv.ui.brand.SkMateBlue) else stageAccent
+    val a = if (tv.own.owntv.features.shell.TvBoxNav) stageAccent.copy(accent = tv.own.owntv.ui.theme.liveAccent) else stageAccent
     Row(
         modifier.padding(start = 8.mpx),
         horizontalArrangement = Arrangement.spacedBy(10.mpx),

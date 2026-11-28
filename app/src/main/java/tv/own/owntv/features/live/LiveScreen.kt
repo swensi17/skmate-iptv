@@ -23,6 +23,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -561,6 +562,10 @@ fun LiveScreen(
     var guideChannel by remember { mutableStateOf<ChannelEntity?>(null) }
     // The guide is a column beside the list: this says which of the two has the remote.
     var inGuide by remember { mutableStateOf(false) }
+    // Read by the list's keys, written by the layout: whether the programme column stands beside the list.
+    var threeColumnsNow by remember { mutableStateOf(false) }
+    // The programme under the cursor in the programme column: the stage beside tells about it.
+    var guidePicked by remember { mutableStateOf<tv.own.owntv.core.parser.XtEpgEntry?>(null) }
     var guideRefocus by remember { mutableIntStateOf(0) }
     var guidePoster by remember { mutableStateOf<tv.own.owntv.core.metadata.ProgrammeArt?>(null) }
     // The categories closed beside the guide: focus back into it. Another category picked: its list, not the guide.
@@ -706,8 +711,8 @@ fun LiveScreen(
         val gapCat = fx(26)
         val gapStage = if (separate) fx(30) else fx(34)
         val colW: Dp
-        val listW: Dp
-        val stageW: Dp
+        var listW: Dp
+        var stageW: Dp
         val sheetW: Dp
         if (separate && panelShares != null) {
             val p = computePanelWidths(panelShares, row, gapCat + if (previewShown) gapStage else 0.dp)
@@ -726,8 +731,26 @@ fun LiveScreen(
             // TV-box look: the list runs right up to the preview, no empty band between them.
             listW = if (separate) fx(620) else if (tv.own.owntv.features.shell.TvBoxNav) row - stageW - gapStage else fx(846)
         }
+        // TV-box look, the shared list: three columns — channels, the focused channel's programme and archive, and the
+        // picture with what is on. The programme is always there, so the archive is found without knowing a key.
+        val threeColumns = tv.own.owntv.features.shell.TvBoxNav && !separate && previewShown && lockedKey == null && !categoriesOpen
+        val guideW = if (threeColumns) fx(GUIDE_COLUMN) else 0.dp
+        SideEffect { threeColumnsNow = threeColumns }
+        LaunchedEffect(threeColumns, previewChannel?.id) {
+            if (threeColumns && guideChannel == null) guideChannel = previewChannel
+        }
+        if (threeColumns) {
+            stageW = fx(STAGE_COLUMN)
+            listW = row - stageW - guideW - gapStage * 2
+        }
+        // With the remote in the programme the list steps back to its logos and the programme takes the room.
+        val listSqueeze by androidx.compose.animation.core.animateDpAsState(
+            if (threeColumns && inGuide) (listW - fx(LIST_LOGOS)).coerceAtLeast(0.dp) else 0.dp,
+            androidx.compose.animation.core.tween(tv.own.owntv.ui.theme.MotionPrefs.slideMs(GUIDE_SLIDE_MS)),
+            label = "liveListSqueeze",
+        )
         val listX = if (separate) margin + colW + gapCat else margin
-        val listWidth = if (previewShown) listW else row - (listX - margin)
+        val listWidth = (if (previewShown) listW else row - (listX - margin)) - listSqueeze
 
         if (separate) {
             LiveCategories(
@@ -788,7 +811,7 @@ fun LiveScreen(
                 count = count,
                 showChevron = !separate && lockedKey == null,
                 // TV-box look: level with the clock on the right, clear of the search field below.
-                modifier = Modifier.padding(start = if (tv.own.owntv.features.shell.TvBoxNav) fx(48) else fx(84), top = if (tv.own.owntv.features.shell.TvBoxNav) 28.mpx else 52.mpx).width(listX - (if (tv.own.owntv.features.shell.TvBoxNav) fx(48) else fx(84)) + listWidth),
+                modifier = Modifier.padding(start = if (tv.own.owntv.features.shell.TvBoxNav) fx(48) else fx(84), top = if (tv.own.owntv.features.shell.TvBoxNav) 28.mpx else 52.mpx).width(listX - (if (tv.own.owntv.features.shell.TvBoxNav) fx(48) else fx(84)) + listWidth + listSqueeze),
             )
             // Header tools + channel list: one focus group.
             Column(
@@ -858,6 +881,8 @@ fun LiveScreen(
                     horizontalArrangement = Arrangement.spacedBy(8.mpx),
                     // TV-box look: the search and the two tools take the list's whole width.
                     modifier = Modifier.padding(start = 4.mpx)
+                        // The list squeezed to logos beside the programme: the search and tools step out of sight.
+                        .graphicsLayer { alpha = if (threeColumnsNow && inGuide) 0f else 1f }
                         .then(if (tv.own.owntv.features.shell.TvBoxNav) Modifier.fillMaxWidth().padding(end = 4.mpx) else Modifier)
                         // Up to the tools: a row focus only passed over does not take the preview.
                         .onFocusChanged { if (it.hasFocus) pendingPreview.value = null }
@@ -894,10 +919,12 @@ fun LiveScreen(
                         mode = sortMode.forLive(),
                         boxed = tv.own.owntv.features.shell.TvBoxNav,
                         modifier = Modifier.focusRequester(sortToolFocus),
+                        // Three columns leave the list narrow: the tools as icons, so the search keeps its room.
+                        iconOnly = threeColumnsNow,
                         onClick = { sortOpen = true },
                     )
                     tv.own.owntv.ui.stage.StageTool(
-                        text = stringResource(R.string.content_live_guide_view),
+                        text = if (threeColumnsNow) null else stringResource(R.string.content_live_guide_view),
                         icon = OwnTVIcon.GRID,
                         onClick = onOpenGuide,
                         boxed = tv.own.owntv.features.shell.TvBoxNav,
@@ -981,6 +1008,8 @@ fun LiveScreen(
                                     mark = playlistMarks[channel.sourceId],
                                     playing = isPreviewed && effectivePreview,
                                     watched = channel.id in watchedIds,
+                                    logosOnly = threeColumnsNow && inGuide,
+                                    lit = channel.id == guideChannel?.id,
                                     modifier = Modifier.gridFocusTarget(
                                         itemId = channel.id, index = index,
                                         contextId = contextChannelId, contextFocus = contextFocus,
@@ -1003,7 +1032,7 @@ fun LiveScreen(
                                             // ◀ Categories: the sheet (Stage) or the column (Separate); pinned lists have none.
                                             androidx.compose.ui.input.key.Key.DirectionLeft -> when {
                                                 // The guide is over the list: ◀ takes it away, back onto this channel.
-                                                guideChannel != null -> { guideChannel = null; true }
+                                                guideChannel != null && !threeColumnsNow -> { guideChannel = null; true }
                                                 lockedKey != null -> false
                                                 separate -> { runCatching { railFocus.requestFocus() }; true }
                                                 else -> { categoriesOpen = true; true }
@@ -1034,7 +1063,7 @@ fun LiveScreen(
                                         focusedRowId[0] = channel.id
                                         // The column follows the list while the list has the remote.
                                         inGuide = false
-                                        if (guideChannel != null) guideChannel = channel
+                                        if (guideChannel != null || threeColumnsNow) guideChannel = channel
                                         if (tv.own.owntv.features.shell.TvBoxNav) {
                                             pendingPreview.value = channel
                                         } else {
@@ -1088,23 +1117,34 @@ fun LiveScreen(
                     vm.playCatchupProgramme(target, p)
                     if (!externalPlayerOn) onFullscreen()
                 },
-                onClose = { guideChannel = null; focusCurrentRow() },
+                onClose = { if (!threeColumns) guideChannel = null; inGuide = false; focusCurrentRow() },
                 onLeft = { inGuide = false; focusCurrentRow() },
                 takeFocus = inGuide,
+                onLine = { guidePicked = it },
+                onFocusInside = { inside -> if (inside) inGuide = true else if (inGuide) inGuide = false },
                 refocus = guideRefocus,
                 onShowPoster = { guidePoster = it },
-                modifier = Modifier
-                    .zIndex(1f)
-                    .padding(start = (screenW - margin - stageW).coerceAtLeast(0.mpx), top = 112.mpx)
-                    .fillMaxHeight()
-                    .width(stageW + margin),
+                modifier = if (threeColumns) {
+                    Modifier
+                        .padding(start = listX + listWidth + gapStage, top = 112.mpx, bottom = 24.mpx)
+                        .fillMaxHeight()
+                        .width(guideW + listSqueeze)
+                } else {
+                    Modifier
+                        .zIndex(1f)
+                        .padding(start = (screenW - margin - stageW).coerceAtLeast(0.mpx), top = 112.mpx)
+                        .fillMaxHeight()
+                        .width(stageW + margin)
+                },
+                stay = threeColumns,
             )
 
             if (previewShown) {
                 LiveStagePane(
                     channel = previewChannel,
                     channelName = previewChannel?.let { ProviderTags.parse(it.name).name },
-                    nowNext = nowNext,
+                    nowNext = guidePicked?.takeIf { threeColumns && inGuide && guideChannel?.id == previewChannel?.id }
+                        ?.let { tv.own.owntv.core.live.EpgNowNext(it, null) } ?: nowNext,
                     previewEngine = vm.previewEngine,
                     mpvPlayer = vm.player.takeIf { previewChannel?.id != null && previewOnMpv == previewChannel?.id },
                     showVideo = effectivePreview,
@@ -1112,6 +1152,7 @@ fun LiveScreen(
                     scheduleFocus = scheduleFocus,
                     onOpenProgramme = { p -> previewChannel?.let { openProgramme = it to p } },
                     onBackToList = { focusCurrentRow() },
+                    besideGuide = threeColumns,
                     modifier = Modifier
                         // Never below zero: laid out at no width for a frame (a panel opening over it), it threw.
                         .padding(start = (screenW - margin - stageW).coerceAtLeast(0.mpx), top = 120.mpx)
@@ -1890,6 +1931,13 @@ private const val ReturnPreviewMs = 350L
 
 private const val SHEET_SLIDE_MS = 280
 private const val SHEET_HIDE_MS = 240
+
+/** The three-column TV-box list: the programme column and the picture column, in design pixels. */
+private const val GUIDE_COLUMN = 620
+
+/** The channel list squeezed to its logos while the programme has the remote. */
+private const val LIST_LOGOS = 150
+private const val STAGE_COLUMN = 640
 
 private fun isOkKey(key: androidx.compose.ui.input.key.Key) =
     key == androidx.compose.ui.input.key.Key.DirectionCenter ||

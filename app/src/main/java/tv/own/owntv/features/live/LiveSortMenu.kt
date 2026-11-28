@@ -38,7 +38,8 @@ private fun liveSortHint(mode: SortMode): Int = when (mode) {
 
 /** The button is only the icon and the chosen order ("A–Z"), so it never squeezes the search field. */
 @Composable
-internal fun LiveSortTool(mode: SortMode, boxed: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
+internal fun LiveSortTool(mode: SortMode, boxed: Boolean, modifier: Modifier = Modifier, iconOnly: Boolean = false, onClick: () -> Unit) {
+    if (iconOnly) return StageTool(text = null, icon = OwnTVIcon.SORT, onClick = onClick, boxed = boxed, modifier = modifier)
     val label = stringResource(if (mode == SortMode.PLAYLIST) R.string.content_epg_sort_provider else liveSortName(mode))
     StageTool(text = null, icon = OwnTVIcon.SORT, value = label, onClick = onClick, boxed = boxed, modifier = modifier)
 }

@@ -51,8 +51,8 @@ import tv.own.owntv.core.database.entity.ChannelEntity
 import tv.own.owntv.core.database.entity.EpgProgrammeEntity
 import tv.own.owntv.core.epg.displayLogoUrl
 import tv.own.owntv.core.live.EpgNowNext
-import tv.own.owntv.ui.brand.SkMateBlue
 import tv.own.owntv.ui.components.OwnTVIcon
+import tv.own.owntv.ui.components.focusMarquee
 import tv.own.owntv.ui.theme.mpx
 import tv.own.owntv.ui.theme.stageText
 
@@ -96,8 +96,12 @@ internal fun LiveGuideSide(
     shown: Boolean = true,
     /** False while the channel list beside it holds the focus and the guide only follows along. */
     takeFocus: Boolean = true,
+    /** Tells the screen whether the remote is inside the column, so the list beside it can squeeze or widen. */
+    onFocusInside: (Boolean) -> Unit = {},
+    stay: Boolean = false,
+    /** The programme the remote rests on, for a card beside the guide; null when the remote leaves it. */
+    onLine: (tv.own.owntv.core.parser.XtEpgEntry?) -> Unit = {},
 ) {
-    BackHandler(enabled = shown) { onClose() }
     val formatTime = tv.own.owntv.ui.format.rememberSystemTimeFormatter()
     val formatDay = tv.own.owntv.ui.format.rememberBestDateFormatter("EEEEdMMMM")
     val now = remember(channel.id) { System.currentTimeMillis() }
@@ -125,9 +129,14 @@ internal fun LiveGuideSide(
     val scope = androidx.compose.runtime.rememberCoroutineScope()
     val smooth = tv.own.owntv.ui.theme.MotionPrefs.smooth
     var hasFocus by remember { mutableStateOf(false) }
+    BackHandler(enabled = shown && (!stay || hasFocus)) { onClose() }
     val headFocus = remember { FocusRequester() }
     // The line in focus: its day is lit in the days column, and its poster is looked up once focus rests on it.
     var focusedLine by remember(channel.id) { mutableStateOf<SideLine?>(null) }
+    LaunchedEffect(focusedLine, hasFocus) {
+        val l = focusedLine?.takeIf { hasFocus }
+        onLine(l?.let { tv.own.owntv.core.parser.XtEpgEntry(it.title, it.description, it.startMs, it.stopMs) })
+    }
     val restingTitle by produceState<String?>(null, focusedLine) {
         value = null
         val l = focusedLine ?: return@produceState
@@ -170,7 +179,7 @@ internal fun LiveGuideSide(
     }
     Row(
         modifier.background(c.fill.copy(alpha = 1f))
-            .onFocusChanged { hasFocus = it.hasFocus },
+            .onFocusChanged { if (hasFocus != it.hasFocus) onFocusInside(it.hasFocus); hasFocus = it.hasFocus },
     ) {
     Column(
         Modifier.weight(1f).fillMaxHeight()
@@ -216,7 +225,7 @@ internal fun LiveGuideSide(
                 itemsIndexed(loaded, key = { _, it -> if (it is SideItem.Day) "d${it.startMs}" else "l${(it as SideItem.Line).line.startMs}" }) { i, item ->
                     when (item) {
                         is SideItem.Day -> Text(
-                            dayName(item.startMs, now, formatDay), style = stageText(DAY_TEXT, 700), color = SkMateBlue,
+                            dayName(item.startMs, now, formatDay), style = stageText(DAY_TEXT, 700), color = tv.own.owntv.ui.theme.liveAccent,
                             maxLines = 1, overflow = TextOverflow.Ellipsis,
                             modifier = Modifier.padding(start = 16.mpx, top = 18.mpx, bottom = 6.mpx),
                         )
@@ -224,7 +233,8 @@ internal fun LiveGuideSide(
                             firstLine = i == loaded.indexOfFirst { it is SideItem.Line },
                             lastLine = i == loaded.lastIndex,
                             item.line, now, formatTime,
-                            poster = art?.takeIf { focusedLine == item.line && restingTitle == item.line.title },
+                            poster = art?.takeIf { !stay && focusedLine == item.line && restingTitle == item.line.title },
+                            expand = !stay,
                             onShowPoster = onShowPoster,
                             onFocused = { focusedLine = item.line; wantLine = i },
                             onRight = if (days.size > 1) {
@@ -245,7 +255,7 @@ internal fun LiveGuideSide(
         }
     }
     // The days the guide covers: focus on one brings the guide to it; OK or ◀ go into that day.
-    if (days.size > 1) {
+    if (days.size > 1 && (!stay || hasFocus)) {
         val lit = focusedLine?.let { dayOf(it.startMs) }
         val goInto: (Long) -> Unit = { day ->
             val at = loaded.orEmpty().indexOfFirst { it is SideItem.Line && dayOf(it.line.startMs) == day }
@@ -310,6 +320,11 @@ internal fun LiveGuideSideHost(
     refocus: Int = 0,
     onShowPoster: (tv.own.owntv.core.metadata.ProgrammeArt) -> Unit = {},
     takeFocus: Boolean = true,
+    /** Tells the screen whether the remote is inside the column, so the list beside it can squeeze or widen. */
+    onFocusInside: (Boolean) -> Unit = {},
+    /** A column that stands beside the list: Back belongs to it only while it has the focus. */
+    stay: Boolean = false,
+    onLine: (tv.own.owntv.core.parser.XtEpgEntry?) -> Unit = {},
 ) {
     val slide = tv.own.owntv.ui.theme.MotionPrefs.slideMs(GUIDE_SLIDE_MS)
     val fade = tv.own.owntv.ui.theme.MotionPrefs.dur(GUIDE_SLIDE_MS)
@@ -330,6 +345,9 @@ internal fun LiveGuideSideHost(
             scheduleFor = scheduleFor,
             archiveFor = archiveFor,
             takeFocus = takeFocus,
+            onFocusInside = onFocusInside,
+            stay = stay,
+            onLine = onLine,
             onWatch = { onWatch(ch) },
             onPlayArchive = { onPlayArchive(ch, it) },
             onClose = onClose,
@@ -365,7 +383,7 @@ private fun dayCell(
     val focused = interaction.collectIsFocusedAsState().value
     val ink = when {
         focused -> c.focusInk
-        day == dayOf(now) -> SkMateBlue
+        day == dayOf(now) -> tv.own.owntv.ui.theme.liveAccent
         lit -> c.text
         else -> c.soft
     }
@@ -414,6 +432,8 @@ private fun sideLine(
     onRight: (() -> Unit)?,
     onPick: (SideLine) -> Unit,
     modifier: Modifier,
+    /** A card beside the guide shows the focused programme: the line itself stays one row. */
+    expand: Boolean = true,
 ) {
     val c = tv.own.owntv.features.shell.components.tvBoxPanelColors()
     val interaction = remember { MutableInteractionSource() }
@@ -421,18 +441,20 @@ private fun sideLine(
     val onAir = now in line.startMs until line.stopMs
     val ink = when {
         focused -> c.focusInk
-        onAir -> SkMateBlue
+        onAir -> tv.own.owntv.ui.theme.liveAccent
         // Aired with no archive: there is nothing to watch, so it stands back further.
         line.stopMs <= now && line.archive == null -> c.faint
         line.stopMs <= now -> c.soft
         else -> c.text
     }
-    val about = line.description?.trim()?.takeIf { focused && it.isNotEmpty() }
+    val about = line.description?.trim()?.takeIf { expand && focused && it.isNotEmpty() }
     val posterUrl = poster?.posterUrl
     // Held OK opened the poster: its release must not also play the programme.
     var heldOk by remember { mutableStateOf(false) }
     Column(
         modifier.fillMaxWidth()
+            // A hairline under each programme, as between the channels: the guide reads as a table.
+            .tableRule(!lastLine)
             .background(if (focused) c.focus else Color.Transparent, tv.own.owntv.ui.stage.FocusBarShape)
             .onFocusChanged { if (it.isFocused) onFocused() else heldOk = false }
             .onPreviewKeyEvent { e ->
@@ -469,7 +491,8 @@ private fun sideLine(
             )
             Text(
                 line.title, style = stageText(LINE_TEXT, if (onAir) 700 else 500), color = ink,
-                maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f),
+                maxLines = 1, overflow = tv.own.owntv.ui.components.marqueeOverflow(focused),
+                modifier = Modifier.weight(1f).focusMarquee(focused),
             )
             if (line.archive != null) OwnTVIcon(OwnTVIcon.REWIND, ink, Modifier.size(20.mpx))
             if (onAir) {

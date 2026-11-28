@@ -121,6 +121,7 @@ data class NavState(val hasPrev: Boolean, val hasNext: Boolean)
 enum class ZoomMode(@param:androidx.annotation.StringRes val labelRes: Int) {
     FIT(tv.own.owntv.core.R.string.player_zoom_fit_screen), FILL(tv.own.owntv.core.R.string.player_zoom_fill_crop), STRETCH(tv.own.owntv.core.R.string.player_zoom_stretch),
     ORIGINAL(tv.own.owntv.core.R.string.player_zoom_original), FORCE_16_9(tv.own.owntv.core.R.string.player_zoom_force_16_9), FORCE_4_3(tv.own.owntv.core.R.string.player_zoom_force_4_3),
+    FORCE_239(tv.own.owntv.core.R.string.player_zoom_force_239),
 }
 
 /**
@@ -807,9 +808,14 @@ class OwnTVPlayer(
         // real time. Skipping the loop filter on non-reference frames and FFmpeg's "fast" shortcuts trade
         // a little sharpness for frames that arrive. Never on the direct path, where they do nothing, and
         // never on a CPU that can afford the full decode.
-        val lightDecode = item.forceSoftwareThisLoad && lowSpecDevice
+        // Hardware decoding turned off in the settings counts as well: that viewer's box decodes in software
+        // for every channel, and a stuttering picture there was the cost of the full decode.
+        val lightDecode = !hwDecodingActive() && (lowSpecDevice || item.forceSoftwareThisLoad || !hwDecoding)
         setPropertyString("vd-lavc-skiploopfilter", if (lightDecode) "nonref" else "default")
         setPropertyString("vd-lavc-fast", if (lightDecode) "yes" else "no")
+        // Late frames are dropped before they are decoded, so the sound keeps time and the picture catches up.
+        setPropertyString("framedrop", if (lightDecode) "decoder+vo" else "vo")
+        setPropertyString("vd-lavc-threads", "0")
     }
 
     /**

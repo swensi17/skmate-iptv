@@ -40,7 +40,6 @@ import tv.own.owntv.core.database.entity.ChannelEntity
 import tv.own.owntv.core.epg.displayLogoUrl
 import tv.own.owntv.core.live.EpgNowNext
 import tv.own.owntv.core.parser.XtEpgEntry
-import tv.own.owntv.ui.brand.SkMateBlue
 import tv.own.owntv.ui.components.ChannelLogoTile
 import tv.own.owntv.ui.components.GuideStatusText
 import tv.own.owntv.ui.components.OwnTVIcon
@@ -66,6 +65,9 @@ fun TvBoxPlayerInfo(channel: ChannelEntity?, nowNext: EpgNowNext?, offsetSec: In
     val next = upNext.takeIf { promoted == null }
     // A film or a series on air: its poster in the logo's place and what it is about under the times (TMDB).
     val art = tv.own.owntv.ui.components.rememberProgrammeArt(current?.title)
+    val about = tv.own.owntv.player.TvBoxAbout.open
+    // The info goes away: the next time it opens short again.
+    androidx.compose.runtime.DisposableEffect(Unit) { onDispose { tv.own.owntv.player.TvBoxAbout.open = false } }
     Column(verticalArrangement = Arrangement.spacedBy(18.mpx)) {
         // A poster starts level with the title beside it; the smaller logo stays centred on the lines.
         Row(
@@ -77,7 +79,7 @@ fun TvBoxPlayerInfo(channel: ChannelEntity?, nowNext: EpgNowNext?, offsetSec: In
                 if (current != null) {
                     Text(
                         current.title, style = stageText(34, 700), color = Color.White,
-                        maxLines = 1, overflow = TextOverflow.Ellipsis,
+                        maxLines = if (about) 2 else 1, overflow = TextOverflow.Ellipsis,
                     )
                 } else {
                     GuideStatusText(stringResource(R.string.content_no_guide), stageText(34, 700), Color.White)
@@ -107,7 +109,7 @@ fun TvBoxPlayerInfo(channel: ChannelEntity?, nowNext: EpgNowNext?, offsetSec: In
                         tv.own.owntv.player.LocalTvBoxStreamFacts.current?.let { tv.own.owntv.player.tvBoxStreamFacts(it) }
                     }
                 }
-                art?.let { programmeAbout(it) }
+                if (about) fullAbout(current?.description, art) else art?.let { programmeAbout(it) }
                 nextLine(next, formatTime)
             }
         }
@@ -327,6 +329,7 @@ private const val TRANSPORT_LABEL = 15
  */
 @Composable
 private fun Timeline(progress: Float, behind: Boolean, seeking: Boolean) {
+    val liveC = tv.own.owntv.ui.theme.liveAccent
     Box(
         Modifier.fillMaxWidth().height(24.mpx).drawBehind {
             val h = (if (seeking) 8.mpx else 4.mpx).toPx()
@@ -335,11 +338,11 @@ private fun Timeline(progress: Float, behind: Boolean, seeking: Boolean) {
             val track = Color.White.copy(alpha = if (seeking) 0.35f else 0.25f)
             drawRoundRect(track, topLeft = Offset(0f, y), size = Size(size.width, h), cornerRadius = r)
             val x = size.width * progress
-            drawRoundRect(SkMateBlue, topLeft = Offset(0f, y), size = Size(x, h), cornerRadius = r)
+            drawRoundRect(liveC, topLeft = Offset(0f, y), size = Size(x, h), cornerRadius = r)
             val dot = (if (seeking) 12.mpx else 7.mpx).toPx()
             val center = Offset(x.coerceIn(dot, size.width - dot), size.height / 2)
-            if (seeking) drawCircle(SkMateBlue.copy(alpha = 0.45f), radius = dot + 5.mpx.toPx(), center = center)
-            drawCircle(if (behind && !seeking) SkMateBlue else Color.White, radius = dot, center = center)
+            if (seeking) drawCircle(liveC.copy(alpha = 0.45f), radius = dot + 5.mpx.toPx(), center = center)
+            drawCircle(if (behind && !seeking) liveC else Color.White, radius = dot, center = center)
         },
     )
 }
@@ -420,6 +423,21 @@ private fun programmeAbout(art: tv.own.owntv.core.metadata.ProgrammeArt) {
     )
 }
 
+/** The "Description" key: the guide's text, else the film's overview, as long as it is. */
+@Composable
+private fun fullAbout(guide: String?, art: tv.own.owntv.core.metadata.ProgrammeArt?) {
+    val separator = stringResource(R.string.content_epg_bits_separator)
+    val text = guide?.takeIf { it.isNotBlank() }
+        ?: listOfNotNull(art?.year?.toString(), art?.overview).joinToString(separator)
+    if (text.isBlank()) return
+    Text(
+        text,
+        style = stageText(ABOUT_TEXT, 500), color = Soft, maxLines = FULL_ABOUT_LINES, overflow = TextOverflow.Ellipsis,
+        modifier = Modifier.widthIn(max = ABOUT_WIDTH.mpx),
+    )
+}
+
+private const val FULL_ABOUT_LINES = 9
 private const val POSTER_WIDTH = 120
 private const val ART_FADE_MS = 260
 private const val NEXT_TEXT = 20

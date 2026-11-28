@@ -581,7 +581,7 @@ fun AddSourceScreen(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier.width(440.mpx).height(76.mpx).focusRequester(startImportFocus),
             ) { focused ->
-                if (focused) Box(Modifier.matchParentSize().background(tv.own.owntv.ui.brand.SkMateBlue, submitShape))
+                if (focused) Box(Modifier.matchParentSize().background(tv.own.owntv.ui.theme.liveAccent, submitShape))
                 // Over the text-coloured fill the label takes the page colour, so it reads in both themes.
                 val tint = when {
                     focused -> androidx.compose.ui.graphics.Color.White

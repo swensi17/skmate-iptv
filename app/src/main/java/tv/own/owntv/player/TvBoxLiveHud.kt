@@ -63,7 +63,7 @@ internal fun TvBoxActionRow(actions: List<TvBoxAction>, firstFocus: FocusRequest
             var okDown by remember { mutableStateOf(false) }
             val tint = when {
                 focused -> Color(0xFF16181D)
-                action.active -> tv.own.owntv.ui.brand.SkMateBlue
+                action.active -> tv.own.owntv.ui.theme.liveAccent
                 else -> Color.White.copy(alpha = 0.86f)
             }
             Column(

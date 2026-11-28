@@ -44,7 +44,7 @@ fun PlayerCornerClock(
     val fill = when (style.background) {
         0 -> Color.Transparent
         tv.own.owntv.core.settings.ClockStyle.BG_LIGHT -> Color.White
-        CLOCK_BG_BLUE -> tv.own.owntv.ui.brand.SkMateBlue
+        CLOCK_BG_BLUE -> tv.own.owntv.ui.theme.liveAccent
         else -> Color.Black
     }.let { if (style.background == 0) it else it.copy(alpha = opaque) }
     // With a background the plate hangs from the top edge, only its bottom corners rounded.

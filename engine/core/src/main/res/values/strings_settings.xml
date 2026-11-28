@@ -3192,6 +3192,8 @@
     <string name="settings_player_clock_description">Time in the corner of the screen</string>
     <string name="settings_player_recents">Recently watched in the player</string>
     <string name="settings_player_recents_description">The row of recent channels with TV guide and history under live TV</string>
+    <string name="settings_player_panel_columns">Programme beside the channel list</string>
+    <string name="settings_player_panel_columns_description">In the player\'s channel panel: channels, the programme of the channel under the cursor and the picture with a description. Off: the panel as before, the programme on ▶</string>
     <string name="settings_vp_cat_controls">Controls</string>
     <string name="settings_vp_cat_resume">Resume watching</string>
     <string name="settings_sources_refresh_daily">Every day</string>
@@ -3234,6 +3236,7 @@
     <string name="settings_live_key_action_rewind">Rewind</string>
     <string name="settings_live_key_action_forward">Fast forward</string>
     <string name="settings_live_key_action_pause">Pause</string>
+    <string name="settings_live_key_action_description">Programme description</string>
     <string name="settings_live_key_action_nothing">Nothing</string>
     <string name="settings_live_key_default"><xliff:g id="action">%1$s</xliff:g> · usual</string>
     <string name="settings_search_keywords_live_keys">remote buttons ok arrows channel list open list on ok up down left right zap rewind</string>

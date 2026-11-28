@@ -76,6 +76,7 @@ fun Modifier.videoZoom(
             val targetAspect = when (zoom) {
                 ZoomMode.FORCE_16_9 -> 16f / 9f
                 ZoomMode.FORCE_4_3 -> 4f / 3f
+                ZoomMode.FORCE_239 -> CINEMA_SCOPE
                 else -> aspect // FIT keeps the video aspect
             }
             // contain: largest box of targetAspect fitting inside the container.
@@ -88,3 +89,6 @@ fun Modifier.videoZoom(
         }
     }
 }
+
+/** The cinema wide screen, 2.39:1. */
+private const val CINEMA_SCOPE = 2.39f

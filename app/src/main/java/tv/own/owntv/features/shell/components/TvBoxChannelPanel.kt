@@ -1,10 +1,14 @@
+@file:OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
+
 package tv.own.owntv.features.shell.components
 
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
@@ -61,7 +65,8 @@ import tv.own.owntv.core.database.entity.ChannelEntity
 import tv.own.owntv.core.epg.displayLogoUrl
 import tv.own.owntv.core.live.EpgNowNext
 import tv.own.owntv.core.parser.XtEpgEntry
-import tv.own.owntv.ui.brand.SkMateBlue
+import tv.own.owntv.features.live.LogoCell
+import tv.own.owntv.features.live.tableRule
 import tv.own.owntv.ui.components.ChannelLogoTile
 import tv.own.owntv.ui.components.GuideStatusText
 import tv.own.owntv.ui.components.OwnTVIcon
@@ -76,7 +81,7 @@ import tv.own.owntv.ui.theme.stageText
  * In design pixels (1920 wide); the shell lays the video out here and the panel puts its card under it.
  */
 object TvBoxDock {
-    val Left: Dp = 680.mpx
+    val Left: Dp = 540.mpx
     val Top: Dp = 36.mpx
     val Radius: Dp = 14.mpx
 
@@ -192,6 +197,13 @@ fun TvBoxChannelPanel(
     val lines = remember(entries, archive) { scheduleLines(entries, archive, System.currentTimeMillis()) }
     // ▶ on a channel: its guide where the list is, the same panel as on the channels screen; ◀ brings the list back.
     var sideFor by remember { mutableStateOf<ChannelEntity?>(null) }
+    // The remote is in the programme column (after ▶ or a held OK); otherwise the column only follows the list.
+    var inSide by remember { mutableStateOf(false) }
+    // The programme the remote rests on in the guide: the card under the picture shows it.
+    var picked by remember { mutableStateOf<XtEpgEntry?>(null) }
+    // Settings › Player: the three columns, or the panel as it was (the guide only on ▶).
+    val threeColumns by org.koin.compose.koinInject<tv.own.owntv.core.settings.SettingsRepository>()
+        .playerPanelColumns.collectAsStateWithLifecycle(true)
     // Back from the categories beside the guide: focus into the guide again, after the list has taken it.
     var sideRefocus by remember { mutableIntStateOf(0) }
     LaunchedEffect(active) {
@@ -201,12 +213,19 @@ fun TvBoxChannelPanel(
         }
     }
     // The picture beside steps right and narrows while the guide is open (the shell moves the video the same way).
-    LaunchedEffect(sideFor != null) { TvBoxPanels.guideOpen = sideFor != null }
+    // Three columns keep the picture's size whatever the guide does: a resize blanked the video for a moment.
+    LaunchedEffect(sideFor != null, threeColumns, inset > 1.mpx) { TvBoxPanels.guideOpen = inset <= 1.mpx && (threeColumns || sideFor != null) }
     androidx.compose.runtime.DisposableEffect(Unit) { onDispose { TvBoxPanels.guideOpen = false } }
     val guideShift by androidx.compose.animation.core.animateDpAsState(
-        if (sideFor != null) TvBoxGuideDockShift else 0.mpx,
+        if (inset <= 1.mpx && (threeColumns || sideFor != null)) TvBoxGuideDockShift else 0.mpx,
         androidx.compose.animation.core.tween(tv.own.owntv.ui.theme.MotionPrefs.slideMs(tv.own.owntv.features.live.GUIDE_SLIDE_MS)),
         label = "panelGuideShift",
+    )
+    // As on the channels screen: with the remote in the programme the list steps back to its logos.
+    val squeeze by androidx.compose.animation.core.animateDpAsState(
+        if (threeColumns && inSide) (ListWidth - PANEL_LOGOS.mpx).coerceAtLeast(0.mpx) else 0.mpx,
+        androidx.compose.animation.core.tween(tv.own.owntv.ui.theme.MotionPrefs.slideMs(tv.own.owntv.features.live.GUIDE_SLIDE_MS)),
+        label = "panelListSqueeze",
     )
     val onAirFocus = remember { FocusRequester() }
     var bigPoster by remember { mutableStateOf<tv.own.owntv.core.metadata.ProgrammeArt?>(null) }
@@ -216,6 +235,15 @@ fun TvBoxChannelPanel(
     LaunchedEffect(focused?.id) {
         if (shown != null) delay(HEADER_SETTLE_MS)
         shown = focused
+    }
+    // Three columns, as the viewers asked: the programme of the channel under the cursor stands beside the list.
+    // Categories open beside the list take the room: the programme column steps aside, the picture keeps its size.
+    val besideCategories = inset > 1.mpx
+    LaunchedEffect(shown?.id, threeColumns, besideCategories) {
+        when {
+            threeColumns && besideCategories -> { sideFor = null; inSide = false }
+            threeColumns && !inSide -> shown?.let { sideFor = it }
+        }
     }
     androidx.compose.foundation.layout.BoxWithConstraints(modifier.fillMaxSize()) {
         val screenW = maxWidth
@@ -253,7 +281,7 @@ fun TvBoxChannelPanel(
         Row(Modifier.fillMaxHeight().padding(start = inset.coerceAtLeast(0.mpx))) {
             // Channels.
             Column(
-                Modifier.width(ListWidth).fillMaxHeight()
+                Modifier.width(ListWidth - squeeze).fillMaxHeight()
                     .onPreviewKeyEvent { e ->
                         if (!active) false
                         else if (e.type == KeyEventType.KeyDown && e.key == Key.DirectionLeft) {
@@ -261,7 +289,7 @@ fun TvBoxChannelPanel(
                             true
                         } else if (e.type == KeyEventType.KeyDown && e.key == Key.DirectionRight) {
                             // A list still loading has no channel to show the guide of: the key waits.
-                            focused?.let { sideFor = it }
+                            focused?.let { sideFor = it; inSide = true; sideRefocus++ }
                             true
                         } else false
                     }
@@ -287,7 +315,12 @@ fun TvBoxChannelPanel(
                             countdown = if (ch.id == focusedId) countdown else 0,
                             onFocus = { focusedId = ch.id },
                             onClick = { onSelect(ch) },
-                            modifier = if (index == focusedIndex) Modifier.focusRequester(firstFocus) else Modifier,
+                            // Held OK: the channel's programme and archive beside the list, as ▶ opens it.
+                            onLongClick = { sideFor = ch; inSide = true; sideRefocus++ },
+                            logosOnly = threeColumns && inSide,
+                            lit = ch.id == sideFor?.id,
+                            modifier = (if (index == focusedIndex) Modifier.focusRequester(firstFocus) else Modifier)
+                                .tableRule(index < channels.lastIndex),
                         )
                     }
                 }
@@ -307,7 +340,7 @@ fun TvBoxChannelPanel(
             // The guide is open on the left: no second schedule here, only the channel, a larger poster with what it
             // is about, and what is on now.
             if (head != null && sideFor != null) {
-                guideCompanion(head, art, onAir, now, formatTime)
+                if (threeColumns) programmeCard(picked ?: onAir, now, formatTime) else guideCompanion(head, art, onAir, now, formatTime)
             } else if (head != null) {
                 val scheduleState = rememberLazyListState()
                 val onAirIndex = lines.indexOfFirst { now < it.stopMs }.coerceAtLeast(0)
@@ -416,11 +449,25 @@ fun TvBoxChannelPanel(
             archiveFor = { ch -> archiveFor?.invoke(ch).orEmpty() },
             onWatch = { ch -> sideFor = null; onSelect(ch) },
             onPlayArchive = { ch, p -> sideFor = null; onPlayArchive?.invoke(ch, p) },
-            onClose = { sideFor = null; runCatching { firstFocus.requestFocus() } },
+            onClose = {
+                inSide = false
+                if (!threeColumns) sideFor = null
+                runCatching { firstFocus.requestFocus() }
+            },
+            onLeft = if (threeColumns) {
+                { inSide = false; runCatching { firstFocus.requestFocus() } }
+            } else {
+                null
+            },
+            takeFocus = inSide || !threeColumns,
+            onFocusInside = { inside -> if (threeColumns) { if (inside) inSide = true else if (inSide) inSide = false } },
+            stay = threeColumns,
+            onLine = { picked = it },
             refocus = sideRefocus,
             onShowPoster = { bigPoster = it },
-            modifier = Modifier.padding(start = inset.coerceAtLeast(0.mpx)).fillMaxHeight()
-                .width((TvBoxDock.Left + guideShift - SIDE_GAP.mpx).coerceAtLeast(0.mpx)),
+            // Between the list and the picture, never over the list.
+            modifier = Modifier.padding(start = (inset + TvBoxDock.Left - SIDE_GAP.mpx - squeeze).coerceAtLeast(0.mpx)).fillMaxHeight()
+                .width((guideShift - SIDE_GAP.mpx + squeeze).coerceAtLeast(0.mpx)),
         )
         // The poster over the whole screen, from OK on it; focus goes back to it when it closes.
         bigPoster?.let { a ->
@@ -551,7 +598,7 @@ private fun guideCompanion(
             Row(horizontalArrangement = Arrangement.spacedBy(16.mpx), verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     stringResource(R.string.content_live_time_range_plain, formatTime(onAir.startMs), formatTime(onAir.stopMs)),
-                    style = stageText(SCHEDULE_TEXT, SEMI), color = SkMateBlue, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                    style = stageText(SCHEDULE_TEXT, SEMI), color = tv.own.owntv.ui.theme.liveAccent, maxLines = 1, overflow = TextOverflow.Ellipsis,
                 )
                 Text(
                     onAir.title, style = stageText(SCHEDULE_TEXT, BOLD), color = c.text,
@@ -584,6 +631,53 @@ private fun guideCompanion(
     }
 }
 
+/**
+ * Under the picture in the three-column panel: the programme the remote rests on in the guide (what is on otherwise),
+ * on a card — its title, its time with how much is left, and what it is about.
+ */
+@Composable
+private fun programmeCard(p: XtEpgEntry?, now: Long, formatTime: (Long) -> String) {
+    val c = tvBoxPanelColors()
+    // No guide for the channel: the card says so, as the channels screen does, rather than standing empty.
+    if (p == null) {
+        // The same quiet note and skeleton lines as the channels screen, never a block in a block.
+        androidx.compose.foundation.layout.Box(Modifier.fillMaxWidth().padding(horizontal = 6.mpx, vertical = 8.mpx)) { tv.own.owntv.features.live.NoGuideCard() }
+        return
+    }
+    val art = tv.own.owntv.ui.components.rememberProgrammeArt(p.title)
+    val about = p.description?.takeIf { it.isNotBlank() } ?: art?.overview
+    Column(
+        Modifier.fillMaxWidth()
+            .background(Color.White.copy(alpha = CARD_TINT), RoundedCornerShape(CARD_RADIUS.mpx))
+            .padding(horizontal = 26.mpx, vertical = 22.mpx),
+        verticalArrangement = Arrangement.spacedBy(12.mpx),
+    ) {
+        Text(p.title, style = stageText(CARD_TITLE, BOLD), color = c.text, maxLines = 2, overflow = TextOverflow.Ellipsis)
+        Row(horizontalArrangement = Arrangement.spacedBy(16.mpx), verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                stringResource(R.string.content_live_time_range_plain, formatTime(p.startMs), formatTime(p.stopMs)),
+                style = stageText(SCHEDULE_TEXT, SEMI), color = c.soft, maxLines = 1, overflow = TextOverflow.Ellipsis,
+            )
+            if (now in p.startMs until p.stopMs) {
+                val done = ((now - p.startMs).toFloat() / (p.stopMs - p.startMs).coerceAtLeast(1)).coerceIn(0f, 1f)
+                Bar(done, COMPANION_BAR.mpx, base = c.text)
+                Text(durationLeft(p.stopMs - now), style = stageText(LEFT_TEXT, SEMI), color = c.soft, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(20.mpx)) {
+            art?.let { tv.own.owntv.ui.components.programmePoster(it.posterUrl, CARD_POSTER.mpx) }
+            about?.let {
+                Text(it, style = stageText(COMPANION_TEXT, MEDIUM), color = c.soft, maxLines = CARD_LINES, overflow = TextOverflow.Ellipsis)
+            }
+        }
+    }
+}
+
+private const val CARD_TINT = 0.06f
+private const val CARD_RADIUS = 18
+private const val CARD_TITLE = 26
+private const val CARD_LINES = 8
+private const val CARD_POSTER = 130
 private const val COMPANION_POSTER = 170
 private const val COMPANION_TEXT = 19
 private const val COMPANION_LINES = 9
@@ -627,7 +721,7 @@ private fun scheduleLine(
     val past = line.stopMs <= now
     val ink = when {
         focused -> c.focusInk
-        onAir -> SkMateBlue
+        onAir -> tv.own.owntv.ui.theme.liveAccent
         past -> c.faint
         else -> c.text
     }
@@ -715,6 +809,9 @@ private fun ChannelLine(
     onFocus: () -> Unit,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    onLongClick: (() -> Unit)? = null,
+    logosOnly: Boolean = false,
+    lit: Boolean = false,
 ) {
     val interaction = remember { MutableInteractionSource() }
     val focused = interaction.collectIsFocusedAsState().value
@@ -727,18 +824,30 @@ private fun ChannelLine(
             .height(92.mpx)
             .background(if (focused) c.focus else Color.Transparent, tv.own.owntv.ui.stage.FocusBarShape)
             .onFocusChanged { if (it.isFocused) onFocus() }
-            .clickable(interactionSource = interaction, indication = null, onClick = onClick)
+            .combinedClickable(interactionSource = interaction, indication = null, onClick = onClick, onLongClick = onLongClick)
             .padding(horizontal = CHANNEL_LINE_INSET.mpx),
         horizontalArrangement = Arrangement.spacedBy(16.mpx),
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        if (logosOnly) {
+            val mark = lit && !focused
+            androidx.compose.foundation.layout.Box(
+                Modifier.weight(1f).fillMaxHeight()
+                    .background(if (mark) tv.own.owntv.features.live.litFill() else Color.Transparent, androidx.compose.foundation.shape.RoundedCornerShape(10.mpx))
+                    .then(if (mark) Modifier.border(2.mpx, tv.own.owntv.ui.theme.liveAccent, androidx.compose.foundation.shape.RoundedCornerShape(10.mpx)) else Modifier),
+                contentAlignment = Alignment.Center,
+            ) {
+                LogoCell(channel.number, now?.let { ((nowMs - it.startMs).toFloat() / (it.stopMs - it.startMs).coerceAtLeast(1)).coerceIn(0f, 1f) }) { Logo(channel, 96.mpx, 46.mpx) }
+            }
+            return@Row
+        }
         Logo(channel, 72.mpx, 52.mpx)
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.mpx)) {
             Row(horizontalArrangement = Arrangement.spacedBy(10.mpx)) {
                 channel.number?.let { Text(it.toString(), style = stageText(20, 700), color = soft, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) }
                 // The channel being watched: its name in brand blue, nothing else.
                 Text(
-                    channel.name, style = stageText(20, 700), color = if (playing) SkMateBlue else ink,
+                    channel.name, style = stageText(20, 700), color = if (playing) tv.own.owntv.ui.theme.liveAccent else ink,
                     maxLines = 1, overflow = marqueeOverflow(focused),
                     modifier = Modifier.weight(1f, fill = false).focusMarquee(focused),
                 )
@@ -792,7 +901,7 @@ private fun Bar(progress: Float, width: Dp, base: Color, thick: Boolean = false)
     )
 }
 
-private val ListWidth = 640.mpx
+private val ListWidth = 500.mpx
 /** The player panels' colours: dark glass in the dark theme, light glass in the light one. */
 internal data class TvBoxPanelColors(val fill: Color, val text: Color, val soft: Color, val faint: Color, val focus: Color, val focusInk: Color, val line: Color)
 
@@ -811,4 +920,6 @@ private const val HEADER_SETTLE_MS = 120L
 private const val NOW_TICK_MS = 30_000L
 
 /** Where a channel row's content starts: on the panel title's line, the row itself reaching the edges. */
+private const val PANEL_LOGOS = 170
 private const val CHANNEL_LINE_INSET = 28
+

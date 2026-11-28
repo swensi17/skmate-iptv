@@ -527,7 +527,7 @@ fun SettingsSheet(
             // Always the dark grey sheet, whatever the app's theme, with SkMate blue for switches.
             CompositionLocalProvider(
                 tv.own.owntv.ui.theme.LocalStagePalette provides (if (tv.own.owntv.ui.theme.LocalStagePalette.current.isLight) tv.own.owntv.ui.theme.StagePalette.Light else tv.own.owntv.ui.theme.StagePalette.Dark),
-                tv.own.owntv.ui.theme.LocalStageAccentOverride provides tv.own.owntv.ui.theme.StageAccent(tv.own.owntv.ui.brand.SkMateBlue, Color.White, Color.White),
+                tv.own.owntv.ui.theme.LocalStageAccentOverride provides tv.own.owntv.ui.theme.StageAccent(tv.own.owntv.ui.theme.liveAccent, Color.White, Color.White),
                 tv.own.owntv.ui.theme.LocalInSettingsSheet provides true,
             ) {
             // Flush with the right edge, full height, only its outer (left) corners softly rounded.
@@ -1273,7 +1273,7 @@ fun StageFormPage(
     CompositionLocalProvider(
         LocalSettingsPanel provides null, LocalBringIntoViewSpec provides edgeScrollSpec,
         tv.own.owntv.ui.theme.LocalStageAccentOverride provides (
-            if (windowed) tv.own.owntv.ui.theme.StageAccent(tv.own.owntv.ui.brand.SkMateBlue, Color.White, Color.White)
+            if (windowed) tv.own.owntv.ui.theme.StageAccent(tv.own.owntv.ui.theme.liveAccent, Color.White, Color.White)
             else tv.own.owntv.ui.theme.LocalStageAccentOverride.current
         ),
     ) {
@@ -1339,7 +1339,7 @@ private fun windowScrim(): Color = if (tv.own.owntv.ui.theme.LocalStagePalette.c
 fun CenterWindow(onDismiss: () -> Unit, modifier: Modifier = Modifier, width: androidx.compose.ui.unit.Dp = 820.mpx, content: @Composable ColumnScope.() -> Unit) {
     androidx.activity.compose.BackHandler { onDismiss() }
     CompositionLocalProvider(
-        tv.own.owntv.ui.theme.LocalStageAccentOverride provides tv.own.owntv.ui.theme.StageAccent(tv.own.owntv.ui.brand.SkMateBlue, Color.White, Color.White),
+        tv.own.owntv.ui.theme.LocalStageAccentOverride provides tv.own.owntv.ui.theme.StageAccent(tv.own.owntv.ui.theme.liveAccent, Color.White, Color.White),
     ) {
         BoxWithConstraints(modifier.fillMaxSize().background(windowScrim()).pointerInput(Unit) { detectTapGestures { onDismiss() } }) {
             Column(
@@ -1549,7 +1549,7 @@ fun StageFieldRow(
                 Text(
                     stringResource(R.string.common_edit),
                     style = stageText(18, 700),
-                    color = tv.own.owntv.ui.brand.SkMateBlue,
+                    color = tv.own.owntv.ui.theme.liveAccent,
                     maxLines = 1, overflow = TextOverflow.Ellipsis,
                 )
             }
@@ -1670,7 +1670,7 @@ private fun focusedBlue(focused: Boolean, content: @Composable () -> Unit) {
     if (!focused) return content()
     val a = stageAccent
     androidx.compose.runtime.CompositionLocalProvider(
-        tv.own.owntv.ui.theme.LocalStageAccentOverride provides a.copy(accent = tv.own.owntv.ui.brand.SkMateBlue),
+        tv.own.owntv.ui.theme.LocalStageAccentOverride provides a.copy(accent = tv.own.owntv.ui.theme.liveAccent),
         content = content,
     )
 }

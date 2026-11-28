@@ -16,7 +16,6 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.tv.material3.Text
-import tv.own.owntv.ui.brand.SkMateBlue
 import tv.own.owntv.ui.theme.mpx
 import tv.own.owntv.ui.theme.stageText
 
@@ -35,14 +34,15 @@ fun CountdownRing(n: Int, totalMs: Long, modifier: Modifier = Modifier, diameter
             fraction = ((android.os.SystemClock.uptimeMillis() - start).toFloat() / totalMs).coerceIn(0f, 1f)
         }
     }
+    val liveC = tv.own.owntv.ui.theme.liveAccent
     Box(modifier.size(diameter), contentAlignment = Alignment.Center) {
         Canvas(Modifier.size(diameter)) {
             val w = 2.5f * 1.mpx.toPx()
             val arc = Size(size.width - w, size.height - w)
             val topLeft = Offset(w / 2, w / 2)
-            drawArc(SkMateBlue.copy(alpha = 0.2f), 0f, 360f, false, topLeft = topLeft, size = arc, style = Stroke(w))
-            drawArc(SkMateBlue, -90f, 360f * fraction, false, topLeft = topLeft, size = arc, style = Stroke(w, cap = StrokeCap.Round))
+            drawArc(liveC.copy(alpha = 0.2f), 0f, 360f, false, topLeft = topLeft, size = arc, style = Stroke(w))
+            drawArc(liveC, -90f, 360f * fraction, false, topLeft = topLeft, size = arc, style = Stroke(w, cap = StrokeCap.Round))
         }
-        Text(n.toString(), style = stageText(15, 800), color = SkMateBlue, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+        Text(n.toString(), style = stageText(15, 800), color = liveC, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
     }
 }
