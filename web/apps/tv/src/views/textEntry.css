@@ -8,3 +8,8 @@
 /* For weak eyes: "Cancel" always has a clear outline, "Done" none but a bright plate, so no two look alike. */
 .st-button.entry-cancel { box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.55); }
 .st-button.entry-cancel:focus { box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.9), inset 0 0 0 2px rgba(255, 255, 255, 0.55); }
+
+/* Light theme: "Done" dark plate with white text, "Cancel" plain with a dark outline; the focused one gets the double ring. */
+:root[data-theme="light"] .st-button.entry-done { background: #121212; color: #ffffff; box-shadow: none; }
+:root[data-theme="light"] .st-button.entry-cancel { background: transparent; color: #121212; box-shadow: inset 0 0 0 2px #121212; }
+:root[data-theme="light"] .st-button.entry-done:focus, :root[data-theme="light"] .st-button.entry-cancel:focus { background: #121212; color: #ffffff; transform: scale(1.08); box-shadow: 0 0 0 3px #ffffff, 0 0 0 6px #121212; }
