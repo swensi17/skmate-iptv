@@ -237,6 +237,7 @@ export function hlsTracks(hls: () => HlsTrackApi | null, video: HTMLVideoElement
  * the player offers them and opens the stream on hls.js, which can switch (#772).
  */
 export function audioRenditions(master: string): TrackOption[] {
+  if (!/^\s*#EXTM3U/.test(master)) return [];
   const out: TrackOption[] = [];
   const seen = new Set<string>();
   for (const line of master.split(/\r?\n/)) {
@@ -251,4 +252,37 @@ export function audioRenditions(master: string): TrackOption[] {
   }
   if (out.length > 0 && !out.some((t) => t.selected)) (out[0] as TrackOption).selected = true;
   return out;
+}
+
+/** An address that is surely not an HLS playlist (a file or a raw stream): no need to look inside it. */
+export function surelyNotHls(url: string): boolean {
+  return /\.(ts|mts|mp4|m4v|mkv|avi|mov|webm|mp3|aac|flv)(\?|#|$)/i.test(url);
+}
+
+/**
+ * The audio renditions of the stream at [url], read from its start only (64 KB at most, then the download stops):
+ * a provider's address often has no ".m3u8" in it, or is a raw MPEG-TS stream that never ends (#822).
+ */
+export async function fetchRenditions(url: string, headers?: Record<string, string>): Promise<TrackOption[]> {
+  if (surelyNotHls(url)) return [];
+  const r = await fetch(url, { headers });
+  if (!r.ok) return [];
+  const type = r.headers.get("content-type") ?? "";
+  const reader = r.body && typeof r.body.getReader === "function" ? r.body.getReader() : null;
+  if (!reader) return /mpegurl/i.test(type) || /\.m3u8(\?|$)/i.test(url) ? audioRenditions(await r.text()) : [];
+  const parts: Uint8Array[] = [];
+  let size = 0;
+  try {
+    while (size < 65_536) {
+      const { done, value } = await reader.read();
+      if (done || !value) break;
+      parts.push(value);
+      size += value.length;
+      if (size >= 7 && parts.length === 1 && value[0] !== 0x23 && value[0] !== 0xef && value[0] !== 0x20 && value[0] !== 0x0a && value[0] !== 0x0d) break; // not text: a raw stream
+    }
+  } finally { reader.cancel().catch(() => undefined); }
+  const all = new Uint8Array(size);
+  let at = 0;
+  for (const p of parts) { all.set(p, at); at += p.length; }
+  return audioRenditions(new TextDecoder("utf-8").decode(all));
 }

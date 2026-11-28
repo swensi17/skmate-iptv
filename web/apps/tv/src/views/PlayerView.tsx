@@ -6,7 +6,7 @@ import {
 } from "@skmate/core";
 import type { Programme } from "@skmate/epg";
 import { useLogoTint } from "./logoTint";
-import { audioRenditions, defaultZoom, itemPrefs, showAudioTile, type TrackOption, showSubtitleTile, type ZoomMode } from "@skmate/player";
+import { fetchRenditions, defaultZoom, itemPrefs, showAudioTile, type TrackOption, showSubtitleTile, type ZoomMode } from "@skmate/player";
 import { Drawer, focusFirst, Icon, isBack, Presence, type IconName } from "@skmate/ui";
 import { t } from "../i18n";
 import { remoteKey, type RemoteKey } from "../platform";
@@ -452,11 +452,10 @@ export function PlayerView(p: Props) {
 
   // The TV's own decoder tells no audio tracks (Chromium keeps audioTracks behind a flag): the master playlist does.
   useEffect(() => {
-    if (state !== "playing" || engine !== "native" || tracks.audio.length > 1 || !/\.m3u8(\?|$)/i.test(target.url)) return;
+    // Any address, not only one ending in .m3u8 (#822): the start of the answer tells whether it is a playlist.
+    if (state !== "playing" || engine !== "native" || tracks.audio.length > 1) return;
     let live = true;
-    fetch(target.url, { headers: target.headers }).then((r) => (r.ok ? r.text() : "")).then((text) => {
-      if (live) { const found = audioRenditions(text); if (found.length > 1) setRenditions(found); }
-    }).catch(() => undefined);
+    fetchRenditions(target.url, target.headers).then((found) => { if (live && found.length > 1) setRenditions(found); }).catch(() => undefined);
     return () => { live = false; };
   }, [state, engine, target.url]);
   // On hls.js now: the track picked before is chosen as soon as hls.js lists them.

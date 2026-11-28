@@ -1,6 +1,6 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
-  audioRenditions, audioToSelect, CAPTION_ID_BASE, elementTracks, hlsTracks, languageIdentity, languageMatches, showAudioTile, showSubtitleTile,
+  audioRenditions, fetchRenditions, audioToSelect, CAPTION_ID_BASE, elementTracks, hlsTracks, languageIdentity, languageMatches, showAudioTile, showSubtitleTile,
   subtitleAction, SUBTITLES_OFF, type HlsTrackApi, type TrackOption,
 } from "./tracks";
 
@@ -147,5 +147,24 @@ describe("audio renditions of an HLS master (#772)", () => {
     ].join("\n");
     expect(audioRenditions(m).map((t) => [t.label, t.lang, t.selected])).toEqual([["Русский", "ru", true], ["English", "en", false]]);
     expect(audioRenditions("#EXTM3U\n#EXT-X-STREAM-INF:BANDWIDTH=1\nv.m3u8")).toEqual([]);
+  });
+});
+
+describe("fetchRenditions (#822)", () => {
+  const master = "#EXTM3U\n#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"a\",NAME=\"Русский\",LANGUAGE=\"ru\",DEFAULT=YES,URI=\"ru.m3u8\"\n#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"a\",NAME=\"English\",LANGUAGE=\"en\",URI=\"en.m3u8\"\n#EXT-X-STREAM-INF:BANDWIDTH=1,AUDIO=\"a\"\nv.m3u8\n";
+  const serve = (body: Uint8Array | string, type = "") => vi.fn(async () => new Response(body, { headers: { "content-type": type } }));
+  afterEach(() => { vi.unstubAllGlobals(); });
+  it("reads a master playlist at an address without .m3u8", async () => {
+    vi.stubGlobal("fetch", serve(master, "application/octet-stream"));
+    const found = await fetchRenditions("http://x/live/u/p/123");
+    expect(found.map((t) => t.lang)).toEqual(["ru", "en"]);
+  });
+  it("stops at a raw stream and never looks into a .ts address", async () => {
+    vi.stubGlobal("fetch", serve(new Uint8Array([0x47, 1, 2, 3, 4, 5, 6, 7, 8])));
+    expect(await fetchRenditions("http://x/live/1")).toEqual([]);
+    const f = serve(master);
+    vi.stubGlobal("fetch", f);
+    expect(await fetchRenditions("http://x/live/1.ts")).toEqual([]);
+    expect(f).not.toHaveBeenCalled();
   });
 });
