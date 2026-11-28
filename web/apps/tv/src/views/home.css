@@ -227,7 +227,7 @@ button.home-cat:focus, button.home-cat:focus > .st-icon, button.home-cat:focus .
 .home-rows .vrow::after { display: none; }
 
 /* 2.6.0: the channel's guide in the list's place (LiveGuideSide) */
-.gs { position: absolute; left: 882px; top: 120px; bottom: 0; width: 820.8px; z-index: 2; display: flex; flex-direction: column; background: var(--st-panel, #24272d); border-radius: 14px; overflow: hidden; animation: gs-in 220ms var(--st-ease) both; }
+.gs { position: absolute; left: 882px; top: 120px; bottom: 0; width: 820.8px; z-index: 2; display: flex; flex-direction: column; background: var(--st-page, #232629); border-radius: 14px; overflow: hidden; animation: gs-in 220ms var(--st-ease) both; }
 @keyframes gs-in { from { transform: translateX(40px); opacity: 0; } to { transform: none; opacity: 1; } }
 .gs-head { display: flex; align-items: center; gap: 14px; padding: 16px 20px 10px; }
 .gs-logo { width: 54px; height: 40px; display: flex; align-items: center; justify-content: center; }
