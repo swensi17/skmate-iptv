@@ -1222,6 +1222,8 @@ export const ko: Record<keyof typeof en, string> = {
   sa_settings_part_text: "Text & zoom",
   sa_settings_part_theme: "Theme & colours",
   sa_settings_pinned_from: "{1}에서 고정함",
+  setChannelTiles: "Channels as tiles",
+  setChannelTilesHint: "Channels screen: channel tiles, four in a row, instead of the list",
   sa_settings_player_panel_columns: "채널 목록 옆에 편성표",
   sa_settings_player_panel_columns_description: "플레이어에서 채널, 선택한 채널의 편성표, 화면을 세 열로 표시",
   sa_settings_player_recents: "플레이어의 최근 시청",

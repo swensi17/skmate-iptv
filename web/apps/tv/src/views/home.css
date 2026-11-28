@@ -173,8 +173,7 @@ button.lrow { position: relative; display: flex; align-items: center; width: 100
 .hp-progress { display: flex; align-items: center; }
 .hp-progress > .st-progress { flex: 1 1 0%; }
 .hp-left { flex: none; margin-left: 16px; font-size: 17px; color: var(--st-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
-.hp-desc { padding-top: 18px; font-size: 19px; line-height: 1.55; color: #ccd6d2;
-  display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+.hp-desc { padding-top: 18px; font-size: 19px; line-height: 1.55; color: #ccd6d2; }
 :root[data-theme="light"] .hp-desc { color: var(--st-body); }
 /* Next and later: one line each, 20 px; next with the accent time and full-colour title, the rest muted. Max 240 high. */
 .hp-sched { margin: 18px 12px 40px -12px; }
@@ -301,3 +300,24 @@ button.home-cat:focus, button.home-cat:focus > .st-icon, button.home-cat:focus .
 /* Three columns off (2.7.2): ▶ puts the programme in the list's place, the preview stays where it is. */
 .home-guide .home-list { visibility: hidden; }
 .home-guide > .gs { left: 25.2px; width: 826.2px; top: 118px; }
+/* The channels as tiles (Settings › channel list view, 2.7.2): four in a row, the list's width and height. */
+.ltiles { display: flex; height: 100%; padding: 0 2px; box-sizing: border-box; }
+.ltiles > .ltile + .ltile { margin-left: 12px; }
+button.ltile { position: relative; flex: 0 0 auto; width: 194px; height: 184px; display: flex; flex-direction: column; align-items: stretch;
+  padding: 10px 12px 10px; box-sizing: border-box; border: 0; border-radius: 14px; background: rgba(255, 255, 255, .05); color: var(--st-text);
+  font-family: var(--st-font); text-align: left; outline: none; overflow: hidden; }
+button.ltile:focus { background: var(--st-focus-plate, #fff); color: #121212; }
+.ltile-num { position: absolute; left: 12px; top: 8px; font-size: 15px; font-weight: 700; color: var(--st-dim); }
+.ltile:focus .ltile-num { color: rgba(18, 18, 18, .6); }
+.ltile-logo { flex: none; display: flex; justify-content: center; margin: 22px 0 10px; }
+.ltile-logo .logo-tile { width: 104px; height: 62px; margin: 0; }
+.ltile-name, .ltile-prog { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ltile-name { font-size: 18px; font-weight: 700; line-height: 1.25; }
+.ltile-prog { margin-top: 2px; font-size: 14px; line-height: 1.3; color: var(--st-muted); }
+.ltile:focus .ltile-prog { color: rgba(18, 18, 18, .62); }
+.ltile-bar { display: block; position: relative; height: 3px; margin-top: auto; border-radius: 2px; background: rgba(255, 255, 255, .12); overflow: hidden; }
+.ltile-bar i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 2px; background: var(--st-blue); }
+.ltile:focus .ltile-bar { background: rgba(18, 18, 18, .16); }
+.ltile:focus .ltile-bar i { background: #121212; }
+.ltile-playing, .ltile-fav { position: absolute; right: 10px; bottom: 14px; display: flex; color: var(--st-blue); }
+.ltile-fav { color: #ff5c6c; }

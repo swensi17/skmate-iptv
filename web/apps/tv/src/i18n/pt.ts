@@ -1222,6 +1222,8 @@ export const pt: Record<keyof typeof en, string> = {
   sa_settings_part_text: "Text & zoom",
   sa_settings_part_theme: "Theme & colours",
   sa_settings_pinned_from: "Fixado de {1}",
+  setChannelTiles: "Channels as tiles",
+  setChannelTilesHint: "Channels screen: channel tiles, four in a row, instead of the list",
   sa_settings_player_panel_columns: "Programação ao lado da lista de canais",
   sa_settings_player_panel_columns_description: "No player: canais, programação do canal escolhido e imagem em três colunas",
   sa_settings_player_recents: "Vistos recentemente no player",

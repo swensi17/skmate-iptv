@@ -299,6 +299,7 @@ export function buildRows(c: RowsCtx, close: () => void): Record<string, RowDef>
       { label: t("sa_common_nav_series"), on: s.extSeries, toggle: () => set({ extSeries: !s.extSeries }) },
     ]} />,
   });
+  add({ key: "vp_tiles", icon: "GRID", title: t("setChannelTiles"), line: t("setChannelTilesHint"), end: sw(s.channelTiles), ok: () => set({ channelTiles: !s.channelTiles }) });
   add({ key: "vp_columns", icon: "LIST_GRID", title: t("sa_settings_player_panel_columns"), line: t("sa_settings_player_panel_columns_description"), end: sw(s.threeColumns), ok: () => set({ threeColumns: !s.threeColumns }) });
   add({ key: "vp_recents", icon: "HISTORY", title: t("sa_settings_player_recents"), line: t("sa_settings_player_recents_description"), end: sw(s.playerRecents), ok: () => set({ playerRecents: !s.playerRecents }) });
   add({ key: "vp_clock", icon: "CLOCK", title: t("sa_settings_player_clock"), line: t("sa_settings_player_clock_description"), end: sw(s.playerClock), ok: () => set({ playerClock: !s.playerClock }) });
@@ -570,7 +571,7 @@ export const GROUP_ITEMS: Record<string, Item[]> = {
   layout: [{ h: "sa_settings_part_navigation", first: true }, "navigation", "live_layout", "live_opens_in", "tab_CH_NAV",
     { h: "sa_settings_part_lists" }, "tab_PANEL_WIDTH", "tab_GUIDE_WIDTH", "browsing_lists", "tab_CONTENT_MENUS"],
   content: ["tab_CUSTOMIZE"],
-  player: [{ h: "sa_settings_vp_cat_player", first: true }, "vp_external", { h: "sa_settings_vp_cat_controls" }, "vp_columns", "vp_recents", "vp_clock",
+  player: [{ h: "sa_settings_vp_cat_player", first: true }, "vp_external", { h: "sa_settings_vp_cat_controls" }, "vp_tiles", "vp_columns", "vp_recents", "vp_clock",
     "clock_size", "clock_weight", "clock_bg", "clock_color", "clock_alpha"],
   picture: [{ h: "sa_settings_vp_cat_picture", first: true }, "vp_zoom", "vp_reset_zoom", { h: "sa_settings_vp_cat_frame_rate" }, "vp_afr", "vp_afr_pause", "vp_afr_resolution"],
   live: [{ h: "sa_settings_vp_cat_live_tuning", first: true }, "vp_live_latency", "vp_latency_sources", "vp_tune_timeout", "vp_tune_timeout_sources",

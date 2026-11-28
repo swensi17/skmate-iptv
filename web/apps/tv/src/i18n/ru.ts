@@ -1220,6 +1220,8 @@ export const ru = {
   sa_settings_part_text: "Текст и масштаб",
   sa_settings_part_theme: "Тема и цвета",
   sa_settings_pinned_from: "Закреплено из раздела «{1}»",
+  setChannelTiles: "Каналы плиткой",
+  setChannelTilesHint: "Экран каналов: каналы плитками по четыре в ряд вместо списка",
   sa_settings_player_panel_columns: "Программа посередине, три колонки",
   sa_settings_player_panel_columns_description: "На экране каналов и в плеере: каналы, программа выбранного канала и картинка. Выключено: программа открывается по ▶, как раньше",
   sa_settings_player_recents: "Недавно просмотренные в плеере",

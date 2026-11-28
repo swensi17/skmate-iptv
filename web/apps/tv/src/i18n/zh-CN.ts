@@ -1222,6 +1222,8 @@ export const zhCN: Record<keyof typeof en, string> = {
   sa_settings_part_text: "Text & zoom",
   sa_settings_part_theme: "Theme & colours",
   sa_settings_pinned_from: "从“{1}”固定",
+  setChannelTiles: "Channels as tiles",
+  setChannelTilesHint: "Channels screen: channel tiles, four in a row, instead of the list",
   sa_settings_player_panel_columns: "在频道列表旁显示节目单",
   sa_settings_player_panel_columns_description: "播放器中以三列显示频道、所选频道的节目单和画面",
   sa_settings_player_recents: "播放器中的最近观看",

@@ -39,7 +39,7 @@ export function ChannelRow(props: {
    * number from the left, the logo plate, the name and "programme · time left", the progress bar on the focused row,
    * the blue archive tag in the top-right corner, the playing mark and the heart at the end.
    */
-  variant?: "live";
+  variant?: "live" | "tile";
   /** The channel's number in the playlist (the "live" row shows it; others show their place in the list). */
   number?: number;
   /** "live": this channel is in the preview beside the list (the blue pause mark). */
@@ -101,6 +101,32 @@ export function ChannelRow(props: {
       </Presence>
     </>
   );
+
+  // A tile of the channels grid (Settings › channel list view: tiles): the number, the logo, the name, what is on.
+  if (props.variant === "tile") {
+    return (
+      <>
+        <button
+          class={`st-focusable ltile${props.previewing ? " previewing" : ""}`} data-focus={`ch-${channel.id}`}
+          onClick={() => props.onOpen(channel)}
+          onFocus={() => { setLit(true); props.onFocus?.(channel); }}
+          onBlur={() => { setLit(false); cancel(); }}
+          onKeyDown={onKeyDown as unknown as (e: Event) => void}
+          onKeyUp={onKeyUp as unknown as (e: Event) => void}
+          onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); setLayer("menu"); }}
+        >
+          {ui.numbers ? <span class="ltile-num">{props.number ?? props.index + 1}</span> : null}
+          {channel.catchupDays ? <span class="st-archive corner">{daysText(channel.catchupDays)}</span> : null}
+          <span class="ltile-logo"><ChannelLogo channel={channel} tile /></span>
+          <Marquee class="ltile-name" text={channel.name} on={lit} />
+          {on ? <Marquee class="ltile-prog" text={on.title} on={lit} /> : <span class="ltile-prog none">{" "}</span>}
+          <span class="ltile-bar">{on ? <i style={{ width: `${(progress * 100).toFixed(1)}%` }} /> : null}</span>
+          {props.previewing ? <span class="ltile-playing"><StageIcon name="pause_fill" size={22} /></span> : props.favorite ? <span class="ltile-fav"><StageIcon name="favorite_fill" size={18} /></span> : null}
+        </button>
+        {layers}
+      </>
+    );
+  }
 
   if (props.variant === "live") {
     const left = on ? timeLeftText(on.stop, now) : "";

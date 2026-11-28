@@ -1222,6 +1222,8 @@ export const eu: Record<keyof typeof en, string> = {
   sa_settings_part_text: "Text & zoom",
   sa_settings_part_theme: "Theme & colours",
   sa_settings_pinned_from: "{1} atalekoa ainguratu da",
+  setChannelTiles: "Channels as tiles",
+  setChannelTilesHint: "Channels screen: channel tiles, four in a row, instead of the list",
   sa_settings_player_panel_columns: "Programazioa kate-zerrendaren ondoan",
   sa_settings_player_panel_columns_description: "Erreproduzigailuan: kateak, hautatutako katearen programazioa eta irudia hiru zutabetan",
   sa_settings_player_recents: "Erreproduzitzailean duela gutxi ikusiak",

@@ -35,6 +35,9 @@ const RECENT = "~recent";
 const ARCHIVE = "~archive";
 /** Row 92 + the 8 between rows (LiveScreen.kt spacedBy(8), LiveStage.kt height 92). */
 const ROW_PITCH = 92;
+/** Channels as tiles: four in a row, a row this high (a tile and the gap under it). */
+const TILES_PER_ROW = 4;
+const TILE_PITCH = 196;
 /** The list runs from 186 (toolbar 118 + 48 + 20) to the bottom of the stage. */
 const LIST_TOP = 186;
 const LIST_HEIGHT = 972 - LIST_TOP;
@@ -201,6 +204,8 @@ export function LiveView(p: Props) {
   const [guideActive, setGuideActive] = useState(false);
   /** Settings › player › "programme beside the channel list" (2.7.2): off, the old screen, the programme by ▶ only. */
   const cols = p.settings.threeColumns === true;
+  /** Settings › channels as tiles (#936): four in a row; with three columns the list stays a list. */
+  const tiles = !cols && p.settings.channelTiles === true;
   const closeGuide = () => { setGuideCh(null); setGuideActive(false); setTimeout(() => focusCurrentRow(), 30); };
   const [lineProg, setLineProg] = useState<Programme | null>(null);
   // The list stays shrunk only while the focus is in the programme column (its days included).
@@ -231,6 +236,7 @@ export function LiveView(p: Props) {
     const copy = [...found].sort((a, b) => a.name.localeCompare(b.name, "ru"));
     return sort === "az" ? copy : copy.reverse();
   }, [found, sort, settled, p.recents]);
+  const tileRows = useMemo(() => { const out: Channel[][] = []; for (let i = 0; i < shown.length; i += TILES_PER_ROW) out.push(shown.slice(i, i + TILES_PER_ROW)); return out; }, [shown]);
 
   // Favourites and Recently watched always; Archive only when some channel keeps one (LiveViewModel.kt railItems).
   const groupItems = useMemo<GroupItem[]>(() => [
@@ -393,6 +399,12 @@ export function LiveView(p: Props) {
   // A row: ◀ the categories, ▶ the schedule under the preview, ▼ past the last row nowhere (▲ past the first: the toolbar).
   const onListKey = (e: KeyboardEvent) => {
     if (!(e.target as HTMLElement).closest?.("[data-index]")) return;
+    // Tiles: ◀ ▶ walk the row; only past its first or last tile do they open the categories or the programme.
+    if (tiles && (key(e, "ArrowLeft", 37) || key(e, "ArrowRight", 39))) {
+      const tile = (e.target as HTMLElement).closest<HTMLElement>(".ltile");
+      const next = key(e, "ArrowLeft", 37) ? tile?.previousElementSibling : tile?.nextElementSibling;
+      if (next instanceof HTMLElement && next.classList.contains("ltile")) { stop(e); next.focus(); return; }
+    }
     if (key(e, "ArrowLeft", 37)) { stop(e); if (!cols && guideCh) closeGuide(); else openCats(); return; }
     if (!cols && isBack(e) && guideCh) { stop(e); closeGuide(); return; }
     if (key(e, "ArrowRight", 39)) {
@@ -461,6 +473,20 @@ export function LiveView(p: Props) {
                 <StageIcon name="tv" size={72} />
                 <div class="home-empty-text">{emptyText}</div>
               </div>
+            ) : tiles ? (
+              <VirtualList
+                items={tileRows} rowHeight={TILE_PITCH} height={LIST_HEIGHT} pageSize={3} room={1} columns initialIndex={Math.max(0, Math.floor(Math.max(0, back) / TILES_PER_ROW))}
+                idOf={(row) => `tr-${row[0]?.id ?? ""}`}
+                renderRow={(row, r) => (
+                  <div class="ltiles">
+                    {row.map((c, k) => (
+                      <ChannelRow key={c.id} variant="tile" channel={c} index={r * TILES_PER_ROW + k} number={numbers.get(c.id)} favorite={isFavorite(p.favorites, c)}
+                        previewing={playing === c.id} watched={watchedIds.has(c.id)}
+                        onOpen={(ch) => { clearTimeout(timer.current); p.onOpen(ch, shown); }} onFav={p.onFav} onFocus={onFocusChannel} />
+                    ))}
+                  </div>
+                )}
+              />
             ) : (
               <VirtualList
                 items={shown} rowHeight={ROW_PITCH} height={LIST_HEIGHT} pageSize={10} room={1} initialIndex={Math.max(0, back)}

@@ -1222,6 +1222,8 @@ export const tr: Record<keyof typeof en, string> = {
   sa_settings_part_text: "Metin & yakınlaştırma",
   sa_settings_part_theme: "Tema & renkler",
   sa_settings_pinned_from: "{1} grubundan sabitlendi",
+  setChannelTiles: "Channels as tiles",
+  setChannelTilesHint: "Channels screen: channel tiles, four in a row, instead of the list",
   sa_settings_player_panel_columns: "Kanal listesinin yanında yayın akışı",
   sa_settings_player_panel_columns_description: "Oynatıcıda: kanallar, seçilen kanalın yayın akışı ve görüntü üç sütunda",
   sa_settings_player_recents: "Oynatıcıda son izlenenler",

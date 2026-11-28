@@ -16,6 +16,8 @@ export interface VirtualListProps<T> {
   pageSize?: number;
   /** Rows of room kept ahead of the focused row while scrolling (Android's edgeScrollSpec keeps 1). Default 0. */
   room?: number;
+  /** Rows of several items (a grid): ▲ ▼ land on the same column of the next row, the nearest when it is shorter. */
+  columns?: boolean;
 }
 
 const PAGE_UP = [33, 427]; // PageUp, webOS channel up
@@ -31,6 +33,8 @@ export function VirtualList<T>(p: VirtualListProps<T>) {
   const box = useRef<HTMLDivElement>(null);
   /** The row a page jump is heading to: a second press before the first lands continues from there. */
   const heading = useRef<number | null>(null);
+  /** The column ▲ ▼ keep in a grid. */
+  const column = useRef(0);
   const win = visibleWindow(top, p.height, p.rowHeight, p.items.length);
 
   // A page jump asks for a row that may not be drawn yet: scroll first, focus once it exists.
@@ -39,7 +43,11 @@ export function VirtualList<T>(p: VirtualListProps<T>) {
     const item = p.items[wanted];
     if (item === undefined) { setWanted(null); return; }
     const el = box.current?.querySelector<HTMLElement>(`[data-index="${wanted}"]`);
-    if (el) { el.querySelector<HTMLElement>("[data-focus]")?.focus(); setWanted(null); if (heading.current === wanted) heading.current = null; }
+    if (el) {
+      const items = el.querySelectorAll<HTMLElement>("[data-focus]");
+      (p.columns ? items[Math.min(column.current, items.length - 1)] : items[0])?.focus();
+      setWanted(null); if (heading.current === wanted) heading.current = null;
+    }
     else setTop((t) => revealTop(t, wanted, p.rowHeight, p.height, p.items.length, p.room));
   }, [wanted, win.first, win.last, p.items]);
 
@@ -57,6 +65,11 @@ export function VirtualList<T>(p: VirtualListProps<T>) {
     const current = (document.activeElement as HTMLElement | null)?.closest<HTMLElement>("[data-index]");
     if (!current) return;
     const from = heading.current ?? Number(current.dataset.index);
+    if (p.columns && heading.current === null) {
+      const own = Array.from(current.querySelectorAll<HTMLElement>("[data-focus]"));
+      const at = own.indexOf((document.activeElement as HTMLElement).closest<HTMLElement>("[data-focus]") as HTMLElement);
+      if (at >= 0) column.current = at;
+    }
     // Up and Down walk this list row by row, however fast they come: the row to land on may not be drawn yet, and the
     // geometry of the screen would then pick something beside the list. Only past the first or last row do they leave it.
     if (step !== 0 && (from + step < 0 || from + step > p.items.length - 1)) return;

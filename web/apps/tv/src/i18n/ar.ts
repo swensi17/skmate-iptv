@@ -1222,6 +1222,8 @@ export const ar: Record<keyof typeof en, string> = {
   sa_settings_part_text: "Text & zoom",
   sa_settings_part_theme: "Theme & colours",
   sa_settings_pinned_from: "مثبَّت من {1}",
+  setChannelTiles: "Channels as tiles",
+  setChannelTilesHint: "Channels screen: channel tiles, four in a row, instead of the list",
   sa_settings_player_panel_columns: "البرنامج بجانب قائمة القنوات",
   sa_settings_player_panel_columns_description: "في المشغل: القنوات وبرنامج القناة المحددة والصورة في ثلاثة أعمدة",
   sa_settings_player_recents: "المشاهدة مؤخرًا في المشغل",

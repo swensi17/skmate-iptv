@@ -1222,6 +1222,8 @@ export const hi: Record<keyof typeof en, string> = {
   sa_settings_part_text: "Text & zoom",
   sa_settings_part_theme: "Theme & colours",
   sa_settings_pinned_from: "{1} से पिन किया गया",
+  setChannelTiles: "Channels as tiles",
+  setChannelTilesHint: "Channels screen: channel tiles, four in a row, instead of the list",
   sa_settings_player_panel_columns: "चैनल सूची के बगल में कार्यक्रम",
   sa_settings_player_panel_columns_description: "प्लेयर में: चैनल, चुने गए चैनल का कार्यक्रम और तस्वीर तीन कॉलम में",
   sa_settings_player_recents: "प्लेयर में हाल में देखे गए",
