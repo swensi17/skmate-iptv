@@ -146,7 +146,10 @@ export class XmltvScanner {
     const stop = parseXmltvTime(attr(open, "stop") ?? "");
     if (!channel || start === null || stop === null) return;
     if (this.handlers.keep && !this.handlers.keep(channel, start, stop)) return;
-    const title = noPictographs(inner(el, "title") ?? "");
+    const rawTitle = inner(el, "title") ?? "";
+    const cleanTitle = noPictographs(rawTitle);
+    // An arrow before the title is the provider's "live broadcast" (#950): kept as an invisible mark the screens draw.
+    const title = cleanTitle && LIVE_ARROW.test(rawTitle) ? LIVE_MARK + cleanTitle : cleanTitle;
     if (!title) return;
     const rawDesc = inner(el, "desc");
     const desc = rawDesc ? noPictographs(rawDesc) || undefined : undefined;
@@ -164,4 +167,12 @@ const PICTOGRAPHS = /(?:[\uD83C-\uD83E][\uDC00-\uDFFF]|[\u2190-\u21FF]|[\u2300-\
 export function noPictographs(text: string): string {
   const cleaned = text.replace(PICTOGRAPHS, "");
   return cleaned.length === text.length ? text : cleaned.replace(/\s{2,}/g, " ").trim();
+}
+
+/** The invisible mark (U+2063) a live broadcast's title starts with; screens draw it as a red dot ([liveTitle]). */
+export const LIVE_MARK = "\u2063";
+const LIVE_ARROW = /^\s*(?:[\u25B6\u25B8\u25BA\u25B7\u25B9\u25BB\u23F5\u2BC8\u27A4\u27A1\u2192\u21D2]|\uD83D\uDD34)/;
+/** A programme title split into its live-broadcast mark and the text. */
+export function liveTitle(title: string): { live: boolean; text: string } {
+  return title.charAt(0) === LIVE_MARK ? { live: true, text: title.slice(1) } : { live: false, text: title };
 }

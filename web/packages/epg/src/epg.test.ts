@@ -282,3 +282,21 @@ describe("pictographs out of the guide (#924)", () => {
     expect(noPictographs("Что? Где? Когда? (с.3) — №1")).toBe("Что? Где? Когда? (с.3) — №1");
   });
 });
+
+describe("the live arrow (#950)", () => {
+  it("becomes the live mark, the text stays clean", async () => {
+    const { noPictographs, liveTitle, LIVE_MARK } = await import("./xmltv");
+    expect(liveTitle(LIVE_MARK + "Alpine Skiing")).toEqual({ live: true, text: "Alpine Skiing" });
+    expect(liveTitle("Новости")).toEqual({ live: false, text: "Новости" });
+    expect(noPictographs(LIVE_MARK + "Снукер")).toBe(LIVE_MARK + "Снукер");
+  });
+});
+
+describe("a live arrow in the guide itself (#950)", () => {
+  it("reads ► Title as a live title without the arrow", () => {
+    const titles: string[] = [];
+    new XmltvScanner({ onChannel: () => undefined, onProgramme: (_id, p) => titles.push(p.title) })
+      .feed('<programme start="20261128100000 +0000" stop="20261128110000 +0000" channel="a"><title>► Alpine Skiing</title></programme><programme start="20261128110000 +0000" stop="20261128120000 +0000" channel="a"><title>Новости</title></programme>');
+    expect(titles).toEqual(["⁣Alpine Skiing", "Новости"]);
+  });
+});

@@ -1,3 +1,4 @@
+import { Title } from "./ChannelRow";
 import { isFavorite } from "../state/favorites";
 import { useContext, useEffect, useMemo, useRef, useState } from "preact/hooks";
 import {
@@ -850,13 +851,13 @@ export function PlayerView(p: Props) {
     <div class="ch-epg">
       <div class="ch-epg-card archive">
         <div class="ch-epg-label">{t("tbArchivePlaying")}</div>
-        <div class="ch-epg-title">{archive.programme.title}</div>
+        <div class="ch-epg-title"><Title text={archive.programme.title} /></div>
         <div class="ch-epg-time">{t("tbRange", { a: clock(archive.programme.start), b: clock(archive.programme.stop) })}</div>
       </div>
       {liveNow ? (
         <div class="ch-epg-card dim">
           <div class="ch-epg-label">{t("tbLiveNow")}</div>
-          <div class="ch-epg-title">{liveNow.title}</div>
+          <div class="ch-epg-title"><Title text={liveNow.title} /></div>
           <div class="ch-epg-time">{t("tbLiveRemaining", { t: clock(liveNow.start), n: Math.max(0, Math.floor((liveNow.stop - tick) / 60_000)) })}</div>
         </div>
       ) : null}

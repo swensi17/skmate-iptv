@@ -465,3 +465,5 @@ label.st-field { cursor: text; }
 .rv.good { color: #3ecf6e; }
 .rv.mid { color: #f2c94c; }
 .rv.bad { color: #ff5c5c; }
+/* A live broadcast (the guide's arrow, #950): a red dot before the title, drawn, not a glyph a TV font may lack. */
+.live-mark { display: inline-block; width: .5em; height: .5em; margin: 0 .4em .08em 0; border-radius: 50%; background: #ff3b3b; box-shadow: 0 0 0 .14em rgba(255, 59, 59, .25); vertical-align: middle; font-style: normal; }

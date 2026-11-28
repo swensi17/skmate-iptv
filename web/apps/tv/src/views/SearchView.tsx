@@ -1,3 +1,4 @@
+import { Title } from "./ChannelRow";
 import { hasArchive } from "@skmate/core";
 import { useContext, useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { SearchIndex, type Channel, type Movie, type Show } from "@skmate/core";
@@ -406,7 +407,7 @@ function Panel(p: { entry: Entry; now: number; playing: Channel | null; settings
         </div>
         {pr ? (
           <div class="sr-info">
-            <div class="sr-info-t">{pr.title}</div>
+            <div class="sr-info-t"><Title text={pr.title} /></div>
             <div class="sr-info-d">{t("gssTimeRange", { a: clock(pr.start), b: clock(pr.stop) })}</div>
             {live ? (
               <div class="sr-info-p"><Progress value={(p.now - pr.start) / Math.max(1, pr.stop - pr.start)} /><span>{leftLabel(pr.stop, p.now)}</span></div>

@@ -1,3 +1,4 @@
+import { liveTitle } from "@skmate/epg";
 import { useContext, useEffect, useRef, useState } from "preact/hooks";
 import type { Channel } from "@skmate/core";
 import { focusFirst, Icon, Presence } from "@skmate/ui";
@@ -181,7 +182,7 @@ export function ChannelRow(props: {
           <span class="nm">{channel.name}</span>
           {on ? (
             <>
-              <span class="prog">{on.title}<span class="left"> · {leftLabel(on.stop, now)}</span></span>
+              <span class="prog"><Title text={on.title} /><span class="left"> · {leftLabel(on.stop, now)}</span></span>
               <span class="bar"><span class="bar-fill" style={{ width: `${Math.round(progress * 100)}%` }} /></span>
             </>
           ) : null}
@@ -212,6 +213,8 @@ const MARQUEE_DELAY_MS = 900;
  * Only a transform moves (the Web Animations API, Chromium 36+). [tail] is drawn in the same line at 60% (the time left).
  */
 export function Marquee(p: { class: string; text: string; tail?: string; on: boolean }) {
+  // A live broadcast's title (#950): its invisible mark drawn as a red dot before the text.
+  const live = liveTitle(p.text);
   const box = useRef<HTMLSpanElement>(null);
   const [run, setRun] = useState<number | null>(null); // the gap between the copies, once the line is known not to fit
   useEffect(() => {
@@ -237,7 +240,7 @@ export function Marquee(p: { class: string; text: string; tail?: string; on: boo
     );
     return () => anim.cancel();
   }, [run]);
-  const content = <>{p.text}{p.tail ? <span class="mq-tail">{p.tail}</span> : null}</>;
+  const content = <>{live.live ? <i class="live-mark" /> : null}{live.text}{p.tail ? <span class="mq-tail">{p.tail}</span> : null}</>;
   return (
     <span class={`${p.class}${run !== null ? " mq-run" : ""}`} ref={box}>
       {run === null ? content : (
@@ -245,4 +248,10 @@ export function Marquee(p: { class: string; text: string; tail?: string; on: boo
       )}
     </span>
   );
+}
+
+/** A programme title; a live broadcast's (#950) with the red dot before it. */
+export function Title({ text }: { text: string }) {
+  const l = liveTitle(text);
+  return <>{l.live ? <i class="live-mark" /> : null}{l.text}</>;
 }

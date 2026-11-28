@@ -16,7 +16,7 @@ import { GuideSide } from "./GuideSide";
 import { NoGuide } from "./PreviewPane";
 import { daysText } from "./Left";
 import { useFocusInside } from "./focusInside";
-import { Marquee } from "./ChannelRow";
+import { Marquee, Title } from "./ChannelRow";
 import { clock } from "../time";
 import { PanelGuide, scheduleLines, UNDER_HEAD } from "./Schedule";
 import { Ticks } from "./Spinner";
@@ -476,7 +476,7 @@ function ProgCard({ channel, prog, now, art: artSettings }: { channel: Channel; 
   const done = on ? Math.max(0, Math.min(1, (now - p.start) / Math.max(1, p.stop - p.start))) : 0;
   return (
     <div class="tp-card">
-      <div class="tp-card-title">{p.title}</div>
+      <div class="tp-card-title"><Title text={p.title} /></div>
       <div class="tp-card-time">
         <span>{clock(p.start)} – {clock(p.stop)}</span>
         {on ? <span class="tp-card-bar"><i style={{ width: `${(done * 100).toFixed(1)}%` }} /></span> : null}

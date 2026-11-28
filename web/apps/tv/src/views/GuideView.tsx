@@ -1,3 +1,4 @@
+import { Title } from "./ChannelRow";
 import { isFavorite } from "../state/favorites";
 import { memo } from "preact/compat";
 import { useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "preact/hooks";
@@ -531,7 +532,7 @@ const Strip = memo(function Strip({ index, channel, list, ws, we, now, scrollX, 
           >
             {textW > 44 ? (
               <div class="gd-in" style={tx > vx ? { paddingLeft: `${14 + tx - vx}px` } : undefined}>
-                <div class="gd-t">{p.title}</div>
+                <div class="gd-t"><Title text={p.title} /></div>
                 <div class="gd-s">
                   {bell ? <Icon name="bell" size={14} /> : null}
                   {arch ? <Icon name="rewind" size={14} /> : null}

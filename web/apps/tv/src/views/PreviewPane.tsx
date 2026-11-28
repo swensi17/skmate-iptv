@@ -1,3 +1,4 @@
+import { Title } from "./ChannelRow";
 import { useContext, useEffect, useMemo, useRef, useState } from "preact/hooks";
 import type { Channel } from "@skmate/core";
 import type { Programme } from "@skmate/epg";
@@ -135,7 +136,7 @@ export function PreviewPane(p: {
       <div class="hp-info">
         {pick ? (
           <>
-            <div class="hp-title">{pick.title}</div>
+            <div class="hp-title"><Title text={pick.title} /></div>
             <div class="hp-details">{t("homeTimeRange", { a: clock(pick.start), b: clock(pick.stop) })}</div>
             {pickDesc ? <RatedText class="hp-desc" text={pickDesc} /> : null}
           </>
@@ -143,7 +144,7 @@ export function PreviewPane(p: {
         {!pick && channel && !nn?.now ? (textWait ? <TextSkeleton /> : <NoGuide />) : null}
         {!pick && nn?.now ? (
           <>
-            <div class="hp-title">{nn.now.title}</div>
+            <div class="hp-title"><Title text={nn.now.title} /></div>
             <div class="hp-details">{t("homeTimeRange", { a: clock(nn.now.start), b: clock(nn.now.stop) })}</div>
             <div class="hp-progress">
               <span class="st-progress"><i style={{ width: `${(nn.progress * 100).toFixed(1)}%` }} /></span>
@@ -159,7 +160,7 @@ export function PreviewPane(p: {
             {upcoming.map((x, i) => (
               <button key={x.start} class={`st-focusable hp-sched-item${i === 0 ? " next" : ""}`} data-focus={`sched-${i}`}
                 onClick={() => p.onProgramme?.(channel, x)}>
-                <b>{clock(x.start)}</b>{"  "}{x.title}
+                <b>{clock(x.start)}</b>{"  "}<Title text={x.title} />
               </button>
             ))}
           </div>
