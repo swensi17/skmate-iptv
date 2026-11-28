@@ -26,7 +26,7 @@ class GuideDefaults(private val providers: List<Provider>, private val shared: L
         } else {
             providerFor(playlistUrl)?.let { p -> p.guides.map { DefaultGuide(p.name, it) } }.orEmpty()
         }
-        return (first + shared).distinctBy { it.url }
+        return (first + shared).distinctBy { GuideKey.of(it.url) }
     }
 
     /** The provider whose host is the playlist's host or one of its parent domains. */
@@ -62,4 +62,9 @@ class GuideDefaults(private val providers: List<Provider>, private val shared: L
         internal fun hostOf(url: String?): String? =
             runCatching { URI(url?.trim()?.substringBefore('|')).host?.lowercase()?.removePrefix("www.") }.getOrNull()
     }
+}
+
+/** One guide however it is written: http or https, packed (.gz) or not. The first spelling stays. */
+object GuideKey {
+    fun of(url: String): String = url.trim().substringAfter("://").removeSuffix("/").lowercase().removeSuffix(".gz")
 }

@@ -202,7 +202,11 @@ internal fun LiveStageRow(
             }
             if (!logosOnly) LivePlate(channel.displayLogoUrl, 76.mpx, 54.mpx)
             if (!logosOnly) Column(Modifier.weight(1f)) {
-                rowName(name.name, if (tvBox) 23 else 22, focused)
+                // The archive tag sits in the row's top corner: the name stops short of it.
+                val nameRoom = if (archiveTag != null) ARCHIVE_TAG_ROOM.mpx else 0.mpx
+                Box(Modifier.padding(end = nameRoom)) {
+                    rowName(name.name, if (tvBox) 23 else 22, focused)
+                }
                 val title = now?.title ?: nowTitle
                 if (title != null) {
                     val left = now?.let { timeLeftText(minutesLeft(it)) }
@@ -269,6 +273,7 @@ private fun ArchiveCornerTag(text: String, modifier: Modifier = Modifier) {
 }
 
 private const val WATCHED_MARK = 20
+private const val ARCHIVE_TAG_ROOM = 70
 private const val LOGO_ONLY_W = 96
 private const val LOGO_ONLY_H = 46
 private const val WATCHED_MARK_INSET = 12

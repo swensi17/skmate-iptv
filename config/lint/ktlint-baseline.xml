@@ -157,9 +157,9 @@
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/live/LiveStage.kt">
         <error line="3" column="1" source="standard:import-ordering" />
-        <error line="1102" column="19" source="standard:property-naming" />
-        <error line="1105" column="19" source="standard:property-naming" />
-        <error line="1108" column="19" source="standard:property-naming" />
+        <error line="1107" column="19" source="standard:property-naming" />
+        <error line="1110" column="19" source="standard:property-naming" />
+        <error line="1113" column="19" source="standard:property-naming" />
     </file>
     <file name="app/src/main/java/tv/own/owntv/features/live/LiveViewModel.kt">
         <error line="5" column="1" source="standard:import-ordering" />

@@ -1159,5 +1159,5 @@ fun splitGuideUrls(raw: String?): List<String> {
     if (',' !in url) return listOf(url)
     val parts = url.split(',').map { it.trim() }
     if (parts.any { !it.startsWith("http://", true) && !it.startsWith("https://", true) }) return listOf(url)
-    return parts.distinct()
+    return parts.distinctBy { tv.own.owntv.core.epg.GuideKey.of(it) }
 }
