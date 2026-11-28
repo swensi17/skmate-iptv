@@ -266,10 +266,10 @@ button.home-cat:focus, button.home-cat:focus > .st-icon, button.home-cat:focus .
 .gs-day-date { font-size: 14px; opacity: .75; }
 
 /* #760: three columns as on Android (1920: programme 620, picture 640, the list the rest). The content ends at 1702. */
-.home-3col .home-list { width: 369px; }
-.home-3col > .gs { left: 418px; width: 620px; top: 120px; bottom: 0; border-radius: 18px; animation: none; }
-.home-3col .hp-pane { left: 1062px; width: 640px; }
-.home-3col .hp-card { height: 360px; border-radius: 22px; }
+.home-3col .home-list { width: 470px; }
+.home-3col > .gs { left: 519px; width: 619px; top: 120px; bottom: 0; border-radius: 18px; animation: none; }
+.home-3col .hp-pane { left: 1162px; width: 540px; }
+.home-3col .hp-card { height: 304px; border-radius: 22px; }
 .home-3col .hp-logo { width: 200px; height: 200px; margin: -100px 0 0 -100px; }
 .home-3col .hp-title { font-size: 32px; }
 .home-3col .hp-desc { -webkit-line-clamp: 6; }
@@ -282,7 +282,7 @@ button.home-cat:focus, button.home-cat:focus > .st-icon, button.home-cat:focus .
 /* 2.7.1: the remote in the programme: the list shrinks to its logos, the programme takes the room; ◀ gives it back. */
 .home-3col .home-list, .home-3col > .gs { transition: width 260ms var(--st-ease), left 260ms var(--st-ease); }
 .home-3col.guide-on .home-list { width: 150px; }
-.home-3col.guide-on > .gs { left: 199px; width: 839px; }
+.home-3col.guide-on > .gs { left: 199px; width: 939px; }
 .home-3col .home-tools { transition: opacity 200ms var(--st-ease, ease), visibility 0s; }
 .home-3col.guide-on .home-tools { opacity: 0; visibility: hidden; pointer-events: none; transition: opacity 200ms var(--st-ease, ease), visibility 0s 200ms; }
 .home-3col.guide-on .lrow-text, .home-3col.guide-on .lrow-end, .home-3col.guide-on .lrow-num { display: none; }
@@ -290,3 +290,4 @@ button.home-cat:focus, button.home-cat:focus > .st-icon, button.home-cat:focus .
 :root[data-motion="off"] .home-3col .home-list, :root[data-motion="off"] .home-3col > .gs { transition: none; }
 .gs-t { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .home-3col.guide-on .lrow.opened { background: rgba(255, 255, 255, .10); box-shadow: inset 0 0 0 2px var(--st-blue); border-radius: 10px; }
+.home-3col .gs-about { -webkit-line-clamp: 8; }
