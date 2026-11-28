@@ -674,7 +674,8 @@ private fun programmeCard(p: XtEpgEntry?, now: Long, formatTime: (Long) -> Strin
         Row(horizontalArrangement = Arrangement.spacedBy(20.mpx)) {
             art?.let { tv.own.owntv.ui.components.programmePoster(it.posterUrl, CARD_POSTER.mpx) }
             about?.let {
-                Text(it, style = stageText(COMPANION_TEXT, MEDIUM), color = c.soft, maxLines = CARD_LINES, overflow = TextOverflow.Ellipsis)
+                // The whole text, to its end: the card grows rather than cutting it with "…".
+                Text(it, style = stageText(COMPANION_TEXT, MEDIUM), color = c.soft, maxLines = Int.MAX_VALUE, overflow = TextOverflow.Ellipsis)
             }
         }
     }
@@ -683,7 +684,6 @@ private fun programmeCard(p: XtEpgEntry?, now: Long, formatTime: (Long) -> Strin
 private const val CARD_TINT = 0.06f
 private const val CARD_RADIUS = 18
 private const val CARD_TITLE = 26
-private const val CARD_LINES = 8
 private const val CARD_POSTER = 130
 private const val COMPANION_POSTER = 170
 private const val COMPANION_TEXT = 19
