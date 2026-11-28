@@ -25,7 +25,9 @@ function dayTitle(day: number, today: number): { name: string; date: string } {
     // Older TVs (webOS 4, Tizen 4) have no RelativeTimeFormat: the weekday stands in for "today".
     const rel = (Intl as unknown as { RelativeTimeFormat?: new (l?: string, o?: object) => { format(n: number, u: string): string } }).RelativeTimeFormat;
     if (rel && Math.abs(diff) <= 1) return { name: capitalize(new rel(lang(), { numeric: "auto" }).format(diff, "day")), date: dd };
-    return { name: capitalize(new Intl.DateTimeFormat(lang(), { weekday: "long" }).format(date)), date: dd };
+    const full = capitalize(new Intl.DateTimeFormat(lang(), { weekday: "long" }).format(date));
+    // A long weekday ("Понедельник", "Воскресенье") is cut with a dot, so every day fits the column at the same size.
+    return { name: full.length > 8 ? `${full.slice(0, 5)}.` : full, date: dd };
   } catch {
     return { name: dd, date: "" };
   }
